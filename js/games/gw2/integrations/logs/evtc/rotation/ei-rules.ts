@@ -5,7 +5,15 @@ export interface EiInstantRule {
   readonly skillId: number;
   readonly signal: number | string;
   readonly kind:
-    'buff-gain' | 'buff-loss' | 'buff-give' | 'damage' | 'effect' | 'effect-dst' | 'minion-cast' | 'minion-command';
+    | 'buff-gain'
+    | 'buff-loss'
+    | 'buff-give'
+    | 'damage'
+    | 'missile'
+    | 'effect'
+    | 'effect-dst'
+    | 'minion-cast'
+    | 'minion-command';
   readonly rule: string;
   readonly origin?: 'skill' | 'trait' | 'gear' | 'unconditional';
   readonly notAccurate?: boolean;
@@ -779,6 +787,23 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: '418A090D719AB44AAF1C4AD1473068C4',
     kind: 'effect-dst',
     rule: 'HolosmithHelper.EffectCastFinderByDst(FlashSpark)'
+  },
+  // EI identifies these toolbelt casts from missile creation, even when no animation or hit is recorded.
+  {
+    profession: 'engineer',
+    specialization: 'holosmith',
+    skillId: 42163,
+    signal: 42163,
+    kind: 'missile',
+    rule: 'HolosmithHelper.MissileCastFinder(BladeBurst)'
+  },
+  {
+    profession: 'engineer',
+    specialization: 'holosmith',
+    skillId: 45732,
+    signal: 45732,
+    kind: 'missile',
+    rule: 'HolosmithHelper.MissileCastFinder(ParticleAccelerator)'
   },
   {
     profession: 'engineer',

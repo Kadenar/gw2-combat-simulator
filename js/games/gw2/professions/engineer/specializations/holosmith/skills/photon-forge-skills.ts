@@ -335,13 +335,16 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 520,
+    // The report's shortest successful cast is 441 ms (440 on the replay grid); hit timing alone is not a cutoff.
+    interruptCommitMs: 440,
     cooldown: 0,
     heatGain: 2,
     effects: [
       {
         type: 'strike',
-        coefficient: 1,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 1 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Bright Slash',
         actorType: 'player'
       }
@@ -405,14 +408,16 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     quicknessCastTimeMs: 520,
+    interruptCommitMs: 480,
     cooldown: 0,
     heatGain: 2,
     effects: [
       {
         type: 'strike',
-        ticks: [280, 520].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
+        // The second impact precedes the aftercast; shortening it must not stretch or drop either strike.
+        ticks: [280, 440].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         name: 'Flash Cutter',
         actorType: 'player'
       }

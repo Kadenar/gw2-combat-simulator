@@ -81,6 +81,36 @@ test('timeline gives only interrupted zero-damage casts a red border', () => {
   }
 });
 
+test('timeline labels the executed skill variant while preserving the saved command', () => {
+  // A build trait may replace an imported action without rewriting the user's rotation.
+  const base = { id: 76642, name: 'Evolve (Base)' };
+  const traited = { id: 76651, name: 'Evolve (Double Helix)' };
+  const app = {
+    skills: [base, traited],
+    skillById: new Map([
+      [base.id, base],
+      [traited.id, traited]
+    ]),
+    adapter: { eliteSpecialization: () => 'Amalgam' },
+    profession: { ui: { timelineWeaponLineTransition: () => null } }
+  };
+  const build = {
+    rotation: [{ type: 'cast', skillId: base.id }],
+    startingWeaponSet: 1,
+    weapons: [],
+    alternateWeapons: []
+  };
+  for (const skill of [traited, base]) {
+    const results = { duration: 1, steps: [{ ri: 0, skillId: skill.id, skill: skill.name, start: 0, end: 1000 }] };
+    const html = timelineRowsView(app, build, results, false, new Set(), false)
+      .rows.map((row) => row.html)
+      .join('');
+    assert.ok(html.includes(skill.name));
+    assert.ok(!html.includes(skill === base ? traited.name : base.name));
+    assert.equal(build.rotation[0].skillId, base.id);
+  }
+});
+
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
   return {

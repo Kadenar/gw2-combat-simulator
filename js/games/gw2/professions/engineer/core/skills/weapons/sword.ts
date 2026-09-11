@@ -112,6 +112,9 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         name: 'Refraction Cutter Blade',
+        // Report projectile damage separately while retaining the parent sword cast.
+        damageBreakdownName: 'Refraction Cutter Blade',
+        sourceId: ID.REFRACTION_CUTTER_BLADE,
         actorType: 'player',
         comboFinishers: [
           {

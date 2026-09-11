@@ -26,22 +26,19 @@ function focused(context: EngineerResolverContext, at: number): boolean {
   return Number(professionCoreState(context).focusedUntil || 0) > at;
 }
 
-/** Resolves one Lightning Rod pulse, including its Focused coefficient and second-hit immobilize. */
+/** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
 export function handleLightningRodPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
   queueDamage(context, event, {
     name: 'Lightning Rod',
     coefficient: isFocused ? 0.3 : 0.17
   });
-  // Immobilize only on the second hit (hitIndex 1, 0-based) — not every pulse
-  if (event.hitIndex === 1) {
-    applyEngineerDerivedCondition(context, event, {
-      name: 'Lightning Rod',
-      condition: 'Immobilized',
-      stacks: 1,
-      duration: 2
-    });
-  }
+  applyEngineerDerivedCondition(context, event, {
+    name: 'Lightning Rod',
+    condition: 'Vulnerability',
+    stacks: isFocused ? 2 : 1,
+    duration: 8
+  });
 }
 
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
@@ -79,6 +76,25 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     coefficient: isFocused ? 1.5 : 1,
     explosion: true
   });
+  applyEngineerDerivedCondition(context, event, {
+    name: 'Electric Artillery',
+    condition: 'Immobilized',
+    stacks: 1,
+    duration: 2
+  });
+  // The tooltip specifies charges required per stack: one when Focused, otherwise two.
+  const vulnerabilityStacks = Math.floor(charges / (isFocused ? 1 : 2));
+  if (vulnerabilityStacks > 0) {
+    applyEngineerDerivedCondition(context, event, {
+      name: 'Electric Artillery',
+      condition: 'Vulnerability',
+      stacks: vulnerabilityStacks,
+      duration: 8,
+      // Artillery's Vulnerability does not scale with condition duration.
+      metadata: { fixedDuration: true }
+    });
+  }
+
   context.queue.enqueue({
     type: 'condition',
     at: event.at,

@@ -138,20 +138,24 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.BLOWTORCH]: {
     quicknessCastTimeMs: 560,
     interruptCommitMs: 360,
+    // Committed flame casts keep their remaining lockout before the next player input.
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 12,
     effects: [
+      // The flame and burning land before aftercast; scheduling at cast end drops committed shortened casts.
       {
         type: 'strike',
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 2 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Maximum Damage',
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
-        duration: 4.5,
+        ticks: [{ atMs: 280, condition: 'Burning', stacks: 3, duration: 4.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         actorType: 'player'
       }
     ]

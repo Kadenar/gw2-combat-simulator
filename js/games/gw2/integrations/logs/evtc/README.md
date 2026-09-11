@@ -15,19 +15,25 @@ acceleration and saved time are retained separately from replay commands.
 
 `rotation/ei-rules.ts` lists explicit ordinary EI finders with evidence IDs/GUIDs, build ranges, offsets, duplicate
 windows, origin and accuracy. `ei-inference.ts` implements buff gain/loss/give, damage, effect source/destination,
-minion animation and minion command evidence. Ordinary buff gain rejects initial snapshots and extensions. Effect
-namespaces remain separate; secondary effects and effect-availability gates are checked where declared. Stable nested
-minion ownership is supported; ambiguous reused instances or changing masters are rejected pending time-aware ownership.
+missile creation, minion animation and minion command evidence. Ordinary buff gain rejects initial snapshots and
+extensions. Effect namespaces remain separate; secondary effects and effect-availability gates are checked where
+declared. Stable nested minion ownership is supported; ambiguous reused instances or changing masters are rejected
+pending time-aware ownership.
 
 `ei-custom-casts.ts` implements ProfHelper's buff- and effect-based animated finders, including their explicit
 initial-application exceptions and suppression when a decoded animation exists. `ei-minions.ts` implements Ranger
 pet/Reaper spawn rules and Chronomancer shatter effect/clone checks. An existing minion alone does not imply a summon.
 Engineer kit identification requires an actual kit swap and a subsequent represented bundle animation.
 
-Coverage is intentionally incomplete. Unsupported extension healing/barrier, missile, and custom checker families are
-not replaced by generic damage or catalog guesses. Mechanist summon/recall skills are intentionally outside simulator
-scope. See the [coverage inventory](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for the pinned finder exclusions.
-This implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
+Declared missile finders follow EI's pinned `MissileCastFinder`: accept the player's `MissileCreate` state (57), retain
+its timestamp and accurate skill-origin metadata, and collapse projectiles using EI's sliding 50 ms duplicate window per
+skill/caster. Launch/remove events and damage do not supply these casts. Unsupported effect fallbacks with secondary
+same-source checks and missile-availability gates remain excluded; ambiguous evidence must not guess a skill.
+
+Coverage is intentionally incomplete. Unsupported extension healing/barrier and custom checker families are not replaced
+by generic damage or catalog guesses. Mechanist summon/recall skills are intentionally outside simulator scope. See the
+[coverage inventory](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for the pinned finder exclusions. This
+implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
 
 ## Normalization and timing
 

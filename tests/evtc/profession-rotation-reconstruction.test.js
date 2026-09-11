@@ -5,6 +5,7 @@ import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integra
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { eiMinionSpawns } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
@@ -20,6 +21,71 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+test('EI missile finders preserve creation evidence and suppress duplicate projectiles per skill and caster', () => {
+  // Creation is sufficient without a hit; launches, removals, damage and another actor cannot invent a cast.
+  const events = [
+    ...[100, 140, 180, 230].map((time) => event({ time, stateChange: 57, skillId: 42163 })),
+    event({ time: 140, stateChange: 57, skillId: 45732 }),
+    event({ time: 270, stateChange: 57, skillId: 42163, source: 0x2000n, sourceMasterInstance: 1 }),
+    event({ time: 300, stateChange: 57, skillId: 999999 }),
+    ...[0, 58, 59].map((stateChange) => event({ time: 400, stateChange, skillId: 45732, value: 100 }))
+  ];
+  const c = context('engineer', 'holosmith', events);
+  const actions = eiInstantActions(c);
+  assert.deepEqual(
+    actions.map((a) => [a.rawSkillId, a.start]),
+    [
+      [42163, 100],
+      [42163, 230],
+      [45732, 140]
+    ]
+  );
+  for (const action of actions) {
+    assert.equal(action.evidence, 'missile');
+    assert.equal(action.metadataAccurate, true);
+    assert.equal(action.castOrigin, 'skill');
+    assert.match(action.eiRule, /HolosmithHelper\.MissileCastFinder/);
+    assert.equal(events[action.eventIndex].time, action.start);
+  }
+
+  assert.deepEqual(eiInstantActions(context('engineer', 'scrapper', events)), []);
+
+  const imported = reconstructEvtcRotation(
+    log({ ...c.log, agents: [{ ...c.log.agents[0], profession: 3, elite: 57 }] }),
+    engineerCatalog,
+    { includeCombatStart: false }
+  );
+  assert.ok(imported.rotation.some((command) => command.name === 'Blade Burst'));
+  assert.ok(imported.rotation.some((command) => command.name === 'Particle Accelerator'));
+  assert.ok(imported.warnings.some((warning) => warning.includes('3 instant casts')));
+});
+
+test('EVTC Forge bundle changes replace an equipped kit without replaying swaps or stows', () => {
+  // Buff transitions identify Forge actions; their paired bundle signals must collapse into those same inputs.
+  const fixture = log({
+    agents: [{ ...log().agents[0], profession: 3, elite: 57 }],
+    skills: [{ id: 5823, name: 'Fire Bomb' }],
+    events: [
+      event({ time: 0, stateChange: 11, target: 2n }),
+      event({ time: 100, stateChange: 67, skillId: 5823, value: 600 }),
+      event({ time: 700, stateChange: 68, skillId: 5823, value: 600, activation: 5 }),
+      event({ time: 800, stateChange: 11, target: 4n }),
+      event({ time: 800, stateChange: 69, target: PLAYER, skillId: 43708, value: 1000, buff: 1 }),
+      event({ time: 801, stateChange: 11, target: 3n }),
+      event({ time: 1500, stateChange: 72, source: PLAYER, skillId: 43708, buff: 1 }),
+      event({ time: 1500, stateChange: 11, target: 4n })
+    ]
+  });
+  const result = reconstructEvtcRotation(fixture, engineerCatalog, { includeCombatStart: false });
+  assert.ok(result.rotation.some((command) => command.name === 'Bomb Kit'));
+  assert.ok(result.rotation.some((command) => command.name === 'Engage Photon Forge'));
+  assert.ok(result.rotation.some((command) => command.name === 'Deactivate Photon Forge'));
+  assert.equal(
+    result.rotation.some((command) => command.name === 'Swap Weapons' || command.name === 'Stow Bomb Kit'),
+    false
+  );
+});
 
 // Normalization may reorder tied signals, but each action must retain its own EVTC source identity.
 test('tied Revenant stance and upkeep signals preserve source metadata in either raw order', () => {

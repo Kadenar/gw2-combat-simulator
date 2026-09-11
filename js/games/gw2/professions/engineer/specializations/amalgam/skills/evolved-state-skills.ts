@@ -17,7 +17,9 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     toolbeltParentName: 'Mitotic State',
     mechanicSlot: 1
   },
-  [ID.EVOLVE]: {
+  [ID.EVOLVE_BASE]: {
+    name: 'Evolve (Base)',
+    description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
@@ -26,13 +28,18 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: [],
     mechanicSlot: 5
   },
-  [ID.EVOLVE_ID_76651]: {
+  [ID.EVOLVE_DOUBLE_HELIX]: {
+    name: 'Evolve (Double Helix)',
+    description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     quicknessCastTimeMs: 640,
     cooldown: 40,
     ammo: 2,
+    // The traited action has a short between-cast recharge and a separate per-charge recovery.
+    recharge: 1,
+    ammoRecharge: 40,
     effects: [],
     mechanicSlot: 5
   },

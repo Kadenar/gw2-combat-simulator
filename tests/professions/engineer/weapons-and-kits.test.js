@@ -9,6 +9,7 @@ import {
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({
@@ -29,6 +30,104 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+
+// Blade attribution must survive both authored effects and heat-generated events without changing the casting skill.
+test('Refraction Cutter blades retain their parent skill and expose a separate damage identity', () => {
+  for (const [specialization, initialHeat] of [
+    ['Core', 0],
+    ['Mechanist', 0],
+    ['Holosmith', 0],
+    ['Holosmith', 60],
+    ['Holosmith', 110]
+  ]) {
+    const result = simulate(specialization, ['Refraction Cutter', { type: 'wait', durationMs: 1000 }], {
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Pistol',
+      initialHeat,
+      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+    });
+    assert.deepEqual(result.warnings, []);
+    const primary = result.resolvedEvents.find(
+      (event) =>
+        event.type === 'damage' && event.skillName === 'Refraction Cutter' && event.name !== 'Refraction Cutter Blade'
+    );
+    const blades = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.name === 'Refraction Cutter Blade'
+    );
+    assert.ok(primary);
+    assert.ok(blades.length > 0);
+    for (const blade of blades) {
+      assert.equal(blade.damageBreakdownName, 'Refraction Cutter Blade');
+      assert.equal(blade.sourceId, ID.REFRACTION_CUTTER_BLADE);
+      assert.equal(blade.skillId, primary.skillId);
+      assert.equal(blade.skillName, primary.skillName);
+    }
+  }
+});
+
+// Derived projectiles retain their identity, but only their parent may emit them.
+test('Refraction Cutter Blade rejects standalone names and IDs while parent blades resolve', () => {
+  const config = { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' };
+  const blade = engineerCatalog.skillsById.get(ID.REFRACTION_CUTTER_BLADE);
+  assert.equal(engineerProfession.ui.paletteSkillAvailability({ specialization: 'Holosmith' }, blade).available, false);
+  for (const action of [blade.name, blade.id]) {
+    const result = simulate('Holosmith', [action], config);
+    assert.equal(result.warnings.length, 1);
+    assert.match(result.warnings[0], /unavailable for this build/);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'damage'),
+      false
+    );
+  }
+
+  for (const initialHeat of [0, 60]) {
+    const result = simulate('Holosmith', ['Refraction Cutter', { type: 'wait', durationMs: 1000 }], {
+      ...config,
+      initialHeat
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.resolvedEvents.some((event) => event.name === blade.name && event.damage > 0));
+  }
+});
+
+// Exercise charge conversion independently of the scheduler's usual eight-charge sequence.
+test('Electric Artillery converts whole charges into Focused-sensitive Vulnerability at impact', () => {
+  for (const [charges, focusedStacks, unfocusedStacks] of [
+    [0, 0, 0],
+    [1, 1, 0],
+    [3, 3, 1],
+    [8, 8, 4],
+    [12, 12, 6],
+    [20, 12, 6]
+  ]) {
+    for (const [focusedUntil, expectedStacks] of [
+      [11, focusedStacks],
+      [10, unfocusedStacks]
+    ]) {
+      const conditions = [];
+      handleElectricArtillery(
+        {
+          profession: { core: { focusedUntil } },
+          queue: { enqueue: (event) => event },
+          applyCondition: (event) => conditions.push(event)
+        },
+        { at: 10, skillId: ID.ELECTRIC_ARTILLERY, skillName: 'Electric Artillery', charges }
+      );
+      const vulnerability = conditions.find((event) => event.condition === 'Vulnerability');
+      assert.equal(vulnerability?.stacks ?? 0, expectedStacks);
+      if (expectedStacks) {
+        assert.equal(vulnerability.sourceId, ID.ELECTRIC_ARTILLERY);
+        assert.equal(vulnerability.duration, 8);
+        assert.equal(vulnerability.fixedDuration, true);
+      }
+
+      const immobilize = conditions.find((event) => event.condition === 'Immobilized');
+      assert.equal(immobilize.sourceId, ID.ELECTRIC_ARTILLERY);
+      assert.equal(immobilize.at, 10);
+      assert.equal(immobilize.duration, 2);
+    }
+  }
+});
 
 // Healing pulses must not generate additional damage or on-hit procs.
 test('Essence of Living Shadows damages only on its initial detonation', () => {
@@ -291,7 +390,7 @@ describe('Engineer packet profiles', () => {
         ['Conduit Surge', 'castTimeMs'],
         ['Electric Artillery', 'quicknessCastTimeMs'],
         ['Stoke the Flames', 'quicknessCastTimeMs'],
-        ['Evolve', 'quicknessCastTimeMs'],
+        ['Evolve (Base)', 'quicknessCastTimeMs'],
         ['Devastator', 'castTimeMs']
       ].map(([name, field]) => mechanic(name)[field]),
       [360, 440, 520, 640, 400, 520, 520, 440, 640, 1000]
@@ -1094,7 +1193,9 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
     'Amalgam',
     ['Conduit Surge', 'Lightning Rod', 'Electric Artillery', { type: 'wait', durationMs: 4000 }],
     {
-      selectedMorphSkillIds: [77103, 77104, 76705]
+      selectedMorphSkillIds: [77103, 77104, 76705],
+      stats: { expertise: 600 },
+      target: { conditions: { Vulnerability: 0 } }
     }
   );
 
@@ -1113,10 +1214,12 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
   assert.equal(artilleryStep.start - rodStep.start, 4200);
   assert.equal(focused.events.find((event) => event.type === 'engineer.electric-artillery').charges, 8);
   const immobilize = focused.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Lightning Rod' && event.condition === 'Immobilized'
+    (event) => event.type === 'condition' && event.condition === 'Immobilized'
   );
 
   assert.equal(immobilize.length, 1);
+  assert.equal(immobilize[0].sourceId, ID.ELECTRIC_ARTILLERY);
+  assert.equal(immobilize[0].at, focused.events.find((event) => event.type === 'engineer.electric-artillery').at);
   assert.equal(immobilize[0].duration, 2);
   assert.equal(
     focused.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Conduit Surge').length,
@@ -1133,9 +1236,16 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
   assert.equal(artilleryBurn.stacks, 2);
   assert.equal(artilleryBurn.duration, 7);
 
-  const unfocused = simulate('Amalgam', ['Lightning Rod', 'Electric Artillery'], {
-    selectedMorphSkillIds: [77103, 77104, 76705]
-  });
+  const unfocused = simulate(
+    'Amalgam',
+    ['Lightning Rod', 'Electric Artillery'],
+    {
+      selectedMorphSkillIds: [77103, 77104, 76705],
+      target: { conditions: { Vulnerability: 0 } }
+    },
+    // Artillery's condition contract is observed at impact after cast completion.
+    { kind: 'tail', durationMs: 1000 }
+  );
   const unfocusedHits = unfocused.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Lightning Rod'
   );
@@ -1155,6 +1265,22 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
   );
   assert.deepEqual(unfocused.endState.profession.lightningRodChargeExpiries, []);
   assert.equal(unfocused.endState.profession.electricArtilleryAvailable, false);
+  for (const [result, rodStacks, artilleryStacks] of [
+    [focused, 2, 8],
+    [unfocused, 1, 4]
+  ]) {
+    const rodVulnerability = result.resolvedEvents.filter(
+      (event) => event.condition === 'Vulnerability' && event.sourceId === ID.LIGHTNING_ROD
+    );
+    assert.ok(rodVulnerability.length > 0);
+    assert.ok(rodVulnerability.every((event) => event.stacks === rodStacks && event.duration === 8));
+    const artilleryVulnerability = result.resolvedEvents.find(
+      (event) => event.condition === 'Vulnerability' && event.sourceId === ID.ELECTRIC_ARTILLERY
+    );
+    assert.equal(artilleryVulnerability.stacks, artilleryStacks);
+    assert.equal(artilleryVulnerability.duration, 8);
+    assert.equal(artilleryVulnerability.effectiveDuration, 8);
+  }
 });
 
 test('Electric Artillery is unavailable until Lightning Rod creates its flip', () => {
@@ -1289,27 +1415,24 @@ function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
 
-test('Mine Field materializes five mines plus detonation with cripple', () => {
+test('Mine Field automatically detonates five mines with cripple', () => {
   const mineField = mechanic('Mine Field');
-  const detonation = mechanic('Detonate Mine Field');
 
   assert.equal(mineField.cooldown, 17);
   assert.equal(mineField.effects[0].coefficient, 3.85);
   assert.equal(mineField.effects[0].hits, 5);
-  assert.equal(detonation.effects[0].coefficient, 0.77);
-  assert.equal(detonation.effects[0].hits, 1);
 
-  const result = simulate('Core', ['Mine Field', 'Detonate Mine Field']);
+  const result = simulate('Core', ['Mine Field']);
 
   assert.equal(result.warnings.length, 0);
   const mines = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Damage per Mine');
 
-  assert.equal(mines.length, 6);
+  assert.equal(mines.length, 5);
   assert.ok(mines.every((event) => event.coefficient === 0.77));
 
   const cripple = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Crippled');
 
-  assert.equal(cripple.length, 6);
+  assert.equal(cripple.length, 5);
   assert.ok(cripple.every((event) => event.duration === 2.5));
 
   // A precast field waits for combat; fields cast after the marker still trigger at cast completion.
@@ -1335,6 +1458,30 @@ test('Mine Field materializes five mines plus detonation with cripple', () => {
   assert.equal(discharges(staticPrecast).length, 1);
   assert.equal(discharges(staticActive).length, 2);
   assert.ok(discharges(staticActive).some((event) => event.parentSkillName === 'Detonate Mine Field'));
+});
+
+test('manual Mine Field detonation cannot add damage or toolbelt activations', () => {
+  const detonation = mechanic('Detonate Mine Field');
+  assert.equal(engineerProfession.ui.paletteSkillAvailability({ specialization: 'Core' }, detonation).available, false);
+
+  // Parent casts own detonation, including precasts held until combat; manual name/ID inputs grant nothing.
+  for (const rotation of [[], ['Mine Field'], ['Mine Field', '__combat_start']]) {
+    const config = { selectedTraitIds: [TRAIT.STATIC_DISCHARGE] };
+    const baseline = simulate('Core', rotation, config);
+    const result = simulate(
+      'Core',
+      ['Detonate Mine Field', ...rotation, 'Detonate Mine Field', ID.DETONATE_MINE_FIELD],
+      config
+    );
+
+    assert.equal(result.warnings.length, 1);
+    assert.ok(result.warnings.every((warning) => /unavailable for this build/.test(warning)));
+    assert.equal(result.totalDamage, baseline.totalDamage);
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge').length,
+      baseline.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge').length
+    );
+  }
 });
 
 test('power Scrapper toolbelt skills use their per-hit and control facts', () => {

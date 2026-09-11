@@ -233,7 +233,7 @@ function buildRotation(
 }
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
-  const inferred = actions.filter((action) => action.evidence === 'effect');
+  const inferred = actions.filter((action) => action.evidence === 'effect' || action.evidence === 'missile');
   const unsupported = actions.filter((action) => !action.supportedByCatalog);
   const unfinished = actions.filter((action) => action.status === 'unknown');
   const warnings: string[] = [LOG_OPENER_WARNING];

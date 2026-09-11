@@ -39,7 +39,7 @@ interface MercurialTendenciesPayload extends SchedulerRecord {
   readonly sourceSkill?: string;
 }
 
-const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE, ID.EVOLVE_ID_76651]);
+const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
 
 /** Resolves the equipped protocol IDs to unique stable Morph kinds for strain application. */
 function selectedMorphKinds(context: EngineerSchedulerContext): Set<AmalgamMorphKind> {

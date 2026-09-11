@@ -388,6 +388,41 @@ test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relyi
   );
 });
 
+test('Forge replaces an equipped kit without a redundant stow or cancelling overlapping toolbelt casts', () => {
+  const fixture = reportFixture();
+  fixture.players[0].profession = 'Holosmith';
+  // Include kit entry/exit, both Forge exits, an overlapping cast, and an unrelated real swap.
+  const entries = [
+    [5812, 'Bomb Kit', 100, 0],
+    [42938, 'Engage Photon Forge', 700, 0],
+    [1000, 'Toolbelt cast', 800, 600],
+    [41123, 'Deactivate Photon Forge', 1000, 0],
+    [45219, 'Deactivate Photon Forge (Hot)', 2000, 0],
+    [5812, 'Bomb Kit', 2200, 0]
+  ];
+  fixture.players[0].rotation = [
+    ...entries.map(([id, , castTime, duration]) => ({ id, skills: [{ castTime, duration }] })),
+    { id: -2, skills: [101, 699, 701, 1001, 2001, 2201, 2500, 2800].map((castTime) => ({ castTime, duration: 0 })) }
+  ];
+  for (const [id, name] of entries) fixture.skillMap[`s${id}`] = { name };
+  const catalog = catalogFixture();
+  catalog.skills.push(
+    ...entries.slice(1, -1).map(([id, name, , duration]) => skill(id, name, { castTimeMs: duration }))
+  );
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog);
+
+  assert.deepEqual(
+    result.actions.filter((action) => action.name === 'Swap Weapons').map((action) => action.timestampMs),
+    [2800]
+  );
+  assert.deepEqual(
+    result.actions.filter((action) => action.name === 'Stow Bomb Kit').map((action) => action.timestampMs),
+    [2500]
+  );
+  for (const id of [42938, 41123, 45219]) assert.ok(result.rotation.some((command) => command.skillId === id));
+  assert.equal(result.rotation.find((command) => command.skillId === 1000).interruptMs, undefined);
+});
+
 test('imports reported Mechanist commands and Overclock without replaying passive Rocket Punch', async () => {
   const commands = [
     [63334, 'Rolling Smash'],

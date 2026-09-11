@@ -53,8 +53,8 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   state.electricArtilleryAvailable = false;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = readyAt;
-  // EA expires 14s after it arms; player loses the window if they don't fire it
-  state.electricArtilleryExpiresAt = readyAt + 14;
+  // Live Artillery availability lasts eight seconds after arming, independently of charge lifetimes.
+  state.electricArtilleryExpiresAt = readyAt + 8;
   emitEngineerStateSnapshot(context, context.effectiveEnd, 'lightning-rod-active');
 
   for (let index = 0; index < LIGHTNING_ROD_PULSE_COUNT; index += 1) {
@@ -104,22 +104,26 @@ export function scheduleConduitSurge(context: EngineerCastContext, skill: Engine
   emitSpearEvent(context, skill, at, 'engineer.conduit-surge');
 }
 
-/** Fires Electric Artillery with its live Lightning Rod charges and clears the armed sequence. */
+/** Consumes charges at release and schedules one impact so damage, conditions, and Focused share its arrival time. */
 export function scheduleElectricArtillery(context: EngineerCastContext, skill: EngineerSkill): void {
+  // A cancelled cast never releases a projectile or consumes the armed sequence.
+  if (context.action.cancelled) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  // only charges that haven't expired yet contribute — charges have a rolling 14s expiry window
+  // Snapshot unexpired charges at release; expiry during flight must not weaken an already-fired projectile.
   const charges = state.lightningRodChargeExpiries.filter((expiresAt) => Number(expiresAt) > at).length;
   context.emit({
     type: 'engineer.electric-artillery',
-    at,
+    // Resolve the projectile 600 ms after release, using the measured close-range impact delay.
+    at: at + 0.6,
     source: 'engineer',
     sourceId: skill.id,
     actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
     name: skill.name,
-    charges
+    charges,
+    persistsAfterInterrupt: true
   });
   // cancel all remaining LR tasks in one call — charge/ready/expire tasks all share the same ownerId
   context.tasks.cancelOwner(`engineer.lightning-rod:${state.lightningRodActivationId}`);
@@ -144,9 +148,9 @@ export function handleLightningRodCharge(
   state.lightningRodChargeExpiries = state.lightningRodChargeExpiries.filter(
     (expiresAt) => Number(expiresAt) > task.at
   );
-  // 12-charge cap matches EA's maximum charge input; each charge lasts 14s
+  // Live charges last twelve seconds each; the cap remains twelve charges.
   if (state.lightningRodChargeExpiries.length < 12) {
-    state.lightningRodChargeExpiries.push(task.at + 14);
+    state.lightningRodChargeExpiries.push(task.at + 12);
   }
 }
 

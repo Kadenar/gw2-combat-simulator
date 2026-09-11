@@ -441,8 +441,9 @@ export function timelineRowsView(
 
       const item = timelineItem(entry);
       const highlightKey = rotationSkillHighlightKey(entry);
-      const skill = resolveEntrySkill(app, item.command);
       const step = steps.get(index);
+      // Trait-selected variants can differ from saved commands; display the skill that actually ran.
+      const skill = resolveEntrySkill(app, step?.skillId != null ? { name: step.skillId } : item.command);
       const invalid = Boolean(step?.invalid);
       const cancelledWithoutDamage =
         !invalid && step?.interrupted === true && !!step.activationId && !damagingActivations.has(step.activationId);

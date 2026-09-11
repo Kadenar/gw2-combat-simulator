@@ -79,8 +79,9 @@
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
-        "benchmarkDps": 41664,
-        "upToDate": true
+        "benchmarkDps": 40834,
+        "upToDate": true,
+        "dpsReportUrl": "https://dps.report/wmlz-powerholoswpbench_golem"
       }
     ]
   },
@@ -122,7 +123,7 @@
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
         "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
-        "benchmarkDps": 41377,
+        "benchmarkDps": 40807,
         "upToDate": true
       }
     ]

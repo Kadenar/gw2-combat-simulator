@@ -391,6 +391,8 @@ export interface NormalizedProfessionContract<
   readonly onCooldownReset: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly onEventScheduled: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
   readonly onWeaponSwap: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
+  /** Resolves build-selected skill variants before availability and resource bookkeeping. */
+  readonly modifySkillId: (context: SchedulerContext<TProfessionState>, skillId: SkillId) => SkillId;
   readonly modifyCastDuration: (context: CastContext<TProfessionState>, duration: number) => number;
   /** Pure persistent recharge calculation; querying must not consume profession state. */
   readonly modifyRechargeDuration: (

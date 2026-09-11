@@ -325,8 +325,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   let combatStartTime: number | null = null;
   let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, SchedulerRecord>;
 
-  const skillFor = (skillId: SkillId): Skill | undefined =>
-    activeCatalog?.skillsById?.get(skillId) || activeCatalog?.skills?.find((skill) => skill.id === skillId);
+  const skillFor = (requestedId: SkillId): Skill | undefined => {
+    // Resolve build-selected variants before looking up the skill so aliases spend the same resource pool.
+    const skillId = activeProfession.modifySkillId(context, requestedId);
+    return activeCatalog?.skillsById?.get(skillId) || activeCatalog?.skills?.find((skill) => skill.id === skillId);
+  };
 
   const context: SchedulerContext<TProfessionState> = {
     profession: activeProfession,

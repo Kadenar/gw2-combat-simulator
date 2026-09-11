@@ -21,10 +21,18 @@ per-actor/per-skill pairing, 10 ms tolerance, unknown casts, status and accelera
 
 The ordinary finder table contains explicit descriptors. Custom animated finders, Ranger/Reaper spawn detection,
 Engineer kit swaps and Chronomancer shatter checks are implemented separately. This is not a complete EI parity
-certification. Extension healing/barrier, missile and unported custom predicates are omitted; no generic catalog or
-damage guess replaces them. Mechanist summon/recall skills are intentionally outside simulator scope. Time-aware
-ownership changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently uses the
-header build, and encounter start/end use the documented adapter boundaries rather than EI encounter-specific logic.
+certification. Extension healing/barrier and unported custom predicates are omitted; no generic catalog or damage guess
+replaces them. Mechanist summon/recall skills are intentionally outside simulator scope. Time-aware ownership changes
+and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently uses the header build, and
+encounter start/end use the documented adapter boundaries rather than EI encounter-specific logic.
+
+Holosmith Blade Burst and Particle Accelerator now use the pinned
+[MissileCastFinder](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/InstantCastFinders/MissileCastFinder/MissileCastFinder.cs):
+player-owned missile creation events, original timestamps, a sliding 50 ms duplicate window and accurate skill-origin
+metadata. These declarations have no extra build gate or minion attribution. The pinned
+[HolosmithHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Engineer/HolosmithHelper.cs)
+also declares an ambiguous effect fallback with a secondary same-source check and `UsingDisableWithMissileData`. That
+fallback remains excluded; damage is not used to guess either skill. The EI pin is unchanged.
 
 The following pinned ordinary-finder declarations were excluded because their finder/checker family was unsupported by
 the ordinary table. Some have a separately implemented custom path described above; listing a declaration here does not
@@ -44,8 +52,7 @@ mean all evidence for its skill is absent. These are coverage exclusions, not re
   `Engineer.EngineerKitFinder(ToolKit),`, `Engineer.EngineerKitFinder(EliteMortarKit),`,
   `Engineer.DetonateThrowMineOrMineField`, `Engineer.DetonateMineField`, `Engineer.DetonateThrowMine`,
   `Engineer.AimAssistedRocket`, `Engineer.SurpriseShot`, `Holosmith.BladeBurstOrParticleAccelerator`,
-  `Holosmith.BladeBurst`, `Holosmith.ParticleAccelerator`, `Mechanist.CrisisZone`, `Mechanist.RocketPunchMech`,
-  `Mechanist.ExigencyProtocol`.
+  `Mechanist.CrisisZone`, `Mechanist.RocketPunchMech`, `Mechanist.ExigencyProtocol`.
 - **Guardian:** `Guardian.JudgesIntervention`, `Guardian.MercifulInterventionSkill`, `Guardian.Advance`,
   `Guardian.StandYourGround`, `Guardian.LesserSymbolOfBlades`, `Guardian.LesserSymbolOfBlades`,
   `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfProtection`,

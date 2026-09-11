@@ -2,9 +2,11 @@ import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/as
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
-  namedSkillId,
   uniqueIdsBySkillName
 } from '#gw2/professions/engineer/core/presentation.js';
+import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionSkillBarGroup,
@@ -55,9 +57,16 @@ function selectedMorphIds(context: EngineerUiContext): number[] {
   );
 }
 
-/** Projects the selected protocols between Amalgam's fixed F1 and F5 skills. */
+/** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
 function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[] {
-  return [engineerToolbeltSkillIds(context)[0], ...selectedMorphIds(context).slice(0, 3), namedSkillId('Evolve')];
+  const traits = context.build?.specializations
+    ? new Set(getActiveTraits(context.build.specializations).map((trait) => trait.id))
+    : context.config;
+  return [
+    engineerToolbeltSkillIds(context)[0],
+    ...selectedMorphIds(context).slice(0, 3),
+    resolveAmalgamSkillId(traits, ID.EVOLVE_BASE)
+  ];
 }
 
 /** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */

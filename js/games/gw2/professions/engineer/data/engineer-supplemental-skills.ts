@@ -410,7 +410,8 @@ const records: EngineerSupplementalSkill[] = [
     categories: ['Tool belt'],
     nextChainId: null,
     flipSkillId: null,
-    simulatorExcluded: false
+    // Mine Field owns automatic damage and toolbelt traits; manual replay would duplicate its detonation.
+    simulatorExcluded: true
   },
   {
     id: 6176,
@@ -1201,7 +1202,8 @@ const records: EngineerSupplementalSkill[] = [
     categories: ['Holosmith'],
     nextChainId: null,
     flipSkillId: null,
-    simulatorExcluded: false
+    // Keep the projectile identity for reporting; only Refraction Cutter may produce blades.
+    simulatorExcluded: true
   },
   {
     id: 45219,

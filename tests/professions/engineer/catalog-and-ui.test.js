@@ -663,6 +663,29 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
   assert.equal(eventLogRow('Holosmith', event).description, 'heat - Heat 25.0');
 });
 
+test('Amalgam selects and labels Evolve from the current build traits in the palette and saved rotations', () => {
+  // Trait changes replace F5 and normalize old names/IDs without exposing both variants.
+  const build = createEngineerBuildDefaults();
+  for (const [traits, expectedId, name] of [
+    ['1-1-1', ID.EVOLVE_BASE, 'Evolve (Base)'],
+    ['1-1-3', ID.EVOLVE_DOUBLE_HELIX, 'Evolve (Double Helix)'],
+    ['1-1-1', ID.EVOLVE_BASE, 'Evolve (Base)']
+  ]) {
+    build.specializations[2] = { name: 'Amalgam', traits };
+    const group = engineerProfession.ui
+      .paletteGroups({ specialization: 'Amalgam', build })
+      .find((group) => group.id === 'engineer-profession');
+    assert.deepEqual(
+      group.skillIds.filter((id) => [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].includes(id)),
+      [expectedId]
+    );
+    assert.equal(engineerCatalog.skillsById.get(expectedId).name, name);
+    const migrated = migrateEngineerBuild({ ...build, rotation: ['Evolve', ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX] });
+    assert.ok(migrated.rotation.every((command) => command.skillId === expectedId));
+    assert.deepEqual(validateEngineerBuild(migrated), { valid: true, errors: [] });
+  }
+});
+
 test('Engineer defaults migrate and validate morph branch choices', () => {
   const defaults = createEngineerBuildDefaults();
 

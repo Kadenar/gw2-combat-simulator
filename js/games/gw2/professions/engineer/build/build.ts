@@ -5,6 +5,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.j
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
@@ -155,10 +157,14 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   normalizeExtra(build, { saved }) {
     // Normalize the morph loadout first because legacy rotation entries depend on the selected IDs.
     const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
+    const traits = new Set(getActiveTraits(build.specializations).map((trait) => trait.id));
     return {
       ...build,
       selectedMorphSkillIds,
-      rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds)
+      // Rebind legacy names and saved variant IDs to the build's selected Evolve before UI rendering.
+      rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
+        command.type === 'cast' ? { ...command, skillId: resolveAmalgamSkillId(traits, command.skillId) } : command
+      )
     };
   },
   validateExtra(build) {

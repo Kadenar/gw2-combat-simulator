@@ -197,9 +197,13 @@ test('Electric Artillery and Devastator each contribute their explosion to Shrap
     ['Devastator', ['Conduit Surge', 'Devastator', { type: 'wait', durationMs: 1000 }]]
   ]) {
     // Three grenades bank 0.99; the spear explosion must earn the bleed, while focused follow-ups must not.
-    const result = simulate('Core', ['Grenade Kit', 'Grenade', 'Stow Grenade Kit', ...attacks], {
-      selectedTraitIds: [TRAIT.SHRAPNEL]
-    });
+    const result = simulate(
+      'Core',
+      ['Grenade Kit', 'Grenade', 'Stow Grenade Kit', ...attacks],
+      { selectedTraitIds: [TRAIT.SHRAPNEL] },
+      // Observe the explosion after the projectile has left the cast lane.
+      { kind: 'tail', durationMs: 1000 }
+    );
     assert.deepEqual(result.warnings, []);
     const bleeds = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === 'Shrapnel'

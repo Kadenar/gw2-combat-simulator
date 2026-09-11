@@ -4,9 +4,12 @@ import { test } from 'node:test';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
-import { amalgamAttributeRules } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import {
+  amalgamAttributeRules,
+  amalgamCastRules
+} from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
@@ -406,7 +409,7 @@ test('Mercurial Tendencies reduces Evolve once per quarter-second', () => {
     selectedMorphSkillIds,
     selectedTraitIds: [TRAIT.SILVER_LINING, TRAIT.MERCURIAL_TENDENCIES]
   });
-  const evolveStart = (result) => result.steps.filter((step) => step.skill === 'Evolve')[1].start;
+  const evolveStart = (result) => result.steps.filter((step) => step.skillId === ID.EVOLVE_BASE)[1].start;
 
   assert.equal(evolveStart(baseline) - evolveStart(reduced), 2500);
   const procs = reduced.events.filter((event) => event.type === 'proc' && event.name === 'Mercurial Tendencies');
@@ -451,7 +454,7 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
     selectedTraitIds: [TRAIT.SYMBIOTIC_SYNERGY]
   });
   const morphSteps = reset.steps.filter((step) => step.skill === 'Offensive Protocol: Pierce');
-  const evolveStep = reset.steps.find((step) => step.skill === 'Evolve');
+  const evolveStep = reset.steps.find((step) => step.skillId === ID.EVOLVE_BASE);
 
   assert.equal(morphSteps[1].start, evolveStep.end);
 });
@@ -469,10 +472,10 @@ test('Double Helix gives Evolve two charges and doubles its attribute bonus', ()
     target: { conditions: {} }
   };
   const charges = simulate('Amalgam', ['Evolve', 'Evolve'], config);
-  const evolveSteps = charges.steps.filter((step) => step.skill === 'Evolve');
+  const evolveSteps = charges.steps.filter((step) => step.skillId === ID.EVOLVE_DOUBLE_HELIX);
 
   assert.equal(evolveSteps.length, 2);
-  assert.equal(evolveSteps[1].start, evolveSteps[0].end);
+  assert.ok(evolveSteps[1].start < evolveSteps[0].end + 40000);
 
   const baseline = simulate('Amalgam', [{ type: 'wait', durationMs: 750 }, 'Puncturing Jab'], config);
   const evolved = simulate('Amalgam', ['Evolve', 'Puncturing Jab'], config);
@@ -480,6 +483,45 @@ test('Double Helix gives Evolve two charges and doubles its attribute bonus', ()
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
 
   assert.ok(Math.abs(puncture(evolved).damage / puncture(baseline).damage - 1.2) < 1e-12);
+});
+
+test('Evolve aliases use only the trait-selected identity and share its charges and recharge', () => {
+  // Alternating API IDs must never create an extra cooldown or ammo pool.
+  for (const selectedTraitIds of [[], [TRAIT.DOUBLE_HELIX]]) {
+    const traited = selectedTraitIds.length > 0;
+    const skillId = traited ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
+    const inactive = engineerCatalog.skillsById.get(traited ? ID.EVOLVE_BASE : ID.EVOLVE_DOUBLE_HELIX);
+    assert.equal(
+      amalgamCastRules.availability.handler({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive)
+        .ready,
+      false
+    );
+    assert.equal(
+      amalgamCastRules.modifyMaximumAmmo({ config: { selectedTraitIds }, skill: inactive }, Number(inactive.ammo || 0)),
+      0
+    );
+    const result = simulate('Amalgam', [ID.EVOLVE_DOUBLE_HELIX, ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX], {
+      selectedTraitIds
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.steps.every((step) => step.skillId === skillId && !step.invalid));
+    assert.deepEqual([...result.schedulerState.cooldowns.keys()], [skillId]);
+    assert.deepEqual([...result.schedulerState.ammo.keys()], traited ? [skillId] : []);
+    const [first, second, third] = result.steps;
+    assert.ok(third.start >= first.end + 40000);
+    if (traited) {
+      assert.equal(result.schedulerState.ammo.get(skillId).maximum, 2);
+      assert.ok(second.start < first.end + 40000);
+    } else {
+      assert.ok(second.start >= first.end + 40000);
+    }
+
+    for (const name of ['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)']) {
+      const named = simulate('Amalgam', [name], { selectedTraitIds });
+      assert.deepEqual(named.warnings, []);
+      assert.equal(named.steps[0].skillId, skillId);
+    }
+  }
 });
 
 test('Evolve scales only its eligible static attribute pool', () => {

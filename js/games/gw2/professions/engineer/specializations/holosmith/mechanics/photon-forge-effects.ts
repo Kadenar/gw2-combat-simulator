@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { queueBuff } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
 import {
@@ -281,13 +281,15 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
       type: 'damage',
       at,
       name: 'Refraction Cutter Blade',
+      // Heat-generated blades share the base projectile's separate damage identity.
+      damageBreakdownName: 'Refraction Cutter Blade',
       skillName: event.skillName,
       coefficient: balanceProfileValue(strike, 'coefficient', 0.4),
       hits: 1,
       hitIndex: blade + 2,
       totalHits: extraBlades + 1,
       source: 'engineer',
-      sourceId: event.skillId ?? event.sourceId,
+      sourceId: ID.REFRACTION_CUTTER_BLADE,
       actorType: 'player',
       skillId: event.skillId,
       skillWeapon: 'Sword',

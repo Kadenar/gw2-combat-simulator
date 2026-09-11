@@ -29,7 +29,10 @@ export const ENGINEER_SKILL_IDS: Readonly<Record<string, number>> = Object.freez
   ...stableNameIndex([
     ...SKILLS.map((skill) => [skill.name, skill.id] as const),
     ...ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => [skill.name, skill.id] as const)
-  ])
+  ]),
+  // The API names both variants Evolve; semantic IDs distinguish the trait-selected actions.
+  EVOLVE_BASE: 76642,
+  EVOLVE_DOUBLE_HELIX: 76651
 });
 
 export const ENGINEER_TRAIT_IDS = stableNameIndex(

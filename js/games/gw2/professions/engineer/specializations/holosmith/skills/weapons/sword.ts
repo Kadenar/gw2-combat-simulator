@@ -66,6 +66,9 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.REFRACTION_CUTTER]: {
     quicknessCastTimeMs: 520,
+    // Preserve committed swing/blade damage and keep the parent cast's lockout before the next input.
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 6,
     effects: [
       {
@@ -82,6 +85,9 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Refraction Cutter Blade',
+        // Report projectile damage separately while retaining the parent sword cast.
+        damageBreakdownName: 'Refraction Cutter Blade',
+        sourceId: ID.REFRACTION_CUTTER_BLADE,
         actorType: 'player',
         comboFinishers: [
           {
@@ -122,6 +128,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         coefficient: 0.4,
         hits: 1,
         name: 'Refraction Cutter Blade',
+        damageBreakdownName: 'Refraction Cutter Blade',
         actorType: 'player',
         comboFinishers: [
           {
@@ -144,6 +151,8 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.SUN_RIPPER]: {
     quicknessCastTimeMs: 480,
+    // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
+    interruptCommitMs: 440,
     cooldown: 0,
     effects: [
       {
@@ -167,6 +176,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
     handlerId: 'engineer.gleam-saber',
     quicknessCastTimeMs: 720,
+    interruptCommitMs: 640,
     cooldown: 0,
     effects: [
       {

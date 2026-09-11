@@ -170,6 +170,10 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         ({ event, eventIndex }) => {
           let matches = false;
           switch (rule.kind) {
+            case 'missile':
+              // EI MissileCastFinder consumes MissileCreate (57), not launches, removals or damage packets.
+              matches = event.stateChange === 57 && owns(event.source);
+              break;
             case 'buff-gain':
               matches = isBuffApply(log, event) && owns(event.target);
               break;
@@ -227,7 +231,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         rawName: names.get(rule.skillId) ?? 'Unknown ' + rule.skillId,
         status: 'instant',
         eventIndex,
-        evidence: rule.kind.startsWith('buff-') ? 'buff-transition' : 'effect',
+        evidence: rule.kind.startsWith('buff-') ? 'buff-transition' : rule.kind === 'missile' ? 'missile' : 'effect',
         eiRule: rule.rule,
         castOrigin: rule.origin ?? 'skill',
         metadataAccurate: !(rule.notAccurate || rule.kind.startsWith('effect') || rule.kind === 'damage')

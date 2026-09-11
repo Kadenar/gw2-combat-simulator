@@ -149,14 +149,16 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
   },
   [ID.GRENADE_BARRAGE]: {
     quicknessCastTimeMs: 680,
+    // The shortest successful EVTC cast is 642 ms; its six impacts finish before the shortened aftercast.
+    interruptCommitMs: 640,
     cooldown: 25,
     effects: [
       {
         type: 'strike',
-        // Six grenades at 0.6 coefficient each.
-        ticks: [120, 240, 320, 440, 560, 680].map((atMs) => ({ atMs, coefficient: 3.6 / 6 })),
+        // Six impacts cluster around 400–480 ms in the benchmark, independently of aftercast cancellation.
+        ticks: [400, 440, 440, 440, 440, 480].map((atMs) => ({ atMs, coefficient: 3.6 / 6 })),
         timingAnchor: 'castStart',
-        timingScale: 'cast',
+        timingScale: 'fixed',
         name: 'Grenade Barrage',
         weapon: 'Profession mechanic',
         actorType: 'player',

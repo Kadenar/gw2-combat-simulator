@@ -19,9 +19,9 @@ not a claim of complete parity or the latest upstream version. The pinned links 
 - Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation requirements
   do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
 
-Known gaps include extension healing/barrier, missile and unported custom checker families, time-aware ownership and
-reused instance IDs, and EI encounter-specific boundaries. Some custom finders have separate implementations even when
-excluded from the ordinary table. Consult the
+Known gaps include extension healing/barrier and unported custom checker families, time-aware ownership and reused
+instance IDs, and EI encounter-specific boundaries. Some custom finders have separate implementations even when excluded
+from the ordinary table. Consult the
 [coverage inventory](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits) and
 [EVTC README](evtc/README.md) before treating a difference as a regression.
 

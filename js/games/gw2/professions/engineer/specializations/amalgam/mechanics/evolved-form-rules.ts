@@ -13,11 +13,17 @@ import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engin
 
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { EngineerEvolveAttributePool, EngineerMaximumAmmoContext } from '#gw2/professions/engineer/types.js';
+import type {
+  EngineerEvolveAttributePool,
+  EngineerMaximumAmmoContext,
+  EngineerSchedulerContext
+} from '#gw2/professions/engineer/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE, ID.EVOLVE_ID_76651]);
+const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
 import {
   handleMercurialTendencies,
   observeAmalgamScheduledEvent
@@ -128,11 +134,12 @@ function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   return modified;
 }
 
-/** Upgrades Evolve to two ammo with Double Helix without reducing a larger authored maximum. */
+/** Only the selected Double Helix variant may use Evolve ammo, including profiled capacity edits. */
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill && EVOLVE_SKILL_IDS.has(Number(context.skill.id)) && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
+  if (!context.skill || !EVOLVE_SKILL_IDS.has(Number(context.skill.id))) return maximum;
+  return context.skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(balanceProfileValueFromContext(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
-    : maximum;
+    : 0;
 }
 
 /** Exposes Amalgam's aggregate attribute transformation and packet modifier rules. */
@@ -143,6 +150,8 @@ export const amalgamAttributeRules = Object.freeze({
 
 /** Exposes Amalgam cast availability and ammo-capacity rules to the scheduler. */
 export const amalgamCastRules = Object.freeze({
+  modifySkillId: (context: EngineerSchedulerContext, skillId: SkillId) =>
+    resolveAmalgamSkillId(context.config, skillId),
   availability: {
     id: 'engineer.amalgam-availability',
     order: 30,
