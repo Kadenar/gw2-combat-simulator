@@ -73,6 +73,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.LASER_DISK]: {
     quicknessCastTimeMs: 960,
+    interruptCommitMs: 920,
     cooldown: 30,
     effects: [
       {

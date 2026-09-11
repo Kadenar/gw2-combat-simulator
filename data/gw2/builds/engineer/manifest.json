@@ -79,7 +79,7 @@
         "build": "data/gw2/builds/engineer/b-power-holosmith-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
-        "benchmarkDps": 40834,
+        "benchmarkDps": 41783,
         "upToDate": true,
         "dpsReportUrl": "https://dps.report/wmlz-powerholoswpbench_golem"
       }
