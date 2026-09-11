@@ -1,3 +1,7 @@
+/**
+ * Projects authored commands and simulation events into timeline rows and the proc panel.
+ * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
+ */
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { doubleEdgeOutcomeLabel, hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge.js';
@@ -51,6 +55,7 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
+/** The view retains a row's DOM node while both its identity and rendered HTML remain unchanged. */
 export interface TimelineRowRender {
   readonly key: string;
   readonly html: string;
@@ -61,6 +66,7 @@ let nextTimelineCommandKey = 1;
 
 const TOME_WEAPON_LINES = ['Tome of Justice', 'Tome of Resolve', 'Tome of Courage'];
 
+/** Keeps row identity attached to its first command when edits move that command to another index. */
 function timelineCommandKey(command: RotationCommand): number {
   const object = command as object;
   const existing = timelineCommandKeys.get(object);
@@ -70,7 +76,11 @@ function timelineCommandKey(command: RotationCommand): number {
   return key;
 }
 
-/** Builds keyed timeline rows and proc markup without changing DOM nodes or rotation state. */
+/**
+ * Builds shared editable/reference markup without changing DOM nodes or rotation state.
+ * Null results retain authored tiles without simulation details; readOnly omits editing controls.
+ * Proc visibility and disclosure state come from the caller so rerenders preserve those choices.
+ */
 export function timelineRowsView(
   app: ProfessionAppState,
   build: Gw2ApplicationBuild,
@@ -105,6 +115,7 @@ export function timelineRowsView(
   const automaticWeaponLineEndIndexes = new Set(
     [...automaticPhotonForgeExits, ...automaticTomeStows].map((marker) => marker.insertionIndex)
   );
+  // Partition commands by weapon set and transformation so events can be placed on their owning line.
   const startingWeaponSet = build.startingWeaponSet;
   const specialization = app.adapter.eliteSpecialization(build);
   const startingWeaponLine =
@@ -179,6 +190,7 @@ export function timelineRowsView(
       ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'Sovereign of Light')
       : [])
   ].sort((left, right) => left.start - right.start);
+  // Insertion indexes place simulated events between authored commands without adding editable commands.
   const overlayProcMarkersByIndex = new Map<number, typeof overlayProcMarkers>();
   for (const marker of overlayProcMarkers) {
     const markers = overlayProcMarkersByIndex.get(marker.insertionIndex) || [];
@@ -201,6 +213,7 @@ export function timelineRowsView(
     automaticPhotonForgeExitsByIndex.set(marker.insertionIndex, markers);
   }
 
+  // Attach exits to the transformed line they close; track them to avoid also emitting them at its boundary.
   const automaticPhotonForgeExitsByRow = new Map<number, typeof automaticPhotonForgeExits>();
   const automaticPhotonForgeExitRowMarkers = new Set<(typeof automaticPhotonForgeExits)[number]>();
   for (const marker of automaticPhotonForgeExits) {
@@ -400,6 +413,7 @@ export function timelineRowsView(
         </div>`;
   };
 
+  // Emit boundary markers before each authored tile, then close the line with any automatic exits.
   const timelineLines = rows.map((row, rowNumber) => {
     const rowItems: string[] = [];
     row.skills.forEach(({ entry, index }) => {
@@ -530,8 +544,9 @@ export function timelineRowsView(
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
       const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
+      // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
-                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip + titleSuffix + resourceTitle)}" style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
@@ -631,6 +646,7 @@ export function timelineRowsView(
         </div>`;
   });
 
+  // Wrap adjacent lines for one weapon-set stay in a keyed row with its own duration and accessible label.
   let timelineLineIndex = 0;
   const timelineRows = timelineWeaponRowGroups(rows).map((group, groupNumber) => {
     const weapons = group.weaponSet === 1 ? build.weapons : build.alternateWeapons;
@@ -663,6 +679,7 @@ export function timelineRowsView(
     };
   });
 
+  // The separate proc panel groups consecutive activations and shares filter keys with timeline overlays.
   if (procSteps.length) {
     const procOptions = [...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values()].sort((a, b) =>
       procFilterLabel(a).localeCompare(procFilterLabel(b))
