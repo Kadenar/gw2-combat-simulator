@@ -38,6 +38,7 @@ import type {
   ElementalistSchedulerContext
 } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   ELEMENTAL_LIGHTNING_JOLT_PROFILE,
@@ -881,6 +882,11 @@ export function elementalistElementalAvailability(
   }
 
   if (!elementalForGlyph(skill)) return null;
+  // Summon glyphs require an equipped slot before readiness or retry; command flips use the live elemental above.
+  if (!isSelectedSlotSkill(skill, selectedSkillNameSet(context.config.selectedSkills))) {
+    return denyCast('elementalist.not-equipped', 'the skill is not equipped.');
+  }
+
   return elemental.activeUntil > context.start + context.epsilon
     ? unavailable(`the ${elemental.element || 'summoned'} elemental is still active.`, elemental.activeUntil)
     : ready();

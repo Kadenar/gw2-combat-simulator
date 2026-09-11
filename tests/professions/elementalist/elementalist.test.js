@@ -313,11 +313,13 @@ test('Elementalist canonical condition timelines preserve their packet start and
   assert.equal(strike.type, 'strike');
   assert.equal(bleeding.type, 'condition');
   assert.equal(strike.ticks[0].atMs, 1040);
+  // Bleeding skips the opening strike and inherits the hitbox identity of its matching packet.
   assert.deepEqual(bleeding.ticks[0], {
     atMs: 1320,
     condition: 'Bleeding',
     stacks: 1,
-    duration: 3
+    duration: 3,
+    metadata: strike.ticks[1].metadata
   });
   assert.deepEqual(
     bleeding.ticks.map(({ atMs }) => atMs),

@@ -10,6 +10,45 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
+test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {
+  // Exercise the public gate so hammer resource checks cannot bypass hand or replacement-state validation.
+  const dual = 'Dual Orbits: Fire and Air';
+  for (const [primary, secondary, unravel, ready] of [
+    ['Fire', 'Fire', false, false],
+    ['Fire', 'Water', false, false],
+    ['Fire', 'Air', false, true],
+    ['Air', 'Fire', false, true],
+    ['Fire', 'Fire', true, false],
+    ['Fire', 'Air', true, false]
+  ]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
+      startAttunement: primary,
+      secondaryAttunement: secondary,
+      weapons: ['Hammer', ''],
+      rotation: [...(unravel ? ['Unravel'] : []), dual]
+    });
+    assert.equal(
+      result.events.some((event) => event.type === 'action' && event.skillName === dual),
+      ready
+    );
+    assert.equal(Boolean(result.endState.profession.hammerOrbs.Fire), ready);
+    assert.equal(Boolean(result.endState.profession.hammerOrbs.Air), ready);
+    if (ready) assert.deepEqual(result.warnings, []);
+    else assert.match(result.warnings[0], unravel ? /while Unravel is active/ : /matching Weaver hand/);
+  }
+
+  const single = runNative({
+    lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
+    startAttunement: 'Fire',
+    secondaryAttunement: 'Air',
+    weapons: ['Hammer', ''],
+    rotation: ['Unravel', 'Surging Flames']
+  });
+  assert.deepEqual(single.warnings, []);
+  assert.ok(single.events.some((event) => event.type === 'action' && event.skillName === 'Surging Flames'));
+});
+
 test('Unravel requires Elements of Rage and disables new dual attacks without cancelling one in flight', () => {
   const unavailable = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-2']],

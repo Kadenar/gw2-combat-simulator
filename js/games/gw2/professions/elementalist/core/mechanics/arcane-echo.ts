@@ -15,7 +15,13 @@ export function completeArcaneEcho(context: ElementalistCastContext, skill: Skil
     return;
   }
 
-  if (state.arcaneEchoUntil < context.effectiveEnd || skill.type !== 'Weapon' || Number(skill.cooldown || 0) <= 0)
+  // Zero means unarmed; an armed window stops granting resets at its expiry.
+  if (
+    state.arcaneEchoUntil <= 0 ||
+    state.arcaneEchoUntil <= context.effectiveEnd ||
+    skill.type !== 'Weapon' ||
+    Number(skill.cooldown || 0) <= 0
+  )
     return;
 
   state.arcaneEchoUntil = 0;

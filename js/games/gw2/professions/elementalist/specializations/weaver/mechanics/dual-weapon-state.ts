@@ -28,7 +28,6 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/prof
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
@@ -111,14 +110,8 @@ export function weaverHammerAvailability(
     );
   }
 
-  // Final gate: the skill's element pair must match the two attuned hands.
-  const secondary = weaverState.from(context).secondaryAttunement || state.primaryAttunement;
-  return elements.includes(state.primaryAttunement) && elements.includes(secondary)
-    ? { ready: true }
-    : denyCast(
-        'elementalist.weaver-attunement',
-        `${skill.name} is unavailable - requires its matching dual attunement.`
-      );
+  // The shared Weaver availability ladder validates the hands and Unravel after these resource checks.
+  return { ready: true };
 }
 
 /** Consumes and grants pistol bullets for Weaver's dual-attunement weapon skills. */

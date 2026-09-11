@@ -99,7 +99,8 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   }
 
   const hammerAvailability = weaverHammerAvailability(context, skill);
-  if (hammerAvailability) return hammerAvailability as AvailabilityResult;
+  // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
+  if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability as AvailabilityResult;
 
   // Only the preserved next autoattack link may bypass hand checks after a swap.
   const core = professionCoreState(context);
@@ -375,8 +376,8 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     }
   }
 
-  // Fervent Stance grants might on the next dual attack inside its window.
-  if (dualAttunements && state.ferventStanceUntil >= at) {
+  // Dual attacks grant Might only while the stance is armed and strictly unexpired.
+  if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
     const might = balanceProfileEffectFromContext(context, PROFILE.ferventStance, 'boon', 0, 'Might');
     emitSkillBuff(context, skill, {
       at,
