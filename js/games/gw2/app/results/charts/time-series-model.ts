@@ -1,5 +1,6 @@
 import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
@@ -40,6 +41,7 @@ export interface BuildChartSeriesOptions {
 }
 
 interface ChartEffectApplication {
+  readonly extension?: boolean;
   readonly name: string;
   readonly type: ChartEffectType;
   readonly start: number;
@@ -150,7 +152,30 @@ export function buildChartSeries(
 
   // Resolved buffs include trait procs and final audiences; scheduled-only results remain supported.
   const buffs = resolved.some((event) => event.type === 'buff') ? resolved : result.events || [];
+  const hasExtensions = buffs.some((event) => event.type === 'boon_extension');
+  const extendedKinds = new Set<string>();
   for (const event of buffs) {
+    // Reconstruct standard boon history once so plots show the same extensions and caps as combat queries.
+    if (hasExtensions && event.type === 'buff' && isStandardBoon(event.kind)) {
+      const kind = String(event.kind);
+      if (extendedKinds.has(kind)) continue;
+      extendedKinds.add(kind);
+      for (const application of boonApplicationsAt(buffs, kind, Infinity)) {
+        if (!application.resolvedAudience.includesSelf) continue;
+        applications.push({
+          name: effectName(kind, event),
+          type: effectType(kind, event),
+          start: application.at * 1000 - dpsStartMs,
+          end: application.expiresAt * 1000 - dpsStartMs,
+          stacks: application.stacks,
+          extension: application.extension,
+          replacementGroup: replacementGroup(kind, event)
+        });
+      }
+
+      continue;
+    }
+
     // Generic buffs and materialized boons share timed-effect visualization.
     if (event.type !== 'buff' || event.resolvedAudience?.includesSelf !== true || !Number(event.duration || 0)) {
       continue;
@@ -195,6 +220,7 @@ export function buildChartSeries(
       .sort((left, right) => left.start - right.start);
     effectTypes[name] = matching[0]?.type || 'buff';
     const durationApplications = matching.map((entry) => ({
+      extension: entry.extension,
       at: entry.start / 1000,
       duration: (entry.end - entry.start) / 1000,
       stacks: entry.stacks

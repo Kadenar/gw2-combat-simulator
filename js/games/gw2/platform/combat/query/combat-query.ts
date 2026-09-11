@@ -413,18 +413,21 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     furyActiveAt,
     vulnerabilityStacksAt,
     critical(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
+      // Preserve the hit's boon fact even when forced critical chance replaces its presentation contributors.
+      const furyActive = furyActiveAt(time, runtime, event);
       if (
         event?.independentSummonStrike === true &&
         event?.summonInheritsAttributes !== true &&
         event?.summonInheritsCriticalAttributes !== true
       ) {
-        const summonFuryBonus = furyActiveAt(time, runtime, event) ? 0.25 : 0;
+        const summonFuryBonus = furyActive ? 0.25 : 0;
         const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus;
         const chance =
           event.summonUsesProfessionModifiers === true
             ? activeProfession.modifyCriticalChance(hookContext(time, { event, runtime }), baseChance)
             : baseChance;
         return {
+          furyActive,
           chance: event.canCrit === false || event.noCrit ? 0 : clamp(chance, 0, 1),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5))
         };
@@ -452,7 +455,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
         addContributor('active-sigils', 'Active weapon sigils', sigilBonus);
       }
 
-      if (furyActiveAt(time, runtime, event)) {
+      if (furyActive) {
         chance += 0.25;
         addContributor('fury', 'Fury', 0.25);
       }
@@ -503,6 +506,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       }
 
       return {
+        furyActive,
         chance: clamp(chance, 0, 1),
         chanceBeforeCap,
         contributors,

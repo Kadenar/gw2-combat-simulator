@@ -28,6 +28,7 @@ export interface Gw2CriticalResult {
   damage: number;
   didCrit?: boolean | null;
   readonly chanceBeforeCap?: number;
+  readonly furyActive?: boolean;
   readonly contributors?: readonly Gw2CriticalChanceContributor[];
 }
 

@@ -130,7 +130,7 @@ test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
     kind: 'Soulbeast',
     config
   });
-  const event = { type: 'buff', kind: 'quickness', at: READY_AT };
+  const event = { type: 'buff', kind: 'quickness', at: READY_AT, resolvedAudience: { includesSelf: true } };
 
   reactToSoulbeastBuff(context, event);
   assert.equal(state.essenceOfSpeedReadyAt, READY_AT);

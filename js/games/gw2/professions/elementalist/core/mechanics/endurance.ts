@@ -8,6 +8,7 @@ import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/s
 import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -40,9 +41,8 @@ function* enduranceIntervals(context: ElementalistSchedulerContext, start: numbe
     return;
   }
 
-  const applications = context.events.filter(
-    (event) =>
-      event.type === 'buff' && String(event.kind).toLowerCase() === 'vigor' && buffMatchesAudience(event, 'all')
+  const applications = boonApplicationsAt(context.events, 'vigor', Infinity).filter((application) =>
+    buffMatchesAudience(application, 'all')
   );
   const boundaries = [
     ...new Set(applications.map((event) => event.at).filter((at) => at > start && at < end)),

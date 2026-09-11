@@ -161,16 +161,14 @@ function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSi
 
   if (event.type === 'proc' && event.skillId === ID.TRUE_NATURE_ID_51696 && event.procType === 'boon-extension') {
     const extension = Math.max(0, Number(event.duration || 0));
-    // Extend only boon applications active when Dragon True Nature resolves; future boons and generic buffs stay unchanged.
-    for (const boon of [...context.eventsOfType('buff')]) {
-      const hasRecipient = Number(boon.resolvedAudience?.recipientCount) > 0;
-      const active =
-        boon.at <= event.at + context.epsilon &&
-        boon.at + Math.max(0, Number(boon.duration || 0)) > event.at + context.epsilon;
-      if (extension > 0 && hasRecipient && active && isStandardBoon(boon.kind)) {
-        context.replaceEvent(boon, { duration: Number(boon.duration || 0) + extension });
-      }
-    }
+    // Both phases consume the extension at resolution time; prior applications remain immutable.
+    if (extension > 0)
+      context.emitDerived(event, {
+        ...event,
+        type: 'boon_extension',
+        duration: extension,
+        extensionAudience: 'all'
+      });
 
     return;
   }

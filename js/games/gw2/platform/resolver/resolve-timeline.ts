@@ -153,7 +153,12 @@ export function resolveGw2Timeline({
 }: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore {
   const started = onPhase ? performance.now() : 0;
 
-  const scheduled = assertPlatformStream(stream);
+  const validated = assertPlatformStream(stream);
+  // Scheduler boon predictions guide later casts/resources; surviving resolver hits own their actual effects.
+  const scheduled = {
+    ...validated,
+    events: validated.events.filter((event) => event.schedulerBoonPrediction !== true)
+  };
   if (!profession?.id) throw new TypeError('GW2 timeline resolver requires a profession.');
   // Assemble common mechanics once so queries, handlers, and runtime callbacks share the same reactions.
   const extensions = createGw2ResolverExtensions({

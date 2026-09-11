@@ -26,6 +26,7 @@
  * `intervalTimingScale: "fixed"`.
  */
 import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
@@ -123,6 +124,17 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
 ): boolean {
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
+  if (context.events.some((event) => event.type === 'boon_extension') && isStandardBoon(normalized)) {
+    const applications = boonApplicationsAt(context.events, normalized, at + context.epsilon).filter(
+      (application) => application.resolvedAudience.includesSummons
+    );
+    return isDurationStackingBoon(normalized)
+      ? remainingDurationStackSeconds(applications, at + context.epsilon, {
+          maximum: durationStackingBoonCapSeconds(normalized)
+        }) > context.epsilon
+      : applications.some((application) => application.expiresAt > at + context.epsilon);
+  }
+
   if (isDurationStackingBoon(normalized)) {
     return (
       remainingDurationStackSeconds(context.events, at + context.epsilon, {
@@ -316,6 +328,27 @@ export function createGw2SchedulerPolicy(
     },
 
     buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {
+      if (context.eventsOfType('boon_extension').length > 0 && isStandardBoon(kind)) {
+        const extended = boonApplicationsAt(context.events, kind, at + context.epsilon).filter(
+          (application) => application.resolvedAudience.includesSelf
+        );
+        if (isDurationStackingBoon(kind)) {
+          return configuredStacks > 0 ||
+            remainingDurationStackSeconds(extended, at + context.epsilon, {
+              maximum: durationStackingBoonCapSeconds(kind)
+            }) > context.epsilon
+            ? 1
+            : 0;
+        }
+
+        return (
+          configuredStacks +
+          extended
+            .filter((application) => application.expiresAt > at + context.epsilon)
+            .reduce((sum, application) => sum + application.stacks, 0)
+        );
+      }
+
       if (!isDurationStackingBoon(kind)) return defaultStacks;
       if (configuredStacks > 0) return 1;
       return remainingDurationStackSeconds(applications, at + context.epsilon, {

@@ -34,6 +34,8 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
   const triggeredActivationIds = new Map<string, string>();
 
   const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
+    // Legacy Ranger extension commands enter the same chronological path as shared extension events.
+    if (event.type === 'ranger.boon-extension') event = { ...event, type: 'boon_extension' };
     event = prepareGw2ComboEvent(event);
     if (event.type === 'buff' || event.audience) {
       // Resolve the request once so every later consumer reads the same selected audience.

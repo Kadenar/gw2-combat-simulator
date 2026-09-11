@@ -1,5 +1,6 @@
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -290,14 +291,18 @@ function furyActiveBeforeCurrentCast(
   const configured = context.config.boons?.fury;
   if (configured === true || Number(configured || 0) > 0) return true;
   return (
-    remainingDurationStackSeconds(context.events, castStart + context.epsilon, {
-      includes: (event) =>
-        event.type === 'buff' &&
-        event.kind === 'fury' &&
-        Boolean(event.resolvedAudience?.includesSelf) &&
-        event.activationId !== activationId,
-      maximum: durationStackingBoonCapSeconds('fury')
-    }) > 0
+    remainingDurationStackSeconds(
+      boonApplicationsAt(
+        context.events.filter((event) => event.activationId !== activationId),
+        'fury',
+        castStart + context.epsilon
+      ),
+      castStart + context.epsilon,
+      {
+        includes: (application) => application.resolvedAudience.includesSelf,
+        maximum: durationStackingBoonCapSeconds('fury')
+      }
+    ) > 0
   );
 }
 

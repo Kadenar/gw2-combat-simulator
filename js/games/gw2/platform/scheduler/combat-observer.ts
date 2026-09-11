@@ -3,6 +3,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
@@ -52,6 +53,9 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           break;
         case 'buff':
           recordBuffApplication(state.boons, event);
+          break;
+        case 'boon_extension':
+          applyBoonExtension(state.boons, event);
           break;
         case 'condition':
           markCombatActive(context, event);

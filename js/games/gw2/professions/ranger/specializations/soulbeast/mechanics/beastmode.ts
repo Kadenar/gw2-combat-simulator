@@ -1,4 +1,5 @@
 import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/archetype-attributes.js';
+import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import {
@@ -28,6 +29,8 @@ import type {
 } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
 // Config/timeline are checked first because runtime may not be populated during attribute pre-computation.
@@ -326,6 +329,29 @@ function completeSoulbeastCast(context: RangerCastContext, skill: RangerSkill): 
 }
 
 export const soulbeastSchedulerHooks = Object.freeze({
+  // Predict extensions from scheduled Quickness at its timestamp, without consuming future applications early.
+  onEventScheduled: {
+    id: 'ranger.essence-of-speed',
+    order: 30,
+    handler(context: RangerSchedulerContext, event: SimulationEvent) {
+      if (event.type === 'buff' && event.kind === 'quickness' && hasTrait(context, TRAIT.ESSENCE_OF_SPEED)) {
+        context.tasks.schedule({
+          type: 'ranger.essence-of-speed',
+          at: event.at,
+          priority: -60,
+          payload: { eventOrder: event.eventOrder }
+        });
+      }
+    }
+  },
+  taskHandlers: {
+    'ranger.essence-of-speed': (context: RangerSchedulerContext, task: ScheduledTask<{ eventOrder: number }>) => {
+      const cause = context.eventByOrder(Number(task.payload?.eventOrder));
+      if (!cause) return;
+      const extension = essenceOfSpeedExtension(context, cause);
+      if (extension) context.emitDerived(cause, { ...extension, schedulerBoonPrediction: true });
+    }
+  },
   initialize: {
     id: 'ranger.soulbeast-pet-ownership',
     order: 20,

@@ -7,10 +7,14 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type {
+  RangerResolverContext,
+  RangerResolverEvent,
+  RangerSchedulerContext
+} from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -22,20 +26,9 @@ export function handleSoulbeastModeEvent(context: RangerResolverContext, event: 
   soulbeastState.from(context).beastmodeActive = event.active === true;
 }
 
-// Extends active boon applications in the live boon map; only applications already running at event.at are stretched.
+// Retain the legacy event handler while sharing chronological, self-only extension semantics.
 export function handleRangerBoonExtension(context: RangerResolverContext, event: RangerResolverEvent): void {
-  const extension = Math.max(0, Number(event.duration || 0));
-  const excluded = String(event.excludedKind || '');
-  if (!(extension > 0)) return;
-  for (const [kind, applications] of context.boons) {
-    if (!isStandardBoon(kind) || kind === excluded) continue;
-    for (const application of applications) {
-      if (application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at) {
-        // Cast needed because the runtime type treats expiresAt as readonly after resolution.
-        (application as { expiresAt: number }).expiresAt += extension;
-      }
-    }
-  }
+  applyBoonExtension(context.boons, event);
 }
 
 export const soulbeastEventHandlers = Object.freeze({
@@ -359,20 +352,24 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
 
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
 // Quickness itself is excluded from the extension to prevent runaway stacking.
-export function reactToSoulbeastBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function essenceOfSpeedExtension(
+  context: RangerResolverContext | RangerSchedulerContext,
+  event: RangerResolverEvent
+): RangerResolverEvent | null {
   const state = soulbeastState.from(context);
   if (
     event.kind !== 'quickness' ||
+    !event.resolvedAudience?.includesSelf ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
     !isInternalCooldownReady(event.at, state.essenceOfSpeedReadyAt)
   ) {
-    return;
+    return null;
   }
 
   const profile = balanceProfileFromContext(context, PROFILE.essenceOfSpeed);
   state.essenceOfSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 5);
-  context.queue.enqueue({
-    type: 'ranger.boon-extension',
+  return {
+    type: 'boon_extension',
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.ESSENCE_OF_SPEED,
@@ -381,7 +378,13 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Rang
     skillName: 'Essence of Speed',
     duration: Number(profile?.durationMultiplier ?? 2),
     excludedKind: 'quickness'
-  });
+  };
+}
+
+/** Resolver-derived Quickness retains its own extension; scheduled predictions are discarded at handoff. */
+export function reactToSoulbeastBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const extension = essenceOfSpeedExtension(context, event);
+  if (extension) context.queue.enqueue(extension);
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here

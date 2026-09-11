@@ -270,7 +270,7 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
         "dpsReportUrl": "https://dps.report/43o1-20260523-171228_golem",
-        "benchmarkDps": 39370,
+        "benchmarkDps": 39343,
         "upToDate": true
       },
       {
@@ -279,7 +279,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/R5M5-20260414-134009_golem",
-        "benchmarkDps": 41848,
+        "benchmarkDps": 41824,
         "upToDate": true
       },
       {
@@ -287,7 +287,7 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-evoker-hare.json",
         "dpsReportUrl": "https://dps.report/0Ez4-20260414-142811_golem",
-        "benchmarkDps": 32056,
+        "benchmarkDps": 31952,
         "upToDate": true
       },
       {
@@ -296,7 +296,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-evoker-toad.json",
         "dpsReportUrl": "https://dps.report/tFzd-20260415-200807_golem",
-        "benchmarkDps": 34258,
+        "benchmarkDps": 34257,
         "upToDate": true
       },
       {
@@ -305,7 +305,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/3LQO-20260422-135335_golem",
-        "benchmarkDps": 43137,
+        "benchmarkDps": 42986,
         "upToDate": true
       },
       {
@@ -313,7 +313,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/B1Ks-20260416-182454_golem",
-        "benchmarkDps": 42951,
+        "benchmarkDps": 42918,
         "upToDate": true
       },
       {
@@ -347,7 +347,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/ZH7U-20260423-182755_golem",
-        "benchmarkDps": 38353,
+        "benchmarkDps": 38329,
         "upToDate": true
       },
       {

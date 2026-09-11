@@ -37,6 +37,7 @@ export interface Gw2RuntimeStateLike extends SchedulerRecord {
 }
 
 export interface Gw2TimedBuffApplication {
+  readonly extension?: boolean;
   readonly at: number;
   readonly expiresAt: number;
   readonly stacks: number;

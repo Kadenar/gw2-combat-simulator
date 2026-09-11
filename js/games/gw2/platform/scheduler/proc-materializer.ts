@@ -36,6 +36,7 @@ const EVENT_REQUIRED_CAPABILITY: Readonly<Record<string, MaterializerCapability>
   control: 'combatTracking',
   blind: 'combatTracking',
   buff: 'buffFacts',
+  boon_extension: 'buffFacts',
   weapon_set: 'weaponFacts',
   sigil_swap: 'swapSigils',
   weakness_vulnerability: 'relicTriggers'
@@ -59,6 +60,7 @@ export function createGw2TriggerMaterializer(
   const state = createMaterializerState(config, traits, sigilSupport.critical || hasStochasticCriticalFood(config));
   const observer = createGw2CombatObserver(state);
   const sigils = createSigilProcEngine(config, state);
+  const criticalFacts = new WeakMap<SimulationEvent, ReturnType<NonNullable<typeof state.query>['critical']>>();
 
   const capabilityEnabled: Readonly<Record<MaterializerCapability, () => boolean>> = Object.freeze({
     combatTracking: () => true,
@@ -86,6 +88,11 @@ export function createGw2TriggerMaterializer(
         materializeConditionRelics(context, state.relic, event);
         break;
       case 'damage': {
+        // Later same-time trait tasks must use this hit's pre-reaction critical chance.
+        if (state.criticalFactsRequired && Number.isFinite(event.eventOrder)) {
+          criticalFacts.set(event, state.query!.critical(event, event.at, state));
+        }
+
         if (!state.combatActive) {
           if (state.random.stochastic) {
             resolveCriticalTrigger(context, event, state);
@@ -153,6 +160,12 @@ export function createGw2TriggerMaterializer(
       });
     },
     onEventScheduled(context, event) {
+      // A chronological trait task emits predictions after its hit's facts; expose them before the next same-time hit.
+      if (event.schedulerBoonPrediction === true && event.at <= context.state.time + context.epsilon) {
+        observer.observe(context, event);
+        return;
+      }
+
       const required = EVENT_REQUIRED_CAPABILITY[event.type];
       if (!required || !capabilityEnabled[required]()) return;
       // Resolve the current event at execution time so deferred facts include intervening replacements.
@@ -170,9 +183,12 @@ export function createGw2TriggerMaterializer(
     },
     onEventReplaced(previous, replacement) {
       state.query!.timeline.onEventReplaced(previous, replacement);
+      // Canonical replacements retain observed facts; hypothetical copies still query their own timestamp.
+      const critical = criticalFacts.get(previous);
+      if (critical) criticalFacts.set(replacement, critical);
     },
     critical(event) {
-      return state.query!.critical(event, event.at, state);
+      return criticalFacts.get(event) ?? state.query!.critical(event, event.at, state);
     },
     rollRandom(probability, stream) {
       return state.random.roll(probability, stream);

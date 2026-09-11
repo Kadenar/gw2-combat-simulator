@@ -37,6 +37,11 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 
+export {
+  observeThiefCriticalBoons,
+  materializeThiefCriticalBoons
+} from '#gw2/professions/thief/core/traits/critical-strikes.js';
+
 /** Dispatches selected on-steal traits in the cross-line order shared by every steal variant. */
 export function emitStealTraitEffects(context: ThiefCastContext): void {
   const at = context.effectiveEnd;

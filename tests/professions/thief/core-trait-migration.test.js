@@ -1,6 +1,7 @@
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
 
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -192,7 +193,9 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
     {},
     { quantity: 1 }
   );
-  assert.equal(context.boons.get('fury')[0].expiresAt, 7);
+  // Extension is a new chronological delta; the original application remains unchanged.
+  assert.equal(context.boons.get('fury')[0].expiresAt, 5);
+  assert.equal(remainingDurationStackSeconds(context.boons.get('fury'), 6, { maximum: 30 }), 1);
   assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
 });
 

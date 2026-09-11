@@ -30,6 +30,8 @@ interface CreateGw2ResolverEventHandlersOptions {
   readonly reactions: Gw2ResolverReactionRegistry;
 }
 
+import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
+
 const noop: Gw2ResolverReaction = () => {};
 
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
@@ -86,6 +88,10 @@ export function createGw2ResolverEventHandlers({
     resource: noop,
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
+    },
+    boon_extension(ctx, event) {
+      applyBoonExtension(ctx.boons, event);
+      if (ctx.reporting) ctx.resolved.push(event);
     },
     weakness_vulnerability(ctx, event) {
       reactions.dispatch('weakness-vulnerability.resolved', ctx, event);

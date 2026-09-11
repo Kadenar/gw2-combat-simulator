@@ -5,6 +5,18 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/state/boons.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import type { ThiefSchedulerContext, ThiefSimulationEvent, ThiefScheduledTask } from '#gw2/professions/thief/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { EffectAudience } from '#gw2/platform/engine/events/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
@@ -57,25 +69,28 @@ function queueThiefBoon(
   });
 }
 
-function activeSelfFuryApplications(context: ThiefResolverContext, at: number) {
-  return (context.boons.get('fury') || []).filter(
-    (application) =>
-      application.resolvedAudience.includesSelf &&
-      application.at <= at + EPSILON &&
-      application.expiresAt > at + EPSILON
-  );
-}
-
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
-  const applications = context.boons.get('fury') || [];
-  const active = new Set(activeSelfFuryApplications(context, event.at));
-  if (!active.size) return;
-  context.boons.set(
-    'fury',
-    applications.map((application) =>
-      active.has(application) ? { ...application, expiresAt: application.expiresAt + duration } : application
-    )
-  );
+  // Add one self-only duration delta at the hit time, retaining the shared expiry tolerance.
+  if (
+    remainingDurationStackSeconds(context.boons.get('fury') || [], event.at + EPSILON, {
+      includes: (application) => buffMatchesAudience(application, 'all'),
+      maximum: durationStackingBoonCapSeconds('fury')
+    }) <= 0
+  )
+    return;
+  const extension: ThiefResolverEvent = {
+    type: 'boon_extension',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.NO_QUARTER,
+    actorType: 'effect',
+    skillId: TRAIT.NO_QUARTER,
+    skillName: 'No Quarter',
+    kind: 'fury',
+    duration
+  };
+  applyBoonExtension(context.boons, extension);
+  if (context.reporting) context.resolved.push(extension);
   context.queue.enqueue({
     type: 'proc',
     at: event.at,
@@ -88,6 +103,77 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     duration,
     triggeredBy: event.skillName
   });
+}
+
+/** Predict Fury-producing critical traits chronologically; resolution recomputes them from surviving hits. */
+export function observeThiefCriticalBoons(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
+  if (
+    event.type !== 'damage' ||
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0) ||
+    (!event.forceCrit && (event.noCrit || event.canCrit === false)) ||
+    missesTarget(event) ||
+    ![TRAIT.NO_QUARTER, TRAIT.UNRELENTING_STRIKES].some((trait) => hasTrait(context.config, trait))
+  )
+    return;
+  context.tasks.schedule({
+    type: 'thief.critical-boons',
+    at: event.at,
+    priority: -60,
+    payload: { eventOrder: event.eventOrder }
+  });
+}
+
+export function materializeThiefCriticalBoons(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+  const event = context.eventByOrder(Number(task.payload.eventOrder));
+  if (!event || missesTarget(event)) return;
+  const state = professionCoreState(context);
+  // Snapshot before Unrelenting Strikes emits Fury: the current hit cannot use its own newly granted boon.
+  const hadFury =
+    (context.schedulerPolicy as Gw2SchedulerPolicy).critical(context as unknown as SchedulerContext, event)
+      .furyActive === true;
+  for (const [traitId, profileId, name] of [
+    [TRAIT.UNRELENTING_STRIKES, PROFILE.unrelentingStrikes, 'Unrelenting Strikes'],
+    [TRAIT.NO_QUARTER, PROFILE.noQuarter, 'No Quarter']
+  ] as const) {
+    if (!hasTrait(context.config, traitId) || (traitId === TRAIT.NO_QUARTER && !hadFury)) continue;
+    const profile = balanceProfileFromContext(context, profileId);
+    const tracker = {
+      progress: Number(state.traitProcProgress[traitId] || 0),
+      readyAt: Number(state.traitProcReadyAt[traitId] || 0)
+    };
+    const proc = advanceScheduledCriticalProc(
+      context,
+      event,
+      {
+        id: traitId === TRAIT.NO_QUARTER ? 'thief.no-quarter' : 'thief.unrelenting-strikes',
+        internalCooldown: Number(profile?.internalCooldown ?? (traitId === TRAIT.NO_QUARTER ? 2 : 8))
+      },
+      tracker
+    );
+    state.traitProcProgress[traitId] = tracker.progress;
+    state.traitProcReadyAt[traitId] = tracker.readyAt;
+    if (!proc) continue;
+    const effect = balanceProfileEffect(profile, 'boon');
+    const duration = Number(effect?.duration ?? (traitId === TRAIT.NO_QUARTER ? 2 : 4));
+    context.emitDerived(event, {
+      type: traitId === TRAIT.NO_QUARTER ? 'boon_extension' : 'buff',
+      at: event.at,
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      skillId: traitId,
+      skillName: name,
+      kind: 'fury',
+      schedulerBoonPrediction: true,
+      duration:
+        traitId === TRAIT.NO_QUARTER
+          ? duration
+          : gw2SchedulerBoonDuration(context, { id: traitId, name }, 'fury', duration),
+      stacks: Number(effect?.stacks ?? 1),
+      audience: { recipients: traitId === TRAIT.NO_QUARTER ? 'self' : 'party' }
+    });
+  }
 }
 
 function traitCriticalProgress(context: ThiefResolverContext, traitId: SkillId): number {

@@ -9,6 +9,7 @@ interface BuffAudienceMetadata {
 }
 
 interface DurationStackApplication {
+  readonly extension?: boolean;
   readonly at: unknown;
   readonly duration?: unknown;
   readonly expiresAt?: unknown;
@@ -116,6 +117,12 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     const appliedAt = Number(application.at);
     if (appliedAt > time) break;
     remaining = Math.max(0, remaining - Math.max(0, appliedAt - previousTime));
+    // Extensions add seconds only to an existing pool, without resurrecting an expired boon.
+    if (application.extension && remaining <= 0) {
+      previousTime = appliedAt;
+      continue;
+    }
+
     const applicationDuration = duration
       ? Number(duration(application))
       : application.duration == null

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import {
@@ -1193,15 +1195,21 @@ test('Dragon True Nature extends active allied boons by two seconds', () => {
       stats: { concentration: 0 }
     }
   );
-  const fury = result.events.find(
-    (event) => event.type === 'buff' && event.skillName === 'Facet of Darkness' && event.kind === 'fury'
-  );
   const extension = result.events.find(
     (event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_ID_51696
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(fury.duration, 5);
+  const original = boonApplicationsAt(
+    result.events.filter((event) => event.type !== 'boon_extension'),
+    'fury',
+    extension.at
+  );
+  const extended = boonApplicationsAt(result.events, 'fury', extension.at);
+  assert.equal(
+    remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
+    Math.min(30, remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 2)
+  );
   assert.equal(extension.duration, 2);
   assert.equal(extension.procType, 'boon-extension');
 });

@@ -61,6 +61,7 @@ export type CommonSimulationEventType =
   | 'marker'
   | 'resource'
   | 'buff'
+  | 'boon_extension'
   | 'cooldown_snapshot'
   | 'self_condition'
   | 'weakness_vulnerability'

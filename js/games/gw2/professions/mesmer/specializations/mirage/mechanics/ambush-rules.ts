@@ -1,4 +1,5 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -169,8 +170,8 @@ function mirageEnduranceRate(context: MesmerSchedulerContext, at: number): numbe
 /** Preserve earned endurance when Vigor starts or expires, including stacked duration. */
 function scheduleMirageVigorExpiry(context: MesmerSchedulerContext, task: ScheduledTask): void {
   context.tasks.cancelOwner('mesmer.mirage.vigor-expiry');
-  const remaining = remainingDurationStackSeconds(context.eventsOfType('buff'), task.at, {
-    includes: (event) => event.kind === 'vigor' && buffMatchesAudience(event, 'all'),
+  const remaining = remainingDurationStackSeconds(boonApplicationsAt(context.events, 'vigor', task.at), task.at, {
+    includes: (application) => buffMatchesAudience(application, 'all'),
     maximum: durationStackingBoonCapSeconds('vigor')
   });
   if (remaining > EPSILON) {
@@ -209,10 +210,9 @@ function advanceMirageScheduler(context: MesmerSchedulerContext, target: number)
 function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   // Schedule at the application time so future buffs cannot accelerate recovery early.
   if (
-    event.type === 'buff' &&
-    event.kind === 'vigor' &&
-    !context.config.boons?.vigor &&
-    buffMatchesAudience(event, 'all')
+    ((event.type === 'buff' && event.kind === 'vigor' && buffMatchesAudience(event, 'all')) ||
+      (event.type === 'boon_extension' && (!event.kind || event.kind === 'vigor') && event.excludedKind !== 'vigor')) &&
+    !context.config.boons?.vigor
   ) {
     context.tasks.schedule({ type: 'mesmer.mirage.vigor-boundary', at: event.at });
   }

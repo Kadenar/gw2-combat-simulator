@@ -34,6 +34,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'marker',
   'resource',
   'buff',
+  'boon_extension',
   'cooldown_snapshot',
   'self_condition',
   'weakness_vulnerability',
@@ -60,6 +61,16 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
 
   if (!isFiniteNumber(event.at) || event.at < 0) {
     throw new Error('Event at must be a non-negative finite number.');
+  }
+
+  // Extension commands carry finite seconds and one supported recipient scope across the phase boundary.
+  if (
+    event.type === 'boon_extension' &&
+    (!isFiniteNumber(event.duration) ||
+      event.duration < 0 ||
+      (event.extensionAudience !== undefined && !['self', 'all'].includes(String(event.extensionAudience))))
+  ) {
+    throw new TypeError('Boon extensions require a finite non-negative duration and self/all audience.');
   }
 
   if (typeof event.source !== 'string' || !event.source) {

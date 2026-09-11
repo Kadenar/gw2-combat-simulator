@@ -1,10 +1,12 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
+  isStandardBoon,
   remainingDurationStackSeconds,
   sumActiveStacks
 } from '#gw2/platform/combat/state/boons.js';
@@ -54,10 +56,12 @@ export function createGw2TimelineIndex({
   };
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
   let indexedLength = 0;
+  let hasExtensions = false;
   const resetIndex = (): void => {
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
     indexedLength = 0;
+    hasExtensions = false;
   };
 
   const indexBuff = (event: SimulationEvent): void => {
@@ -87,6 +91,7 @@ export function createGw2TimelineIndex({
     if (events.length === indexedLength) return;
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
+      if (event.type === 'boon_extension') hasExtensions = true;
       if (event.type === 'buff') {
         indexBuff(event);
       }
@@ -110,6 +115,28 @@ export function createGw2TimelineIndex({
     companionId?: string | null
   ): number => {
     refreshIndex();
+    // Reuse chronological extension replay only for histories that contain an extension.
+    if (hasExtensions && isStandardBoon(kind)) {
+      const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time + EPSILON, duration);
+      const includes = (application: (typeof applications)[number]) =>
+        buffMatchesAudience(application, audience, companionId);
+      if (isDurationStackingBoon(kind)) {
+        return remainingDurationStackSeconds(applications, time + EPSILON, {
+          includes,
+          maximum: durationStackingBoonCapSeconds(kind)
+        }) > EPSILON
+          ? Math.min(1, Math.max(0, maximum))
+          : 0;
+      }
+
+      return sumActiveStacks(
+        applications,
+        (application) => includes(application) && application.expiresAt > time,
+        (application) => application.stacks,
+        maximum
+      );
+    }
+
     const bucket = indexedBuffs.get(String(kind || '').toLowerCase());
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
@@ -181,7 +208,7 @@ export function createGw2TimelineIndex({
       // Rebuild lazily for changed history, but ignore unindexed packets such as critical damage facts.
       if (
         [previous, replacement].some((event) =>
-          ['buff', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type)
+          ['buff', 'boon_extension', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type)
         )
       ) {
         resetIndex();

@@ -81,13 +81,21 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   );
 }
 
-/** Adds configured permanent stacks to the active live or scheduler boon applications. */
+/** Uses accumulated duration for boon presence; intensity and custom buffs retain additive stack counts. */
 export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
   const permanent = context.config?.boons?.[boon];
   const base = permanent === true ? 1 : Number(permanent || 0);
   const schedulerState = context.state as { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
   const boons = context.runtime?.boons ?? schedulerState?.boons;
-  const dynamic = (boons?.get(boon) || [])
+  const applications = boons?.get(boon) || [];
+  if (isDurationStackingBoon(boon)) {
+    const remaining = remainingDurationStackSeconds(applications, context.time, {
+      maximum: durationStackingBoonCapSeconds(boon)
+    });
+    return clamp(base > 0 || remaining > 0 ? 1 : 0, 0, maximum);
+  }
+
+  const dynamic = applications
     .filter((application) => application.at <= context.time && application.expiresAt > context.time)
     .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
   return clamp(base + dynamic, 0, maximum);
