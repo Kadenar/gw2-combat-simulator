@@ -20,6 +20,8 @@ export interface EvokerState {
   empowered: number;
   // armed Galvanic Enchantment charges; each is consumed by the next qualifying player strike
   electricEnchantmentStacks: number;
+  // Independent grant windows prevent a later familiar or meditation from refreshing older charges.
+  electricEnchantmentGrants: Array<{ at: number; expiresAt: number; stacks: number }>;
   // Elemental Balance: entries into the selected element counted toward the threshold, and the armed recharge-window expiry
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;
@@ -83,6 +85,7 @@ export const evokerState = defineProfessionSpecializationState(
       charges: Math.max(0, Math.min(maximumCharges, Number(config.initialEvokerCharges ?? maximumCharges))),
       empowered: Math.max(0, Math.min(3, Number(config.initialEvokerEmpowered ?? 0))),
       electricEnchantmentStacks: 0,
+      electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
       attunementTraitProcReadyAt: {},
@@ -101,6 +104,21 @@ export const evokerState = defineProfessionSpecializationState(
 
 /** Factory used for both the scheduler and resolver state instances. */
 export const createEvokerState = evokerState.create;
+
+/** Discards spent or expired grants at the scheduler clock, preserving future queued-hit eligibility. */
+export function expireElectricEnchantments(state: EvokerState, at: number): void {
+  state.electricEnchantmentGrants = state.electricEnchantmentGrants.filter(
+    (grant) => grant.stacks > 0 && grant.expiresAt > at
+  );
+  state.electricEnchantmentStacks = state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.stacks, 0);
+}
+
+/** Arms a separate lifetime for each grant; earliest-expiring eligible charges are spent first. */
+export function grantElectricEnchantments(state: EvokerState, at: number, stacks: number, duration: number): void {
+  state.electricEnchantmentGrants.push({ at, expiresAt: at + duration, stacks });
+  state.electricEnchantmentGrants.sort((left, right) => left.expiresAt - right.expiresAt);
+  expireElectricEnchantments(state, at);
+}
 
 // Evoker owns familiar resources and its public element/enchantment state.
 /** Contributed to the Elementalist family end-state projection. */

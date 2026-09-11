@@ -2,21 +2,23 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '../../helpers/elementalist-simulation.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  createEvokerState,
+  grantElectricEnchantments
+} from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
-test('Electric Enchantment consumes queued post-grant hits chronologically and only once', () => {
-  // Immutable replacement leaves stale references behind; neither traversal may spend the same hit twice.
+// Exercise real event observers, including immutable replacement and reentrant proc emission.
+function enchantmentHarness() {
   const state = createEvokerState({ evokerElement: 'Air' });
-  state.electricEnchantmentStacks = 0;
   const events = [];
   const context = {
     catalog: elementalistCatalog,
     profession: { id: 'elementalist' },
-    state: { profession: { specialization: { kind: 'Evoker', state } } },
+    state: { time: 3, profession: { specialization: { kind: 'Evoker', state } } },
     combatStartTime: 2,
     effectiveEnd: 3,
     epsilon: 1e-6,
@@ -47,13 +49,19 @@ test('Electric Enchantment consumes queued post-grant hits chronologically and o
       at,
       ...fields
     });
+  return { state, context, events, hit };
+}
+
+test('Electric Enchantment consumes queued post-grant hits chronologically and only once', () => {
+  // Immutable replacement leaves stale references behind; neither traversal may spend the same hit twice.
+  const { state, context, events, hit } = enchantmentHarness();
   const later = hit(4);
   const earlier = hit(3);
   const preGrant = hit(2.5);
   const precombat = hit(1);
   const summon = hit(3, { actorType: 'summon' });
   const zero = hit(3, { coefficient: 0 });
-  state.electricEnchantmentStacks = 1;
+  grantElectricEnchantments(state, context.effectiveEnd, 1, 6);
   applyElectricEnchantmentsRetrospectively(context, state);
   assert.equal(state.electricEnchantmentStacks, 0);
   assert.equal(context.eventByOrder(earlier.eventOrder).electricEnchantmentConsumed, true);
@@ -61,7 +69,7 @@ test('Electric Enchantment consumes queued post-grant hits chronologically and o
     assert.notEqual(context.eventByOrder(event.eventOrder).electricEnchantmentConsumed, true);
   }
 
-  state.electricEnchantmentStacks = 2;
+  grantElectricEnchantments(state, context.effectiveEnd, 2, 6);
   onEventScheduled(context, earlier);
   assert.equal(state.electricEnchantmentStacks, 2);
   applyElectricEnchantmentsRetrospectively(context, state);
@@ -82,6 +90,95 @@ test('Electric Enchantment consumes queued post-grant hits chronologically and o
     if (event.type !== 'proc') {
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.activationId, 'hit');
+    }
+  }
+});
+
+test('Electric Enchantment enforces each grant window for queued and subsequently scheduled strikes', () => {
+  // Both scheduling paths share the same inclusive grant and exclusive expiry boundaries.
+  for (const queued of [false, true]) {
+    for (const at of [2.5, 3, 8.999, 9, 10]) {
+      const { state, context, hit } = enchantmentHarness();
+      let strike;
+      if (queued) strike = hit(at);
+      grantElectricEnchantments(state, 3, 1, 6);
+      if (queued) applyElectricEnchantmentsRetrospectively(context, state);
+      else strike = hit(at);
+      assert.equal(context.eventByOrder(strike.eventOrder).electricEnchantmentConsumed === true, at >= 3 && at < 9);
+    }
+  }
+});
+
+test('Electric Enchantment keeps overlapping grants independent and preserves charges when queuing expired hits', () => {
+  const { state, context, hit } = enchantmentHarness();
+  grantElectricEnchantments(state, 3, 2, 6);
+  grantElectricEnchantments(state, 7, 2, 6);
+  context.state.time = 7;
+  // A far-future packet cannot discard charges needed by a subsequently scheduled earlier hit.
+  const future = hit(20);
+  assert.notEqual(context.eventByOrder(future.eventOrder).electricEnchantmentConsumed, true);
+  hit(8);
+  assert.deepEqual(
+    state.electricEnchantmentGrants.map((grant) => grant.stacks),
+    [1, 2]
+  );
+  context.state.time = 9;
+  hit(9);
+  assert.deepEqual(state.electricEnchantmentGrants, [{ at: 7, expiresAt: 13, stacks: 1 }]);
+  context.state.time = 13;
+  const expired = hit(13);
+  assert.notEqual(context.eventByOrder(expired.eventOrder).electricEnchantmentConsumed, true);
+  assert.equal(state.electricEnchantmentStacks, 0);
+});
+
+test('Electric Enchantment spends the earliest expiry even when the shorter grant arrives later', () => {
+  const { state, hit } = enchantmentHarness();
+  grantElectricEnchantments(state, 3, 1, 10);
+  grantElectricEnchantments(state, 4, 1, 6);
+  hit(5);
+  assert.deepEqual(
+    state.electricEnchantmentGrants.map((grant) => [grant.expiresAt, grant.stacks]),
+    [
+      [10, 0],
+      [13, 1]
+    ]
+  );
+});
+
+test('Familiar and meditation enchantments expire during idle time and cannot enhance a late strike', () => {
+  // Minimal native casts verify grant wiring and end-state cleanup without a saved rotation regression.
+  for (const [skill, duration] of [
+    ['Ignite', 6],
+    ["Hare's Agility", 10]
+  ]) {
+    for (const wait of [duration - 1, duration + 1]) {
+      for (const strike of [false, true]) {
+        const result = runNative({
+          lines: [['Fire'], ['Air'], ['Evoker']],
+          rotation: [skill, wait * 1000, ...(strike ? ['Fire Strike'] : [])],
+          startAttunement: 'Fire',
+          weapons: ['Sword', 'Dagger'],
+          evokerElement: 'Fire',
+          selectedSkills: {
+            Heal: 'Rejuvenate',
+            Utility1: "Hare's Agility",
+            Utility2: 'Signet of Fire',
+            Utility3: 'Arcane Wave',
+            Elite: 'Elemental Procession'
+          }
+        });
+        assert.deepEqual(result.warnings, []);
+        if (strike) {
+          const attack = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fire Strike');
+          assert.equal(attack.electricEnchantmentConsumed === true, wait < duration, `${skill}: late strike`);
+        } else {
+          assert.equal(
+            result.endState.profession.electricEnchantmentStacks > 0,
+            wait < duration,
+            `${skill}: idle expiry`
+          );
+        }
+      }
     }
   }
 });

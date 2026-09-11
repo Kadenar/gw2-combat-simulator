@@ -12,7 +12,10 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  expireElectricEnchantments,
+  type EvokerState
+} from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
 // Materialize Electric Enchantment's strike and condition package for the invoking
@@ -62,7 +65,15 @@ export function consumeElectricEnchantment(
   event: SimulationEvent
 ): void {
   const current = context.eventByOrder(Number(event.eventOrder)) || event;
+  // Scheduling a far-future packet must not expire charges still usable by an earlier, later-scheduled strike.
+  expireElectricEnchantments(state, Math.min(context.state.time, current.at));
   if (state.electricEnchantmentStacks <= 0 || current.electricEnchantmentConsumed === true) return;
+  const grant = state.electricEnchantmentGrants.find(
+    (candidate) =>
+      candidate.stacks > 0 && current.at >= candidate.at - context.epsilon && current.at < candidate.expiresAt
+  );
+  if (!grant) return;
+  grant.stacks -= 1;
   state.electricEnchantmentStacks -= 1;
   context.replaceEvent(current, { electricEnchantmentConsumed: true });
   emitElectricEnchantment(context, current);

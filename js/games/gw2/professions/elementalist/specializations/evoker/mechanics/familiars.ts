@@ -41,7 +41,7 @@ import {
   grantWeaponSkillCharges,
   weaponSkillChargeGain
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
@@ -355,7 +355,8 @@ function applyFamiliarTraitProcs(context: ElementalistCastContext, skill: Skill)
 
   if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {
     const stacks = balanceProfileValueFromContext(context, PROFILE.galvanicEnchantment, 'playerStacks', 2);
-    state.electricEnchantmentStacks += stacks;
+    const duration = balanceProfileValueFromContext(context, PROFILE.galvanicEnchantment, 'durationMultiplier', 6);
+    grantElectricEnchantments(state, at, stacks, duration);
     emitElementalistProc(context as never, {
       at,
       name: 'Electric Enchantment',
@@ -374,7 +375,14 @@ function applyFamiliarSkillEffects(context: ElementalistCastContext, skill: Skil
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (skill.id === ID.LIGHTNING_BLITZ) {
     const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'resourceGain', 1);
-    state.electricEnchantmentStacks += stacks;
+    const enchantment = balanceProfileEffectFromContext(
+      context,
+      PROFILE.familiarUtility,
+      'buff',
+      0,
+      'Lightning Blitz Enchantment'
+    );
+    grantElectricEnchantments(state, at, stacks, Number(enchantment?.duration ?? 6));
     emitElementalistProc(context as never, {
       at,
       name: 'Electric Enchantment',
@@ -461,7 +469,14 @@ function applyMeditationEffects(context: ElementalistCastContext, skill: Skill):
 
   if (skill.id === ID.HARES_AGILITY) {
     const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'playerStacks', 5);
-    state.electricEnchantmentStacks += stacks;
+    const enchantment = balanceProfileEffectFromContext(
+      context,
+      PROFILE.familiarUtility,
+      'buff',
+      0,
+      'Hare Enchantment'
+    );
+    grantElectricEnchantments(state, at, stacks, Number(enchantment?.duration ?? 10));
     emitElementalistProc(context as never, {
       at,
       name: 'Electric Enchantment',

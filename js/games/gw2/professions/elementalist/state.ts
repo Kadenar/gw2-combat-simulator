@@ -14,7 +14,8 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   EVOKER_PUBLIC_END_STATE_KEYS,
-  EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS
+  EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS,
+  expireElectricEnchantments
 } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import {
   WEAVER_PUBLIC_END_STATE_KEYS,
@@ -44,6 +45,11 @@ export function projectElementalistEndState({
   schedulerState
 }: ElementalistEndStateProjectionOptions): SchedulerRecord {
   const state = snapshotProfessionState<ElementalistState>(schedulerState.profession);
+  // Waiting without another strike must still remove expired enchantments from the public result.
+  if (schedulerState.profession.specialization.kind === 'Evoker') {
+    expireElectricEnchantments(state, schedulerState.time);
+  }
+
   return projectPublicProfessionState(
     state,
     ELEMENTALIST_PUBLIC_END_STATE_KEYS,

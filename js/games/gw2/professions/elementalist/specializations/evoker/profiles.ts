@@ -123,7 +123,10 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
         kind: 'zap-buff',
         stacks: 1,
         duration: 5
-      }
+      },
+      // Skill grants have distinct lifetimes, independent of Galvanic Enchantment's trait window.
+      { type: 'buff', name: 'Hare Enchantment', duration: 10 },
+      { type: 'buff', name: 'Lightning Blitz Enchantment', duration: 6 }
     ]
   },
   variant(EVOKER_BALANCE_PROFILE_IDS.ignite, ID.IGNITE, 'Ignite - Familiar State', {
@@ -206,6 +209,7 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   }),
   trait(EVOKER_BALANCE_PROFILE_IDS.galvanicEnchantment, 'Galvanic Enchantment', {
     playerStacks: 2,
+    durationMultiplier: 6,
     effects: [
       { type: 'strike', coefficient: 0.4, hits: 1 },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5 }
