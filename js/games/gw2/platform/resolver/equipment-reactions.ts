@@ -239,7 +239,12 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event) {
           // Only standard boons trigger relic boon rules; generic buffs share this stage.
-          if (isStandardBoon(event.kind || event.boon)) invokeRelicHook(ctx, 'boon', event);
+          if (!isStandardBoon(event.kind || event.boon)) return;
+          invokeRelicHook(ctx, 'boon', event);
+          // Precast runtimes retain their own buff and cooldown; their rules gate precombat activation.
+          for (const relic of ctx.precastRelics || []) {
+            relic.rules.boon?.(ctx, relic.state, event);
+          }
         }
       }
     ],

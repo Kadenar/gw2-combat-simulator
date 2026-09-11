@@ -134,7 +134,7 @@ export function relicWeaponSwapRechargeMultiplier(relicName: string | undefined)
 export const RELIC_NAMES = [...Object.keys(RELIC_DATA)].sort((a, b) => a.localeCompare(b));
 
 /** Only these relics currently support temporary equipment during authored precombat actions. */
-export const PRECAST_RELIC_NAMES: readonly string[] = ['Director', 'Mount Balrior'];
+export const PRECAST_RELIC_NAMES: readonly string[] = ['Brawler', 'Director', 'Mount Balrior'];
 
 export function normalizePrecastRelics(value: unknown): string[] {
   return Array.isArray(value) ? PRECAST_RELIC_NAMES.filter((name) => value.includes(name)) : [];

@@ -210,6 +210,7 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   activeWeaponSet: number;
   combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
+  precastRelics?: readonly Gw2RelicRuntime[];
   profession: object;
   sigil: {
     severanceUntil: number;

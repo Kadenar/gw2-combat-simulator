@@ -5,21 +5,84 @@ import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { recordPassiveRelicTimeline, relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Saved preparation is opt-in, survives JSON persistence, and rejects unsupported or duplicate selections.
 test('precast relic selections migrate and validate independently of the combat relic', () => {
   assert.deepEqual(migrateGuardianBuild({}).precastRelics, []);
   const build = migrateGuardianBuild({
     relic: 'Thief',
-    precastRelics: ['Mount Balrior', 'Director', 'Director', 'Thief']
+    precastRelics: ['Mount Balrior', 'Brawler', 'Director', 'Director', 'Thief']
   });
-  assert.deepEqual(build.precastRelics, ['Director', 'Mount Balrior']);
+  assert.deepEqual(build.precastRelics, ['Brawler', 'Director', 'Mount Balrior']);
   const restored = migrateGuardianBuild(JSON.parse(JSON.stringify(build)));
   assert.equal(restored.relic, 'Thief');
   assert.deepEqual(restored.precastRelics, build.precastRelics);
   assert.equal(validateGuardianBuild(restored).valid, true);
   for (const precastRelics of [null, 'Director', ['Thief'], ['Director', 'Director']]) {
     assert.match(validateGuardianBuild({ ...build, precastRelics }).errors.join(' '), /precastRelics/);
+  }
+});
+
+// Real boon delivery must preserve preparation ordering, expiry, and a single runtime when Brawler stays equipped.
+test('Brawler precasts carry their remaining buff into combat without reactivating after unequipping', () => {
+  const profession = defineProfession({
+    id: 'brawler-precast-fixture',
+    name: 'Brawler Precast Fixture',
+    catalog: createCanonicalCatalog({
+      generated: [
+        ...['Protection', 'Resolution'].map((boon, index) => ({
+          id: 930100 + index,
+          name: `Grant ${boon}`,
+          type: 'Utility',
+          castTimeMs: 0,
+          effects: [{ type: 'boon', boon, duration: 2, stacks: 1 }]
+        })),
+        {
+          id: 930102,
+          name: 'Strike',
+          type: 'Weapon',
+          weapon: 'Sword',
+          castTimeMs: 0,
+          effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+        }
+      ]
+    })
+  });
+  const run = (rotation, relic = '', precastRelics = ['Brawler']) =>
+    simulateGw2({ profession, rotation, config: { relic, precastRelics } });
+  const procs = (result) => result.procSteps.filter((step) => step.skill === 'Relic of the Brawler');
+  const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
+  for (const boon of ['Protection', 'Resolution']) {
+    const rotation = [
+      `Grant ${boon}`,
+      '__combat_start',
+      'Strike',
+      { type: 'wait', durationMs: 4000 },
+      'Strike',
+      { type: 'wait', durationMs: 4001 },
+      `Grant ${boon}`,
+      'Strike'
+    ];
+    const baseline = hits(run(rotation, '', []));
+    for (const relic of ['', 'Brawler']) {
+      const result = run(rotation, relic);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(procs(result).length, relic ? 2 : 1);
+      assert.equal(procs(result)[0].expiresAt, 4000);
+      const actual = hits(result);
+      assert.ok(Math.abs(actual[0].damage / baseline[0].damage - 1.1) < 1e-10);
+      assert.equal(actual[1].damage, baseline[1].damage);
+      assert.ok(Math.abs(actual[2].damage / baseline[2].damage - (relic ? 1.1 : 1)) < 1e-10);
+    }
+
+    assert.equal(procs(run(rotation, 'Brawler', [])).length, 1);
+    assert.equal(procs(run(['__combat_start', `Grant ${boon}`, 'Strike'])).length, 0);
+    assert.equal(procs(run([`Grant ${boon}`, 'Strike'])).length, 0);
+    const elapsed = run([`Grant ${boon}`, { type: 'wait', durationMs: 4000 }, '__combat_start', 'Strike']);
+    assert.equal(hits(elapsed)[0].damage, baseline[0].damage);
   }
 });
 

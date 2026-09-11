@@ -34,7 +34,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await expect(select).toHaveCSS('opacity', '0');
   const add = picker.getByRole('button', { name: 'Add precast relics', exact: true });
   await expect(add).toHaveText('+');
-  for (const name of ['Mount Balrior', 'Director']) {
+  for (const name of ['Mount Balrior', 'Director', 'Brawler']) {
     await add.click();
     await picker
       .getByRole('option')
@@ -44,7 +44,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   }
 
   await ready();
-  await expect(picker.locator('.optimizer-choice')).toHaveCount(2);
+  await expect(picker.locator('.optimizer-choice')).toHaveCount(3);
   await expect(select.locator('option[data-choice="Director"]')).toBeDisabled();
   await add.click();
   await expect(
@@ -61,10 +61,10 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await ready();
-  await expect(picker.locator('.optimizer-choice')).toHaveCount(2);
+  await expect(picker.locator('.optimizer-choice')).toHaveCount(3);
   await picker.getByRole('button', { name: 'Remove Director from precastRelics' }).click();
   await ready();
-  await expect(picker.locator('.optimizer-choice')).toHaveCount(1);
+  await expect(picker.locator('.optimizer-choice')).toHaveCount(2);
   await expect(select.locator('option[data-choice="Director"]')).toBeEnabled();
   await expect(add).toBeFocused();
   await add.click();
@@ -72,7 +72,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
     picker.getByRole('option').filter({ has: page.locator('.gear-option-name', { hasText: 'Director' }) })
   ).toBeEnabled();
   await page.keyboard.press('Escape');
-  expect(await page.evaluate(() => window.professionApp.build.precastRelics)).toEqual(['Mount Balrior']);
+  expect(await page.evaluate(() => window.professionApp.build.precastRelics)).toEqual(['Brawler', 'Mount Balrior']);
   expect(
     await page.evaluate(() =>
       window.professionApp.results.procSteps.some((step) => step.skill === 'Relic of the Director')
