@@ -1496,20 +1496,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 63300,
-    name: 'Recall Mech',
-    description:
-      'Recall your mech for repairs. The cooldown of Crash Down is determined by the amount of damage your mech has taken.<br>{{gray|Right-click to rename your mech.}}',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Recall_Mech.png',
-    type: 'Profession',
-    slot: 'Profession_4',
-    specialization: 'Mechanist',
-    categories: ['Mechanist'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 63334,
     name: 'Rolling Smash',
     description: 'Slam at the target with both cutters, inflicting severe bleeding to enemies in the area.',

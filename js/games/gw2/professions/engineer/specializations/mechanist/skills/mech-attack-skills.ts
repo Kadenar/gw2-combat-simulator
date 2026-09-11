@@ -125,26 +125,5 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
       }
     ],
     toolbeltParentName: 'Overclock Signet'
-  },
-  [ID.MECH_SUPPORT_DEPTH_CHARGES]: {
-    castTimeMs: 500,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1,
-        name: 'Mech Support: Depth Charges',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 8,
-        actorType: 'summon'
-      }
-    ],
-    mechanicSlot: 4
   }
 });

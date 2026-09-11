@@ -6,10 +6,7 @@ import {
 } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/catalog/module-data.js';
-import {
-  activateOverclockSignet,
-  engineerMechSkillHandlers
-} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { activateOverclockSignet } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import {
   mechanistCriticalHitDefinitions,
   mechanistResolverEventReactions
@@ -25,14 +22,8 @@ import { mechanistState } from '#gw2/professions/engineer/specializations/mechan
 import { MECHANIST_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
 
-/** Toggles the mech loop and schedules Overclock after authored skill effects. */
+/** Schedules Overclock after authored skill effects. */
 const mechanistSkillHandlers = Object.freeze({
-  'engineer.mech-summon': augmentSkill({
-    afterEffects: engineerMechSkillHandlers['engineer.mech-summon']
-  }),
-  'engineer.mech-recall': augmentSkill({
-    afterEffects: engineerMechSkillHandlers['engineer.mech-recall']
-  }),
   'engineer.overclock-signet': augmentSkill({ afterEffects: activateOverclockSignet })
 });
 

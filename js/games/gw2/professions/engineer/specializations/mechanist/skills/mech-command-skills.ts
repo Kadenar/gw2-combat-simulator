@@ -1,13 +1,10 @@
 /**
- * Owns Mechanist summon, recall, and user-issued mech command skill fragments.
+ * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
-
-// Crash Down and Recall Mech occupy the same profession-mechanic tile.
-const MECH_TOGGLE_PALETTE_TILE = 'engineer-mechanist-mech-toggle';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.
@@ -24,40 +21,6 @@ function mechCommand(fragment: SkillFragment): SkillFragment {
 
 /** Supplies command fragments and their independent cast-lane metadata. */
 export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
-  [ID.CRASH_DOWN]: {
-    // Custom: Summons the mech and starts its autonomous attack loop; see `mechanist/mechanics/mech.ts`.
-    handlerId: 'engineer.mech-summon',
-    castTimeMs: 750,
-    cooldown: 50,
-    paletteTileId: MECH_TOGGLE_PALETTE_TILE,
-    paletteTileOrder: 1,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        name: 'Crash Down',
-        actorType: 'player'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'launch',
-        duration: 200
-      }
-    ],
-    mechanicSlot: 4
-  },
-  [ID.RECALL_MECH]: {
-    // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
-    handlerId: 'engineer.mech-recall',
-    castTimeMs: 750,
-    cooldown: 10,
-    paletteTileId: MECH_TOGGLE_PALETTE_TILE,
-    paletteTileOrder: 2,
-    effects: [],
-    mechanicSlot: 4
-  },
   [ID.JADE_MORTAR]: mechCommand({
     interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
@@ -220,14 +183,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     ],
     mechanicSlot: 2
   }),
-  [ID.RECALL_MECH_ID_63300]: {
-    // Custom: Stops the active mech attack loop and recalls it; see `mechanist/mechanics/mech.ts`.
-    handlerId: 'engineer.mech-recall',
-    castTimeMs: 750,
-    cooldown: 10,
-    effects: [],
-    mechanicSlot: 4
-  },
   [ID.ROLLING_SMASH]: mechCommand({
     castTimeMs: 750,
     cooldown: 20,

@@ -210,8 +210,6 @@ test('stateful transforms select one live tile across professions', async () => 
       ['Engage Photon Forge', 'Deactivate Photon Forge'],
       'Deactivate Photon Forge'
     ],
-    ['engineer', 'Mechanist', { mech: { active: false } }, ['Crash Down'], 'Crash Down'],
-    ['engineer', 'Mechanist', { mech: { active: true } }, ['Crash Down'], 'Recall Mech'],
     [
       'thief',
       'Specter',

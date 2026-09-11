@@ -70,6 +70,43 @@ const applyEngineerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(e
 
 const authoringEngineerProfession = withActivePatchPreview(engineerProfession);
 
+test('Mechanist keeps its mech present and exposes only trait-selected commands', () => {
+  // Removed mech controls must stay absent from both simulation and authoring catalogs.
+  for (const id of [63050, 63089, 63210, 63300]) {
+    assert.equal(engineerCatalog.skillsById.has(id), false);
+    assert.equal(
+      ENGINEER_SUPPLEMENTAL_SKILLS.some((skill) => skill.id === id),
+      false
+    );
+    assert.equal(
+      authoringEngineerProfession.patchAuthoring.modules.some((module) =>
+        module.skillVariants.some((skill) => skill.id === id)
+      ),
+      false
+    );
+  }
+
+  for (const name of ['Crash Down', 'Recall Mech', 'Mech Support: Depth Charges'])
+    assert.equal(engineerCatalog.skillsByName.has(name), false);
+
+  const result = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 6000 }], {
+    selectedSkills: [...baseConfig.selectedSkills.slice(0, 4), 'Overclock Signet']
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.mech.active, true);
+  assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === ID.JADE_BUSTER_CANNON));
+  assert.ok(result.events.some((event) => event.type === 'damage' && event.mechBasicAttack));
+
+  const groups = engineerProfession.ui.paletteGroups({
+    specialization: 'Mechanist',
+    professionState: result.endState.profession
+  });
+  assert.deepEqual(
+    groups.find((group) => group.id === 'engineer-profession').skillIds,
+    result.endState.profession.mech.commandSkillIds
+  );
+});
+
 // Saved inheritance tuning uses semantic keys after loading without mutating the original edits.
 test('Mechanist profile overrides migrate without losing edits or bypassing validation', () => {
   const resourceId = MECHANIST_BALANCE_PROFILE_IDS.resources;

@@ -6,7 +6,7 @@ const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
 const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Engineer: Object.freeze([
     5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5893, 5900, 5904, 5910, 5912, 5913,
-    5960, 5968, 6113, 29739, 30101, 41218, 44646, 77018
+    5960, 5968, 6113, 29739, 30101, 41218, 44646, 63050, 63089, 63210, 63300, 77018
   ]),
   Guardian: Object.freeze([
     9084, 9085, 9150, 9152, 9153, 9163, 9175, 9182, 9245, 9246, 9248, 9251, 9253, 29786, 30461, 30871, 41571, 42864,
@@ -77,6 +77,12 @@ export async function updateProfessionApiData(
     config,
     fetchImpl
   });
+
+  // Mechanist always has its mech, so Overclock only describes its supported cannon activation.
+  if (normalizedProfession === 'Engineer') {
+    const overclock = snapshot.skills.find((skill) => skill.id === 63095);
+    if (overclock) overclock.description = overclock.description.replace(/ If your mech is not present[^.]*\./, '');
+  }
 
   // Omitted skills must not remain reachable through a supported skill's flip link.
   for (const skill of snapshot.skills) {

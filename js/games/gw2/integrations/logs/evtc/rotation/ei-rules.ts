@@ -809,15 +809,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
     profession: 'engineer',
     specialization: 'mechanist',
-    skillId: 63050,
-    signal: 63050,
-    kind: 'damage',
-    rule: 'MechanistHelper.DamageCastFinder(CrashDown)',
-    disableWithEffects: true
-  },
-  {
-    profession: 'engineer',
-    specialization: 'mechanist',
     skillId: 63334,
     signal: 63334,
     kind: 'minion-cast',

@@ -25,9 +25,9 @@ pet/Reaper spawn rules and Chronomancer shatter effect/clone checks. An existing
 Engineer kit identification requires an actual kit swap and a subsequent represented bundle animation.
 
 Coverage is intentionally incomplete. Unsupported extension healing/barrier, missile, and custom checker families are
-not replaced by generic damage or catalog guesses. Mechanist Crash Down's position/impact spawn checker is unsupported.
-See the [coverage inventory](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for the pinned finder exclusions. This
-implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
+not replaced by generic damage or catalog guesses. Mechanist summon/recall skills are intentionally outside simulator
+scope. See the [coverage inventory](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) for the pinned finder exclusions.
+This implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
 
 ## Normalization and timing
 

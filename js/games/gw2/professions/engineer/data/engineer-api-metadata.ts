@@ -2199,23 +2199,6 @@ export const SKILLS: readonly EngineerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 63050,
-    name: 'Crash Down',
-    description:
-      'Summon your jade mech at the target area. Foes in the area are damaged. The recharge time of this skill is based on how damaged your mech is.\n\nRight-click to rename your mech.',
-    icon: 'https://render.guildwars2.com/file/9156D3FECB94F8B27909B3EA904DAAE3C21043F9/2503677.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_4',
-    specialization: '',
-    categories: [],
-    recharge: 50,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 63077,
     name: 'Mace Smash',
     description: 'Smash your target with a heavy blow from your mace, inflicting confusion.',
@@ -2232,27 +2215,10 @@ export const SKILLS: readonly EngineerSkill[] = [
     flipSkillId: 63174
   },
   {
-    id: 63089,
-    name: 'Recall Mech',
-    description:
-      'Recall your mech for repairs. The cooldown of Crash Down is determined by the amount of damage your mech has taken.\n\nRight-click to rename your mech.',
-    icon: 'https://render.guildwars2.com/file/4D6BDB0DF61DF2E5045801F7995D68ECC8C5B602/2503676.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_4',
-    specialization: '',
-    categories: [],
-    recharge: 10,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 63095,
     name: 'Overclock Signet',
     description:
-      'Signet Passive: Reduces recharge of other signets.\nSignet Active: Order your mech to fire its ultimate weapon, the jade buster cannon. If your mech is not present, instead your mech is summoned, even if Crash Down is on cooldown.',
+      'Signet Passive: Reduces recharge of other signets.\nSignet Active: Order your mech to fire its ultimate weapon, the jade buster cannon.',
     icon: 'https://render.guildwars2.com/file/A82F0980D5ED24F305FA57F3A929C1E90D26327F/2503668.png',
     type: 'Elite',
     weapon: '',
@@ -2347,22 +2313,6 @@ export const SKILLS: readonly EngineerSkill[] = [
     ammoRecharge: 0,
     nextChainId: 63077,
     flipSkillId: 63077
-  },
-  {
-    id: 63210,
-    name: 'Mech Support: Depth Charges',
-    description: 'Request a barrage from your mech on the target foe.',
-    icon: 'https://render.guildwars2.com/file/CF6EABA0DDC3DAAB15B8AB4A91AC6203A3E4E4DD/2503687.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_4',
-    specialization: '',
-    categories: [],
-    recharge: 25,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
   },
   {
     id: 63234,

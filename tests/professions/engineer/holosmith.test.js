@@ -225,12 +225,8 @@ test('Engineer availability follows skill IDs after display labels change', () =
     config: { specialization: 'Mechanist' },
     state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } } }
   };
-  const crashDown = { ...engineerCatalog.skillsById.get(ID.CRASH_DOWN), name: 'Renamed summon' };
-  assert.equal(mechanistCastAvailability(mechanistContext, crashDown).code, 'engineer.mech-active');
-
-  mechanist.mech.active = false;
-  const recall = { ...engineerCatalog.skillsById.get(ID.RECALL_MECH_ID_63300), name: 'Renamed recall' };
-  assert.equal(mechanistCastAvailability(mechanistContext, recall).code, 'engineer.mech-inactive');
+  const command = { ...engineerCatalog.skillsById.get(ID.SPARK_REVOLVER), name: 'Renamed command' };
+  assert.equal(mechanistCastAvailability(mechanistContext, command).code, 'engineer.mech-command');
 });
 
 test('Corona Burst heat persists outside Forge without causing Overheat', () => {

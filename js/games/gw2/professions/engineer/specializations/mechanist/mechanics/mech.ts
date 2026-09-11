@@ -14,7 +14,6 @@ import {
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -225,20 +224,6 @@ function scheduleMechAttack(context: EngineerSchedulerContext, at: number, paylo
   });
 }
 
-/** Activates the mech at cast completion and publishes the resulting profession state. */
-function summonMech(context: EngineerCastContext): void {
-  const at = context.effectiveEnd;
-  mechanistState.from(context).mech.active = true;
-  emitEngineerStateSnapshot(context, at, 'summon-mech');
-}
-
-/** Deactivates the mech at cast completion and publishes the resulting profession state. */
-function recallMech(context: EngineerCastContext): void {
-  const at = context.effectiveEnd;
-  mechanistState.from(context).mech.active = false;
-  emitEngineerStateSnapshot(context, at, 'recall-mech');
-}
-
 /** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const strike = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'strike');
@@ -355,10 +340,6 @@ export function handleEngineerMechAttack(
 ): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled) return;
-  if (!state.mech.active) {
-    scheduleMechAttack(context, task.at + 1, { phase: 0 });
-    return;
-  }
 
   // Mech is mid-command; hold the attack chain until the command animation ends.
   const busyUntil = Number(state.mech.busyUntil || 0);
@@ -464,8 +445,3 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
     });
   }
 }
-
-export const engineerMechSkillHandlers = Object.freeze({
-  'engineer.mech-summon': summonMech,
-  'engineer.mech-recall': recallMech
-});

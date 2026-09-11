@@ -300,7 +300,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     const omittedSkillsByProfession = Object.freeze({
       engineer: [
         5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5893, 5900, 5904, 5910, 5912,
-        5913, 5960, 5968, 6113, 29739, 30101, 41218, 44646, 77018
+        5913, 5960, 5968, 6113, 29739, 30101, 41218, 44646, 63050, 63089, 63210, 63300, 77018
       ],
       guardian: [
         9084, 9085, 9150, 9152, 9153, 9163, 9175, 9182, 9245, 9246, 9248, 9251, 9253, 29786, 30461, 30871, 41571, 42864,
@@ -319,8 +319,19 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
 
     // The profession updater owns these exclusions so refreshing generated data cannot restore unsupported skills.
     for (const [professionName, skillIds] of Object.entries(omittedSkillsByProfession)) {
+      const fixture = omittedProfessionFixture(skillIds, professionName);
+      if (professionName === 'engineer') {
+        fixture.profession.skills.push({ id: 63095 });
+        fixture.skills.push({
+          id: 63095,
+          name: 'Overclock Signet',
+          type: 'Elite',
+          description: 'Fire the cannon. If your mech is not present, summon it even if Crash Down is on cooldown.'
+        });
+      }
+
       const snapshot = await updateProfessionApiData(professionName, {
-        fetchImpl: createFixtureFetch([], omittedProfessionFixture(skillIds, professionName)),
+        fetchImpl: createFixtureFetch([], fixture),
         snapshotDate: '2026-07-27',
         output: path.join(directory, `${professionName}-api-metadata.ts`),
         log: () => {}
@@ -331,6 +342,9 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         false,
         professionName
       );
+      if (professionName === 'engineer') {
+        assert.equal(snapshot.skills.find((skill) => skill.id === 63095).description, 'Fire the cannon.');
+      }
     }
   } finally {
     await rm(directory, { recursive: true, force: true });

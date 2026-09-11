@@ -113,7 +113,7 @@ export function engineerMechAttributes(
   };
 }
 
-/** Creates the initial active-mech state, including trait-selected commands and inherited attributes. */
+/** The mech stays present throughout simulation; initialize its commands and inherited attributes. */
 export function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {
