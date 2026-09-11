@@ -12,8 +12,8 @@ import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardi
  * - Cancels before commitment leave flips untouched; committed atomic casts
  *   still arm their flip when the remaining animation is cancelled.
  * - When a skill's flip differs from its chain successor and the flip points
- *   back at it, arm that flip: Zealot's Flame gets a fixed 3s window, otherwise
- *   the flip stays castable for the skill's cooldown/recharge (min 1, default 5).
+ *   back at it, arm that flip for its effect window, falling back to the skill's
+ *   cooldown/recharge (min 1, default 5).
  * - Casting a flip skill consumes its `availableFlips` entry.
  */
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
@@ -31,7 +31,9 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
             : 3
           : skill.id === GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION
             ? 4
-            : Math.max(1, Number(skill.cooldown ?? skill.recharge ?? 5));
+            : skill.id === GUARDIAN_SKILL_IDS.BINDING_BLADE
+              ? 10 // Pull expires with the tether, independently of Binding Blade's recharge.
+              : Math.max(1, Number(skill.cooldown ?? skill.recharge ?? 5));
       professionCoreState(context).availableFlips[flip.id] = context.effectiveEnd + duration;
     }
   }

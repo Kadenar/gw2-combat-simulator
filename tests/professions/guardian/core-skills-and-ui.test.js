@@ -1,6 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -30,6 +31,33 @@ const config = {
   },
   target: { armor: 2597 }
 };
+
+// Pull expires with the tether, restoring the parent tile without resetting its cooldown.
+test('Binding Blade flips back when its ten-second tether expires', () => {
+  const parent = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.BINDING_BLADE);
+  const settings = { ...config, primaryWeapon: 'Greatsword' };
+  for (const durationMs of [9960, 10000, 10040]) {
+    const expired = durationMs >= 10000;
+    const rotation = ['Binding Blade', { type: 'wait', durationMs }];
+    const result = simulateGw2({ profession: guardianProfession, rotation, config: settings });
+    assert.deepEqual(result.warnings, []);
+    const tiles = displayedSkillTiles(
+      { skills: guardianCatalog.skills, profession: guardianProfession, results: result },
+      [parent]
+    );
+    assert.deepEqual(
+      tiles.map((skill) => skill.id),
+      [expired ? parent.id : GUARDIAN_SKILL_IDS.PULL]
+    );
+    assert.ok(result.endState.cooldowns[parent.name].remaining > 0);
+
+    const pull = simulateGw2({ profession: guardianProfession, rotation: [...rotation, 'Pull'], config: settings });
+    assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
+    if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
+    else assert.deepEqual(pull.warnings, []);
+    assert.equal(pull.endState.cooldowns[parent.name].readyAt, result.endState.cooldowns[parent.name].readyAt);
+  }
+});
 
 // Slot decoding preserves trailing-digit compatibility and leaves skill eligibility to callers.
 test('Guardian virtue slots decode consistently and reject unmapped slots', () => {
