@@ -428,13 +428,54 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
   expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
 });
 
+// Both export buttons accept custom names without losing JSON extensions or cancellation.
+test('build and rotation exports allow custom file names', async ({ page }) => {
+  await openWorkspace(page);
+  const downloads = [];
+  page.on('download', (download) => downloads.push(download));
+  const dialog = page.getByRole('dialog', { name: 'Export file', exact: true });
+  const input = dialog.getByRole('textbox', { name: 'File name', exact: true });
+  for (const kind of ['build', 'rotation']) {
+    const button = page.locator(`#btn-export-${kind}`);
+    await button.click();
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(button).toBeFocused();
+    await button.click();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(button).toBeFocused();
+    for (const [entered, expected] of [
+      [undefined, `mesmer-${kind}.json`],
+      ['   ', `mesmer-${kind}.json`],
+      [`  My ${kind}  `, `My ${kind}.json`],
+      [`My ${kind}.JSON`, `My ${kind}.JSON`]
+    ]) {
+      await button.click();
+      await expect(input).toHaveValue(`mesmer-${kind}.json`);
+      await expect(input).toBeFocused();
+      if (entered !== undefined) await input.fill(entered);
+      const download = page.waitForEvent('download');
+      await input.press('Enter');
+      expect((await download).suggestedFilename()).toBe(expected);
+      await expect(dialog).toHaveCount(0);
+    }
+  }
+
+  expect(downloads).toHaveLength(8);
+});
+
 // Reparented controls keep their original listeners, and destructive actions still allow cancellation.
 test('mobile actions export, import, reset, and delete the active build', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   const original = await page.evaluate(() => structuredClone(window.professionApp.build));
   const download = page.waitForEvent('download');
   await buildAction(page, /Export$/);
-  expect((await download).suggestedFilename()).toMatch(/\.json$/);
+  const exportDialog = page.getByRole('dialog', { name: 'Export file', exact: true });
+  await expect(exportDialog).toBeInViewport({ ratio: 1 });
+  await exportDialog.getByRole('textbox', { name: 'File name', exact: true }).fill('My mobile build');
+  await exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
+  expect((await download).suggestedFilename()).toBe('My mobile build.json');
   const chooser = page.waitForEvent('filechooser');
   await buildAction(page, /Import$/);
   await (

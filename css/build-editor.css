@@ -200,8 +200,9 @@
   flex-wrap: wrap;
 }
 
-/* Keep tab renaming inside the app, with native modal focus and room on small screens. */
-.build-rename-dialog {
+/* Keep name inputs consistent, with native modal focus and room on small screens. */
+.build-rename-dialog,
+.file-export-dialog {
   --dialog-width: 400px;
   --dialog-gap: 24px;
   padding: 20px;
@@ -209,17 +210,20 @@
   box-shadow: none;
 }
 
-.build-rename-dialog::backdrop {
+.build-rename-dialog::backdrop,
+.file-export-dialog::backdrop {
   background: rgba(5, 7, 12, 0.72);
 }
 
-.build-rename-dialog h2 {
+.build-rename-dialog h2,
+.file-export-dialog h2 {
   margin-bottom: 16px;
   color: var(--text-bright);
   font-size: 1rem;
 }
 
-.build-rename-dialog input {
+.build-rename-dialog input,
+.file-export-dialog input {
   display: block;
   width: 100%;
   margin-top: 6px;
@@ -231,12 +235,14 @@
   font: inherit;
 }
 
-.build-rename-dialog :focus-visible {
+.build-rename-dialog :focus-visible,
+.file-export-dialog :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.build-rename-actions {
+.build-rename-actions,
+.file-export-actions {
   gap: 8px;
   margin-top: 20px;
 }

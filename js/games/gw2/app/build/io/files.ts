@@ -1,5 +1,6 @@
 // File I/O utilities for import/export of builds and rotations.
 
+import { bindDialog, showDialog } from '#app/dialog.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
@@ -13,18 +14,45 @@ interface PresetBundle {
 }
 
 /**
- * Downloads a value as pretty-printed JSON using a temporary object URL.
+ * Uses the app's modal controls to name an export, downloading only when the form is submitted.
  */
 export function downloadJson(filename: string, payload: unknown): void {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: 'application/json'
+  const dialog = document.createElement('dialog');
+  dialog.className = 'file-export-dialog';
+  dialog.setAttribute('aria-labelledby', 'file-export-title');
+  dialog.innerHTML = `<form>
+    <h2 id="file-export-title">Export file</h2>
+    <label for="file-export-name">File name</label>
+    <input id="file-export-name" name="filename" type="text" autocomplete="off" spellcheck="false" autofocus>
+    <div class="file-export-actions app-dialog-actions">
+      <button type="button" class="btn btn-io" data-dialog-close>Cancel</button>
+      <button type="submit" class="btn btn-io">Export</button>
+    </div>
+  </form>`;
+  const input = dialog.querySelector('input')!;
+  input.value = filename;
+  input.placeholder = filename;
+  dialog.querySelector('form')!.addEventListener('submit', (event) => {
+    event.preventDefault();
+    let exportName = input.value.trim() || filename;
+    if (!/\.json$/i.test(exportName)) exportName += '.json';
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = exportName;
+    link.click();
+    URL.revokeObjectURL(url);
+    dialog.close();
   });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
+  bindDialog(dialog);
+  dialog.addEventListener('close', () => dialog.remove());
+  document.body.append(dialog);
+  input.addEventListener('focus', () => input.select(), { once: true });
+  showDialog(dialog);
 }
 
 /**
