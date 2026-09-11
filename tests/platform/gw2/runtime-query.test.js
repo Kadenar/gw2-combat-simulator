@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
 import {
   activeBoonStacks,
   boonActive,
@@ -23,6 +24,62 @@ function context(overrides = {}) {
     ...overrides
   };
 }
+
+// Stack queries must agree with accumulated duration even after every original packet has expired.
+test('duration boon stacks use capped presence in live and scheduler state', () => {
+  for (const kind of ['fury', 'vigor', 'swiftness', 'protection', 'alacrity', 'quickness']) {
+    const boons = new Map();
+    for (const at of [0, 1]) {
+      recordBuffApplication(boons, {
+        type: 'buff',
+        kind,
+        at,
+        duration: 5,
+        stacks: 1,
+        resolvedAudience: { includesSelf: true }
+      });
+    }
+
+    for (const stateKey of ['runtime', 'state']) {
+      const current = context({ [stateKey]: { boons } });
+      assert.equal(activeBoonStacks({ ...current, time: -1 }, kind), 0);
+      assert.equal(activeBoonStacks({ ...current, time: 1 }, kind), 1);
+      assert.equal(activeBoonStacks({ ...current, time: 7 }, kind), 1);
+      assert.equal(activeBoonStacks({ ...current, time: 10 }, kind), 0);
+      assert.equal(activeBoonStacks({ ...current, time: 7 }, kind, 0), 0);
+      assert.equal(activeBoonStacks({ ...current, config: { boons: { [kind]: true } } }, kind), 1);
+      assert.equal(activeBoonStacks({ ...current, time: 100, config: { boons: { [kind]: 3 } } }, kind), 1);
+    }
+
+    const cap = kind === 'swiftness' ? 60 : 30;
+    recordBuffApplication(boons, {
+      type: 'buff',
+      kind,
+      at: 2,
+      duration: 100,
+      stacks: 1,
+      resolvedAudience: { includesSelf: true }
+    });
+    assert.equal(activeBoonStacks(context({ time: 2 + cap - 1, runtime: { boons } }), kind), 1);
+    assert.equal(activeBoonStacks(context({ time: 2 + cap, runtime: { boons } }), kind), 0);
+  }
+});
+
+test('duration stack queries retain audience independence and live insertion order', () => {
+  const state = { boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1 }]]]) };
+  const runtime = { boons: new Map() };
+  const current = context({ time: 0, state, runtime });
+  assert.equal(activeBoonStacks(current, 'fury'), 0);
+  runtime.boons.set('fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]);
+  assert.equal(activeBoonStacks(current, 'fury'), 1);
+  assert.equal(boonActive(current, 'fury'), false);
+  runtime.boons.set('custom', [
+    { at: 0, expiresAt: 10, stacks: 3 },
+    { at: 0, expiresAt: 10, stacks: 2 }
+  ]);
+  assert.equal(activeBoonStacks(current, 'custom'), 5);
+  assert.equal(activeBoonStacks({ ...current, time: 10 }, 'custom'), 0);
+});
 
 test('additive damage uses the live weapon set before and after a same-time swap', () => {
   const hit = { type: 'strike', at: 5 };

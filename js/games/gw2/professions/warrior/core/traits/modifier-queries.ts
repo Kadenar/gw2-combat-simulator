@@ -2,7 +2,7 @@ import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechani
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { eventSkill as gw2EventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, eventSkill as gw2EventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
@@ -32,15 +32,9 @@ export function warriorTargetControlled(context: Gw2ModifierContext): boolean {
   );
 }
 
-// Warrior modifiers historically read configured and live resolver boons only; timeline state must not change them.
+// Use canonical duration pools while retaining Warrior's config/live-only visibility contract.
 export function warriorBoonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (context.config?.boons?.[boon]) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) =>
-      application.resolvedAudience.includesSelf &&
-      application.at <= context.time &&
-      application.expiresAt > context.time
-  );
+  return boonActive({ ...context, timeline: undefined }, boon);
 }
 
 export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {

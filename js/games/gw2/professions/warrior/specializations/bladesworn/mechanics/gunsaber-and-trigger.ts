@@ -1,4 +1,5 @@
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
+import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -280,8 +281,7 @@ function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
-// Detect Fury that predates the current activation so Flow Stabilizer cannot
-// satisfy its own bonus through same-cast events.
+// Accumulate pre-cast Fury duration, excluding this activation so Flow Stabilizer cannot grant its own bonus.
 function furyActiveBeforeCurrentCast(
   context: WarriorSchedulerContext,
   activationId: string,
@@ -289,14 +289,15 @@ function furyActiveBeforeCurrentCast(
 ): boolean {
   const configured = context.config.boons?.fury;
   if (configured === true || Number(configured || 0) > 0) return true;
-  return context.events.some(
-    (event) =>
-      event.type === 'buff' &&
-      event.kind === 'fury' &&
-      event.resolvedAudience?.includesSelf &&
-      event.activationId !== activationId &&
-      event.at <= castStart + context.epsilon &&
-      event.at + Number(event.duration || 0) > castStart + context.epsilon
+  return (
+    remainingDurationStackSeconds(context.events, castStart + context.epsilon, {
+      includes: (event) =>
+        event.type === 'buff' &&
+        event.kind === 'fury' &&
+        Boolean(event.resolvedAudience?.includesSelf) &&
+        event.activationId !== activationId,
+      maximum: durationStackingBoonCapSeconds('fury')
+    }) > 0
   );
 }
 
