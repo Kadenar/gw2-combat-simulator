@@ -4,20 +4,17 @@ import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/state/boons.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 
-// start is optional because this context is used in both precast (has start) and general advance calls
-type EngineerResourceContext = EngineerSchedulerContext & {
-  readonly start?: number;
-};
-
-/** Calculates current endurance regeneration after Vigor and Adrenal Implant modifiers. */
-export function engineerEnduranceRegenerationRate(
-  context: EngineerResourceContext,
-  at = Number(context.start ?? context.state?.time ?? 0)
-): number {
-  const vigor = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
+/** Calculates an interval's endurance rate after Vigor and Adrenal Implant modifiers. */
+export function engineerEnduranceRegenerationRate(context: EngineerSchedulerContext, vigor: boolean): number {
   const multiplier =
     1 +
     (vigor
@@ -46,14 +43,49 @@ export function engineerEnduranceRegenerationRate(
   );
 }
 
-/** Predicts when the requested endurance cost becomes affordable, or returns null if it cannot. */
+/** Splits recovery at self-Vigor applications and pooled expiry so wait boundaries cannot change endurance. */
+function* enduranceIntervals(context: EngineerSchedulerContext, start: number, end: number) {
+  const baseRate = engineerEnduranceRegenerationRate(context, false);
+  const vigorRate = engineerEnduranceRegenerationRate(context, true);
+  if (context.config.boons?.vigor) {
+    yield { end, rate: vigorRate };
+    return;
+  }
+
+  const applications = boonApplicationsAt(context.events, 'vigor', Infinity).filter((application) =>
+    buffMatchesAudience(application, 'all')
+  );
+  const boundaries = [
+    ...new Set(applications.map((event) => event.at).filter((at) => at > start && at < end)),
+    end
+  ].sort((left, right) => left - right);
+  for (const boundary of boundaries) {
+    // ponytail: replays the small Vigor history per boundary; cache duration windows if long rotations make this costly.
+    const remaining = remainingDurationStackSeconds(applications, start, {
+      maximum: durationStackingBoonCapSeconds('vigor')
+    });
+    const vigorEnd = Math.min(boundary, start + remaining);
+    if (vigorEnd > start) yield { end: vigorEnd, rate: vigorRate };
+    if (boundary > vigorEnd) yield { end: boundary, rate: baseRate };
+    start = boundary;
+  }
+}
+
+/** Predicts the first affordable dodge across known Vigor windows, including recovery after expiry. */
 export function engineerEnduranceReadyAt(
-  context: EngineerResourceContext & { readonly start: number },
+  context: EngineerSchedulerContext & { readonly start: number },
   cost: number
 ): number | null {
-  const current = Number(professionCoreState(context).endurance || 0);
-  const rate = engineerEnduranceRegenerationRate(context, context.start);
-  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
+  let current = Number(professionCoreState(context).endurance || 0);
+  let at = context.start;
+  for (const interval of enduranceIntervals(context, at, Infinity)) {
+    const readyAt = enduranceReadyAt(current, cost, at, interval.rate, context.epsilon);
+    if (readyAt != null && readyAt <= interval.end) return readyAt;
+    current += (interval.end - at) * Math.max(0, interval.rate);
+    at = interval.end;
+  }
+
+  return null;
 }
 
 /** Advances Core endurance to a target time and emits the updated Engineer state. */
@@ -61,18 +93,13 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
-  // rate is evaluated at the midpoint of the window — accurate when vigor doesn't toggle mid-advance
-  Object.assign(
-    state,
-    advanceEndurance(
-      state,
-      target,
-      engineerEnduranceRegenerationRate(context, (from + target) / 2),
-      Number(
-        state.maximumEndurance ||
-          balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
-      )
-    )
+  const maximum = Number(
+    state.maximumEndurance ||
+      balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
   );
+  for (const interval of enduranceIntervals(context, from, target)) {
+    Object.assign(state, advanceEndurance(state, interval.end, interval.rate, maximum));
+  }
+
   emitEngineerStateSnapshot(context, target, 'resources');
 }
