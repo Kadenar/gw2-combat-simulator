@@ -1,4 +1,5 @@
 import {
+  handleAirBlast,
   handleConduitSurge,
   handleElectricArtillery,
   handleLightningRodPulse
@@ -24,6 +25,7 @@ export {
 
 // event handlers fire when a specific event type is dequeued during resolution
 export const engineerCoreResolverEventHandlers = Object.freeze({
+  'engineer.air-blast': handleAirBlast,
   'engineer.state': handleEngineerState,
   // A resolved dodge rearms the trait for the next eligible strike.
   'engineer.dodge': resetExplosiveEntrance,

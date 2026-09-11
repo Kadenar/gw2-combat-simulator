@@ -67,10 +67,10 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     cooldown: 15,
     effects: [
       {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 5,
+        // Custom: Burning and missile procs require an already-burning target at impact; see `core/mechanics/event-handlers.ts`.
+        type: 'custom',
+        eventType: 'engineer.air-blast',
+        event: { condition: 'Burning', stacks: 1, duration: 5, projectile: true },
         actorType: 'player'
       },
       {

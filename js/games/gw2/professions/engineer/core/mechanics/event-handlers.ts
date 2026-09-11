@@ -1,5 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { applyEngineerDerivedCondition, queueDamage } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -19,6 +20,13 @@ export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: En
     skillName: skill.name,
     weaponSet: context.state.activeWeaponSet
   });
+}
+
+/** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
+export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  if (!context.query.targetHasCondition('Burning', event.at, context)) return;
+  context.applyCondition({ ...event, type: 'condition', name: 'Air Blast — Burning' });
+  applyAimAssistedRocket(context, event);
 }
 
 // Focused is the shared spear target window established by Conduit Surge.
