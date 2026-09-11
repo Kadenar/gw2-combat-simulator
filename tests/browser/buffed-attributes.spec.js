@@ -85,6 +85,8 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
 }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  // Optimization requires a rotation; establish it before capturing the state previews must preserve.
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   const state = () =>
     page.evaluate(() =>

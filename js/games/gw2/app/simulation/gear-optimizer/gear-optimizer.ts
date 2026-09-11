@@ -21,8 +21,10 @@ export interface GearOptimizerSelections {
   infusionStats?: string[];
   infusionCount?: number;
   locks?: string[];
+  forcedSlots?: Record<string, string>;
   minToughness?: number;
   maxToughness?: number;
+  minVitality?: number;
   minBoonDuration?: number;
   minQuicknessDuration?: number;
 }
@@ -30,6 +32,7 @@ export interface GearOptimizerSelections {
 export const OPTIMIZER_REQUIREMENTS = {
   minToughness: 'Minimum toughness',
   maxToughness: 'Maximum toughness',
+  minVitality: 'Minimum vitality',
   minBoonDuration: 'Minimum boon duration (%)',
   minQuicknessDuration: 'Minimum quickness duration (%)'
 } as const;
@@ -192,6 +195,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
           'infusionStats',
           'infusionCount',
           'locks',
+          'forcedSlots',
           ...Object.keys(OPTIMIZER_REQUIREMENTS)
         ].includes(key)
     )
@@ -232,6 +236,17 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
     locks.some((key) => ![...slots, ...upgradeKeys, ...sigilKeys, 'infusions'].includes(key))
   )
     throw new TypeError('Unknown equipment lock.');
+  // Restrict slot choices at the source so every search and refinement honors forced prefixes.
+  const forcedSlots = selections.forcedSlots === undefined ? {} : selections.forcedSlots;
+  if (
+    !forcedSlots ||
+    typeof forcedSlots !== 'object' ||
+    Array.isArray(forcedSlots) ||
+    Object.entries(forcedSlots).some(
+      ([slot, prefix]) => !slots.includes(slot) || typeof prefix !== 'string' || !PREFIXES.includes(prefix)
+    )
+  )
+    throw new TypeError('Invalid forced slot selection.');
   const dimensions: OptimizerDimension[] = [];
   // Validate even locked or unused selectors so misspellings do not disappear from the request.
   if (selections.prefixes !== undefined) choices(selections.prefixes, build.gear.Helm, PREFIXES, 3);
@@ -239,9 +254,17 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
     const current = slot.startsWith('Alternate')
       ? build.alternateWeaponPrefixes[Number(slot.at(-1)) - 1]
       : build.gear[slot];
+    const forced = forcedSlots[slot];
+    if (forced !== undefined && locks.includes(slot) && forced !== current)
+      throw new TypeError(`Forced prefix conflicts with the equipment lock for ${slot}.`);
     dimensions.push({
       key: slot,
-      choices: choices(locks.includes(slot) ? [] : selections.prefixes, current, PREFIXES, 3)
+      choices: choices(
+        forced !== undefined ? [forced] : locks.includes(slot) ? [] : selections.prefixes,
+        current,
+        PREFIXES,
+        3
+      )
     });
   }
 
@@ -395,6 +418,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
         if (
           (limits.minToughness !== undefined && toughness < limits.minToughness) ||
           (limits.maxToughness !== undefined && toughness > limits.maxToughness) ||
+          (limits.minVitality !== undefined && attributes.Vitality.final < limits.minVitality) ||
           (limits.minBoonDuration !== undefined && Math.min(100, boonDuration) < limits.minBoonDuration) ||
           (limits.minQuicknessDuration !== undefined && Math.min(100, quicknessDuration) < limits.minQuicknessDuration)
         )

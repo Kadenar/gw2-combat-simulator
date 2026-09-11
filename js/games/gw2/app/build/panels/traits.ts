@@ -47,6 +47,7 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
         next[index] = replacement.name === current.name ? current : { name: replacement.name, traits: '1-1-1' };
       }
     }
+
     // Shift the remaining lines up with their trait choices intact when the elite was selected above them.
     next.push(...next.splice(line, 1));
   }

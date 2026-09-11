@@ -137,6 +137,7 @@ test('optimizer requirement inputs reject candidates and blank fields remove lim
   for (const label of [
     'Minimum toughness',
     'Maximum toughness',
+    'Minimum vitality',
     'Minimum boon duration (%)',
     'Minimum quickness duration (%)'
   ])
@@ -149,6 +150,12 @@ test('optimizer requirement inputs reject candidates and blank fields remove lim
     'No gear combinations met the requirements'
   );
   await panel.getByRole('spinbutton', { name: 'Maximum toughness', exact: true }).fill('');
+  await panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true }).fill('100000');
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('0 simulations');
+  await expect(panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true })).toHaveValue('100000');
+  await panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true }).fill('');
   await panel.getByRole('spinbutton', { name: 'Minimum boon duration (%)', exact: true }).fill('0');
   await panel.getByRole('spinbutton', { name: 'Minimum quickness duration (%)', exact: true }).fill('0');
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
@@ -159,7 +166,60 @@ test('optimizer requirement inputs reject candidates and blank fields remove lim
   expect(await page.evaluate(() => 'maxToughness' in window.professionApp.gearOptimizerRunner.request.selections)).toBe(
     false
   );
+  expect(await page.evaluate(() => 'minVitality' in window.professionApp.gearOptimizerRunner.request.selections)).toBe(
+    false
+  );
   await expect(panel.getByRole('table', { name: 'Gear comparison' })).toBeVisible();
+});
+
+// Collapsing slot controls preserves overrides through workers; clearing restores shared prefix choices.
+test('forced slots start collapsed and constrain results until cleared', async ({ page }) => {
+  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  const panel = page.locator('#gear-optimizer');
+  const forced = panel.locator('.optimizer-forced-slots');
+  await expect(forced).not.toHaveAttribute('open');
+  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toBeHidden();
+  await forced.locator('summary').click();
+  await forced.getByRole('combobox', { name: 'Helm', exact: true }).selectOption('Celestial');
+  await forced.getByRole('combobox', { name: 'Set 2 main hand', exact: true }).selectOption("Assassin's");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await forced.getByRole('combobox', { name: 'Helm', exact: true }).scrollIntoViewIfNeeded();
+  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await forced.screenshot({ path: '.scratch/optimizer/forced-slots-mobile.png' });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await forced.screenshot({ path: '.scratch/optimizer/forced-slots-desktop.png' });
+  await forced.locator('summary').click();
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  const result = await page.evaluate(() => {
+    const runner = window.professionApp.gearOptimizerRunner;
+    return {
+      forcedSlots: runner.request.selections.forcedSlots,
+      equipment: runner.state.winners.map((entry) => entry.equipment)
+    };
+  });
+  expect(result.forcedSlots).toEqual({ Helm: 'Celestial', AlternateWeapon1: "Assassin's" });
+  expect(result.equipment.length).toBeGreaterThan(0);
+  for (const equipment of result.equipment) {
+    expect(equipment.gear.Helm).toBe('Celestial');
+    expect(equipment.alternateWeaponPrefixes[0]).toBe("Assassin's");
+  }
+
+  await expect(forced).not.toHaveAttribute('open');
+  await forced.locator('summary').click();
+  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toHaveValue('Celestial');
+  await forced.getByRole('button', { name: 'Clear forced slots', exact: true }).click();
+  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toHaveValue('');
+  await expect(forced.getByRole('combobox', { name: 'Set 2 main hand', exact: true })).toHaveValue('');
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request.selections.forcedSlots)).toEqual(
+    {}
+  );
 });
 
 /** Pick by the underlying equipment identity while the dropdown supplies readable attribute descriptions. */

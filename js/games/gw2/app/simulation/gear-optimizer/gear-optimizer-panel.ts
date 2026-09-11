@@ -136,6 +136,14 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     };
 
     bindCandidatePickers(form);
+    // Clearing only slot overrides restores the shared prefix choices and invalidates an active search.
+    form.addEventListener('click', (event) => {
+      if (!(event.target as HTMLElement).closest('[data-clear-forced-slots]')) return;
+      form.querySelectorAll<HTMLSelectElement>('[data-forced-slot]').forEach((select) => {
+        select.value = '';
+      });
+      form.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     form.addEventListener('change', () => {
       runner.cancel();
       estimate();
@@ -274,7 +282,21 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
               `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Duration') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
           )
           .join('')}</div>
-      </fieldset></div>`;
+      </fieldset>
+      <details class="optimizer-section optimizer-forced-slots"><summary>Force slots</summary>
+        <p>Choose a stat prefix to require it in that slot for every result. Unforced slots use Equipment stats.</p>
+        <div class="optimizer-forced-grid">${slots
+          .map((slot) => {
+            // Use only usable weapon slots, with set labels that distinguish alternate equipment.
+            const label = slot.includes('Weapon')
+              ? `Set ${slot.startsWith('Alternate') ? 2 : 1} ${SLOT_LABELS[slot].toLowerCase()}`
+              : ({ Chest: 'Coat', Leggins: 'Leggings', Back: 'Back item' } as Record<string, string>)[slot] ||
+                slot.replace(/(\d)$/, ' $1');
+            return `<label class="optimizer-infusion-count">${escapeHtml(label)}<select name="force-${slot}" data-forced-slot="${slot}"><option value="">No force</option>${PREFIXES.map((prefix) => `<option value="${escapeHtml(prefix)}">${escapeHtml(prefixOptionLabel(prefix))}</option>`).join('')}</select></label>`;
+          })
+          .join('')}</div>
+        <button type="button" data-clear-forced-slots>Clear forced slots</button>
+      </details></div>`;
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
     // An invalid current build can disable optimization without interrupting the normal editor's change flow.
     try {
@@ -428,6 +450,12 @@ function readSelections(form: HTMLFormElement): GearOptimizerSelections {
   );
   return {
     ...requirements,
+    // Blank slots follow the shared candidates; explicit overrides remain active while collapsed.
+    forcedSlots: Object.fromEntries(
+      [...form.querySelectorAll<HTMLSelectElement>('[data-forced-slot]')]
+        .filter((select) => select.value)
+        .map((select) => [select.dataset.forcedSlot!, select.value])
+    ),
     prefixes: values('prefixes'),
     rune: values('rune'),
     relic: values('relic'),

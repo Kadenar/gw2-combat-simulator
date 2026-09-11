@@ -587,7 +587,7 @@ test('snapshot is immutable; empty selections retain current equipment', () => {
 });
 
 test('optimizer requirements validate numeric bounds and reject inverted toughness ranges', () => {
-  for (const key of ['minToughness', 'maxToughness', 'minBoonDuration', 'minQuicknessDuration']) {
+  for (const key of ['minToughness', 'maxToughness', 'minVitality', 'minBoonDuration', 'minQuicknessDuration']) {
     for (const value of [null, '', '10', NaN, Infinity, -1]) assert.throws(() => request({ [key]: value }), /Invalid/);
     assert.doesNotThrow(() => request({ [key]: 0 }));
   }
@@ -612,10 +612,17 @@ test('requirements use inclusive finalized stats and reject before simulation co
   const app = { build: captured.build, attributeWeaponSet: captured.build.startingWeaponSet };
   adapter.recalculate(app);
   const toughness = app.attributeData.attributes.Toughness.final;
+  const vitality = app.attributeData.attributes.Vitality.final;
   const boon = app.attributeData.attributes['Boon Duration'].final;
   const quickness = boon + 30;
   const inclusive = request(
-    { minToughness: toughness, maxToughness: toughness, minBoonDuration: boon, minQuicknessDuration: quickness },
+    {
+      minToughness: toughness,
+      maxToughness: toughness,
+      minVitality: vitality,
+      minBoonDuration: boon,
+      minQuicknessDuration: quickness
+    },
     overrides
   );
   assert.notEqual(createOptimizerEvaluator(inclusive, adapter).score(inclusive.build), null);
@@ -629,6 +636,7 @@ test('requirements use inclusive finalized stats and reject before simulation co
   for (const limits of [
     { minToughness: toughness + 1 },
     { maxToughness: toughness - 1 },
+    { minVitality: vitality + 1 },
     { minBoonDuration: boon + 0.01 },
     { minQuicknessDuration: quickness + 0.01 }
   ]) {
@@ -690,6 +698,104 @@ test('exact and fast searches discard failing runes while retaining coverage and
   assert.deepEqual(
     runOrdinaryOptimizer(captured, adapter).map(({ equipment }) => equipment.rune),
     ['Firebrand']
+  );
+});
+
+// A vitality floor must hold after swapping weapons, even if the starting set already meets it.
+test('minimum vitality checks every usable weapon set', () => {
+  const base = request().build;
+  const initial = request(
+    {},
+    {
+      gear: Object.fromEntries(
+        Object.keys(base.gear).map((slot) => [slot, slot.includes('Weapon') ? 'Celestial' : "Berserker's"])
+      ),
+      weapons: ['Axe', 'Axe'],
+      alternateWeapons: ['Axe', 'Axe'],
+      alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
+      startingWeaponSet: 1,
+      rune: '',
+      food: '',
+      utility: '',
+      infusions: []
+    }
+  );
+  const app = { build: initial.build, attributeWeaponSet: 2 };
+  adapter.recalculate(app);
+  const minVitality = app.attributeData.attributes.Vitality.final + 1;
+  app.attributeWeaponSet = 1;
+  adapter.recalculate(app);
+  assert.ok(app.attributeData.attributes.Vitality.final >= minVitality);
+  const captured = { ...initial, selections: { minVitality } };
+  assert.equal(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  const allowed = { ...captured, build: { ...captured.build, alternateWeaponPrefixes: ['Celestial', 'Celestial'] } };
+  assert.notEqual(createOptimizerEvaluator(allowed, adapter).score(allowed.build), null);
+});
+
+// Forced prefixes can be outside the shared pool and must survive grouping and fast-search refinement.
+test('forced slots constrain ordinary, exact, and fast candidates including alternate weapons', () => {
+  const overrides = { weapons: ['Axe', 'Axe'], alternateWeapons: ['Axe', 'Axe'] };
+  const captured = request(
+    {
+      prefixes: ["Berserker's", "Assassin's"],
+      forcedSlots: { Helm: 'Celestial', Weapon1: "Viper's", AlternateWeapon1: 'Celestial' },
+      locks: optimizerSlots(request({}, overrides).build, adapter).filter(
+        (slot) => !['Helm', 'Weapon1', 'AlternateWeapon1', 'Shoulders'].includes(slot)
+      )
+    },
+    overrides
+  );
+  const ordinary = createOptimizerSpace(captured, adapter);
+  assert.equal(ordinary.rawCount, 2n);
+  assert.ok(Object.isFrozen(captured.selections.forcedSlots));
+  const check = (equipment) => {
+    assert.equal(equipment.gear.Helm, 'Celestial');
+    assert.equal(equipment.gear.Weapon1, "Viper's");
+    assert.equal(equipment.alternateWeaponPrefixes[0], 'Celestial');
+    assert.ok(captured.selections.prefixes.includes(equipment.gear.Shoulders));
+  };
+
+  for (let ordinal = 0n; ordinal < ordinary.rawCount; ordinal++) check(ordinaryEquipmentAt(ordinary, ordinal));
+  for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+    const job = create(
+      create === createFastOptimizer ? { ...captured, selections: { ...captured.selections, locks: [] } } : captured,
+      adapter
+    );
+    const result = job.evaluateRange(0n, job.space.count);
+    assert.ok(result.winners.length);
+    for (const candidate of [...result.winners, ...Object.values(result.groups).flat()]) check(candidate.equipment);
+    if (job.refine) {
+      job.refine(result.winners);
+      assert.ok(job.space.count > 0n);
+      for (const candidate of job.evaluateRange(0n, job.space.count).winners) check(candidate.equipment);
+    }
+  }
+});
+
+test('forced slots reject malformed values, unavailable slots, and conflicting locks', () => {
+  for (const forcedSlots of [
+    null,
+    [],
+    'Helm',
+    { Unknown: 'Celestial' },
+    { Helm: '' },
+    { Helm: ['Celestial'] },
+    { Helm: 'Unknown' }
+  ])
+    assert.throws(() => request({ forcedSlots }), /Invalid forced slot/);
+  assert.throws(
+    () => request({ forcedSlots: { Weapon2: 'Celestial' } }, { weapons: ['Greatsword', ''] }),
+    /Invalid forced slot/
+  );
+  assert.throws(
+    () => request({ forcedSlots: { AlternateWeapon1: 'Celestial' } }, { alternateWeapons: ['', ''] }),
+    /Invalid forced slot/
+  );
+  const current = request().build.gear.Helm;
+  assert.doesNotThrow(() => request({ locks: ['Helm'], forcedSlots: { Helm: current } }));
+  assert.throws(
+    () => request({ locks: ['Helm'], forcedSlots: { Helm: current === 'Celestial' ? "Berserker's" : 'Celestial' } }),
+    /conflicts/
   );
 });
 

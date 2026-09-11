@@ -376,6 +376,25 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
+/* Native disclosure keeps slot constraints compact until needed, using the existing panel controls. */
+.optimizer-forced-slots {
+  grid-column: 1 / -1;
+}
+.optimizer-forced-slots > summary {
+  cursor: pointer;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+.optimizer-forced-slots[open] > summary {
+  margin-bottom: 14px;
+}
+.optimizer-forced-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
 .optimizer-picker {
   min-width: 0;
 }
