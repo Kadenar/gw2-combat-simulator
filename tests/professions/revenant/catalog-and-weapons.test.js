@@ -1376,6 +1376,38 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
   );
 });
 
+test('spear reductions advance base Raze recharge once per activation at its recharge rate', () => {
+  // Test the proposed base-progress model with and without Alacrity, observing all delayed pulses.
+  for (const alacrity of [false, true]) {
+    for (const [skill, seconds] of [
+      ['Abyssal Strike', 1],
+      ['Abyssal Force', 5],
+      ['Abyssal Blitz', 3],
+      ['Abyssal Blot', 3]
+    ]) {
+      const result = simulate('Core', ['Abyssal Raze', skill, { type: 'wait', durationMs: 2500 }], {
+        primaryWeapon: 'Spear',
+        secondaryWeapon: '',
+        initialEnergy: 100,
+        boons: { alacrity }
+      });
+      const reductions = result.procSteps.filter((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
+      const rate = alacrity ? 1.25 : 1;
+      assert.deepEqual(result.warnings, []);
+      assert.deepEqual(
+        reductions.map((proc) => proc.cooldownReduction),
+        [seconds / rate],
+        skill
+      );
+      const expectedReadyAt = result.steps[0].end / 1000 + (15 - seconds) / rate;
+      assert.ok(
+        Math.abs(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
+        skill
+      );
+    }
+  }
+});
+
 test('Abyssal Raze blasts Abyssal Blot for Dark Aura without Leeching Bolts', () => {
   const result = simulate('Core', ['Abyssal Blot', 'Abyssal Raze'], {
     primaryWeapon: 'Spear',

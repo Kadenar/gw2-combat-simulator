@@ -75,7 +75,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
-    rechargeReduction: 2,
+    // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
+    rechargeReduction: 3,
     // The dark field spans Blot's five impacts so subsequent spear finishers
     // resolve their combo outcome against the field instead of its damage.
     comboFields: [

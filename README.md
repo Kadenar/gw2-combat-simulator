@@ -65,12 +65,11 @@ The simulator models execution state including:
 
 Keyboard hotkeys can also be used to add weapon, utility, and profession skills while constructing a rotation.
 
-Select **Precast relics** in the gear panel to enable during preparation. The selector
-starts empty and uses the same add/remove choices as the gear optimizer. Their buffs keep their original expiry after combat
-starts, but only the combat relic can trigger again. Add **Wait** entries to model preparation time; skill cooldowns
-carry into combat. Mount Balrior activates one second after the elite finishes and assumes you remain inside its area.
-Enable **Overlay relics** to see activation
-and expiry markers. These selections require a Combat Start marker.
+Select **Precast relics** in the gear panel to enable during preparation. The selector starts empty and uses the same
+add/remove choices as the gear optimizer. Their buffs keep their original expiry after combat starts, but only the
+combat relic can trigger again. Add **Wait** entries to model preparation time; skill cooldowns carry into combat. Mount
+Balrior activates one second after the elite finishes and assumes you remain inside its area. Enable **Overlay relics**
+to see activation and expiry markers. These selections require a Combat Start marker.
 
 ### Deterministic simulation
 
@@ -327,6 +326,10 @@ Where possible, simulator behavior should be validated against in-game testing a
 ---
 
 ## Legal
+
+The simulator's original code and documentation are proprietary. Use through an authorized website is permitted; hosting
+or redistribution requires separate permission. Snow Crows' existing hosting permission is preserved. See
+[LICENSE.md](LICENSE.md) for the full notice and third-party exclusions.
 
 This is an unofficial Guild Wars 2 fan project and is not affiliated with or endorsed by ArenaNet or NCSOFT.
 

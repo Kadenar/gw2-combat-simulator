@@ -68,9 +68,14 @@ export function handleAbyssalRazeRechargeReduction(
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
   const sourceSkill = context.catalog.skillsById.get(task.payload.sourceSkillId);
-  if (!skill) return;
-  const { ammo, reducedBy } = context.cooldownController.reduceAmmoRecharge(skill, task.payload.seconds, task.at);
-  if (!ammo || reducedBy <= 0) return;
+  if (!skill || !(Number(skill.ammoRecharge) > 0)) return;
+  const ammo = context.cooldownController.ensureAmmo(skill, task.at);
+  if (!ammo) return;
+  // Assume spear reductions remove base recharge progress; convert to elapsed seconds
+  // using the active count's committed recharge rate, including Alacrity.
+  const seconds = task.payload.seconds * (ammo.rechargeDuration / Number(skill.ammoRecharge));
+  const { reducedBy } = context.cooldownController.reduceAmmoRecharge(skill, seconds, task.at);
+  if (reducedBy <= 0) return;
   const cooldownReduction = Number(reducedBy.toFixed(3));
   context.emit({
     type: 'proc',
