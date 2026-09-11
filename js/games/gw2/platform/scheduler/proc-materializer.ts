@@ -2,6 +2,7 @@ import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/plat
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import {
   materializeBoonRelics,
@@ -68,7 +69,8 @@ export function createGw2TriggerMaterializer(
   });
 
   const processEvent = (context: SchedulerContext, event: SimulationEvent): void => {
-    if (isSchedulerSigilPrediction(event)) return;
+    // Missed hostile packets cannot establish combat facts or spend hit-dependent procs.
+    if (isSchedulerSigilPrediction(event) || missesTarget(event)) return;
     observer.observe(context, event);
 
     switch (event.type) {

@@ -1,6 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 
 import type {
   Gw2ResolverEvent,
@@ -12,21 +13,6 @@ import type {
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;
   readonly professionHandlers?: Gw2ResolverEventHandlers;
-}
-
-const HOSTILE_TARGET_EVENT_TYPES = new Set([
-  'damage',
-  'condition',
-  'condition_tick',
-  'control',
-  'blind',
-  'weakness_vulnerability',
-  'peitha'
-]);
-
-/** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
-function missesTarget(event: Gw2ResolverEvent): boolean {
-  return event.offTarget === true && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
 }
 
 export function createGw2ResolverHandlerRegistry({

@@ -1,6 +1,22 @@
 /** Normalizes configured and runtime target conditions behind canonical stack queries. */
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+
+const HOSTILE_TARGET_EVENT_TYPES = new Set([
+  'damage',
+  'condition',
+  'condition_tick',
+  'control',
+  'blind',
+  'weakness_vulnerability',
+  'peitha'
+]);
+
+/** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
+export function missesTarget(event: SimulationEvent): boolean {
+  return event.offTarget === true && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+}
 
 const CONDITION_ALIASES = Object.freeze({
   bleed: 'Bleeding',
