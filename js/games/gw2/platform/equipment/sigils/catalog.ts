@@ -10,6 +10,7 @@ const CONDITION_SIGILS = new Set([
   'Agony',
   'Blight',
   'Bursting',
+  'Corruption',
   'Demons',
   'Doom',
   'Earth',

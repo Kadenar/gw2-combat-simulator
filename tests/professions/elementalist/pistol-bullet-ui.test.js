@@ -142,6 +142,31 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   assert.ok(earthAutoattack < bullets);
 });
 
+// Starting and live equipment selection must both expose the pistol's controls and loaded autoattack.
+test('pistol controls and Elemental Explosion follow the active equipment set', () => {
+  const { app } = createPistolApp();
+  app.build.alternateWeapons = app.build.weapons;
+  app.build.weapons = ['Staff', ''];
+  app.build.startingWeaponSet = 2;
+  app.build.pistolBullets = { Fire: true, Water: true, Air: true, Earth: true };
+  const live = app.results;
+  live.endState.activeWeaponSet = 2;
+  live.endState.profession.pistolBullets = { ...app.build.pistolBullets };
+  for (const results of [null, live]) {
+    app.results = results;
+    const html = renderPaletteMarkup(app);
+    assert.match(html, /data-palette-group="elementalist-pistol-bullets"/);
+    assert.match(html, /data-skill="Elemental Explosion"/);
+    assert.ok(
+      html.indexOf('data-skill="Piercing Pebble"') < html.indexOf('data-palette-group="elementalist-pistol-bullets"')
+    );
+  }
+
+  live.endState.activeWeaponSet = 1;
+  assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);
+  assert.doesNotMatch(renderPaletteMarkup(app), /data-skill="Elemental Explosion"/);
+});
+
 test('Aerial Agility collapses its chain into one pistol palette tile', () => {
   const { app } = createPistolApp();
   const html = renderPaletteMarkup(app);

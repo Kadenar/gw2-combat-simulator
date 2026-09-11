@@ -134,6 +134,9 @@ export function uniqueBySpecializedName(skills: readonly Skill[], specialization
 }
 
 export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
+  // Inactive equipment on non-swapping professions supplies persistent sigils, never rotation skills.
+  const activeWeaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1);
+  if (app.profession?.ui?.weaponSwapChangesSet === false && weaponSet !== activeWeaponSet) return [];
   const [mainHand, offHand] = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   return uniqueBySpecializedName(
     app.skills.filter((skill) => {

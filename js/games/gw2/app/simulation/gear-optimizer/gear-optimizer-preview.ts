@@ -11,16 +11,18 @@ import {
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
-/** Inspect a captured candidate using the same attribute calculation as Workspace, without equipping or saving it. */
+/** Show current gear by default, or inspect a captured candidate without equipping or saving it. */
 export function renderOptimizerPreview(
   container: HTMLElement,
   app: ProfessionAppState,
-  request: GearOptimizerRequest,
-  candidate: OptimizerCandidate,
+  request: Pick<GearOptimizerRequest, 'build' | 'patchId'> = app,
+  candidate?: OptimizerCandidate,
   weaponSet = request.build.startingWeaponSet
 ): void {
   const attributePreview = readAttributePreviewValues(container);
-  const build = structuredClone({ ...request.build, ...candidate.equipment });
+  // Preserve the disclosure alongside its inputs when rebuilding a candidate preview.
+  const attributePreviewOpen = container.querySelector('.attribute-effects')?.hasAttribute('open') ?? false;
+  const build = structuredClone({ ...request.build, ...candidate?.equipment });
   const activeCatalog = app.profession.catalogFor?.(request.patchId) || app.profession.catalog;
   const preview = {
     ...app,
@@ -83,7 +85,7 @@ export function renderOptimizerPreview(
             : [
                 item(
                   name,
-                  prefixes[slot],
+                  prefixes[slot] || build.gear[`Weapon${slot + 1}`],
                   GEAR_ICONS[name],
                   (twoHanded ? [0, 1] : [slot]).map((sigilSlot) => {
                     const value = build.weaponSigils[set][sigilSlot];
@@ -108,8 +110,12 @@ export function renderOptimizerPreview(
       .map(({ stat, count }) => item('Infusions', `${count} × ${stat}`))
       .join('') || item('Infusions', 'None');
   container.hidden = false;
-  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>Result character</h3><span>Preview only</span></div><strong>${candidate.score.dps.toFixed(2)} DPS</strong></div>
-    ${candidate.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map(escapeHtml).join('<br>')}</p>` : ''}
+  const currentGear = !candidate || candidate.key === 'equipped';
+  const title = currentGear ? 'Current gear' : 'Result character';
+  container.setAttribute('aria-label', title);
+  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div>${candidate ? `<strong>${candidate.score.dps.toFixed(2)} DPS</strong>` : ''}</div>
+    <p class="optimizer-preview-note">Click a result row to preview its gear and stats.</p>
+    ${candidate?.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map(escapeHtml).join('<br>')}</p>` : ''}
     <div class="optimizer-character">
       <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapon sets', weapons)}</div>
       <div class="optimizer-preview-portrait">${artwork ? `<img src="${escapeHtml(artwork)}" alt="${escapeHtml(specialization)} artwork" width="600" height="600">` : ''}</div>
@@ -121,6 +127,7 @@ export function renderOptimizerPreview(
     preview,
     attributePreview
   );
+  container.querySelector('.attribute-effects')!.toggleAttribute('open', attributePreviewOpen);
   container.querySelector<HTMLSelectElement>('select')!.addEventListener('change', (event) => {
     renderOptimizerPreview(container, app, request, candidate, Number((event.target as HTMLSelectElement).value));
     container.querySelector<HTMLSelectElement>('select')!.focus();

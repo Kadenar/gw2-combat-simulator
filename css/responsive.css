@@ -32,7 +32,7 @@
   }
 }
 
-/* Stack trinkets below weapons on narrow equipment surfaces. */
+/* Stack the equipment columns on narrow surfaces. */
 @container gear-loadout (max-width: 379px) {
   .gear-loadout-body {
     grid-template-columns: minmax(0, 1fr);
@@ -59,7 +59,6 @@
 }
 
 @container gear-loadout (max-width: 460px) {
-  .trinket-grid,
   #equipment-info {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;

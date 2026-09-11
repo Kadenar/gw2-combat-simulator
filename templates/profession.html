@@ -34,6 +34,11 @@
           <!-- Group build choices, equipment, and live attributes in reading order without duplicating their controls. -->
           <div class="gear-panel">
             <section class="skills-section skill-selection-section workspace-build-choices">
+              <!-- Equipped skill choices sit directly above the trait lines. -->
+              <div class="selectable-skills-panel workspace-card">
+                <div class="selectable-skills-title">Skills</div>
+                <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
+              </div>
               <div class="workspace-traits workspace-card">
                 <div class="workspace-traits-heading">
                   <h3>Traits</h3>
@@ -80,10 +85,6 @@
                 </div>
                 <div id="traits-panel" class="traits-panel-inline"></div>
               </div>
-              <div class="selectable-skills-panel workspace-card">
-                <div class="selectable-skills-title">Skills</div>
-                <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
-              </div>
             </section>
             <div class="gear-main">
               <div class="gear-columns">
@@ -95,15 +96,16 @@
                   <div class="gear-loadout-body">
                     <div class="gear-loadout-controls">
                       <div id="gear-slots" class="gear-col"></div>
-                      <div id="weapon-select" class="gear-col weapon-select"></div>
-                      <!-- Infusions follow weapons; consumables sit between upgrades and trinkets. -->
+                    </div>
+                    <!-- Trinkets and infusions sit beside armor; upgrades and consumables share the row below. -->
+                    <div class="gear-extras">
+                      <div id="trinket-slots" class="gear-col"></div>
                       <section id="infusion-info" class="equipment-infusions workspace-card"></section>
                     </div>
-                    <div class="gear-extras">
-                      <div id="equipment-info" class="gear-col"></div>
-                      <section id="consumable-info" class="equipment-consumables workspace-card"></section>
-                      <div id="trinket-slots" class="gear-col"></div>
-                    </div>
+                    <!-- Keep weapon sets together above upgrades and consumables. -->
+                    <div id="weapon-select" class="gear-col weapon-select workspace-card"></div>
+                    <div id="equipment-info" class="gear-col"></div>
+                    <section id="consumable-info" class="equipment-consumables workspace-card"></section>
                   </div>
                 </section>
               </div>

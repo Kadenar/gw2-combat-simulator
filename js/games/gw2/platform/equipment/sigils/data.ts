@@ -1,4 +1,5 @@
 export interface Gw2SigilDataEntry {
+  readonly stackingStats?: Readonly<Record<string, number>>;
   readonly criticalChance?: number;
   readonly strikeDamageA?: number;
   readonly nightStrikeDamageM?: number;
@@ -16,6 +17,33 @@ export interface Gw2SigilDataEntry {
 }
 
 export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
+  // Stacking sigils assume 25 prebuilt stacks, retained while either equipped set carries the sigil.
+  Bloodlust: {
+    stackingStats: { Power: 250 },
+    icon: 'https://render.guildwars2.com/file/77AAE10D3E03036D6E00642DEF01E5DF3468524F/220673.png'
+  },
+  Corruption: {
+    stackingStats: { 'Condition Damage': 250 },
+    icon: 'https://render.guildwars2.com/file/D574E4D29FA31DB815F76FD5FE4CA1EBFACA22B9/220668.png'
+  },
+  Cruelty: {
+    stackingStats: { Ferocity: 250 },
+    icon: 'https://render.guildwars2.com/file/057D6F9E40020AF09E420B09EBDB4FCD9DE37951/866846.png'
+  },
+  Stars: {
+    stackingStats: {
+      Power: 50,
+      Precision: 50,
+      Toughness: 50,
+      Vitality: 50,
+      Ferocity: 50,
+      'Condition Damage': 50,
+      Expertise: 50,
+      Concentration: 50,
+      'Healing Power': 50
+    },
+    icon: 'https://render.guildwars2.com/file/B9B778FD561C019DC5A3A01D55C234D1E31251CE/1894696.png'
+  },
   Accuracy: {
     criticalChance: 7,
     icon: 'https://render.guildwars2.com/file/4B0EFF29FD064E5E93E4F8616BE309A451450AED/220661.png'

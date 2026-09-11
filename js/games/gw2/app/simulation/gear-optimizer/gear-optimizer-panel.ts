@@ -292,14 +292,14 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const equippedScore = applied?.score || state.baseline;
   panel.querySelector<HTMLElement>('.optimizer-feedback')!.hidden = state.status === 'idle';
   const stale = runner.request !== null && !isOptimizerRequestCurrent(app, runner.request);
-  // A new search or unrelated edit invalidates the selected character along with its captured build context.
+  // Keep current gear visible before a search and restore it when the build or search changes.
   const preview = panel.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!;
   const previewRequest = `${runner.request?.revision}:${state.started}`;
-  if (preview.dataset.request !== previewRequest || stale) {
+  if (preview.dataset.request !== previewRequest || preview.dataset.revision !== String(app.buildRevision)) {
     preview.dataset.request = previewRequest;
-    preview.hidden = true;
-    preview.innerHTML = '';
-    delete panel.dataset.selectedKey;
+    preview.dataset.revision = String(app.buildRevision);
+    panel.dataset.selectedKey = 'equipped';
+    renderOptimizerPreview(preview, app);
   }
 
   const status =

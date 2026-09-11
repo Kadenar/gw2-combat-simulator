@@ -332,8 +332,8 @@
     width: 100%;
   }
 
-  /* Hide the decorative specialization emblem so trait choices can use the full narrow-screen width. */
-  .spec-selected-icon {
+  /* Hide the decorative portrait frame so trait choices can use the full narrow-screen width. */
+  .spec-portrait-frame {
     display: none;
   }
 

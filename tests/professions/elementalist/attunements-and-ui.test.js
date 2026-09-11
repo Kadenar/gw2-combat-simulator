@@ -10,7 +10,7 @@ import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-de
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 
-test('all native Elementalist specializations use one weapon set', () => {
+test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
   assert.equal(elementalistCatalog.skillsByName.has('Swap Weapons'), false);
 
@@ -33,8 +33,8 @@ test('all native Elementalist specializations use one weapon set', () => {
             ]
     });
 
-    assert.deepEqual(build.alternateWeapons, ['', ''], specialization);
-    assert.equal(build.startingWeaponSet, 1, specialization);
+    assert.deepEqual(build.alternateWeapons, ['Staff', ''], specialization);
+    assert.equal(build.startingWeaponSet, 2, specialization);
   }
 });
 

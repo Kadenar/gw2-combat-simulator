@@ -1,6 +1,18 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
 import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+
+/** Only one stacking bonus persists across sets; first equipped set/slot wins when several types are selected. */
+export function stackingSigilForBuild(build: Gw2Build): string | undefined {
+  return [build.weapons, build.alternateWeapons]
+    .flatMap((weapons, set) =>
+      (build.weaponSigils?.[set] || []).filter(
+        (_, slot) => weapons?.[slot] || (slot === 1 && WEAPON_DATA[weapons?.[0] || '']?.wielding === '2h')
+      )
+    )
+    .find((name) => SIGIL_DATA[name]?.stackingStats);
+}
 
 export const DEFAULT_WEAPON_SIGILS: readonly (readonly string[])[] = Object.freeze([
   Object.freeze(['Force', 'Accuracy']),

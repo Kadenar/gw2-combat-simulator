@@ -167,14 +167,14 @@ test('rename dialog validates names and restores focus without switching builds'
   );
 });
 
-test('template menu opens a complete build in a new tab', async ({ page }) => {
+test('template tabs reset independently to their loaded build after edits and refresh', async ({ page }) => {
   await openWorkspace(page);
   // Small local assets exercise the menu without depending on a benchmark rotation.
   await page.route('**/data/gw2/builds/mesmer/b-*.json?*', async (route) => {
     const build = await page.evaluate(() => window.professionApp.build);
     await route.fulfill({ json: { ...build, targetArmor: 2400 } });
   });
-  await page.route('**/data/gw2/builds/mesmer/r-*.json?*', (route) =>
+  await page.route('**/data/gw2/rotations/mesmer/*.json?*', (route) =>
     route.fulfill({ json: { rotation: [{ type: 'wait', durationMs: 10 }] } })
   );
   await page.locator('.build-tab-new').click();
@@ -185,8 +185,42 @@ test('template menu opens a complete build in a new tab', async ({ page }) => {
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await settled(page);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  const templateName = await page.locator('.build-tab.is-active button[data-build-tab-action="select"]').textContent();
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.targetArmor = 2600;
+    app.build.rotation = [];
+    app.changed();
+  });
   await page.locator('#build-workspace-tabs').getByRole('button', { name: 'Build 1', exact: true }).click();
-  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).not.toBe(2400);
+  const originalArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
+  expect(originalArmor).not.toBe(2400);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+
+  // Reset from an inactive tab's menu must use that tab's persisted template, even on repeated resets.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    page.once('dialog', async (dialog) => {
+      expect(dialog.message()).toContain('loaded template');
+      await dialog.accept();
+    });
+    await tabAction(page, 'Reset build', templateName);
+    expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+    expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'wait', durationMs: 10 }]);
+    await page.evaluate(() => {
+      const app = window.professionApp;
+      app.build.targetArmor = 2800;
+      app.build.rotation = [];
+      app.changed();
+    });
+  }
+
+  await tabAction(page, 'Duplicate tab');
+  page.once('dialog', (dialog) => dialog.accept());
+  await tabAction(page, 'Reset build');
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  await page.locator('#build-workspace-tabs').getByRole('button', { name: 'Build 1', exact: true }).click();
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(originalArmor);
 });
 
 test('tab overflow stays inside its strip on narrow screens', async ({ page }) => {
@@ -285,6 +319,11 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(originalTrigger).toBeFocused();
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  // Reset restores this tab's loaded template after edits, leaving the blank tab independent.
+  await page.evaluate(() => {
+    window.professionApp.build.targetArmor = 2600;
+    window.professionApp.changed();
+  });
   await page.getByRole('button', { name: 'New build', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
   await originalTrigger.click();
@@ -292,7 +331,7 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   await page.locator('#build-tab-menu').getByRole('button', { name: 'Reset build' }).click();
   await expect(originalTrigger).toBeFocused();
   expect(await page.evaluate(() => window.professionApp.workspace.activeTabId)).toBe(originalId);
-  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
 });
 
 // A failed background download leaves the current build intact and allows the same template to be retried.

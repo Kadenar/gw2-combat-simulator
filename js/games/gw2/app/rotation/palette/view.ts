@@ -337,20 +337,24 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
   // Custom weapon layouts still receive generic availability, tooltip, and
   // interaction markup instead of rebuilding those policies themselves.
   const renderWeaponSkill = (skill: Skill, options: ProfessionPaletteSkillRenderOptions = {}): string => {
-    const contextAvailable = options.contextAvailable ?? weaponSkillAvailable(skill, 1);
-    const contextMessage = options.contextMessage ?? weaponSkillUnavailableMessage(skill, 1);
+    const contextAvailable = options.contextAvailable ?? weaponSkillAvailable(skill, activeWeaponSet);
+    const contextMessage = options.contextMessage ?? weaponSkillUnavailableMessage(skill, activeWeaponSet);
     return paletteSkillHtml({
       ...paletteSkillView(app, skill, contextAvailable, contextMessage),
       ...((options.view || {}) as PaletteSkillView)
     });
   };
 
+  // Custom layouts such as Weaver follow the chosen active set just like standard weapon rows.
   const customWeaponPalette = app.profession.ui.renderWeaponPalette({
     ...paletteContext,
-    skills: paletteWeaponSkills(displayedWeaponSkills(app, weaponSkills(app, 1), 1, paletteContext), { weaponSet: 1 }),
+    skills: paletteWeaponSkills(
+      displayedWeaponSkills(app, weaponSkills(app, activeWeaponSet), activeWeaponSet, paletteContext),
+      { weaponSet: activeWeaponSet }
+    ),
     autoattackChains,
-    isSkillAvailable: (skill) => weaponSkillAvailable(skill, 1),
-    unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, 1),
+    isSkillAvailable: (skill) => weaponSkillAvailable(skill, activeWeaponSet),
+    unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, activeWeaponSet),
     renderSkill: renderWeaponSkill
   });
 

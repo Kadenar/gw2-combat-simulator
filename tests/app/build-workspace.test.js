@@ -12,7 +12,7 @@ import {
   saveBuildWorkspace,
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
-import { loadTemplateAction } from '#gw2/app/build/panels/presets.js';
+import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/panels/presets.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
@@ -279,7 +279,11 @@ test('duplicated builds share no nested input objects or undo history', (t) => {
   const { app, tab } = appFixture();
   app.build.rotation.push({ type: 'wait', durationMs: 10 });
   app.changed();
-  addBuildTab(app, app.build, 'Copy');
+  tab.templateBuild = build('template');
+  const copy = addBuildTab(app, app.build, 'Copy', app.patchId, tab.templateBuild);
+  assert.deepEqual(copy.templateBuild, tab.templateBuild);
+  copy.templateBuild.gear.Helm = 'copy-template';
+  assert.equal(tab.templateBuild.gear.Helm, 'template');
   app.build.rotation[0].durationMs = 50;
   app.build.gear.Helm = 'copy';
   app.changed();
@@ -355,8 +359,40 @@ test('template build loads rename only the active tab and persist its name', asy
     assert.equal(active.name, expectedName);
     assert.equal(tab.name, 'Original');
     assert.equal(app.workspace.tabs.length, 2);
+    // Editing a loaded build must not mutate the durable reset target, and rotation-only loads create none.
+    app.build.gear.Helm = 'edited';
+    app.changed();
     const restored = loadBuildWorkspace(adapter);
     assert.equal(restored.tabs.find(({ id }) => id === active.id).name, expectedName);
+    assert.equal(
+      restored.tabs.find(({ id }) => id === active.id).templateBuild?.gear.Helm,
+      action === 'rotation' ? undefined : 'downloaded'
+    );
+    assert.equal(restored.tabs.find(({ id }) => id === tab.id).templateBuild, undefined);
+  }
+});
+
+// Undo must restore the reset baseline too, including the absence of a template on a blank tab.
+test('template undo restores each tab reset target across tab switches and persistence', async (t) => {
+  storage(t);
+  t.mock.method(globalThis, 'fetch', async (url) => ({
+    ok: true,
+    json: async () =>
+      String(url).startsWith('rotation') ? { rotation: [{ type: 'wait', durationMs: 8 }] } : build('downloaded')
+  }));
+  for (const action of ['build', 'template', 'rotation']) {
+    for (const baseline of [undefined, build('previous-template')]) {
+      const { app, tab } = appFixture();
+      tab.templateBuild = baseline;
+      await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, action, {});
+      const other = addBuildTab(app, build('other'), 'Other');
+      app.activateBuildTab(tab.id);
+      undoTemplateLoad(app);
+      assert.equal(app.build.gear.Helm, 'original');
+      assert.deepEqual(tab.templateBuild, baseline);
+      assert.equal(other.templateBuild, undefined);
+      assert.deepEqual(loadBuildWorkspace(adapter).tabs.find(({ id }) => id === tab.id).templateBuild, baseline);
+    }
   }
 });
 
@@ -376,6 +412,25 @@ test('open template in new tab commits the complete bundle and preserves the sou
   assert.equal(app.build.rotation[0].durationMs, 8);
   assert.equal(tab.build.gear.Helm, 'original');
   assert.equal(app.templateUndoBuild, null);
+  assert.deepEqual(app.workspace.tabs[1].templateBuild, app.build);
+  assert.notEqual(app.workspace.tabs[1].templateBuild, app.build);
+});
+
+test('invalid saved template targets preserve the tab and fall back to defaults', (t) => {
+  const values = storage(t);
+  for (const templateBuild of [null, [], { profession: 'warrior' }]) {
+    values.set(
+      workspaceStorageKey(adapter),
+      JSON.stringify({
+        version: 1,
+        activeTabId: 'saved',
+        tabs: [{ id: 'saved', name: 'Saved', build: build('edited'), templateBuild }]
+      })
+    );
+    const restored = loadBuildWorkspace(adapter);
+    assert.equal(restored.tabs[0].build.gear.Helm, 'edited');
+    assert.equal(restored.tabs[0].templateBuild, undefined);
+  }
 });
 
 test('cancelled simulation workers cannot publish late output or failures into another tab', (t) => {

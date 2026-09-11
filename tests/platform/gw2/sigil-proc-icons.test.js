@@ -10,8 +10,11 @@ const EXPECTED_SIGIL_ICONS = {
   Agony: 'https://render.guildwars2.com/file/BAF34EB051D118F8A7C1645E0D940ED0660E6269/220658.png',
   Air: 'https://render.guildwars2.com/file/C337CC61DF2F5EE44B7D053EFF33059111024444/220676.png',
   Blight: 'https://render.guildwars2.com/file/AE0A1C7816B56296FEA527E1D01376491374195A/941026.png',
+  Bloodlust: 'https://render.guildwars2.com/file/77AAE10D3E03036D6E00642DEF01E5DF3468524F/220673.png',
   Bursting: 'https://render.guildwars2.com/file/7ABFCEDF80329157F734FD56B293765D9B940FAD/619703.png',
   Concentration: 'https://render.guildwars2.com/file/C501D2CCF95A7B59F15EEDEF9C7D42C2DECE48E7/1201533.png',
+  Corruption: 'https://render.guildwars2.com/file/D574E4D29FA31DB815F76FD5FE4CA1EBFACA22B9/220668.png',
+  Cruelty: 'https://render.guildwars2.com/file/057D6F9E40020AF09E420B09EBDB4FCD9DE37951/866846.png',
   Demons: 'https://render.guildwars2.com/file/52D5D9FE5E0B9091415092A9E21DE830010D2E0E/220674.png',
   Doom: 'https://render.guildwars2.com/file/6CE4D1D6E5392C4CC8BACA595E3393EBF208BEED/220686.png',
   Earth: 'https://render.guildwars2.com/file/251EE3B8B5ADB8D7F7A35DBAEFABA35AEACDF51B/220677.png',
@@ -25,6 +28,7 @@ const EXPECTED_SIGIL_ICONS = {
   Night: 'https://render.guildwars2.com/file/CFDC642093029E790C03381D73C703BDFFA9CDFF/499391.png',
   Severance: 'https://render.guildwars2.com/file/396D7A5DBFA03BC49C12DAB532C4E34D342F0B51/1766396.png',
   Smoldering: 'https://render.guildwars2.com/file/60AAB7109E5D679901E00DC066774EE5FB3E6052/220659.png',
+  Stars: 'https://render.guildwars2.com/file/B9B778FD561C019DC5A3A01D55C234D1E31251CE/1894696.png',
   Torment: 'https://render.guildwars2.com/file/E42EB6198022E5B4D71C5EE41465DD4EB84A0465/665778.png',
   Venom: 'https://render.guildwars2.com/file/080B4F940A05E60A084AA4B1D230F923A1A47CEC/220664.png'
 };

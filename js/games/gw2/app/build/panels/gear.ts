@@ -238,7 +238,13 @@ export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
   const openWeaponEditor = document.querySelector('.weapon-editor:popover-open')?.id;
   const entry = getProfessionEntry(app.adapter.id);
-  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
+  // Follow the active build's elite artwork, falling back to its core profession behind the equipment controls.
+  const artwork = entry?.specializationArtwork;
+  const conceptArt =
+    artwork?.find(({ name }) => name === app.adapter.eliteSpecialization(b))?.conceptArt ?? artwork?.[0]?.conceptArt;
+  document
+    .querySelector<HTMLElement>('.gear-loadout')
+    ?.style.setProperty('--gear-artwork', conceptArt ? `url("${conceptArt}")` : 'none');
   const gearPrefixRow = (slot: string): string => {
     const label = slot === 'Leggins' ? 'Leggings' : slot === 'Back' ? 'Back item' : slot.replace(/(\d)$/, ' $1');
     return iconSelectRow(
@@ -259,9 +265,9 @@ export function renderGear(app: ProfessionAppState): void {
       </select>`
       )}`;
   requiredElement('gear-slots').innerHTML = GEAR_SLOTS.slice(0, 6).map(gearPrefixRow).join('');
-  // Place the backpack first and amulet last without changing saved equipment slot identities.
+  // Group backpack/accessories above amulet/rings without a heading so the slots align with armor.
   requiredElement('trinket-slots').innerHTML =
-    `${sectionHeading('Trinkets')}<div class="trinket-grid">${['Back', 'Ring1', 'Ring2', 'Accessory1', 'Accessory2', 'Amulet'].map(gearPrefixRow).join('')}</div>`;
+    `<div class="trinket-grid">${['Back', 'Accessory1', 'Accessory2', 'Amulet', 'Ring1', 'Ring2'].map(gearPrefixRow).join('')}</div>`;
   document.querySelectorAll('.gear-prefix').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
@@ -282,10 +288,8 @@ export function renderGear(app: ProfessionAppState): void {
         b.gear[slot] = value;
       }
 
-      if (hasSecondWeaponSet) {
-        b.alternateWeaponPrefixes[0] = value;
-        b.alternateWeaponPrefixes[1] = value;
-      }
+      b.alternateWeaponPrefixes[0] = value;
+      b.alternateWeaponPrefixes[1] = value;
 
       app.changed();
     });
@@ -315,7 +319,7 @@ export function renderGear(app: ProfessionAppState): void {
         groupedOptions(SIGIL_GROUPS, sigils[slot], sigilOptionLabel, (name) => name === sigils[slot === 0 ? 1 : 0]),
         SIGIL_DATA[sigils[slot]]?.icon || ''
       )}</div>`;
-    return `<section class="weapon-set" aria-label="Weapon set ${setNumber}">${sectionHeading(hasSecondWeaponSet ? `Weapon set ${setNumber}` : 'Weapon')}
+    return `<section class="weapon-set" aria-label="Weapon set ${setNumber}">${sectionHeading(`Weapon set ${setNumber}`)}
       ${[0, 1]
         .map((slot) => {
           const hidden = slot === 1 && (twoHanded || unequipped);
@@ -350,9 +354,10 @@ export function renderGear(app: ProfessionAppState): void {
     </section>`;
   };
 
+  // Every profession can equip two sets; combat swap restrictions belong to the rotation palette and engine.
   requiredElement('weapon-select').innerHTML = `
     ${weaponSetRows(1, b.weapons, [b.gear.Weapon1, b.gear.Weapon2], b.weaponSigils[0])}
-    ${hasSecondWeaponSet ? weaponSetRows(2, b.alternateWeapons, b.alternateWeaponPrefixes, b.weaponSigils[1], true) : ''}`;
+    ${weaponSetRows(2, b.alternateWeapons, b.alternateWeaponPrefixes, b.weaponSigils[1], true)}`;
   document.querySelectorAll('.weapon-prefix').forEach((select) => {
     if (!(select instanceof HTMLSelectElement)) return;
     select.addEventListener('change', () => {
@@ -407,7 +412,7 @@ export function renderGear(app: ProfessionAppState): void {
   };
 
   bindWeaponSet(1, b.weapons);
-  if (hasSecondWeaponSet) bindWeaponSet(2, b.alternateWeapons);
+  bindWeaponSet(2, b.alternateWeapons);
 
   requiredElement('consumable-info').innerHTML = `${sectionHeading('Consumables')}
             ${selectRow('Food', 'sel-food', b.food, groupedOptions(FOOD_GROUPS, b.food, foodOptionLabel), EQUIPMENT_ICONS[b.food] || '')}

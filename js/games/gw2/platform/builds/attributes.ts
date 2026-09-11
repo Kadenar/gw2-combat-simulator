@@ -13,7 +13,11 @@ import {
   criticalChancePercentFromPrecision,
   criticalDamagePercentFromFerocity
 } from '#gw2/platform/combat/damage/stat-scaling.js';
-import { normalizeWeaponSigils, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import {
+  normalizeWeaponSigils,
+  stackingSigilForBuild,
+  weaponSigilsForSet
+} from '#gw2/platform/equipment/sigils/loadout.js';
 
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -34,6 +38,7 @@ interface CalculateCommonAttributesOptions {
   readonly data?: Gw2AttributeData;
   readonly sigilNames?: readonly string[] | null;
   readonly dedupeSigils?: boolean;
+  readonly disabledSigil?: string | null;
 }
 
 interface FinalizeBuildAttributesOptions {
@@ -239,7 +244,13 @@ function recomputeDerivedAttributes(
 /** Calculates profession-neutral base, gear, upgrade, consumable, and infusion attributes. */
 export function calculateCommonAttributes(
   build: Gw2Build,
-  { weaponSet = 1, data = {}, sigilNames = null, dedupeSigils = true }: CalculateCommonAttributesOptions = {}
+  {
+    weaponSet = 1,
+    data = {},
+    sigilNames = null,
+    dedupeSigils = true,
+    disabledSigil = null
+  }: CalculateCommonAttributesOptions = {}
 ): Gw2CommonAttributeResult {
   // Data injection keeps this common pipeline reusable in tests and by
   // professions with supplemental gear tables.
@@ -296,6 +307,10 @@ export function calculateCommonAttributes(
 
   const conversionPool: Gw2NumericAttributes = {};
   const conversionPoolNoFood: Gw2NumericAttributes = {};
+  // Prebuilt stacks persist on either set and feed conversions; removing a sigil removes its bonus on both sets.
+  const stackingSigil = stackingSigilForBuild(build);
+  const sigilStats =
+    stackingSigil && stackingSigil !== disabledSigil ? SIGIL_DATA[stackingSigil].stackingStats || {} : {};
   // "Converted" food participates in utility/trait conversions; ordinary
   // food buffs are applied later and must not feed another conversion.
   for (const stat of PRIMARY_ATTRIBUTES) {
@@ -303,6 +318,7 @@ export function calculateCommonAttributes(
       (baseStats[stat] || 0) +
       (gear[stat] || 0) +
       (runes[stat] || 0) +
+      (sigilStats[stat] || 0) +
       (foodConverted[stat] || 0) +
       (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
@@ -310,6 +326,7 @@ export function calculateCommonAttributes(
       (baseStats[stat] || 0) +
       (gear[stat] || 0) +
       (runes[stat] || 0) +
+      (sigilStats[stat] || 0) +
       (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
@@ -371,7 +388,7 @@ export function calculateCommonAttributes(
       utility: utility[stat] || 0,
       jbc: build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0,
       traits: 0,
-      sigils: 0,
+      sigils: sigilStats[stat] || 0,
       infusions: infusions[stat] || 0
     };
     breakdown.final = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
@@ -478,7 +495,7 @@ export function createCalculateAttributes(
     const sigilNames = disabledSigil
       ? weaponSigilsForSet(build, weaponSet).filter((name) => name !== disabledSigil)
       : null;
-    const common = calculateCommonAttributes(build, { weaponSet, sigilNames });
+    const common = calculateCommonAttributes(build, { weaponSet, sigilNames, disabledSigil });
     return applyBuildAttributeRules(common, {
       build,
       selectedSkills,

@@ -20,7 +20,8 @@ export function renderAttributes(app: ProfessionAppState): void {
     throw new Error('Required attribute weapon-set control is missing.');
   }
 
-  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
+  // Attribute previews may inspect either equipped set even when combat swapping is unavailable.
+  const hasSecondWeaponSet = Boolean(app.build.alternateWeapons?.[0]);
   if (!hasSecondWeaponSet) app.attributeWeaponSet = 1;
   weaponSet.disabled = !hasSecondWeaponSet;
   weaponSet.closest('label')?.toggleAttribute('hidden', !hasSecondWeaponSet);
@@ -57,9 +58,10 @@ export function renderAttributeStats(
   const values = normalizeAttributePreview(controls, input);
   let durationDetails = container.querySelector('.attr-duration-details')?.getAttribute('aria-expanded') === 'true';
   const baseline = calculateBuffedAttributes(app);
+  // Start collapsed, retaining the user's disclosure choice when attributes refresh.
+  const previewOpen = previewContainer.querySelector('.attribute-effects')?.hasAttribute('open');
   container.innerHTML = '<div class="attribute-values"></div>';
-  // Keep preview controls visible across refreshes without a disclosure step.
-  const previewHtml = `<section class="attribute-effects" aria-label="Attribute preview"><h4 class="attribute-effects-title">Attribute Preview <small>Preview only</small></h4><div class="attribute-effect-groups">${[
+  const previewHtml = `<details class="attribute-effects"${previewOpen ? ' open' : ''}><summary class="attribute-effects-title">Attribute Preview <small>Preview only</small></summary><div class="attribute-effect-groups">${[
     'Boons',
     'Attunement',
     'Trait conditionals',
@@ -84,7 +86,7 @@ export function renderAttributeStats(
             .join('')}</fieldset>`
         : '';
     })
-    .join('')}</div></section>`;
+    .join('')}</div></details>`;
   if (previewContainer === container) container.insertAdjacentHTML('beforeend', previewHtml);
   else previewContainer.innerHTML = previewHtml;
   const update = (): void => {

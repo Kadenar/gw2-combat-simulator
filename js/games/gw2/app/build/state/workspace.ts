@@ -31,6 +31,8 @@ export interface BuildTab {
   id: string;
   name: string;
   build: Gw2ApplicationBuild;
+  templateBuild?: Gw2ApplicationBuild;
+  templateUndoResetBuild?: Gw2ApplicationBuild;
   patchId: string;
   session: BuildTabSession;
   resultsFresh: boolean;
@@ -79,6 +81,15 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
             continue;
           const tab = createBuildTab(replaceBuild(entry.build, adapter), entry.name);
           tab.id = entry.id;
+          // Keep the loaded template as a durable reset target without discarding tabs with invalid snapshots.
+          try {
+            if (entry.templateBuild?.profession === adapter.id) {
+              tab.templateBuild = replaceBuild(entry.templateBuild, adapter);
+            }
+          } catch {
+            /* An invalid reset target falls back to the profession defaults. */
+          }
+
           // Removed preview patches fall back to current data without discarding the build.
           try {
             if (typeof entry.patchId === 'string' && adapter.profession.catalogFor?.(entry.patchId)) {
@@ -130,11 +141,12 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
       JSON.stringify({
         version: 1,
         activeTabId: workspace.activeTabId,
-        tabs: workspace.tabs.map(({ id, name, build, patchId }) => ({
+        tabs: workspace.tabs.map(({ id, name, build, templateBuild, patchId }) => ({
           id,
           name,
           patchId,
-          build: app.profession.migrateBuild(build)
+          build: app.profession.migrateBuild(build),
+          templateBuild: templateBuild ? app.profession.migrateBuild(templateBuild) : undefined
         }))
       })
     );
@@ -149,10 +161,13 @@ export function addBuildTab(
   app: ProfessionAppState,
   build = createDefaultBuild(app.adapter),
   name = 'New build',
-  patchId = app.patchId
+  patchId = app.patchId,
+  templateBuild?: Gw2ApplicationBuild
 ): BuildTab | undefined {
   if (!app.workspace || !app.activateBuildTab) return;
   const tab = createBuildTab(structuredClone(build), name, patchId);
+  // Copies retain the source template while keeping subsequent edits independent.
+  if (templateBuild) tab.templateBuild = structuredClone(templateBuild);
   app.workspace.tabs.push(tab);
   app.activateBuildTab(tab.id);
   return tab;

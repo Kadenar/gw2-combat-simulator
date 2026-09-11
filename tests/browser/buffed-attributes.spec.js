@@ -20,8 +20,9 @@ test('condition details show exceptions and preview controls sit beside attribut
   const details = stats.getByRole('button', { name: 'Details', exact: true });
   const specific = stats.locator('.attr-specific-duration:visible');
   const preview = page.locator('#attribute-preview');
+  await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeHidden();
+  await preview.locator('summary').press('Enter');
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeVisible();
-  await expect(preview.locator('summary')).toHaveCount(0);
   await expect(details).toHaveAttribute('aria-expanded', 'false');
   await expect(specific).toHaveCount(0);
   await details.press('Enter');
@@ -66,6 +67,11 @@ test('condition details show exceptions and preview controls sit beside attribut
   await page.evaluate(() => window.professionApp.changed());
   await expect(stats).toBeVisible();
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('10');
+  await preview.locator('summary').click();
+  await page.evaluate(() => window.professionApp.changed());
+  await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeHidden();
+  await preview.locator('summary').press('Space');
+  await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeVisible();
   await page.locator('.gear-panel').screenshot({ path: '.scratch/attributes-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
@@ -91,6 +97,7 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   const original = await state();
   const workspace = page.locator('#attributes-list');
   const controls = page.locator('#attribute-preview');
+  await controls.locator('summary').click();
   const base = await workspace.locator('.attr-current').allTextContents();
   await expect(workspace.locator('.attr-before')).toHaveCount(0);
   await controls.getByRole('spinbutton', { name: 'Might', exact: true }).fill('25');
@@ -122,8 +129,9 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
   await panel.getByRole('row', { name: 'Equipped setup', exact: true }).click();
   const preview = panel.locator('[data-role="optimizer-preview"]');
+  await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeHidden();
+  await preview.locator('.attribute-effects > summary').click();
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeVisible();
-  await expect(preview.locator('summary')).toHaveCount(0);
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('0');
   const simulations = await page.evaluate(() => String(window.professionApp.gearOptimizerRunner.state.simulations));
   await preview.getByRole('spinbutton', { name: 'Might', exact: true }).fill('25');
@@ -177,6 +185,7 @@ for (const [profession, traitName, controlName, value] of [
     }, traitName);
     await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
     const panel = page.locator('.gear-panel');
+    await panel.locator('#attribute-preview summary').click();
     const before = await page.evaluate(() => JSON.stringify(window.professionApp.build));
     const control = panel.getByRole(value === null ? 'checkbox' : 'spinbutton', { name: controlName, exact: true });
     if (value === null) await control.check();

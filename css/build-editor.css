@@ -867,13 +867,16 @@ body[data-profession] #app {
 
 .gear-main {
   grid-area: equipment;
+  /* Stretch the nested loadout background to fill the workspace row. */
+  display: grid;
   min-width: 0;
   container: gear-loadout / inline-size;
 }
 
 .gear-panel > .attributes-panel {
   grid-area: attributes;
-  align-self: start;
+  /* Extend the background to the full grid row while keeping stats at the top. */
+  align-self: stretch;
   container: workspace-attributes / inline-size;
   min-width: 0;
   padding: 10px 12px;
@@ -898,6 +901,7 @@ body[data-profession] #app {
     .attributes-panel,
     .workspace-traits,
     .gear-loadout,
+    .weapon-select,
     .selectable-skills-panel
   ) {
   border: 0;
@@ -927,6 +931,21 @@ body[data-profession] #app {
   overflow: hidden;
 }
 
+/* Fade profession artwork beneath the controls without intercepting equipment clicks. */
+.gear-loadout::before {
+  content: '';
+  position: absolute;
+  inset: 42px 0 0;
+  background: var(--gear-artwork, none) center top / contain no-repeat;
+  opacity: 0.28;
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 95%);
+  pointer-events: none;
+}
+
+.gear-loadout > * {
+  position: relative;
+}
+
 .gear-loadout-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -938,7 +957,7 @@ body[data-profession] #app {
   min-width: 0;
 }
 
-/* Trinkets and their supporting upgrades share the right-hand equipment column. */
+/* Keep infusions directly beneath trinkets in the right-hand equipment column. */
 .gear-extras {
   display: flex;
   flex-direction: column;
@@ -1041,18 +1060,29 @@ body[data-profession] #app {
 
 .weapon-select {
   display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 8px;
-  margin-top: 8px;
 }
 
-.weapon-set + .weapon-set {
-  padding-top: 8px;
+/* Pair main-hand and off-hand horizontally, keeping each weapon above its own sigil. */
+.weapon-set {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  column-gap: 8px;
 }
 
 .weapon-set > .gear-section-heading {
+  grid-column: 1 / -1;
   font-size: 12px;
   margin-bottom: 4px;
   letter-spacing: 0;
+}
+
+/* A two-handed or unequipped set uses the full row, including both sigil sockets. */
+.weapon-set:has(> .weapon-slot[hidden]) > .weapon-slot:not([hidden]) {
+  grid-column: 1 / -1;
 }
 
 /* Indent sigils beneath their weapon and keep paired sockets side by side without divider lines. */
@@ -1067,10 +1097,22 @@ body[data-profession] #app {
   min-width: 0;
 }
 
+/* Sigil names identify the sockets visually; selectors retain their accessible slot labels. */
+.weapon-sigil .gear-label {
+  display: none;
+}
+
+/* Keep each trinket's caption below its icon so three slots fit in the equipment column. */
 .trinket-grid {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gear-panel .trinket-grid .gear-icon-row {
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
+  align-content: start;
+  gap: 4px;
 }
 
 #equipment-info {
@@ -1081,13 +1123,9 @@ body[data-profession] #app {
 }
 
 /* Align nested equipment headings, icons and fields with their column edges. */
-.gear-panel .gear-loadout :is(.equipment-upgrades, .equipment-infusions, .equipment-consumables) {
+.gear-panel .gear-loadout :is(.equipment-upgrades, .equipment-infusions, .equipment-consumables, .weapon-select) {
   padding: 0;
-}
-
-/* Infusions follow the weapon sets in the left equipment column. */
-#infusion-info {
-  margin-top: 12px;
+  background: transparent;
 }
 
 :is(#equipment-info, #consumable-info, #infusion-info) .gear-row {
@@ -1161,6 +1199,8 @@ body[data-profession] #app {
 }
 
 .workspace-traits {
+  /* Fill the remaining column below skills without stretching the trait artwork. */
+  flex: 1;
   padding-bottom: 18px;
 }
 
@@ -1178,9 +1218,9 @@ body[data-profession] #app {
   padding: 24px 8px 8px 40px;
 }
 
-.workspace-build-choices .spec-selected-icon {
+.workspace-build-choices .spec-portrait-frame {
   width: 80px;
-  height: 80px;
+  height: 104px;
   flex-basis: 80px;
 }
 
@@ -1198,10 +1238,6 @@ body[data-profession] #app {
 
 .workspace-build-choices .spec-bg {
   background-size: cover;
-}
-
-.gear-panel .workspace-build-choices .selectable-skills-panel {
-  flex: 1;
 }
 
 .workspace-build-choices .selectable-skills-title {
@@ -1528,6 +1564,7 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
 }
 .attribute-effects-title {
   margin: 0;
+  cursor: pointer;
   font: inherit;
   color: var(--accent);
   text-transform: uppercase;
@@ -1867,12 +1904,16 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
   font-size: min(1px, calc(100cqw / 372));
 }
 
-/* Keep the selected specialization emblem aligned with the full trait stack on the left. */
-.spec-selected-icon {
+/* Frame the portrait in the row artwork without duplicating or clipping the image. */
+.spec-portrait-frame {
   width: 96px;
-  height: 96px;
+  height: 112px;
   flex: 0 0 96px;
-  object-fit: contain;
+  fill: none;
+  filter: drop-shadow(0 1px 2px #000);
+  pointer-events: none;
+  /* Center the outline on the background portrait without moving the trait columns. */
+  transform: translateX(40px);
 }
 
 /* Equal gaps on both sides keep each minor trait centered between the neighboring major-trait columns. */

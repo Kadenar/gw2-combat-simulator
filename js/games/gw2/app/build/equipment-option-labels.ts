@@ -85,8 +85,9 @@ export function utilityOptionLabel(name: string): string {
     conversions.every(({ from, to, percent }) => from === to && percent === firstPercent);
   const conversionDetails = uniformSelfConversion
     ? [`+${firstPercent}% all attributes`]
-    : conversions.map(({ from, to, percent }) =>
-        `+${percent ?? UTILITY_CONVERSION_RATES[from as keyof typeof UTILITY_CONVERSION_RATES]}% of ${from} as ${to}`
+    : conversions.map(
+        ({ from, to, percent }) =>
+          `+${percent ?? UTILITY_CONVERSION_RATES[from as keyof typeof UTILITY_CONVERSION_RATES]}% of ${from} as ${to}`
       );
   return optionLabel(name, [...attributeDetails(utilityStatData[name]), ...conversionDetails]);
 }
@@ -135,6 +136,12 @@ function sigilProcDetail(name: string, proc: UnknownValues | undefined): string 
 
 export function sigilOptionLabel(name: string): string {
   const sigil = SIGIL_DATA[name];
+  // Show the assumed persistent bonus so inactive-set stacking sigils explain their contribution.
+  if (sigil?.stackingStats) {
+    const stats = attributeDetails(sigil.stackingStats).join(', ');
+    return optionLabel(name, [`${stats} at 25 stacks; one stacking sigil at a time`]);
+  }
+
   const passiveDetails = Object.entries(SIGIL_PERCENT_FIELDS).flatMap(([field, label]) =>
     sigil?.[field] ? [`+${sigil[field]}% ${label}`] : []
   );

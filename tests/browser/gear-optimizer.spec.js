@@ -1,11 +1,17 @@
 import { expect, test } from '@playwright/test';
 
-// Switching builds clears completed results and previews and terminates an outgoing search.
+// Switching builds clears results, restores current gear, and terminates an outgoing search.
 test('build switches discard optimizer results and active searches', async ({ page }) => {
   await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   const panel = page.locator('#gear-optimizer');
+  const preview = panel.locator('[data-role="optimizer-preview"]');
+  const currentFood = await page.evaluate(() => window.professionApp.build.food);
+  await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText(currentFood);
+  await expect(preview).toContainText('Click a result row to preview its gear and stats.');
+  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
   await addChoice(panel, 'food', '');
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
@@ -14,9 +20,14 @@ test('build switches discard optimizer results and active searches', async ({ pa
 
   await page.locator('.build-tab-new').click();
   await page.getByRole('button', { name: 'New blank build', exact: true }).click();
+  await page.evaluate(() => {
+    window.professionApp.build.food = '';
+    window.professionApp.changed();
+  });
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
-  await expect(panel.locator('[data-role="optimizer-preview"]')).toBeHidden();
+  await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await expect(panel.locator('.optimizer-feedback')).toBeHidden();
   expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
 
@@ -31,7 +42,8 @@ test('build switches discard optimizer results and active searches', async ({ pa
     })
   ).toEqual({ running: true, stopped: true, status: 'idle' });
   await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
-  await expect(panel.locator('[data-role="optimizer-preview"]')).toBeHidden();
+  await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
+  await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText(currentFood);
   await expect(panel.locator('.optimizer-feedback')).toBeHidden();
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
@@ -168,7 +180,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   const currentFood = await page.evaluate(() => window.professionApp.build.food);
   await panel.getByRole('button', { name: `Remove ${currentFood} from food`, exact: true }).click();
   await addChoice(panel, 'food', '');
-  await expect(panel.locator('input[type="checkbox"]')).toHaveCount(0);
+  await expect(panel.locator('form input[type="checkbox"]')).toHaveCount(0);
   await expect(panel.locator('select[multiple]')).toHaveCount(0);
   await panel.screenshot({ path: '.scratch/optimizer/revised-desktop.png' });
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Ready to run.');
@@ -239,8 +251,9 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   // Row selection inspects an isolated candidate; changing preview sets must never save or equip it.
   const equippedBuild = await page.evaluate(() => JSON.stringify(window.professionApp.build));
   await results.locator('tbody tr').first().getByRole('cell', { name: 'Food: None', exact: true }).click();
-  const preview = panel.getByRole('region', { name: 'Result character', exact: true });
+  const preview = panel.locator('[data-role="optimizer-preview"]');
   await expect(preview).toBeVisible();
+  await expect(preview.getByRole('heading', { name: 'Result character', exact: true })).toBeVisible();
   await expect(results.locator('tbody tr').first()).toHaveClass(/optimizer-selected/);
   await expect(results.locator('[aria-current="true"]')).toHaveCount(1);
   await expect(results.locator('tbody tr').first().getByText('Previewing', { exact: true })).toBeVisible();

@@ -668,7 +668,20 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
   assert.deepEqual(SIGIL_GROUPS, [
     {
       label: 'Power',
-      items: ['Accuracy', 'Air', 'Concentration', 'Energy', 'Force', 'Hydromancy', 'Impact', 'Night', 'Severance']
+      items: [
+        'Accuracy',
+        'Air',
+        'Bloodlust',
+        'Concentration',
+        'Cruelty',
+        'Energy',
+        'Force',
+        'Hydromancy',
+        'Impact',
+        'Night',
+        'Severance',
+        'Stars'
+      ]
     },
     {
       label: 'Condition',
@@ -676,6 +689,7 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
         'Agony',
         'Blight',
         'Bursting',
+        'Corruption',
         'Demons',
         'Doom',
         'Earth',

@@ -89,7 +89,10 @@ function displayedPistolBullets(context: SchedulerRecord): SchedulerRecord {
 
 function elementalistPistolEquipped(context: SchedulerRecord): boolean {
   const build = context.build as SchedulerRecord | undefined;
-  return Array.isArray(build?.weapons) && build.weapons.includes('Pistol');
+  // Preview the live equipment set when available, otherwise the build's chosen starting set.
+  const weaponSet = Number(context.activeWeaponSet || build?.startingWeaponSet || 1);
+  const weapons = weaponSet === 2 ? build?.alternateWeapons : build?.weapons;
+  return Array.isArray(weapons) && weapons.includes('Pistol');
 }
 
 // Render the four bullets as toggle controls: `active` shows the current stock,
@@ -109,7 +112,8 @@ function pistolBulletPaletteGroup(context: SchedulerRecord): ProfessionPaletteGr
     className: 'elementalist-pistol-bullets',
     // Keep the stock controls after the complete attunement bank so they do
     // not split the active weapon's elemental rows.
-    placement: 'weapon-set-1',
+    placement: 'active-weapon',
+    weaponRowLabel: 'Earth',
     controls: PISTOL_BULLETS.map(({ element, label, skillName }) => {
       const currentStocked = Boolean(displayed[element]);
       const startsStocked = Boolean(configured[element]);

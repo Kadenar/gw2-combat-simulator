@@ -79,8 +79,13 @@ export function bindPageControls(app: ProfessionAppState): void {
   const rotationFileInput = requiredInput('rotation-file-input');
   bindRotationImportDialog(app, requiredElement('btn-import-rotation'), rotationFileInput);
   requiredElement('btn-reset-build').addEventListener('click', () => {
-    if (!confirm(app.adapter.resetPrompt)) return;
-    app.build = createDefaultBuild(app.adapter);
+    const templateBuild = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId)?.templateBuild;
+    const prompt = templateBuild
+      ? 'Reset this build, skills, and rotation to its loaded template?'
+      : app.adapter.resetPrompt;
+    if (!confirm(prompt)) return;
+    // Clone the tab's loaded template so later edits cannot change its reset target.
+    app.build = templateBuild ? structuredClone(templateBuild) : createDefaultBuild(app.adapter);
     app.changed();
   });
 }

@@ -539,10 +539,13 @@ export async function loadTemplateAction(
     app.templateRotationLoading = rotationLoading;
     if (container) renderTimeline(app);
 
-    // Successful build loads use the same template name as new tabs; rotation-only loads retain the build's name.
-    if (action === 'build' || action === 'template') {
-      const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
-      if (tab) tab.name = name.trim().slice(0, 80) || 'New build';
+    // Keep the previous reset target with this tab's undo state, including rotation-only loads.
+    const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+    if (tab && action !== 'new-tab') tab.templateUndoResetBuild = tab.templateBuild;
+    // Remember successful build loads for this tab's reset; rotation-only loads keep its existing baseline.
+    if (tab && action !== 'rotation') {
+      tab.templateBuild = structuredClone(app.build);
+      tab.name = name.trim().slice(0, 80) || 'New build';
     }
 
     if (action !== 'new-tab') showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
@@ -593,6 +596,13 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
 
 export function undoTemplateLoad(app: ProfessionAppState): void {
   if (!app.templateUndoBuild) return;
+  // Restore the reset target before changed() persists the undone build.
+  const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+  if (tab) {
+    tab.templateBuild = tab.templateUndoResetBuild;
+    delete tab.templateUndoResetBuild;
+  }
+
   app.build = app.templateUndoBuild;
   app.templateUndoBuild = null;
   app.currentTemplate = null;

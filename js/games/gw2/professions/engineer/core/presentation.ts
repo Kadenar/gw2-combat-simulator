@@ -281,7 +281,8 @@ export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
           .map((skill) => skill.id),
         color: '#9d762e',
         stackId: 'engineer-kits',
-        placement: 'weapon-set-1'
+        // Kits belong to the active weapon bar regardless of the selected starting equipment set.
+        placement: 'active-weapon'
       });
     }
 

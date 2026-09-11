@@ -87,7 +87,27 @@ export function renderTraits(app: ProfessionAppState): void {
                     </details>
                     <div class="spec-heading">${esc(spec.name)}</div>
                     <div class="spec-selection">
-                        <img class="spec-selected-icon" src="${esc(spec.icon)}" alt="">
+                        <svg class="spec-portrait-frame" viewBox="0 0 96 112" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="portrait-metal-${lineIndex}" x2="0.7" y2="1">
+                                    <stop stop-color="#fff4dc" />
+                                    <stop offset="0.3" stop-color="#a69a85" />
+                                    <stop offset="0.5" stop-color="#e3dbc9" />
+                                    <stop offset="1" stop-color="#655f54" />
+                                </linearGradient>
+                                <filter id="portrait-wear-${lineIndex}" x="-10%" y="-10%" width="120%" height="120%">
+                                    <feTurbulence baseFrequency="0.65" numOctaves="3" seed="7" result="grain" />
+                                    <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.4" xChannelSelector="R" yChannelSelector="G" result="edge" />
+                                    <feComposite in="grain" in2="edge" operator="in" />
+                                    <feBlend in2="edge" mode="soft-light" />
+                                </filter>
+                            </defs>
+                            <!-- Layer a worn metal rim over a dark bevel, leaving the original portrait exposed. -->
+                            <g filter="url(#portrait-wear-${lineIndex})">
+                                <polygon points="48,3 93,29 93,83 48,109 3,83 3,29" stroke="#29251f" stroke-width="5" />
+                                <polygon points="48,3 93,29 93,83 48,109 3,83 3,29" stroke="url(#portrait-metal-${lineIndex})" stroke-width="3" />
+                            </g>
+                        </svg>
                         <div class="spec-tiers">${[0, 1, 2]
                           .map((tier) => {
                             const minor = spec.minorTraits[tier];

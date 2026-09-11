@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test';
 
+// Artwork tracks specialization changes and returns to the core profession when no elite is equipped.
+test('gear artwork follows the active specialization', async ({ page }) => {
+  await page.goto('/engineer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  for (const specialization of ['Amalgam', 'Scrapper', null]) {
+    await page.evaluate((name) => {
+      const app = window.professionApp;
+      const core = app.specializations.filter((spec) => !spec.elite);
+      app.build.specializations = core.slice(0, 3).map((spec, index) => ({
+        name: index === 2 && name ? name : spec.name,
+        traits: '1-1-1'
+      }));
+      app.changed();
+    }, specialization);
+    const artwork = await page.locator('.gear-loadout').evaluate(async (panel) => {
+      const background = getComputedStyle(panel, '::before').backgroundImage;
+      const image = new Image();
+      image.src = background.slice(5, -2);
+      await image.decode();
+      return { background, width: image.naturalWidth };
+    });
+    expect(artwork.background).toContain(`/professions/${(specialization || 'engineer').toLowerCase()}.png`);
+    expect(artwork.width).toBeGreaterThan(0);
+  }
+});
+
 // Exercise visible choices so the regrouped controls must still update the saved build.
 async function chooseEquipment(page, selector, value) {
   const display = page.locator('.gear-select-display').filter({ has: page.locator(selector) });
@@ -30,8 +56,69 @@ async function chooseWeapon(page, selector, value) {
   await page.keyboard.press('Escape');
 }
 
-// Trinkets occupy the former artwork column, while every profession keeps its inherited theme.
-test('workspace places trinkets beside gear and keeps import available without Revenant skills', async ({ page }) => {
+// Replacement edits the equipped slot, preserves queued casts, and remains accessible without a mouse.
+test('skill strip above traits replaces equipped skills without queuing casts', async ({ page }) => {
+  await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const skills = await page.locator('.selectable-skills-panel').boundingBox();
+  const traits = await page.locator('.workspace-traits').boundingBox();
+  expect(skills.y + skills.height).toBeLessThanOrEqual(traits.y);
+  const selected = {};
+  for (const key of ['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']) {
+    const slot = page.locator(`#skill-bar [data-key="${key}"]`);
+    const before = await page.evaluate(() => window.professionApp.build.rotation);
+    await slot.locator('.sbar-icon').click();
+    const picker = slot.locator('.sbar-dropdown.open');
+    await expect(picker).toBeVisible();
+    const option = picker.locator('button[aria-pressed="false"]:not(:disabled)').first();
+    selected[key] = await option.getAttribute('data-name');
+    await option.click();
+    await expect(picker).toHaveCount(0);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', selected[key]);
+    expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual(before);
+  }
+
+  const heal = page.getByRole('button', { name: 'Change heal skill', exact: true });
+  await heal.focus();
+  await heal.press('Enter');
+  await expect(page.locator('#skill-bar [data-key="Heal"] .sbar-dropdown.open')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#skill-bar .sbar-dropdown.open')).toHaveCount(0);
+  const paletteHeal = page.locator('.utility-palette-group .pal-skill').first();
+  await paletteHeal.click({ button: 'right' });
+  await expect(page.locator('.rotation-skill-picker')).toHaveCount(0);
+  await paletteHeal.click();
+  await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  expect(await page.evaluate(() => window.professionApp.build.selectedSkills)).toMatchObject(selected);
+});
+
+// A flipped skill still edits its equipped root through the selector above traits.
+test('flipped utility skills remain replaceable from the skill strip', async ({ page }) => {
+  await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.selectedSkills.Utility1 = 'Summon Bone Minions';
+    app.build.rotation = [];
+    app.changed();
+  });
+  const first = page.locator('#skill-bar [data-key="Utility1"]');
+  await page.locator('.utility-palette-group .pal-skill[data-skill="Summon Bone Minions"]').click();
+  await expect(page.locator('.utility-palette-group .pal-skill[data-skill="Putrid Explosion"]')).toBeVisible();
+  await first.locator('.sbar-icon').click();
+  const option = first.locator('.sbar-dropdown button[aria-pressed="false"]:not(:disabled)').first();
+  const replacement = await option.getAttribute('data-name');
+  await option.click();
+  expect(await page.evaluate(() => window.professionApp.build.selectedSkills.Utility1)).toBe(replacement);
+  await expect(first.locator('.sbar-icon')).toHaveAttribute('title', replacement);
+});
+
+// Trinkets and infusions sit beside armor, with upgrades and consumables sharing the row below.
+test('workspace places trinkets above infusions and keeps import available without Revenant skills', async ({
+  page
+}) => {
   await page.setViewportSize({ width: 1640, height: 1100 });
   await page.goto('/engineer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -44,24 +131,43 @@ test('workspace places trinkets beside gear and keeps import available without R
   const traits = await page.locator('.workspace-traits').boundingBox();
   const gear = await page.locator('.gear-loadout').boundingBox();
   const workspace = await page.locator('.gear-panel').boundingBox();
-  expect(traits.y).toBeCloseTo(workspace.y, 0);
+  const skills = await page.locator('.selectable-skills-panel').boundingBox();
+  expect(skills.y).toBeCloseTo(workspace.y, 0);
+  expect(traits.y).toBeGreaterThanOrEqual(skills.y + skills.height);
   expect(gear.y).toBeCloseTo(workspace.y, 0);
   const controls = await page.locator('.gear-loadout-controls').boundingBox();
   const trinkets = await page.locator('#trinket-slots').boundingBox();
-  expect(controls.x + controls.width).toBeLessThanOrEqual(trinkets.x);
+  expect(trinkets.x).toBeGreaterThanOrEqual(controls.x + controls.width);
+  expect(trinkets.y).toBeCloseTo(controls.y, 0);
   await expect(page.locator('.gear-loadout-heading #gear-set-all')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Gear', exact: true })).toHaveCount(0);
   const upgrades = await page.locator('#equipment-info').boundingBox();
-  expect(upgrades.x).toBeCloseTo(trinkets.x, 0);
-  expect(trinkets.y).toBeGreaterThanOrEqual(upgrades.y + upgrades.height);
+  expect(upgrades.x).toBeCloseTo(controls.x, 0);
+  expect(upgrades.y).toBeGreaterThanOrEqual(controls.y + controls.height);
   const weapons = await page.locator('#weapon-select').boundingBox();
   const consumables = await page.locator('#consumable-info').boundingBox();
-  expect(consumables.x).toBeCloseTo(upgrades.x, 0);
-  expect(consumables.y).toBeGreaterThanOrEqual(upgrades.y + upgrades.height);
-  expect(trinkets.y).toBeGreaterThanOrEqual(consumables.y + consumables.height);
+  expect(consumables.x).toBeCloseTo(trinkets.x, 0);
+  expect(consumables.x).toBeGreaterThanOrEqual(upgrades.x + upgrades.width);
+  expect(consumables.y).toBeCloseTo(upgrades.y, 0);
   const infusions = await page.locator('#infusion-info').boundingBox();
-  expect(infusions.x).toBeCloseTo(weapons.x, 0);
-  expect(infusions.y).toBeGreaterThanOrEqual(weapons.y + weapons.height);
+  expect(infusions.y).toBeGreaterThanOrEqual(trinkets.y + trinkets.height);
+  expect(consumables.y).toBeGreaterThanOrEqual(infusions.y + infusions.height);
+  const trinketRows = await page.locator('.trinket-grid .gear-icon-row').evaluateAll((rows) =>
+    rows.map((row) => ({
+      slot: row.querySelector('select').dataset.slot,
+      top: row.getBoundingClientRect().top
+    }))
+  );
+  expect(trinketRows.map((row) => row.slot)).toEqual(['Back', 'Accessory1', 'Accessory2', 'Amulet', 'Ring1', 'Ring2']);
+  expect(trinketRows.slice(0, 3).every((row) => row.top === trinketRows[0].top)).toBe(true);
+  expect(trinketRows.slice(3).every((row) => row.top === trinketRows[3].top)).toBe(true);
+  expect(trinketRows[3].top).toBeGreaterThan(trinketRows[0].top);
+  expect(infusions.x).toBeCloseTo(trinkets.x, 0);
+  expect(weapons.x).toBeCloseTo(controls.x, 0);
+  expect(weapons.y).toBeGreaterThanOrEqual(controls.y + controls.height);
+  expect(weapons.y).toBeGreaterThanOrEqual(infusions.y + infusions.height);
+  expect(upgrades.y).toBeGreaterThanOrEqual(weapons.y + weapons.height);
+  await expect(page.locator('.gear-loadout #weapon-select')).toBeVisible();
   const attributes = await page.locator('.attributes-panel').boundingBox();
   for (const selector of ['.workspace-build-choices', '.gear-main']) {
     const panel = await page.locator(selector).boundingBox();
@@ -70,7 +176,8 @@ test('workspace places trinkets beside gear and keeps import available without R
   }
 
   await expect(page.locator('#gear-character, .workspace-skill-hint')).toHaveCount(0);
-  await expect(page.locator('.selectable-skills-panel')).toBeVisible();
+  await expect(page.locator('#skill-bar .skill-bar-slot[data-key]')).toHaveCount(5);
+  await expect(page.locator('.weapon-sigil .gear-label:visible')).toHaveCount(0);
   for (const profession of ['engineer', 'revenant']) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -89,14 +196,27 @@ test('workspace places trinkets beside gear and keeps import available without R
 
   await expect(page.locator('.fixed-loadout-bar:visible')).toHaveCount(0);
   await expect(page.locator('.fixed-loadout-trigger:visible')).toHaveCount(2);
+  const legendButtons = page.locator('.fixed-loadout-trigger');
+  for (const button of await legendButtons.all()) {
+    await expect(button).toHaveCSS('width', '52px');
+    await expect(button).toHaveCSS('height', '52px');
+    await expect(button).toHaveAttribute('aria-label', /^Change legend [12]: /);
+  }
+
+  const firstLegend = await legendButtons.first().boundingBox();
+  const secondLegend = await legendButtons.nth(1).boundingBox();
+  expect(secondLegend.y).toBeCloseTo(firstLegend.y, 0);
+  expect(secondLegend.x).toBeGreaterThanOrEqual(firstLegend.x + firstLegend.width);
   await expect(page.locator('.selectable-skills-title')).toHaveText('Legends');
   await page.locator('.fixed-loadout-trigger').first().click();
   const legend = page
     .locator('.fixed-loadout-dropdown.open .fixed-loadout-option:not(:disabled):not(.selected)')
     .first();
   const selectedLegend = await legend.getAttribute('data-loadout-value');
+  const selectedLegendName = await legend.locator('span').textContent();
   await legend.click();
   expect(await page.evaluate(() => window.professionApp.build.selectedLegends[0])).toBe(selectedLegend);
+  await expect(legendButtons.first()).toHaveAttribute('title', selectedLegendName);
   await page.getByRole('button', { name: 'Import GW2 Build', exact: true }).click();
   await expect(page.locator('dialog[open]')).toBeVisible();
 });
@@ -187,6 +307,72 @@ test('two infusion rows retain selections and enforce the shared infusion limit'
   await expect(page.locator('.inf-total')).toHaveText('18/18');
 });
 
+// Non-swapping professions keep stacking gear saved while only their starting weapon enters the rotation.
+for (const profession of ['elementalist', 'engineer']) {
+  test(`${profession} supports inactive stacking gear and either starting set`, async ({ page }) => {
+    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    await page.evaluate(() => {
+      const app = window.professionApp;
+      app.build.rotation = [];
+      app.build.startingWeaponSet = 1;
+      if (app.adapter.id === 'engineer') {
+        app.build.selectedSkills.Utility1 = 'Grenade Kit';
+        app.build.selectedSkills.Utility2 = 'Bomb Kit';
+      }
+
+      app.build.weaponSigils = [
+        ['Force', 'Accuracy'],
+        ['Force', 'Accuracy']
+      ];
+      app.changed();
+    });
+    const alternate = profession === 'elementalist' ? 'Staff' : 'Pistol';
+    const alternateSkill = profession === 'elementalist' ? 'Fireball' : 'Static Shot';
+    await chooseWeapon(page, '#sel-mh2', alternate);
+    await chooseEquipment(page, '#sel-stat2-1', 'Celestial');
+    await chooseEquipment(page, '#sel-sig2-1', 'Corruption');
+    expect(await page.evaluate(() => window.professionApp.attributeData.attributes['Condition Damage'].sigils)).toBe(
+      250
+    );
+    await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`)).toHaveCount(0);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    await expect(page.locator('#sel-mh2')).toHaveValue(alternate);
+    await expect(page.locator('#sel-stat2-1')).toHaveValue('Celestial');
+    await expect(page.locator('#sel-sig2-1')).toHaveValue('Corruption');
+    // Kit rows must survive hiding either equipment set and still allow entering and using the kit.
+    if (profession === 'engineer') {
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Bomb"]')).toBeVisible();
+    }
+
+    await page.locator('.weapon-set-btn[data-set="2"]').click();
+    if (profession === 'engineer') {
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]')).toBeVisible();
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Bomb"]')).toBeVisible();
+    }
+
+    const skill = page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first();
+    await expect(skill).toBeVisible();
+    await expect(skill).not.toHaveClass(/unavailable/);
+    await skill.click();
+    expect(await page.evaluate(() => window.professionApp.results.endState.activeWeaponSet)).toBe(2);
+    expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+    if (profession === 'engineer') {
+      await page.locator('.utility-palette-group .pal-skill[data-skill="Grenade Kit"]').click();
+      await expect
+        .poll(() => page.evaluate(() => window.professionApp.results.endState.profession.activeKit))
+        .toBe('Grenade Kit');
+      await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
+      await expect
+        .poll(() => page.evaluate(() => window.professionApp.results.steps.some((step) => step.skill === 'Grenade')))
+        .toBe(true);
+      expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+    }
+  });
+}
+
 test('both weapon sets keep their own stats and sigils when switching handedness', async ({ page }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -195,6 +381,10 @@ test('both weapon sets keep their own stats and sigils when switching handedness
     await chooseWeapon(page, `#sel-mh${set}`, 'Sword');
     await chooseWeapon(page, `#sel-oh${set}`, 'Focus');
     await expect(section.locator('.weapon-slot:visible')).toHaveCount(2);
+    const mainHand = await section.locator('.weapon-slot').nth(0).boundingBox();
+    const offHand = await section.locator('.weapon-slot').nth(1).boundingBox();
+    expect(offHand.y).toBeCloseTo(mainHand.y, 0);
+    expect(offHand.x).toBeGreaterThanOrEqual(mainHand.x + mainHand.width);
     for (const slot of [0, 1]) {
       await expect(section.locator('.weapon-slot').nth(slot).locator('.weapon-sigil')).toHaveCount(1);
     }
@@ -227,6 +417,49 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await chooseWeapon(page, '#sel-mh2', '');
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
+});
+
+// Profession selectors share the desktop skill strip and wrap below it on phones.
+test('Amalgam and Ranger selectors stay compact beside skills and wrap on phones', async ({ page }) => {
+  for (const profession of ['engineer', 'ranger']) {
+    await page.setViewportSize({ width: 1800, height: 1100 });
+    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    if (profession === 'engineer') {
+      const picker = page.locator('.spec-picker').last();
+      await picker.locator('summary').click();
+      await picker.getByRole('button', { name: 'Amalgam', exact: true }).click();
+    }
+
+    const selections = page.locator('.profession-build-selections');
+    const skills = page.locator('#skill-bar > .skill-bar-selected');
+    const icons = selections.locator('.sbar-icon');
+    await expect(icons.first()).toBeVisible();
+    const standardIcon = await skills.locator('.sbar-icon').first().boundingBox();
+    for (const icon of await icons.all()) {
+      await expect(icon).toHaveCSS('width', `${standardIcon.width}px`);
+      await expect(icon).toHaveCSS('height', `${standardIcon.height}px`);
+    }
+
+    const wideSkills = await skills.boundingBox();
+    const wideSelections = await selections.boundingBox();
+    const labels = selections.locator('.skill-bar-inspection-label');
+    expect(await labels.evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth))).toBe(true);
+    expect(wideSelections.x).toBeGreaterThanOrEqual(wideSkills.x + wideSkills.width);
+    expect(wideSelections.y).toBeLessThan(wideSkills.y + wideSkills.height);
+    await icons.first().click();
+    await expect(selections.locator('.sbar-dropdown.open')).toBeVisible();
+    await page.locator('.selectable-skills-title').click();
+    await page.setViewportSize({ width: 390, height: 1000 });
+    const narrowSkills = await skills.boundingBox();
+    const narrowSelections = await selections.boundingBox();
+    expect(await labels.evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth))).toBe(true);
+    const narrowIcon = await skills.locator('.sbar-icon').first().boundingBox();
+    await expect(icons.first()).toHaveCSS('width', `${narrowIcon.width}px`);
+    await expect(icons.first()).toHaveCSS('height', `${narrowIcon.height}px`);
+    expect(narrowSelections.y).toBeGreaterThanOrEqual(narrowSkills.y + narrowSkills.height);
+    expect(narrowSelections.x + narrowSelections.width).toBeLessThanOrEqual(390);
+  }
 });
 
 // The same workspace must fit desktop and phone widths for every profession's skill controls.

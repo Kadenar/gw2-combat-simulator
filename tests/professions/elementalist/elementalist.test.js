@@ -271,21 +271,21 @@ test('Elementalist build defaults and canonical builds normalize explicitly', ()
 
   assert.equal(migratedHitbox.assumptions.hitboxSize, 'large');
 
-  const collapsed = migrateElementalistBuild({
+  const twoSets = migrateElementalistBuild({
     ...defaults,
     alternateWeapons: ['Staff', ''],
     startingWeaponSet: 2
   });
 
-  assert.deepEqual(collapsed.alternateWeapons, ['', '']);
-  assert.equal(collapsed.startingWeaponSet, 1);
-  assert.equal(validateElementalistBuild(collapsed).valid, true);
+  assert.deepEqual(twoSets.alternateWeapons, ['Staff', '']);
+  assert.equal(twoSets.startingWeaponSet, 2);
+  assert.equal(validateElementalistBuild(twoSets).valid, true);
   assert.equal(
     validateElementalistBuild({
       ...defaults,
       alternateWeapons: ['Staff', '']
     }).valid,
-    false
+    true
   );
 });
 

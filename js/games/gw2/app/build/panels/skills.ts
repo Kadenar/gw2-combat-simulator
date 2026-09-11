@@ -152,18 +152,18 @@ export function renderSkills(app: ProfessionAppState): void {
     ['Elite', 'Elite']
   ];
 
-  // Keep selectable slots icon-only
+  // Compact icon buttons edit equipped slots above traits without adding rotation casts.
   const selectedSkillBarHtml = slots
     .map(([key, type]) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
-                <div class="sbar-icon" title="${esc(display?.displayName || display?.name || 'Choose skill')}"><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></div>
+                <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" title="${esc(display?.displayName || display?.name || 'Choose skill')}"><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<div class="dd-item" data-name="${esc(skill.name)}"><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></div>`
+                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}"${Object.entries(app.build.selectedSkills).some(([slot, name]) => slot !== key && name === skill.name) ? ' disabled title="Equipped in another slot"' : ''}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
                   )
                   .join('')}</div>
             </div>`;
@@ -198,6 +198,11 @@ export function renderSkills(app: ProfessionAppState): void {
     };
 
     icon.addEventListener('click', toggleDropdown);
+    slot.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      dropdown.classList.remove('open');
+      (icon as HTMLElement).focus();
+    });
     slot.querySelectorAll('.dd-item').forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener('click', () => {
@@ -206,6 +211,7 @@ export function renderSkills(app: ProfessionAppState): void {
         if (!key || !name) return;
         app.build.selectedSkills[key] = name;
         app.changed();
+        skillBar.querySelector<HTMLElement>(`[data-key="${key}"] .sbar-icon`)?.focus();
       });
     });
   });
@@ -360,19 +366,17 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
           .join('')}
       </div>`;
 
-  // Render icon dropdowns without a redundant heading because each trigger already names the legend action.
+  // Legend portraits open the existing choices; names remain available to tooltips and assistive technology.
   const selectorHtml = (selector: ProfessionSlotLoadoutSelector, index: number): string => {
     if (view.selectionControl === 'icons') {
       const selected = selector.options.find((entry) => entry.value === selector.value);
       return `<div class="skill-bar-slot fixed-loadout-icon-selector">
-          <button type="button" class="fixed-loadout-trigger"
+          <button type="button" class="fixed-loadout-trigger sbar-icon"
             data-loadout-toggle aria-expanded="false"
+            aria-label="Change ${esc(selector.label.toLowerCase())}: ${esc(selected?.label || 'Choose loadout')}"
+            title="${esc(selected?.label || 'Choose loadout')}"
             aria-haspopup="listbox" aria-controls="fixed-loadout-menu-${index}">
             <img src="${esc(selected?.icon || '')}" alt="">
-            <span class="fixed-loadout-trigger-copy">
-              <strong>${esc(selected?.label || 'Choose loadout')}</strong>
-              <small>Change ${esc(selector.label.toLowerCase())}</small>
-            </span>
             <span class="fixed-loadout-trigger-arrow" aria-hidden="true">&#9660;</span>
           </button>
           <div id="fixed-loadout-menu-${index}" class="sbar-dropdown fixed-loadout-dropdown" role="listbox">

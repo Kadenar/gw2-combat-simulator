@@ -30,15 +30,15 @@ frame.addEventListener('load', async () => {
     app.build = createElementalistBuildDefaults();
     app.changed();
 
-    // The build editor now keeps only build choices, with selectable skills directly beside traits.
-    const section = document.querySelector('.skill-selection-section');
+    // Equipped skill selectors precede traits, with weapon controls following the trait lines.
+    const section = document.querySelector('.workspace-build-choices');
     const traits = document.getElementById('traits-panel');
-    const selectablePanel = document.querySelector('.selectable-skills-panel');
+    const weapons = document.getElementById('weapon-select');
     const selectedSkills = [...document.querySelectorAll('#skill-bar .skill-bar-slot[data-key]')];
 
     assert(
-      section?.firstElementChild === traits && section.lastElementChild === selectablePanel,
-      'selectable skills are not directly to the right of traits'
+      section?.contains(traits) && weapons?.parentElement === section,
+      'weapon selection is not grouped beneath traits'
     );
     assert(selectedSkills.length === 5, 'heal, utility, and elite selections are missing');
     assert(

@@ -93,7 +93,7 @@ function pistolBullets(value: unknown): Record<'Fire' | 'Water' | 'Air' | 'Earth
 
 // One declaration drives migration, validation, and the application build shape: the
 // shared codec handles the common fields, and the hooks below cover the Elementalist-only
-// fields and the profession's single-weapon-set rule.
+// fields; the shared codec preserves both equipped sets and the chosen starting set.
 const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalBuild>({
   professionId: ELEMENTALIST_PROFESSION_ID,
   schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
@@ -133,12 +133,10 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
       maximum: 3
     }
   },
-  // Elementalist has no weapon swap, so a migrated build is pinned to a single set.
+  // Preserve the inactive equipment set for persistent sigils without adding a combat swap action.
   normalizeExtra(build, { saved }) {
     const normalized = {
       ...build,
-      alternateWeapons: ['', ''],
-      startingWeaponSet: 1,
       pistolBullets: pistolBullets(saved.pistolBullets)
     };
     return normalized;
@@ -147,14 +145,6 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
   // cross-profession build surfaces an error instead of silently changing behavior.
   validateExtra(build) {
     const errors: string[] = [];
-    if (Array.isArray(build.alternateWeapons) && build.alternateWeapons.some(Boolean)) {
-      errors.push('Elementalist cannot equip a second weapon set.');
-    }
-
-    if (build.startingWeaponSet !== 1) {
-      errors.push('Elementalist must start on weapon set 1.');
-    }
-
     if (
       !build.pistolBullets ||
       ['Fire', 'Water', 'Air', 'Earth'].some(

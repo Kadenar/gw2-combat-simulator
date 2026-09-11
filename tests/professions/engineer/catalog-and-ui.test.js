@@ -445,7 +445,7 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
     'Stow Grenade Kit'
   ]);
   assert.equal(grenade.stackId, 'engineer-kits');
-  assert.equal(grenade.placement, 'weapon-set-1');
+  assert.equal(grenade.placement, 'active-weapon');
   assert.match(profession.className, /compact-resource-palette/);
   assert.equal(profession.stackId, 'holosmith-profession');
   assert.equal(forge.stackId, 'holosmith-profession');
