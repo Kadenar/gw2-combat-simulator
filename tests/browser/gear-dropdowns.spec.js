@@ -35,23 +35,30 @@ test('equipment dropdowns are positioned synchronously on every open', async ({ 
   }
 });
 
-// Type-ahead moves focus without changing gear until committed, and repeats cycle matching names.
-test('equipment dropdowns support typed prefixes, cycling, cancellation, and keyboard selection', async ({ page }) => {
+// Search keeps focus in the input and leaves gear unchanged until a filtered result is committed.
+test('equipment dropdowns support search, cancellation, and keyboard selection', async ({ page }) => {
   const display = page.locator('.gear-select-display').filter({ has: page.locator('.gear-prefix[data-slot="Helm"]') });
   const trigger = display.locator('.gear-select-trigger');
   const select = display.locator('select');
   const menu = display.getByRole('listbox');
+  const search = display.getByRole('searchbox');
   const choice = (value) => menu.locator(`[data-value="${value}"]`);
   const initial = await select.inputValue();
   await trigger.click();
   await page.keyboard.type('ri');
-  await expect(choice("Ritualist's")).toBeFocused();
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue('ri');
+  await expect(choice("Ritualist's")).toBeVisible();
+  await expect(choice("Berserker's")).toBeHidden();
   await expect(select).toHaveValue(initial);
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
   await expect(trigger).toBeFocused();
   await page.keyboard.type('vip');
-  await expect(choice("Viper's")).toBeFocused();
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue('vip');
+  await expect(menu.getByRole('option')).toHaveCount(1);
+  await expect(choice("Viper's")).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(menu).toBeHidden();
   await expect(select).toHaveValue("Viper's");
@@ -60,20 +67,15 @@ test('equipment dropdowns support typed prefixes, cycling, cancellation, and key
   expect(await page.evaluate(() => window.professionApp.build.gear.Helm)).toBe("Viper's");
 
   await trigger.click();
-  await page.keyboard.press('r');
-  await expect(choice('Rabid')).toBeFocused();
-  await page.keyboard.press('r');
-  await expect(choice("Rampager's")).toBeFocused();
-  await page.keyboard.press('r');
-  await expect(choice("Ritualist's")).toBeFocused();
-  await page.keyboard.press('r');
-  await expect(choice('Rabid')).toBeFocused();
-  await page.waitForTimeout(750);
-  await page.keyboard.type('cel');
-  await expect(choice('Celestial')).toBeFocused();
-  await page.keyboard.press('Home');
+  await expect(search).toHaveValue('');
+  await search.fill('r');
+  await search.press('ArrowDown');
   await expect(menu.getByRole('option').first()).toBeFocused();
   await page.keyboard.press('End');
+  await expect(menu.getByRole('option').last()).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(menu.getByRole('option').first()).toBeFocused();
+  await page.keyboard.press('ArrowUp');
   await expect(menu.getByRole('option').last()).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(select).toHaveValue("Viper's");
