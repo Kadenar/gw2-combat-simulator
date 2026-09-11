@@ -110,8 +110,9 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
   if (pickupWeapon) {
     const weapon = pickupWeapon;
-    const expiresAt = Number(state.conjurePickups[weapon] || 0);
-    return expiresAt >= context.start
+    // Missing or invalid ground copies must not become available at time zero.
+    const expiresAt = state.conjurePickups[weapon];
+    return Number.isFinite(expiresAt) && expiresAt >= context.start
       ? ready()
       : unavailable(skill, 'elementalist.conjure-pickup', `the ${weapon} pickup is unavailable or expired.`);
   }

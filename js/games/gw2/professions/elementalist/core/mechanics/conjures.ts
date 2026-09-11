@@ -52,8 +52,9 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
     state.conjureEquipped = null;
   } else if (CONJURE_PICKUP_WEAPONS[Number(skill.id)]) {
     const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
-    // A ground copy can only be reclaimed while its pick-up window is still open.
-    if (Number(state.conjurePickups[weapon] || 0) >= context.start) {
+    // Require a real ground copy, preserving pickups begun before its window closes.
+    const expiresAt = state.conjurePickups[weapon];
+    if (Number.isFinite(expiresAt) && expiresAt >= context.start) {
       state.conjureEquipped = weapon;
       delete state.conjurePickups[weapon];
       swapped = true;

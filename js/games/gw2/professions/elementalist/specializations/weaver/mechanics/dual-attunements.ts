@@ -101,11 +101,16 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   const hammerAvailability = weaverHammerAvailability(context, skill);
   if (hammerAvailability) return hammerAvailability as AvailabilityResult;
 
-  // Autoattack chain links stay castable on their own chain state, so only
-  // chain roots and non-chain weapon skills are matched against the hands.
+  // Only the preserved next autoattack link may bypass hand checks after a swap.
+  const core = professionCoreState(context);
   const chainPosition = context.catalog.autoattackChainPositions.get(Number(skill.id));
-  if (skill.type === 'Weapon' && skill.attunement && !chainPosition) {
-    const core = professionCoreState(context);
+  const carriedLink =
+    chainPosition &&
+    Number(skill.id) !== chainPosition.root &&
+    core.autoattackCarryover?.root === chainPosition.root &&
+    core.autoattackCarryover.attunement === skill.attunement &&
+    core.autoattackChains[chainPosition.root] === Number(skill.id);
+  if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context);
     const attunement = String(skill.attunement);
     const dualAttunements = weaverDualAttunements(skill);
