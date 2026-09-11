@@ -77,9 +77,11 @@ export function triggerBountifulPower(
   sourceId: Skill['id']
 ): void {
   if (!hasTrait(context, 'Bountiful Power')) return;
+  const threshold = balanceProfileValueFromContext(context, PROFILE.bountifulPower, 'threshold', 5);
+  // Nonpositive custom thresholds disable this proc so each loop iteration must consume progress.
+  if (threshold <= 0) return;
   const state = professionCoreState(context);
   state.bountifulPowerProgress += stacks;
-  const threshold = balanceProfileValueFromContext(context, PROFILE.bountifulPower, 'threshold', 5);
   while (state.bountifulPowerProgress >= threshold) {
     state.bountifulPowerProgress -= threshold;
     emitProfiledBuff(context, at, PROFILE.bountifulPower, 'Quickness', 'Quickness', 1, 5, 'Bountiful Power', sourceId);
