@@ -10,6 +10,8 @@ export interface RecordedLogAction {
   readonly rawName: string;
   readonly status: RotationActionStatus;
   readonly eventIndex: number;
+  /** Keeps adapter source identity stable when normalization adjusts eventIndex for ordering. */
+  readonly sourceActionIndex?: number;
   readonly isSwap: boolean;
   readonly metadataAccurate: boolean;
   /** Elite Insights' nominal cast length for this cast (observed duration plus any time gained). */

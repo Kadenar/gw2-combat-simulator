@@ -67,16 +67,17 @@ export function reconstructProfessionActions(
   const recordedActions = originals.map((action, index) => ({
     ...action,
     eventIndex: index,
+    sourceActionIndex: index,
     rawName: action.rawName === 'Swap Weapons' ? 'Weapon Swap' : action.rawName,
     isSwap: action.weaponSet != null,
     metadataAccurate: action.metadataAccurate ?? true,
     expectedDurationMs: action.expectedDuration ?? undefined
   }));
-  // A unique conversion index retains evidence when several EI rules share the same raw event.
+  // Keep source identity separate from sortable indices, including when EI rules share a raw event.
   return normalizeLogProfessionActions({ ...context, recordedActions }).map((action) => ({
-    ...originals[action.eventIndex],
+    ...originals[action.sourceActionIndex!],
     ...action,
-    eventIndex: originals[action.eventIndex].eventIndex,
+    eventIndex: originals[action.sourceActionIndex!].eventIndex,
     rawName: action.rawName === 'Weapon Swap' ? 'Swap Weapons' : action.rawName,
     // This read-only observation requires a landed packet during the represented airborne auto.
     ...(context.profile.specializationId === 'vindicator' &&

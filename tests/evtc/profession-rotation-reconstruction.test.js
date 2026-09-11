@@ -3,6 +3,8 @@ import test from 'node:test';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { eiMinionSpawns } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
@@ -18,6 +20,39 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+// Normalization may reorder tied signals, but each action must retain its own EVTC source identity.
+test('tied Revenant stance and upkeep signals preserve source metadata in either raw order', () => {
+  const events = [
+    event({ stateChange: 69, target: PLAYER, skillId: 27890, buff: 1, value: 1000 }),
+    event({ stateChange: 72, source: PLAYER, skillId: 27581, buff: 1 })
+  ];
+  for (const orderedEvents of [events, [...events].reverse()]) {
+    const fixture = log({ agents: [{ ...log().agents[0], profession: 9, elite: 63 }], events: orderedEvents });
+    const out = reconstructEvtcRotation(fixture, revenantCatalog, { includeCombatStart: false });
+    const swap = out.actions.find((action) => action.skillId === -4);
+    assert.ok(swap);
+    assert.equal(swap.evidence, 'buff-transition');
+    const c = { ...context('revenant', 'renegade', orderedEvents, fixture.agents), catalog: revenantCatalog };
+    const recordedActions = eiInstantActions(c).sort((a, b) => a.eventIndex - b.eventIndex);
+    const stance = recordedActions.find(
+      (action) => action.eventIndex === orderedEvents.findIndex((source) => source.skillId === 27890)
+    );
+    assert.ok(stance);
+    assert.equal(swap.rawSkillId, stance.rawSkillId);
+    assert.equal(swap.eiRule, stance.eiRule);
+    assert.equal(swap.metadataAccurate, stance.metadataAccurate);
+    const normalized = reconstructProfessionActions({ ...c, recordedActions });
+    const normalizedSwap = normalized.find((action) => action.canonicalSkillId === -4);
+    assert.ok(normalizedSwap);
+    assert.equal(normalizedSwap.eventIndex, stance.eventIndex);
+    assert.equal(normalizedSwap.expectedDuration, stance.expectedDuration);
+    assert.deepEqual(
+      out.rotation.map((action) => action.skillId),
+      [-4]
+    );
+  }
+});
 
 test('every profession imports incomplete evidence without inventing setup from snapshots, summons or dependent skills', () => {
   for (const profile of ROTATION_PROFILES) {
