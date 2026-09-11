@@ -1718,6 +1718,7 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
 
 /* ─── Specialization / Trait Lines ─── */
 .traits-panel-inline {
+  container: traits-panel / inline-size;
   border-radius: var(--radius);
   overflow: hidden;
   /* Match the 647 px specialization backgrounds without stretching their artwork. */
@@ -1880,6 +1881,24 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
   opacity: 0.25;
   cursor: not-allowed;
   filter: grayscale(0.75);
+}
+
+/* Keep all nine choices visible in narrow panels, with room for three rows while open. */
+@container traits-panel (max-width: 600px) {
+  .spec-content:has(.spec-picker[open]) {
+    min-height: 240px;
+  }
+
+  .spec-picker-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: center;
+    overflow: visible;
+  }
+
+  .spec-picker-option {
+    min-width: 0;
+  }
 }
 
 .spec-selection {
