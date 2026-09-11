@@ -5,6 +5,13 @@ import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js'
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { EngineerConfig, HolosmithState } from '#gw2/professions/engineer/types.js';
 
+// These fields advance only in the resolver; scheduler snapshots cannot restore them.
+export const HOLOSMITH_RESOLVER_STATE_KEYS = Object.freeze([
+  'solarFocusingLensStacks',
+  'solarFocusingLensReadyAt',
+  'solarFocusingLensUntil'
+] as const satisfies readonly (keyof HolosmithState)[]);
+
 // Holosmith owns both its public projection keys and the inactive compatibility values.
 export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
   'heat',
@@ -12,9 +19,7 @@ export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
   'photonForgeActive',
   'forgeExitedAt',
   'overheated',
-  'solarFocusingLensStacks',
-  'solarFocusingLensReadyAt',
-  'solarFocusingLensUntil',
+  ...HOLOSMITH_RESOLVER_STATE_KEYS,
   'kitLockoutUntil'
 ] as const satisfies readonly (keyof HolosmithState)[]);
 

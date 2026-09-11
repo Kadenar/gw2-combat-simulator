@@ -84,12 +84,15 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     castTimeMs: 750,
     cooldown: 15,
     heatGain: 25,
+    // Shockwave always critically strikes and blasts the active combo field.
+    comboFinishers: [{ ownerId: 'engineer', finisherType: 'Blast' }],
     effects: [
       {
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
         name: 'Holographic Shockwave',
+        forceCrit: true,
         actorType: 'player'
       },
       {

@@ -18,7 +18,9 @@ import {
 } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import {
   HOLOSMITH_PUBLIC_END_STATE_KEYS,
-  HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS
+  HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS,
+  HOLOSMITH_RESOLVER_STATE_KEYS,
+  holosmithState
 } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   MECHANIST_PUBLIC_END_STATE_KEYS,
@@ -61,8 +63,17 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> 
 });
 
 /** Projects the family aggregate while preserving the existing public shape. */
-export function projectEngineerEndState({ schedulerState }: EngineerEndStateProjectionOptions): SchedulerRecord {
+export function projectEngineerEndState({
+  schedulerState,
+  resolverState
+}: EngineerEndStateProjectionOptions): SchedulerRecord {
   const state = snapshotEngineerState(schedulerState.profession);
+  // Report consumed charges from the resolver instead of the scheduler's initial values.
+  if (resolverState?.specialization.kind === 'Holosmith') {
+    const resolved = resolverState.specialization.state;
+    for (const key of HOLOSMITH_RESOLVER_STATE_KEYS) state[key] = resolved[key];
+  }
+
   return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }
 
@@ -74,7 +85,12 @@ export function handleEngineerState(context: EngineerResolverContext, event: Eng
   const preserved = {
     traitProcReadyAt: core.traitProcReadyAt || {}
   };
+  const lens =
+    context.profession.specialization.kind === 'Holosmith'
+      ? Object.fromEntries(HOLOSMITH_RESOLVER_STATE_KEYS.map((key) => [key, holosmithState.from(context)[key]]))
+      : {};
   restoreFlatProfessionState(core, specialization, event.state);
 
   Object.assign(core, preserved);
+  Object.assign(specialization, lens);
 }

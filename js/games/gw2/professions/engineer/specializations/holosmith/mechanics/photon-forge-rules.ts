@@ -5,6 +5,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import {
+  decorateHolosmithHeatEvent,
   holosmithEventMetadata,
   holosmithEventStrikeFactor
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
@@ -15,7 +16,6 @@ import {
   handlePhotonForgeOverheatPenalty,
   handlePhotonForgePassiveHeat,
   initializePhotonForgeHeat,
-  observeHolosmithScheduledEvent,
   triggerThermalReleaseValve
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -46,7 +46,7 @@ export const holosmithAdvancedSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'engineer.holosmith-events',
     order: 30,
-    handler: observeHolosmithScheduledEvent
+    handler: decorateHolosmithHeatEvent
   },
   advance: {
     id: 'engineer.photon-forge',

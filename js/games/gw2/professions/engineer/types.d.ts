@@ -191,6 +191,7 @@ export type EngineerSimulationEvent = SimulationEvent & {
 
 export interface EngineerEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<EngineerRuntimeState>;
+  readonly resolverState?: EngineerRuntimeState;
 }
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;

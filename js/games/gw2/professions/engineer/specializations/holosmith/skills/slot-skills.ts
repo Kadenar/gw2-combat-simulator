@@ -121,15 +121,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   [ID.CAUTERIZE]: {
     castTimeMs: 0,
     cooldown: 30,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player'
-      }
-    ],
+    effects: [],
     toolbeltParentName: 'Coolant Blast',
     mechanicSlot: 1
   },

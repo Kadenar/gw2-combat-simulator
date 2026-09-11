@@ -46,6 +46,104 @@ const baseConfig = Object.freeze({
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
+// Defensive self-burning must never enter the outgoing condition pipeline.
+test('Cauterize deals no outgoing damage on a clean target', () => {
+  const result = simulate('Holosmith', ['Cauterize', { type: 'wait', durationMs: 3000 }], {
+    selectedSkills: ['Coolant Blast'],
+    target: { conditions: {} }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.totalDamage, 0);
+});
+
+// Exercise the guaranteed-critical contract below the crit cap and the finisher in a live field.
+test('Holographic Shockwave guarantees a critical hit and blasts a fire field', () => {
+  const result = simulate(
+    'Holosmith',
+    ['Bomb Kit', 'Fire Bomb', 'Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Holographic Shockwave'],
+    { selectedSkills: ['Bomb Kit'], stats: { precision: 1000, ferocity: 0 } }
+  );
+  assert.deepEqual(result.warnings, []);
+  const strike = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Holographic Shockwave'
+  );
+  assert.equal(strike.criticalChance, 1);
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === 'combo' &&
+        event.skillName === 'Holographic Shockwave' &&
+        event.finisherType === 'Blast' &&
+        event.fieldType === 'Fire'
+    )
+  );
+});
+
+// Delayed packets cannot reserve charges ahead of earlier impacts or refill them through heat snapshots.
+test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => {
+  const result = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Corona Burst', 'Light Strike', { type: 'wait', durationMs: 2000 }],
+    { selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS] }
+  );
+  assert.deepEqual(result.warnings, []);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.deepEqual(
+    strikes.map((event) => [event.skillName, Boolean(event.solarFocusingLens)]),
+    [
+      ['Corona Burst', true],
+      ['Light Strike', true],
+      ['Corona Burst', false]
+    ]
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.name === 'Solar Focusing Lens — Burning' && event.type === 'condition')
+      .map((event) => event.at),
+    strikes.slice(0, 2).map((event) => event.at)
+  );
+  assert.equal(result.endState.profession.solarFocusingLensStacks, 0);
+});
+
+// Resolver-created strikes share the same charge budget as ordinary scheduled attacks.
+test('Solar Focusing Lens consumes charges on Laser Disk impacts', () => {
+  const result = simulate('Holosmith', ['Engage Photon Forge', 'Laser Disk', { type: 'wait', durationMs: 2000 }], {
+    selectedSkills: ['Laser Disk'],
+    selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
+  });
+  assert.deepEqual(result.warnings, []);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.ok(strikes.length > 2);
+  assert.ok(strikes.slice(0, 2).every((event) => event.solarFocusingLens));
+  assert.ok(strikes.slice(2).every((event) => !event.solarFocusingLens));
+  assert.equal(result.endState.profession.solarFocusingLensStacks, 0);
+});
+
+// Expired grants cannot enhance hits, while leaving Forge starts a fresh charge window.
+test('Solar Focusing Lens respects expiry and refreshes on Forge exit', () => {
+  const config = { selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS] };
+  const expired = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Light Strike'],
+    config
+  );
+  assert.deepEqual(expired.warnings, []);
+  assert.ok(
+    expired.resolvedEvents.filter((event) => event.type === 'damage').every((event) => !event.solarFocusingLens)
+  );
+  const refreshed = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Light Strike', 'Bright Slash', 'Deactivate Photon Forge', 'Sun Edge'],
+    config
+  );
+  assert.deepEqual(refreshed.warnings, []);
+  assert.ok(
+    refreshed.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Sun Edge')
+      .solarFocusingLens
+  );
+  assert.equal(refreshed.endState.profession.solarFocusingLensStacks, 1);
+});
+
 test('ECSU carries pulse readiness, resets at the threshold, and restarts on a discrete crossing', () => {
   // Split advances must preserve the cadence; returning above the threshold grants an immediate pulse.
   const config = { initialHeat: 101, selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT] };

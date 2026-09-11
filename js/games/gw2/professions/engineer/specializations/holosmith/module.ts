@@ -1,8 +1,11 @@
-import { afterSkillEffects, augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
+import { afterSkillEffects, augmentSkill, onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/catalog/module-data.js';
 import { engineerPhotonForgeSkillHandlers } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
-import { holosmithResolverEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
+import {
+  consumeSolarFocusingLens,
+  holosmithResolverEventHandlers
+} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
 import {
   holosmithAdvancedSchedulerHooks,
   holosmithAfterCast,
@@ -62,6 +65,7 @@ export const holosmithModule = defineNativeModule({
       hooks: holosmithAdvancedSchedulerHooks
     },
     resolution: {
+      reactions: [onResolvingDamage({ id: 'engineer.solar-focusing-lens', handler: consumeSolarFocusingLens })],
       hooks: { eventHandlers: holosmithResolverEventHandlers }
     }
   },

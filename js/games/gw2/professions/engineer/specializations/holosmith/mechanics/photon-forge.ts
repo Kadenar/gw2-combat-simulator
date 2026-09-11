@@ -6,7 +6,6 @@ import {
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
-import { decorateHolosmithHeatEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -25,7 +24,6 @@ import type {
   EngineerCastContext,
   EngineerScheduledTask,
   EngineerSchedulerContext,
-  EngineerSimulationEvent,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
@@ -127,17 +125,21 @@ function triggerInstantEnhancedCapacityMight(
 /** Replaces Solar Focusing Lens charges and opens their profiled activation window. */
 export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
   if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
-  const state = holosmithState.from(context);
-  state.solarFocusingLensStacks = stacks;
-  state.solarFocusingLensReadyAt = at;
-  state.solarFocusingLensUntil =
-    at +
-    balanceProfileValueFromContext(
+  // Grants cross into the resolver at their activation time; only impacts spend charges.
+  context.emit({
+    type: 'engineer.solar-focusing-lens',
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.SOLAR_FOCUSING_LENS,
+    actorType: 'player',
+    stacks,
+    duration: balanceProfileValueFromContext(
       context,
       PROFILE.solarFocusingLens,
       'durationMultiplier',
       HOLOSMITH_HEAT.solarFocusingLensDuration
-    );
+    )
+  });
 }
 
 // Places every tool-belt skill except the Forge toggle on at least the overheat
@@ -540,49 +542,6 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
     at,
     balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
   );
-}
-
-/** Decorates every Holosmith event with heat metadata, then consumes Solar Focusing Lens on eligible strikes. */
-export function observeHolosmithScheduledEvent(
-  context: EngineerSchedulerContext,
-  event: EngineerSimulationEvent
-): void {
-  decorateHolosmithHeatEvent(context, event);
-
-  if (
-    context.config.specialization !== 'Holosmith' ||
-    event.type !== 'damage' ||
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
-  )
-    return;
-  // Consume a live charge only after packet ownership and activation-window checks pass.
-  const state = holosmithState.from(context);
-  if (
-    Number(state.solarFocusingLensStacks || 0) <= 0 ||
-    event.at < Number(state.solarFocusingLensReadyAt || 0) - context.epsilon ||
-    event.at > Number(state.solarFocusingLensUntil || 0) + context.epsilon
-  )
-    return;
-
-  state.solarFocusingLensStacks -= 1;
-  context.replaceEvent(event, { solarFocusingLens: true });
-  const condition = balanceProfileEffectFromContext(context, PROFILE.solarFocusingLens, 'condition');
-  emitSkillCondition(context, {
-    cause: event,
-
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.SOLAR_FOCUSING_LENS,
-    actorType: 'player',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: 'Solar Focusing Lens — Burning',
-    condition: 'Burning',
-    stacks: balanceProfileValue(condition, 'stacks', 1),
-    duration: balanceProfileValue(condition, 'duration', 3)
-  });
 }
 
 /** Routes Photon Forge handler IDs to entry, exit, and skill-heat logic. */

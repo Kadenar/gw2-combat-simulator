@@ -1,9 +1,13 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { queueBuff } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
 import {
   holosmithEventMetadata,
@@ -14,6 +18,50 @@ import {
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import type { EngineerResolverContext } from '#gw2/professions/engineer/types.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+
+/** Replaces Lens charges only when the Forge transition's grant reaches the resolver. */
+function handleSolarFocusingLens(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  const state = holosmithState.from(context);
+  state.solarFocusingLensStacks = Number(event.stacks);
+  state.solarFocusingLensReadyAt = event.at;
+  state.solarFocusingLensUntil = event.at + Number(event.duration);
+}
+
+/** Spends Lens charges in impact order, including strikes materialized by resolver handlers. */
+export function consumeSolarFocusingLens(
+  context: EngineerResolverContext,
+  event: HolosmithResolverEvent
+): { solarFocusingLens: true } | void {
+  if (
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0) ||
+    !hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
+  )
+    return;
+  const state = holosmithState.from(context);
+  if (
+    state.solarFocusingLensStacks <= 0 ||
+    event.at < state.solarFocusingLensReadyAt - EPSILON ||
+    event.at > state.solarFocusingLensUntil + EPSILON
+  )
+    return;
+  state.solarFocusingLensStacks -= 1;
+  const condition = balanceProfileEffectFromContext(context, PROFILE.solarFocusingLens, 'condition');
+  context.queue.enqueue({
+    type: 'condition',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.SOLAR_FOCUSING_LENS,
+    actorType: 'player',
+    skillId: event.skillId,
+    skillName: event.skillName,
+    name: 'Solar Focusing Lens — Burning',
+    condition: 'Burning',
+    stacks: balanceProfileValue(condition, 'stacks', 1),
+    duration: balanceProfileValue(condition, 'duration', 3)
+  });
+  return { solarFocusingLens: true };
+}
 
 /**
  * Materializes Prime Light Beam's ten one-second field pulses above 50 heat,
@@ -286,6 +334,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
 
 /** Routes Holosmith custom resolver events to their heat-aware packet materializers. */
 export const holosmithResolverEventHandlers = Object.freeze({
+  'engineer.solar-focusing-lens': handleSolarFocusingLens,
   'engineer.prime-light-beam-field': handlePrimeLightBeamField,
   'engineer.laser-disk': handleLaserDisk,
   'engineer.launch-wall': handleLaunchWall,
