@@ -28,6 +28,8 @@ const HEAT_STATE_REASONS = new Set<string>([
 ]);
 
 const HOLOSMITH_PACKET_EVENTS = new Set<string>([
+  // Lens grants only update resolver charges; consumed charges produce visible Burning rows.
+  'engineer.solar-focusing-lens',
   'engineer.prime-light-beam-field',
   'engineer.laser-disk',
   'engineer.launch-wall',

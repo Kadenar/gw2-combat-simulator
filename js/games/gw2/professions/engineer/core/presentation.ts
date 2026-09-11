@@ -243,6 +243,8 @@ export function engineerEventLogRow(
   if (
     [
       'engineer.dodge',
+      // Air Blast's conditional Burning application supplies its visible result row.
+      'engineer.air-blast',
       'engineer.lightning-rod-pulse',
       'engineer.conduit-surge',
       'engineer.electric-artillery'
