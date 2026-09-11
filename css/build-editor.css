@@ -1219,9 +1219,9 @@ body[data-profession] #app {
 }
 
 .workspace-build-choices .spec-portrait-frame {
-  width: 80px;
-  height: 104px;
-  flex-basis: 80px;
+  width: min(80px, 20cqw);
+  /* Shift only into spare space before the compact trait columns. */
+  transform: translateX(clamp(0px, calc(50cqw - 190px), 40px));
 }
 
 .workspace-build-choices .spec-heading {
@@ -1238,6 +1238,8 @@ body[data-profession] #app {
 
 .workspace-build-choices .spec-bg {
   background-size: cover;
+  /* Anchor the portrait near the left fifth so narrower rows crop the scenery instead of the subject. */
+  background-position: 20% center;
 }
 
 .workspace-build-choices .selectable-skills-title {
@@ -1881,6 +1883,7 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
 }
 
 .spec-selection {
+  container-type: inline-size;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1906,14 +1909,14 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
 
 /* Frame the portrait in the row artwork without duplicating or clipping the image. */
 .spec-portrait-frame {
-  width: 96px;
-  height: 112px;
-  flex: 0 0 96px;
+  width: min(96px, 20cqw);
+  height: auto;
+  flex: 0 0 auto;
   fill: none;
   filter: drop-shadow(0 1px 2px #000);
   pointer-events: none;
-  /* Center the outline on the background portrait without moving the trait columns. */
-  transform: translateX(40px);
+  /* Shrink with the row and use only spare space for the portrait offset to avoid covering traits. */
+  transform: translateX(clamp(0px, calc(50cqw - 239px), 40px));
 }
 
 /* Equal gaps on both sides keep each minor trait centered between the neighboring major-trait columns. */
