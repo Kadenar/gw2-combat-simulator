@@ -10,7 +10,12 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
     const sources = professionRegistry.flatMap(({ specializationArtwork = [] }) =>
       specializationArtwork.flatMap(({ conceptArt, image }) => [conceptArt, image])
     );
-    sources.push(tutorials.TUTORIAL_GIF_URL, tutorials.ROTATION_TUTORIAL_GIF_URL, tutorials.ANALYSIS_TUTORIAL_GIF_URL);
+    sources.push(
+      tutorials.TUTORIAL_GIF_URL,
+      tutorials.ROTATION_TUTORIAL_GIF_URL,
+      tutorials.ANALYSIS_TUTORIAL_GIF_URL,
+      tutorials.OPTIMIZER_TUTORIAL_GIF_URL
+    );
     sources.push(WARRIOR_WEAPON_STOW.icon);
     for (const stylesheet of ['/css/profession-ui.css', '/css/rotation-palette.css']) {
       const response = await fetch(`${stylesheet}?direct`);
@@ -44,4 +49,33 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
   });
 
   expect(failures).toEqual([]);
+});
+
+// Every walkthrough stays reachable on a phone and only the selected animation loads; reduced motion keeps the steps.
+test('all four tutorials switch, replay and respect reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('[data-tutorial-trigger]').first().click();
+  const dialog = page.locator('.tutorial-dialog');
+  const choices = dialog.locator('[data-tutorial-choice]');
+  await expect(choices).toHaveCount(4);
+  for (const choice of await choices.all()) {
+    await choice.click();
+    await expect(choice).toHaveAttribute('aria-pressed', 'true');
+    const panel = dialog.locator('[data-tutorial-panel]:visible');
+    await expect(panel).toHaveAttribute('data-tutorial-panel', await choice.getAttribute('data-tutorial-choice'));
+    await expect(dialog.locator('.tutorial-animation[src]')).toHaveCount(1);
+    await expect(panel.locator('.tutorial-step-list')).toBeVisible();
+    const bounds = await choice.boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  }
+
+  await dialog.locator('[data-tutorial-panel]:visible [data-tutorial-replay]').click();
+  await expect(dialog.locator('.tutorial-animation[src]')).toHaveCount(1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(dialog.locator('.tutorial-animation[src]')).toHaveCount(0);
+  await expect(dialog.locator('[data-tutorial-panel]:visible .tutorial-reduced-motion')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
 });

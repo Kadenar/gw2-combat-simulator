@@ -39,6 +39,13 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 
 ## Analysis tools
 
+- Regenerate the four in-app GIF walkthroughs with `node scripts/analysis/capture-tutorials.mjs` while
+  `npm run dev -- --host 127.0.0.1 --port 4173` is running. Requires Chrome and Python with Pillow
+  (`python -m pip install Pillow`). Set `TUTORIAL_URL` to use another local server or `PYTHON` to use another Python
+  executable. Captures use real UI interactions and validate template loading, optimizer completion and GIF decoding.
+  Numbered PNG frames and their timing manifest stay in `.scratch/tutorial-capture/` for visual review; the four GIFs
+  replace `images/tutorials/` assets.
+
 - `npm run benchmarks:compare` simulates every rotation-backed manifest preset and reports DPS values more than 1% away
   from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update every rounded
   manifest value.

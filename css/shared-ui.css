@@ -413,6 +413,8 @@ body[data-profession] #app > header .community-actions {
 /* Presents the available walkthroughs as one compact choice without loading both GIFs. */
 .tutorial-picker {
   display: inline-flex;
+  /* Let all four walkthrough choices wrap on narrow screens. */
+  flex-wrap: wrap;
   margin: 0 0 18px;
   padding: 3px;
   gap: 3px;

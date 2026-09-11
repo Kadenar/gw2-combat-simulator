@@ -14,6 +14,11 @@ export const ROTATION_TUTORIAL_GIF_URL = new URL(
 export const ANALYSIS_TUTORIAL_GIF_URL = new URL('@images/tutorials/gw2-combat-simulator-analysis.gif', import.meta.url)
   .href;
 
+export const OPTIMIZER_TUTORIAL_GIF_URL = new URL(
+  '@images/tutorials/gw2-combat-simulator-gear-optimizer.gif',
+  import.meta.url
+).href;
+
 /** Keeps the looping GIF unloaded while the tutorial is closed or motion is reduced. */
 export function setTutorialAnimationState(image: HTMLImageElement, shouldPlay: boolean): void {
   const source = image.dataset.tutorialSrc;
@@ -85,7 +90,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
   dialog.id = TUTORIAL_DIALOG_ID;
   dialog.className = 'tutorial-dialog';
   dialog.setAttribute('aria-labelledby', 'simulator-tutorial-title');
-  dialog.setAttribute('aria-describedby', 'simulator-tutorial-description');
+  // Each walkthrough includes written steps so reduced-motion users can follow the same workflow.
   dialog.innerHTML = `
     <div class="tutorial-dialog-shell">
       <div class="tutorial-dialog-header">
@@ -97,8 +102,9 @@ function tutorialDialog(root: Document): HTMLDialogElement {
       </div>
       <div class="tutorial-picker" role="group" aria-label="Choose a tutorial">
         <button type="button" class="tutorial-picker-button" data-tutorial-choice="quick-start" aria-pressed="true">Quick start</button>
-        <button type="button" class="tutorial-picker-button" data-tutorial-choice="rotation-builder" aria-pressed="false">Rotation builder</button>
+        <button type="button" class="tutorial-picker-button" data-tutorial-choice="rotation-builder" aria-pressed="false">Gear, traits &amp; rotation builder</button>
         <button type="button" class="tutorial-picker-button" data-tutorial-choice="analysis" aria-pressed="false">Analysis</button>
+        <button type="button" class="tutorial-picker-button" data-tutorial-choice="gear-optimizer" aria-pressed="false">Gear optimizer &amp; relic comparison</button>
       </div>
       <div class="tutorial-dialog-body" data-tutorial-panel="quick-start">
         <div class="tutorial-animation-frame">
@@ -111,8 +117,8 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
             <li><strong>Choose a profession</strong><span>Open the simulator for the profession you want to model.</span></li>
-            <li><strong>Load a template</strong><span>Select a saved build and its matching benchmark rotation.</span></li>
-            <li><strong>Review the rotation</strong><span>Add, remove, or inspect casts in the generated timeline.</span></li>
+            <li><strong>Load a template</strong><span>In Workspace, choose + New, then Browse templates. Select a template to load its gear, traits and matching rotation into a build tab.</span></li>
+            <li><strong>Review the build and rotation</strong><span>Inspect skills, traits and gear, then scroll to Rotation Builder to review casts and live DPS.</span></li>
             <li><strong>Read the analysis</strong><span>Review DPS, damage sources, conditions, and modifier contributions.</span></li>
           </ol>
           <div class="tutorial-dialog-actions">
@@ -131,10 +137,11 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         </div>
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
+            <li><strong>Edit gear and traits</strong><span>Click a gear slot to choose its stats. Select major traits within each specialization and use the skill icons above Traits to change equipped skills.</span></li>
             <li><strong>Queue skills manually</strong><span>Click available skills in the palette to add them to the timeline in order.</span></li>
             <li><strong>Review and refine</strong><span>Inspect the timeline, then use Undo, Redo, Clear, or the insertion cursor to make changes.</span></li>
             <li><strong>Save the rotation</strong><span>Use Save Rotation to download the current sequence as a portable JSON file.</span></li>
-            <li><strong>Load a rotation</strong><span>Restore a saved JSON rotation, or import an EVTC or EVTC ZIP combat log.</span></li>
+            <li><strong>Load a rotation</strong><span>Use Load Rotation to restore saved JSON, import an EVTC combat log, or enter a dps.report link. Review combat-log imports before applying them.</span></li>
           </ol>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
@@ -153,14 +160,39 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
             <li><strong>Open combat analysis</strong><span>Load or build a rotation, then switch from Workspace to Analysis.</span></li>
+            <li><strong>Read the summary</strong><span>Check duration, idle time, player damage and baseline DPS.</span></li>
             <li><strong>Trace each damage source</strong><span>Compare strike, condition, total damage, DPS, casts, hits, and average damage per cast.</span></li>
-            <li><strong>Explore the timeline</strong><span>Hover the DPS and effects charts, then toggle the boons, conditions, and buffs you want to compare.</span></li>
+            <li><strong>Inspect hits and phases</strong><span>Click a damage source to inspect individual hits. Hover the DPS chart and use Chart range to focus on a target-health phase or the full fight.</span></li>
+            <li><strong>Explore effects</strong><span>Toggle individual boons, conditions and buffs, or use All / None for a group. Hover Effects Over Time to inspect stacks along the rotation.</span></li>
+            <li><strong>Review modifier contributions</strong><span>Compare estimated DPS gains from individual modifiers. These estimates disable one modifier at a time and can be misleading if that breaks the rotation.</span></li>
           </ol>
           <aside class="tutorial-secondary-callout">
             <span>Optional</span>
             <strong>Patch Preview</strong>
             <p>When preview data is available, switch Game data versions to compare total and per-skill DPS changes for the same rotation.</p>
           </aside>
+          <div class="tutorial-dialog-actions">
+            <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
+            <button type="button" class="btn btn-clear" data-dialog-close>Close</button>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-dialog-body" data-tutorial-panel="gear-optimizer" hidden>
+        <div class="tutorial-animation-frame">
+          <img class="tutorial-animation" data-tutorial-src="${OPTIMIZER_TUTORIAL_GIF_URL}" alt="" width="1280" height="900" decoding="async" />
+          <div class="tutorial-reduced-motion" role="note">
+            <strong>Animation is paused.</strong>
+            <span>Your reduced-motion preference is enabled. Use the written steps beside this panel.</span>
+          </div>
+        </div>
+        <div class="tutorial-guide-copy">
+          <ol class="tutorial-step-list">
+            <li><strong>Open Gear Optimizer</strong><span>Load a build and rotation first. The optimizer evaluates equipment against that rotation.</span></li>
+            <li><strong>Choose candidates</strong><span>Add or remove stat prefixes, runes, relics, sigils, consumables and infusion stats. Start with a small selection; add optional toughness or duration requirements as needed.</span></li>
+            <li><strong>Run and review</strong><span>Run optimizer, compare the ranked results with your equipped build, and click a row to preview its gear and attributes. Apply equips the selected result.</span></li>
+            <li><strong>Compare relics over time</strong><span>Scroll to Relic break-even comparison. Choose a different relic, set starting stacks if comparing Thorns, and run the comparison against your equipped relic.</span></li>
+            <li><strong>Read the chart</strong><span>Hover to compare DPS across fight durations and inspect any break-even point. Results depend on the current build and rotation.</span></li>
+          </ol>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
             <button type="button" class="btn btn-clear" data-dialog-close>Close</button>
