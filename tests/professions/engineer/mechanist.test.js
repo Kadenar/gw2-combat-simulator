@@ -78,36 +78,43 @@ test('Superconducting distributes its coefficient and conditions over one Lightn
   assert.ok(!expired.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Lightning'));
 });
 
-test('Superconducting passive follows equipment, recharge, and J-Drive', () => {
-  // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
-  const runtime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
-  const events = [{ type: 'action', at: 1, skillId: ID.SUPERCONDUCTING_SIGNET, rechargeReadyAt: 31 }];
-  const timeline = createGw2TimelineIndex({ events });
-  for (const [selected, traits, time, expected] of [
-    [false, [], 0, 1],
-    [true, [], 0, 1.1],
-    [true, [], 2, 1],
-    [true, [], 31, 1.1],
-    [true, [TRAIT.MECH_CORE_J_DRIVE], 0, 1.12],
-    [true, [TRAIT.MECH_CORE_J_DRIVE], 2, 1.12]
-  ]) {
-    assert.equal(
-      runtime.modifyConditionDamage(
-        {
-          config: {
-            specialization: 'Mechanist',
-            selectedSkills: selected ? ['Superconducting Signet'] : [],
-            selectedTraitIds: traits
+for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
+  ['Force Signet', ID.FORCE_SIGNET, 'modifyStrikeDamage', 0.15, 0.18],
+  ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
+]) {
+  test(`${signet} passive follows equipment, recharge, and J-Drive`, () => {
+    // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
+    const runtime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
+    const events = [{ type: 'action', at: 1, skillId, rechargeReadyAt: 31 }];
+    const timeline = createGw2TimelineIndex({ events });
+    for (const [selected, traits, time, expected] of [
+      [false, [], 0, 1],
+      [false, [TRAIT.MECH_CORE_J_DRIVE], 0, 1],
+      [true, [], 0, 1 + baseBonus],
+      [true, [], 2, 1],
+      [true, [], 31, 1 + baseBonus],
+      [true, [TRAIT.MECH_CORE_J_DRIVE], 0, 1 + jDriveBonus],
+      [true, [TRAIT.MECH_CORE_J_DRIVE], 2, 1 + jDriveBonus],
+      [true, [TRAIT.MECH_CORE_J_DRIVE], 31, 1 + jDriveBonus]
+    ]) {
+      assert.equal(
+        runtime[modifier](
+          {
+            config: {
+              specialization: 'Mechanist',
+              selectedSkills: selected ? [signet] : [],
+              selectedTraitIds: traits
+            },
+            timeline,
+            time
           },
-          timeline,
-          time
-        },
-        1
-      ),
-      expected
-    );
-  }
-});
+          1
+        ),
+        expected
+      );
+    }
+  });
+}
 
 test('Overclock reduces other signet recharges only while its passive is available', () => {
   // Its own cooldown stays at 90 seconds; J-Drive retains the stronger passive during recharge.

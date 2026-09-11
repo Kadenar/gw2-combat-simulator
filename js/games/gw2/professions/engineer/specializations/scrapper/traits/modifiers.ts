@@ -10,6 +10,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -131,7 +132,7 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // Applied Force (GM trait): each might stack (capped at 25) adds 30 flat power at cast time.
 function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
   if (!hasTrait(context, TRAIT.APPLIED_FORCE)) return attributes;
-  return {
+  const modified = {
     ...attributes,
     power:
       Number(attributes.power || 0) +
@@ -142,6 +143,9 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Sched
       ) *
         balanceProfileValueFromContext(context, PROFILE.appliedForce, 'attributePerStack', 30)
   };
+  // Core converts Power before Applied Force runs, so refresh Sharpshooter with the final Power.
+  applyEngineerSharpshooterConditionDamage(context, modified);
+  return modified;
 }
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.

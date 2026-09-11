@@ -88,7 +88,10 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
         ? balanceProfileValueFromContext(context, PROFILE.forceSignet, 'activeDamageIncrease', parameters.jDriveBonus)
         : balanceProfileValueFromContext(context, PROFILE.forceSignet, 'damageIncrease', parameters.baseBonus),
-    when: (context) => selectedSignet(context, 'Force Signet')
+    when: (context) =>
+      selectedSignet(context, 'Force Signet') &&
+      (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
+        !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
   },
   {
     id: 'engineer.superconducting-signet',

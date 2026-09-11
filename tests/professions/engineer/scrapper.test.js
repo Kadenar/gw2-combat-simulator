@@ -126,6 +126,27 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   );
 });
 
+test('Sharpshooter derives bleeding damage from Power including Applied Force', () => {
+  // Sharpshooter must use final Power after both ordinary Might and Applied Force bonuses.
+  for (const might of [0, 10, 25]) {
+    for (const appliedForce of [false, true]) {
+      const result = simulate('Scrapper', ['Puncturing Jab', { type: 'wait', durationMs: 1000 }], {
+        selectedTraitIds: [TRAIT.SHARPSHOOTER, ...(appliedForce ? [TRAIT.APPLIED_FORCE] : [])],
+        boons: { might },
+        target: { conditions: {} }
+      });
+      const bleed = result.resolvedEvents.find(
+        (event) => event.type === 'condition' && event.skillName === 'Puncturing Jab' && event.condition === 'Bleeding'
+      );
+      const power = baseConfig.stats.power + might * (appliedForce ? 60 : 30);
+
+      assert.deepEqual(result.warnings, []);
+      assert.ok(bleed);
+      assert.ok(Math.abs(bleed.damage / bleed.damagingStackSeconds - (22 + 0.06 * power * (2 / 3))) < 1e-12);
+    }
+  }
+});
+
 test('Kinetic Accelerators emits party quickness and might from successful combos', () => {
   const config = {
     selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
