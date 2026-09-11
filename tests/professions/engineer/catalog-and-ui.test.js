@@ -1,7 +1,8 @@
+import { readFile } from 'node:fs/promises';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {
@@ -138,27 +139,27 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
 
 // Runtime cadence and calibration values cannot leak into the editor or be overridden through saved previews.
 test('Mechanist attack timing and reference inputs stay outside balance authoring', () => {
-  const id = MECHANIST_BALANCE_PROFILE_IDS.attackTiming;
-  const profile = engineerCatalog.balanceProfilesById.get(id);
+  const id = 'engineer.mechanist.attack-timing';
+  assert.equal(engineerCatalog.balanceProfilesById.has(id), false);
   const metadata = authoringEngineerProfession.patchAuthoring.modules.find((module) => module.id === 'Mechanist');
   assert.equal(
     [...metadata.balanceProfiles, ...metadata.skillVariants].some((entry) => entry.id === id),
     false
   );
   for (const field of ['armGap', 'cycleGap', 'recoverySeconds', 'referencePower', 'referenceTargetArmor']) {
-    assert.equal(typeof profile[field], 'number');
-    assert.throws(
-      () => authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }),
-      new RegExp(`unsupported patch field ${field}`)
+    assert.throws(() =>
+      authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } })
     );
     assert.equal(JSON.stringify(metadata).includes(`"${field}":`), false);
   }
 
-  for (const field of ['minimumStacks', 'threshold', 'durationMultiplier', 'basePower', 'weaponStrength']) {
-    assert.throws(
-      () => authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }),
-      new RegExp(`does not expose ${field}`)
+  for (const field of ['firstHitDelay', 'pulseInterval', 'animationDuration']) {
+    assert.throws(() =>
+      authoringEngineerProfession.validatePatch({
+        balanceProfiles: { [ID.OVERCLOCK_SIGNET]: { fields: { [field]: 1 } } }
+      })
     );
+    assert.equal(Object.hasOwn(engineerCatalog.balanceProfilesById.get(ID.OVERCLOCK_SIGNET), field), false);
   }
 });
 
@@ -1141,4 +1142,14 @@ test('tool-belt skills derive from selected slot skills', () => {
   });
 
   assert.match(denied.warnings[0], /Grenade Kit is not equipped/);
+});
+
+test('Engineer is a loadable native application', async () => {
+  assert.equal((await loadProfession('engineer')).id, 'engineer');
+  assert.equal((await loadProfessionAppAdapter('engineer')).profession.id, 'engineer');
+  const html = await readFile(new URL('../../../dist/site/engineer.html', import.meta.url), 'utf8');
+
+  assert.match(html, /data-profession="engineer"/);
+  // The built document identifies the profession before the shared header mounts in the browser.
+  assert.match(html, /<title>GW2 Combat Simulator — Engineer<\/title>/);
 });

@@ -20,8 +20,10 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
+import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -66,10 +68,7 @@ const MECH_WEAPON_PROFILE_BY_SKILL_ID: ReadonlyMap<SkillId, string> = new Map<Sk
 ]);
 
 /** Resolves the mech-native weapon profile and its damage-per-coefficient baseline. */
-function mechWeaponScaling(
-  context: EngineerSchedulerContext | EngineerCastContext,
-  skillId: SkillId | null | undefined
-): Readonly<{
+function mechWeaponScaling(skillId: SkillId | null | undefined): Readonly<{
   damagePerCoefficient: number;
   profileId: string;
 }> {
@@ -78,30 +77,19 @@ function mechWeaponScaling(
   const profileId = (skillId == null ? null : MECH_WEAPON_PROFILE_BY_SKILL_ID.get(skillId)) || MECH_TYPE_2_PROFILE_ID;
   const midpoint = weaponStrengthMidpoint(weaponStrengthProfile(profileId));
   return {
-    damagePerCoefficient:
-      (midpoint *
-        balanceProfileValueFromContext(context, PROFILE.attackTiming, 'referencePower', MECH_REFERENCE_POWER)) /
-      balanceProfileValueFromContext(context, PROFILE.attackTiming, 'referenceTargetArmor', STANDARD_TARGET_ARMOR),
+    damagePerCoefficient: (midpoint * MECH_REFERENCE_POWER) / STANDARD_TARGET_ARMOR,
     profileId
   };
 }
 
 /** Native attacks and replay decoration share scaling fields without changing packet attribution or activation. */
-function mechDamageMetadata(
-  context: EngineerSchedulerContext | EngineerCastContext,
-  skillId: SkillId | null | undefined
-) {
-  const scaling = mechWeaponScaling(context, skillId);
+function mechDamageMetadata(skillId: SkillId | null | undefined) {
+  const scaling = mechWeaponScaling(skillId);
   return {
     independentSummonStrike: true,
     summonInheritsAttributes: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: balanceProfileValueFromContext(
-      context,
-      PROFILE.attackTiming,
-      'referencePower',
-      MECH_REFERENCE_POWER
-    ),
+    summonBasePower: MECH_REFERENCE_POWER,
     summonDamagePerCoefficient: scaling.damagePerCoefficient,
     weaponStrengthProfileId: scaling.profileId
   };
@@ -122,11 +110,25 @@ interface MechStrikeOptions {
   readonly basicAttack?: boolean;
 }
 
-/** Applies Shift Signet's quickness inheritance to the mech's autonomous attack rate. */
-function mechAttackRate(context: EngineerSchedulerContext): number {
-  return context.config.boons?.quickness && selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet')
-    ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'quicknessCastMultiplier', 1.5)
-    : 1;
+/** J-Drive keeps Shift's boon copying available while the signet recharges. */
+function shiftSignetPassive(context: EngineerSchedulerContext, at: number): boolean {
+  return (
+    selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet') &&
+    (hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE) ||
+      Number(context.state.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
+  );
+}
+
+/** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
+export function engineerMechHasQuickness(context: EngineerSchedulerContext, at: number): boolean {
+  return (
+    gw2BuffActiveForAudience(context, 'quickness', at, 'summon') ||
+    (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
+  );
+}
+
+function mechAttackRate(context: EngineerSchedulerContext, at: number): number {
+  return engineerMechHasQuickness(context, at) ? GW2_QUICKNESS_ACTION_RATE : 1;
 }
 
 /** Emits a summon-owned strike with the metadata required for mech attribute and modifier handling. */
@@ -149,7 +151,7 @@ function emitMechStrike(
     hitIndex,
     totalHits,
     skillWeapon: 'Unequipped',
-    ...mechDamageMetadata(context, skillId),
+    ...mechDamageMetadata(skillId),
     metadata: { engineerMech: true },
     mechBasicAttack: basicAttack
   });
@@ -157,7 +159,35 @@ function emitMechStrike(
 
 /** Annotates mech events, including raw EVTC packets, with summon scaling and ownership metadata. */
 export function observeEngineerMechEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
-  if (context.config.specialization !== 'Mechanist' || event.actorType !== 'summon') return;
+  if (context.config.specialization !== 'Mechanist') return;
+  // Copy applications, not live player state: already-copied boons survive Shift going on cooldown.
+  if (
+    event.type === 'buff' &&
+    isStandardBoon(event.kind) &&
+    event.resolvedAudience?.includesSelf &&
+    mechanistState.from(context).mech.active &&
+    shiftSignetPassive(context, event.at)
+  ) {
+    emitSkillBuff(context, {
+      cause: event,
+      at: event.at,
+      source: 'engineer',
+      sourceId: ID.SHIFT_SIGNET,
+      actorType: 'player',
+      name: `Shift Signet — ${event.kind}`,
+      kind: String(event.kind),
+      stacks: Number(event.stacks || 1),
+      duration: Number(event.duration || 0),
+      audience: {
+        recipients: 'summons',
+        affectsSelf: false,
+        maximumRecipients: 1,
+        eligibleCompanionIds: ['engineer.mech']
+      }
+    });
+  }
+
+  if (event.actorType !== 'summon') return;
   // Infer ownership when replay packets lack the explicit engineerMech marker.
   const skill = context.catalog?.skillsById?.get(event.skillId ?? event.sourceId);
   const engineerMech =
@@ -176,7 +206,7 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
     const basicAttack =
       event.mechBasicAttack === true || (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId));
     Object.assign(updates, {
-      ...mechDamageMetadata(context, event.skillId ?? event.sourceId),
+      ...mechDamageMetadata(event.skillId ?? event.sourceId),
       mechBasicAttack: basicAttack
     });
   }
@@ -229,7 +259,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
-    ...mechDamageMetadata(context, ID.ROCKET_PUNCH_MECH),
+    ...mechDamageMetadata(ID.ROCKET_PUNCH_MECH),
     metadata: { engineerMech: true },
     explosion: true,
     activationId,
@@ -276,11 +306,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     // The command cast already reserves its measured animation on the mech lane;
     // only its recovery extends the pause before the basic attack chain resumes.
     const hasCommandAnimation = Number(skill.castTimeMs || 0) > 0;
-    const busyUntil =
-      at +
-      (hasCommandAnimation
-        ? balanceProfileValueFromContext(context, PROFILE.attackTiming, 'recoverySeconds', 0.35)
-        : 0);
+    const busyUntil = at + (hasCommandAnimation ? MECHANIST_ATTACK_TIMING.commandRecovery : 0);
     state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), busyUntil);
   }
 
@@ -317,7 +343,7 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
 export function initializeEngineerMech(context: EngineerSchedulerContext): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
-  scheduleMechAttack(context, balanceProfileValueFromContext(context, PROFILE.attackTiming, 'initialDelay', 1), {
+  scheduleMechAttack(context, MECHANIST_ATTACK_TIMING.initialDelay, {
     phase: 0
   });
 }
@@ -341,7 +367,7 @@ export function handleEngineerMechAttack(
     return;
   }
 
-  const rate = mechAttackRate(context);
+  const rate = mechAttackRate(context, task.at);
   const phase = Number(task.payload?.phase || 0);
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.
@@ -360,20 +386,7 @@ export function handleEngineerMechAttack(
     scheduleMechAttack(
       context,
       task.at +
-        (firstArm
-          ? balanceProfileValueFromContext(
-              context,
-              PROFILE.attackTiming,
-              'armGap',
-              MECHANIST_ATTACK_TIMING.jadeCannonArmGap
-            )
-          : balanceProfileValueFromContext(
-              context,
-              PROFILE.attackTiming,
-              'cycleGap',
-              MECHANIST_ATTACK_TIMING.jadeCannonCycleGap
-            )) /
-          rate,
+        (firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap) / rate,
       { phase: firstArm ? 1 : 0 }
     );
     return;
@@ -412,14 +425,19 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
   const state = mechanistState.from(context);
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
-  const interval = balanceProfileValueFromContext(context, PROFILE.overclock, 'pulseInterval', 0.65);
+  const rate = mechAttackRate(context, at);
+  const interval = MECHANIST_ATTACK_TIMING.jadeBusterPulseInterval / rate;
+  const firstHit = MECHANIST_ATTACK_TIMING.jadeBusterFirstHitDelay / rate;
   const hits = balanceProfileValueFromContext(context, PROFILE.overclock, 'packetCount', 5);
   const strike = balanceProfileEffectFromContext(context, PROFILE.overclock, 'strike');
   const condition = balanceProfileEffectFromContext(context, PROFILE.overclock, 'condition');
   // Block the basic attack loop for the full cannon burst so hits don't overlap.
-  state.mech.busyUntil = Math.max(Number(state.mech.busyUntil || 0), at + interval * hits);
+  state.mech.busyUntil = Math.max(
+    Number(state.mech.busyUntil || 0),
+    at + MECHANIST_ATTACK_TIMING.jadeBusterAnimationDuration / rate
+  );
   for (let hit = 1; hit <= hits; hit += 1) {
-    const impactAt = at + interval * hit;
+    const impactAt = at + firstHit + interval * (hit - 1);
     emitMechStrike(context, {
       at: impactAt,
       coefficient: balanceProfileValue(strike, 'coefficient', 0.95),

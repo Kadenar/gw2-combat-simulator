@@ -88,6 +88,7 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
   const baseCastMs = baseCastDurationMs(skill);
   if (!(baseCastMs > 0) || skill.unaffectedByQuickness) return effect;
   const adjustedCastMs = Math.max(0, Number(context.fullEnd - context.start)) * 1000;
+  const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
   // Return a copy because skill metadata is shared by every simulation run.
   return {
     ...effect,
@@ -95,7 +96,13 @@ function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, eff
       ? {
           ticks: effect.ticks.map((tick) => ({
             ...tick,
-            atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
+            // Persistent fields scale their launch delay, then keep real-time pulse spacing.
+            atMs:
+              effect.intervalTimingScale === 'fixed'
+                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) +
+                  Number(tick.atMs) -
+                  firstTickAtMs
+                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
           }))
         }
       : {}),

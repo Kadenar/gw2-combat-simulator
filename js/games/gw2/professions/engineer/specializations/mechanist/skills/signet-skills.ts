@@ -13,7 +13,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     effects: []
   },
   [ID.OVERCLOCK_SIGNET]: {
-    // Custom: Resets mech command cooldowns and schedules Overclock behavior; see `mechanist/mechanics/mech.ts`.
+    // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
     handlerId: 'engineer.overclock-signet',
     castTimeMs: 0,
     cooldown: 90,
@@ -25,35 +25,60 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     effects: []
   },
   [ID.SUPERCONDUCTING_SIGNET]: {
-    castTimeMs: 750,
+    quicknessCastTimeMs: 880,
+    interruptCommitMs: 560,
     cooldown: 30,
     effects: [
       {
         type: 'strike',
-        ticks: [80, 160, 280, 360, 440, 520].map((atMs) => ({ atMs, coefficient: 14.399999999999999 / 6 })),
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 560 + index * 1000, coefficient: 2.4 / 6 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        intervalTimingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        comboFields: [{ ownerId: 'engineer', fieldType: 'Lightning', duration: 5, startAnchor: 'event' }],
         name: 'Superconducting Signet',
         actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
-        stacks: 6,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        intervalTimingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Confusion',
-        stacks: 6,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        intervalTimingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        stacks: 1,
         duration: 3,
         actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Burning',
-        stacks: 6,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        intervalTimingScale: 'fixed',
+        persistsAfterInterrupt: true,
+        stacks: 1,
         duration: 3,
         actorType: 'player'
       }

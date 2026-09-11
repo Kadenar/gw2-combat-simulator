@@ -70,7 +70,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 2.2 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         name: 'Jade Mortar',
         actorType: 'summon',
         persistsAfterInterrupt: true
@@ -79,7 +79,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'condition',
         ticks: [{ atMs: 600, condition: 'Burning', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         actorType: 'summon',
         persistsAfterInterrupt: true
       },
@@ -87,7 +87,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'control',
         atMs: 600,
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         persistsAfterInterrupt: true,
         actorType: 'summon',
         controlKind: 'daze',
@@ -138,7 +138,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
           { atMs: 1480, coefficient: 0.176 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         name: 'Spark Revolver',
         actorType: 'summon',
         persistsAfterInterrupt: true
@@ -147,13 +147,15 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     mechanicSlot: 1
   }),
   [ID.SKY_CIRCUS]: mechCommand({
-    castTimeMs: 1500,
+    // Four logged Quickness animations last ~2120 ms; landing damage occurs at ~1320 ms.
+    quicknessCastTimeMs: 2120,
     cooldown: 30,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 3,
+        // One missile per nearby foe; "targets per missile: 3" is its cleave cap.
+        coefficient: 0.6,
+        hits: 1,
         atMs: 0,
         name: 'Missile Damage',
         actorType: 'summon'
@@ -162,6 +164,9 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'strike',
         coefficient: 1.2,
         hits: 1,
+        atMs: 1320,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: 'Landing Damage',
         actorType: 'summon'
       },
@@ -175,7 +180,10 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       {
         type: 'control',
         actorType: 'summon',
-        controlKind: 'knockdown',
+        atMs: 1320,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        controlKind: 'knockback',
         duration: 232
       }
     ],
@@ -251,7 +259,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'strike',
         ticks: [{ atMs: 680, coefficient: 2.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         name: 'Core Reactor Shot',
         actorType: 'summon',
         persistsAfterInterrupt: true
@@ -260,7 +268,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         type: 'control',
         atMs: 680,
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        timingScale: 'cast',
         persistsAfterInterrupt: true,
         actorType: 'summon',
         controlKind: 'launch',

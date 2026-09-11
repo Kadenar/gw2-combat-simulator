@@ -99,12 +99,13 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.JADE_BUSTER_CANNON]: {
     simulatorExcluded: true,
-    castTimeMs: 3250,
+    // Replay metadata mirrors the measured Quickness packet schedule used by Overclock's handler.
+    quicknessCastTimeMs: 3360,
     cooldown: 1,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 440 + index * 440, coefficient: 4.75 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 880 + index * 360, coefficient: 4.75 / 5 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Jade Buster Cannon',
@@ -113,7 +114,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 440 + index * 440,
+          atMs: 880 + index * 360,
           condition: 'Burning',
           stacks: 1,
           duration: 6

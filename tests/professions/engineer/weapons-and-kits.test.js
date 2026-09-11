@@ -1283,3 +1283,122 @@ test('focused Devastator completes its full cast and triggers six hits', () => {
   assert.ok([...stochasticStrengths][0] >= 656);
   assert.ok([...stochasticStrengths][0] < 725);
 });
+
+// Resolve the kit and tool-belt catalog entries exercised below.
+function mechanic(name) {
+  return engineerCatalog.skillsByName.get(name);
+}
+
+test('Mine Field materializes five mines plus detonation with cripple', () => {
+  const mineField = mechanic('Mine Field');
+  const detonation = mechanic('Detonate Mine Field');
+
+  assert.equal(mineField.cooldown, 17);
+  assert.equal(mineField.effects[0].coefficient, 3.85);
+  assert.equal(mineField.effects[0].hits, 5);
+  assert.equal(detonation.effects[0].coefficient, 0.77);
+  assert.equal(detonation.effects[0].hits, 1);
+
+  const result = simulate('Core', ['Mine Field', 'Detonate Mine Field']);
+
+  assert.equal(result.warnings.length, 0);
+  const mines = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Damage per Mine');
+
+  assert.equal(mines.length, 6);
+  assert.ok(mines.every((event) => event.coefficient === 0.77));
+
+  const cripple = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Crippled');
+
+  assert.equal(cripple.length, 6);
+  assert.ok(cripple.every((event) => event.duration === 2.5));
+
+  // A precast field waits for combat; fields cast after the marker still trigger at cast completion.
+  const precast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start']);
+  const active = simulate('Core', ['__combat_start', 'Mine Field']);
+  const mineTimes = (simulation) =>
+    simulation.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.name === 'Damage per Mine')
+      .map((event) => event.at);
+
+  assert.deepEqual(mineTimes(precast), Array(5).fill(2.38));
+  assert.deepEqual(mineTimes(active), Array(5).fill(1.38));
+
+  const staticPrecast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start'], {
+    selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
+  });
+  const staticActive = simulate('Core', ['__combat_start', 'Mine Field'], {
+    selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
+  });
+  const discharges = (simulation) =>
+    simulation.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Static Discharge');
+
+  assert.equal(discharges(staticPrecast).length, 1);
+  assert.equal(discharges(staticActive).length, 2);
+  assert.ok(discharges(staticActive).some((event) => event.parentSkillName === 'Detonate Mine Field'));
+});
+
+test('power Scrapper toolbelt skills use their per-hit and control facts', () => {
+  const orbitalStrike = mechanic('Orbital Strike');
+
+  assert.equal(orbitalStrike.cooldown, 40);
+  assert.equal(orbitalStrike.quicknessCastTimeMs, 880);
+  assert.equal(strikeEffectCoefficient(orbitalStrike.effects[0]), 1.33);
+  assert.equal(effectFirstAtMs(orbitalStrike.effects[0]), 1720);
+  assert.equal(orbitalStrike.effects[0].timingAnchor, 'castEnd');
+  assert.equal(orbitalStrike.comboFinishers[0].finisherType, 'Blast');
+
+  const orbital = simulate('Core', ['Orbital Strike', { type: 'wait', durationMs: 3000 }], {
+    boons: { quickness: true },
+    selectedSkills: ['A.E.D.', 'Grenade Kit', 'Throw Mine', 'Bomb Kit', 'Elite Mortar Kit']
+  });
+  const orbitalCast = orbital.steps.find((step) => step.skill === 'Orbital Strike');
+  const orbitalHit = orbital.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Orbital Strike');
+
+  assert.equal(orbitalCast.end - orbitalCast.start, 880);
+  assert.equal(orbitalHit.at * 1000 - orbitalCast.end, 1720);
+
+  const grenadeBarrage = mechanic('Grenade Barrage');
+
+  assert.equal(grenadeBarrage.cooldown, 25);
+  assert.equal(strikeEffectCoefficient(grenadeBarrage.effects[0]), 3.6);
+  assert.equal(strikeEffectTicks(grenadeBarrage.effects[0]).length, 6);
+  assert.equal(grenadeBarrage.comboFinishers, undefined);
+
+  const staticShock = mechanic('Static Shock');
+
+  assert.equal(staticShock.cooldown, 20);
+  assert.equal(strikeEffectCoefficient(staticShock.effects[0]), 1);
+  assert.equal(staticShock.effects[1].controlKind, 'daze');
+
+  const result = simulate('Core', ['Grenade Barrage']);
+  const grenades = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Grenade Barrage');
+
+  assert.equal(grenades.length, 6);
+  assert.ok(grenades.every((event) => event.coefficient === 0.6));
+});
+
+test('Poison Gas Shell pulses its five-second poison field', () => {
+  const poisonGasShell = mechanic('Poison Gas Shell');
+
+  assert.equal(poisonGasShell.comboFields[0].fieldType, 'Poison');
+  assert.equal(poisonGasShell.comboFields[0].duration, 5);
+  assert.ok(poisonGasShell.effects[1].ticks.every((tick) => tick.condition === 'Poisoned' && tick.duration === 3));
+  assert.deepEqual(
+    poisonGasShell.effects[1].ticks.map((tick) => tick.atMs),
+    [0, 1000, 2000, 3000, 4000]
+  );
+
+  const result = simulate('Core', ['Elite Mortar Kit', 'Poison Gas Shell', { type: 'wait', durationMs: 5000 }], {
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Elite Mortar Kit']
+  });
+  const poison = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Poison Gas Shell' && event.condition === 'Poisoned'
+  );
+
+  assert.equal(poison.length, 5);
+  assert.deepEqual(
+    poison.map((event) => Number((event.at - poison[0].at).toFixed(9))),
+    [0, 1, 2, 3, 4]
+  );
+  assert.ok(poison.every((event) => event.duration === 3));
+});

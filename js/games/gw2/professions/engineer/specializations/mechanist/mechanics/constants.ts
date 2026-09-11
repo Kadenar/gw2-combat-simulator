@@ -11,8 +11,13 @@ export const MECHANIST_COMMAND_DURATIONS: Readonly<Record<number, number>> = Obj
 // These gaps control the mech's independent attack lane; command cast durations
 // above reserve that lane separately before commandRecovery resumes the chain.
 export const MECHANIST_ATTACK_TIMING = Object.freeze({
+  initialDelay: 1,
   jadeCannonArmGap: 0.5,
   jadeCannonCycleGap: 1.075,
   meleeChainIntervals: Object.freeze([0.25, 0.5, 0.5]),
-  commandRecovery: 0.35
+  commandRecovery: 0.35,
+  // Unquickened baselines inferred from the logged 880 ms launch / 360 ms pulse Quickness schedule.
+  jadeBusterFirstHitDelay: 1.32,
+  jadeBusterPulseInterval: 0.54,
+  jadeBusterAnimationDuration: 5.04
 });

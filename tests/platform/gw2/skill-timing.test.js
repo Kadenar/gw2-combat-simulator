@@ -71,7 +71,7 @@ test('declarative multi-hit and delayed effects preserve individual events', () 
   assert.equal(result.endState.profession.hits, 4);
 });
 
-test('declarative repeated statuses keep fixed pulse intervals', () => {
+test('declarative statuses and strike timelines keep fixed pulse intervals', () => {
   const timing = {
     applications: 3,
     atMs: 200,
@@ -87,6 +87,14 @@ test('declarative repeated statuses keep fixed pulse intervals', () => {
         name: 'Fixture Pulses',
         castTimeMs: 600,
         effects: [
+          {
+            type: 'strike',
+            ticks: [200, 1200, 2200].map((atMs) => ({ atMs, coefficient: 0.1 })),
+            weaponStrength: 1000,
+            timingAnchor: 'castStart',
+            timingScale: 'cast',
+            intervalTimingScale: 'fixed'
+          },
           {
             type: 'blind',
             ...timing
@@ -107,16 +115,23 @@ test('declarative repeated statuses keep fixed pulse intervals', () => {
     name: 'Pulse Fixture',
     catalog
   });
-  const result = simulateGw2({
-    profession,
-    rotation: ['Fixture Pulses', { type: 'wait', durationMs: 2500 }],
-    config: { boons: { quickness: true } }
-  });
-  const timestamps = (type) =>
-    result.events.filter((event) => event.type === type).map((event) => Math.round(event.at * 1000));
-
-  assert.deepEqual(timestamps('blind'), [200, 1200, 2200]);
-  assert.deepEqual(timestamps('condition'), [200, 1200, 2200]);
+  // Changing launch speed must preserve the wall-clock interval for both authoring forms.
+  for (const quickness of [false, true]) {
+    const result = simulateGw2({
+      profession,
+      rotation: ['Fixture Pulses', { type: 'wait', durationMs: 2500 }],
+      config: { boons: { quickness } }
+    });
+    const timestamps = (type) =>
+      result.events.filter((event) => event.type === type).map((event) => Math.round(event.at * 1000));
+    const strikes = timestamps('damage');
+    assert.deepEqual(
+      strikes.map((at) => at - strikes[0]),
+      [0, 1000, 2000]
+    );
+    assert.deepEqual(timestamps('blind'), strikes);
+    assert.deepEqual(timestamps('condition'), strikes);
+  }
 });
 
 test('declarative strike timelines preserve per-hit coefficients and shared timestamps', () => {

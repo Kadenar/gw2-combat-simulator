@@ -2,11 +2,10 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
-// Stable IDs connect mech inheritance, attack sequencing, signet rules, and
+// Stable IDs connect mech inheritance, attack damage, signet rules, and
 // trait handlers to values that balance overrides can replace independently.
 export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.mechanist.mech',
-  attackTiming: 'engineer.mechanist.attack-timing',
   meleeChain: 'engineer.mechanist.melee-chain',
   jadeCannons: TRAIT.MECH_ARMS_JADE_CANNONS,
   rocketPunch: TRAIT.MECH_FIGHTER,
@@ -18,9 +17,7 @@ export const MECHANIST_BALANCE_PROFILE_IDS = Object.freeze({
 // Supply standard trait metadata once; callers add only the values and effects
 // read by the Mechanist runtime.
 
-// Attribute caps, attack gaps, and reference damage inputs keep their own units and meanings.
-// Keep native mech scaling and cadence beside trait tuning so both autonomous
-// attacks and commanded attacks use the same balance-profile lookup path.
+// Balance profiles own damage and trait tuning; execution timing lives in mechanics/constants.ts.
 export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: MECHANIST_BALANCE_PROFILE_IDS.resources,
@@ -34,19 +31,6 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     precisionCap: 2500,
     improvedInheritanceRatio: 1,
     basePrecision: 1,
-    effects: []
-  },
-  {
-    id: MECHANIST_BALANCE_PROFILE_IDS.attackTiming,
-    name: 'Jade Mech Attack Timing',
-    profileKind: 'mechanic',
-    quicknessCastMultiplier: 1.5,
-    armGap: 0.5,
-    cycleGap: 1.075,
-    initialDelay: 1,
-    recoverySeconds: 0.35,
-    referencePower: 1500,
-    referenceTargetArmor: 2597,
     effects: []
   },
   {
@@ -102,7 +86,6 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     parentId: ID.OVERCLOCK_SIGNET,
     packetCount: 5,
-    pulseInterval: 0.65,
     effects: [
       { type: 'strike', coefficient: 0.95, hits: 1 },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 6 }
