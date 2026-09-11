@@ -69,9 +69,9 @@ export function consumeElectricEnchantment(
 }
 
 /**
- * Retroactively spends armed stacks on already-scheduled player strikes,
- * earliest first, covering stacks granted after those strikes were queued. Stops
- * as soon as the stack pool runs out.
+ * Spends armed stacks on already-queued player strikes at or after the grant's
+ * completion time, earliest first. Earlier hits cannot consume newly granted
+ * stacks, even when they were scheduled during the same cast.
  */
 export function applyElectricEnchantmentsRetrospectively(context: ElementalistCastContext, state: EvokerState): void {
   // electricEnchantmentConsumed prevents double-consuming the same hit if this runs twice
@@ -82,7 +82,7 @@ export function applyElectricEnchantmentsRetrospectively(context: ElementalistCa
         event.type === 'damage' &&
         event.actorType === 'player' &&
         Number(event.coefficient || 0) > 0 &&
-        event.at >= Number(context.combatStartTime || 0) - context.epsilon &&
+        event.at >= context.effectiveEnd - context.epsilon &&
         event.electricEnchantmentConsumed !== true
     )
     .sort((left, right) => left.at - right.at);
