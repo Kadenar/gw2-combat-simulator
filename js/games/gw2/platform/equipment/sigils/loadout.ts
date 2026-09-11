@@ -19,29 +19,46 @@ export const DEFAULT_WEAPON_SIGILS: readonly (readonly string[])[] = Object.free
   Object.freeze(['Force', 'Accuracy'])
 ]);
 
+/** Only one stacking sigil fits the build; Slaying and other identical sigils conflict only within a set. */
+export function canEquipWeaponSigil(
+  weaponSigils: readonly (readonly string[])[],
+  setIndex: number,
+  slotIndex: number,
+  name: string
+): boolean {
+  return !weaponSigils.some((set, otherSet) =>
+    set.some((equipped, otherSlot) => {
+      if (otherSet === setIndex && otherSlot === slotIndex) return false;
+      if (SIGIL_DATA[name]?.stackingStats && SIGIL_DATA[equipped]?.stackingStats) return true;
+      return equipped === name && otherSet === setIndex;
+    })
+  );
+}
+
 /** Normalizes both weapon-set sigil pairs against supported names and fallbacks. */
 export function normalizeWeaponSigils(
   value: readonly (readonly string[])[] | null | undefined,
   fallback: readonly (readonly string[])[] = DEFAULT_WEAPON_SIGILS
 ): string[][] {
-  return [0, 1].map((setIndex) => {
-    const normalized = [0, 1].map((slotIndex) => {
-      const selected = value?.[setIndex]?.[slotIndex];
-      if (typeof selected === 'string' && SIGIL_NAMES.includes(selected)) {
-        return selected;
-      }
-
-      return fallback?.[setIndex]?.[slotIndex] || DEFAULT_WEAPON_SIGILS[setIndex]?.[slotIndex] || 'Force';
-    });
-    if (normalized[0] === normalized[1]) {
-      const replacement = [fallback[setIndex]?.[1], ...(DEFAULT_WEAPON_SIGILS[setIndex] || []), ...SIGIL_NAMES].find(
-        (name) => typeof name === 'string' && SIGIL_NAMES.includes(name) && name !== normalized[0]
-      );
-      if (replacement) normalized[1] = replacement;
+  const normalized: string[][] = [[], []];
+  // Preserve the first legal selection and replace later conflicts with a legal fallback.
+  for (const setIndex of [0, 1]) {
+    for (const slotIndex of [0, 1]) {
+      normalized[setIndex][slotIndex] = [
+        value?.[setIndex]?.[slotIndex],
+        fallback?.[setIndex]?.[slotIndex],
+        ...DEFAULT_WEAPON_SIGILS[setIndex],
+        ...SIGIL_NAMES
+      ].find(
+        (name): name is string =>
+          typeof name === 'string' &&
+          SIGIL_NAMES.includes(name) &&
+          canEquipWeaponSigil(normalized, setIndex, slotIndex, name)
+      )!;
     }
+  }
 
-    return normalized;
-  });
+  return normalized;
 }
 
 /** Returns the validated sigil pair for a one-based weapon set. */
@@ -67,6 +84,8 @@ export function setWeaponSigil(build: Gw2Build, setIndex: number, slotIndex: num
   const otherSlot = slotIndex === 0 ? 1 : 0;
   const previous = sigils[slotIndex];
   if (sigils[otherSlot] === name) sigils[otherSlot] = previous;
+  // Reject conflicting programmatic selections too, preserving the existing same-set slot swap.
+  if (!canEquipWeaponSigil(normalized, setIndex, slotIndex, name)) return;
   sigils[slotIndex] = name;
 }
 
@@ -76,6 +95,7 @@ interface MutableSigilSet {
   criticalChanceBonus: number;
   strikeAdd: number;
   strike: number;
+  strikeMultiplier: number;
   nightStrikeMultiplier: number;
   conditionAdd: number;
   condition: number;
@@ -91,6 +111,7 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
     criticalChanceBonus: 0,
     strikeAdd: 0,
     strike: 1,
+    strikeMultiplier: 1,
     nightStrikeMultiplier: 1,
     conditionAdd: 0,
     condition: 1,
@@ -110,6 +131,8 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
     if (!sigil) continue;
     effects.criticalChanceBonus += Number(sigil.criticalChance || 0);
     effects.strikeAdd += Number(sigil.strikeDamageA || 0) / 100;
+    // Keep multiplicative bonuses outside the additive bucket used by profession modifiers.
+    effects.strikeMultiplier *= 1 + Number(sigil.strikeDamageM || 0) / 100;
     effects.nightStrikeMultiplier *= 1 + Number(sigil.nightStrikeDamageM || 0) / 100;
     effects.conditionAdd += Number(sigil.conditionDamageA || 0) / 100;
     effects.conditionDurationBonus += Number(sigil.conditionDuration || 0);

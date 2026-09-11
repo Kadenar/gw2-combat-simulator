@@ -2,6 +2,7 @@ export interface Gw2SigilDataEntry {
   readonly stackingStats?: Readonly<Record<string, number>>;
   readonly criticalChance?: number;
   readonly strikeDamageA?: number;
+  readonly strikeDamageM?: number;
   readonly nightStrikeDamageM?: number;
   readonly conditionDamageA?: number;
   readonly conditionDuration?: number;
@@ -84,6 +85,12 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
     strikeDamageA: 3,
     nightStrikeDamageM: 7,
     icon: 'https://render.guildwars2.com/file/CFDC642093029E790C03381D73C703BDFFA9CDFF/499391.png'
+  },
+  // One generic slaying sigil assumes a matching enemy, so both bonuses are always active.
+  Slaying: {
+    strikeDamageA: 3,
+    strikeDamageM: 7,
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Undead_Slaying.png'
   },
   Air: {
     icon: 'https://render.guildwars2.com/file/C337CC61DF2F5EE44B7D053EFF33059111024444/220676.png'

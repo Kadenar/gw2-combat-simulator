@@ -24,6 +24,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
   readonly food?: string;
+  readonly utility?: string;
   readonly timeOfDay?: 'day' | 'night';
   readonly randomness?: SimulationRandomnessConfig;
   readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;

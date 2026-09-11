@@ -24,6 +24,7 @@ export interface Gw2SigilSet extends SchedulerRecord {
   readonly criticalChanceBonus?: number;
   readonly strikeAdd?: number;
   readonly strike?: number;
+  readonly strikeMultiplier?: number;
   readonly nightStrikeMultiplier?: number;
   readonly conditionAdd?: number;
   readonly condition?: number;

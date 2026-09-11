@@ -458,6 +458,13 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   padding: 6px 8px;
   text-overflow: ellipsis;
 }
+.optimizer-picker .gear-select-display {
+  max-width: none;
+}
+.optimizer-picker .gear-select-trigger:not(.gear-icon-trigger) {
+  min-height: 34px;
+  padding: 6px 8px;
+}
 .gear-optimizer button {
   min-height: 32px;
   padding: 6px 12px;
@@ -473,7 +480,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-size: 16px;
 }
 .gear-optimizer :is(button, select, input):focus-visible,
-.optimizer-picker :is(button, select):focus-visible,
+.optimizer-picker :is(button, select, input):focus-visible,
 .gear-optimizer summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

@@ -27,13 +27,14 @@ const EXPECTED_SIGIL_ICONS = {
   Malice: 'https://render.guildwars2.com/file/797D052CB4EA63A61A3225962128D197ACB3ED17/619709.png',
   Night: 'https://render.guildwars2.com/file/CFDC642093029E790C03381D73C703BDFFA9CDFF/499391.png',
   Severance: 'https://render.guildwars2.com/file/396D7A5DBFA03BC49C12DAB532C4E34D342F0B51/1766396.png',
+  Slaying: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Superior_Sigil_of_Undead_Slaying.png',
   Smoldering: 'https://render.guildwars2.com/file/60AAB7109E5D679901E00DC066774EE5FB3E6052/220659.png',
   Stars: 'https://render.guildwars2.com/file/B9B778FD561C019DC5A3A01D55C234D1E31251CE/1894696.png',
   Torment: 'https://render.guildwars2.com/file/E42EB6198022E5B4D71C5EE41465DD4EB84A0465/665778.png',
   Venom: 'https://render.guildwars2.com/file/080B4F940A05E60A084AA4B1D230F923A1A47CEC/220664.png'
 };
 
-test('all selectable sigils use their official render icons', () => {
+test('all selectable sigils use their official icons', () => {
   assert.deepEqual(SIGIL_NAMES, Object.keys(EXPECTED_SIGIL_ICONS).sort());
   for (const name of SIGIL_NAMES) {
     assert.equal(SIGIL_DATA[name].icon, EXPECTED_SIGIL_ICONS[name], name);

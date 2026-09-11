@@ -23,6 +23,7 @@ import {
   MIGHT_ATTRIBUTE_BONUS_PER_STACK
 } from '#gw2/platform/combat/query/runtime-rules.js';
 import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
+import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   canonicalTargetConditionName,
   createPermanentTargetConditionStacks,
@@ -531,10 +532,14 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
 
       const sigils = activeSigilSetAt(time, runtime);
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? Number(sigils.nightStrikeMultiplier || 1) : 1;
+      // Slaying equipment assumes a matching enemy; its multipliers stay outside the additive strike bucket.
+      const utilityMultiplier = 1 + Number(UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
         (Number(sigils.strike || 1) + relicBonus) *
         timeOfDayMultiplier *
+        Number(sigils.strikeMultiplier || 1) *
+        utilityMultiplier *
         Number(config.modifiers?.strike || 1);
       return activeProfession.modifyStrikeDamage(
         hookContext(time, {

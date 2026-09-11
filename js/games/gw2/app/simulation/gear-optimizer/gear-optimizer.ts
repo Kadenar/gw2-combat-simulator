@@ -3,6 +3,7 @@ import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
@@ -299,7 +300,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
     }
 
     const pairs = lists[0].flatMap((first) =>
-      lists[1].filter((second) => first !== second).map((second) => [first, second])
+      lists[1].filter((second) => canEquipWeaponSigil([[first]], 0, 1, second)).map((second) => [first, second])
     );
     if (!pairs.length) throw new TypeError('Sigil lists contain no legal pair.');
     dimensions.push({ key: `sigils${set + 1}`, choices: pairs });
@@ -385,6 +386,16 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
   function prepare(equipment: OptimizerEquipment): Gw2Config;
   function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
   function prepare(equipment: OptimizerEquipment, enforceRequirements = false): Gw2Config | null {
+    // Independent set choices can still conflict across sets; discard them before scoring or applying results.
+    if (
+      equipment.weaponSigils.some((set, setIndex) =>
+        set.some((name, slotIndex) => !canEquipWeaponSigil(equipment.weaponSigils, setIndex, slotIndex, name))
+      )
+    ) {
+      if (enforceRequirements) return null;
+      throw new TypeError('Duplicate sigils within a set or multiple stacking sigils across the build.');
+    }
+
     // The runtime preparation seam reads only these fields; UI methods are deliberately unavailable headlessly.
     const app = {
       build: { ...request.build, ...equipment },

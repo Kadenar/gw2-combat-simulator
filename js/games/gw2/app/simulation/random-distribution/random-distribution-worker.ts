@@ -1,5 +1,9 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { calculateRandomDistribution } from '#gw2/app/simulation/random-distribution/random-distribution.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import type { ProfessionAppContract } from '#gw2/app/types.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
 
 /**
@@ -14,19 +18,30 @@ interface RandomDistributionWorkerMessage {
 }
 
 /**
- * Calculates one distribution batch through the profession's app adapter.
+ * Calculates one distribution batch directly through the profession engine.
  *
  * Progress responses have `{ requestId, progress }`. The terminal response has
  * the same request ID and either `distribution` or a string `error`.
  */
-createGameWorkerEndpoint<Gw2AppAdapter, RandomDistributionWorkerMessage>({
-  calculate(adapter, { includeSamples, request }, postUpdate) {
-    const distribution = adapter.calculateRandomDistribution(request, {
-      includeSamples: includeSamples === true,
-      onProgress(progress) {
-        postUpdate({ progress });
+createGameWorkerEndpoint<ProfessionAppContract, RandomDistributionWorkerMessage>({
+  async loadDriver({ gameId, contentId }) {
+    if (gameId !== 'gw2') return null;
+    // Ordinary RNG jobs need only the engine; authored previews retain their adapter composition.
+    return activePatchPreview
+      ? ((await loadProfessionAppAdapter(contentId))?.profession ?? null)
+      : loadProfession(contentId);
+  },
+  calculate(profession, { includeSamples, request }, postUpdate) {
+    const distribution = calculateRandomDistribution(
+      request,
+      (rotation, config) => simulateGw2({ profession, rotation, config }),
+      {
+        includeSamples: includeSamples === true,
+        onProgress(progress) {
+          postUpdate({ progress });
+        }
       }
-    });
+    );
     return { distribution };
   }
 });

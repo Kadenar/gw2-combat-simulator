@@ -9,7 +9,7 @@ import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js'
 import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
 import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -890,6 +890,13 @@ function validateCommonBuild(
     )
   ) {
     errors.push('weaponSigils must contain two valid, unique sigils per set.');
+  } else if (
+    candidate.weaponSigils.some((set, setIndex) =>
+      set.some((name, slotIndex) => !canEquipWeaponSigil(candidate.weaponSigils, setIndex, slotIndex, name))
+    )
+  ) {
+    // Strict validation rejects conflicts; migration replaces them through normalization.
+    errors.push('weaponSigils may contain only one stacking sigil across both sets.');
   }
 
   if (!Array.isArray(candidate.infusions)) {

@@ -156,6 +156,8 @@ export function createGw2SimulationConfig({
     // Temporary relic selections travel with every simulation of this build, including optimizer candidates.
     precastRelics: [...(app.build.precastRelics || [])],
     food: disabled?.type === 'Food' ? '' : app.build.food,
+    // Preserve damage-only utilities and allow contribution comparisons to remove their effect.
+    utility: disabled?.type === 'Utility' ? '' : app.build.utility,
     timeOfDay: assumptions.timeOfDay === 'night' ? 'night' : 'day',
     boons: {
       might: disabled?.type === 'Boon' && disabled.name === 'Might' ? 0 : Number(assumptions.might || 0),

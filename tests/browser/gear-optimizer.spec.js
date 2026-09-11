@@ -224,11 +224,15 @@ test('forced slots start collapsed and constrain results until cleared', async (
 
 /** Pick by the underlying equipment identity while the dropdown supplies readable attribute descriptions. */
 async function addChoice(panel, label, choice) {
-  const select = panel.getByRole('combobox', { name: `Add ${label}`, exact: true });
-  const value = await select
-    .locator('option')
-    .evaluateAll((options, choice) => options.find((option) => option.dataset.choice === choice).value, choice);
-  await select.selectOption(value);
+  const trigger = panel.getByRole('button', { name: `Add ${label}`, exact: true });
+  await trigger.click();
+  await trigger
+    .locator('..')
+    .getByRole('option')
+    .filter({
+      has: panel.page().getByText(choice || 'None', { exact: true })
+    })
+    .click();
 }
 
 // Real module workers exercise snapshot, cancellation and Apply through the normal persisted build editor.
@@ -458,13 +462,13 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
   }
 
   const panel = page.locator('#gear-optimizer');
-  const prefixes = panel.getByRole('combobox', { name: 'Add prefixes', exact: true });
+  const prefixes = panel.getByRole('button', { name: 'Add prefixes', exact: true });
   for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
   await expect(prefixes).toBeDisabled();
   await panel.getByRole('button', { name: "Remove Viper's from prefixes", exact: true }).click();
   await expect(prefixes).toBeEnabled();
   await addChoice(panel, 'infusion stats', 'Condition Damage');
-  const infusionSelect = await panel.getByRole('combobox', { name: 'Add infusion stats', exact: true }).boundingBox();
+  const infusionSelect = await panel.getByRole('button', { name: 'Add infusion stats', exact: true }).boundingBox();
   const infusionCount = await panel.getByRole('spinbutton', { name: 'Total infusions', exact: true }).boundingBox();
   expect(Math.abs(infusionSelect.y - infusionCount.y)).toBeLessThan(1);
   expect(infusionSelect.height).toBe(infusionCount.height);

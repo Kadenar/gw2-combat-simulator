@@ -4,6 +4,7 @@ import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { EQUIPMENT_ICONS } from '#gw2/platform/equipment/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export interface ResultIconRow {
@@ -99,6 +100,9 @@ function resolveModifierIcon(row: ResultIconRow): string {
   const label = String(row.name || '');
   const effectIcon = MODIFIER_EFFECT_ICONS[label];
   if (effectIcon) return effectIcon;
+
+  // Utility contribution rows reuse the selected consumable's equipment icon.
+  if (id.startsWith('Utility:')) return EQUIPMENT_ICONS[id.slice('Utility:'.length)] || '';
 
   const sigilName = id.startsWith('Sigil:') ? id.slice('Sigil:'.length) : label.match(/^Sigil of (.+)$/)?.[1];
   if (sigilName && SIGIL_DATA[sigilName]?.icon) {

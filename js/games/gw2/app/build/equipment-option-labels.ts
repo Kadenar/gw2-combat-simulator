@@ -2,6 +2,7 @@ import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import {
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
+  UTILITY_STRIKE_DAMAGE_BONUSES,
   UTILITY_STAT_DATA
 } from '#gw2/platform/equipment/consumables/utilities.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
@@ -77,6 +78,9 @@ export function foodOptionLabel(name: string): string {
 }
 
 export function utilityOptionLabel(name: string): string {
+  // Explain the assumed target match alongside the potion's damage-only effect.
+  const strikeBonus = UTILITY_STRIKE_DAMAGE_BONUSES[name];
+  if (strikeBonus) return optionLabel(name, [`+${strikeBonus}% multiplicative strike damage; matching enemy assumed`]);
   const conversions = utilityData[name] || [];
   const firstPercent = conversions[0]?.percent;
   const uniformSelfConversion =
@@ -95,6 +99,7 @@ export function utilityOptionLabel(name: string): string {
 const SIGIL_PERCENT_FIELDS: Readonly<Record<string, string>> = {
   criticalChance: 'critical chance',
   strikeDamageA: 'strike damage',
+  strikeDamageM: 'multiplicative strike damage (matching enemy assumed)',
   nightStrikeDamageM: 'strike damage at night',
   conditionDamageA: 'condition damage',
   conditionDuration: 'condition duration',

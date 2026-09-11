@@ -17,7 +17,10 @@ export function bindPageControls(app: ProfessionAppState): void {
   document.addEventListener('click', (event) => {
     const target = event.target;
     if (target instanceof Element && !target.closest('.skill-bar-slot, .skill-bar-inspection-slot')) {
-      document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => drop.classList.remove('open'));
+      document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => {
+        drop.classList.remove('open');
+        drop.parentElement?.querySelector('.sbar-icon')?.setAttribute('aria-expanded', 'false');
+      });
     }
   });
   requiredElement('btn-sim-clear').addEventListener('click', () => {

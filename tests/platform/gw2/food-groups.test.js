@@ -5,6 +5,7 @@ import {
   UTILITY_DATA,
   UTILITY_GROUPS,
   UTILITY_NAMES,
+  UTILITY_STRIKE_DAMAGE_BONUSES,
   UTILITY_STAT_DATA
 } from '#gw2/platform/equipment/consumables/utilities.js';
 
@@ -26,7 +27,7 @@ test('food exports retain a complete flat lookup and grouped display list', () =
 
 test('utility exports retain a complete flat lookup and grouped display list', () => {
   const groupedNames = UTILITY_GROUPS.flatMap((group) => group.items);
-  const utilityData = { ...UTILITY_DATA, ...UTILITY_STAT_DATA };
+  const utilityData = { ...UTILITY_DATA, ...UTILITY_STAT_DATA, ...UTILITY_STRIKE_DAMAGE_BONUSES };
   const sortNames = (names) => [...names].sort((left, right) => left.localeCompare(right));
 
   assert.deepEqual(

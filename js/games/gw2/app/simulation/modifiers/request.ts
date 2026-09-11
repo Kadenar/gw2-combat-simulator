@@ -1,5 +1,6 @@
 import { deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import type { ProfessionAppState, ProfessionRuntimeApi } from '#gw2/app/types.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -70,6 +71,16 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
       type: 'Food',
       name: app.build.food,
       label: `Food: ${FOOD_DATA[app.build.food].proc.name}`
+    });
+  }
+
+  // Damage-only utilities need removal comparisons even though they add no attributes.
+  if (UTILITY_STRIKE_DAMAGE_BONUSES[app.build.utility]) {
+    candidates.push({
+      id: `Utility:${app.build.utility}`,
+      type: 'Utility',
+      name: app.build.utility,
+      label: app.build.utility
     });
   }
 

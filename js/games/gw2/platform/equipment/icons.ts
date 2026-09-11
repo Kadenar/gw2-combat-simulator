@@ -1,5 +1,7 @@
 /** Exact item icons from the GW2 v2/items API; keys match the selectable equipment catalogs. */
 export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
+  // The generic slaying potion uses the undead variant's icon to represent the shared effect.
+  'Potion of Slaying': 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Potent_Potion_of_Undead_Slaying.png',
   'Bowl of Curry Butternut Squash Soup':
     'https://render.guildwars2.com/file/0AEDB9B0AA4274930F55919A6D21251BFDA1EB09/433673.png',
   'Bowl of Fancy Potato and Leek Soup':

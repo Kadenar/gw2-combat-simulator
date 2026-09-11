@@ -4,11 +4,17 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
 import { RELIC_DATA, RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { candidatePicker, updatePicker, bindCandidatePickers } from '#gw2/app/build/equipment-picker.js';
+import {
+  candidatePicker,
+  updatePicker,
+  bindCandidatePickers,
+  enhanceDetailedSelect,
+  positionGearPopover
+} from '#gw2/app/build/equipment-picker.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
-import { setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { escapeHtml, groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
 import {
@@ -40,179 +46,6 @@ function compactSelect(selectedLabel: string, selectHtml: string, icon?: string)
 // Icons open the same detailed stat choices while the equipped value remains visible as plain text.
 function iconSelectRow(label: string, selected: string, selectHtml: string, icon = ''): string {
   return `<div class="gear-row gear-icon-row">${compactSelect(selected, selectHtml, icon)}<span class="gear-item-caption"><span class="gear-label">${escapeHtml(label)}</span><span class="gear-equipped-name">${escapeHtml(selected)}</span></span></div>`;
-}
-
-// Keep icon pickers within the viewport, including when the equipment column is near its edge.
-function positionGearPopover(menu: HTMLElement, trigger: HTMLElement): void {
-  const anchor = trigger.getBoundingClientRect();
-  const bounds = menu.getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8))}px`;
-  menu.style.top = `${anchor.bottom + bounds.height + 2 <= window.innerHeight ? anchor.bottom + 2 : Math.max(8, anchor.top - bounds.height - 2)}px`;
-}
-
-function splitOptionLabel(label: string): { name: string; details: string } {
-  const separator = ' \u2014 ';
-  const separatorIndex = label.indexOf(separator);
-  return separatorIndex < 0
-    ? { name: label, details: '' }
-    : { name: label.slice(0, separatorIndex), details: label.slice(separatorIndex + separator.length) };
-}
-
-// Upgrade detailed native selects into styled popovers while preserving their existing change handlers and values.
-function enhanceDetailedSelect(select: HTMLSelectElement, index: number): void {
-  const display = select.parentElement;
-  const trigger = display?.querySelector('.gear-select-trigger');
-  if (!(display instanceof HTMLElement) || !(trigger instanceof HTMLButtonElement)) return;
-
-  const menu = document.createElement('div');
-  const menuId = `gear-select-menu-${index}`;
-  menu.id = menuId;
-  menu.className = 'gear-select-menu';
-  menu.setAttribute('popover', 'auto');
-  menu.setAttribute('role', 'listbox');
-  menu.setAttribute('aria-label', select.getAttribute('aria-label') || 'Equipment options');
-  trigger.setAttribute('popovertarget', menuId);
-  trigger.setAttribute('aria-label', select.getAttribute('aria-label') || 'Equipment options');
-  trigger.setAttribute('aria-haspopup', 'listbox');
-  trigger.setAttribute('aria-expanded', 'false');
-  select.tabIndex = -1;
-  select.setAttribute('aria-hidden', 'true');
-
-  const addOption = (optionElement: HTMLOptionElement, parent: HTMLElement): void => {
-    if (select.matches('[data-add-choice]') && optionElement.value === '') return;
-    const { name, details } = splitOptionLabel(optionElement.textContent);
-    const choice = document.createElement('button');
-    choice.type = 'button';
-    choice.className = 'gear-select-option';
-    choice.dataset.value = optionElement.value;
-    choice.disabled = optionElement.matches(':disabled');
-    choice.setAttribute('role', 'option');
-    choice.setAttribute('aria-selected', String(optionElement.selected));
-
-    const primary = document.createElement('span');
-    primary.className = 'gear-option-name';
-    primary.textContent = name;
-    choice.append(primary);
-    if (details) {
-      const supporting = document.createElement('span');
-      supporting.className = 'gear-option-detail';
-      supporting.textContent = details;
-      choice.append(supporting);
-    }
-
-    choice.addEventListener('click', () => {
-      menu.hidePopover();
-      select.value = optionElement.value;
-      if (!trigger.classList.contains('gear-icon-trigger')) trigger.textContent = name;
-      menu.querySelectorAll('[role="option"]').forEach((item) => {
-        item.setAttribute('aria-selected', String(item === choice));
-      });
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-      const current = select.id ? document.getElementById(select.id) : select;
-      (current?.parentElement?.querySelector('.gear-select-trigger') as HTMLButtonElement | null)?.focus();
-    });
-    parent.append(choice);
-  };
-
-  for (const child of select.children) {
-    if (child instanceof HTMLOptGroupElement) {
-      const group = document.createElement('div');
-      group.className = 'gear-select-group';
-      group.setAttribute('role', 'group');
-      group.setAttribute('aria-label', child.label);
-      const heading = document.createElement('div');
-      heading.className = 'gear-select-group-label';
-      heading.textContent = child.label;
-      group.append(heading);
-      for (const optionElement of child.children) {
-        if (optionElement instanceof HTMLOptionElement) addOption(optionElement, group);
-      }
-
-      menu.append(group);
-    } else if (child instanceof HTMLOptionElement) {
-      addOption(child, menu);
-    }
-  }
-
-  let search = '';
-  let lastTypedAt = 0;
-  // Measure and position in the opening task, before the browser can paint the popover at its default location.
-  const openMenu = (): void => {
-    if (menu.matches(':popover-open')) return;
-    search = '';
-    // Shared multi-choice pickers disable selected entries as chips are added or removed.
-    for (const choice of menu.querySelectorAll<HTMLButtonElement>('.gear-select-option')) {
-      const option = [...select.options].find((option) => option.value === choice.dataset.value);
-      choice.disabled = !option || option.matches(':disabled');
-      choice.setAttribute('aria-selected', String(option?.selected || false));
-    }
-
-    menu.showPopover();
-    positionGearPopover(menu, trigger);
-    (
-      menu.querySelector<HTMLButtonElement>('[aria-selected="true"]:not(:disabled)') ||
-      menu.querySelector<HTMLButtonElement>('.gear-select-option:not(:disabled)')
-    )?.focus();
-  };
-
-  trigger.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (menu.matches(':popover-open')) menu.hidePopover();
-    else openMenu();
-  });
-
-  menu.addEventListener('toggle', () => {
-    const isOpen = menu.matches(':popover-open');
-    trigger.setAttribute('aria-expanded', String(isOpen));
-    display.classList.toggle('is-open', isOpen);
-  });
-
-  // Match names while typing; repeated letters cycle matches and Enter keeps the existing selection path.
-  display.addEventListener('keydown', (event) => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
-    const navigation = ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key);
-    const typing = event.key.length === 1 && (event.key !== ' ' || search !== '');
-    if (!navigation && !typing) return;
-    event.preventDefault();
-    openMenu();
-    const choices = [...menu.querySelectorAll<HTMLButtonElement>('.gear-select-option:not(:disabled)')];
-    const currentIndex = choices.indexOf(document.activeElement as HTMLButtonElement);
-    if (typing) {
-      const now = performance.now();
-      search = (now - lastTypedAt > 700 ? '' : search) + event.key.toLocaleLowerCase();
-      lastTypedAt = now;
-      const repeated = [...search].every((letter) => letter === search[0]);
-      const prefix = repeated ? search[0]! : search;
-      const start = currentIndex + (prefix.length === 1 ? 1 : 0);
-      for (let offset = 0; offset < choices.length; offset += 1) {
-        const choice = choices[(Math.max(0, start) + offset) % choices.length]!;
-        if (choice.querySelector('.gear-option-name')!.textContent.toLocaleLowerCase().startsWith(prefix)) {
-          choice.focus();
-          break;
-        }
-      }
-
-      return;
-    }
-
-    search = '';
-    const nextIndex =
-      event.key === 'Home'
-        ? 0
-        : event.key === 'End'
-          ? choices.length - 1
-          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + choices.length) % choices.length;
-    choices[nextIndex]?.focus();
-  });
-
-  select.addEventListener('change', () => {
-    if (select.matches('[data-add-choice]')) return;
-    const name = splitOptionLabel(select.selectedOptions[0]?.textContent || select.value).name;
-    const caption = display.closest('.gear-icon-row')?.querySelector('.gear-equipped-name');
-    if (caption) caption.textContent = name;
-    trigger.title = name;
-  });
-  display.append(menu);
 }
 
 function selectRow(label: string, id: string, selectedLabel: string, optionsHtml: string, icon?: string): string {
@@ -316,7 +149,13 @@ export function renderGear(app: ProfessionAppState): void {
         `Sigil ${slot + 1}`,
         `sel-sig${setNumber}-${slot + 1}`,
         sigils[slot],
-        groupedOptions(SIGIL_GROUPS, sigils[slot], sigilOptionLabel, (name) => name === sigils[slot === 0 ? 1 : 0]),
+        // Disable conflicting groups as well as duplicate sigils using the same rule as build loading.
+        groupedOptions(
+          SIGIL_GROUPS,
+          sigils[slot],
+          sigilOptionLabel,
+          (name) => !canEquipWeaponSigil(b.weaponSigils, setNumber - 1, slot, name)
+        ),
         SIGIL_DATA[sigils[slot]]?.icon || ''
       )}</div>`;
     return `<section class="weapon-set" aria-label="Weapon set ${setNumber}">${sectionHeading(`Weapon set ${setNumber}`)}
@@ -463,8 +302,10 @@ export function renderGear(app: ProfessionAppState): void {
   // Reuse the icon popover for adding preparation relics while keeping the shared removable chips.
   const precastPicker = requiredElement('precast-relics');
   const precastSelect = precastPicker.querySelector<HTMLSelectElement>('select')!;
-  precastSelect.classList.add('gear-select');
-  precastSelect.outerHTML = `<div class="gear-row gear-icon-row">${compactSelect('Add precast relics', precastSelect.outerHTML, '')}</div>`;
+  precastSelect.parentElement!.classList.add('gear-icon-select');
+  const precastTrigger = precastPicker.querySelector<HTMLButtonElement>('.gear-select-trigger')!;
+  precastTrigger.classList.add('gear-icon-trigger');
+  precastTrigger.innerHTML = equipmentIcon('');
   precastPicker.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
   bindCandidatePickers(precastPicker);
   precastPicker.addEventListener('change', () => {
@@ -501,9 +342,11 @@ export function renderGear(app: ProfessionAppState): void {
       app.changed();
     });
   });
-  document.querySelectorAll('.gear-select-display > select').forEach((select, index) => {
-    if (select instanceof HTMLSelectElement) enhanceDetailedSelect(select, index);
-  });
+  document
+    .querySelectorAll('.gear-panel select.gear-select, .gear-select-display > select')
+    .forEach((select, index) => {
+      if (select instanceof HTMLSelectElement) enhanceDetailedSelect(select, index);
+    });
   document.querySelectorAll<HTMLButtonElement>('.weapon-icon-trigger').forEach((trigger) => {
     const menu = document.getElementById(trigger.getAttribute('popovertarget')!)!;
     trigger.addEventListener('click', (event) => {

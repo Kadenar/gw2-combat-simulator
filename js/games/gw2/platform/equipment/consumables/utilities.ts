@@ -71,15 +71,25 @@ export const UTILITY_STAT_DATA = {
   'Writ of Masterful Malice': { 'Condition Damage': 200 }
 };
 
-export const UTILITY_NAMES = [...new Set([...Object.keys(UTILITY_DATA), ...Object.keys(UTILITY_STAT_DATA)])].sort(
-  (a, b) => a.localeCompare(b)
-);
+// Slaying potions assume a matching enemy and multiply strike damage without granting attributes.
+export const UTILITY_STRIKE_DAMAGE_BONUSES: Readonly<Record<string, number>> = {
+  'Potion of Slaying': 10
+};
+
+export const UTILITY_NAMES = [
+  ...new Set([
+    ...Object.keys(UTILITY_DATA),
+    ...Object.keys(UTILITY_STAT_DATA),
+    ...Object.keys(UTILITY_STRIKE_DAMAGE_BONUSES)
+  ])
+].sort((a, b) => a.localeCompare(b));
 
 export const UTILITY_GROUPS = [
   {
     label: 'Power',
     items: [
       'Furious Sharpening Stone',
+      'Potion of Slaying',
       'Superior Sharpening Stone',
       'Toxic Sharpening Stone',
       'Writ of Masterful Strength'

@@ -1,3 +1,4 @@
+import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml as esc, gw2ApiText } from '#gw2/app/presentation/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
@@ -87,29 +88,21 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
-          <div class="sbar-icon" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
+          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
               <img src="${esc(display.icon || '')}" alt="">
-          </div>
+          </button>
           <div class="sbar-arrow">&#9660;</div>
-          <div class="sbar-dropdown">${
-            selection.filterPlaceholder
-              ? `<input class="sbar-dropdown-filter" type="search" placeholder="${esc(selection.filterPlaceholder)}" aria-label="${esc(selection.filterPlaceholder)}" autocomplete="off" spellcheck="false">`
-              : ''
-          }${options
+          <div class="sbar-dropdown" data-search-label="${esc(selection.filterPlaceholder || `Search ${group.label}`)}">${options
             .map(
               (option) =>
-                `<div class="dd-item" data-selection-value="${esc(option.value)}"${
+                `<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
                   option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
                 }>
                   <img src="${esc(option.icon || '')}" alt="">
                   <span>${esc(option.label)}</span>
-              </div>`
+              </button>`
             )
-            .join('')}${
-            selection.filterPlaceholder
-              ? '<div class="dd-empty sbar-dropdown-filter-empty" hidden>No matching options</div>'
-              : ''
-          }</div>
+            .join('')}</div>
       </div>`;
     })
     .join('');
@@ -183,26 +176,10 @@ export function renderSkills(app: ProfessionAppState): void {
     inspectionGroups.length ? `<section class="profession-build-selections">${professionSelectionsHtml}</section>` : ''
   }`;
 
-  // Wire dropdown selection for the standard heal, utility, and elite slots.
+  bindSkillDropdowns(skillBar);
+  // Apply standard slot choices through the existing build update path.
   skillBar.querySelectorAll('.skill-bar-slot[data-key]').forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
-    const icon = slot.querySelector('.sbar-icon');
-    const dropdown = slot.querySelector('.sbar-dropdown');
-    if (!icon || !dropdown) return;
-    const toggleDropdown = (event: Event) => {
-      event.stopPropagation();
-      document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => {
-        if (drop !== dropdown) drop.classList.remove('open');
-      });
-      dropdown.classList.toggle('open');
-    };
-
-    icon.addEventListener('click', toggleDropdown);
-    slot.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      dropdown.classList.remove('open');
-      (icon as HTMLElement).focus();
-    });
     slot.querySelectorAll('.dd-item').forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener('click', () => {
@@ -221,54 +198,9 @@ export function renderSkills(app: ProfessionAppState): void {
     });
   });
 
-  // Wire profession inspection selectors, including optional text filtering.
+  // Profession selectors share search controls while retaining their own build contracts.
   skillBar.querySelectorAll('.skill-bar-inspection-slot[data-selection-key]').forEach((slot) => {
     if (!(slot instanceof HTMLElement)) return;
-    const icon = slot.querySelector('.sbar-icon');
-    const dropdown = slot.querySelector('.sbar-dropdown');
-    if (!icon || !dropdown) return;
-    const filterInput = dropdown.querySelector('.sbar-dropdown-filter');
-    const filterEmpty = dropdown.querySelector('.sbar-dropdown-filter-empty');
-    const filterOptions = () => {
-      if (!(filterInput instanceof HTMLInputElement)) return;
-      const query = filterInput.value.trim().toLocaleLowerCase();
-      let visibleOptions = 0;
-      dropdown.querySelectorAll<HTMLElement>('.dd-item').forEach((item) => {
-        const label = item.querySelector('span')?.textContent || '';
-        const visible = label.toLocaleLowerCase().includes(query);
-        item.hidden = !visible;
-        if (visible) visibleOptions += 1;
-      });
-      if (filterEmpty instanceof HTMLElement) {
-        filterEmpty.hidden = visibleOptions > 0;
-      }
-    };
-
-    if (filterInput instanceof HTMLInputElement) {
-      filterInput.addEventListener('input', filterOptions);
-      filterInput.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        event.stopPropagation();
-        dropdown.classList.remove('open');
-        filterInput.blur();
-      });
-    }
-
-    icon.addEventListener('click', (event) => {
-      event.stopPropagation();
-      document.querySelectorAll('.sbar-dropdown.open').forEach((drop) => {
-        if (drop !== dropdown) {
-          drop.classList.remove('open');
-        }
-      });
-      const opening = !dropdown.classList.contains('open');
-      dropdown.classList.toggle('open', opening);
-      if (opening && filterInput instanceof HTMLInputElement) {
-        filterInput.value = '';
-        filterOptions();
-        filterInput.focus();
-      }
-    });
     slot.querySelectorAll('.dd-item').forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener('click', (event) => {
@@ -384,7 +316,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
             <img src="${esc(selected?.icon || '')}" alt="">
             <span class="fixed-loadout-trigger-arrow" aria-hidden="true">&#9660;</span>
           </button>
-          <div id="fixed-loadout-menu-${index}" class="sbar-dropdown fixed-loadout-dropdown" role="listbox">
+          <div id="fixed-loadout-menu-${index}" class="sbar-dropdown fixed-loadout-dropdown"><div role="listbox">
             ${selector.options
               .map(
                 (entry) =>
@@ -398,7 +330,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
                 </button>`
               )
               .join('')}
-          </div>
+          </div></div>
         </div>`;
     }
 
@@ -433,28 +365,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   // Render Revenant's legend selectors directly in the selectable-skills panel.
   skillBar.innerHTML = fixedLoadoutHtml;
 
-  // Wire icon-selector dropdown toggles and keyboard dismissal.
-  skillBar.querySelectorAll('button[data-loadout-toggle]').forEach((button) => {
-    if (!(button instanceof HTMLButtonElement)) return;
-    const dropdown = button.parentElement?.querySelector('.fixed-loadout-dropdown');
-    if (!(dropdown instanceof HTMLElement)) return;
-    button.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const opening = !dropdown.classList.contains('open');
-      document.querySelectorAll<HTMLElement>('.fixed-loadout-dropdown.open').forEach((other) => {
-        if (other === dropdown) return;
-        other.classList.remove('open');
-        other.parentElement?.querySelector('button[data-loadout-toggle]')?.setAttribute('aria-expanded', 'false');
-      });
-      dropdown.classList.toggle('open', opening);
-      button.setAttribute('aria-expanded', String(opening));
-    });
-    button.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      dropdown.classList.remove('open');
-      button.setAttribute('aria-expanded', 'false');
-    });
-  });
+  bindSkillDropdowns(skillBar);
 
   // Apply changes from native loadout selects.
   skillBar.querySelectorAll('select[data-loadout-key]').forEach((select) => {
@@ -478,5 +389,27 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       loadout.updateBuild(app.build, key, value, context);
       app.changed();
     });
+  });
+}
+
+/** Every editable skill, pet and legend menu uses the same search and keyboard behavior. */
+function bindSkillDropdowns(root: HTMLElement): void {
+  root.querySelectorAll<HTMLElement>('.sbar-dropdown').forEach((menu) => {
+    const trigger = menu.parentElement!.querySelector<HTMLElement>('.sbar-icon')!;
+    trigger.setAttribute('aria-expanded', 'false');
+    bindDropdownSearch(
+      trigger,
+      menu,
+      '.dd-item',
+      () => {
+        root.querySelectorAll<HTMLElement>('.sbar-dropdown.open').forEach((other) => {
+          other.classList.remove('open');
+          other.parentElement?.querySelector('.sbar-icon')?.setAttribute('aria-expanded', 'false');
+        });
+        menu.classList.add('open');
+      },
+      () => menu.classList.remove('open'),
+      menu.dataset.searchLabel || 'Search skills'
+    );
   });
 }
