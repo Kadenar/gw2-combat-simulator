@@ -409,7 +409,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   });
   (panel.querySelector('[data-role="optimizer-cancel"]') as HTMLButtonElement).disabled = !runner.isRunning;
   (panel.querySelector('[data-role="optimizer-cancel"]') as HTMLButtonElement).hidden = !runner.isRunning;
-  (panel.querySelector('button[type="submit"]') as HTMLButtonElement).disabled = runner.isRunning;
+  // Optimization needs a rotation to compare gear damage.
+  (panel.querySelector('button[type="submit"]') as HTMLButtonElement).disabled =
+    runner.isRunning || !app.build.rotation.length;
   panel.querySelector<HTMLInputElement>('input[name="workers"]')!.disabled = runner.isRunning;
 }
 

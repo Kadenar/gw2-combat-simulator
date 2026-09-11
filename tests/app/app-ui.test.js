@@ -178,9 +178,7 @@ test('elite specialization changes preserve unique Warrior lines through persist
 
     selectSpecialization(app, line, 'Spellbreaker');
 
-    const expected = [...original];
-    expected[line] = { name: 'Spellbreaker', traits: '1-1-1' };
-    if (line !== 1) expected[1] = original[line];
+    const expected = [original[0], original[2], { name: 'Spellbreaker', traits: '1-1-1' }];
     assert.deepEqual(build.specializations, expected);
     assert.equal(new Set(build.specializations.map(({ name }) => name)).size, 3);
     assert.equal(
@@ -195,6 +193,35 @@ test('elite specialization changes preserve unique Warrior lines through persist
     assert.equal(changed, 1);
     selectSpecialization(app, line === 0 ? 2 : 0, 'Spellbreaker');
     assert.deepEqual(build.specializations, expected);
+    assert.equal(changed, 1);
+  }
+});
+
+// Selecting an elite from any core row moves it to the bottom without resetting the surviving core traits.
+test('selecting an elite shifts the remaining core lines above it', () => {
+  const original = [
+    { name: 'Damage', traits: '2-2-2' },
+    { name: 'Support', traits: '3-3-3' },
+    { name: 'Defense', traits: '2-3-1' }
+  ];
+  for (const line of [0, 1, 2]) {
+    let changed = 0;
+    const app = {
+      build: { specializations: structuredClone(original) },
+      specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }],
+      adapter: { eliteSpecialization: () => 'Elite' },
+      resourceDefinitions: () => [],
+      changed() {
+        changed += 1;
+      }
+    };
+
+    selectSpecialization(app, line, 'Elite');
+
+    assert.deepEqual(app.build.specializations, [
+      ...original.filter((_, index) => index !== line),
+      { name: 'Elite', traits: '1-1-1' }
+    ]);
     assert.equal(changed, 1);
   }
 });

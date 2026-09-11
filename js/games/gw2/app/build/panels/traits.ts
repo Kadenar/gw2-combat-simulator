@@ -17,7 +17,7 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
   }
 }
 
-/** Applies one picker choice while keeping specialization lines unique and limiting the build to one elite line. */
+/** Applies one picker choice while keeping lines unique and placing the sole elite line at the bottom. */
 export function selectSpecialization(app: ProfessionAppState, line: number, name: string): void {
   const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
   const current = app.build.specializations[line];
@@ -47,6 +47,8 @@ export function selectSpecialization(app: ProfessionAppState, line: number, name
         next[index] = replacement.name === current.name ? current : { name: replacement.name, traits: '1-1-1' };
       }
     }
+    // Shift the remaining lines up with their trait choices intact when the elite was selected above them.
+    next.push(...next.splice(line, 1));
   }
 
   app.build.specializations = next;
