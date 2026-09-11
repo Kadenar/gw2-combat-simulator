@@ -19,12 +19,12 @@ The adapters now leave missing setup unrecorded, share represented-action normal
 separately, and return the generic opener notice once. Animation decoding follows the pinned EI recording boundary,
 per-actor/per-skill pairing, 10 ms tolerance, unknown casts, status and acceleration semantics.
 
-The ordinary finder table contains 441 explicit descriptors. Custom animated finders, Ranger/Reaper spawn detection,
+The ordinary finder table contains explicit descriptors. Custom animated finders, Ranger/Reaper spawn detection,
 Engineer kit swaps and Chronomancer shatter checks are implemented separately. This is not a complete EI parity
 certification. Extension healing/barrier, missile and unported custom predicates are omitted; no generic catalog or
-damage guess replaces them. Mechanist Crash Down still requires its position/impact checker. Time-aware ownership
-changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently uses the header build,
-and encounter start/end use the documented adapter boundaries rather than EI encounter-specific logic.
+damage guess replaces them. Mechanist summon/recall skills are intentionally outside simulator scope. Time-aware
+ownership changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently uses the
+header build, and encounter start/end use the documented adapter boundaries rather than EI encounter-specific logic.
 
 The following pinned ordinary-finder declarations were excluded because their finder/checker family was unsupported by
 the ordinary table. Some have a separately implemented custom path described above; listing a declaration here does not
@@ -44,9 +44,8 @@ mean all evidence for its skill is absent. These are coverage exclusions, not re
   `Engineer.EngineerKitFinder(ToolKit),`, `Engineer.EngineerKitFinder(EliteMortarKit),`,
   `Engineer.DetonateThrowMineOrMineField`, `Engineer.DetonateMineField`, `Engineer.DetonateThrowMine`,
   `Engineer.AimAssistedRocket`, `Engineer.SurpriseShot`, `Holosmith.BladeBurstOrParticleAccelerator`,
-  `Holosmith.BladeBurst`, `Holosmith.ParticleAccelerator`,
-  `Mechanist.MinionSpawnCastFinder(CrashDown, (int)MinionID.JadeMech)  `, `Mechanist.CrisisZone`,
-  `Mechanist.RocketPunchMech`, `Mechanist.ExigencyProtocol`.
+  `Holosmith.BladeBurst`, `Holosmith.ParticleAccelerator`, `Mechanist.CrisisZone`, `Mechanist.RocketPunchMech`,
+  `Mechanist.ExigencyProtocol`.
 - **Guardian:** `Guardian.JudgesIntervention`, `Guardian.MercifulInterventionSkill`, `Guardian.Advance`,
   `Guardian.StandYourGround`, `Guardian.LesserSymbolOfBlades`, `Guardian.LesserSymbolOfBlades`,
   `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfProtection`,
