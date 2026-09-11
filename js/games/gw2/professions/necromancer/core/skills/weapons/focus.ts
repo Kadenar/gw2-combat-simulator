@@ -8,27 +8,10 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 1,
-        name: 'Spinal Shivers — Damage—Three Boons'
-      },
-      {
-        type: 'strike',
-        coefficient: 3.5,
-        hits: 1,
-        name: 'Spinal Shivers — Damage—Two Boons'
-      },
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        name: 'Spinal Shivers — Damage—One Boon'
-      },
-      {
-        type: 'strike',
+        // Use the zero-boon strike until target boon removal is simulated.
         coefficient: 2.5,
         hits: 1,
-        name: 'Spinal Shivers — Damage—No Boons'
+        name: 'Spinal Shivers'
       },
       {
         type: 'condition',

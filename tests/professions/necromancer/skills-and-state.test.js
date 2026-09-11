@@ -48,6 +48,32 @@ const applyNecromancerPatch = (patch) => applyBalanceProfilePatch(applySkillPatc
 
 const authoringNecromancerProfession = withActivePatchPreview(necromancerProfession);
 
+// The unsupported boon-removal variants must not add extra damage packets.
+test('Spinal Shivers emits one zero-boon strike and one Chill application', () => {
+  for (const boonless of [true, false]) {
+    const result = simulate('Core', ['Spinal Shivers'], {
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Focus',
+      target: { boonless }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      result.resolvedEvents
+        .filter((event) => event.type === 'damage' && event.skillId === ID.SPINAL_SHIVERS)
+        .map((event) => event.coefficient),
+      [2.5]
+    );
+    assert.deepEqual(
+      result.resolvedEvents
+        .filter(
+          (event) => event.type === 'condition' && event.skillId === ID.SPINAL_SHIVERS && event.condition === 'Chilled'
+        )
+        .map((event) => [event.stacks, event.duration]),
+      [[1, 5]]
+    );
+  }
+});
+
 // Each producer enters canonical condition resolution once, retaining its source and natural lifetime.
 test('Necromancer Chill producers retain duration scaling and chained trait attribution', () => {
   for (const [specialization, rotation, selectedTraitIds, skillName, sourceId, duration] of [
