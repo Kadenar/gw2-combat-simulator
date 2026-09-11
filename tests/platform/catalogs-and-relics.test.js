@@ -18,6 +18,7 @@ import {
   recordPassiveRelicTimeline
 } from '#gw2/platform/equipment/relics/query.js';
 import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
@@ -640,6 +641,51 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
     procSteps.filter(({ name }) => name === 'Relic of Nourys').map(({ at }) => at),
     [32, 67]
   );
+});
+
+// Recipient selection must gate Brawler before it grants damage or consumes its cooldown.
+test('Brawler requires player-cast Protection or Resolution that reaches the player', () => {
+  for (const kind of ['protection', 'resolution']) {
+    for (const [label, audience, actorType, activates] of [
+      ['ally-only', { recipients: 'party', affectsSelf: false }, 'player', false],
+      ['summon-only', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['pet'] }, 'player', false],
+      ['empty', { recipients: 'summons', affectsSelf: false }, 'player', false],
+      ['self', { recipients: 'self' }, 'player', true],
+      ['party including self', { recipients: 'party' }, 'player', true],
+      ['summon-cast party', { recipients: 'party' }, 'summon', false]
+    ]) {
+      const context = { relic: createRelicRuntime('Brawler'), recordProc() {} };
+      const event = {
+        type: 'buff',
+        kind,
+        at: 1,
+        duration: 2,
+        stacks: 1,
+        actorType,
+        audience
+      };
+      event.resolvedAudience = gw2BoonApplicationRecipients({ allies: { count: 1 } }, event);
+      invokeRelicHook(context, 'boon', event);
+      assert.equal(relicStrikeMultiplier(context, { at: 1.5, actorType: 'player' }), activates ? 1.1 : 1, label);
+      assert.deepEqual(
+        context.relic.state,
+        activates ? { readyAt: 9, buffUntil: 5 } : { readyAt: 0, buffUntil: 0 },
+        label
+      );
+
+      // A rejected application must leave the next qualifying self application ready to activate.
+      if (!activates) {
+        invokeRelicHook(context, 'boon', {
+          ...event,
+          at: 2,
+          actorType: 'player',
+          audience: { recipients: 'self' },
+          resolvedAudience: gw2BoonApplicationRecipients({}, { actorType: 'player', audience: { recipients: 'self' } })
+        });
+        assert.equal(relicStrikeMultiplier(context, { at: 2.5, actorType: 'player' }), 1.1, label);
+      }
+    }
+  }
 });
 
 test('Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD', () => {

@@ -479,9 +479,11 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     createState: () => ({ readyAt: 0, buffUntil: 0 }),
     boon(ctx, state, event) {
       const kind = String(event?.kind || '').toLowerCase();
+      // Player ownership is insufficient: the boon must reach the player to activate Brawler.
       if (
         (kind !== 'protection' && kind !== 'resolution') ||
         !isGw2PlayerActorEvent(event) ||
+        !event.resolvedAudience?.includesSelf ||
         !(Number(event.duration) > 0) ||
         !(Number(event.stacks ?? 1) > 0) ||
         !isInternalCooldownReady(event.at, state.readyAt)
