@@ -19,7 +19,7 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
 /**
  * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
  * the core resolver: refreshes Tempestuous Aria's damage window and queues the Invigorating
- * Torrents and Elemental Bastion boons, recording each trait that fired as a proc.
+ * Torrents and Elemental Bastion boons for resolver-owned auras, recording each trait that fired as a proc.
  */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Tempestuous Aria')) {
@@ -38,6 +38,9 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
 
     recordElementalistTraitProc(context, event, 'Tempestuous Aria');
   }
+
+  // Scheduled auras already carry their boon grants; Aria's resolver-owned window still updates above.
+  if (event.elementalistResolverGeneratedAura !== true && event.type !== 'aura') return;
 
   for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
     if (!hasTrait(context, trait)) continue;

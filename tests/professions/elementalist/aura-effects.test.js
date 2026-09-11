@@ -16,6 +16,7 @@ import { applyCatalystResolverAura } from '#gw2/professions/elementalist/special
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { runNative } from '../../helpers/elementalist-simulation.js';
 
 test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
   // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
@@ -133,7 +134,7 @@ test('Core and Tempest aura boons use patched effects and scale once in each pha
         queue: { enqueue: (output) => resolved.push(output) },
         recordProc: (_type, name) => procs.push(name)
       },
-      event
+      { ...event, elementalistResolverGeneratedAura: true }
     );
     for (const events of [scheduled, resolved]) {
       assert.deepEqual(
@@ -158,6 +159,41 @@ test('Core and Tempest aura boons use patched effects and scale once in each pha
     }
 
     assert.deepEqual(procs, schedule ? [] : [trait]);
+  }
+});
+
+test('one scheduled Tempest aura resolves each trait boon exactly once', () => {
+  // Count authoritative applications after both phases so duplicate grants cannot hide in separate phase tests.
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Tempest', '1-3-3']],
+    startAttunement: 'Water',
+    weapons: ['Dagger', 'Dagger'],
+    rotation: ['Frost Aura', 1000]
+  });
+  assert.deepEqual(result.warnings, []);
+  for (const kind of ['vigor', 'regeneration', 'alacrity']) {
+    assert.equal(result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === kind).length, 1, kind);
+  }
+});
+
+test('Tempest preserves aura damage windows and grants boons only for resolver-owned auras', () => {
+  // All aura origins refresh Aria, but scheduled auras already have their boon payloads.
+  for (const origin of [{}, { elementalistResolverGeneratedAura: true }, { type: 'aura' }]) {
+    const queued = [];
+    const context = {
+      traits: new Set(['Tempestuous Aria', 'Invigorating Torrents', 'Elemental Bastion']),
+      config: {},
+      query: { statsAt: () => ({ concentration: 0 }) },
+      boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
+      queue: { enqueue: (event) => queued.push(event) },
+      recordProc: () => {}
+    };
+    applyTempestResolverAura(context, { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin });
+    assert.equal(context.boons.get('tempestuous aria')[0].expiresAt, 8);
+    assert.deepEqual(
+      queued.map((event) => event.kind),
+      Object.keys(origin).length ? ['vigor', 'regeneration', 'alacrity'] : []
+    );
   }
 });
 
