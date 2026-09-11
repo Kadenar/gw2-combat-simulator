@@ -9,11 +9,12 @@
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
+  ProfessionSkillBarGroup,
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -105,6 +106,42 @@ function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotIte
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */
 export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  // Edit the build's familiar independently of attunement or a previous simulation's state.
+  skillBarGroups: (context: SchedulerRecord): ProfessionSkillBarGroup[] => {
+    const element = selectedElement({ build: context.build });
+    const catalog = context.catalog as Readonly<CanonicalCatalog> | undefined;
+    return [
+      {
+        id: 'elementalist-evoker-familiar-selection',
+        label: `${element} Familiar`,
+        skillIds: [],
+        selections: [
+          {
+            selectionKey: 'evokerElement',
+            selectionIndex: 0,
+            selectionValue: element,
+            optionEntries: ELEMENTALIST_ATTUNEMENTS.map((value) => {
+              const skill = catalog?.skillsById.get(ELEMENTALIST_FAMILIAR_SKILL_IDS[FAMILIAR_SKILL_NAMES[value].basic]);
+              return { value, label: `${value} Familiar`, icon: skill?.icon, description: skill?.description };
+            })
+          }
+        ]
+      }
+    ];
+  },
+  // Only valid familiar choices may update the persisted element used by the palette and simulation.
+  updateSkillBarSelection: (context: SchedulerRecord, selection: SchedulerRecord): boolean => {
+    const build = context.build as SchedulerRecord | undefined;
+    if (
+      !build ||
+      selection.key !== 'evokerElement' ||
+      selection.index !== 0 ||
+      !ELEMENTALIST_ATTUNEMENTS.includes(selection.value as ElementalistAttunement)
+    )
+      return false;
+    build.evokerElement = selection.value;
+    return true;
+  },
   paletteSkillAvailability: familiarPaletteAvailability,
   rotationStateSnapshot: evokerStateSnapshot,
   paletteGroups: (context: SchedulerRecord) => {

@@ -457,15 +457,15 @@ test('both weapon sets keep their own stats and sigils when switching handedness
 });
 
 // Profession selectors share the desktop skill strip and wrap below it on phones.
-test('Amalgam and Ranger selectors stay compact beside skills and wrap on phones', async ({ page }) => {
-  for (const profession of ['engineer', 'ranger']) {
+test('profession selectors stay compact beside skills and wrap on phones', async ({ page }) => {
+  for (const profession of ['engineer', 'ranger', 'elementalist']) {
     await page.setViewportSize({ width: 1800, height: 1100 });
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    if (profession === 'engineer') {
+    if (profession === 'engineer' || profession === 'elementalist') {
       const picker = page.locator('.spec-picker').last();
       await picker.locator('summary').click();
-      await picker.getByRole('button', { name: 'Amalgam', exact: true }).click();
+      await picker.getByRole('button', { name: profession === 'engineer' ? 'Amalgam' : 'Evoker', exact: true }).click();
     }
 
     const selections = page.locator('.profession-build-selections');
@@ -497,6 +497,35 @@ test('Amalgam and Ranger selectors stay compact beside skills and wrap on phones
     expect(narrowSelections.y).toBeGreaterThanOrEqual(narrowSkills.y + narrowSkills.height);
     expect(narrowSelections.x + narrowSelections.width).toBeLessThanOrEqual(390);
   }
+});
+
+// The visible familiar selector drives F5 and survives reloading the saved build.
+test('Evoker familiar selection updates Skills and the rotation palette', async ({ page }) => {
+  await page.goto('/elementalist.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const picker = page.locator('.spec-picker').last();
+  await picker.locator('summary').click();
+  await picker.getByRole('button', { name: 'Evoker', exact: true }).click();
+  const selector = page.locator('#skill-bar [data-selection-key="evokerElement"]');
+  for (const [element, skill] of [
+    ['Air', 'Zap'],
+    ['Water', 'Splash'],
+    ['Earth', 'Calcify'],
+    ['Fire', 'Ignite']
+  ]) {
+    await selector.locator('.sbar-icon').click();
+    await selector.locator(`[data-selection-value="${element}"]`).click();
+    expect(await page.evaluate(() => window.professionApp.build.evokerElement)).toBe(element);
+    await expect(page.locator('#skill-bar .skill-bar-inspection-label')).toHaveText(`${element} Familiar`);
+    await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${skill}"]`)).toBeVisible();
+  }
+
+  await selector.locator('.sbar-icon').click();
+  await selector.locator('[data-selection-value="Air"]').click();
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  expect(await page.evaluate(() => window.professionApp.build.evokerElement)).toBe('Air');
+  await expect(page.locator('#skill-bar .skill-bar-inspection-label')).toHaveText('Air Familiar');
 });
 
 // The same workspace must fit desktop and phone widths for every profession's skill controls.

@@ -779,6 +779,36 @@ test('Evoker derives F5 from the selected familiar', () => {
   );
 });
 
+// Familiar edits must use build state, reject invalid choices, and remain scoped to Evoker.
+test('Evoker skill selections update the configured familiar independently of simulated state', () => {
+  const build = { evokerElement: 'Fire', startAttunement: 'Water' };
+  const context = {
+    build,
+    specialization: 'Evoker',
+    professionState: { element: 'Earth', empowered: 3 },
+    catalog: elementalistCatalog
+  };
+  const ui = elementalistProfession.ui;
+  const selection = { key: 'evokerElement', index: 0, value: 'Air' };
+  assert.equal(ui.skillBarGroups(context)[0].selections[0].selectionValue, 'Fire');
+  for (const value of ['Fire', 'Water', 'Air', 'Earth']) {
+    assert.equal(ui.updateSkillBarSelection(context, { ...selection, value }), true);
+    assert.equal(build.evokerElement, value);
+    assert.equal(ui.skillBarGroups(context)[0].selections[0].selectionValue, value);
+  }
+
+  for (const invalid of [{ value: 'Void' }, { index: 1 }, { key: 'startAttunement' }]) {
+    assert.equal(ui.updateSkillBarSelection(context, { ...selection, ...invalid }), false);
+    assert.equal(build.evokerElement, 'Earth');
+  }
+
+  assert.equal(build.startAttunement, 'Water');
+  for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst']) {
+    assert.deepEqual(ui.skillBarGroups({ ...context, specialization }), []);
+    assert.equal(ui.updateSkillBarSelection({ ...context, specialization }, selection), false);
+  }
+});
+
 test('Evoker familiar palette availability follows current charges', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
