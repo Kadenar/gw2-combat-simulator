@@ -648,6 +648,87 @@ test('Spear etchings upgrade after three other casts', () => {
   assert.equal(result.endState.profession.etchings['Etching: Volcano'], null);
 });
 
+test('Spear etchings expire at the field boundary and cannot charge afterward', () => {
+  // Exercise expiry through the scheduler so both payoff gates and the palette see the cleared state.
+  for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
+    const root = [...elementalistCatalog.skillsById.values()].find(
+      (skill) => skill.name.startsWith('Etching:') && skill.attunement === attunement
+    );
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Arcane']],
+      rotation: [root.name, Number(root.comboFields[0].duration) * 1000],
+      startAttunement: attunement,
+      weapons: ['Spear', '']
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.etchings[root.name], null, root.name);
+    assert.ok(
+      elementalistProfession.ui
+        .paletteWeaponSkills({ build: { weapons: ['Spear', ''] }, professionState: result.endState.profession }, [root])
+        .includes(root)
+    );
+  }
+
+  for (const rotation of [
+    ['Etching: Volcano', 10000, 'Flame Spear', 'Seethe', 'Blazing Barrage', 'Volcano'],
+    ['Etching: Volcano', 7000, 'Lesser Volcano'],
+    ['Etching: Volcano', 'Flame Spear', 'Seethe', 'Blazing Barrage', 7000, 'Volcano']
+  ]) {
+    const result = runNative({ lines: [['Fire'], ['Air'], ['Arcane']], rotation, weapons: ['Spear', ''] });
+    assert.equal(result.endState.profession.etchings['Etching: Volcano'], null);
+    assert.equal(
+      result.events.some((event) => event.type === 'action' && ['Volcano', 'Lesser Volcano'].includes(event.skillName)),
+      false
+    );
+    assert.ok(result.warnings.some((warning) => warning.includes('Volcano')));
+  }
+
+  const renewed = runNative({
+    lines: [['Fire'], ['Air'], ['Arcane']],
+    rotation: ['Etching: Volcano', 10000, 'Etching: Volcano', 'Flame Spear', 'Seethe', 'Blazing Barrage', 'Volcano'],
+    weapons: ['Spear', '']
+  });
+  assert.deepEqual(renewed.warnings, []);
+  assert.ok(renewed.events.some((event) => event.type === 'action' && event.skillName === 'Volcano'));
+});
+
+test('Tempest overloads retain their full etching charge only within the active field', () => {
+  // The extra overload charges must survive the expiry fix without extending or reviving the field.
+  for (const [attunement, etching, payoff] of [
+    ['Fire', 'Etching: Volcano', 'Volcano'],
+    ['Air', 'Etching: Derecho', 'Derecho'],
+    ['Earth', 'Etching: Haboob', 'Haboob']
+  ]) {
+    for (const wait of [0, 10000]) {
+      const result = runNative({
+        lines: [['Fire'], ['Air'], ['Tempest']],
+        rotation: [etching, wait, `Overload ${attunement}`, payoff],
+        startAttunement: attunement,
+        weapons: ['Spear', '']
+      });
+      assert.equal(
+        result.events.some((event) => event.type === 'action' && event.skillName === payoff),
+        wait === 0,
+        `${attunement} overload after ${wait} ms`
+      );
+      if (wait === 0) assert.deepEqual(result.warnings, []);
+      else assert.ok(result.warnings.some((warning) => warning.includes(payoff)));
+    }
+
+    const expired = runNative({
+      lines: [['Fire'], ['Air'], ['Tempest']],
+      rotation: [etching, `Overload ${attunement}`, 7000, payoff],
+      startAttunement: attunement,
+      weapons: ['Spear', '']
+    });
+    assert.equal(expired.endState.profession.etchings[etching], null);
+    assert.equal(
+      expired.events.some((event) => event.type === 'action' && event.skillName === payoff),
+      false
+    );
+  }
+});
+
 test('Spear etching stages replace one another in the weapon palette', () => {
   const family = ['Etching: Volcano', 'Lesser Volcano', 'Volcano'].map((name) =>
     elementalistCatalog.skillsByName.get(name)

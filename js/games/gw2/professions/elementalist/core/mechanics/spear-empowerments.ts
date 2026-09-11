@@ -17,7 +17,12 @@ export function beginElementalistSpearCast(context: ElementalistCastContext, ski
   const state = professionCoreState(context);
   const chain = etchingChain(skill.id);
   if (chain && Number(skill.id) === chain.etchingId && skillWeapon(skill) === 'Spear') {
-    state.etchings[chain.etching] = { stage: 'lesser', otherCasts: 0 };
+    // Etching flips share the authored field lifetime, starting when the field appears at cast completion.
+    state.etchings[chain.etching] = {
+      stage: 'lesser',
+      otherCasts: 0,
+      expiresAt: context.effectiveEnd + Number(skill.comboFields?.[0]?.duration ?? 0)
+    };
   }
 
   if (skillWeapon(skill) !== 'Spear' || String(skill.slot || '') === 'Weapon_1') return;
@@ -86,6 +91,7 @@ export function completeElementalistSpearProgression(context: ElementalistCastCo
     if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;
     const otherCasts = progress.otherCasts + 1;
     state.etchings[candidate.etching] = {
+      ...progress,
       stage:
         otherCasts >= balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks', 3)
           ? 'full'

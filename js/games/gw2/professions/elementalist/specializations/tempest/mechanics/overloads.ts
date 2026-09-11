@@ -287,7 +287,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     for (const [name, progress] of Object.entries(state.etchings)) {
       if (!progress || progress.stage !== 'lesser') continue;
       const otherCasts = progress.otherCasts + 2;
-      state.etchings[name] = { stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
+      state.etchings[name] = { ...progress, stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
     }
   }
 }

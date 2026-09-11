@@ -79,7 +79,7 @@ export interface ElementalistCoreState {
   hammerOrbs: Record<ElementalistAttunement, number | null>;
   hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
   hammerOrbLastCastAt: number;
-  etchings: Record<string, { stage: 'lesser' | 'full'; otherCasts: number } | null>;
+  etchings: Record<string, { stage: 'lesser' | 'full'; otherCasts: number; expiresAt: number } | null>;
   rockBarrierExpiresAt: number;
   spearNextDamageBonus: boolean;
   spearNextRechargeReduction: boolean;

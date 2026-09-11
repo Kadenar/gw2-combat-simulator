@@ -29,6 +29,11 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   const state = professionCoreState(context);
   updateEndurance(context, state, at);
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
+  // Clear expired etchings before casts advance their charge or read their payoff/palette stage.
+  for (const [name, progress] of Object.entries(state.etchings)) {
+    if (progress && progress.expiresAt <= at) state.etchings[name] = null;
+  }
+
   // Expire hammer orbs together with the metadata Grand Finale reads from them.
   for (const element of ELEMENTALIST_ATTUNEMENTS) {
     if (Number(state.hammerOrbs[element] || 0) < at) {
