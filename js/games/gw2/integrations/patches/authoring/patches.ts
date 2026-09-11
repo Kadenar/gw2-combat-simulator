@@ -457,6 +457,60 @@ function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
   return effects;
 }
 
+/** Resolves saved selectors and stacked shorthands to guarded coordinates that the editor can replace independently. */
+export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit: SkillPatchEdit): SkillPatchEdit {
+  const normalized = { ...edit };
+  if (edit.cooldown != null) normalized.fields = { ...edit.fields, cooldown: edit.cooldown };
+  delete normalized.cooldown;
+  delete normalized.coefficient;
+  delete normalized.conditions;
+  delete normalized.boons;
+  delete normalized.effects;
+
+  const liveEffects = source.effects || [];
+  const patchedEffects = structuredClone(liveEffects);
+  for (const patch of shorthandEffects(edit)) {
+    for (const { index, effect } of selectedEffects(patchedEffects, patch, source.name)) {
+      patchEffect(effect, patch, `${source.name}.effects[${index}]`);
+    }
+  }
+
+  const effects: EffectPatch[] = [];
+  const recordChanges = (live: MutableRecord, patched: MutableRecord, selector: EffectPatch): void => {
+    const changes: MutableRecord = {};
+    for (const field of EFFECT_NUMERIC_FIELDS) {
+      if (typeof live[field] === 'number' && live[field] !== patched[field]) {
+        changes[field] = { from: live[field], to: patched[field] };
+      }
+    }
+
+    if (Object.keys(changes).length || selector.audience) effects.push({ ...selector, ...changes });
+  };
+
+  for (const [effectIndex, live] of liveEffects.entries()) {
+    const patched = patchedEffects[effectIndex];
+    const from = live.audience?.maximumRecipients;
+    const to = patched.audience?.maximumRecipients;
+    const selector: EffectPatch = {
+      effectIndex,
+      ...(from !== to && from != null && to != null ? { audience: { maximumRecipients: { from, to } } } : {})
+    };
+    recordChanges(live as unknown as MutableRecord, patched as unknown as MutableRecord, selector);
+    for (const [tickIndex, tick] of (effectTicks(live) || []).entries()) {
+      recordChanges(tick, effectTicks(patched)![tickIndex], { effectIndex, tickIndex });
+    }
+  }
+
+  if (effects.length) normalized.effects = effects;
+  if (edit.removeEffects) {
+    normalized.removeEffects = edit.removeEffects.flatMap((selector) =>
+      selectedEffects(patchedEffects, selector, source.name).map(({ index }) => ({ effectIndex: index }))
+    );
+  }
+
+  return normalized;
+}
+
 /** Produces an immutable patched skill without mutating the live catalog record. */
 function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   const clone = structuredClone(skill) as Skill;

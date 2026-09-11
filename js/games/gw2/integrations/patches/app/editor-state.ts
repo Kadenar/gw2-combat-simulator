@@ -3,7 +3,13 @@ import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringModule
 } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { EffectSelector, PatchOverviewEntry, PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import {
+  normalizeAuthoringSkillEdit,
+  type EffectSelector,
+  type PatchOverviewEntry,
+  type PatchPreview,
+  type SkillPatchEdit
+} from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createEffectTemplate,
   createPatchPreviewDraft,
@@ -66,10 +72,36 @@ export function setEditorStatus(status: string, statusKind: AuthoringStatusKind)
   editorState.statusKind = statusKind;
 }
 
+/** Canonicalizes accepted saved edits against live metadata so rendering and subsequent edits share runtime semantics. */
+function editableDraft(preview: PatchPreview, professions: readonly NativePatchAuthoringMetadata[]): PatchPreview {
+  const draft = structuredClone(preview);
+  for (const profession of professions) {
+    const patch = draft.professions?.[profession.professionId];
+    if (!patch) continue;
+    const skills = profession.modules.flatMap((module) => module.skills.map((entry) => entry.skill));
+    const profiles = profession.modules.flatMap((module) =>
+      [...module.balanceProfiles, ...module.skillVariants].map((entry) => entry.profile)
+    );
+    for (const section of ['skills', 'balanceProfiles'] as const) {
+      const edits = patch[section] as Record<string, SkillPatchEdit> | undefined;
+      const sources = section === 'skills' ? skills : profiles;
+      for (const [key, edit] of Object.entries(edits || {})) {
+        const source = sources.find((entry) => String(entry.id) === key) || sources.find((entry) => entry.name === key);
+        if (!source) continue;
+        delete edits![key];
+        edits![String(source.id)] = normalizeAuthoringSkillEdit(source, edit);
+      }
+    }
+  }
+
+  return draft;
+}
+
 /** Replaces the editor session with freshly loaded metadata and its active preview. */
 export function loadEditorPayload(payload: AuthoringPayload): void {
+  const draft = editableDraft(payload.preview || createPatchPreviewDraft(), payload.professions);
   editorState.payload = payload;
-  editorState.draft = structuredClone(payload.preview || createPatchPreviewDraft());
+  editorState.draft = draft;
   editorState.selectedProfessionId =
     Object.keys(editorState.draft.professions || {})[0] || payload.professions[0]?.professionId || '';
   editorState.selectedModuleId = 'Core';
@@ -81,7 +113,7 @@ export function loadEditorPayload(payload: AuthoringPayload): void {
 
 /** Accepts the server-validated preview as the new clean editing baseline. */
 export function acceptSavedDraft(preview: PatchPreview): void {
-  editorState.draft = structuredClone(preview);
+  editorState.draft = editableDraft(preview, editorState.payload?.professions || []);
   editorState.dirty = false;
 }
 

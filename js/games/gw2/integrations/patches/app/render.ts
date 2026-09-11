@@ -367,7 +367,7 @@ function skillDetail(
                   id: skill.id.toString(),
                   field,
                   current,
-                  edit: edit?.fields?.[field] || (field === 'cooldown' ? edit?.cooldown : undefined)
+                  edit: edit?.fields?.[field]
                 })
               )
               .join('')
