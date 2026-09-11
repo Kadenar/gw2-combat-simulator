@@ -196,6 +196,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
 
   changed(rebuildStatic = true, rebuildGear = rebuildStatic, options: ProfessionChangeOptions = {}): void {
     this.initialRenderGeneration += 1;
+    // A drag started on the prior timeline must not carry its source index into a later render.
+    this.dragState = null;
     const revision = this.prepareSimulationState();
     // Shared build/config changes invalidate the pinned result; rotation-only edits keep it reusable.
     if (this.rotationComparison?.referenceRotation.length && rebuildStatic) {

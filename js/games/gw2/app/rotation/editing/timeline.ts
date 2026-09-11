@@ -30,6 +30,7 @@ function timelineFullCastMs(
 }
 
 // Waits keep free millisecond durations; concurrent offsets use the activation editor's GW2 action-tick validation.
+// Each editor also checks command identity on Apply because an open popover can outlive its captured index.
 function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
@@ -49,7 +50,7 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
     value: Number(item.durationMs) || 1,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
-      if (currentEntry === undefined) return;
+      if (currentEntry !== entry) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         durationMs
       });
@@ -82,7 +83,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
     currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
     onApply(releaseAtCharges) {
       const currentEntry = app.build.rotation[index];
-      if (currentEntry === undefined) return;
+      if (currentEntry !== entry) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         releaseAtCharges
       });
@@ -138,7 +139,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     offTarget: item.offTarget === true,
     onApply(timingMs, offTarget) {
       const currentEntry = app.build.rotation[index];
-      if (currentEntry === undefined) return;
+      if (currentEntry !== entry) return;
       // Timing and targeting belong to the same cast command, so the pencil editor updates both together.
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         ...(behavior === 'concurrent'
@@ -173,7 +174,7 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
     outcome: item.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success',
     onApply(outcome) {
       const currentEntry = app.build.rotation[index];
-      if (currentEntry === undefined) return;
+      if (currentEntry !== entry) return;
       app.build.rotation[index] = updateRotationEntry(currentEntry, {
         doubleEdgeOutcome: outcome
       });
@@ -183,10 +184,12 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
   return false;
 }
 
-/** Connects timeline controls to rotation edits while keeping rendering free of mutations. */
+/** Binds edits to the rendered build revision so retained cards cannot mutate shifted command indexes. */
 export function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractionOptions {
+  const revision = app.buildRevision;
   return {
     rotation: app.build.rotation,
+    canInteract: () => app.buildRevision === revision,
     getDragState: () => app.dragState,
     setDragState: (value) => {
       app.dragState = value;

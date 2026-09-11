@@ -118,6 +118,7 @@ export interface TimelineRenderOptions {
 
 export function renderTimeline(app: ProfessionAppState, options: TimelineRenderOptions = {}): void {
   const readOnly = options.readOnly === true;
+  const interactionOptions = timelineInteractionOptions(app);
   const build = options.build || app.build;
   const rotation = build.rotation;
   const resultIsExplicit = Object.hasOwn(options, 'result');
@@ -187,6 +188,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
         insertionIndex: app.rotationInsertionIndex,
         rotationLength: 0,
         onSelect(index) {
+          if (!interactionOptions.canInteract?.()) return;
           app.rotationInsertionIndex = index;
           renderPalette(app);
           renderTimeline(app);
@@ -194,6 +196,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
           renderRotationComparison(app);
         },
         onClear() {
+          if (!interactionOptions.canInteract?.()) return;
           app.rotationInsertionIndex = null;
           renderPalette(app);
           renderTimeline(app);
@@ -201,7 +204,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
           renderRotationComparison(app);
         }
       });
-      bindTimelineInteractions(element, timelineInteractionOptions(app));
+      bindTimelineInteractions(element, interactionOptions);
     }
 
     return;
@@ -230,6 +233,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
       insertionIndex: app.rotationInsertionIndex,
       rotationLength: rotation.length,
       onSelect(index) {
+        if (!interactionOptions.canInteract?.()) return;
         app.rotationInsertionIndex = index;
         renderPalette(app);
         renderTimeline(app);
@@ -237,6 +241,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
         renderRotationComparison(app);
       },
       onClear() {
+        if (!interactionOptions.canInteract?.()) return;
         app.rotationInsertionIndex = null;
         renderPalette(app);
         renderTimeline(app);
@@ -336,6 +341,6 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     applyProcHighlight();
   }
 
-  if (!readOnly) bindTimelineInteractions(element, timelineInteractionOptions(app));
+  if (!readOnly) bindTimelineInteractions(element, interactionOptions);
   applyTimelinePreviewHighlight(element, results, options.previewTimeMs);
 }

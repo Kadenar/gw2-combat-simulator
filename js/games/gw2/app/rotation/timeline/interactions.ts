@@ -10,6 +10,8 @@ export interface RotationDragState extends SchedulerRecord {
 
 export interface TimelineInteractionOptions {
   readonly rotation: RotationCommand[];
+  /** Rejects indexed gestures when retained DOM belongs to an older build. */
+  readonly canInteract?: () => boolean;
   readonly getDragState: () => RotationDragState | null | undefined;
   readonly setDragState: (value: RotationDragState | null) => void;
   /** Applies a timeline drag through the application-owned rotation editing layer. */
@@ -73,6 +75,7 @@ export function bindTimelineInteractions(
   const rotation = options.rotation || [];
   const getDragState = options.getDragState || (() => null);
   const setDragState = options.setDragState || (() => {});
+  const canInteract = options.canInteract || (() => true);
   const changed = (): void => {
     options.onChanged?.();
   };
@@ -81,6 +84,7 @@ export function bindTimelineInteractions(
     const drag = getDragState();
     if (!drag) return false;
     setDragState(null);
+    if (!canInteract()) return false;
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index ?? drag.idx);
       if (!options.moveEntry(fromIndex, insertAt)) return false;
@@ -125,7 +129,7 @@ export function bindTimelineInteractions(
       remove.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (!Number.isInteger(index)) return;
+        if (!canInteract() || !Number.isInteger(index)) return;
         if (event.shiftKey) {
           // Shift-remove is the fast "truncate rotation here" gesture.
           if (!options.onTruncate) return;
@@ -154,7 +158,7 @@ export function bindTimelineInteractions(
     }
 
     item.ondragstart = (event) => {
-      if (!Number.isInteger(index)) {
+      if (!canInteract() || !Number.isInteger(index)) {
         event.preventDefault();
         return;
       }
@@ -167,7 +171,7 @@ export function bindTimelineInteractions(
 
     item.ondragend = () => cleanup(item);
     item.ondragover = (event) => {
-      if (!getDragState()) return;
+      if (!canInteract() || !getDragState()) return;
       event.preventDefault();
       clearTimelineDropIndicators(root);
       updateSkillDropIndicator(item, event.clientX);
@@ -193,7 +197,7 @@ export function bindTimelineInteractions(
       // Skill elements own midpoint insertion. Row background drops use the
       // row's precomputed insertion boundary.
       const target = event.target instanceof Element ? event.target : null;
-      if (!getDragState() || target?.closest('.rot-skill')) return;
+      if (!canInteract() || !getDragState() || target?.closest('.rot-skill')) return;
       event.preventDefault();
       clearTimelineDropIndicators(root);
       row.classList.add('drag-over');
@@ -217,7 +221,7 @@ export function bindTimelineInteractions(
   root.ondragover = (event) => {
     // The root is the empty-space fallback and always appends.
     const target = event.target instanceof Element ? event.target : null;
-    if (!getDragState() || target?.closest('.rot-row-skills')) return;
+    if (!canInteract() || !getDragState() || target?.closest('.rot-row-skills')) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
     root.classList.add('drag-over-empty');
@@ -241,7 +245,7 @@ export function bindTimelineInteractions(
       badge.onclick = (event) => {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
-        if (!Number.isInteger(index)) return;
+        if (!canInteract() || !Number.isInteger(index)) return;
         // Returning false means the editor cancelled and no rerender is needed.
         if (callback(index, event) !== false) changed();
       };
