@@ -586,6 +586,50 @@ test('Dragonhunter relic boosts the triggering trap hit and expires for later at
   }
 });
 
+for (const [name, primaryWeapon, traitId] of [
+  ['Purging Flames', 'Mace', GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS],
+  ['Symbol of Faith', 'Mace', GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE]
+]) {
+  test(`${name} only creates trait field extensions after commitment`, () => {
+    // A single cast isolates cancellation from the later damage, conditions, and fields its trait adds.
+    const simulate = (selectedTraitIds, interruptMs) =>
+      simulateGw2({
+        profession: guardianProfession,
+        rotation: [
+          { name, ...(interruptMs == null ? {} : { interruptMs }) },
+          { type: 'wait', durationMs: 9000 }
+        ],
+        config: { ...config, primaryWeapon, selectedTraitIds }
+      });
+    const baseline = simulate([]);
+    const committed = simulate([traitId]);
+    const cancelled = simulate([traitId], 0);
+    const packets = (result, type) => result.events.filter((event) => event.skillName === name && event.type === type);
+
+    for (const result of [baseline, committed, cancelled]) assert.deepEqual(result.warnings, []);
+    assert.equal(packets(cancelled, 'action')[0].cancelled, true);
+    assert.equal(Boolean(packets(committed, 'action')[0].cancelled), false);
+    for (const type of ['damage', 'condition', 'combo_field']) assert.deepEqual(packets(cancelled, type), []);
+
+    const lastBaseStrike = Math.max(...packets(baseline, 'damage').map((event) => event.at));
+    assert.ok(Number.isFinite(lastBaseStrike));
+    assert.ok(packets(committed, 'damage').some((event) => event.at > lastBaseStrike));
+    if (name === 'Purging Flames') {
+      assert.ok(
+        packets(committed, 'action')[0].comboFields[0].duration > packets(baseline, 'action')[0].comboFields[0].duration
+      );
+      assert.ok(
+        packets(committed, 'condition').some((event) => event.condition === 'Burning' && event.at > lastBaseStrike)
+      );
+    } else {
+      assert.ok(
+        Math.max(...packets(committed, 'combo_field').map((event) => event.expiresAt)) >
+          Math.max(...packets(baseline, 'combo_field').map((event) => event.expiresAt))
+      );
+    }
+  });
+}
+
 test('Glacial Heart and Master of Consecrations replace their numeric effects', () => {
   const glacial = simulateGw2({
     profession: guardianProfession,

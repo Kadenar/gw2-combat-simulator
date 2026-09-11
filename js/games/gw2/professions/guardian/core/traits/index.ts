@@ -46,6 +46,9 @@ export { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill, handleRight
 
 /** Preserves Core Guardian's mixed trait and base-skill execution order behind one public dispatcher. */
 export function updateGuardianTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
+  // Only committed casts create trait effects; other lifecycle hooks still handle cancelled attempts.
+  if (context.action.cancelled) return;
+
   const at = context.effectiveEnd;
   applyWritOfPersistence(context, skill);
 
