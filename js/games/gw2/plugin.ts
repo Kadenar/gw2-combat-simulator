@@ -11,11 +11,15 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
     import('#gw2/app/profession-app.js'),
     entry.loadAppAdapter()
   ]);
+  // Report the real data-to-render transition and keep unfinished controls out of keyboard navigation.
+  const loadingStatus = root.getElementById('loading-status');
+  if (loadingStatus) loadingStatus.textContent = 'Preparing your build workspace…';
   const app = new ProfessionApp(adapter);
   const globalScope = (root.defaultView || window) as unknown as Record<string, unknown>;
   globalScope.professionApp = app;
   if (adapter.globalName) globalScope[adapter.globalName] = app;
   await app.init();
+  root.getElementById('app')?.removeAttribute('inert');
   return app;
 }
 

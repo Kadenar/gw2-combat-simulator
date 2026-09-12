@@ -34,7 +34,7 @@ export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'sk
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
-  readonly placement: 'profession' | 'weapon-set-1' | 'active-weapon';
+  readonly placement: 'profession' | 'weapon-set-1' | 'active-weapon' | 'utility';
   readonly weaponRowLabel: string;
   readonly resourceAnchor: boolean;
   readonly resourceIds: readonly string[];
@@ -68,7 +68,9 @@ export function paletteView(profession: ProfessionAppContract, context: Schedule
     className: String(group.className || ''),
     stackId: String(group.stackId || ''),
     placement:
-      group.placement === 'weapon-set-1' || group.placement === 'active-weapon' ? group.placement : 'profession',
+      group.placement === 'weapon-set-1' || group.placement === 'active-weapon' || group.placement === 'utility'
+        ? group.placement
+        : 'profession',
     weaponRowLabel: String(group.weaponRowLabel || ''),
     resourceAnchor: Boolean(group.resourceAnchor),
     resourceIds: (group.resourceIds || []).map(String),

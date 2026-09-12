@@ -259,8 +259,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
       ? `<div class="utility-palette-group loadout-utility-palette-group"
             data-role="loadout-utility-palette-group">${loadoutStack}</div>`
       : '';
-  // A group either stays in the profession section, follows weapon set one,
-  // or sits beside the currently active weapon row.
+  // Place each profession-owned group beside its declared palette surface.
   const weaponSetOneProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'weapon-set-1');
   const activeWeaponProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'active-weapon');
   const standardProfessionGroups = renderedProfessionGroups.filter(
@@ -318,7 +317,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
           data-role="profession-palette-section">${professionPaletteContent}</div>`
     : '';
 
-  const utilityGroupHtml = addGroup(
+  const utilitySkillsHtml = addGroup(
     app,
     'Skill',
     selectedWithFlips,
@@ -331,6 +330,11 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     '',
     professionPaletteRetryAt
   );
+  // Stack conjure bars and their controls below utilities, preserving the utility column on every layout.
+  const utilityProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'utility');
+  const utilityGroupHtml = utilityProfessionGroups.length
+    ? `<div class="profession-palette-stack utility-palette-group" data-role="utility-palette-stack">${utilitySkillsHtml}${utilityProfessionGroups.map(renderProfessionGroup).join('')}</div>`
+    : utilitySkillsHtml;
 
   const paletteWeaponSkills = (skills: readonly Skill[], context: SchedulerRecord = {}): Skill[] =>
     app.profession.ui.paletteWeaponSkills({ ...paletteContext, ...context }, skills);

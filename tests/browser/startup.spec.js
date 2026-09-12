@@ -2,6 +2,53 @@ import { expect, test } from '@playwright/test';
 
 const moduleUrl = '**/js/games/gw2/professions/engineer/app/app-definition.ts*';
 
+// Hold real startup dependencies so loading, reduced motion, and the handoff can be checked without artificial delays.
+test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }, testInfo) => {
+  let releaseModule;
+  let releaseTemplates;
+  const moduleReady = new Promise((resolve) => (releaseModule = resolve));
+  const templatesReady = new Promise((resolve) => (releaseTemplates = resolve));
+  await page.route(moduleUrl, async (route) => {
+    await moduleReady;
+    await route.continue();
+  });
+  await page.route('**/data/gw2/builds/engineer/manifest.json', async (route) => {
+    await templatesReady;
+    await route.continue();
+  });
+  try {
+    await page.goto('/engineer.html?embed=1', { waitUntil: 'domcontentloaded' });
+    const overlay = page.locator('#loading-overlay');
+    await expect(overlay).toBeVisible();
+    await expect(overlay.getByRole('status')).toHaveText('Loading Engineer data…');
+    await expect(page.locator('#app')).toHaveAttribute('inert', '');
+    const slot = overlay.locator('.loader-skill-bar > span').first();
+    await expect(slot).toHaveCSS('animation-name', 'loader-skill-reveal');
+    await expect
+      .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
+      .toBeGreaterThan(0);
+    await page.screenshot({ path: testInfo.outputPath('loading-desktop.png') });
+
+    await page.setViewportSize({ width: 320, height: 568 });
+    const preview = await overlay.locator('.loader-preview').boundingBox();
+    expect(preview.x).toBeGreaterThanOrEqual(0);
+    expect(preview.x + preview.width).toBeLessThanOrEqual(320);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(slot).toHaveCSS('animation-name', 'none');
+    await page.screenshot({ path: testInfo.outputPath('loading-mobile.png') });
+
+    releaseModule();
+    await expect(overlay.getByRole('status')).toHaveText('Preparing your build workspace…');
+    releaseTemplates();
+    await expect(overlay).toBeHidden();
+    await expect(page.locator('#app')).not.toHaveAttribute('inert');
+    await expect(page.locator('#build-workspace-tabs')).toBeVisible();
+  } finally {
+    releaseModule();
+    releaseTemplates();
+  }
+});
+
 // Persistent failures stop after one automatic reload and leave keyboard-accessible manual recovery.
 test('startup retries once before showing an error and manual reload recovers', async ({ page }) => {
   const pageErrors = [];

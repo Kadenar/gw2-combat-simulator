@@ -14,13 +14,33 @@
     class="{{profession-id}}-theme{{loadout-theme}}"
   >
     <div id="loading-overlay">
-      <div class="loader-content">
-        <div class="spinner"></div>
-        <div>Loading {{profession-name}} data…</div>
+      <!-- Static markup paints before game modules arrive; the decorative slots imply activity, not progress. -->
+      <div class="loader-content loader-workspace">
+        <img class="loader-crest" src="images/professions/{{profession-id}}.png" width="128" height="128" alt="" />
+        <p id="loading-status" role="status">Loading {{profession-name}} data…</p>
+        <h1>Preparing your Workspace</h1>
+        <div class="loader-preview" aria-hidden="true">
+          <div class="loader-skill-bar">
+            <span style="--slot: 0">1</span>
+            <span style="--slot: 1">2</span>
+            <span style="--slot: 2">3</span>
+            <span style="--slot: 3">4</span>
+            <span style="--slot: 4">5</span>
+            <span style="--slot: 5">6</span>
+            <span style="--slot: 6">7</span>
+            <span style="--slot: 7">8</span>
+            <span style="--slot: 8">9</span>
+            <span style="--slot: 9">0</span>
+          </div>
+          <div class="loader-panels">
+            <div class="loader-traits"><i></i><i></i><i></i></div>
+            <div class="loader-gear"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div id="app">
+    <div id="app" inert>
       <!-- Navigation, help, and build tabs share the compact header in every display mode. -->
       <header></header>
       <!-- Optimizer tools have a stable host independent of the workspace and Analysis results. -->
