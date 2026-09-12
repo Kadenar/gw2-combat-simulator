@@ -40,9 +40,10 @@ export function enqueueGw2OwnedComboFinisher(
   options: EnqueueGw2OwnedComboFinisherOptions
 ): void {
   const at = Number(options.at ?? event.at);
-  const fields = [...context.combo.fields.values()]
-    .filter((field) => field.ownerId === options.ownerId && field.at <= at && field.expiresAt > at)
-    .sort((left, right) => left.at - right.at);
+  // Filter at the resolver timestamp; the shared selector owns field ordering.
+  const fields = [...context.combo.fields.values()].filter(
+    (field) => field.ownerId === options.ownerId && field.at <= at && field.expiresAt > at
+  );
   const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
   context.queue.enqueue({
     type: 'combo_finisher',

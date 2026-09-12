@@ -134,6 +134,7 @@ function activeOwnedFields<TProfessionState extends object>(
   at: number,
   fieldSelectionAt = at
 ): ComboFieldEvent[] {
+  // Filter the scheduler's selection window; the shared selector owns field ordering.
   return context
     .eventsOfType('combo_field')
     .filter(
@@ -142,8 +143,7 @@ function activeOwnedFields<TProfessionState extends object>(
         event.ownerId === ownerId &&
         event.at <= at + context.epsilon &&
         Number(event.expiresAt) > Math.max(event.at, fieldSelectionAt) + context.epsilon
-    )
-    .sort((left, right) => left.at - right.at || Number(left.eventOrder || 0) - Number(right.eventOrder || 0));
+    );
 }
 
 function descriptorBinding<TProfessionState extends object>(

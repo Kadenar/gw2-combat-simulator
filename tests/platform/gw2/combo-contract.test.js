@@ -12,7 +12,8 @@ import {
   COMBO_FINISHER_TYPES,
   createGw2ComboRuntimeState,
   registerComboField,
-  resolveComboAttempt
+  resolveComboAttempt,
+  selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
@@ -38,6 +39,16 @@ test('the universal combo table defines every field/finisher pair once', () => {
   }
 
   assert.throws(() => validateComboDefinitions(COMBO_DEFINITIONS.slice(1)), /all 36 field\/finisher pairs/);
+});
+
+test('owned-field selection breaks timestamp ties by event order and preserves equal-key order', () => {
+  // Callers may supply fields in either order; identical sort keys retain input order.
+  const first = { at: 1, eventOrder: 1, fieldType: 'Fire' };
+  const second = { ...first, eventOrder: 2 };
+  assert.equal(selectComboFieldForFinisher([second, first]).field, first);
+  assert.equal(selectComboFieldForFinisher([first, second]).field, first);
+  const tied = { ...first };
+  assert.equal(selectComboFieldForFinisher([tied, first]).field, tied);
 });
 
 test('combo events normalize casing and clamp chance at the GW2 boundary', () => {
