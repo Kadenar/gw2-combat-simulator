@@ -34,6 +34,18 @@ metadata. These declarations have no extra build gate or minion attribution. The
 also declares an ambiguous effect fallback with a secondary same-source check and `UsingDisableWithMissileData`. That
 fallback remains excluded; damage is not used to guess either skill. The EI pin is unchanged.
 
+Firebrand's Flame Rush, Flame Surge, and combined ambiguous finder follow the pinned EI effect rules. The EI pin is
+unchanged.
+
+Both import paths collapse recorded level-one Jurisdiction charge/release segments into the existing single activation,
+retaining their combined duration. The accompanying detonation is already represented by that activation. Unpaired
+releases remain unsupported rather than creating an absent charge. Tome entry/stow bundle-swap signals are removed from
+replay; the tome actions themselves remain concurrent and never truncate an ongoing skill.
+
+Both import paths resolve combined Solace casts only when recorded charge timing supports the distinction; otherwise
+they remain ambiguous. Source records and inference metadata are preserved. Reimport older exports to restore casts
+omitted by the previous importer.
+
 The following pinned ordinary-finder declarations were excluded because their finder/checker family was unsupported by
 the ordinary table. Some have a separately implemented custom path described above; listing a declaration here does not
 mean all evidence for its skill is absent. These are coverage exclusions, not replacement heuristics:
@@ -57,8 +69,7 @@ mean all evidence for its skill is absent. These are coverage exclusions, not re
   `Guardian.StandYourGround`, `Guardian.LesserSymbolOfBlades`, `Guardian.LesserSymbolOfBlades`,
   `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfResolution`, `Guardian.LesserSymbolOfProtection`,
   `Guardian.LesserSymbolOfProtection`, `Guardian.GlacialHeartHeal`, `Guardian.SelflessDaring`,
-  `Firebrand.MantraOfSolace`, `Firebrand.FlameRush`, `Firebrand.FlameSurge`, `Firebrand.FlameRushOrFlameSurge`,
-  `Firebrand.EchoOfTruth`, `Firebrand.VoiceOfTruth`, `Firebrand.EchoOfTruthOrVoiceOfTruth`.
+  `Firebrand.MantraOfSolace`, `Firebrand.EchoOfTruth`, `Firebrand.VoiceOfTruth`, `Firebrand.EchoOfTruthOrVoiceOfTruth`.
 - **Mesmer:** `Mesmer.SignetOfMidnightSkill`, `Mesmer.Swap`, `Mesmer.PhaseRetreat`, `Mesmer.BlinkOrPhaseRetreat`,
   `Mesmer.MindWrackOrMindWrackAmmo`, `Mesmer.MindWrack`, `Mesmer.MindWrackAmmo`, `Mesmer.CryOfFrustration`,
   `Mesmer.Diversion`, `Mesmer.DistortionSkill`, `Mesmer.DistortionSkill`, `Mesmer.MantraOfRecovery`,

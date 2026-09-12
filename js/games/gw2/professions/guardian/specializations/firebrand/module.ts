@@ -22,7 +22,7 @@ import { firebrandState } from '#gw2/professions/guardian/specializations/firebr
 import { firebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 
-/** Accounts for tome pages while preserving authored tome effects. */
+/** Schedules tome effects; shared-page spending runs through the cast-completion hook. */
 const firebrandSkillHandlers = Object.freeze({
   'guardian.stow-tome': replaceSkill({
     beforeEffects: guardianTomeSkillHandlers['guardian.stow-tome']

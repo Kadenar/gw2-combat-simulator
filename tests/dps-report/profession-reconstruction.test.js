@@ -104,6 +104,55 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
   assert.equal(sim.endState.profession.activeTome, '');
 });
 
+test('Firebrand resolves complete Solace charge bursts while preserving ambiguous sparse casts', () => {
+  const report = reportFixture(
+    'Firebrand',
+    [{ id: -20, skills: [100, 1100, 2100, 25000, 26000].map((castTime) => ({ castTime, duration: 0 })) }],
+    { 's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true } }
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  assert.deepEqual(
+    result.actions.map((action) => action.skillId),
+    [41475, 41475, 42960, -20, -20]
+  );
+  assert.ok(result.actions.every((action) => action.rawSkillId === -20));
+  assert.ok(result.sourceActions.every((action) => action.rawSkillId === -20));
+});
+
+test('Firebrand does not infer final Solace charges across possible recharge or conflicting casts', () => {
+  for (const castTimes of [
+    [100, 1100, 9000],
+    [100, 1100, 2100, 3100]
+  ]) {
+    const report = reportFixture(
+      'Firebrand',
+      [{ id: -20, skills: castTimes.map((castTime) => ({ castTime, duration: 0 })) }],
+      { 's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true } }
+    );
+    const result = reconstructDpsReportRotation(report, guardianCatalog);
+    assert.ok(result.actions.every((action) => action.skillId === -20));
+  }
+});
+
+test('Firebrand retains an explicitly identified Solace charge instead of contradicting it', () => {
+  const report = reportFixture(
+    'Firebrand',
+    [
+      { id: 42960, skills: [{ castTime: 100, duration: 0 }] },
+      { id: -20, skills: [1100, 2100].map((castTime) => ({ castTime, duration: 0 })) }
+    ],
+    {
+      s42960: { name: 'Rejuvenating Respite', isInstantCast: true },
+      's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true }
+    }
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  assert.deepEqual(
+    result.actions.map((action) => action.skillId),
+    [42960, -20, -20]
+  );
+});
+
 test('Guardian Jurisdiction charge and release consume one activation without inventing an absent charge', () => {
   const report = reportFixture(
     'Guardian',

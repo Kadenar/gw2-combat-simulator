@@ -154,6 +154,66 @@ test('stowing during a tome page preserves its effects and resource spend withou
   assert.equal(result.endState.profession.activeTome, '');
 });
 
+test('stowing during the third tome skill preserves its earned Swift Scholar refund', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Tome of Justice',
+      'Chapter 1: Searing Spell',
+      'Chapter 2: Igniting Burst',
+      'Epilogue: Ashes of the Just',
+      { name: 'Stow Tome', offset: 100 }
+    ],
+    config: { ...config, specialization: 'Firebrand', initialTomePages: 3 }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.tomePages, 1);
+  assert.equal(result.endState.profession.activeTome, '');
+  assert.equal(result.endState.profession.swiftScholarCount, 0);
+  assert.equal(
+    result.events.some((event) => event.type === 'weapon_set' && event.automatic),
+    false
+  );
+});
+
+for (const initialTomePages of [1, 5]) {
+  test(`an overlapping mantra refunds pages before the tome cost with ${initialTomePages} initial pages`, () => {
+    // Refunds use the still-unspent pool, including its cap, before completion can exhaust the tome.
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        'Flame Rush',
+        'Flame Rush',
+        { type: 'wait', durationMs: 1000 },
+        'Tome of Justice',
+        'Chapter 2: Igniting Burst',
+        { name: 'Flame Surge', offset: 100 }
+      ],
+      config: {
+        ...config,
+        specialization: 'Firebrand',
+        initialTomePages,
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const cast = result.events.find(
+      (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.IGNITING_BURST
+    );
+    const refund = result.events.find((event) => event.type === 'proc' && event.name === 'Weighty Terms');
+    const spent = result.events.find((event) => event.type === 'guardian.tome-page-used');
+    assert.ok(refund.at > cast.at && refund.at < cast.endsAt);
+    assert.equal(spent.at, cast.endsAt);
+    assert.equal(spent.pagesRemaining, Math.min(5, initialTomePages + 2) - spent.pageCost);
+    assert.equal(result.endState.profession.tomePages, spent.pagesRemaining);
+    assert.equal(result.endState.profession.activeTome, 'justice');
+    assert.equal(
+      result.events.some((event) => event.type === 'weapon_set' && event.automatic),
+      false
+    );
+  });
+}
+
 test('later tome pages do not restore consumed Ashes charges', () => {
   const result = simulateGw2({
     profession: guardianProfession,
@@ -209,6 +269,7 @@ test('Firebrand page exhaustion stows the tome and pages regenerate', () => {
 
   assert.match(exhausted.warnings.join(' '), /Chapter 1: Desert Bloom is unavailable/);
   assert.equal(exhausted.endState.profession.activeTome, '');
+  assert.equal(exhausted.endState.profession.swiftScholarCount, 0);
   assert.equal(exhausted.endState.profession.tomePages, 1);
   assert.equal(traited.endState.profession.maximumTomePages, 8);
   assert.equal(traited.endState.profession.tomePages, 8);

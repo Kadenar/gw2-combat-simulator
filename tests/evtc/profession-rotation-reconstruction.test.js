@@ -6,6 +6,7 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { eiMinionSpawns } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
@@ -21,6 +22,23 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+test('Firebrand Solace effect evidence resolves a complete charge burst without replacing source identity', () => {
+  const guid = Buffer.from('8F0C77784AFD7F40B27446617DC05CDC', 'hex');
+  const source = context('guardian', 'firebrand', [
+    event({ stateChange: 15, source: 141374n }),
+    event({ stateChange: 46, skillId: 77, source: guid.readBigUInt64LE(0), target: guid.readBigUInt64LE(8) }),
+    ...[100, 1100, 2100].map((time) => event({ time, stateChange: 51, skillId: 77, source: 0n, target: PLAYER }))
+  ]);
+  source.catalog = guardianCatalog;
+  source.recordedActions = eiInstantActions(source);
+  const actions = reconstructProfessionActions(source);
+  assert.deepEqual(
+    actions.map((action) => action.canonicalSkillId),
+    [41475, 41475, 42960]
+  );
+  assert.ok(actions.every((action) => action.rawSkillId === -20 && action.evidence === 'effect'));
+});
 
 test('Firebrand effect finders distinguish mantra charges using nearby credited hits', () => {
   // An effect supplies the cast timestamp; only same-owner damage strictly inside EI's tolerance identifies its charge.

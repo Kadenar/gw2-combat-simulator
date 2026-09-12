@@ -118,12 +118,12 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): void {
 }
 
 /**
- * Pays a completed tome skill's page cost, arms Ashes when appropriate, closes
+ * Pays a completed tome skill's page cost, applies page-use bonuses, closes
  * an exhausted tome, and emits the resulting resource snapshot.
  */
-function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
+export function completeTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
   // Page costs and bonuses follow the scheduler's commitment decision, including committed aftercast cancels.
-  if (context.action.cancelled) return;
+  if (skill.handlerId !== 'guardian.tome-page' || context.action.cancelled) return;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   // The regen timer only ticks while below maximum; spending a page from a full
@@ -133,16 +133,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
   }
 
   state.tomePages = Math.max(0, state.tomePages - pageCost);
-  if (state.swiftScholarTome !== skill.tome) {
-    state.swiftScholarTome = String(skill.tome || '');
-    state.swiftScholarCount = 0;
-  }
-
-  state.swiftScholarCount += 1;
-  const swiftScholar = balanceProfileFromContext(context, PROFILE.swiftScholar);
-  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks ?? 3)) {
-    state.swiftScholarCount = 0;
-    const pageGain = Number(swiftScholar?.resourceGain ?? 1);
+  const pageGain = Number(context.eventByOrder(Number(context.action.eventOrder))?.tomePageRefund ?? 0);
+  if (pageGain > 0) {
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
@@ -181,6 +173,47 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
         duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0))
       });
     }
+  }
+
+  // Auto-stow when the last page is consumed so the scheduler doesn't need to
+  // inject a separate Stow Tome cast; automatic: true marks it as involuntary
+  // for the timeline display.
+  if (state.tomePages === 0 && state.activeTome) {
+    state.activeTome = '';
+    state.swiftScholarTome = '';
+    state.swiftScholarCount = 0;
+    emitGuardianEvent(context, skill, 'weapon_set', {
+      weaponSet: context.state.activeWeaponSet,
+      mechanicSwap: true,
+      weaponLine: null,
+      automatic: true
+    });
+  }
+
+  emitGuardianEvent(context, skill, 'guardian.tome-page-used', {
+    tome: skill.tome,
+    pageCost,
+    pagesRemaining: state.tomePages,
+    activeTome: state.activeTome,
+    nextTomePageAt: state.nextTomePageAt
+  });
+}
+
+/** Schedules tome effects separately so page spending waits for chronological cast completion. */
+function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
+  if (context.action.cancelled) return;
+  const state = firebrandState.from(context);
+  // The cast belongs to its starting tome session; stowing cannot erase its earned completion refund.
+  if (state.swiftScholarTome !== skill.tome) {
+    state.swiftScholarTome = String(skill.tome || '');
+    state.swiftScholarCount = 0;
+  }
+
+  state.swiftScholarCount += 1;
+  const swiftScholar = balanceProfileFromContext(context, PROFILE.swiftScholar);
+  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks ?? 3)) {
+    state.swiftScholarCount = 0;
+    context.replaceEvent(context.action, { tomePageRefund: Number(swiftScholar?.resourceGain ?? 1) });
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
@@ -264,27 +297,6 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
       ashesExpiresAt: state.ashesExpiresAt
     });
   }
-
-  // Auto-stow when the last page is consumed so the scheduler doesn't need to
-  // inject a separate Stow Tome cast; automatic: true marks it as involuntary
-  // for the timeline display.
-  if (state.tomePages === 0) {
-    state.activeTome = '';
-    emitGuardianEvent(context, skill, 'weapon_set', {
-      weaponSet: context.state.activeWeaponSet,
-      mechanicSwap: true,
-      weaponLine: null,
-      automatic: true
-    });
-  }
-
-  emitGuardianEvent(context, skill, 'guardian.tome-page-used', {
-    tome: skill.tome,
-    pageCost,
-    pagesRemaining: state.tomePages,
-    activeTome: state.activeTome,
-    nextTomePageAt: state.nextTomePageAt
-  });
 }
 
 /**

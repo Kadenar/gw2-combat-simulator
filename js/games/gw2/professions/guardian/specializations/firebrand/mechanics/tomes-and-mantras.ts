@@ -5,6 +5,7 @@ import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import {
   advanceTomeState,
+  completeTomePage,
   tomePageAvailability,
   tomeStateAvailability
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
@@ -99,6 +100,11 @@ export const firebrandSchedulerHooks = Object.freeze({
     }
   ]),
   onCastComplete: Object.freeze([
+    {
+      id: 'guardian.tome-pages',
+      order: 10,
+      handler: completeTomePage
+    },
     {
       id: 'guardian.firebrand.mantras',
       order: 20,
