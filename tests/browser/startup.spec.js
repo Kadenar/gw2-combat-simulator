@@ -2,6 +2,59 @@ import { expect, test } from '@playwright/test';
 
 const moduleUrl = '**/js/games/gw2/professions/engineer/app/app-definition.ts*';
 
+// A tall cross-origin iframe must center startup in the visible host area as the host scrolls and resizes.
+test('embedded loader follows the visible host viewport until startup completes', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.context().grantPermissions(['local-network-access'], { origin: 'http://localhost:4173' });
+  let releaseModule;
+  const moduleReady = new Promise((resolve) => (releaseModule = resolve));
+  await page.route(moduleUrl, async (route) => {
+    await moduleReady;
+    await route.continue();
+  });
+  await page.route('http://localhost:4173/loader-host', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<style>body { margin: 0; padding-top: 60px; } iframe { width: 100%; height: 3000px; border: 0; }</style>
+        <iframe title="Simulator" src="http://127.0.0.1:4173/engineer.html?embed=1"></iframe>`
+    })
+  );
+  try {
+    await page.goto('http://localhost:4173/loader-host', { waitUntil: 'domcontentloaded' });
+    const frame = page.frameLocator('iframe');
+    const overlay = frame.locator('#loading-overlay');
+    const workspace = frame.locator('.loader-workspace');
+    await expect(overlay).toBeVisible();
+    const expectCentered = async () => {
+      await expect
+        .poll(async () => {
+          const host = await page.locator('iframe').boundingBox();
+          const content = await workspace.boundingBox();
+          if (!host || !content) return false;
+          const top = Math.max(0, host.y);
+          const bottom = Math.min(page.viewportSize().height, host.y + host.height);
+          return (
+            content.y >= top &&
+            content.y + content.height <= bottom + 1 &&
+            Math.abs(content.y + content.height / 2 - (top + bottom) / 2) < 2
+          );
+        })
+        .toBe(true);
+    };
+
+    await expectCentered();
+    await page.evaluate(() => scrollTo(0, 500));
+    await expectCentered();
+    await page.setViewportSize({ width: 390, height: 700 });
+    await expectCentered();
+    releaseModule();
+    await expect(overlay).toBeHidden();
+    await expect.poll(() => overlay.evaluate((element) => element.style.inset)).toBe('');
+  } finally {
+    releaseModule();
+  }
+});
+
 // Hold real startup dependencies so loading, reduced motion, and the handoff can be checked without artificial delays.
 test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }, testInfo) => {
   let releaseModule;

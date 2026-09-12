@@ -1,7 +1,11 @@
 import { bootstrapGameApp } from '#app/bootstrap.js';
+import { isEmbedded, trackEmbeddedViewport } from '#app/embed.js';
 
 // Starts the game and playable content declared by the simulator page after its shared markup is ready.
 window.addEventListener('DOMContentLoaded', () => {
+  // Center loading and recovery in the visible host area instead of the full height of a tall iframe.
+  const overlay = document.getElementById('loading-overlay');
+  const stopTrackingLoader = overlay && isEmbedded() ? trackEmbeddedViewport(overlay) : undefined;
   const retryKey = `simulator-startup-retry:${window.location.pathname}`;
   const deadline = Date.now() + 30_000;
   let settled = false;
@@ -69,6 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   bootstrapGameApp().then(() => {
+    stopTrackingLoader?.();
     stopWatching();
     clearRetry();
   }, failStartup);
