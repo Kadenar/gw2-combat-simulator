@@ -39,6 +39,18 @@ import { renderOptimizerPreview } from '#gw2/app/simulation/gear-optimizer/gear-
 
 const filterDismissalRoots = new WeakSet<Document>();
 
+// Use compact infusion names in results while keeping the optimizer's underlying stat keys unchanged.
+const INFUSION_NAMES: Record<string, string> = {
+  Power: 'Mighty',
+  Precision: 'Precise',
+  'Condition Damage': 'Malign',
+  Expertise: 'Spiteful',
+  Concentration: 'Mystical',
+  'Healing Power': 'Healing',
+  Toughness: 'Resilient',
+  Vitality: 'Vital'
+};
+
 const SLOT_LABELS: Record<string, string> = {
   Helm: 'Helm',
   Shoulders: 'Shld',
@@ -375,51 +387,57 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const baseline = equippedScore?.dps || 0;
     const slots = runner.request ? optimizerSlots(runner.request.build, app.adapter) : [];
     const sets = runner.request ? optimizerWeaponSets(runner.request.build, app.adapter) : [];
+    // Keep each set's weapon prefixes beside its sigils, with names that distinguish dual wielding from two-handed gear.
+    const armorSlots = slots.filter((slot) => !slot.includes('Weapon'));
+    const weaponGroups = sets.map((set) =>
+      slots.filter((slot) => slot.startsWith(set === 0 ? 'Weapon' : 'AlternateWeapon'))
+    );
+    const weaponHeaders = sets.map((set, index) => {
+      const weapons = set === 0 ? runner.request!.build.weapons : runner.request!.build.alternateWeapons;
+      return weaponGroups[index]
+        .map((slot, hand) => {
+          const twoHanded = app.weaponData[weapons[0]]?.wielding === '2h';
+          return `<th scope="col"${hand === 0 ? ' class="optimizer-set-start"' : ''} title="${twoHanded ? 'Two-handed' : SLOT_LABELS[slot]}">${escapeHtml(weapons[hand])} <span class="optimizer-weapon-hand">(${twoHanded ? '2H' : hand === 0 ? 'MH' : 'OH'})</span></th>`;
+        })
+        .join('');
+    });
     const best = candidates[0] || state.winners[0];
     // Rank against the equipped setup as well as search results, using unrounded DPS for labels and comparisons.
     const bestDps = Math.max(baseline, best?.score.dps || 0, state.winners[0]?.score.dps || 0);
     const infusions = (equipment: OptimizerEquipment): string =>
       equipment.infusions
         .filter((entry) => entry.count)
-        .map((entry) => `${entry.count} ${entry.stat}`)
-        .join(', ');
+        .map((entry) => `${entry.count} ${INFUSION_NAMES[entry.stat] || entry.stat}`)
+        .join('\n');
     // Reuse the equipment columns for a sticky baseline row outside the filtered rankings.
     const renderRow = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
       const equipment = candidate.equipment;
       const difference = candidate.score.dps - baseline;
       const percent = bestDps ? (candidate.score.dps / bestDps - 1) * 100 : 0;
       const isBest = candidate.score.dps === bestDps;
-      // Stack the equipped DPS difference beneath the ranking percentage to keep comparisons in one cell.
-      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><span class="optimizer-score"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<small>Equipped</small>' : ''}</span><span class="optimizer-comparison">${isBest ? '<small>Best</small>' : `<small>${percent.toFixed(1)}%</small>`}<span class="optimizer-delta" title="DPS difference vs equipped" aria-label="${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS vs equipped">${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS</span></span><span class="optimizer-preview-marker">Previewing</span></td>${slots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
-        .map((set) =>
-          [0, 1]
-            .map((slot) => {
-              const value = equipment.weaponSigils[set][slot];
-              return equipmentCell(`Set ${set + 1} sigil ${slot + 1}`, value, true, SIGIL_DATA[value]?.icon);
-            })
-            .join('')
+      // Keep scores equally compact; equipped and preview status belong with the pinned row action.
+      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><span class="optimizer-score"><strong>${candidate.score.dps.toFixed(2)}</strong></span><span class="optimizer-comparison">${isBest ? '<small>Best</small>' : `<small title="Difference vs best">${percent.toFixed(1)}%</small>`}<span class="optimizer-delta" title="DPS difference vs equipped" aria-label="${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS vs equipped">${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS</span></span></td>${armorSlots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
+        .map(
+          (set, group) =>
+            weaponGroups[group].map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('') +
+            [0, 1]
+              .map((slot) => {
+                const value = equipment.weaponSigils[set][slot];
+                return equipmentCell(`Set ${set + 1} sigil ${slot + 1}`, value, true, SIGIL_DATA[value]?.icon);
+              })
+              .join('')
         )
         .join(
           ''
-        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}<td>${pinned ? '&mdash;' : `<button type="button" data-apply="${index}" aria-label="Apply result ${index + 1}">Apply</button>`}</td></tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 7}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
+        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}<td class="optimizer-result-actions">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : `<button type="button" data-apply="${index}" aria-label="Apply result ${index + 1}">Apply</button>`}<span class="optimizer-preview-marker">Previewing</span></td></tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 7}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
     };
 
-    // Group weapon and sigil columns by set so each pair shares one label above its slot names.
-    const weaponGroups = sets.map((set) =>
-      slots.filter((slot) => slot.startsWith(set === 0 ? 'Weapon' : 'AlternateWeapon'))
-    );
     list.innerHTML = best
-      ? `<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col" rowspan="2">Damage <small>vs best</small></th>${slots
-          .filter((slot) => !slot.includes('Weapon'))
+      ? `<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col" rowspan="2" class="optimizer-damage" title="DPS, percentage vs best, and DPS difference vs equipped">DPS</th>${armorSlots
           .map((slot) => `<th scope="col" rowspan="2">${SLOT_LABELS[slot] || escapeHtml(slot)}</th>`)
           .join(
             ''
-          )}${weaponGroups.map((group, index) => `<th scope="colgroup" colspan="${group.length}">Weapon set ${sets[index] + 1}</th>`).join('')}${sets.map((set) => `<th scope="colgroup" colspan="2">Weapon set ${set + 1}</th>`).join('')}<th scope="col" rowspan="2">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th><th scope="col" rowspan="2">Apply</th></tr><tr>${weaponGroups
-          .flat()
-          .map((slot) => `<th scope="col">${SLOT_LABELS[slot]}</th>`)
-          .join(
-            ''
-          )}${sets.map(() => '<th scope="col">Sigil 1</th><th scope="col">Sigil 2</th>').join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
+          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th><th scope="col" rowspan="2" class="optimizer-result-actions">Apply</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
       : state.status === 'complete'
         ? '<p>No gear combinations met the requirements in this search.</p>'
         : '';

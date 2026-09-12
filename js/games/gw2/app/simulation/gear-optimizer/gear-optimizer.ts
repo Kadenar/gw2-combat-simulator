@@ -465,7 +465,14 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
 }
 
 /** Retain just ranking fields and reject invalid arithmetic instead of treating errors as zero damage. */
-export function optimizerScore(result: OptimizerScore): OptimizerScore {
+export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2SimulationResult, 'steps'>>): OptimizerScore {
+  // Reject skipped rotation commands in the detailed baseline before workers publish scores or search candidates.
+  const invalid = result.steps?.filter((step) => step.invalid) || [];
+  if (invalid.length) {
+    const reasons = [...new Set(invalid.map((step) => step.invalidReason || `${step.skill} is unavailable.`))];
+    throw new TypeError(`Fix invalid rotation skills before running the optimizer: ${reasons.join(' ')}`);
+  }
+
   const {
     dps,
     totalDamage,

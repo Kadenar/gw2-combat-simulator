@@ -1037,6 +1037,28 @@ test('reject invalid inputs without reducing search; preserve count precision an
   assert.throws(() => optimizerScore({ dps: NaN }), /non-finite/);
 });
 
+// Invalid commands must fail baseline validation; ordinary warnings still belong to usable scores.
+test('optimizer rejects invalid rotation skills without suppressing other warnings', () => {
+  const captured = request(
+    {},
+    { rotation: adapter.toApplicationBuild({ rotation: ['Chop', 'Chop'] }).rotation, weapons: ['Greatsword', ''] }
+  );
+  const result = createOptimizerEvaluator(captured, adapter).evaluate(captured.build);
+  assert.ok(result.steps.some((step) => step.invalid));
+  assert.throws(
+    () => optimizerScore(result),
+    (error) => {
+      assert.match(error.message, /Fix invalid rotation skills.*Chop/);
+      assert.equal(error.message.split('Chop').length - 1, 1);
+      return true;
+    }
+  );
+  const valid = request({}, { rotation: [], weapons: ['Greatsword', ''] });
+  const detailed = createOptimizerEvaluator(valid, adapter).evaluate(valid.build);
+  const warnings = ['A non-blocking simulation warning.'];
+  assert.deepEqual(optimizerScore({ ...detailed, warnings }).warnings, warnings);
+});
+
 test('ordinary evaluator preserves deterministic configuration and isolates consecutive builds', () => {
   const captured = request(
     {},
