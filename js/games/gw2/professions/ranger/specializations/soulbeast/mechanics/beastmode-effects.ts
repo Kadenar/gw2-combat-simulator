@@ -37,9 +37,13 @@ export const soulbeastEventHandlers = Object.freeze({
 });
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
+  // These personal stance queries cannot borrow a companion's or ally's application.
   return (context.boons.get(kind) || []).some(
     (application: Gw2TimedBuffApplication) =>
-      application.at <= at && application.expiresAt > at && application.stacks > 0
+      application.resolvedAudience.includesSelf &&
+      application.at <= at &&
+      application.expiresAt > at &&
+      application.stacks > 0
   );
 }
 
@@ -179,7 +183,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
   if (
     activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
     isInternalCooldownReady(event.at, state.vultureStanceReadyAt) &&
-    event.actorType !== 'effect'
+    isPlayerStrike(event)
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.vultureStance);
     const poison = balanceProfileEffect(profile, 'condition');

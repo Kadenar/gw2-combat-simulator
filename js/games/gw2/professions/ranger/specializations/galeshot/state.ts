@@ -36,6 +36,7 @@ export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     arrows: Math.max(0, Math.min(8, Number(config.initialArrows ?? 8))), // clamped so a bad preset can't exceed the cap
     maximumArrows: 8,
     arrowsUpdatedAt: 0,
+    arrowRechargeProgress: 0,
     windForce: 0,
     galeForceUntil: 0,
     mistralUntil: 0,

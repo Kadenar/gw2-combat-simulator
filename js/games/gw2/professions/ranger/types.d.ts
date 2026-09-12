@@ -162,6 +162,8 @@ export interface GaleshotState {
   arrows: number;
   maximumArrows: number;
   arrowsUpdatedAt: number;
+  /** Accumulated recharge in baseline seconds, independent of the current Alacrity rate. */
+  arrowRechargeProgress: number;
   windForce: number;
   galeForceUntil: number;
   mistralUntil: number;

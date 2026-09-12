@@ -1,4 +1,11 @@
-import { isDurationStackingBoon, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import {
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds,
+  isDurationStackingBoon,
+  isStandardBoon,
+  recordBuffApplication
+} from '#gw2/platform/combat/state/boons.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -10,6 +17,41 @@ const SELF: ResolvedEffectAudience = Object.freeze({
   companionIds: [],
   recipientCount: 1
 });
+
+/** Split resource integration at self-boon applications, extensions, and pooled expiry. */
+export function* selfBoonIntervals(
+  events: readonly SimulationEvent[],
+  kind: string,
+  start: number,
+  end: number,
+  permanent = false
+) {
+  // Permanent boon assumptions keep the rate constant, so resource updates need no event-history replay.
+  if (permanent) {
+    if (end > start) yield { start, end, active: true };
+    return;
+  }
+
+  const applications = boonApplicationsAt(
+    events.filter((event) => !event.cancelled),
+    kind,
+    Infinity
+  ).filter((application) => buffMatchesAudience(application, 'all'));
+  const boundaries = [
+    ...new Set(applications.map((application) => application.at).filter((at) => at > start && at < end)),
+    end
+  ].sort((a, b) => a - b);
+  for (const boundary of boundaries) {
+    // ponytail: replay this boon history per boundary; cache windows if long rotations make it costly.
+    const remaining = remainingDurationStackSeconds(applications, start, {
+      maximum: durationStackingBoonCapSeconds(kind)
+    });
+    const expiresAt = Math.min(boundary, start + remaining);
+    if (expiresAt > start) yield { start, end: expiresAt, active: true };
+    if (boundary > expiresAt) yield { start: expiresAt, end: boundary, active: false };
+    start = boundary;
+  }
+}
 
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {

@@ -258,6 +258,7 @@ test('Brutal Momentum Vigor stops increasing recovery when its self boon expires
   const context = contextFor('Renegade', [TRAIT.BRUTAL_MOMENTUM]);
   observeRenegadeTraits(context, { type: 'buff', kind: 'fury', at: 0, actorType: 'player', eventOrder: 1 });
   const vigor = context.events.find((event) => event.kind === 'vigor');
+  vigor.resolvedAudience = { includesSelf: true, alliedPlayerCount: 0, companionIds: [], recipientCount: 1 };
   context.hasBuff = (kind, at) => kind === 'vigor' && at >= vigor.at && at < vigor.at + vigor.duration;
   context.state.profession.core.endurance = 0;
   advanceRevenantEnergy(context, vigor.duration);

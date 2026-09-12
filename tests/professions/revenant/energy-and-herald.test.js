@@ -894,7 +894,8 @@ test('Core Revenant trait lines preserve scheduled-event reaction order', () => 
     coefficient: 1
   });
 
-  assert.deepEqual(sources, [TRAIT.ABYSSAL_CHILL, TRAIT.ASSASSINS_PRESENCE, TRAIT.VICIOUS_REPRISAL]);
+  // Assassin's Presence now owns a combat timer, so hits only dispatch the on-hit traits.
+  assert.deepEqual(sources, [TRAIT.ABYSSAL_CHILL, TRAIT.VICIOUS_REPRISAL]);
 });
 
 // Observe trait emissions and the upkeep setter directly to pin the mixed

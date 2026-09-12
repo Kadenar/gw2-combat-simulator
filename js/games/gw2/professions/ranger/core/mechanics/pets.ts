@@ -140,6 +140,8 @@ export function prepareRangerPetEvent(
   event: SimulationEventInput
 ): SimulationEventInput {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
+  // Launched pet effects retain their original owner and attributes after a swap.
+  if (event.summonOwner) return event;
   // Every pet-owned event needs concrete caster identity for audience resolution;
   // damaging packets additionally receive the pet's independent combat stats.
   return event.type === 'damage' || event.type === 'condition'
@@ -151,7 +153,7 @@ interface PetAutoTaskPayload extends SchedulerRecord {
   readonly generation: number;
 }
 
-interface PetAutoEffectTaskPayload extends PetAutoTaskPayload {
+interface PetAutoEffectTaskPayload extends SchedulerRecord {
   readonly event: SimulationEventInput;
 }
 
@@ -166,18 +168,12 @@ function activeProfile(context: RangerSchedulerContext): PetAutoProfile | null {
   return rangerPetAutoProfile(state.activePet);
 }
 
-function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
+function schedulePetAuto(context: RangerSchedulerContext, at: number): void {
   const state = professionCoreState(context);
   const profile = activeProfile(context);
   if (!profile) {
     state.petAutoNextAt = 0;
     return;
-  }
-
-  if (reset) {
-    context.tasks.cancelOwner(PET_AUTO_OWNER);
-    state.petAutoGeneration += 1;
-    state.petAutoTaskId = '';
   }
 
   const nextAt = Math.max(context.state.time, at, state.petAutoBusyUntil);
@@ -193,6 +189,13 @@ function schedulePetAuto(context: RangerSchedulerContext, at: number, reset = fa
 
 function startPetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
   const state = professionCoreState(context);
+  // Retire the outgoing attack loop even when the incoming pet has no profile; launched effects persist separately.
+  if (reset) {
+    context.tasks.cancelOwner(PET_AUTO_OWNER);
+    state.petAutoGeneration += 1;
+    state.petAutoTaskId = '';
+    state.petAutoNextAt = 0;
+  }
   if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
@@ -200,7 +203,7 @@ function startPetAuto(context: RangerSchedulerContext, at: number, reset = false
     return;
   }
 
-  schedulePetAuto(context, at + profile.openingDelay, reset);
+  schedulePetAuto(context, at + profile.openingDelay);
 }
 
 // Choose the pet's opening, first ready special, or fallback basic attack while
@@ -233,8 +236,7 @@ function effectDuration(effect: SkillEffect): number | undefined {
   return effect.type === 'boon' || effect.type === 'buff' ? Math.max(0, Number(effect.duration || 0)) : undefined;
 }
 
-// Materialize an autonomous pet action and defer each effect under the current
-// pet generation so a later swap can invalidate stale packets.
+// Snapshot the outgoing pet and keep persistent effects alive independently of its autonomous attack loop.
 function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, at: number, recovery: number): void {
   const skill = context.catalog.skillsById.get(skillId) as RangerSkill | undefined;
   if (!skill) return;
@@ -284,11 +286,10 @@ function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, 
         type: 'ranger.pet-autonomous-effect',
         at: application.at,
         priority: -20,
-        ownerId: PET_AUTO_OWNER,
+        ownerId: effect.persistsAfterInterrupt ? `ranger.pet-effects:${activationId}` : PET_AUTO_OWNER,
         payload: {
-          generation: professionCoreState(context).petAutoGeneration,
           event: {
-            ...application.event,
+            ...prepareRangerPetEvent(context, application.event),
             autonomousPetSkill: true,
             icon: skill.icon
           }
@@ -302,10 +303,7 @@ export function handleRangerPetAutoEffectTask(
   context: RangerSchedulerContext,
   task: ScheduledTask<PetAutoEffectTaskPayload>
 ): void {
-  if (Number(task.payload?.generation) !== professionCoreState(context).petAutoGeneration) {
-    return;
-  }
-
+  // Swap cancellation already removed interrupted attacks; persistent effects retain their original pet.
   if (task.payload?.event) context.emit(task.payload.event);
 }
 
@@ -384,7 +382,7 @@ export function observeRangerPetEvent(context: RangerSchedulerContext, event: Si
     state.petCommandReadyAt = Number(event.at);
     state.petCommandDelays = {};
     startPetAuto(context, Number(event.at), true);
-    // Pets without an autonomous profile do not advance generation; publish the actual identity.
+    // Publish the incoming generation independently of autonomous-profile support.
     context.replaceEvent(event, { generation: state.petAutoGeneration });
     return;
   }

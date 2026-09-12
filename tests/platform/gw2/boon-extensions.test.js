@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
-import { applyBoonExtension, boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import {
+  applyBoonExtension,
+  boonApplicationsAt,
+  selfBoonIntervals
+} from '#gw2/platform/combat/state/boon-extensions.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -49,6 +53,15 @@ const remaining = (applications, at, audience = 'includesSelf') =>
 function check(name, actual, expected) {
   test(name, () => assert.deepEqual(actual, expected));
 }
+
+test('permanent self-boon windows bypass event history for integration and readiness', () => {
+  // A fixed boon rate must stay independent of the rotation's growing history.
+  const events = new Proxy([], { get: () => assert.fail('Permanent boons must not read event history') });
+  for (const end of [5, Infinity]) {
+    assert.deepEqual([...selfBoonIntervals(events, 'vigor', 2, end, true)], [{ start: 2, end, active: true }]);
+  }
+  assert.deepEqual([...selfBoonIntervals(events, 'alacrity', 2, 2, true)], []);
+});
 
 test('extensions preserve past duration and intensity observations across recipients and charts', () => {
   const events = [

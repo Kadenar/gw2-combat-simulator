@@ -6,11 +6,8 @@ import {
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  GW2_ALACRITY_RECHARGE_RATE,
-  gw2BuffActiveForAudience,
-  gw2SchedulerBoonDuration
-} from '#gw2/platform/scheduler/policy.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -45,18 +42,26 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
   if (target <= state.arrowsUpdatedAt) return;
   state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows);
-  const rechargeRate = gw2BuffActiveForAudience(context, 'alacrity', target, 'self')
-    ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
-    : 1;
-  const interval =
-    balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5) /
-    Math.max(Number.EPSILON, rechargeRate);
-  const generated = Math.floor((target - state.arrowsUpdatedAt) / interval);
-  if (generated <= 0) return;
+  // Keep partial recharge in baseline seconds instead of reinterpreting past time at the latest boon rate.
+  for (const interval of selfBoonIntervals(
+    context.events,
+    'alacrity',
+    state.arrowsUpdatedAt,
+    target,
+    Boolean(context.config.boons?.alacrity)
+  )) {
+    const rate =
+      context.config.boons?.alacrity || interval.active
+        ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
+        : 1;
+    state.arrowRechargeProgress += (interval.end - interval.start) * Math.max(Number.EPSILON, rate);
+  }
+
+  const interval = balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5);
+  const generated = Math.floor((state.arrowRechargeProgress + context.epsilon) / interval);
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
-  // Advance by whole intervals only so the fractional remainder carries forward
-  // and isn't lost to floating-point truncation on the next advance call.
-  state.arrowsUpdatedAt += generated * interval;
+  state.arrowRechargeProgress = Math.max(0, state.arrowRechargeProgress - generated * interval);
+  state.arrowsUpdatedAt = target;
 }
 
 /** Restores arrows against the current profile cap without discarding fractional gains. */
