@@ -42,11 +42,13 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run typecheck
       # Each directory group gets readable logs and its own machine-readable test report.
+      # Quote file globs so Node discovers nested tests instead of executing directories as modules.
       - name: Test engine and kernel
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/engine.xml tests/kernel tests/platform
+          --test-reporter-destination=dist/test-reports/engine.xml "tests/kernel/**/*.test.js"
+          "tests/platform/**/*.test.js"
       # Keep shared contracts and each profession visible independently without skipping checks after a failure.
       - name: Test shared profession contracts
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
@@ -104,17 +106,19 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/app-ui.xml tests/app tests/ui
+          --test-reporter-destination=dist/test-reports/app-ui.xml "tests/app/**/*.test.js" "tests/ui/**/*.test.js"
       - name: Test importers and log analysis
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/importers.xml tests/evtc tests/dps-report tests/log-analyzer
+          --test-reporter-destination=dist/test-reports/importers.xml "tests/evtc/**/*.test.js"
+          "tests/dps-report/**/*.test.js" "tests/log-analyzer/**/*.test.js"
       - name: Test architecture and scripts
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/tooling.xml tests/architecture tests/scripts tests/fixtures
+          --test-reporter-destination=dist/test-reports/tooling.xml "tests/architecture/**/*.test.*js"
+          "tests/scripts/**/*.test.mjs" "tests/fixtures/test-*.js"
       - name: Validate compiled modules
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: node scripts/build/check-dist.mjs
