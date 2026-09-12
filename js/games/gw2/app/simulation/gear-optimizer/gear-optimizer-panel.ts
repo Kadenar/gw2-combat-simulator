@@ -205,6 +205,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 
       const row = element.closest<HTMLElement>('[data-preview]');
       if (!row || !runner.request) return;
+      const request = runner.request;
       const index = Number(row.dataset.preview);
       const applied = optimizerAppliedCandidate(app, runner.request);
       const candidate =
@@ -218,20 +219,25 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           : displayedResults()[index];
       if (!candidate) return;
       try {
-        if (element.closest('[data-apply]')) {
-          if (runner.state.status !== 'complete') return;
-          applyOptimizerCandidate(app, runner.request, candidate);
-          renderGearOptimizer(app);
-        } else {
-          panel!.dataset.selectedKey = candidate.key;
-          updatePreviewSelection(panel!, displayedResults());
-          renderOptimizerPreview(
-            panel!.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!,
-            app,
-            runner.request,
-            candidate
-          );
-        }
+        panel!.dataset.selectedKey = candidate.key;
+        updatePreviewSelection(panel!, displayedResults());
+        renderOptimizerPreview(
+          panel!.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!,
+          app,
+          request,
+          candidate,
+          request.build.startingWeaponSet,
+          () => {
+            // Apply the gear actually being previewed, even if the visible result filter has changed.
+            if (runner.request !== request || !['complete', 'canceled'].includes(runner.state.status)) return;
+            try {
+              applyOptimizerCandidate(app, request, candidate);
+              renderGearOptimizer(app);
+            } catch (error) {
+              panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
+            }
+          }
+        );
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
       }
@@ -415,8 +421,8 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       const difference = candidate.score.dps - baseline;
       const percent = bestDps ? (candidate.score.dps / bestDps - 1) * 100 : 0;
       const isBest = candidate.score.dps === bestDps;
-      // Keep scores equally compact; equipped and preview status belong with the pinned row action.
-      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><span class="optimizer-score"><strong>${candidate.score.dps.toFixed(2)}</strong></span><span class="optimizer-comparison">${isBest ? '<small>Best</small>' : `<small title="Difference vs best">${percent.toFixed(1)}%</small>`}<span class="optimizer-delta" title="DPS difference vs equipped" aria-label="${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS vs equipped">${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS</span></span></td>${armorSlots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
+      // Keep equipped and preview status with DPS so the table needs no action column.
+      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><span class="optimizer-score"><strong>${candidate.score.dps.toFixed(2)}</strong></span><span class="optimizer-comparison">${isBest ? '<small>Best</small>' : `<small title="Difference vs best">${percent.toFixed(1)}%</small>`}<span class="optimizer-delta" title="DPS difference vs equipped" aria-label="${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS vs equipped">${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS</span></span><span class="optimizer-row-status">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<span class="optimizer-preview-marker">Previewing</span></span></td>${armorSlots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
         .map(
           (set, group) =>
             weaponGroups[group].map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('') +
@@ -429,7 +435,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         )
         .join(
           ''
-        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}<td class="optimizer-result-actions">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : `<button type="button" data-apply="${index}" aria-label="Apply result ${index + 1}">Apply</button>`}<span class="optimizer-preview-marker">Previewing</span></td></tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 7}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
+        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>${!pinned && candidate.score.warnings.length ? `<tr class="optimizer-result-warning"><td colspan="${slots.length + sets.length * 2 + 6}">${candidate.score.warnings.map(escapeHtml).join('<br>')}</td></tr>` : ''}`;
     };
 
     list.innerHTML = best
@@ -437,15 +443,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           .map((slot) => `<th scope="col" rowspan="2">${SLOT_LABELS[slot] || escapeHtml(slot)}</th>`)
           .join(
             ''
-          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th><th scope="col" rowspan="2" class="optimizer-result-actions">Apply</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
+          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
       : state.status === 'complete'
         ? '<p>No gear combinations met the requirements in this search.</p>'
         : '';
   }
 
   updatePreviewSelection(panel, candidates);
-  list.querySelectorAll<HTMLButtonElement>('[data-apply]').forEach((button) => {
-    button.disabled = stale || state.status !== 'complete';
+  preview.querySelectorAll<HTMLButtonElement>('[data-apply]').forEach((button) => {
+    button.disabled = stale || !['complete', 'canceled'].includes(state.status);
   });
   (panel.querySelector('[data-role="optimizer-cancel"]') as HTMLButtonElement).disabled = !runner.isRunning;
   (panel.querySelector('[data-role="optimizer-cancel"]') as HTMLButtonElement).hidden = !runner.isRunning;

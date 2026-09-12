@@ -6,9 +6,11 @@ import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {
   optimizerWeaponSets,
+  isOptimizerRequestCurrent,
   type GearOptimizerRequest,
   type OptimizerCandidate
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import { optimizerEquipmentIdentity } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Show current gear by default, or inspect a captured candidate without equipping or saving it. */
@@ -17,7 +19,8 @@ export function renderOptimizerPreview(
   app: ProfessionAppState,
   request: Pick<GearOptimizerRequest, 'build' | 'patchId'> = app,
   candidate?: OptimizerCandidate,
-  weaponSet = request.build.startingWeaponSet
+  weaponSet = request.build.startingWeaponSet,
+  onApply?: () => void
 ): void {
   const attributePreview = readAttributePreviewValues(container);
   // Preserve the disclosure alongside its inputs when rebuilding a candidate preview.
@@ -110,10 +113,19 @@ export function renderOptimizerPreview(
       .map(({ stat, count }) => item('Infusions', `${count} × ${stat}`))
       .join('') || item('Infusions', 'None');
   container.hidden = false;
-  const currentGear = !candidate || candidate.key === 'equipped';
+  const currentGear =
+    !candidate ||
+    candidate.key === 'equipped' ||
+    optimizerEquipmentIdentity(candidate.equipment) === optimizerEquipmentIdentity(app.build);
+  const runner = app.gearOptimizerRunner;
+  // Cancellation retains scored gear that can still be applied; active searches and stale builds stay disabled.
+  const canApply =
+    runner?.request === request &&
+    ['complete', 'canceled'].includes(runner.state.status) &&
+    isOptimizerRequestCurrent(app, runner.request);
   const title = currentGear ? 'Current gear' : 'Result character';
   container.setAttribute('aria-label', title);
-  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div>${candidate ? `<strong>${candidate.score.dps.toFixed(2)} DPS</strong>` : ''}</div>
+  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div><div class="optimizer-preview-actions">${candidate ? `<strong>${candidate.score.dps.toFixed(2)} DPS</strong>` : ''}${!currentGear && onApply ? `<button type="button" data-apply${canApply ? '' : ' disabled'}>Apply gear</button>` : ''}</div></div>
     <p class="optimizer-preview-note">Click a result row to preview its gear and stats.</p>
     ${candidate?.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map(escapeHtml).join('<br>')}</p>` : ''}
     <div class="optimizer-character">
@@ -128,8 +140,16 @@ export function renderOptimizerPreview(
     attributePreview
   );
   container.querySelector('.attribute-effects')!.toggleAttribute('open', attributePreviewOpen);
+  if (onApply) container.querySelector('[data-apply]')?.addEventListener('click', onApply);
   container.querySelector<HTMLSelectElement>('select')!.addEventListener('change', (event) => {
-    renderOptimizerPreview(container, app, request, candidate, Number((event.target as HTMLSelectElement).value));
+    renderOptimizerPreview(
+      container,
+      app,
+      request,
+      candidate,
+      Number((event.target as HTMLSelectElement).value),
+      onApply
+    );
     container.querySelector<HTMLSelectElement>('select')!.focus();
   });
 }

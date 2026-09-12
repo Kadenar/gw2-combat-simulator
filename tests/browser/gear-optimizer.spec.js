@@ -310,6 +310,8 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
   await expect(panel.locator('tbody tr')).toHaveCount(1);
   const results = panel.getByRole('table', { name: 'Gear comparison' });
+  await expect(results.getByRole('columnheader', { name: 'Apply', exact: true })).toHaveCount(0);
+  await expect(panel.locator('[data-apply]')).toHaveCount(0);
   await expect(results.locator('details')).toHaveCount(0);
   await expect(results.locator('tbody').getByText('Best', { exact: true })).toHaveCount(0);
   await expect(results.locator('tfoot .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
@@ -370,6 +372,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await results.locator('tbody tr').first().getByRole('cell', { name: 'Food: None', exact: true }).click();
   const preview = panel.locator('[data-role="optimizer-preview"]');
   await expect(preview).toBeVisible();
+  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
   await expect(preview.getByRole('heading', { name: 'Result character', exact: true })).toBeVisible();
   await expect(results.locator('tbody tr').first()).toHaveClass(/optimizer-selected/);
   await expect(results.locator('[aria-current="true"]')).toHaveCount(1);
@@ -419,6 +422,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await preview.screenshot({ path: '.scratch/optimizer/character-mobile.png' });
   await page.setViewportSize({ width: 1440, height: 1100 });
   await preview.getByRole('combobox', { name: 'Preview weapon set', exact: true }).selectOption('2');
+  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
   expect(await page.evaluate(() => JSON.stringify(window.professionApp.build))).toBe(equippedBuild);
   await results.getByRole('row', { name: 'Equipped setup', exact: true }).focus();
   await page.keyboard.press('Enter');
@@ -433,10 +437,11 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
       .evaluate((cell) => getComputedStyle(cell).backgroundColor)
   ).toBe(selectedBackground);
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText(currentFood);
+  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toHaveCount(0);
   await results.locator('tbody tr').first().focus();
   await page.keyboard.press('Space');
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
-  await panel.getByRole('button', { name: 'Apply result 1', exact: true }).click();
+  await preview.getByRole('button', { name: 'Apply gear', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   const after = await page.evaluate(() => ({
     revision: window.professionApp.buildRevision,
@@ -608,14 +613,15 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   expect(
     await panel.locator('.optimizer-table-scroll').evaluate((element) => element.scrollWidth > element.clientWidth)
   ).toBe(true);
-  // Scores and Apply remain visible at both ends of the mobile equipment scroll.
+  // Scores stay visible at both ends of the mobile equipment scroll; actions live in the preview.
   for (const end of [false, true]) {
     await panel.locator('.optimizer-table-scroll').evaluate((element, end) => {
       element.scrollLeft = end ? element.scrollWidth : 0;
     }, end);
     await expect(results.locator('tbody .optimizer-score').first()).toBeInViewport();
-    await expect(results.getByRole('button', { name: 'Apply result 1', exact: true })).toBeInViewport();
   }
+
+  await expect(results.getByRole('button')).toHaveCount(0);
 });
 
 // Large searches skip the exhaustive index and finish with explicitly approximate, verified results.
@@ -636,7 +642,8 @@ test('large searches use a bounded candidate budget and leave the page usable', 
   const simulations = await page.evaluate(() => Number(window.professionApp.gearOptimizerRunner.state.simulations));
   expect(simulations).toBeGreaterThan(256);
   expect(simulations).toBeLessThanOrEqual(2048);
-  await expect(panel.getByRole('button', { name: 'Apply result 1', exact: true })).toBeEnabled();
+  await panel.locator('tbody tr .optimizer-damage').first().click();
+  await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
 });
 
 test('result filters group upgrades without rerunning and keep equipped gear pinned', async ({ page }) => {
@@ -745,7 +752,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   const withoutFood = panel
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: 'Food: None', exact: true }) });
-  await withoutFood.getByRole('button', { name: /^Apply result/ }).click();
+  await withoutFood.locator('.optimizer-damage').click();
+  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe('');
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 1);
@@ -754,7 +762,8 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   const nextResult = panel
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true }) });
-  await nextResult.getByRole('button', { name: /^Apply result/ }).click();
+  await nextResult.locator('.optimizer-damage').click();
+  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe(equipped.food);
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 2);
@@ -770,7 +779,45 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     app.changed();
   });
   await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Results are stale');
-  for (const button of await panel.locator('[data-apply]').all()) await expect(button).toBeDisabled();
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await withoutFood.locator('.optimizer-damage').click();
+  await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
+});
+
+// Cancel as soon as real worker results arrive, then apply a retained candidate from its preview.
+test('early cancellation keeps previewed results applicable', async ({ page }) => {
+  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  const panel = page.locator('#gear-optimizer');
+  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
+  await panel.locator('.optimizer-forced-slots > summary').click();
+  await panel.locator('[data-forced-slot="Helm"]').selectOption("Viper's");
+  const revision = await page.evaluate(() => {
+    const app = window.professionApp;
+    const panel = document.querySelector('#gear-optimizer');
+    const observer = new MutationObserver(() => {
+      if (!panel.querySelector('tbody tr') || !app.gearOptimizerRunner.isRunning) return;
+      observer.disconnect();
+      panel.querySelector('[data-role="optimizer-cancel"]').click();
+    });
+    observer.observe(panel.querySelector('[data-role="optimizer-results"]'), { childList: true, subtree: true });
+    return app.buildRevision;
+  });
+  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
+  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Canceled.', { timeout: 20000 });
+  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.state.completed > 0n)).toBe(true);
+  await panel.locator('tbody tr .optimizer-damage').first().click();
+  const preview = panel.locator('[data-role="optimizer-preview"]');
+  await preview.getByRole('combobox', { name: 'Preview weapon set', exact: true }).selectOption('2');
+  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
+  await preview.getByRole('button', { name: 'Apply gear', exact: true }).click();
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  expect(await page.evaluate(() => window.professionApp.build.gear.Helm)).toBe("Viper's");
+  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(revision + 1);
+  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toHaveCount(0);
+  await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
 });
 
 // Exercise both axes independently through scoring, preview, and Apply on a Hammer / Axe-Axe Soulbeast.
@@ -822,7 +869,7 @@ test('Soulbeast optimizes and applies the off-hand axe independently', async ({ 
   await panel
     .locator('[data-role="optimizer-results"]')
     .screenshot({ path: '.scratch/optimizer/soulbeast-weapons.png' });
-  await row.getByRole('button', { name: 'Apply result 1', exact: true }).click();
+  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   expect(
     await page.evaluate(() => {
