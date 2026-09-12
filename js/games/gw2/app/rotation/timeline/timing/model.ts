@@ -166,12 +166,15 @@ export function weaponSetActiveSegments(
     ...steps.filter((step) => !step.invalid && Number.isFinite(Number(step.start))).map((step) => Number(step.start))
   );
   const timelineEnd = Math.max(timelineStartMs, Number.isFinite(Number(timelineEndMs)) ? Number(timelineEndMs) : 0);
+  // Professions without in-combat swapping can still start on either equipped set.
+  let activeSet: 1 | 2 = Number(startingWeaponSet) === 2 ? 2 : 1;
   if (!hasSecondWeaponSet) {
-    return [{ weaponSet: 1, startMs: timelineStartMs, endMs: timelineEnd, durationMs: timelineEnd - timelineStartMs }];
+    return [
+      { weaponSet: activeSet, startMs: timelineStartMs, endMs: timelineEnd, durationMs: timelineEnd - timelineStartMs }
+    ];
   }
 
   const segments: WeaponSetActiveSegment[] = [];
-  let activeSet: 1 | 2 = Number(startingWeaponSet) === 2 ? 2 : 1;
   let segmentStart = timelineStartMs;
   const swaps = steps
     .filter(

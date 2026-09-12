@@ -131,7 +131,8 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   if (!element) return;
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
-  element.toggleAttribute('aria-busy', !resultIsExplicit && app.resultRevision !== app.buildRevision);
+  // Explicit reference results are ready; live timelines stay busy until their revisions match.
+  element.setAttribute('aria-busy', String(!resultIsExplicit && app.resultRevision !== app.buildRevision));
   element.toggleAttribute('aria-readonly', readOnly);
   const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
   // Capture open state before rebuilding the proc panel so it stays open after rendering.

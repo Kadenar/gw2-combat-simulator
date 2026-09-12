@@ -1123,7 +1123,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
-  // Full payoff: the Lesser version's strike and blind plus Vulnerability and Weakness.
+  // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
   [ID.HABOOB]: {
     name: 'Haboob',
     type: 'Weapon',
@@ -1189,7 +1189,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
             atMs: 560,
             condition: 'Cripple',
             stacks: 1,
-            duration: 55
+            duration: 5
           }
         ],
         timingAnchor: 'castStart',

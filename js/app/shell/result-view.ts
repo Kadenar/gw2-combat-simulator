@@ -23,7 +23,8 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
   if (summary?.dataset) {
     summary.dataset.buildRevision = String(state.inputRevision);
     summary.dataset.resultRevision = String(state.outputRevision);
-    summary.toggleAttribute?.('aria-busy', stale);
+    // ARIA needs explicit boolean tokens to expose pending results to assistive technology.
+    summary.setAttribute('aria-busy', String(stale));
   }
 
   updateFloatingDps(viewModel.floatingDps);
