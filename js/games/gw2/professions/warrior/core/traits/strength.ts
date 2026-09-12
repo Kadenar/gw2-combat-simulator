@@ -7,6 +7,8 @@ import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { gainWarriorAdrenaline } from '#gw2/professions/warrior/resources.js';
@@ -46,6 +48,45 @@ export const BRAVE_STRIDE_MOVEMENT_SKILL_IDS = Object.freeze([
 ]);
 const MOVEMENT_SKILL_IDS = new Set<number>(BRAVE_STRIDE_MOVEMENT_SKILL_IDS);
 const BODY_BLOW_CONTROL_KINDS = new Set(['stun', 'daze', 'knockback', 'pull', 'push', 'launch']);
+
+// Keep Might's critical probability independent of Arms and double it for the wielded greatsword.
+export function applyForcefulGreatsword(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
+  if (!hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) || event.offTarget) return;
+  const profile = balanceProfileFromContext(context, PROFILE.forcefulGreatsword);
+  const state = professionCoreState(context);
+  const weapons = gw2ConfiguredWeaponSet(context.config, event.weaponSet ?? context.state.activeWeaponSet);
+  const tracker = { progress: state.forcefulGreatswordProgress, readyAt: 0 };
+  const application = advanceScheduledCriticalProc(
+    context,
+    event,
+    {
+      id: 'warrior.core.forceful-greatsword',
+      chanceOnCriticalHit: Math.min(1, Number(profile?.procChance ?? 0.5) * (weapons.includes('Greatsword') ? 2 : 1)),
+      randomStream: 'warrior.forceful-greatsword'
+    },
+    tracker,
+    Math.max(1, Number(event.hits || 1))
+  );
+  state.forcefulGreatswordProgress = tracker.progress;
+  if (!application) return;
+  const might = balanceProfileEffect(profile, 'boon');
+  emitSkillBuff(context, {
+    cause: event,
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.FORCEFUL_GREATSWORD,
+    actorType: 'effect',
+    skillId: event.skillId,
+    skillName: event.skillName,
+    name: 'Forceful Greatsword — Might',
+    fixedDuration: false,
+    kind: 'might',
+    boon: 'might',
+    stacks: application.quantity * Number(might?.stacks ?? 1),
+    duration: Number(might?.duration ?? 5),
+    audience: { recipients: 'self' as const }
+  });
+}
 
 export function reactToWarriorBuff(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;

@@ -35,6 +35,7 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   furiousBurst: TRAIT.FURIOUS_BURST,
   pinnacleOfStrength: TRAIT.PINNACLE_OF_STRENGTH,
   forcefulGreatsword: TRAIT.FORCEFUL_GREATSWORD,
+  axeMastery: TRAIT.AXE_MASTERY,
   roaringReveille: TRAIT.ROARING_REVEILLE,
   greatFortitude: TRAIT.GREAT_FORTITUDE,
   vigorousShouts: TRAIT.VIGOROUS_SHOUTS,
@@ -231,7 +232,13 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.forcefulGreatsword, 'Forceful Greatsword', {
     attributeBonus: 120,
-    weaponAttributeBonus: 120
+    weaponAttributeBonus: 120,
+    // Critical Might has twice the proc chance while wielding a greatsword.
+    procChance: 0.5,
+    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
+  }),
+  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.axeMastery, 'Axe Mastery', {
+    resourceGain: 2
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.roaringReveille, 'Roaring Reveille', {
     attributeBonus: 120

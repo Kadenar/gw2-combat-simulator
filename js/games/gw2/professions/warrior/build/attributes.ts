@@ -16,7 +16,7 @@ import type { WarriorSpecializationSelection } from '#gw2/professions/warrior/da
 // Warrior conversions to the shared build-time attribute result.
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
+  { build, weaponSet, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
     specializations: (build.specializations || []) as WarriorSpecializationSelection[],
@@ -25,7 +25,8 @@ export function applyWarriorBuildAttributeRules(
     getActiveTraits
   });
 
-  const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
+  // Weapon bonuses follow the selected set; base bonuses retain their conversion eligibility.
+  const weapons = (weaponSet === 2 ? build.alternateWeapons : build.weapons) || [];
 
   const traitDurations: Gw2NumericAttributes = {};
 

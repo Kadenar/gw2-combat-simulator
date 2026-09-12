@@ -101,14 +101,20 @@ test('timing summaries handle zero, one, and multiple stable-ID uses', () => {
 });
 
 test('one usable weapon set owns the full timeline', () => {
-  const totals = weaponSetDurationTotals([step(0, SWAP_WEAPONS_ID, 2000, 2000)], {
-    startingWeaponSet: 1,
-    timelineEndMs: 10000,
-    hasSecondWeaponSet: false,
-    weaponSwapSkillIds: new Set([SWAP_WEAPONS_ID])
-  });
-
-  assert.deepEqual([...totals], [[1, 10000]]);
+  // No-swap professions retain the selected starting set even when a swap action is present.
+  for (const startingWeaponSet of [1, 2]) {
+    const steps = [step(0, SWAP_WEAPONS_ID, 2000, 2000)];
+    const options = {
+      startingWeaponSet,
+      timelineEndMs: 10000,
+      hasSecondWeaponSet: false,
+      weaponSwapSkillIds: new Set([SWAP_WEAPONS_ID])
+    };
+    assert.deepEqual([...weaponSetDurationTotals(steps, options)], [[startingWeaponSet, 10000]]);
+    assert.deepEqual(weaponSetActiveSegments(steps, options), [
+      { weaponSet: startingWeaponSet, startMs: 0, endMs: 10000, durationMs: 10000 }
+    ]);
+  }
 });
 
 test('weapon duration closes W1 to W2 at swap completion and closes W2 at timeline end', () => {

@@ -17,6 +17,8 @@ import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warri
 
 function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
+  // Only committed activations open Berserk; resource spending is handled separately.
+  if (context.action.cancelled) return;
   const core = professionCoreState(context);
   // Berserk mode collapses the three adrenaline bars into one slot of ten.
   core.maximumAdrenaline = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 10);
@@ -42,6 +44,8 @@ function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
 
 function useBloodReckoning(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
+  // An interrupted heal must leave existing primal-burst recharge intact.
+  if (context.action.cancelled) return;
   for (const candidate of context.catalog.skills) {
     if (candidate.primalBurst) context.state.cooldowns.delete(candidate.id);
   }

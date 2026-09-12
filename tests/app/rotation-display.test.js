@@ -245,6 +245,9 @@ test('default empty timelines stay interactive while read-only timelines omit au
     closest: () => null,
     querySelector: () => null,
     querySelectorAll: () => [],
+    setAttribute(name, value) {
+      attributes.set(name, value);
+    },
     toggleAttribute(name, value) {
       if (value) attributes.set(name, '');
       else attributes.delete(name);
@@ -269,11 +272,21 @@ test('default empty timelines stay interactive while read-only timelines omit au
   };
 
   renderTimeline(app);
+  assert.equal(attributes.get('aria-busy'), 'false');
   assert.equal(typeof root.ondrop, 'function');
   assert.equal(attributes.has('aria-readonly'), false);
 
+  // Live results become busy on edits and clear when the matching simulation arrives.
+  app.buildRevision = 2;
+  renderTimeline(app);
+  assert.equal(attributes.get('aria-busy'), 'true');
+  app.resultRevision = 2;
+  renderTimeline(app);
+  assert.equal(attributes.get('aria-busy'), 'false');
+  app.buildRevision = 3;
   root.ondrop = null;
   renderTimeline(app, { root, procRoot: null, build: { rotation: [] }, result: null, readOnly: true });
+  assert.equal(attributes.get('aria-busy'), 'false');
   assert.equal(root.ondrop, null);
   assert.equal(attributes.has('aria-readonly'), true);
   assert.doesNotMatch(root.innerHTML, /rot-(?:insertion-gap|edit|x)/);

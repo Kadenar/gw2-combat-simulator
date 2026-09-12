@@ -47,6 +47,8 @@ export interface WarriorCoreState {
   burstPrecisionDurations: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
   armsCriticalProgress: number;
+  axeMasteryProgress: number;
+  forcefulGreatswordProgress: number;
   bloodlustProgress: number;
   furiousSurgeExpiries: number[];
 }

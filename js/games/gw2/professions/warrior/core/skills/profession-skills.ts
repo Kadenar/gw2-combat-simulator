@@ -4,6 +4,8 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EVISCERATE]: {
+    // The API omits the burst's weapon; axe critical traits still apply to this strike.
+    skillWeapon: 'Axe',
     cooldown: 8,
     castTimeMs: 0,
     adrenalineCost: 10,
@@ -221,6 +223,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
+    // Numeric variants share the canonical burst's resource and trait contract.
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -261,6 +265,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
+    // Numeric variants share the canonical burst's resource and trait contract.
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',
@@ -280,6 +286,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
+    // Numeric variants share the canonical burst's resource and trait contract.
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'condition',
@@ -320,6 +328,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
+    // Numeric variants share the canonical burst's resource and trait contract.
+    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'condition',

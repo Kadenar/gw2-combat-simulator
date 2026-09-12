@@ -7,8 +7,16 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { createParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { activateChant, activateCommand, updateParagonCast, handleParagonCommandEchoTask } from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
-import { advanceWarriorResources, warriorEnduranceReadyAt } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import {
+  activateChant,
+  activateCommand,
+  updateParagonCast,
+  handleParagonCommandEchoTask
+} from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
+import {
+  advanceWarriorResources,
+  warriorEnduranceReadyAt
+} from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { applyAxeMastery } from '#gw2/professions/warrior/core/traits/discipline.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
@@ -26,11 +34,18 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     selectedSkills: { elite: 'Head Butt' }
   });
   assert.deepEqual(headButt.warnings, []);
-  assert.equal(headButt.events.some((event) => event.type === 'action' && event.cancelled), true);
+  assert.equal(
+    headButt.events.some((event) => event.type === 'action' && event.cancelled),
+    true
+  );
   assert.equal(headButt.endState.profession.adrenaline, 0);
   const config = { initialResource: 30, primaryWeapon: 'Greatsword', selectedSkills: { heal: 'Blood Reckoning' } };
   const primed = simulate('Berserker', ['Berserk', 'Arc Divider'], config);
-  const cancelled = simulate('Berserker', ['Berserk', 'Arc Divider', { name: 'Blood Reckoning', interruptMs: 100 }], config);
+  const cancelled = simulate(
+    'Berserker',
+    ['Berserk', 'Arc Divider', { name: 'Blood Reckoning', interruptMs: 100 }],
+    config
+  );
   assert.deepEqual(cancelled.warnings, []);
   assert.equal(cancelled.endState.profession.adrenaline, primed.endState.profession.adrenaline);
   assert.equal(cancelled.endState.cooldowns['Arc Divider'].readyAt, primed.endState.cooldowns['Arc Divider'].readyAt);
@@ -51,9 +66,19 @@ function paragonContext() {
     start: 0,
     effectiveEnd: 0,
     action: {},
-    state: { time: 0, cooldowns: new Map(), profession: { core: createWarriorCoreState({ initialResource: 30 }), specialization: { kind: 'Paragon', state: createParagonState() } } },
+    state: {
+      time: 0,
+      cooldowns: new Map(),
+      profession: {
+        core: createWarriorCoreState({ initialResource: 30 }),
+        specialization: { kind: 'Paragon', state: createParagonState() }
+      }
+    },
     tasks: { schedule: (task) => tasks.push(task) },
-    emit: (event) => { events.push(event); return event; },
+    emit: (event) => {
+      events.push(event);
+      return event;
+    },
     events,
     scheduled: tasks
   };
@@ -97,26 +122,56 @@ test('burst-flushed echoes invalidate the old task and repeat after the new inte
 });
 
 test('all accepted Staff and Spear burst variants spend resources and grant first-hit burst traits', () => {
-  for (const [skillId, primaryWeapon] of [[71922, 'Staff'], [71932, 'Staff'], [71950, 'Staff'], [73006, 'Spear'], [73024, 'Spear'], [73042, 'Spear']]) {
-    for (const [specialization, remaining] of [['Core', 1], ['Spellbreaker', 11], ['Paragon', 1]]) {
-      const result = simulate(specialization, [skillId], { primaryWeapon, initialResource: 30, selectedTraitIds: [TRAIT.BERSERKERS_POWER] });
+  for (const [skillId, primaryWeapon] of [
+    [71922, 'Staff'],
+    [71932, 'Staff'],
+    [71950, 'Staff'],
+    [73006, 'Spear'],
+    [73024, 'Spear'],
+    [73042, 'Spear']
+  ]) {
+    for (const [specialization, remaining] of [
+      ['Core', 1],
+      ['Spellbreaker', 11],
+      ['Paragon', 1]
+    ]) {
+      const result = simulate(specialization, [skillId], {
+        primaryWeapon,
+        initialResource: 30,
+        selectedTraitIds: [TRAIT.BERSERKERS_POWER]
+      });
       assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
       assert.equal(result.endState.profession.adrenaline, remaining, `${specialization}: ${skillId}`);
-      assert.equal(result.events.some((event) => event.kind === 'berserkers-power'), true);
+      assert.equal(
+        result.events.some((event) => event.kind === 'berserkers-power'),
+        true
+      );
     }
   }
 });
 
 test('Axe Mastery adds adrenaline only to critical axe hits, including burst and primal burst hits', () => {
-  for (const [specialization, rotation, initialResource] of [['Core', ['Chop'], 0], ['Core', ['Eviscerate'], 30], ['Berserker', ['Berserk', 'Decapitate'], 30]]) {
+  for (const [specialization, rotation, initialResource] of [
+    ['Core', ['Chop'], 0],
+    ['Core', ['Eviscerate'], 30],
+    ['Berserker', ['Berserk', 'Decapitate'], 30]
+  ]) {
     const config = { primaryWeapon: 'Axe', initialResource };
     const baseline = simulate(specialization, rotation, config);
     const result = simulate(specialization, rotation, { ...config, selectedTraitIds: [TRAIT.AXE_MASTERY] });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.endState.profession.adrenaline - baseline.endState.profession.adrenaline, 2);
   }
-  for (const [skill, primaryWeapon, precision] of [['Chop', 'Axe', 0], ['Greatsword Swing', 'Greatsword', 4000]]) {
-    const result = simulate('Core', [skill], { primaryWeapon, stats: { precision }, selectedTraitIds: [TRAIT.AXE_MASTERY] });
+
+  for (const [skill, primaryWeapon, precision] of [
+    ['Chop', 'Axe', 0],
+    ['Greatsword Swing', 'Greatsword', 4000]
+  ]) {
+    const result = simulate('Core', [skill], {
+      primaryWeapon,
+      stats: { precision },
+      selectedTraitIds: [TRAIT.AXE_MASTERY]
+    });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.endState.profession.adrenaline, 1);
   }
@@ -140,16 +195,30 @@ test('Axe Mastery keeps weapon progress isolated and follows resource caps and B
 });
 
 test('Forceful Greatsword uses active weapon probability, isolated progress and boon duration', () => {
-  const config = { primaryWeapon: 'Greatsword', weaponSet2Primary: 'Axe', selectedTraitIds: [TRAIT.FORCEFUL_GREATSWORD], stats: { concentration: 1500 } };
+  const config = {
+    primaryWeapon: 'Greatsword',
+    weaponSet2Primary: 'Axe',
+    selectedTraitIds: [TRAIT.FORCEFUL_GREATSWORD],
+    stats: { concentration: 1500 }
+  };
   const result = simulate('Core', ['Greatsword Swing', 'Swap Weapons', 'Chop', 'Double Chop'], config);
   assert.deepEqual(result.warnings, []);
   const might = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.FORCEFUL_GREATSWORD);
   assert.equal(might[0].stacks, 1);
   assert.equal(might[0].duration, 10);
-  assert.equal(might.some((event) => event.skillId === ID.CHOP), false);
-  assert.equal(might.some((event) => event.skillId === ID.DOUBLE_CHOP), true);
+  assert.equal(
+    might.some((event) => event.skillId === ID.CHOP),
+    false
+  );
+  assert.equal(
+    might.some((event) => event.skillId === ID.DOUBLE_CHOP),
+    true
+  );
   const noncritical = simulate('Core', ['Greatsword Swing'], { ...config, stats: { precision: 0 } });
-  assert.equal(noncritical.events.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD), false);
+  assert.equal(
+    noncritical.events.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD),
+    false
+  );
 });
 
 test('mixed Warrior weapon sets keep static bonuses and conversion inputs separate', () => {
@@ -157,8 +226,15 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
   const build = createWarriorBuildDefaults();
   build.weapons = ['Axe', 'Axe'];
   build.alternateWeapons = ['Greatsword', ''];
-  build.specializations = [{ name: 'Strength', traits: '1-2-1' }, { name: 'Discipline', traits: '1-1-1' }, { name: 'Tactics', traits: '1-1-2' }];
-  for (const [weaponSet, power, ferocity] of [[1, 120, 240], [2, 240, 120]]) {
+  build.specializations = [
+    { name: 'Strength', traits: '1-2-1' },
+    { name: 'Discipline', traits: '1-1-1' },
+    { name: 'Tactics', traits: '1-1-2' }
+  ];
+  for (const [weaponSet, power, ferocity] of [
+    [1, 120, 240],
+    [2, 240, 120]
+  ]) {
     const all = calculate(build, [], weaponSet).attributes;
     const withoutForceful = calculate(build, [], weaponSet, 'Forceful Greatsword').attributes;
     const withoutAxe = calculate(build, [], weaponSet, 'Axe Mastery').attributes;
@@ -167,7 +243,16 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     assert.equal(all['Healing Power'].final - withoutForceful['Healing Power'].final, 12);
     const attributes = { power: all.Power.final, vitality: 1000, ferocity: all.Ferocity.final };
     const before = { ...attributes };
-    modifyWarriorStrengthAttributes({ config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' }, runtime: { activeWeaponSet: weaponSet }, traits: new Set([TRAIT.FORCEFUL_GREATSWORD]), time: 0 }, attributes, true);
+    modifyWarriorStrengthAttributes(
+      {
+        config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' },
+        runtime: { activeWeaponSet: weaponSet },
+        traits: new Set([TRAIT.FORCEFUL_GREATSWORD]),
+        time: 0
+      },
+      attributes,
+      true
+    );
     assert.deepEqual(attributes, before, 'static provenance avoids applying weapon bonuses twice');
   }
 });
@@ -176,7 +261,14 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
 test('endurance integration and Dodge readiness follow pooled Vigor windows', () => {
   for (const [events, expectedEndurance, readyAt] of [
     [[{ type: 'buff', kind: 'vigor', at: 0, duration: 4, stacks: 1 }], 60, 8],
-    [[{ type: 'buff', kind: 'vigor', at: 0, duration: 2, stacks: 1 }, { type: 'buff', kind: 'vigor', at: 1, duration: 2, stacks: 1 }], 60, 8],
+    [
+      [
+        { type: 'buff', kind: 'vigor', at: 0, duration: 2, stacks: 1 },
+        { type: 'buff', kind: 'vigor', at: 1, duration: 2, stacks: 1 }
+      ],
+      60,
+      8
+    ],
     [[{ type: 'buff', kind: 'vigor', at: 2, duration: 2, stacks: 1 }], 55, 9]
   ]) {
     const contexts = [paragonContext(), paragonContext()];
@@ -185,7 +277,7 @@ test('endurance integration and Dodge readiness follow pooled Vigor windows', ()
       context.state.profession.core.endurance = 0;
       assert.equal(warriorEnduranceReadyAt(context, 50), readyAt);
     }
-    
+
     advanceWarriorResources(contexts[0], 10);
     for (const at of [1, 2, 4, 10]) advanceWarriorResources(contexts[1], at);
     for (const context of contexts) {

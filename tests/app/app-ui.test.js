@@ -828,6 +828,7 @@ test('rotations waiting for results show an accessible analysis skeleton', () =>
 });
 
 test('workspace renders RNG controls while detailed analysis stays lazy', () => {
+  const summaryAttributes = new Map();
   const runButton = {};
   const results = {
     dataset: {},
@@ -840,7 +841,9 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
     innerHTML: '',
     querySelector: () => null,
     querySelectorAll: () => [],
-    toggleAttribute() {}
+    setAttribute(name, value) {
+      summaryAttributes.set(name, value);
+    }
   };
   const previousDocument = globalThis.document;
   let runCount = 0;
@@ -857,7 +860,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
     const app = {
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
       buildRevision: 2,
-      resultRevision: 2,
+      resultRevision: 1,
       results: {
         duration: 1,
         totalDamage: 100,
@@ -872,6 +875,11 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
       }
     };
     gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
+    // The summary must expose both stale and refreshed results with valid ARIA tokens.
+    assert.equal(summaryAttributes.get('aria-busy'), 'true');
+    app.resultRevision = app.buildRevision;
+    gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
+    assert.equal(summaryAttributes.get('aria-busy'), 'false');
   } finally {
     globalThis.document = previousDocument;
   }

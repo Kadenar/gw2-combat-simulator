@@ -1,6 +1,8 @@
 /** Owns imperative Discipline trait effects while the public dispatcher preserves cross-line ordering. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -13,7 +15,34 @@ import {
   warriorTargetBoonCount
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { WarriorCastContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type {
+  WarriorCastContext,
+  WarriorSchedulerContext,
+  WarriorSimulationEvent,
+  WarriorSkill
+} from '#gw2/professions/warrior/types.js';
+
+// Only axe strikes advance this tracker; other weapons cannot bank an axe critical reward.
+export function applyAxeMastery(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
+  if (!hasTrait(context, TRAIT.AXE_MASTERY) || event.offTarget) return;
+  const skill = context.catalog.skillsById.get(event.skillId ?? '');
+  if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) !== 'Axe') return;
+  const state = professionCoreState(context);
+  const tracker = { progress: state.axeMasteryProgress, readyAt: 0 };
+  const application = advanceScheduledCriticalProc(
+    context,
+    event,
+    { id: 'warrior.core.axe-mastery' },
+    tracker,
+    Math.max(1, Number(event.hits || 1))
+  );
+  state.axeMasteryProgress = tracker.progress;
+  if (application)
+    gainWarriorAdrenaline(
+      context,
+      application.quantity * Number(balanceProfileFromContext(context, PROFILE.axeMastery)?.resourceGain ?? 2)
+    );
+}
 
 // Refund the configured burst resource and emit Swiftness after Burst Precision is armed.
 export function applyBurstMastery(

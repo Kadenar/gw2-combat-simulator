@@ -40,7 +40,8 @@ export function spendWarriorAdrenaline(context: WarriorCastContext, skill: Warri
 /** Applies the selected spend policy before routing any skill-authored resource gain. */
 export function applyWarriorSkillResource(context: WarriorCastContext, skill: WarriorSkill): number {
   const spent = spendWarriorAdrenaline(context, skill);
-  if (Number(skill.adrenalineGain || 0) > 0) {
+  // Cancellation retains spending but cannot award a successful activation's resource gain.
+  if (!context.action.cancelled && Number(skill.adrenalineGain || 0) > 0) {
     gainWarriorAdrenaline(context, Number(skill.adrenalineGain));
   }
 

@@ -38,6 +38,7 @@ import {
   applyBodyBlow,
   applyBraveStrideCastComplete,
   applyBuildingMomentum,
+  applyForcefulGreatsword,
   applyPeakPerformanceCastStart,
   applyRecklessDodge,
   BRAVE_STRIDE_MOVEMENT_SKILL_IDS,
@@ -66,6 +67,7 @@ import {
   warriorDefenseModifierRules
 } from '#gw2/professions/warrior/core/traits/defense.js';
 import {
+  applyAxeMastery,
   applyBurstMastery,
   applyVersatileRage,
   warriorDisciplineModifierRules
@@ -100,12 +102,16 @@ export function applyWarriorBurstSpendTraits(
     readonly resourceRefundRate?: number;
   } = {}
 ): void {
+  // Cancelled bursts still spend resources but cannot trigger successful burst rewards.
+  if (context.action.cancelled) return;
   armBurstPrecision(context, skill, adrenalineSpent);
   applyBurstMastery(context, skill, adrenalineSpent, options);
 }
 
 // Preserve cast completion order: Signet Mastery, Peitha, then Brave Stride.
 export function completeWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
+  // Lifecycle hooks still run for cleanup; completion rewards require commitment.
+  if (context.action.cancelled) return;
   applySignetMasteryCastComplete(context, skill);
   if (skill.shadowstepSkill && context.config.relic === 'Peitha') {
     context.emit({
@@ -205,6 +211,8 @@ export function initializeWarriorTraits(context: WarriorSchedulerContext): void 
     weapons.includes('Dagger') ||
     hasTrait(context, TRAIT.BLOODLUST) ||
     hasTrait(context, TRAIT.FURIOUS) ||
+    hasTrait(context, TRAIT.AXE_MASTERY) ||
+    hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) ||
     hasTrait(context, TRAIT.SUNDERING_BURST)
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
@@ -224,6 +232,8 @@ export function handleWarriorArmsCriticalTask(context: WarriorSchedulerContext, 
   applyBloodlust(context, event);
   applyFurious(context, event, criticals);
   applySunderingBurst(context, event, Boolean(payload?.firstBurstHit), criticals);
+  applyAxeMastery(context, event);
+  applyForcefulGreatsword(context, event);
 }
 
 // Route canonical events through the preserved cross-line and base-mechanic sequence.
@@ -272,6 +282,8 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       event.skillId === ID.KEEN_STRIKE ||
       hasTrait(context, TRAIT.BLOODLUST) ||
       hasTrait(context, TRAIT.FURIOUS) ||
+      hasTrait(context, TRAIT.AXE_MASTERY) ||
+      hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) ||
       (firstBurstHit && hasTrait(context, TRAIT.SUNDERING_BURST));
     if (tracksArmsCritical) {
       context.tasks.schedule({

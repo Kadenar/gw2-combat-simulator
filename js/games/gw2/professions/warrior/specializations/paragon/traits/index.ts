@@ -54,6 +54,8 @@ function motivationLevel(context: WarriorSchedulerContext, motivation: number): 
 // Motivation, then apply Feverish Pulse to the other chants and allies.
 export function activateChant(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
+  // Cancelled chants retain their spend without opening a refrain or granting Motivation.
+  if (context.action.cancelled) return;
   const at = context.effectiveEnd;
   const state = paragonState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
@@ -199,6 +201,8 @@ function executePendingEcho(context: WarriorSchedulerContext, echoId: number, at
   if (echo.repeats > 1) {
     const next = {
       ...echo,
+      // Each repeat owns a new occurrence so a previously scheduled task cannot consume it.
+      id: ++state.commandEchoSequence,
       dueAt: at + Number(balanceProfileFromContext(context, PROFILE.commands)?.pulseInterval ?? 3),
       repeats: echo.repeats - 1
     };
@@ -213,6 +217,8 @@ function executePendingEcho(context: WarriorSchedulerContext, echoId: number, at
 }
 
 export function activateCommand(context: WarriorCastContext, skill: WarriorSkill): void {
+  // Only successful commands grant resources and queue echoes.
+  if (context.action.cancelled) return;
   if (skill.id === ID.FIND_THEIR_WEAKNESS) gainWarriorAdrenaline(context, 3);
 
   const state = paragonState.from(context);
@@ -324,6 +330,8 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
 }
 
 export function updateParagonCast(context: WarriorCastContext, skill: WarriorSkill): void {
+  // Cancellation leaves pending echoes available for the next committed burst.
+  if (context.action.cancelled) return;
   const state = paragonState.from(context);
   if (skill.burst && state.pendingCommandEchoes.length) {
     for (const echo of [...state.pendingCommandEchoes]) {
@@ -352,6 +360,7 @@ export function applyParagonWeaponSwapTraits(context: WarriorCastContext): void 
 export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = paragonState.from(context);
   if (
+    context.action.cancelled ||
     !skill.burst ||
     skill.handlerId === 'warrior.chant' ||
     !hasTrait(context, TRAIT.RALLY_THE_VALIANT) ||

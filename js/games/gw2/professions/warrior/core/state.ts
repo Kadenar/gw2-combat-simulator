@@ -39,6 +39,8 @@ export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreS
     burstPrecisionDurations: {},
     traitProcReadyAt: {},
     armsCriticalProgress: 0,
+    axeMasteryProgress: 0,
+    forcefulGreatswordProgress: 0,
     bloodlustProgress: 0,
     furiousSurgeExpiries: []
   };
