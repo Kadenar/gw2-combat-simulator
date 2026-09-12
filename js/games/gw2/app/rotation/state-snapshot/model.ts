@@ -57,6 +57,22 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
     });
   }
 
+  // Relic proc deadlines include refreshes and surviving precast buffs; ignore activations after the cursor.
+  const relicExpirations = new Map<string, number>();
+  for (const proc of result?.procSteps || []) {
+    if (proc.type !== 'relic_proc' || proc.start > timeMs || !(Number(proc.expiresAt) > timeMs)) continue;
+    relicExpirations.set(proc.skill, Math.max(relicExpirations.get(proc.skill) || 0, Number(proc.expiresAt)));
+  }
+
+  for (const [name, expiresAt] of relicExpirations) {
+    items.push({
+      id: `relic:${name}`,
+      label: name,
+      value: `${((expiresAt - timeMs) / 1000).toFixed(1)}s`,
+      title: `${name} buff time remaining`
+    });
+  }
+
   items.push(
     ...app.profession.ui.rotationStateSnapshot({
       specialization: activeSpecialization(app),

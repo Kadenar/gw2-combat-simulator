@@ -183,6 +183,8 @@ function updateCantripTraits(context: ThiefCastContext, skill: ThiefSkill): void
       actorType: 'effect',
       name: 'Relic of the Deadeye',
       sourceSkill: skill.name,
+      // Publish the same window as the damage modifier for shared relic timers and expiry markers.
+      duration: state.deadeyeRelicUntil - at,
       detail: 'activated'
     });
     emitThiefStateSnapshot(context, at, 'deadeye-relic');

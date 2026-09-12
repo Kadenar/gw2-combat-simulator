@@ -222,7 +222,9 @@ export function resolveGw2Timeline({
         event.sourceSkill,
         event.detail,
         event.icon,
-        event.cooldownReduction
+        event.cooldownReduction,
+        // Scheduler-owned timed procs use the same deadline contract as resolver-owned relic buffs.
+        Number(event.duration) > 0 ? event.at + Number(event.duration) : null
       );
     }
   }
