@@ -81,7 +81,7 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   );
 }
 
-/** Uses accumulated duration for boon presence; intensity and custom buffs retain additive stack counts. */
+/** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */
 export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
   const permanent = context.config?.boons?.[boon];
   const base = permanent === true ? 1 : Number(permanent || 0);
@@ -92,13 +92,19 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
   const applications = boons?.get(boon) || [];
   if (isDurationStackingBoon(boon)) {
     const remaining = remainingDurationStackSeconds(applications, context.time, {
+      includes: (application) => buffMatchesAudience(application, 'all'),
       maximum: durationStackingBoonCapSeconds(boon)
     });
     return clamp(remaining > 0 ? 1 : 0, 0, maximum);
   }
 
   const dynamic = applications
-    .filter((application) => application.at <= context.time && application.expiresAt > context.time)
+    .filter(
+      (application) =>
+        buffMatchesAudience(application, 'all') &&
+        application.at <= context.time &&
+        application.expiresAt > context.time
+    )
     .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
   return clamp(base + dynamic, 0, maximum);
 }

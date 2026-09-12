@@ -40,7 +40,9 @@ test('configured duration stacks bypass history and retain output caps without c
   for (const kind of ['might', 'stability', 'custom']) {
     const current = context({
       config: { boons: { [kind]: 3 } },
-      runtime: { boons: new Map([[kind, [{ at: 0, expiresAt: 10, stacks: 2 }]]]) }
+      runtime: {
+        boons: new Map([[kind, [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]])
+      }
     });
     assert.equal(activeBoonStacks(current, kind), 5);
     assert.equal(activeBoonStacks(current, kind, 4), 4);
@@ -88,17 +90,46 @@ test('duration boon stacks use capped presence in live and scheduler state', () 
   }
 });
 
-test('duration stack queries retain audience independence and live insertion order', () => {
-  const state = { boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1 }]]]) };
+test('player boon stacks exclude summon copies in live and scheduler state', () => {
+  // Copied packets must neither extend player Fury nor double player intensity stacks.
+  for (const kind of ['fury', 'might', 'custom']) {
+    const stacks = kind === 'fury' ? 1 : 3;
+    const boons = new Map();
+    for (const includesSelf of [true, false]) {
+      recordBuffApplication(boons, {
+        type: 'buff',
+        kind,
+        at: 0,
+        duration: 5,
+        stacks,
+        resolvedAudience: { includesSelf, includesSummons: !includesSelf, companionIds: ['engineer.mech'] }
+      });
+    }
+
+    for (const stateKey of ['runtime', 'state']) {
+      const current = context({ time: 1, [stateKey]: { boons } });
+      assert.equal(activeBoonStacks(current, kind), stacks);
+      assert.equal(activeBoonStacks({ ...current, time: 6 }, kind), 0);
+    }
+  }
+});
+
+test('duration stack queries retain player audience filtering and live insertion order', () => {
+  const state = {
+    boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]])
+  };
   const runtime = { boons: new Map() };
   const current = context({ time: 0, state, runtime });
   assert.equal(activeBoonStacks(current, 'fury'), 0);
   runtime.boons.set('fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]);
-  assert.equal(activeBoonStacks(current, 'fury'), 1);
+  assert.equal(activeBoonStacks(current, 'fury'), 0);
   assert.equal(boonActive(current, 'fury'), false);
+  runtime.boons.get('fury').push({ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
+  assert.equal(activeBoonStacks(current, 'fury'), 1);
+  assert.equal(boonActive(current, 'fury'), true);
   runtime.boons.set('custom', [
-    { at: 0, expiresAt: 10, stacks: 3 },
-    { at: 0, expiresAt: 10, stacks: 2 }
+    { at: 0, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
+    { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }
   ]);
   assert.equal(activeBoonStacks(current, 'custom'), 5);
   assert.equal(activeBoonStacks({ ...current, time: 10 }, 'custom'), 0);
@@ -263,8 +294,8 @@ test('health fractions preserve explicit precedence and dynamic damage fallback'
 });
 
 test('boon queries retain configured stacks and prefer live applications over scheduler state', () => {
-  const schedulerApplication = { at: 0, expiresAt: 10, stacks: 4 };
-  const runtimeApplication = { at: 0, expiresAt: 10, stacks: 2 };
+  const schedulerApplication = { at: 0, expiresAt: 10, stacks: 4, resolvedAudience: { includesSelf: true } };
+  const runtimeApplication = { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } };
   const modifierContext = context({
     config: { boons: { might: 3 } },
     state: { boons: new Map([['might', [schedulerApplication]]]) },
