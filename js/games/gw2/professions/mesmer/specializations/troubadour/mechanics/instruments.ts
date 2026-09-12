@@ -336,6 +336,9 @@ export function scheduleTroubadourPerformance(context: MesmerCastContext, skill:
 
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
 export function completeTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
+  // Cancelled performances retain their notes; committed Harp interruptions still activate the instrument.
+  if (context.action.cancelled) return;
+
   const runtime = mesmerRuntimeFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument) return;

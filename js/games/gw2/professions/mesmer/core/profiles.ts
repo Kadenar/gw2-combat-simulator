@@ -222,7 +222,8 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
         boon: 'fury',
         duration: 4,
         stacks: 1,
-        audience: { recipients: 'party', maximumRecipients: 4 }
+        // Personal Fury is separate, leaving all four recipient slots for allies.
+        audience: { recipients: 'party', maximumRecipients: 4, affectsSelf: false }
       }
     ]
   }),
@@ -295,8 +296,12 @@ export function mesmerProfiledShatters(
               ? coefficients
               : shatter.coefficients,
           ticks:
-            strikes.length === shatter.coefficients.length && strikes.every((effect) => effect.ticks?.length)
-              ? strikes.map((effect) => effect.ticks || [])
+            // Overlay each tier independently so an empty zero-resource tier cannot discard positive-tier patches.
+            shatter.ticks || strikes.some((effect) => effect.ticks?.length)
+              ? shatter.coefficients.map((_, tier) => {
+                  const ticks = strikes[tier]?.ticks;
+                  return ticks?.length && Number.isFinite(coefficients[tier]) ? ticks : shatter.ticks?.[tier] || [];
+                })
               : shatter.ticks,
           ...(shatter.rechargeReductionPerSource == null
             ? {}

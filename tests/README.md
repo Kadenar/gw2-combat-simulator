@@ -26,9 +26,11 @@ GW2 palette, timeline, chart, result, and icon views belong in `app/`, even when
 UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without browser
 nodes.
 
-Mesmer's `chronomancer.test.js`, `virtuoso.test.js`, and `troubadour.test.js` cover their specialization behavior;
-`shared-skills-and-traits.test.js` covers skills and traits used across specializations. A shared engine contract stays
-under `platform/` when it uses a profession simulation helper only to supply a small scenario.
+Mesmer's `chronomancer.test.js`, `mirage.test.js`, `virtuoso.test.js`, and `troubadour.test.js` cover their
+specialization behavior. `weapon-skills.test.js`, `slot-skills.test.js`, and `shared-traits.test.js` cover behavior used
+across specializations; clone attack scheduling belongs in `autoattacks.test.js`, and relic interactions belong in
+`conditions-and-relics.test.js`. A shared engine contract stays under `platform/` when it uses a profession simulation
+helper only to supply a small scenario.
 
 API snapshot transforms, fixture-backed fetching, and metadata generation belong in
 `scripts/profession-api-snapshot.test.mjs`. Build migration and cross-profession contracts remain under `professions/`.

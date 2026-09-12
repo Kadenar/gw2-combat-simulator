@@ -795,3 +795,61 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
   assert.equal(query.statsAt(0).conditionDamage, 1150);
   assert.equal(query.statsAt(3).conditionDamage, 1180);
 });
+
+test('Mesmer Peitha triggers share cast-start ICD logic with measured travel delays', () => {
+  const cases = [
+    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', 856],
+    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', 241],
+    ['Jaunt', ID.JAUNT, 'Axe', 241],
+    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 519],
+    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear', 800]
+  ];
+
+  for (const [skillName, skillId, primaryWeapon, delayMs] of cases) {
+    const result = simulateMesmer(
+      [{ name: skillName, skillId }],
+      defaultSimulationConfig({
+        specialization: 'Mirage',
+        selectedSkills: ['Crystal Sands', 'Jaunt'],
+        primaryWeapon,
+        secondaryWeapon: primaryWeapon === 'Axe' ? 'Torch' : '',
+        initialResource: 0,
+        relic: 'Peitha'
+      })
+    );
+    const cast = result.steps.find((step) => step.skill === skillName);
+    const peitha = result.events.find((event) => event.type === 'peitha' && event.skillName === skillName);
+    const torment = result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'
+    );
+
+    assert.ok(peitha, `${skillName} trigger event`);
+    assert.ok(torment, `${skillName} Peitha Torment`);
+    assert.equal(peitha.at * 1000, cast.start, `${skillName} trigger`);
+    assert.equal(peitha.projectileDelay * 1000, delayMs, skillName);
+    assert.ok(Math.abs(torment.at * 1000 - cast.start - delayMs) < 1e-9, `${skillName} impact`);
+  }
+});
+
+test('Axes and Crystal Sands share Peitha trigger-time cooldown state', () => {
+  const result = simulateMesmer(
+    [
+      { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY },
+      { name: '__wait', waitMs: 3001 },
+      { name: 'Crystal Sands', skillId: ID.CRYSTAL_SANDS }
+    ],
+    defaultSimulationConfig({
+      specialization: 'Mirage',
+      selectedSkills: ['Crystal Sands'],
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch',
+      initialResource: 0,
+      relic: 'Peitha'
+    })
+  );
+
+  assert.deepEqual(
+    result.procSteps.filter((step) => step.skill === 'Relic of Peitha').map((step) => step.sourceSkill),
+    ['Axes of Symmetry', 'Crystal Sands']
+  );
+});

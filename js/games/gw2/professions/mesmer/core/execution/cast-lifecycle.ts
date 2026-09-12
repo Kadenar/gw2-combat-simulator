@@ -231,6 +231,9 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
       return;
     }
 
+    // Cancelled attempts still refund reservations and clear cast-local state, but grant no completion effects.
+    if (context.action.cancelled) return;
+
     if (skill.id === ID.SWAP_WEAPONS) return;
     const clarityConsumed = Boolean(details.clarityConsumed);
     const specializationHandled = dispatchSpecializationCompletion(context, skill, at);
