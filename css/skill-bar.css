@@ -122,6 +122,25 @@
   border-left: 1px solid var(--border);
 }
 
+/* Show the persistent pet notice only on Ranger, including every elite specialization. */
+body:not([data-profession='ranger']) .ranger-pet-warning {
+  display: none;
+}
+
+.ranger-pet-warning {
+  margin: 0 16px 16px;
+  padding: 10px 12px;
+  background: #d9ae5714;
+  color: var(--text-bright);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ranger-pet-warning a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 /* Keep the restored selector strip compact and its native buttons keyboard accessible. */
 .workspace-build-choices .skill-bar-selected {
   max-width: 292px;
