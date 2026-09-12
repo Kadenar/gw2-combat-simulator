@@ -24,16 +24,16 @@ rotations are resolved at the build-migration boundary.
 ## Implemented systems
 
 - **Core** — weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
-  mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude and Bloodsong.
+  mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude.
 - **Chronomancer** — Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
 - **Mirage** — Mirage Cloak dodge charges and ambush attacks.
-- **Virtuoso** — bladesongs that require and spend all stocked blades.
+- **Virtuoso** — bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
 - **Troubadour** — instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Phantasm and clone travel time is fixed delays; expected critical-condition
-applications replace random trials (Bloodsong converts expected bleeding into deterministic blades at each five-stack
-threshold). Ally healing, barriers, control damage, stealth, and defensive effects stay outside the damage total;
-boon/distortion applications are still emitted. Full endurance is not simulated (only Mirage/Troubadour dodge charges).
-Competitive (PvP/WvW) splits are out of model.
+Single-target, outgoing-damage focused. Phantasm and clone travel time uses fixed delays. Deterministic mode uses
+expected critical-condition applications; stochastic mode consumes the shared sampled critical-hit facts. Bloodsong
+grants blades at each five-stack bleeding-application threshold. Ally healing, barriers, control damage, stealth, and
+defensive effects stay outside the damage total; boon/distortion applications are still emitted. Full endurance is not
+simulated (only Mirage/Troubadour dodge charges). Competitive (PvP/WvW) splits are out of model.

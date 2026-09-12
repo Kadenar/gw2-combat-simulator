@@ -700,9 +700,6 @@ export const berserkerModule = defineNativeModule({
       skillHandlers: berserkerSkillHandlers,
       castRules: berserkerCastRules,
       hooks: berserkerSchedulerHooks
-    },
-    resolution: {
-      reactions: berserkerReactions
     }
   },
 
@@ -976,7 +973,7 @@ Keep it separate from the engine-facing `definition.ts`.
 This separation allows:
 
 ```ts
-import { warriorProfession } from './js/games/gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 ```
 
 to work for headless simulation without loading browser UI/storage code.

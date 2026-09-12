@@ -32,7 +32,7 @@ Review generated change overview
         ↓
 Save active-preview.ts
         ↓
-Rebuild/restart simulator
+Rebuild simulator
         ↓
 Compare Live vs Preview
         ↓
@@ -73,7 +73,7 @@ http://127.0.0.1:4174
 
 The authoring server binds only to `127.0.0.1`.
 
-The normal simulator remains separate on:
+Start the separate simulator with `npm start`; its preview server uses:
 
 ```text
 http://127.0.0.1:4173
@@ -148,11 +148,10 @@ Use it for changes such as:
 - condition stacks or durations;
 - boon stacks or durations;
 - cooldowns;
-- cast times;
 - ammo recharge;
 - resource costs;
 - hit counts;
-- effect timing;
+- supported effect intervals;
 - other supported numeric skill fields.
 
 The UI displays:
@@ -199,7 +198,6 @@ skills: {
 Other examples include:
 
 ```text
-castTimeMs
 ammoRecharge
 initiativeCost
 energyCost
@@ -209,6 +207,11 @@ resourceGain
 
 The available controls come from the actual live skill metadata. A field is only patchable when the skill exposes a
 supported numeric value.
+
+Cast calibration fields such as `castTimeMs`, `quicknessCastTimeMs`, `interruptCommitMs`, `ammoCastLockout`, and
+`rechargeOffsetMs` are runtime-only and cannot be edited through numeric preview fields. Existing packet offsets
+(`atMs`) are also hidden from authoring references. Change those in the owning runtime source. The allowlists in
+`js/games/gw2/integrations/patches/authoring/fields.ts` define the supported controls.
 
 Prefer numeric skill IDs when possible.
 
@@ -291,6 +294,7 @@ For example:
   duration: 6,
   atMs: 500,
   timingAnchor: "castStart",
+  timingScale: "fixed",
 }
 ```
 
@@ -538,7 +542,8 @@ A successful save changes source code on disk.
 
 The simulator does **not** automatically reload that TypeScript source.
 
-Rebuild or restart the simulator before testing the newly saved preview.
+Rebuild before testing the newly saved preview. `npm start` rebuilds through its `prestart` script; restarting a
+directly launched `vite preview` process alone does not compile the changed source.
 
 ---
 
@@ -788,18 +793,19 @@ The promotion should be reviewable as an ordinary source change rather than an a
 
 Use this as the quick reference:
 
-| Change                                 | Author through                      |
-| -------------------------------------- | ----------------------------------- |
-| Skill coefficient                      | Skills → effect                     |
-| Skill cooldown/cast time/resource cost | Skills → numeric field              |
-| Condition or boon duration/stacks      | Skills → effect/tick                |
-| New or removed skill effect            | Skills → add/remove effect          |
-| Shared non-skill mechanic data         | Balance profiles                    |
-| Static trait damage modifier           | Traits & modifiers                  |
-| Runtime trait scaling value            | Modifier parameter                  |
-| Behavioral/code change                 | Ordinary patch-aware implementation |
-| PvP/WvW-only change                    | Do not author                       |
-| Description-only change                | Do not author                       |
+| Change                                     | Author through                      |
+| ------------------------------------------ | ----------------------------------- |
+| Skill coefficient                          | Skills → effect                     |
+| Skill cooldown/resource cost               | Skills → numeric field              |
+| Cast time/commit/packet-offset calibration | Owning runtime source               |
+| Condition or boon duration/stacks          | Skills → effect/tick                |
+| New or removed skill effect                | Skills → add/remove effect          |
+| Shared non-skill mechanic data             | Balance profiles                    |
+| Static trait damage modifier               | Traits & modifiers                  |
+| Runtime trait scaling value                | Modifier parameter                  |
+| Behavioral/code change                     | Ordinary patch-aware implementation |
+| PvP/WvW-only change                        | Do not author                       |
+| Description-only change                    | Do not author                       |
 
 The key principle is:
 

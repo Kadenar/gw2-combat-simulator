@@ -1,13 +1,12 @@
 # Log import cleanup: follow Elite Insights and leave opener repair to the user
 
-Status: cleanup implemented and validated within the coverage limits below.
+Status: cleanup implemented within the coverage limits below. This document retains the original cleanup plan and
+validation history; those historical test counts and failures are not the current repository status.
 
-Validation: 236 focused import/Guardian tests and 57 browser tests pass. Type checking, production build and output
-checks pass; the local development site was rebuilt afterward. The full Node suite passes 2,452 of 2,460 tests. All
-eight failures reproduce on an isolated unchanged HEAD copy: Thief patch-authoring visibility, Mesmer event-log
-presentation, and six Revenant timing/Impossible Odds checks. Repository-wide formatting still flags the unchanged Thief
-pistol file; lint flags the pre-existing temporary Revenant analysis script. Touched source and documentation files were
-formatted separately.
+Original cleanup validation: 236 focused import/Guardian tests and 57 browser tests passed, along with type checking,
+production build and output checks. That run passed 2,452 of 2,460 Node tests; its eight failures reproduced on an
+unchanged checkout at the time. Formatting and lint also reported pre-existing issues. These results describe that run
+only; use the current test suite to assess present failures.
 
 Follow-up Guardian fixes set Gleaming Disc's commit to 520 ms and Dazzling Hammer's to 400 ms. Guardian flips and
 Luminary weapon/trait state now use the scheduler's commitment decision, so a committed Hammer cancel arms Shining Spin
@@ -60,13 +59,16 @@ and 89.164 s. Recovering them restores their page refunds and removes the result
 The May 9 Quickness Firebrand report (`qhoR-20260509-162737_golem`) starts with an unpaired Jurisdiction release, which
 remains an import warning. Page regeneration now keeps ticking at maximum pages after the first spend; natural recovery,
 Swift Scholar, Weighty Terms, and Renewed Focus preserve its phase. This fixes the premature tome exit after Igniting
-Burst. Fresh January, April, and May report imports simulate without runtime warnings. The saved Condition Firebrand
-preset still contains an invalid Stow Tome; the saved Quickness Firebrand preset has five weapon-cast warnings caused by
-an active tome. The Guardian preset check remains failing, with no warnings suppressed or benchmark targets changed.
+Burst. At that validation point, fresh January, April, and May report imports simulated without runtime warnings. The
+then-saved Condition Firebrand preset contained an invalid Stow Tome, and the Quickness Firebrand preset had five
+weapon-cast warnings caused by an active tome. The Guardian preset check failed in that run, with no warnings suppressed
+or benchmark targets changed. These are historical observations, not assertions about the current saved presets.
 
-The following pinned ordinary-finder declarations were excluded because their finder/checker family was unsupported by
-the ordinary table. Some have a separately implemented custom path described above; listing a declaration here does not
-mean all evidence for its skill is absent. These are coverage exclusions, not replacement heuristics:
+The following pinned ordinary-finder declarations were excluded during the original cleanup because their finder/checker
+family was unsupported by the ordinary table. Some have a separately implemented custom path described above; listing a
+declaration here does not mean all evidence for its skill is absent. The current ordinary table is
+`evtc/rotation/ei-rules.ts`, and custom paths live beside it. Read this historical inventory together with the follow-up
+coverage above; it is not a generated list of the current table's exclusions:
 
 - **Elementalist:** `Elementalist.HealingRipple`, `Elementalist.HealingRippleWvW`, `Elementalist.FlowLikeWaterHealing`,
   `Elementalist.FlameWheelSkill`, `Elementalist.IcyCoilSkill`, `Elementalist.CrescentWindSkill`,
@@ -156,13 +158,13 @@ only when that start is strictly before `logData.EvtcLogStart`. The recording bo
 first event, player enter-combat time, and encounter/phase start. Preserve the distinction when applying time offsets.
 [Source: AnimatedCastEvent][ei-animated-cast], [CreateCastEvents][ei-cast-factory].
 
-Port the associated behavior as well: missing-end duration handling, unknown-cast truncation, activation status and
-acceleration interpretation, and removal of player animation casts lasting at most 1 ms. At the pinned commit,
-`ServerDelayConstant` is 10 ms; do not retain our existing 150 ms duration tolerance as though it were EI behavior.
-[Source: AnimatedCastEvent][ei-animated-cast], [ParserHelper][ei-parser-helper].
+The implemented decoder also handles missing-end durations, unknown-cast truncation, activation status and acceleration,
+and removal of player animation casts lasting at most 1 ms. At the pinned commit, `ServerDelayConstant` is 10 ms; the
+former 150 ms tolerance was not EI behavior. [Source: AnimatedCastEvent][ei-animated-cast],
+[ParserHelper][ei-parser-helper].
 
-The current dispatcher chooses modern parsing by finding a modern start. Review logs containing only modern stops:
-format selection must follow the supported EVTC version rather than depend on whether a start survived clipping.
+The current dispatcher uses the ArcDPS header build through `evtc/recording.ts`: builds from `20260430` use modern
+animation state changes, including stop-only logs. It no longer selects the format by searching for a modern start.
 
 ### Explicit inference rules
 
@@ -195,10 +197,11 @@ Use the actual imported report as the authority, even when an older EI version p
 EVTC import requires matching parser version, player, time origin, and report/phase window. Do not promise identical
 outputs across different EI versions or different observation windows.
 
-## Cleanup inventory
+## Historical cleanup inventory
 
-Paths below are relative to `js/games/gw2/integrations/logs/` unless otherwise stated. These are starting points;
-inspect every profession adapter and caller before deleting a shared helper.
+Paths below are relative to `js/games/gw2/integrations/logs/` unless otherwise stated. This is the original work list,
+including paths subsequently removed. Current shared profession normalization lives in `lib/rotation/professions/`;
+there is no separate report-side profession recovery directory.
 
 | Area                                                                        | Required cleanup                                                                                                                                                                                                      |
 | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -211,7 +214,7 @@ inspect every profession adapter and caller before deleting a shared helper.
 | `dps-report/rotation/create-inferred-action.ts`, adapter types and profiles | Remove helpers, inference tags, options, configuration, and imports made unused by the cleanup.                                                                                                                       |
 | `lib/rotation/timeline.ts` and timing helpers                               | Remove compensation or controls used only by fabricated setup. Preserve ordinary waits, observed overlap, and necessary command encoding.                                                                             |
 
-Concrete recovery behavior to remove includes:
+Recovery behavior removed by the cleanup included:
 
 - Core Engineer EVTC setup that adds Throw Mine, two dodges, Mine Field, kit/bombs, and a 12-second mine lead-in.
 - EVTC summon chains positioned backward using simulator cast durations, and opening Mimic derived from later Mimics.
@@ -221,8 +224,8 @@ Concrete recovery behavior to remove includes:
 - Report Renegade warband recovery from a later legend cycle and extra Darkrazor used to satisfy energy requirements.
 - Equivalent opener/dependency recovery in Elementalist, Ranger, Guardian, Revenant, Thief, Warrior, and other adapters.
 
-Setting `inferInstantCasts: false` is insufficient: EVTC profession reconstruction and initial-summon insertion run
-before that option gates the generic instant-inference pass. Remove the prohibited behavior at its owners.
+The former `inferInstantCasts` option did not disable all opener reconstruction. That option and the initial-summon
+insertion path are gone; the current adapter applies its supported EI finders without an opener-recovery toggle.
 
 ## Preserve necessary import behavior
 
@@ -258,7 +261,7 @@ warning across application and adapter layers. Native saved-rotation imports sho
 Application entry points are `js/games/gw2/app/build/io/evtc-rotation-import.ts`, `dps-report-rotation-import.ts`, and
 `rotation-import-dialog.ts`.
 
-## Implementation sequence
+## Original implementation sequence
 
 1. Trace adapter entry points, profession rules, shared helpers, and existing tests. Record which retained EVTC
    inference rules correspond to which methods in the pinned EI source; separate legitimate normalization from recovery.
@@ -296,8 +299,9 @@ benchmark-DPS checks. Minimal exact assertions are appropriate for the parser or
 
 For implementation validation, build modules and run the affected EVTC, dps.report, shared log-analyzer, and import UI
 tests, then complete the repository's required checks. Format only touched supported files with
-`npx prettier --write <touched-files>`. Use comparisons with the pinned EI parser as diagnostic evidence, with matching
-versions/windows, rather than broad saved-report snapshots.
+`npx prettier --write --ignore-path .gitignore <touched-files>` so documentation is included despite `.prettierignore`.
+Use comparisons with the pinned EI parser as diagnostic evidence, with matching versions/windows, rather than broad
+saved-report snapshots.
 
 Expected consequences include fewer imported actions, shorter preparation timelines, and changed simulated DPS. Those
 are acceptable when fabricated setup was removed. Do not modify benchmark expectations or saved presets merely to hide

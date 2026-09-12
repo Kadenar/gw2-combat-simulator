@@ -18,8 +18,8 @@ The scheduler and resolver have separate queues. A priority in one queue has no 
 
 ## Rotation order is not event priority
 
-Rotation commands are consumed in their authored order. Cast duration, cooldowns, ammo, lockouts, waits, interrupts,
-and explicit concurrent offsets determine when each command can execute.
+Rotation commands are consumed in their authored order. Cast duration, cooldowns, ammo, lockouts, waits, interrupts, and
+explicit concurrent offsets determine when each command can execute.
 
 Event priority does not:
 
@@ -37,7 +37,8 @@ The resolver processes canonical events in this order:
 
 1. `at`, ascending;
 2. `priority`, ascending;
-3. `causalOrder`, falling back to `eventOrder`, ascending; and
+3. finite `causalOrder`, falling back to `eventOrder` when `causalOrder` is absent, ascending (untagged/nonfinite
+   ordering metadata sorts after finite values); and
 4. stable insertion order when the preceding fields tie.
 
 A missing priority is treated as `0`. Lower numbers run first, so `-10` runs before `0`, and `0` runs before `10`.
@@ -65,7 +66,8 @@ context.emit({
   at,
   priority: -10,
   source: 'example',
-  sourceId: skill.id
+  sourceId: skill.id,
+  actorType: 'player'
 });
 
 // The ordinary skill packet resolves here at priority 0.
@@ -75,7 +77,8 @@ context.emit({
   at,
   priority: 10,
   source: 'example',
-  sourceId: skill.id
+  sourceId: skill.id,
+  actorType: 'player'
 });
 ```
 
@@ -102,13 +105,13 @@ of reserved event-priority lanes.
 
 ## Causal and insertion order
 
-The scheduler assigns every emitted event a monotonic `eventOrder`. `emitDerived(cause, event)` also assigns a fractional
-`causalOrder` immediately after the root cause. This keeps scheduler-materialized combo results, procs, and other derived
-facts next to their cause when timestamp and priority tie.
+The scheduler assigns every emitted event a monotonic `eventOrder`. `emitDerived(cause, event)` also assigns a
+fractional `causalOrder` immediately after the root cause. This keeps scheduler-materialized combo results, procs, and
+other derived facts next to their cause when timestamp and priority tie.
 
-Events created during resolution must be added with `enqueueOrdered()`. If such an event does not provide explicit causal
-metadata, the stable queue places it with the event currently being handled. Stable insertion order then resolves any
-remaining tie.
+Events created during resolution must be added with `enqueueOrdered()`. If such an event does not provide explicit
+causal metadata, the stable queue places it with the event currently being handled. Stable insertion order then resolves
+any remaining tie.
 
 Do not depend on incidental array order. Use:
 
@@ -129,8 +132,8 @@ Tasks are ordered by:
 3. insertion order.
 
 Current platform examples include core cast completion at `-100`, shared trigger materialization at `-60`, combo
-materialization at approximately `-59`, and a default of `0`. These are existing relative placements, not a public set of
-reserved lanes. Profession tasks should choose a priority only when they have a demonstrated dependency on same-time
+materialization at approximately `-59`, and a default of `0`. These are existing relative placements, not a public set
+of reserved lanes. Profession tasks should choose a priority only when they have a demonstrated dependency on same-time
 work.
 
 Task priority can affect which canonical events are produced and their emission order. Once produced, however, those
@@ -140,13 +143,13 @@ events are independently ordered by resolver event priority.
 
 These mechanisms are independent:
 
-| Field                       | Scope                                      | Direction          |
-| --------------------------- | ------------------------------------------ | ------------------ |
-| Event `priority`            | Same-time resolver events                  | Lower runs first   |
-| Task `priority`             | Same-time scheduler tasks                  | Lower runs first   |
-| Hook or reaction `order`    | Handlers in one lifecycle/reaction phase   | Lower runs first   |
-| Modifier-rule `order`       | Rules within one modifier target/formula   | Lower applies first |
-| `comboBindingPriority`      | Selecting an authoritative combo field     | Higher wins        |
+| Field                    | Scope                                    | Direction           |
+| ------------------------ | ---------------------------------------- | ------------------- |
+| Event `priority`         | Same-time resolver events                | Lower runs first    |
+| Task `priority`          | Same-time scheduler tasks                | Lower runs first    |
+| Hook or reaction `order` | Handlers in one lifecycle/reaction phase | Lower runs first    |
+| Modifier-rule `order`    | Rules within one modifier target/formula | Lower applies first |
+| `comboBindingPriority`   | Selecting an authoritative combo field   | Higher wins         |
 
 Hook order does not move events on the timeline. Modifier order does not determine which damage event resolves first.
 `comboBindingPriority` selects a field and deliberately uses the opposite numeric direction from queue priority.
@@ -167,8 +170,8 @@ Hook order does not move events on the timeline. Modifier order does not determi
 
 - `js/kernel/events/queue.ts` owns resolver event comparison and the stable event heap.
 - `js/games/gw2/platform/engine/execution/tasks.ts` owns scheduler task comparison.
-- `js/games/gw2/platform/engine/execution/scheduler.ts` assigns `eventOrder`, creates `causalOrder`, and sorts the handoff.
+- `js/games/gw2/platform/engine/execution/scheduler.ts` assigns `eventOrder`, creates `causalOrder`, and sorts the
+  handoff.
 - `js/games/gw2/platform/resolver/event-loop.ts` drains the resolver queue.
 - `tests/platform/engine/event-ordering.test.js` covers event priority, causal order, and stability.
 - `tests/platform/engine/scheduler-temporal.test.js` covers task priority and insertion order.
-

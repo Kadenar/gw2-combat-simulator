@@ -14,8 +14,8 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
 
 - `modules.ts` declares the Core-first module tuple. Module order also controls catalog name collisions, with Core
   identities taking precedence.
-- `definition.ts` composes the build codec, modules, autoattack-chain transition policy, family UI, patch preview, and
-  catalog options into the stable profession contract.
+- `definition.ts` composes the build codec, modules, autoattack-chain transition policy, family UI, and catalog options
+  into the stable profession contract. The browser adapter applies active patch-preview decoration separately.
 - `core/module.ts` registers Core through `defineNativeModule()`. Its `data`, `state`, `mechanics`, and `presentation`
   sections are the Core ownership boundary.
 - `specializations/<name>/module.ts` registers each elite specialization through the same four sections. Elite state and
@@ -26,7 +26,8 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
   contributions and contain Core plus only the selected specialization.
 - `state.ts` projects the nested runtime state into the stable public end-state record exposed by simulation results.
 - `build/build.ts` owns build defaults, schema migration, validation, and conversion to the application build shape.
-  Elementalist builds are normalized to one weapon set.
+  Schema version 4 preserves both configured weapon sets and the selected starting set. Elementalist uses attunement and
+  bundle transitions rather than ordinary in-combat equipment swaps.
 - `app/app-definition.ts` adapts the profession contract for the shared browser shell, including build-time attributes,
   starting resources, weapon selection, and skill availability.
 

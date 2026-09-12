@@ -154,8 +154,8 @@ Every native profession otherwise uses the same source roles:
   production does not expose a root skill-mechanics aggregate.
 - Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
   `mechanics.ts`); families do not use mixed profession-wide runtime aggregates.
-- `catalog/module-data.ts` owns inert profession-wide generated metadata and catalog options used by module data
-  selectors.
+- `catalog/module-data.ts` owns generated metadata, catalog transformations, and options used by module data selectors.
+  Elementalist also privately combines owner-local mechanic fragments here to derive its catalog entries.
 - `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
   import it.
 - Owner-local `execution/` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that cannot be
@@ -264,11 +264,12 @@ state. Ordered attribute conversions remain narrow imperative hooks.
 Native helpers name the execution phase in which behavior runs:
 
 - scheduler: `skillAvailability()` and `afterSkillEffects()`;
-- resolver: `onResolvedDamage()`, `onResolvedControl()`, and `onResolvedBlind()`;
+- resolver: `onResolvingDamage()`, `onResolvedDamage()`, `onResolvedControl()`, `onResolvedBlind()`,
+  `onConditionApplied()`, `onBuffApplied()`, `onComboResolved()`, and `onAuraApplied()`;
 - resolved critical procs: `onResolvedCriticalHit()` declares eligibility, state access, materialization, ICD policy,
   attribution, and the profession-owned effect; and
-- skill handlers: `augmentSkill()` observes or decorates declarative effects, while `replaceSkill()` owns a skill whose
-  declarative effects are empty.
+- skill handlers: `augmentSkill()` observes or decorates declarative effects, while `replaceSkill()` owns emission;
+  replacing skills may retain declarative effects as canonical profile metadata without emitting them twice.
 
 All ordered helpers require stable IDs and accept explicit order values. They compile into existing scheduler cast
 rules/hooks or resolver reactions; they do not merge the scheduling and resolution phases.
@@ -286,10 +287,11 @@ typed tasks, custom event types, complex cooldown/ammo policy, multi-event state
 that do not become clearer when split. Raw modifier hook bundles are also supported beside typed modifier-rule arrays.
 Escape hatches must stay owner-local and must not import inactive specialization behavior.
 
-Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill uses, pending events, and `profession`.
-For families, Core resources live under `state.profession.core`; active-elite resources live under
-`state.profession.specialization.state`. Public `endState.profession` remains an allowlisted, compatibility-stable
-projection. Typed scheduler tasks carry serializable payloads and are dispatched to namespaced profession handlers.
+Shared scheduler state contains time, cooldowns, ammo, lockouts, active weapon set, skill uses, and `profession`; the
+scheduler context owns pending events and tasks. For families, Core resources live under `state.profession.core`;
+active-elite resources live under `state.profession.specialization.state`. Public `endState.profession` remains an
+allowlisted, compatibility-stable projection. Typed scheduler tasks carry serializable payloads and are dispatched to
+namespaced profession handlers.
 
 The neutral engine accepts scheduler policy callbacks. `js/games/gw2/platform` supplies the shared GW2 policy for
 Quickness-adjusted casts, Alacrity-adjusted recharge, ammo, and the configured starting weapon set. Profession hooks may
@@ -306,10 +308,9 @@ packets, conditions, reactions, and result filtering. Skill, effect, and event m
 Saved benchmark metadata cannot select a policy either; benchmark logs and metrics are comparison targets, and benchmark
 tooling uses the default rotation boundary.
 
-`persistsAfterInterrupt` controls packet cancellation only. Any skill whose future packets can survive interruption
-declares `interruptCommitMs` explicitly; zero means immediate commitment. Persistent actors use typed tasks with an
-explicit active-generation, lifetime, or stop condition, and recurring handlers schedule only the next bounded unit of
-work.
+`persistsAfterInterrupt` controls packet cancellation only. Every persistent effect declares `interruptCommitMs` itself
+or inherits it from its skill; zero means immediate commitment. Persistent actors use typed tasks with an explicit
+active-generation, lifetime, or stop condition, and recurring handlers schedule only the next bounded unit of work.
 
 Scheduler snapshots and public profession state are separate contracts. Snapshots may contain task progress,
 deterministic-choice indices, internal cooldowns, and resolver bookkeeping. `resources.projectEndState` constructs a
@@ -355,21 +356,22 @@ Event schema version 1 is defined in `js/games/gw2/platform/engine/events/events
   at,
   source,
   sourceId,
-  actorType, // "player", "summon", "effect", or "unknown"
-  activationId, // one cast or triggered-effect activation
-  weaponStrengthProfileId, // coefficient-based strike profile snapshot
+  actorType, // "player", "summon", "effect", "environment", or "unknown"
+  activationId, // optional identity for one cast or triggered-effect activation
+  weaponStrengthProfileId, // optional coefficient-based strike profile snapshot
 }
 ```
 
 `source` is a display/origin label and must not drive combat behavior. Player-only sigils, relics, and traits use
-`actorType`. The resolver retains a legacy source-label fallback for older scheduled streams.
+`actorType`; `ownerActorType` optionally selects whose outgoing modifiers an event inherits. There is no source-label
+fallback: event validation requires explicit actor ownership, and queries treat absent ownership as `unknown`.
 
 Common types are `action`, `damage`, `condition`, `condition_tick`, `control`, `blind`, `weapon_set`, and `proc`. A
 profession adds a namespaced type such as `example.resource` by registering it in `resolverHooks.eventHandlers`.
 Duplicate registrations, missing required handlers, and unknown namespaced events throw explicit errors.
 
-Standard event types are owned by `js/games/gw2/platform/resolver`. A profession reacts to them through
-`resolverHooks.eventReactions` without replacing the common handler:
+Standard event types are owned by `js/games/gw2/platform/resolver`. A profession reacts through named resolution stages
+in `resolverHooks.eventReactions` without replacing the common handler:
 
 ```js
 resolverHooks: {
@@ -377,16 +379,17 @@ resolverHooks: {
     "example.resource": handleResource,
   },
   eventReactions: {
-    damage: handleProfessionCriticalTraits,
-    control: handleProfessionInterruptTraits,
+    "damage.resolved": handleProfessionCriticalTraits,
+    "control.resolved": handleProfessionInterruptTraits,
   },
 }
 ```
 
 Common handlers resolve damage and conditions, drain the queue, enforce combat and target-death bounds, and apply sigils
 and relics. Reactions receive the resolved context plus capabilities such as `hitContext` and `applyCondition`. For
-example, Ineptitude is a Mesmer `control`/`blind` reaction; control relics and control-triggered sigils remain common
-GW2 behavior.
+example, Ineptitude uses Mesmer `control.resolved`/`blind.resolved` reactions; control relics and control-triggered
+sigils remain common GW2 behavior. The accepted stages are listed in `platform/resolver/reaction-registry.ts`; bare
+event names such as `damage` are rejected as reaction stages.
 
 Critical-hit sigils retain expected-critical accumulation in deterministic mode. In stochastic mode the chronological
 scheduler samples one critical outcome, stores it as `didCrit` on the canonical damage event, and uses that same fact
@@ -402,7 +405,7 @@ transform, or shroud is still known.
 in deterministic mode. In stochastic mode it draws one continuous uniform value per activation, caches it for every
 packet, and uses an actor-scoped `weapon-strength:*` random stream independent from critical and trait streams. Resolved
 coefficient strikes expose the activation, profile, resolved strength, and whether it was sampled. Explicit numeric
-strength, flat damage, conditions, and independent summon formulas remain exempt.
+strength, flat damage, conditions, and independent summon formulas without a weapon-strength profile remain exempt.
 
 ## Skills, traits, and rotations
 
@@ -467,11 +470,12 @@ fixtures.
 
 ## Builds
 
-The current persisted schema is:
+Each profession versions its own persisted schema. Elementalist and Ranger currently use version 4; the other native
+professions use version 3. Read the owning `build/build.ts` constant when writing a build:
 
 ```js
 {
-  schemaVersion: 3,
+  schemaVersion: 3, // use this profession's current schema version
   profession: "<registry id>",
   // profession build fields
 }
@@ -491,8 +495,8 @@ defaults when unreadable, while explicit user imports preserve wrong-profession 
   clones, phantasms, shatters, instruments, Continuum Split, and Mirage behavior.
 - `elementalist`: native shared-engine implementation for attunements, elementals, auras, overloads, Weaver dual
   attunement, Catalyst energy and spheres, and Evoker familiars and charges.
-- `guardian`: declarative shared-engine implementation with a reproducible current API snapshot, an explicit supplement
-  for API-omitted bundle skills, complete executable skill coverage, all specialization mechanics, Guardian trait rules,
+- `guardian`: declarative shared-engine implementation with a reproducible checked-in API snapshot, an explicit
+  supplement for API-omitted bundle skills, executable supported skills, specialization mechanics, Guardian trait rules,
   build validation, and a shared-shell browser application.
 - `necromancer`: declarative shared-engine implementation with a reproducible API snapshot, API-omitted
   shroud/Lich/Ritualist supplements, life force, Reaper/Harbinger/Ritualist shrouds, Scourge shades, blight, minions,

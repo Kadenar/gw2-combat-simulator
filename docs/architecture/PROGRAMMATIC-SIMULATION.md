@@ -1,26 +1,27 @@
 # Programmatic simulation API
 
 Use the simulator without opening or configuring the browser UI by calling `simulateGw2` directly. This is the same
-headless path used by profession tests such as `tests/professions/engineer/engineer.test.js`.
+headless path used by profession tests such as `tests/professions/engineer/weapons-and-kits.test.js`.
 
-The programmatic API accepts four inputs:
+The usual programmatic call supplies these inputs:
 
 ```js
 simulateGw2({ profession, rotation, config, observationPolicy });
 ```
 
-- `profession` is an executable profession contract.
+- `profession` is a profession family or an executable profession contract. Families resolve Core plus the elite
+  selected by `config.specialization`.
 - `rotation` is an ordered array of skill casts and simulator commands.
 - `config` contains final attributes and combat assumptions.
 - `observationPolicy` is an optional caller-owned resolution boundary. It defaults to the entered rotation timeline.
 
-The call is synchronous and returns the complete simulation result. It does not read browser state, local storage, form
-controls, or equipment selections.
+The call is synchronous and returns the complete simulation result by default. Optional `output: 'score'` returns only
+aggregate metrics and warnings for callers such as the optimizer; `onPhase` optionally reports phase timings. It does
+not read browser state, local storage, form controls, or equipment selections.
 
 ## Run a standalone script
 
-Node.js 24.11 or newer is required; use the latest Node 24 LTS release. Install dependencies and compile the TypeScript
-modules first:
+The repository requires Node.js 24.11 or newer. Install dependencies and compile the TypeScript modules first:
 
 ```powershell
 npm install
@@ -138,17 +139,8 @@ It merges `stats`, `boons`, and `target` independently. When an override explici
 condition set replaces the base set. This prevents an ordinary override such as `{ stats: { power: 2500 } }` from
 deleting every other base stat.
 
-The manual merge used in `engineer.test.js` remains valid:
-
-```js
-config: {
-  ...baseConfig,
-  ...overrides,
-  specialization,
-  stats: { ...baseConfig.stats, ...(overrides.stats || {}) },
-  target: { ...baseConfig.target, ...(overrides.target || {}) },
-}
-```
+The current profession tests reuse `createProfessionSimulator()` from `tests/helpers/profession-simulation.js`, which
+calls this same config helper and forwards an optional observation policy.
 
 Use an explicit merge for other nested profession-specific values, such as Thief `deterministicChoices`, when individual
 keys should inherit from the base config.
@@ -184,11 +176,14 @@ An explicit cast can also include:
 `doubleEdgeOutcome` is consulted only when an Antiquary Double Edge skill is recast while recharging. Ready casts always
 succeed, and an omitted outcome defaults to `"success"`.
 
-Names are convenient, but IDs are safer for long-lived scripts. Inspect the active catalog when finding IDs:
+Names are convenient, but IDs are safer for long-lived scripts. Inspect the complete application catalog when finding
+IDs:
 
 ```js
 console.table(engineerProfession.catalog.skills.map(({ id, name }) => ({ id, name })));
 ```
+
+Use `engineerProfession.resolveRuntime({ specialization: 'Core' }).catalog` to inspect only the active runtime catalog.
 
 Unknown, unavailable, or mistimed skills can produce warnings instead of the result the caller expected. Always inspect
 `result.warnings`.
@@ -269,6 +264,7 @@ const result = simulateGw2({
   rotation: ['Grenade Kit', 'Grenade'],
   config: {
     specialization: 'Core',
+    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
     stats: { power: 2000, precision: 1500, ferocity: 500 },
     target: { armor: 2597 }
   }

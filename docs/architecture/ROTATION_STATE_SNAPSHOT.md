@@ -55,7 +55,9 @@ js/games/gw2/app/rotation/state-snapshot/view.ts
 The model uses `paletteEndState(app)` to obtain the state associated with the current rotation position. The view only
 renders that prepared snapshot.
 
-At the end of the rotation, the existing simulation result is reused.
+At the end of the rotation, the existing simulation result is reused unless it includes an observation tail. In that
+case, `rotationEndStateAt()` obtains the rotation-end checkpoint so the palette and snapshot do not inspect the tail
+end.
 
 At an insertion point, the application evaluates the rotation prefix up to that insertion index through
 `rotationEndStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and
@@ -281,19 +283,20 @@ Do not add a snapshot-only shadow copy of state that the simulator does not use.
 
 ### 2. Expose it through the end-state projection
 
-For a whitelist-style projection:
+Add the key to the owning slice's public-key list (for example, `BERSERKER_PUBLIC_END_STATE_KEYS` in
+`specializations/berserker/state.ts`). The family-level `WARRIOR_PUBLIC_END_STATE_KEYS` aggregates those lists:
 
 ```ts
-export const WARRIOR_PUBLIC_END_STATE_KEYS = Object.freeze([
+export const BERSERKER_PUBLIC_END_STATE_KEYS = Object.freeze([
   // ...
   'battleFocusUntil'
 ]);
 ```
 
-If the projection requires inactive defaults, add one:
+If the projection requires inactive defaults, add one to the same slice's defaults, which the family also aggregates:
 
 ```ts
-const INACTIVE_DEFAULTS = Object.freeze({
+export const BERSERKER_PUBLIC_END_STATE_DEFAULTS = Object.freeze({
   // ...
   battleFocusUntil: 0
 });
@@ -534,7 +537,9 @@ This automatically works at:
 
 Generic state should be added here rather than copied into every profession UI module.
 
-Critical strike chance is currently implemented using this shared path.
+Critical strike chance and active relic-buff timers use this shared path. Critical chance comes from the next eligible
+resolved strike at or after the cursor, falling back to the last earlier strike; it is a strike-specific value, not an
+independently recalculated attribute snapshot. Relic timers use `result.procSteps` and their expiry timestamps.
 
 ---
 
