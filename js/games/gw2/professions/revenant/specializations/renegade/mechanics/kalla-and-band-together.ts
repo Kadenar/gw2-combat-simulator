@@ -209,6 +209,8 @@ export function castOrdersFromAbove(context: RevenantCastContext, skill: Revenan
 
 /** Consumes Band Together and materializes the selected enhanced profile. */
 export function beginBandTogether(context: RevenantCastContext, skill: RevenantSkill): BandTogetherState {
+  // Leave the enhancement untouched when the activation is canceled.
+  if (context.action.cancelled) return { enhanced: false, profileSkillId: skill.id };
   const state = renegadeState.from(context);
   const enhanced = isBandTogetherReady(state, context.start);
   const profile = enhanced ? enhancedSkill(context, skill) : undefined;
@@ -269,6 +271,8 @@ export function completeBandTogether(
   skill: RevenantSkill,
   state: BandTogetherState
 ): void {
+  // Summon charges and the next enhancement require a committed cast.
+  if (context.action.cancelled) return;
   const profile = skillById(context, state.profileSkillId) || skill;
   if (skill.id === ID.RAZORCLAWS_RAGE) {
     grantRazorclawsRage(context, skill, profile);

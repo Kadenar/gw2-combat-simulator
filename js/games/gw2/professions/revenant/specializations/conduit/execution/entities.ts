@@ -51,6 +51,8 @@ function emitCompletionSharedWisdom(context: RevenantCastContext, skill: Revenan
 
 /** Emits Beguiling Haze or consumes one of its follow-up charges. */
 export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Cancellation must not consume follow-ups or arm a new main-cast reservation.
+  if (context.action.cancelled) return;
   const followUp = beginBeguilingHaze(context);
   const profile = followUp ? balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp) : skill;
   const strike = effectByType(profile, 'strike');
@@ -163,6 +165,8 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
 
 /** Emits both Twin Moon attackers and every equipped-legend resonance. */
 export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Both attackers and their affinity gain belong to the committed impact.
+  if (context.action.cancelled) return;
   const mainStrikes = (skill.effects || []).filter((effect) => effect.type === 'strike' && !effect.metadata?.legendId);
   const bleeding = (skill.effects || []).find(
     (effect) => effect.type === 'condition' && firstConditionTick(effect, 'Bleeding') && !effect.metadata?.legendId

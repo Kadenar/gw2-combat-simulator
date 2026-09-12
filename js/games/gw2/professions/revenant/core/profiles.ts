@@ -7,6 +7,9 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'revenant.core.resources',
+  invokersRage: TRAIT.INVOKERS_RAGE,
+  incensedResponse: TRAIT.INCENSED_RESPONSE,
+  enduringRecovery: TRAIT.ENDURING_RECOVERY,
   battleScars: 'revenant.core.battle-scars',
   spiritBoon: TRAIT.SPIRIT_BOON,
   songOfTheMists: TRAIT.SONG_OF_THE_MISTS,
@@ -24,6 +27,26 @@ export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Keep the missing Invocation boons and Retribution resource bonus patchable with their owning traits.
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokersRage,
+    name: "Invoker's Rage",
+    profileKind: 'trait',
+    effects: [{ type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.incensedResponse,
+    name: 'Incensed Response',
+    profileKind: 'trait',
+    effects: [{ type: 'boon', boon: 'might', duration: 8, stacks: 5 }]
+  },
+  {
+    id: REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery,
+    name: 'Enduring Recovery',
+    profileKind: 'trait',
+    enduranceRegenerationMultiplier: 1.25,
+    effects: []
+  },
   {
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Revenant Resources',

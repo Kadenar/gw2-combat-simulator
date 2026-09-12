@@ -3,6 +3,7 @@ import { renegadeState } from '#gw2/professions/revenant/specializations/renegad
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import {
   grantKallasFervor,
   isBandTogetherReady
@@ -203,6 +204,29 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
 
 export function observeRenegadeTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const state = renegadeState.from(context);
+  // Brutal Momentum reacts to received Fury from any source, including outside combat, but never ally-only grants.
+  if (
+    event.type === 'buff' &&
+    event.kind === 'fury' &&
+    hasTrait(context, TRAIT.BRUTAL_MOMENTUM) &&
+    gw2BoonApplicationRecipients(context.config, event).includesSelf &&
+    isInternalCooldownReady(event.at, state.brutalMomentumReadyAt)
+  ) {
+    const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.brutalMomentum);
+    const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
+    if (profile && effect) {
+      state.brutalMomentumReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
+      emitSkillBuff(context, profile as RevenantSkill, {
+        cause: event,
+        sourceId: TRAIT.BRUTAL_MOMENTUM,
+        at: event.at,
+        kind: String(effect.boon),
+        duration: Number(effect.duration),
+        stacks: Number(effect.stacks)
+      });
+    }
+  }
+
   if (
     event.type === 'buff' &&
     String(event.kind || '').toLowerCase() === 'fury' &&

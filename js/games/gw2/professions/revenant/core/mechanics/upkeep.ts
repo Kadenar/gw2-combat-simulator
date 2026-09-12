@@ -70,6 +70,8 @@ function emitEmbraceTheDarknessPulse(
 
 /** Toggles an upkeep instance and schedules/cancels its recurring pulse task. */
 export function toggleRevenantUpkeep(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Sustained drain and pulse ownership require a committed activation.
+  if (context.action.cancelled) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const index = state.activeUpkeeps.findIndex((upkeep) => upkeep.skillId === skill.id);

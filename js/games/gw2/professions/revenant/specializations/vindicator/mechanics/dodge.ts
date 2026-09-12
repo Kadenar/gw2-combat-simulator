@@ -11,9 +11,14 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
+import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  strikeEffectCoefficient,
+  strikeEffectTicks
+} from '#gw2/platform/engine/effects/timelines.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -89,8 +94,7 @@ export function completeVindicatorDodge(
   const state = vindicatorState.from(context);
   const profile = selectedDodgeSkill(context);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'strike' || candidate.type === 'boon');
-  // Ignore missing effects or disabled strikes without synthesizing fallback damage.
-  if (!profile || !effect || (effect.type === 'strike' && !(strikeEffectCoefficient(effect) > 0))) return;
+  if (!profile || !effect) return;
   // Full jumps offset this origin by airborne time; landing-only inputs begin at the landing animation.
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
   const at = strikeProfileOrigin + Math.max(0, Number(offset || 0)) / 1000;
@@ -99,59 +103,70 @@ export function completeVindicatorDodge(
     hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
-  // Support dodges use the shared boon emitter for duration scaling and allied-player targeting, with no strike.
-  if (effect.type === 'boon') {
-    emitSkillBuff(context, profile, {
-      at,
-      kind: String(effect.boon || ''),
-      duration: effect.duration,
-      stacks: effect.stacks,
-      audience: effect.audience
-    });
-    emitRevenantStateSnapshot(context, at, 'vindicator-dodge-impact');
-    return;
-  }
-
-  if (effect.type !== 'strike') return;
-  const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
-  // Capture forerunner state before the Death Drop below may extend it for this same hit.
-  const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
-  emitSkillDamage(context, {
-    at,
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: profile.name,
-    name: profile.name,
-    coefficient:
-      strikeEffectCoefficient(effect) *
-      (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier ?? 1)) : 1),
-    hits: strikeEffectTicks(effect).length,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: 'Unequipped',
-    // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
-    forerunnerOfDeathActive: previousForerunnerUntil > at
-  });
-  if (profile.id === ID.DEATH_DROP && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
-    const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
-    const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');
-    const duration = Math.max(0, Number(forerunnerEffect?.duration));
-    // Forerunner window is set after the damage event is emitted; the current hit benefits from the old window.
-    state.forerunnerOfDeathUntil = at + duration;
-    emitSkillBuff(context, {
+  // Strike scaling and Forerunner ordering stay local; support landings continue to their boon package.
+  if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
+    const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
+    // Capture forerunner state before the Death Drop below may extend it for this same hit.
+    const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
+    emitSkillDamage(context, {
       at,
       source: 'revenant',
-      sourceId: TRAIT.FORERUNNER_OF_DEATH,
+      sourceId: skill.id,
       actorType: 'player',
-      skillId: TRAIT.FORERUNNER_OF_DEATH,
-      skillName: 'Forerunner of Death',
-      name: 'Forerunner of Death',
-      kind: String(forerunnerEffect?.kind || 'forerunner-of-death'),
-      duration,
-      stacks: Number(forerunnerEffect?.stacks ?? 1)
+      skillId: skill.id,
+      skillName: profile.name,
+      name: profile.name,
+      coefficient:
+        strikeEffectCoefficient(effect) *
+        (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier ?? 1)) : 1),
+      hits: strikeEffectTicks(effect).length,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: 'Unequipped',
+      // Baking the flag into the event avoids a resolver time-comparison race when events replay out of order.
+      forerunnerOfDeathActive: previousForerunnerUntil > at
     });
+    if (profile.id === ID.DEATH_DROP && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
+      const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
+      const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');
+      const duration = Math.max(0, Number(forerunnerEffect?.duration));
+      // Forerunner window is set after the damage event is emitted; the current hit benefits from the old window.
+      state.forerunnerOfDeathUntil = at + duration;
+      emitSkillBuff(context, {
+        at,
+        source: 'revenant',
+        sourceId: TRAIT.FORERUNNER_OF_DEATH,
+        actorType: 'player',
+        skillId: TRAIT.FORERUNNER_OF_DEATH,
+        skillName: 'Forerunner of Death',
+        name: 'Forerunner of Death',
+        kind: String(forerunnerEffect?.kind || 'forerunner-of-death'),
+        duration,
+        stacks: Number(forerunnerEffect?.stacks ?? 1)
+      });
+    }
+  }
+
+  // Every declared condition and boon accompanies the landing; shared emitters retain duration and audience policy.
+  for (const secondary of profile.effects || []) {
+    if (secondary.type === 'boon') {
+      emitSkillBuff(context, profile, {
+        at,
+        kind: String(secondary.boon || ''),
+        duration: secondary.duration,
+        stacks: secondary.stacks,
+        audience: secondary.audience
+      });
+    } else if (secondary.type === 'condition') {
+      for (const tick of conditionEffectTicks(secondary)) {
+        emitSkillCondition(context, profile, {
+          at,
+          condition: tick.condition,
+          duration: tick.duration,
+          stacks: tick.stacks
+        });
+      }
+    }
   }
 
   emitRevenantStateSnapshot(context, at, 'vindicator-dodge-impact');

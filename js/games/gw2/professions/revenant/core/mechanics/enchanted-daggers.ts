@@ -6,6 +6,8 @@ import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revena
 
 /** Arms the finite Enchanted Daggers charge/expiry state. */
 export function activateEnchantedDaggers(context: RevenantCastContext, skill: RevenantSkill): void {
+  // An aborted activation must not arm charges for later attacks.
+  if (context.action.cancelled) return;
   const buff = skill.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'enchanted-daggers');
   if (!buff) throw new Error('Enchanted Daggers is missing its buff effect.');
   const charges = Math.max(0, Number(buff.stacks || 0));

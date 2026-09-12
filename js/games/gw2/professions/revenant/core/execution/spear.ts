@@ -82,6 +82,8 @@ function emitAbyssalRazePackets(
 
 /** Replaces Abyssal Raze's packets with its current stack-scaled profile. */
 export function castAbyssalRaze(context: RevenantCastContext, skill: RevenantSkill): void {
+  // Canceled casts neither emit impact packets nor schedule Crushing Abyss gains.
+  if (context.action.cancelled) return;
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
   const at = context.start + Number(effectFirstAtMs(strike) || 0) / 1000;

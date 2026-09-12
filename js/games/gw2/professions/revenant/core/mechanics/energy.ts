@@ -3,6 +3,8 @@ import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechani
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -54,10 +56,17 @@ export function revenantEnduranceRegenerationRate(
 ): number {
   const profile = resourceProfile(context);
   const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
+  const enduringRecovery = hasTrait(context, TRAIT.ENDURING_RECOVERY)
+    ? Number(
+        context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery)
+          ?.enduranceRegenerationMultiplier ?? 1
+      ) - 1
+    : 0;
+  // PvE regeneration bonuses add together; Vindicator shares the 25% trait bonus and the ten-per-second cap.
   return Math.min(
     10,
     Number(profile.enduranceRegenerationPerSecond || 0) *
-      (vigorActive ? Number(profile.vigorRegenerationMultiplier ?? 1) : 1)
+      ((vigorActive ? Number(profile.vigorRegenerationMultiplier ?? 1) : 1) + enduringRecovery)
   );
 }
 

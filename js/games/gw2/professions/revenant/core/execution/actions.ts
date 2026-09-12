@@ -16,6 +16,8 @@ export function performRevenantDodge(context: RevenantCastContext, skill: Revena
 
 /** Grants Ancient Echo's profession-wide Energy refund. */
 export function gainAncientEchoEnergy(context: RevenantCastContext): void {
+  // Refund Energy only when Ancient Echo successfully completes.
+  if (context.action.cancelled) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.energy = Math.min(state.maximumEnergy, state.energy + Number(context.skill.resourceGain || 0));

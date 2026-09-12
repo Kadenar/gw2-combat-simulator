@@ -7,7 +7,9 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 0,
-    cooldown: 5,
+    // The parent recharges when its shield is released, rather than while it is active.
+    cooldown: 0,
+    manualReleaseCooldown: 5,
     energyCost: 5,
     upkeepCost: 8,
     pulseInterval: 1,
@@ -42,8 +44,10 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     legendId: 'LegendaryCentaur'
   },
   [ID.DIMINISH_SOLACE]: {
+    // Reuse upkeep teardown and availability checks for the matching active shield.
+    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
-    cooldown: 5,
+    cooldown: 0,
     energyCost: 0,
     effects: []
   },

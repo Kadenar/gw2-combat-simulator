@@ -12,6 +12,7 @@ export const RENEGADE_PROFILE_IDS = Object.freeze({
   soulcleavesSummitProc: 'revenant.renegade.soulcleaves-summit-proc',
   endlessEnmity: 'revenant.renegade.endless-enmity',
   bloodFury: 'revenant.renegade.blood-fury',
+  brutalMomentum: 'revenant.renegade.brutal-momentum',
   allForOne: 'revenant.renegade.all-for-one',
   vindication: 'revenant.renegade.vindication'
 });
@@ -33,6 +34,14 @@ function renegadeBalanceProfile(profile: {
 }
 
 export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Fury reception grants this boon independently of Brutal Momentum's critical-chance bonus.
+  renegadeBalanceProfile({
+    id: RENEGADE_PROFILE_IDS.brutalMomentum,
+    name: 'Brutal Momentum',
+    profileKind: 'trait',
+    cooldown: 8,
+    effects: [{ type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
+  }),
   renegadeBalanceProfile({
     id: RENEGADE_PROFILE_IDS.spiritBoon,
     name: 'Spirit Boon (Renegade)',

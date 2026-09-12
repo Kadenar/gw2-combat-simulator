@@ -38,6 +38,7 @@ export function createRenegadeState(): RenegadeState {
     },
     endlessEnmityReadyAt: 0,
     bloodFuryReadyAt: 0,
+    brutalMomentumReadyAt: 0,
     soulcleaveReadyAt: 0
   };
 }

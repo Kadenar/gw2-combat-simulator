@@ -30,8 +30,11 @@ const vindicatorSkillHandlers = new Map(
       // Spend endurance at takeoff; resolve the selected attack only when the full jump reaches its landing.
       'revenant.vindicator-jump': replaceSkill<RevenantCastContext>({
         beforeEffects: (context, skill) => performRevenantDodge(context, skill, 'dodge-jump'),
-        afterEffects: (context, skill) =>
-          completeVindicatorDodge(context, skill, context.start + VINDICATOR_AIRBORNE_MS / 1000)
+        afterEffects: (context, skill) => {
+          // Takeoff still spends endurance, but cancellation prevents the landing package.
+          if (!context.action.cancelled)
+            completeVindicatorDodge(context, skill, context.start + VINDICATOR_AIRBORNE_MS / 1000);
+        }
       })
     })
   )

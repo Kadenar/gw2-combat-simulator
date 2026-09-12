@@ -35,8 +35,10 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
   if (skill.handlerId !== 'revenant.beguiling-haze') return;
   const state = conduitState.from(context);
   const index = state.beguilingHazeMainReservations.indexOf(context.reservationId);
+  // Retire lifecycle bookkeeping even on cancellation, without granting charges or rewriting recharge.
+  if (index >= 0) state.beguilingHazeMainReservations.splice(index, 1);
+  if (context.action.cancelled) return;
   if (index >= 0) {
-    state.beguilingHazeMainReservations.splice(index, 1);
     const followUpProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
     state.beguilingHazeCharges = Math.max(0, Number(followUpProfile?.maximumStacks || 0));
     state.beguilingHazeReadyAt = Number(

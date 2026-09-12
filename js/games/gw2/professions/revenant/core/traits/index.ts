@@ -4,7 +4,9 @@
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
@@ -12,6 +14,7 @@ import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js
 import {
   applySongOfTheMists,
   applySpiritBoon,
+  applyIncensedResponse,
   emitLegendInvocationProfile,
   emitLegendInvocationSkill
 } from '#gw2/professions/revenant/core/traits/invocation.js';
@@ -125,6 +128,11 @@ export function modifyRevenantRechargeDuration(context: RevenantRechargeContext,
 export function applyLegendInvocationTraits(context: RevenantCastContext, _swapSkill: RevenantSkill): void {
   const at = context.effectiveEnd;
   const legendId = professionCoreState(context).activeLegendId;
+  // Every in-combat invocation grants Fury; Invoker's Rage no longer has an internal cooldown.
+  if (hasTrait(context, TRAIT.INVOKERS_RAGE) && revenantCombatActive(context, at)) {
+    emitLegendInvocationProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.invokersRage, at, TRAIT.INVOKERS_RAGE);
+  }
+
   applySpiritBoon(context, legendId, at);
   applySongOfTheMists(context, legendId, at);
   applyInvokingTorment(context, at);
@@ -149,6 +157,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
 
 /** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */
 export function observeRevenantEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  if (revenantCombatActive(context, event.at)) applyIncensedResponse(context, event);
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
       id: `${IMPOSSIBLE_ODDS_TASK}:${event.eventOrder}`,
