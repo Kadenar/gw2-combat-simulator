@@ -202,7 +202,7 @@ export function simulationEventLogRows(
         push(
           event,
           'trigger',
-          `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
+          `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${Number(Number(event.duration).toFixed(3))}s)` : ''}`,
           'trigger'
         );
         break;
