@@ -24,6 +24,15 @@
         "upToDate": true
       },
       {
+        "label": "Power (Hammer - Double Helix)",
+        "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-double-helix-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-double-helix-hammer",
+        "dpsReportUrl": "https://dps.report/Pqrh-20260417-183507_golem",
+        "benchmarkDps": 43176,
+        "upToDate": true
+      },
+      {
         "label": "Power (Rifle - Double Helix)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",

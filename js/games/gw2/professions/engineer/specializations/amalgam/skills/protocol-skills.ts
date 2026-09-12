@@ -75,6 +75,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    // Commit after the smash so its remaining aftercast can be interrupted.
+    interruptCommitMs: 1520,
     cooldown: 20,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
@@ -277,6 +279,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    // Commit after the smash so its remaining aftercast can be interrupted.
+    interruptCommitMs: 1520,
     cooldown: 20,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
@@ -317,6 +321,8 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
     countsAsToolbeltSkill: true,
     quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    // Commit after the smash so its remaining aftercast can be interrupted.
+    interruptCommitMs: 1520,
     cooldown: 20,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,

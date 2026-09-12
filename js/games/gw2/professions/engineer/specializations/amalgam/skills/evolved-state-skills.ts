@@ -24,6 +24,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     quicknessCastTimeMs: 640,
+    // Commit before the animation ends so its remaining aftercast can be interrupted.
+    interruptCommitMs: 560,
     cooldown: 40,
     effects: [],
     mechanicSlot: 5
@@ -35,6 +37,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     quicknessCastTimeMs: 640,
+    // Commit before the animation ends so its remaining aftercast can be interrupted.
+    interruptCommitMs: 560,
     cooldown: 40,
     ammo: 2,
     // The traited action has a short between-cast recharge and a separate per-charge recovery.

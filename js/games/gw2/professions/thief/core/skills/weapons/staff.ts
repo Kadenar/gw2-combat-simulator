@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WEAKENING_WHIRL]: {
+    interruptMode: 'per-packet',
     quicknessCastTimeMs: 720,
     cooldown: 0,
     initiativeCost: 3,
@@ -22,10 +23,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 2 }],
+        // Each connecting hit adds two seconds of weakness at the strike's timestamp.
+        ticks: [120, 240, 320].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 2 })),
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
     comboFinishers: [

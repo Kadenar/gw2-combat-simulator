@@ -849,6 +849,42 @@ test('event log CSV escapes cells', () => {
   assert.match(eventLogCsv(rows), /"CAST Quote ""skill"""/);
 });
 
+// Same-time rows follow activation order, including instant casts and derived hits with different names.
+test('event log finishes an activation before the next same-time cast', () => {
+  const rows = simulationEventLogRows({
+    events: [
+      { type: 'action', activationId: 'first', at: 0, endsAt: 0, name: 'Z' },
+      { type: 'action', activationId: 'second', at: 0, endsAt: 0, name: 'A' },
+      { type: 'action', activationId: 'third', at: 0, endsAt: 1, name: 'Z' },
+      { type: 'action', activationId: 'fourth', at: 1, endsAt: 2, name: 'B' },
+      { type: 'combat_start', at: 0 }
+    ],
+    resolvedEvents: [
+      { type: 'damage', activationId: 'third', at: 1, name: 'Derived hit', damage: 1 },
+      { type: 'damage', activationId: 'fourth', at: 1, name: 'Opening hit', damage: 1 },
+      { type: 'damage', activationId: 'first', at: 1.5, name: 'Delayed hit', damage: 1 }
+    ]
+  });
+
+  assert.deepEqual(
+    rows.map(({ at, description }) => [at, description]),
+    [
+      [0, 'COMBAT START'],
+      [0, 'CAST Z (0ms)'],
+      [0, 'END Z'],
+      [0, 'CAST A (0ms)'],
+      [0, 'END A'],
+      [0, 'CAST Z (1000ms)'],
+      [1, 'HIT Derived hit x1 -> 1 damage'],
+      [1, 'END Z'],
+      [1, 'CAST B (1000ms)'],
+      [1, 'HIT Opening hit x1 -> 1 damage'],
+      [1.5, 'HIT Delayed hit x1 -> 1 damage'],
+      [2, 'END B']
+    ]
+  );
+});
+
 test('event-log mounting filters rows, escapes descriptions, and configures filename', () => {
   let html = '';
   let mounted = false;

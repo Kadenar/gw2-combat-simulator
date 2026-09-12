@@ -112,7 +112,8 @@ test('Caltrops commits at 800 ms and its field survives the interrupted cast', (
   for (const interruptMs of [799, 800]) {
     const result = simulate('Core', [
       { name: 'Caltrops', interruptMs },
-      { name: '__wait', waitMs: 10000 }
+      // Observe through the last field pulse even when the cast ends before placement.
+      { name: '__wait', waitMs: 11000 }
     ]);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < 800);
@@ -120,7 +121,7 @@ test('Caltrops commits at 800 ms and its field survives the interrupted cast', (
     if (interruptMs < 800) {
       assert.equal(pulses.length, 0);
     } else {
-      assert.equal(pulses.filter((event) => event.condition === 'Bleeding').length, 10);
+      assert.equal(pulses.filter((event) => event.condition === 'Bleeding').length, 11);
       assert.equal(pulses.filter((event) => event.condition === 'Crippled').length, 5);
       assert.ok(pulses.every((event) => event.at > interruptMs / 1000));
     }

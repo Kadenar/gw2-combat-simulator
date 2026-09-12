@@ -1,0 +1,963 @@
+{
+  "metadata": {
+    "report": "https://dps.report/Pqrh-20260417-183507_golem",
+    "benchmarkDurationSeconds": 91.696,
+    "benchmarkDamage": 3995302,
+    "benchmarkDps": 43571,
+    "eliteInsightsVersion": "3.21.0.1",
+    "player": {
+      "index": 0,
+      "character": "Howitzer Ssalg",
+      "account": "Ssalg.1205",
+      "professionId": "engineer",
+      "professionName": "Engineer",
+      "specializationId": "amalgam",
+      "specializationName": "Amalgam",
+      "recordedActionCount": 228
+    },
+    "phase": {
+      "index": 0,
+      "name": "Final Number",
+      "start": 0,
+      "end": 91696
+    },
+    "parser": "engineer:amalgam",
+    "timingSource": "Elite Insights cast summaries from dps.report",
+    "combatStartTimestampMs": 523,
+    "warnings": [
+      "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating."
+    ],
+    "note": "Uses the rifle Double Helix build with Hammer. The same manual Throw Mine, Bomb Kit, bomb, and Evolve precasts complete the omitted opener; Bomb Kit is stowed after the opening Galvanic Bomb."
+  },
+  "rotation": [
+    "Throw Mine",
+    {
+      "name": "__wait",
+      "waitMs": 5000
+    },
+    "Bomb Kit",
+    "Big Ol' Bomb",
+    "Magnetic Bomb",
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    "Fire Bomb",
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "__combat_start",
+      "offset": 520
+    },
+    "Stow Bomb Kit",
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 240
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 0
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 360
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 120
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 280
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 360
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 120
+    },
+    {
+      "name": "Bomb",
+      "skillId": 5842
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Rocket Charge",
+      "skillId": 30665
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 320
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 200
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Magnetic Bomb",
+      "skillId": 76530
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 400
+    },
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 280
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 40
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 440
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 400
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 200
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 80
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807,
+      "interruptMs": 480
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 480
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 40
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 280
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 200
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Magnetic Bomb",
+      "skillId": 76530
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 160
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 120
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 320
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 480
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 320
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 240
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807,
+      "interruptMs": 480
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 480
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Rocket Charge",
+      "skillId": 30665
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 360
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 240
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Magnetic Bomb",
+      "skillId": 76530
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 400
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 200
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 40
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 400
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 440
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 160
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 120
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807,
+      "interruptMs": 440
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 440
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 40
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 280
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 160
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 80
+    },
+    {
+      "name": "Magnetic Bomb",
+      "skillId": 76530
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 160
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 320
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 360
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 240
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 320
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 160
+    },
+    {
+      "name": "Bomb",
+      "skillId": 5842
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111
+    },
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    {
+      "name": "Positive Strike",
+      "skillId": 30501
+    },
+    {
+      "name": "Negative Bash",
+      "skillId": 29785
+    },
+    {
+      "name": "Equalizing Blow",
+      "skillId": 30489
+    },
+    {
+      "name": "Rocket Charge",
+      "skillId": 30665
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Flux State",
+      "skillId": 76993
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 160
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Defensive Protocol: Thorns",
+      "skillId": 77104,
+      "offset": 160
+    },
+    {
+      "name": "Bomb Kit",
+      "skillId": 5812,
+      "offset": 80
+    },
+    {
+      "name": "Big Ol' Bomb",
+      "skillId": 5813
+    },
+    {
+      "name": "Fire Bomb",
+      "skillId": 5823
+    },
+    {
+      "name": "Galvanic Bomb",
+      "skillId": 5822
+    },
+    {
+      "name": "Evolve (Double Helix)",
+      "skillId": 76651
+    },
+    {
+      "name": "Stow Bomb Kit",
+      "skillId": 6111,
+      "offset": 160
+    },
+    {
+      "name": "Throw Mine",
+      "skillId": 6161
+    },
+    {
+      "name": "Thunderclap",
+      "skillId": 30713
+    },
+    {
+      "name": "Detonate",
+      "skillId": 6162,
+      "offset": 40
+    },
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    {
+      "name": "Offensive Protocol: Obliterate",
+      "skillId": 76705
+    },
+    {
+      "name": "Electro-whirl",
+      "skillId": 30088
+    },
+    {
+      "name": "Grenade Kit",
+      "skillId": 5805,
+      "offset": 280
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "skillId": 5807
+    },
+    {
+      "name": "Poison Grenade",
+      "skillId": 5806
+    },
+    {
+      "name": "Freeze Grenade",
+      "skillId": 5809
+    },
+    {
+      "name": "Offensive Protocol: Demolish",
+      "skillId": 76927
+    },
+    {
+      "name": "Stow Grenade Kit",
+      "skillId": 6110,
+      "offset": 400
+    }
+  ]
+}

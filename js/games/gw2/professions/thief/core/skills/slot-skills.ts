@@ -55,7 +55,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'condition',
-        ticks: Array.from({ length: 10 }, (_, index) => ({
+        // Apply one bleed on placement, then ten more at one-second intervals.
+        ticks: Array.from({ length: 11 }, (_, index) => ({
           atMs: index * 1000,
           condition: 'Bleeding',
           stacks: 1,

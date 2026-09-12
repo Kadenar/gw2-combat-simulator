@@ -10,7 +10,7 @@ import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
-type OrderedEventLogRow = EventLogRow & { readonly order: number };
+type OrderedEventLogRow = EventLogRow & { readonly order: number; readonly activationOrder: number };
 
 /** Converts stable minion ownership ids into readable per-minion log labels. */
 function minionAttackerLabel(event: SimulationEvent): string {
@@ -30,6 +30,21 @@ export function simulationEventLogRows(
   profession: ProfessionAppContract | null = null
 ): EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];
+  // At equal times, finish each activation's effects and END before the next CAST,
+  // while keeping instant casts before their own END and timestamps authoritative.
+  const eventOrders = new Map((result?.events || []).map((event, index) => [event, event.eventOrder ?? index]));
+  const activationOrders = new Map(
+    [...eventOrders].flatMap(([event, order]) =>
+      event.type === 'action' && event.activationId ? [[event.activationId, order] as const] : []
+    )
+  );
+  const activationOrder = (event: SimulationEvent): number =>
+    event.type === 'combat_start'
+      ? -1
+      : (activationOrders.get(event.activationId || '') ??
+        event.eventOrder ??
+        eventOrders.get(event) ??
+        eventOrders.size);
   const professionUi = profession?.ui;
   const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
   const endState = professionEndState(result);
@@ -56,7 +71,14 @@ export function simulationEventLogRows(
       ? (endState.resourceDefinition as SchedulerRecord)
       : {};
   const maximumResource = Number(resourceDefinition.maximum || 0);
-  const push = (at: unknown, type: string, description: string, className = '', phantasmClone = false): void => {
+  const push = (
+    event: SimulationEvent,
+    type: string,
+    description: string,
+    className = '',
+    phantasmClone = false,
+    at: unknown = event.at
+  ): void => {
     const displayAt = Number(at || 0) - displayReferenceSeconds;
     rows.push({
       at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
@@ -64,6 +86,7 @@ export function simulationEventLogRows(
       description,
       className,
       phantasmClone,
+      activationOrder: activationOrder(event),
       order: EVENT_LOG_ORDER[type] ?? 80
     });
   };
@@ -89,6 +112,7 @@ export function simulationEventLogRows(
       rows.push({
         at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
         ...descriptor,
+        activationOrder: activationOrder(event),
         phantasmClone: flags.includes('phantasm-clone')
       });
       return;
@@ -96,19 +120,19 @@ export function simulationEventLogRows(
 
     const message = `UNPRESENTED CUSTOM EVENT ${event.type}`;
     globalThis.console?.warn?.(message, event);
-    push(event.at, 'diagnostic', message, 'diagnostic');
+    push(event, 'diagnostic', message, 'diagnostic');
   };
 
   for (const event of result?.events || []) {
     if (event.type === 'damage' || event.type === 'condition') continue;
     switch (event.type) {
       case 'combat_start':
-        push(event.at, event.type, 'COMBAT START', 'trigger');
+        push(event, event.type, 'COMBAT START', 'trigger');
         break;
       case 'action': {
         const durationMs = Math.max(0, Math.round((Number(event.endsAt || event.at) - Number(event.at || 0)) * 1000));
-        push(event.at, 'cast', `CAST ${event.name} (${durationMs}ms)`);
-        push(event.endsAt, 'cast_end', `END ${event.name}`);
+        push(event, 'cast', `CAST ${event.name} (${durationMs}ms)`);
+        push(event, 'cast_end', `END ${event.name}`, '', false, event.endsAt);
         break;
       }
 
@@ -126,7 +150,7 @@ export function simulationEventLogRows(
         const isCloneResource = resource === 'clones';
         if (amount > 0) {
           push(
-            event.at,
+            event,
             event.type,
             `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
             'resource',
@@ -134,7 +158,7 @@ export function simulationEventLogRows(
           );
         } else {
           push(
-            event.at,
+            event,
             event.type,
             `${resource.toUpperCase()} SPENT x${Math.abs(amount)} -> ${event.value}/${maximumResource}${reason}`,
             'resource',
@@ -146,34 +170,34 @@ export function simulationEventLogRows(
       }
 
       case 'marker':
-        push(event.at, event.type, `EVENT ${event.name}${event.detail ? ` - ${event.detail}` : ''}`, 'trigger');
+        push(event, event.type, `EVENT ${event.name}${event.detail ? ` - ${event.detail}` : ''}`, 'trigger');
         break;
       case 'proc':
         push(
-          event.at,
+          event,
           event.type,
           `${String(event.procType || 'effect').toUpperCase()} ${event.name}${event.sourceSkill ? ` [${event.sourceSkill}]` : ''}${event.detail ? ` - ${event.detail}` : ''}`,
           event.procType || 'trigger'
         );
         break;
       case 'weapon_set':
-        push(event.at, 'trigger', `WEAPON SET ${event.weaponSet}`, 'trigger');
+        push(event, 'trigger', `WEAPON SET ${event.weaponSet}`, 'trigger');
         break;
       case 'control':
-        push(event.at, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
+        push(event, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
         break;
       case 'weakness_vulnerability':
-        push(event.at, 'trigger', `WEAKNESS/VULNERABILITY TRIGGER ${event.skillName}`, 'trigger');
+        push(event, 'trigger', `WEAKNESS/VULNERABILITY TRIGGER ${event.skillName}`, 'trigger');
         break;
       case 'peitha':
         if (!build || build.relic === 'Peitha') {
-          push(event.at, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');
+          push(event, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');
         }
 
         break;
       case 'buff':
         push(
-          event.at,
+          event,
           'trigger',
           `BUFF ${effectName(event.kind, event, effectPresentations)} x${event.stacks || 1}${event.duration ? ` (${event.duration}s)` : ''}`,
           'trigger'
@@ -207,7 +231,7 @@ export function simulationEventLogRows(
           : '';
       const attribution = attacker || procTrigger;
       push(
-        event.at,
+        event,
         'damage',
         `${source} ${event.name}${attribution ? ` [${attribution}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
         isCloneHit ? 'resource' : '',
@@ -215,7 +239,7 @@ export function simulationEventLogRows(
       );
     } else if (event.type === 'condition') {
       push(
-        event.at,
+        event,
         'condition',
         `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(2)}s) [${event.skillName}]`,
         'condition'
@@ -225,10 +249,9 @@ export function simulationEventLogRows(
 
   return rows
     .sort(
-      (left, right) =>
-        left.at - right.at || left.order - right.order || left.description.localeCompare(right.description)
+      (left, right) => left.at - right.at || left.activationOrder - right.activationOrder || left.order - right.order
     )
-    .map(({ order: _order, ...row }) => row);
+    .map(({ order: _order, activationOrder: _activationOrder, ...row }) => row);
 }
 
 export function renderEventLog(app: ProfessionAppState): void {

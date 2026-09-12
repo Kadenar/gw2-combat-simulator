@@ -155,6 +155,8 @@ const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
 ).map((skill) => ({
   ...skill,
   flipSkillId:
+    // Supply the missing forward link so the palette can replace the equipped utility.
+    (skill.id === ID.FIST_FLURRY ? ID.PALM_STRIKE : null) ??
     WEAPON_FLIP_BY_PARENT[Number(skill.id)] ??
     (['Weapon', 'Profession'].includes(skill.type || '') ? null : skill.flipSkillId)
 }));
@@ -166,8 +168,6 @@ const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filt
 const allDeclared = [...generatedSource, ...supplementalSource];
 const declaredIds = new Set(allDeclared.map((skill) => skill.id));
 const flipParentById = createFlipParentMap(allDeclared);
-// The API omits this follow-up link; Palm Strike shares Fist Flurry's equipped slot.
-flipParentById.set(ID.PALM_STRIKE, ID.FIST_FLURRY);
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
   ...scepterAutoattackMetadata(skill),
