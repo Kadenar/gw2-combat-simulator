@@ -1,5 +1,3 @@
-import { pathToFileURL } from 'node:url';
-import path from 'node:path';
 import { updateProfessionApiData } from './update-profession-api-data.mjs';
 
 export async function updateWarriorApiData(options = {}) {
@@ -20,6 +18,5 @@ export async function updateWarriorApiData(options = {}) {
   return result;
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
-
-if (import.meta.url === invokedPath) await updateWarriorApiData();
+// Refresh only when invoked as a CLI so importing the snapshot API never fetches or writes data.
+if (import.meta.main) await updateWarriorApiData();

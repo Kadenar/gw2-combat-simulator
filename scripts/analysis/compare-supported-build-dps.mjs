@@ -8,14 +8,13 @@
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
 export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const repoRoot = path.resolve(import.meta.dirname, '../..');
 
 /** Keep the default 1% contract while allowing the CLI to opt into a fixed-DPS regression threshold. */
 export function findDpsMismatches(
@@ -105,18 +104,12 @@ function presetKey(section, preset) {
 /** Replace manifest benchmark values only after every simulated preset has matched its source entry. */
 export async function updateManifestBenchmarkDps(metrics, root = repoRoot, gameId = 'gw2') {
   const data = resolveGameData(root, gameId);
-  const metricsByProfession = new Map();
+  // Match each profession's results against its own manifest before writing any updates.
+  const metricsByProfession = Map.groupBy(metrics, (metric) => metric.profession);
   const pendingWrites = [];
   const skippedPresets = [];
   let updatedEntries = 0;
   let changedEntries = 0;
-
-  for (const metric of metrics) {
-    const professionMetrics = metricsByProfession.get(metric.profession) || [];
-
-    professionMetrics.push(metric);
-    metricsByProfession.set(metric.profession, professionMetrics);
-  }
 
   for (const [profession, professionMetrics] of metricsByProfession) {
     const manifestPath = path.join(data.builds, profession, 'manifest.json');
@@ -206,9 +199,8 @@ export function parseMaximumAbsoluteDpsError(args) {
   return args.includes('--absolute-dps') ? MAXIMUM_ABSOLUTE_DPS_ERROR : null;
 }
 
-const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
-
-if (isMain) {
+// Keep imports inert; only an explicit CLI invocation can run comparisons or commit manifest updates.
+if (import.meta.main) {
   const { gameId, args } = parseGameOption(process.argv.slice(2));
   const mode = parseMode(args);
   const maximumAbsoluteDpsError = parseMaximumAbsoluteDpsError(args);

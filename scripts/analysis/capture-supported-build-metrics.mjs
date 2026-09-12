@@ -16,7 +16,6 @@
  */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
@@ -33,7 +32,7 @@ const DEFAULT_PROFESSIONS = [
   'warrior'
 ];
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const repoRoot = path.resolve(import.meta.dirname, '../..');
 
 async function readJson(relativePath) {
   return JSON.parse(await readFile(path.join(repoRoot, relativePath), 'utf8'));
@@ -136,9 +135,8 @@ export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESS
   return metrics;
 }
 
-const isMain = process.argv[1] != null && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
-
-if (isMain) {
+// Only print metrics for direct CLI invocations; importers choose when to run simulations.
+if (import.meta.main) {
   const { gameId, args: requested } = parseGameOption(process.argv.slice(2));
   const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS, { gameId });
 

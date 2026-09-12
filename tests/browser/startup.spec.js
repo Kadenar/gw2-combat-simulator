@@ -6,8 +6,7 @@ const moduleUrl = '**/js/games/gw2/professions/engineer/app/app-definition.ts*';
 test('embedded loader follows the visible host viewport until startup completes', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.context().grantPermissions(['local-network-access'], { origin: 'http://localhost:4173' });
-  let releaseModule;
-  const moduleReady = new Promise((resolve) => (releaseModule = resolve));
+  const { promise: moduleReady, resolve: releaseModule } = Promise.withResolvers();
   await page.route(moduleUrl, async (route) => {
     await moduleReady;
     await route.continue();
@@ -57,10 +56,8 @@ test('embedded loader follows the visible host viewport until startup completes'
 
 // Hold real startup dependencies so loading, reduced motion, and the handoff can be checked without artificial delays.
 test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }, testInfo) => {
-  let releaseModule;
-  let releaseTemplates;
-  const moduleReady = new Promise((resolve) => (releaseModule = resolve));
-  const templatesReady = new Promise((resolve) => (releaseTemplates = resolve));
+  const { promise: moduleReady, resolve: releaseModule } = Promise.withResolvers();
+  const { promise: templatesReady, resolve: releaseTemplates } = Promise.withResolvers();
   await page.route(moduleUrl, async (route) => {
     await moduleReady;
     await route.continue();

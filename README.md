@@ -181,7 +181,7 @@ simulation modes.
 
 ### Requirements
 
-- Node.js **20.19+**
+- Node.js **24.11+** (use the latest Node 24 LTS release)
 - npm
 - Google Chrome, only for browser tests
 

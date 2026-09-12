@@ -128,10 +128,7 @@ test('shared template keeps build and simulation controls in one editor', () => 
 
 // Independent template assets must start together even when the build download has not completed.
 test('template bundles fetch build and rotation concurrently', async (t) => {
-  let releaseBuild;
-  const buildReady = new Promise((resolve) => {
-    releaseBuild = resolve;
-  });
+  const { promise: buildReady, resolve: releaseBuild } = Promise.withResolvers();
   const requested = [];
   t.mock.method(globalThis, 'fetch', async (url) => {
     const path = String(url).split('?')[0];

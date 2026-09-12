@@ -112,19 +112,22 @@ test('refresh imports are inert and each invocation completes the profession pip
   assert.equal(writes.length, 0, 'failed snapshots must not trigger dependent generation');
 });
 
-test('specialized refresh files still execute when invoked directly', () => {
+test('refresh files execute when invoked directly', () => {
   // Stop at the first API request to check CLI guards without network traffic or generated-file writes.
   const preload = `data:text/javascript,${encodeURIComponent(
     "globalThis.fetch = async (url) => { throw new Error('Refresh requested: ' + url); };"
   )}`;
 
-  for (const [profession, script] of [
+  for (const [profession, script, args = []] of [
+    ['Guardian', 'update-profession-data.mjs', ['--profession', 'Guardian']],
+    ['Guardian', 'update-profession-api-data.mjs', ['--profession', 'Guardian']],
     ['Elementalist', 'update-elementalist-api-data.mjs'],
     ['Ranger', 'update-ranger-data.mjs'],
-    ['Warrior', 'update-warrior-data.mjs']
+    ['Warrior', 'update-warrior-data.mjs'],
+    ['Warrior', 'update-warrior-api-data.mjs']
   ]) {
     const entry = fileURLToPath(new URL(`../../scripts/data/${script}`, import.meta.url));
-    const result = spawnSync(process.execPath, ['--import', preload, entry], { encoding: 'utf8' });
+    const result = spawnSync(process.execPath, ['--import', preload, entry, ...args], { encoding: 'utf8' });
 
     assert.equal(result.status, 1, result.stderr);
     assert.ok(result.stderr.includes(`Refresh requested: https://api.guildwars2.com/v2/professions/${profession}`));

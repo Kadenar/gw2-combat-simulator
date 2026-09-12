@@ -1,6 +1,5 @@
 /** Counts recorded Burning Bolt projectiles during Overload Fire casts. Run npm run build:modules first. */
 import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
@@ -140,7 +139,8 @@ async function main() {
   console.log(`\n${report.note}`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+// Importing the analyzer must not parse CLI arguments or read a combat log.
+if (import.meta.main) {
   main().catch((error) => {
     console.error(error.message);
     process.exitCode = 1;

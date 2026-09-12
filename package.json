@@ -58,7 +58,7 @@
     "generate:revenant-ids": "npm run build:modules && node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {
-    "node": ">=20.19"
+    "node": ">=24.11"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { updateElementalistApiData } from './update-elementalist-api-data.mjs';
 import { parseProfession, updateProfessionApiData } from './update-profession-api-data.mjs';
 import { updateRangerData } from './update-ranger-data.mjs';
@@ -22,6 +20,5 @@ export async function updateProfessionData(args = process.argv.slice(2)) {
   await updateProfessionApiData(profession);
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
-
-if (import.meta.url === invokedPath) await updateProfessionData();
+// Refresh only when invoked as a CLI so importing the pipeline never fetches or writes data.
+if (import.meta.main) await updateProfessionData();

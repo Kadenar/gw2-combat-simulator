@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -14,6 +15,35 @@ import {
   updateManifestBenchmarkDps
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
 import { parseGameOption } from '../../scripts/lib/game-data.mjs';
+
+test('analysis modules stay inert on import and execute their CLI when launched directly', () => {
+  // Help and invalid arguments exercise entry points without reading logs or changing benchmark manifests.
+  for (const [script, args, status, output] of [
+    ['analyze-overload-fire.mjs', ['--help'], 0, /Usage: node/],
+    ['compare-supported-build-dps.mjs', ['--unknown'], 1, /Unknown argument/],
+    ['capture-supported-build-metrics.mjs', ['unknown'], 1, /Unknown professions/]
+  ]) {
+    const entry = new URL(`../../scripts/analysis/${script}`, import.meta.url);
+    const imported = spawnSync(
+      process.execPath,
+      ['--input-type=module', '--eval', `await import(${JSON.stringify(entry.href)});`],
+      {
+        encoding: 'utf8'
+      }
+    );
+    assert.equal(imported.status, 0, imported.stderr);
+    assert.equal(imported.stdout, '');
+    const invoked = spawnSync(
+      process.execPath,
+      [path.resolve(import.meta.dirname, '../../scripts/analysis', script), ...args],
+      {
+        encoding: 'utf8'
+      }
+    );
+    assert.equal(invoked.status, status, invoked.stderr);
+    assert.match(invoked.stdout + invoked.stderr, output);
+  }
+});
 
 test('DPS comparison reports only manifest builds outside the 1% tolerance', () => {
   const metrics = [

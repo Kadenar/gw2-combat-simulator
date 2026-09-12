@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { generateRangerIds } from './generate-ranger-ids.mjs';
 import { generateRangerPetData } from './generate-ranger-pet-data.mjs';
 import { updateProfessionApiData } from './update-profession-api-data.mjs';
@@ -12,6 +10,5 @@ export async function updateRangerData() {
   await generateRangerPetData(snapshot);
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
-
-if (import.meta.url === invokedPath) await updateRangerData();
+// Refresh only when invoked as a CLI so importing the pipeline never fetches or writes data.
+if (import.meta.main) await updateRangerData();

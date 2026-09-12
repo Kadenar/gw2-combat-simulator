@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { updateProfessionApiData } from './update-profession-api-data.mjs';
 
 // The profession endpoint omits conjured-weapon, attunement-variant, and
@@ -22,6 +20,5 @@ export async function updateElementalistApiData() {
   });
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
-
-if (import.meta.url === invokedPath) await updateElementalistApiData();
+// Refresh only when invoked as a CLI so importing the updater never fetches or writes data.
+if (import.meta.main) await updateElementalistApiData();

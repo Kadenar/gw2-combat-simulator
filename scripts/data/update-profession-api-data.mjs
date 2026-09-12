@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 import { fetchProfessionSnapshot, writeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
 
 const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
@@ -69,10 +68,7 @@ export async function updateProfessionApiData(
   const id = normalizedProfession.toLowerCase();
   const output = requestedOutput
     ? path.resolve(requestedOutput)
-    : path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        `../../js/games/gw2/professions/${id}/data/${id}-api-metadata.ts`
-      );
+    : path.resolve(import.meta.dirname, `../../js/games/gw2/professions/${id}/data/${id}-api-metadata.ts`);
   const snapshot = await fetchProfessionSnapshot({
     professionName: normalizedProfession,
     config,
@@ -117,8 +113,7 @@ export async function main(args = process.argv.slice(2)) {
   return updateProfessionApiData(parseProfession(args));
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
-
-if (import.meta.url === invokedPath) {
+// Refresh only when invoked as a CLI so importing the snapshot API never fetches or writes data.
+if (import.meta.main) {
   await main();
 }

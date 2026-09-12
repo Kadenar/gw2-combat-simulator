@@ -19,7 +19,8 @@ controls, or equipment selections.
 
 ## Run a standalone script
 
-Node.js 20.19 or newer is required. Install dependencies and compile the TypeScript modules first:
+Node.js 24.11 or newer is required; use the latest Node 24 LTS release. Install dependencies and compile the TypeScript
+modules first:
 
 ```powershell
 npm install
