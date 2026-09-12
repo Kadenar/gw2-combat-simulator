@@ -6,6 +6,8 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
@@ -19,6 +21,59 @@ import type {
 import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+
+/** Copy both actors' existing boons from one completion-time snapshot, including merged self-copying. */
+export function completeRangerHealingSkill(context: RangerCastContext, skill: RangerSkill): void {
+  if (skill.id !== ID.WE_HEAL_AS_ONE || context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const petActive = professionCoreState(context).petActive;
+  const companionId = rangerPetCompanionId(context);
+  const timeline = createGw2TimelineIndex({ events: context.events });
+  // PvE copy durations are skill-owned; concentration is applied by the standard boon emitter.
+  const copies = Object.entries({
+    aegis: 5,
+    alacrity: 3,
+    fury: 3,
+    might: 10,
+    protection: 2,
+    quickness: 2,
+    regeneration: 5,
+    resistance: 2,
+    resolution: 5,
+    stability: 3,
+    swiftness: 3,
+    vigor: 3
+  }).map(([kind, duration]) => {
+    const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
+    const player = Math.min(maximum, context.buffStacks(kind, context.effectiveEnd));
+    const pet = petActive
+      ? timeline.buffStacksAt(kind, context.effectiveEnd, 0, maximum, 'summon', companionId)
+      : player;
+    return { kind, duration, player, pet };
+  });
+  for (const { kind, duration, player, pet } of copies) {
+    if (pet > 0)
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        kind,
+        duration,
+        stacks: pet,
+        audience: { recipients: 'self' }
+      });
+    if (petActive && player > 0)
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        kind,
+        duration,
+        stacks: player,
+        audience: {
+          recipients: 'summons',
+          affectsSelf: false,
+          maximumRecipients: 1,
+          eligibleCompanionIds: [companionId]
+        }
+      });
+  }
+}
 
 function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);

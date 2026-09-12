@@ -231,20 +231,32 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'ranger.sun-spirit'
   },
   [ID.FLAME_TRAP]: {
+    interruptCommitMs: 500,
+    // Arm after placement, then preserve the trap's pulses and field independently of later casts.
+    // ponytail: nominal half-second pulse spacing; calibrate these offsets against a live combat log if needed.
     effects: [
       {
         type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
+        ticks: [520, 520, 1000, 1520, 2000, 2520].map((atMs) => ({ atMs, coefficient: 0.3 })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Flame Trap - Damage per Pulse'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 3
+        ticks: [520, 520, 1000, 1520, 2000, 2520].map((atMs) => ({
+          atMs,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 2.5
+        })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ],
+    comboFields: [{ ownerId: 'ranger', fieldType: 'Fire', duration: 3, startMs: 520, startAnchor: 'castEnd' }],
     quicknessCastTimeMs: 333
   },
   [ID.MUDDY_TERRAIN]: {
@@ -453,106 +465,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     quicknessCastTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
-    effects: [
-      {
-        type: 'boon',
-        boon: 'aegis',
-        duration: 5,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'alacrity',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 10,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 5,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 2,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 2,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 5,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 2,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'resolution',
-        duration: 5,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 3,
-        stacks: 1,
-        audience: { recipients: 'summons' as const, maximumRecipients: 2 }
-      }
-    ],
+    // Boons are copied from live recipients by the Core completion hook.
+    effects: [],
     quicknessCastTimeMs: 667
   }
 });

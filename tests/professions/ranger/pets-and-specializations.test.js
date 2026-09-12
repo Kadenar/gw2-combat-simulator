@@ -610,7 +610,12 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
     boons: { alacrity: true }
   };
   const playerAlacrity = simulate('Core', ['Narcotic Spores'], config);
-  const petAlacrity = simulate('Core', ['"We Heal As One!"', 'Narcotic Spores'], config);
+  // Pet commands can start concurrently, so wait for the heal to copy the player's Alacrity first.
+  const petAlacrity = simulate(
+    'Core',
+    ['"We Heal As One!"', { type: 'wait', durationMs: 1500 }, 'Narcotic Spores'],
+    config
+  );
   const rechargeMs = (result) => {
     const step = result.steps.find((candidate) => candidate.skill === 'Narcotic Spores');
 

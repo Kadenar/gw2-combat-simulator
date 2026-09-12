@@ -39,10 +39,16 @@ function eclipseEffect(context: RangerCastContext, index: number) {
 export function applyCelestialAvatarTraits(context: RangerCastContext, skill: RangerSkill): void {
   // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
   const pulses = skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
+  // Channel traits stop with the cast, while already-applied conditions keep ticking.
+  const pulseLanded = (at: number) =>
+    skill.id !== ID.NATURAL_CONVERGENCE ||
+    context.effectiveEnd >= context.fullEnd - context.epsilon ||
+    at <= context.effectiveEnd + context.epsilon;
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
     const effect = balanceProfileEffectFromContext(context, PROFILE.graceOfTheLand, 'boon');
     const boon = String(effect?.boon || 'alacrity');
     for (const atMs of pulses) {
+      if (!pulseLanded(context.start + atMs / 1000)) continue;
       emitSkillBuff(context, skill, {
         at: context.start + atMs / 1000,
         source: 'Trait',
@@ -128,6 +134,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
 
   // Keep every Eclipse packet explicit while sharing only the authored application list.
   for (const application of applications) {
+    if (!pulseLanded(application.at)) continue;
     emitSkillCondition(context, {
       at: application.at,
       source: 'Trait',

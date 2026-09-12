@@ -33,11 +33,6 @@ export function modifyRangerPetAttributes(
 
   const family = activePetFamily(context);
 
-  if (hasTrait(context, TRAIT.FANG_AND_CLAW) && ['feline', 'avian', 'drake'].includes(family)) {
-    adjust('precision', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'attributeBonus', 420));
-    adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450));
-  }
-
   if (hasTrait(context, TRAIT.ARACHNOPHOBIA) && ['spider', 'devourer'].includes(family)) {
     adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus', 225));
   }

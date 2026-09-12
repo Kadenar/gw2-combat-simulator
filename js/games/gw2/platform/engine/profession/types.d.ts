@@ -87,7 +87,7 @@ export interface ProfessionPaletteGroup {
   /** Lower values render before other profession palette groups. */
   readonly order?: number;
   /** Moves a profession group beside the indicated palette surface. */
-  readonly placement?: 'profession' | 'weapon-set-1' | 'active-weapon';
+  readonly placement?: 'profession' | 'weapon-set-1' | 'active-weapon' | 'utility';
   /** Optional row label used when placing a group beside the active weapon. */
   readonly weaponRowLabel?: string;
   readonly resourceAnchor?: boolean;

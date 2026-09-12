@@ -7,6 +7,7 @@ import {
 } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/catalog/module-data.js';
 import {
+  completeRangerHealingSkill,
   rangerCoreSkillHandlers,
   rangerCoreSkillMechanicHandlers
 } from '#gw2/professions/ranger/core/execution/index.js';
@@ -88,6 +89,7 @@ const rangerCoreExecutionHooks = Object.freeze({
   },
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
     completeRangerWeaponSkill(context, skill);
+    completeRangerHealingSkill(context, skill);
     completeRangerTraits(context, skill);
   },
   onWeaponSwap: applyRangerWeaponSwapTraits

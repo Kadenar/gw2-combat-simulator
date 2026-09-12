@@ -76,17 +76,14 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.COUNTERATTACK_KICK]: {
     evades: true,
+    // The PvE kick lands once and its knockback can trigger control reactions.
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 1
       },
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1
-      }
+      { type: 'control', controlKind: 'Knockback' }
     ],
     quicknessCastTimeMs: 333
   },

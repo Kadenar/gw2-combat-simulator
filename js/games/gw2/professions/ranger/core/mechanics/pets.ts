@@ -72,6 +72,15 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
       ferocity += balanceProfileValueFromContext(context, PROFILE.petsProwess, 'attributeBonus', 300);
     }
 
+    // Independent pet strikes resolve critical stats from this metadata, not player attribute modifiers.
+    if (
+      hasTrait(context, TRAIT.FANG_AND_CLAW) &&
+      ['feline', 'avian', 'drake'].includes(rangerPetByName(petName).family)
+    ) {
+      precision += balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'attributeBonus', 420);
+      ferocity += balanceProfileValueFromContext(context, PROFILE.fangAndClaw, 'weaponAttributeBonus', 450);
+    }
+
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
       expertise += balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150);
       if (['spider', 'devourer'].includes(rangerPetByName(petName).family)) {
