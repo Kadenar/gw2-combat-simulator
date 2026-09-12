@@ -335,7 +335,6 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
   }
 
   assertOptionalCallback(simulation, 'refineSchedulerConfig', 'simulation');
-  assertOptionalCallback(simulation, 'projectEndState', 'simulation');
   if (!simulation.refineSchedulerConfig) {
     return Object.freeze({ ...simulation });
   }

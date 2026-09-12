@@ -48,30 +48,21 @@ function endState(
   const ammoBySkillId = Object.fromEntries(
     [...scheduled.state.ammo].map(([id, value]) => [String(id), structuredClone(value)])
   );
+  // Project profession effects once; cooldowns and ammo remain owned by the scheduler.
   const projected = profession.projectEndState({
     config,
     schedulerContext: scheduled.context,
     schedulerState: scheduled.state,
     resolverState: resolved.profession
   });
-  const simulationProjection =
-    profession.simulation?.projectEndState?.({
-      config,
-      schedulerContext: scheduled.context,
-      schedulerState: scheduled.state,
-      resolverState: resolved.profession,
-      cooldowns,
-      ammo,
-      profession: projected ?? resolved.profession
-    }) || {};
   return {
     time: Math.round(endTime * 1000),
-    cooldowns: simulationProjection.cooldowns || cooldowns,
-    ammo: simulationProjection.ammo || ammo,
+    cooldowns,
+    ammo,
     ammoBySkillId,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
-    profession: structuredClone(simulationProjection.profession ?? projected ?? resolved.profession)
+    profession: structuredClone(projected ?? resolved.profession)
   };
 }
 

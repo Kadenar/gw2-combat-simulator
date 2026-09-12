@@ -27,22 +27,6 @@ export interface Gw2ProfessionContract<
           config: Gw2Config,
           result: Gw2SimulationResult
         ) => Gw2Config | null | undefined;
-        readonly projectEndState?: (options: {
-          readonly config: Gw2Config;
-          readonly schedulerContext: SchedulerContext;
-          readonly schedulerState: SchedulerState;
-          readonly resolverState: object;
-          readonly cooldowns: Gw2SimulationEndState['cooldowns'];
-          readonly ammo: Gw2SimulationEndState['ammo'];
-          readonly profession: unknown;
-        }) =>
-          | {
-              readonly cooldowns?: Gw2SimulationEndState['cooldowns'];
-              readonly ammo?: Gw2SimulationEndState['ammo'];
-              readonly profession?: unknown;
-            }
-          | null
-          | undefined;
       })
     | null;
   readonly projectEndState: (options: {
