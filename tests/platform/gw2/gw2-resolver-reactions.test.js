@@ -85,9 +85,12 @@ test('condition stage runs once after state and ticks, including profession and 
   const professionReactions = {
     'condition.applied': (context, application, details) => {
       assert.equal(details.applyCondition, undefined);
+      // Reactions observe the application through canonical state before producing nested conditions.
+      assert.ok(
+        context.conditionState.get(application.condition).stacks.some((stack) => stack.application === application)
+      );
       trace.push({
         condition: application.condition,
-        applications: context.conditionApplications.length,
         queued: context.queue.length,
         active: details.activeConditionStackCount(context, application.condition, application.at)
       });
@@ -191,10 +194,6 @@ test('condition stage runs once after state and ticks, including profession and 
   assert.deepEqual(
     trace.map((entry) => entry.condition),
     ['Bleeding', 'Weakness', 'Bleeding', 'Burning', 'Torment']
-  );
-  assert.deepEqual(
-    trace.map((entry) => entry.applications),
-    [1, 2, 3, 4, 5]
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),

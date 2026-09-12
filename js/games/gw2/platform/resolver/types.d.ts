@@ -197,7 +197,6 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   environmentDamage: number;
   environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
   conditionState: Map<string, Gw2ResolverConditionState>;
-  conditionApplications: Gw2ResolvedConditionApplication[];
   resolved: Gw2ResolverEvent[];
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;

@@ -51,8 +51,7 @@ test('pet boon counts follow packet identity across swaps and exclude future sam
   const runtime = {
     profession: { core: createRangerCoreState() },
     boons: new Map(),
-    conditionState: new Map(),
-    conditionApplications: []
+    conditionState: new Map()
   };
   const oldPet = rangerPetCompanionId(runtime);
   const fury = buff('fury', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [oldPet] });

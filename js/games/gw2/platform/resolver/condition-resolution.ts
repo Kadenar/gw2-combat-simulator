@@ -181,10 +181,9 @@ export function createGw2ConditionResolution({
       damagingStackSeconds: 0,
       damageTicks: []
     } as Gw2ResolvedConditionApplication;
-    ctx.conditionApplications.push(application);
-    // Live applications remain available to pet swaps and condition state in both output modes.
     if (ctx.reporting) ctx.resolved.push(application);
 
+    // Canonical stacks retain applications for live queries and queued-tick cancellation in both output modes.
     const state = ensureConditionState(ctx, name);
     state.stacks.push({
       appliedAt: event.at,

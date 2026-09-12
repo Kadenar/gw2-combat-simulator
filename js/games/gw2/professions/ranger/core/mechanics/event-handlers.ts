@@ -48,22 +48,15 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Ra
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);
   const removedAt = event.at + 1;
-  for (const application of context.conditionApplications) {
-    if (
-      application.source === 'ranger-pet' &&
-      (!application.summonOwner || String(application.summonOwner) === outgoingCompanionId) &&
-      application.naturalExpiresAt > removedAt
-    ) {
-      application.removedAt = removedAt;
-    }
-  }
-
   for (const condition of context.conditionState.values()) {
     for (const stack of condition.stacks) {
+      const application = stack.application;
       if (
-        stack.application.source === 'ranger-pet' &&
-        (!stack.application.summonOwner || String(stack.application.summonOwner) === outgoingCompanionId)
+        application.source === 'ranger-pet' &&
+        (!application.summonOwner || String(application.summonOwner) === outgoingCompanionId)
       ) {
+        // Cancel queued ticks without suppressing natural expiry ticks; shorten live stack visibility separately.
+        if (application.naturalExpiresAt > removedAt) application.removedAt = removedAt;
         stack.expiresAt = Math.min(stack.expiresAt, removedAt);
       }
     }

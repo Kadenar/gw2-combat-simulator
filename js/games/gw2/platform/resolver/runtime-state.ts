@@ -43,7 +43,6 @@ export function createGw2ResolverRuntimeState({
     environmentDamage: 0,
     environmentConditions: new Map(),
     conditionState: createCanonicalTargetConditionStateMap(),
-    conditionApplications: [],
     resolved: [],
     procSteps: [],
     procKeys: new Set(),
