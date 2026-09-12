@@ -4,10 +4,10 @@
 //
 // Bounces direct visitors of the GitHub Pages deployment to the SnowCrows page
 // where the simulator is embedded. When the page is framed (the SnowCrows embed)
-// window.self !== window.top, so it stays put. Set SNOWCROWS_URL to enable.
+// window.self !== window.top, so it stays put.
 (function redirectFromGithubPages() {
   const GITHUB_PAGES_HOST = 'kadenar.github.io';
-  const SNOWCROWS_URL = null; // e.g. 'https://snowcrows.com/your-embed-page'
+  const SNOWCROWS_URL = 'https://snowcrows.com/combat-simulator';
 
   const onGithubPages = window.location.hostname === GITHUB_PAGES_HOST;
   const topLevel = window.self === window.top;
