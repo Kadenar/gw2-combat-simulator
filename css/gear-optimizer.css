@@ -666,7 +666,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .gear-optimizer td,
 .gear-optimizer th {
-  padding: 8px 5px;
+  /* Leave room for wider platform fonts across the equipment columns at desktop widths. */
+  padding: 8px 4px;
   vertical-align: middle;
   border-bottom: 1px solid var(--border);
 }

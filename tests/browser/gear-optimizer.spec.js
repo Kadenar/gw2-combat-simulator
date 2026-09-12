@@ -329,16 +329,21 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     return `${delta >= 0 ? '+' : ''}${delta.toFixed(2)} DPS`;
   });
   await expect(comparison.locator('.optimizer-delta')).toHaveText(difference);
-  const percentBounds = await comparison.locator('small').boundingBox();
-  const deltaBounds = await comparison.locator('.optimizer-delta').boundingBox();
-  expect(deltaBounds.y).toBeGreaterThanOrEqual(percentBounds.y + percentBounds.height);
-  expect(deltaBounds.x).toBe(percentBounds.x);
-  // Both candidate and equipped comparisons sit below their DPS, sharing its left edge.
-  for (const damage of await results.locator('td.optimizer-damage').all()) {
-    const score = await damage.locator('.optimizer-score').boundingBox();
-    const comparison = await damage.locator('.optimizer-comparison').boundingBox();
-    expect(comparison.y).toBeGreaterThanOrEqual(score.y + score.height);
-    expect(comparison.x).toBe(score.x);
+  // Measure each stack in one browser task so page movement cannot mix coordinates from different frames.
+  const damageStacks = await results
+    .locator('td.optimizer-damage')
+    .evaluateAll((cells) =>
+      cells.map((cell) =>
+        ['.optimizer-score', '.optimizer-comparison', 'small', '.optimizer-delta'].map((selector) =>
+          cell.querySelector(selector).getBoundingClientRect().toJSON()
+        )
+      )
+    );
+  for (const [score, comparison, percent, delta] of damageStacks) {
+    expect(comparison.top).toBeGreaterThanOrEqual(score.bottom);
+    expect(comparison.left).toBe(score.left);
+    expect(delta.top).toBeGreaterThanOrEqual(percent.bottom);
+    expect(delta.left).toBe(percent.left);
   }
 
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
@@ -604,6 +609,16 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   expect(
     await panel.locator('.optimizer-table-scroll').evaluate((element) => element.scrollWidth <= element.clientWidth)
   ).toBe(true);
+  // Exercise wider text metrics as well as the host defaults; desktop fit must not depend on Segoe UI.
+  await results.evaluate((table) => {
+    table.style.fontFamily = 'Verdana, sans-serif';
+    table.style.setProperty('--mono', '"Courier New", monospace');
+    table.style.letterSpacing = '1px';
+  });
+  expect(
+    await panel.locator('.optimizer-table-scroll').evaluate((element) => element.scrollWidth <= element.clientWidth)
+  ).toBe(true);
+  await results.evaluate((table) => table.removeAttribute('style'));
   await panel.locator('[data-role="optimizer-results"]').screenshot({ path: '.scratch/optimizer/results-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   await panel
