@@ -263,6 +263,7 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
   if (!ticks?.length) throw new Error('Willbender Flames requires an explicit strike timeline.');
   // A flame field is a separate activation from the virtue that created it, so its unequipped weapon-strength
   // roll is shared by its pulses without colliding with the virtue impact's profession-mechanic roll.
+  // Preserve targeting explicitly across that new activation, including pulses after Combat Start.
   const activationId = context.createActivationId('effect');
   for (const [index, tick] of ticks.entries()) {
     const pulse = index + 1;
@@ -270,7 +271,7 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
       id: `guardian.willbender-flame:${flameGeneration}:${task.at}:${pulse}`,
       type: 'guardian.willbender-flame-pulse',
       at: Number(task.at) + Number(tick.atMs) / 1000,
-      payload: { activationId, flameGeneration, flameId, pulse }
+      payload: { activationId, flameGeneration, flameId, pulse, offTarget: payload.offTarget === true }
     });
   }
 }
@@ -303,7 +304,8 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       skillWeapon: 'Unequipped',
       hitIndex: pulse,
       totalHits: ticks.length,
-      willbenderFlames: true
+      willbenderFlames: true,
+      ...(payload.offTarget === true ? { offTarget: true } : {})
     })
   );
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
@@ -319,7 +321,8 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
       condition: String(burning?.condition || 'Burning'),
       stacks: Number(burning?.stacks ?? 1),
       duration: Number(burning?.duration ?? 1),
-      triggeredBy: 'Willbender Flames'
+      triggeredBy: 'Willbender Flames',
+      ...(payload.offTarget === true ? { offTarget: true } : {})
     });
   }
 }
