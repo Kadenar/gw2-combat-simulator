@@ -140,6 +140,8 @@ export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Obje
             if (skill.slot !== 'Weapon_1') return true;
             return skill.name.endsWith('—Storm') === storm;
           })
+          // Display Forge weapons in slot order regardless of canonical catalog ordering.
+          .sort((left, right) => String(left.slot).localeCompare(String(right.slot)))
           .map((skill) => skill.id),
         color: '#e5a72d',
         className: 'engineer-forge-skills',

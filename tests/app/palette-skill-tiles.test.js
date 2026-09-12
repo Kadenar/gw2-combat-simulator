@@ -340,6 +340,31 @@ test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {
   assert.ok(names.some((chain) => chain.join('|') === 'Light Strike—Storm|Bright Slash—Storm|Flash Cutter—Storm'));
 });
 
+test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', async () => {
+  const profession = await loadProfession('engineer');
+  // Trait variants must preserve the same five-slot Forge layout after chain projection.
+  for (const storm of [false, true]) {
+    const app = projectionApp(profession, {
+      specialization: 'Holosmith',
+      professionState: { photonForgeActive: true }
+    });
+    app.build.specializations = [{ name: 'Holosmith', traits: storm ? '1-1-1' : '1-2-1' }];
+    const group = profession.ui
+      .paletteGroups({ specialization: 'Holosmith', build: app.build })
+      .find((candidate) => candidate.id === 'engineer-forge');
+    const tiles = displayedSkillTiles(
+      app,
+      group.skillIds.map((skillId) => profession.catalog.skillsById.get(skillId))
+    );
+
+    assert.deepEqual(
+      tiles.map((skill) => skill.slot),
+      ['Weapon_1', 'Weapon_2', 'Weapon_3', 'Weapon_4', 'Weapon_5']
+    );
+    assert.equal(tiles[0].name, storm ? 'Light Strike—Storm' : 'Light Strike');
+  }
+});
+
 test('Herald legend-dependent True Nature variants use one shared Facet tile', async () => {
   const profession = await loadProfession('revenant');
   const project = (availableFlips) => {
