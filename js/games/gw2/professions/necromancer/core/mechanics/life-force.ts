@@ -44,7 +44,8 @@ const resourceFeedbackCursors = new WeakMap<object, number>();
 function targetBoonCount(config: NecromancerConfig): number {
   if (config.target?.boonless) return 0;
   if (Array.isArray(config.target?.boons)) return config.target.boons.length;
-  return Math.max(0, Number(config.target?.boonCount || 1));
+  // Preserve explicit zero so boon-removal gains require a boon; only missing counts default to one.
+  return Math.max(0, Number(config.target?.boonCount ?? 1));
 }
 
 function alacrityRecharge(context: NecromancerSchedulerContext, duration: number, at: number): number {

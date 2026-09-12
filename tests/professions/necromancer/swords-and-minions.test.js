@@ -153,6 +153,25 @@ test('Dark Pact gains life force only after ripping a boon and inflicts its targ
   assert.equal(targetCondition('Immobilized')?.duration, 6);
 });
 
+test('Dark Pact preserves explicit zero-boon inputs when granting life force', () => {
+  // Equivalent empty-target inputs must deny the gain; an omitted count retains the existing one-boon default.
+  for (const [target, expectedLifeForce] of [
+    [{ boonless: false, boonCount: 0 }, 0],
+    [{ boonless: false, boons: [] }, 0],
+    [{ boonless: true }, 0],
+    [{ boonless: false, boonCount: 1 }, 5],
+    [{ boonless: false }, 5]
+  ]) {
+    const result = simulate('Core', ['Dark Pact'], {
+      initialResource: 0,
+      primaryWeapon: 'Dagger',
+      target
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.lifeForce, expectedLifeForce, JSON.stringify(target));
+  }
+});
+
 test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {
   const lifeSiphon = (targetBleeding) =>
     simulate(
