@@ -420,11 +420,12 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
 }
 
 function observeWillbenderEvent(context: GuardianSchedulerContext, event: SchedulerRecord): void {
-  // Only player-owned strikes count as virtue hits. Sigil of Air is the sole
+  // Only landed player-owned strikes count as virtue hits. Sigil of Air is the sole
   // non-player-actor source explicitly permitted because its proc is considered
   // "player damage" in-game even though its actor classification differs.
   if (
     event.type !== 'damage' ||
+    event.offTarget === true ||
     !(Number(event.coefficient || 0) > 0) ||
     (!isGw2PlayerActorEvent(event) && event.sourceId !== 'sigil.air')
   ) {
@@ -438,6 +439,7 @@ function observeWillbenderEvent(context: GuardianSchedulerContext, event: Schedu
     type: 'guardian.willbender-virtue-hit',
     at: Number(event.at),
     payload: {
+      activationId: event.activationId,
       sourceSkillId: event.skillId,
       sourceSkillName: event.skillName
     }

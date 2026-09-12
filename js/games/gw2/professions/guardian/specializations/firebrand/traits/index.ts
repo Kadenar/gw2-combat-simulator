@@ -164,6 +164,14 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
 export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   const state = firebrandState.from(context);
+  // The completed Renewed Focus event restores the shared page pool and re-enables tome activation passives.
+  if (event.type === 'guardian.virtues-refreshed') {
+    state.tomePages = state.maximumTomePages;
+    state.nextTomePageAt = Number.POSITIVE_INFINITY;
+    state.tomeDormantReadyAt = { justice: event.at, resolve: event.at, courage: event.at };
+    return;
+  }
+
   if (
     event.type === 'buff' &&
     ['aegis', 'stability'].includes(kind) &&

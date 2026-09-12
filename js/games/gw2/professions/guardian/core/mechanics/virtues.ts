@@ -60,8 +60,15 @@ function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void 
     (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
   )) {
     context.state.cooldowns.delete(virtue.id);
+    context.cooldownController.restoreAmmo(virtue, Number.POSITIVE_INFINITY, context.effectiveEnd, 'reset');
   }
 
+  // Activation traits consult scheduler readiness before the resolver replays the refresh.
+  professionCoreState(context).virtueReadyAt = {
+    justice: context.effectiveEnd,
+    resolve: context.effectiveEnd,
+    courage: context.effectiveEnd
+  };
   emitGuardianEvent(context, skill, 'guardian.virtues-refreshed');
 }
 

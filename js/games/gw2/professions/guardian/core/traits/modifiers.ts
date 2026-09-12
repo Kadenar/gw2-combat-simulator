@@ -143,6 +143,24 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   },
   {
+    id: 'guardian.bane-signet-power',
+    label: 'Bane Signet',
+    target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+    operation: 'add',
+    parameters: { attributeBonus: 180, perfectInscriptionsMultiplier: 1.2 } as Readonly<Record<string, number>>,
+    amount: (context, _target, parameters) => {
+      // Remove a precomputed passive during recharge, or add it while ready for raw supplied attributes.
+      const perfectInscriptions = hasTrait(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS);
+      const passiveActive =
+        perfectInscriptions || !context.timeline?.skillOnCooldownAt(GUARDIAN_SKILL_IDS.BANE_SIGNET, context.time);
+      const amount = parameters.attributeBonus * (perfectInscriptions ? parameters.perfectInscriptionsMultiplier : 1);
+      return (
+        (Number(passiveActive) - Number(attributeProvenance(context.config).professionStaticRulesApplied)) * amount
+      );
+    },
+    when: (context) => hasSelectedSkill(context, 'Bane Signet')
+  },
+  {
     id: 'guardian.signet-of-wrath-condition-damage',
     label: 'Signet of Wrath',
     target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
