@@ -59,7 +59,8 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           break;
         case 'condition':
           markCombatActive(context, event);
-          if (state.combatActive) recordCondition(event);
+          // Retain surviving precombat conditions for later queries without activating combat.
+          recordCondition(event);
           break;
         case 'damage':
         case 'control':

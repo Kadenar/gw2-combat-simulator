@@ -98,6 +98,90 @@ test('missed hostile facts preserve combat, target conditions, and armed sigils 
   assert.equal(context.events.find((event) => event.sourceId === 'sigil.doom' && event.type === 'condition').at, 4);
 });
 
+test('precombat conditions supply matching critical facts across scheduling and resolution', () => {
+  // A guaranteed condition-dependent crit exposes stale scheduler state without depending on a lucky RNG seed.
+  for (const offTarget of [false, true]) {
+    let phase = 'scheduling';
+    const observations = new Map();
+    const resolvedHits = new Map();
+    const profession = defineProfession({
+      id: 'precombat-condition-fixture',
+      name: 'Precombat Condition Fixture',
+      catalog: createCanonicalCatalog({
+        generated: [
+          {
+            id: 1,
+            name: 'Condition',
+            type: 'Utility',
+            castTimeMs: 0,
+            effects: [{ type: 'condition', condition: 'Vulnerability', stacks: 25, duration: 3 }]
+          },
+          {
+            id: 2,
+            name: 'Strike',
+            type: 'Utility',
+            castTimeMs: 0,
+            effects: [{ type: 'strike', coefficient: 1, weaponStrength: 1000 }]
+          }
+        ]
+      }),
+      attributeRules: {
+        modifyCriticalChance(context, chance) {
+          if (context.event?.skillId !== 2) return chance;
+          const stacks = context.query.targetConditionStacks('Vulnerability', context.time, context.runtime);
+          observations.set(`${phase}:${context.time}`, { stacks, combatActive: context.runtime.combatActive });
+          return chance + stacks / 25;
+        }
+      },
+      resolverHooks: {
+        eventReactions: {
+          'damage.resolved': (_context, event, { hitContext }) => {
+            if (event.skillId === 2) resolvedHits.set(event.at, hitContext.critical);
+          }
+        }
+      }
+    });
+    const result = simulateGw2({
+      profession,
+      config: {
+        stats: { precision: 895 },
+        sigilSets: [{ names: ['Air'] }],
+        randomness: { mode: 'stochastic', seed: 1 }
+      },
+      rotation: [
+        { name: 'Condition', offTarget },
+        { type: 'wait', durationMs: 500 },
+        'Strike',
+        { type: 'wait', durationMs: 500 },
+        '__combat_start',
+        { type: 'wait', durationMs: 1000 },
+        'Strike',
+        { type: 'wait', durationMs: 1000 },
+        'Strike'
+      ],
+      onPhase(name) {
+        if (name === 'scheduling') phase = 'resolution';
+      }
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observations.get('scheduling:0.5').combatActive, false);
+    assert.equal(resolvedHits.has(0.5), false);
+    assert.ok(result.procSteps.every((step) => step.start >= 1000));
+    for (const time of [2, 3]) {
+      const stacks = !offTarget && time < 3 ? 25 : 0;
+      assert.equal(observations.get(`scheduling:${time}`).stacks, stacks);
+      assert.equal(observations.get(`resolution:${time}`).stacks, stacks);
+      const scheduledHit = result.events.find(
+        (event) => event.type === 'damage' && event.skillId === 2 && event.at === time
+      );
+      assert.equal(scheduledHit.didCrit, stacks > 0);
+      assert.equal(resolvedHits.get(time).chance, stacks / 25);
+      assert.equal(resolvedHits.get(time).didCrit, scheduledHit.didCrit);
+    }
+  }
+});
+
 test('queued shared facts use replacements made by earlier same-time tasks', () => {
   // Completion-priority edits must reach boon observation and the single canonical critical fact.
   const config = { stats: { precision: 895 }, randomness: { mode: 'stochastic', seed: 1 } };
