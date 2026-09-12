@@ -413,7 +413,8 @@ test('ready native professions expose deliberate public end-state keys', async (
       'mistfireReadyAt',
       'traitProcReadyAt'
     ],
-    thief: ['artifactOutcomeIndices', 'doubleEdgeOutcomeIndex', 'initiativeSpentSincePilfer', 'traitProcReadyAt'],
+    // Initiative spending is public for the Prodigious Pincher active-state tracker.
+    thief: ['artifactOutcomeIndices', 'doubleEdgeOutcomeIndex', 'traitProcReadyAt'],
     warrior: [
       'burstPowerExpiries',
       'dragonTriggerStartedAt',
