@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
-        "benchmarkDps": 43876,
+        "benchmarkDps": 43898,
         "referenceDps": 43752,
         "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
         "upToDate": true
@@ -38,7 +38,7 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41307,
+        "benchmarkDps": 41309,
         "referenceDps": 40839,
         "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
