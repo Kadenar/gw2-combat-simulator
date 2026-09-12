@@ -36,7 +36,7 @@ export const daredevilSchedulerHooks = Object.freeze({
     order: 10,
     handler: initializeDaredevilRuntime
   },
-  // onCastStart runs before the cast so Staff Master / Brawler's Tenacity endurance and Weakening Strikes are armed in time
+  // Resource refunds occur at cast start; offensive procs wait for resolved hits.
   onCastStart: beginDaredevilTraits,
   afterCast: Object.freeze([
     {

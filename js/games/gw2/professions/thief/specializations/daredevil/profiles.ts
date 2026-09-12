@@ -63,6 +63,7 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     resourceGain: 15
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.weakeningStrikes, 'Weakening Strikes', {
+    durationMultiplier: 4,
     effects: [{ type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 }]
   })
 ]);

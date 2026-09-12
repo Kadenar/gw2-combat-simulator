@@ -69,6 +69,11 @@ export function projectThiefEndState({
   const state = snapshotThiefState<ThiefState>(schedulerState.profession);
   // Report resolved spending, since scheduler snapshots only know which charges were granted.
   const resolver = flattenProfessionState<ThiefState>(resolverState);
+  if (schedulerState.profession.specialization.kind === 'Daredevil') {
+    state.weakeningStrikeReady =
+      Boolean(resolver.weakeningStrikeReady) && Number(resolver.weakeningStrikeExpiresAt || 0) > schedulerState.time;
+  }
+
   state.venomChargeBatches = Object.fromEntries(
     Object.entries(resolver.venomChargeBatches || {}).map(([skillId, batches]) => [
       skillId,
@@ -100,6 +105,14 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
     traitProcProgress: core.traitProcProgress || {},
     traitProcReadyAt: core.traitProcReadyAt || {}
   };
+  // Later scheduler checkpoints cannot rearm a grant already consumed by a hit.
+  if (
+    context.profession.specialization.kind === 'Daredevil' &&
+    incoming.weakeningStrikeGeneration === specialization.weakeningStrikeGeneration
+  ) {
+    preserved.weakeningStrikeReady = specialization.weakeningStrikeReady;
+  }
+
   // Snapshots contain scheduled grants, not resolved spending. Merge only unseen
   // generations so later casts cannot restore consumed charges or erase leftovers.
   const batches = (core.venomChargeBatches || {}) as ThiefState['venomChargeBatches'];

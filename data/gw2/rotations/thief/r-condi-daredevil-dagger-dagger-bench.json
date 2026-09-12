@@ -906,10 +906,6 @@
     {
       "type": "wait",
       "durationMs": 120
-    },
-    {
-      "type": "cast",
-      "skillId": 13026
     }
   ]
 }

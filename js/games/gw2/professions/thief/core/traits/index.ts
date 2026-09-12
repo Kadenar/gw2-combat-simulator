@@ -61,7 +61,7 @@ export function applyStealCompletionTraits(context: ThiefCastContext, at: number
   context.onThiefStealComplete?.(context);
 }
 
-/** Dispatches initiative, movement, and dual-wield trait state at cast completion. */
+/** Dispatches initiative and movement trait state at cast completion. */
 export function updateThiefTraitCastState(context: ThiefCastContext, skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   applyLeadAttacks(context, skill, at);
@@ -72,8 +72,6 @@ export function updateThiefTraitCastState(context: ThiefCastContext, skill: Thie
       emitThiefStateSnapshot(context, at, 'fluid-strikes');
     }
   }
-
-  applyDeadlyAmbition(context, skill, at);
 }
 
 export const thiefCoreCriticalReactions = Object.freeze({
@@ -88,6 +86,7 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
 
 /** Runs damage reactions after the base venom packet in their established cross-line order. */
 export function reactToThiefCoreDamage(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+  applyDeadlyAmbition(context, event);
   const venomProcs = applyActiveVenoms(context, event);
   // Multiple venom types consume their charges but share one siphon per player strike.
   if (venomProcs > 0) applyLeechingVenoms(context, event);

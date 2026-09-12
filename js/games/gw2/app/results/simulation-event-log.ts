@@ -91,6 +91,8 @@ export function simulationEventLogRows(
     });
   };
 
+  // Keep presenter bookkeeping local to this render so snapshots can report meaningful changes.
+  const professionLogState = new Map<string, unknown>();
   const pushProfessionRow = (event: SimulationEvent): void => {
     const normalized = normalizeEventLogDescriptor(
       professionUi?.eventLogRow?.(
@@ -100,7 +102,8 @@ export function simulationEventLogRows(
           profession,
           specialization,
           displayReferenceSeconds,
-          maximumResource
+          maximumResource,
+          eventLogState: professionLogState
         },
         event
       )

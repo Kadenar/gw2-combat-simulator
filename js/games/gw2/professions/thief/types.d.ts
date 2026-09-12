@@ -111,6 +111,9 @@ export interface DaredevilState {
   lotusConditionDamageUntil: number;
   palmStrikeUntil: number;
   weakeningStrikeReady: boolean;
+  /** Distinguish fresh dodge grants from snapshots of an already consumed proc. */
+  weakeningStrikeGeneration: number;
+  weakeningStrikeExpiresAt: number;
 }
 
 export interface ThiefStealthAttackChargeState {

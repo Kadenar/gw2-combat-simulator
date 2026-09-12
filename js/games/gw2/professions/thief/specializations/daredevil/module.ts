@@ -1,4 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { applyWeakeningStrike } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
 import { createThiefModuleData } from '#gw2/professions/thief/catalog/module-data.js';
 import {
   daredevilAttributeRules,
@@ -19,6 +21,10 @@ export const daredevilModule = defineNativeModule({
   // Scheduler and resolver each get their own independent DaredevilState instance
   state: { scheduler: daredevilState.create, resolver: daredevilState.create },
   mechanics: {
+    // Weakness follows the hit that consumes the post-dodge buff.
+    resolution: {
+      reactions: [onResolvedDamage({ id: 'thief.weakening-strikes', order: 40, handler: applyWeakeningStrike })]
+    },
     modifiers: daredevilAttributeRules,
     execution: {
       castRules: daredevilCastRules,

@@ -17,8 +17,10 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
     at,
     source: 'Trait',
     actorType: 'player',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
+    // Attribute the condition to its trait while retaining the triggering steal.
+    skillId: TRAIT.DEADLY_AMBUSH,
+    skillName: 'Deadly Ambush',
+    triggeredBy: context.skill?.name,
     condition: String(bleeding?.condition || 'Bleeding'),
     duration: Number(bleeding?.duration ?? 10),
     stacks: Number(bleeding?.stacks ?? 3),
@@ -117,12 +119,25 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
   const expirations = state.leadAttackExpirations || [];
+  const previousStacks = expirations.length;
   for (let stack = 0; stack < initiativeCost && expirations.length < Number(profile?.maximumStacks ?? 15); stack += 1) {
     expirations.push(at + Number(profile?.durationMultiplier ?? 10));
   }
 
   state.leadAttackExpirations = expirations;
   state.leadAttacksStacks = expirations.length;
+
+  // Publish actual added stacks as buffs so the log shows their individual duration.
+  if (expirations.length > previousStacks) {
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.LEAD_ATTACKS,
+      kind: 'lead-attacks',
+      duration: Number(profile?.durationMultiplier ?? 10),
+      stacks: expirations.length - previousStacks
+    });
+  }
 
   emitThiefStateSnapshot(context, at, 'lead-attacks');
 }

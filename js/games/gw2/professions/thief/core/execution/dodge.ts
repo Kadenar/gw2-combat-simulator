@@ -4,7 +4,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
@@ -31,8 +31,10 @@ export function performThiefDodge(context: ThiefCastContext): void {
         at,
         source: 'Trait',
         actorType: 'player',
-        skillId: context.skill?.id ?? null,
-        skillName: context.skill?.name ?? null,
+        skillId: ID.LESSER_CALTROPS,
+        skillName: 'Lesser Caltrops',
+        icon: context.catalog.skillsById.get(ID.LESSER_CALTROPS)?.icon,
+        triggeredBy: context.skill?.name,
         condition: String(bleeding?.condition || 'Bleeding'),
         duration: Number(bleeding?.duration ?? 5),
         stacks: Number(bleeding?.stacks ?? 1),
@@ -43,8 +45,10 @@ export function performThiefDodge(context: ThiefCastContext): void {
         at,
         source: 'Trait',
         actorType: 'player',
-        skillId: context.skill?.id ?? null,
-        skillName: context.skill?.name ?? null,
+        skillId: ID.LESSER_CALTROPS,
+        skillName: 'Lesser Caltrops',
+        icon: context.catalog.skillsById.get(ID.LESSER_CALTROPS)?.icon,
+        triggeredBy: context.skill?.name,
         condition: String(crippled?.condition || 'Crippled'),
         duration: Number(crippled?.duration ?? 1),
         stacks: Number(crippled?.stacks ?? 1),

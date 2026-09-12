@@ -25,7 +25,9 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
     boundingDamageUntil: 0,
     lotusConditionDamageUntil: 0,
     palmStrikeUntil: 0,
-    weakeningStrikeReady: false
+    weakeningStrikeReady: false,
+    weakeningStrikeGeneration: 0,
+    weakeningStrikeExpiresAt: 0
   };
 }
 
@@ -34,7 +36,8 @@ export const DAREDEVIL_PUBLIC_END_STATE_KEYS: readonly (keyof DaredevilState)[] 
   'boundingDamageUntil',
   'lotusConditionDamageUntil',
   'palmStrikeUntil',
-  'weakeningStrikeReady'
+  'weakeningStrikeReady',
+  'weakeningStrikeExpiresAt'
 ]);
 
 export const DAREDEVIL_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DaredevilState>> = Object.freeze({
@@ -42,7 +45,9 @@ export const DAREDEVIL_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DaredevilState>
   boundingDamageUntil: 0,
   lotusConditionDamageUntil: 0,
   palmStrikeUntil: 0,
-  weakeningStrikeReady: false
+  weakeningStrikeReady: false,
+  weakeningStrikeGeneration: 0,
+  weakeningStrikeExpiresAt: 0
 });
 
 export const daredevilState = defineProfessionSpecializationState('Daredevil', createDaredevilState);

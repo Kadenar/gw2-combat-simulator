@@ -354,7 +354,7 @@ test('Twilight Combo activates Deadly Ambition once for the dual-wield cast', ()
     secondaryWeapon: 'Dagger',
     selectedTraitIds: [TRAIT.DEADLY_AMBITION]
   });
-  const poisons = result.events.filter(
+  const poisons = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.DEADLY_AMBITION
   );
   assert.deepEqual(result.warnings, []);

@@ -106,12 +106,17 @@ test('Potent Poison adjusts each moved player poison packet', () => {
   assert.equal(serpent.events.find((event) => event.sourceId === TRAIT.SERPENTS_TOUCH).stacks, 3);
 
   const ambition = traitContext([TRAIT.DEADLY_AMBITION, TRAIT.POTENT_POISON]);
-  updateThiefTraitCastState(ambition.context, {
-    id: 900001,
-    name: 'Dual Test',
-    categories: ['DualWield']
+  reactToThiefCoreDamage(ambition.context, {
+    type: 'damage',
+    at: 0.2,
+    actorType: 'player',
+    coefficient: 1,
+    skillId: ID.DEATH_BLOSSOM,
+    sourceId: ID.DEATH_BLOSSOM,
+    skillName: 'Death Blossom',
+    activationId: 'dual-test'
   });
-  assert.equal(ambition.events.find((event) => event.sourceId === TRAIT.DEADLY_AMBITION).stacks, 2);
+  assert.equal(ambition.conditions.find((event) => event.sourceId === TRAIT.DEADLY_AMBITION).stacks, 2);
 
   const panic = traitContext([TRAIT.PANIC_STRIKE, TRAIT.POTENT_POISON]);
   reactToThiefCoreCondition(panic.context, {
@@ -155,11 +160,38 @@ test('Hard to Catch restores endurance on movement skills', () => {
   assert.equal(events[0].reason, 'hard-to-catch');
 });
 
-test('Deadly Ambition poisons completed dual-wield attacks', () => {
-  const { context, events } = traitContext([TRAIT.DEADLY_AMBITION]);
-  updateThiefTraitCastState(context, { id: 900005, name: 'Dual Test', categories: ['DualWield'] });
-  assert.equal(events[0].sourceId, TRAIT.DEADLY_AMBITION);
-  assert.equal(events[0].condition, 'Poisoned');
+test('Deadly Ambition applies once on the first hit of each dual attack', () => {
+  const { context, events, conditions } = traitContext([TRAIT.DEADLY_AMBITION]);
+  const skill = thiefCatalog.skillsById.get(ID.DEATH_BLOSSOM);
+  updateThiefTraitCastState(context, skill);
+  assert.equal(events.length, 0);
+  // Interleaved activations and later hits must not duplicate an activation's poison.
+  for (const [activationId, at, coefficient, actorType] of [
+    ['first', 0.1, 0, 'player'],
+    ['first', 0.1, 1, 'summon'],
+    ['first', 0.2, 1, 'player'],
+    ['second', 0.3, 1, 'player'],
+    ['first', 0.4, 1, 'player']
+  ]) {
+    reactToThiefCoreDamage(context, {
+      type: 'damage',
+      at,
+      coefficient,
+      actorType,
+      activationId,
+      sourceId: skill.id,
+      skillId: skill.id,
+      skillName: skill.name
+    });
+  }
+
+  assert.deepEqual(
+    conditions.map((event) => [event.at, event.skillName, event.triggeredBy]),
+    [
+      [0.2, 'Deadly Ambition', 'Death Blossom'],
+      [0.3, 'Deadly Ambition', 'Death Blossom']
+    ]
+  );
 });
 
 test('Unrelenting Strikes retains its critical threshold reaction', () => {
@@ -349,7 +381,7 @@ test('steal activation preserves its cross-line event order', () => {
   );
 });
 
-test('cast-state updates preserve Lead, Fluid, Hard to Catch, then Deadly Ambition order', () => {
+test('cast-state updates publish Lead stacks before movement traits and leave poison to hits', () => {
   const { context, core, events } = traitContext([
     TRAIT.LEAD_ATTACKS,
     TRAIT.FLUID_STRIKES,
@@ -366,7 +398,10 @@ test('cast-state updates preserve Lead, Fluid, Hard to Catch, then Deadly Ambiti
   });
   assert.deepEqual(
     events.map((event) => event.sourceId),
-    ['thief.state.lead-attacks', 'thief.state.hard-to-catch', TRAIT.DEADLY_AMBITION]
+    [TRAIT.LEAD_ATTACKS, 'thief.state.lead-attacks', 'thief.state.hard-to-catch']
   );
-  assert.equal(events[1].state.fluidStrikesUntil, 6);
+  assert.equal(events[0].kind, 'lead-attacks');
+  assert.equal(events[0].duration, 10);
+  assert.equal(events[0].stacks, 1);
+  assert.equal(events[2].state.fluidStrikesUntil, 6);
 });

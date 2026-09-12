@@ -5,7 +5,13 @@ import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js'
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
-import type { ThiefCastContext, ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type {
+  ThiefCastContext,
+  ThiefDodge,
+  ThiefSkill,
+  ThiefResolverContext,
+  ThiefResolverEvent
+} from '#gw2/professions/thief/types.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
@@ -111,11 +117,29 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
     state.lotusConditionDamageUntil =
       context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.lotusTraining)?.durationMultiplier ?? 6);
+    // Expose the same timed trait window used by damage modifiers as a visible buff.
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.LOTUS_TRAINING,
+      kind: 'lotus-training',
+      duration: Number(balanceProfileFromContext(context, PROFILE.lotusTraining)?.durationMultiplier ?? 6)
+    });
   }
 
   if (hasTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
-    // Arm the one-shot Weakness proc; it fires on the very next attacking skill
+    // Arm a bounded grant; only a resolved strike can consume it.
     state.weakeningStrikeReady = true;
+    state.weakeningStrikeGeneration += 1;
+    const duration = Number(balanceProfileFromContext(context, PROFILE.weakeningStrikes)?.durationMultiplier ?? 4);
+    state.weakeningStrikeExpiresAt = context.effectiveEnd + duration;
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: 'Trait',
+      sourceId: TRAIT.WEAKENING_STRIKES,
+      kind: 'weakening-strikes',
+      duration
+    });
   }
 
   emitThiefStateSnapshot(context, context.effectiveEnd, 'daredevil-dodge');
@@ -148,37 +172,38 @@ function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSki
   }
 }
 
-function skillAttacks(skill: ThiefSkill): boolean {
-  // Dodge itself is excluded so the Weakening Strikes proc from the dodge doesn't immediately consume itself
-  return (
-    skill.id !== ID.DODGE &&
-    (skill.effects || []).some((effect) => effect.type === 'strike' || effect.type === 'condition')
-  );
-}
-
-function applyWeakeningStrike(context: ThiefCastContext, skill: ThiefSkill): void {
+/** Consume the active dodge grant on a landed player strike, never on a cast or condition tick. */
+export function applyWeakeningStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   const state = daredevilState.from(context);
-  if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
+  if (
+    !state.weakeningStrikeReady ||
+    state.weakeningStrikeExpiresAt <= event.at ||
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0) ||
+    event.skillId === ID.DODGE
+  )
+    return;
   state.weakeningStrikeReady = false;
   const weakness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.weakeningStrikes), 'condition');
-  emitSkillCondition(context, {
-    at: context.start,
+  context.applyCondition({
+    type: 'condition',
+    at: event.at,
     source: 'Trait',
     actorType: 'player',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
+    skillId: TRAIT.WEAKENING_STRIKES,
+    skillName: 'Weakening Strikes',
+    activationId: event.activationId,
+    triggeredBy: event.skillName,
     condition: String(weakness?.condition || 'Weakness'),
     duration: Number(weakness?.duration ?? 3),
     stacks: Number(weakness?.stacks ?? 1),
     sourceId: TRAIT.WEAKENING_STRIKES,
     name: 'Weakening Strikes — Weakness'
   });
-  emitThiefStateSnapshot(context, context.start, 'weakening-strikes');
 }
 
 export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkill): void {
   spendDaredevilTraitResources(context, skill);
-  applyWeakeningStrike(context, skill);
 }
 
 /** Grants Daredevil's selected on-steal endurance at completion, before the final Core snapshot. */

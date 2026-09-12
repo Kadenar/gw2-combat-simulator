@@ -4,16 +4,12 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type {
-  ThiefCastContext,
-  ThiefResolverContext,
-  ThiefResolverEvent,
-  ThiefSkill
-} from '#gw2/professions/thief/types.js';
+import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
-/** Applies Deadly Arts effects at their existing steal, cast, and resolver boundaries. */
+/** Attribute on-steal poison to Serpent's Touch while retaining the triggering skill. */
 export function applySerpentsTouch(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) return;
   const profile = balanceProfileFromContext(context, PROFILE.serpentsTouch);
@@ -22,8 +18,9 @@ export function applySerpentsTouch(context: ThiefCastContext, at: number): void 
     at,
     source: 'Trait',
     actorType: 'player',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
+    skillId: TRAIT.SERPENTS_TOUCH,
+    skillName: "Serpent's Touch",
+    triggeredBy: context.skill?.name,
     condition: String(poison?.condition || 'Poisoned'),
     duration: Number(poison?.duration ?? 10),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
@@ -68,19 +65,30 @@ export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
   });
 }
 
-export function applyDeadlyAmbition(context: ThiefCastContext, skill: ThiefSkill, at: number): void {
+/** The first landed strike of each dual attack applies poison, even when its cast is interrupted later. */
+export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  const skill = skillForEvent(context.helpers, event);
+  if (!skill || event.sourceId !== skill.id) return;
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
   if (!isDualWieldAttack || !hasTrait(context.config, TRAIT.DEADLY_AMBITION)) return;
+  const state = professionCoreState(context);
+  const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
+  if (state.traitProcProgress[activation]) return;
+  state.traitProcProgress[activation] = 1;
   const profile = balanceProfileFromContext(context, PROFILE.deadlyAmbition);
   const poison = balanceProfileEffect(profile, 'condition');
-  emitSkillCondition(context, {
-    at,
+  context.applyCondition({
+    type: 'condition',
+    at: event.at,
     source: 'Trait',
     actorType: 'player',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
+    skillId: TRAIT.DEADLY_AMBITION,
+    skillName: 'Deadly Ambition',
+    activationId: event.activationId,
+    triggeredBy: event.skillName,
     condition: String(poison?.condition || 'Poisoned'),
     duration: Number(poison?.duration ?? 3),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)

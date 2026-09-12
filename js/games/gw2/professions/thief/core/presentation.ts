@@ -127,12 +127,38 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
   return { available: true, message: '' };
 }
 
-function thiefCoreEventLogRow(_context: ThiefUiContext, event: ThiefSimulationEvent) {
+function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEvent) {
   if (event?.type !== 'thief.state') return undefined;
   const state = event.state || {};
+  const logState = context.eventLogState as Map<string, { at: number; value: number }> | undefined;
+  // Show resource changes (including endurance) and suppress unchanged regeneration checkpoints.
+  const resources = (['initiative', 'endurance'] as const).flatMap((key) => {
+    const value = Number(state[key] || 0);
+    const at = Number(state[key === 'initiative' ? 'initiativeUpdatedAt' : 'enduranceUpdatedAt'] ?? event.at);
+    const previous = logState?.get(key);
+    // Completion snapshots may carry resources from cast start; never report those as spending.
+    if (previous && at < previous.at) return [];
+    logState?.set(key, { at, value });
+    const before = previous?.value ?? null;
+    if (before !== null && value.toFixed(1) === before.toFixed(1)) return [];
+    const label = key === 'initiative' ? 'Initiative' : 'Endurance';
+    const change = before === null ? '' : ` (${value > before ? '+' : ''}${(value - before).toFixed(1)})`;
+    return [`${label} ${value.toFixed(1)}${change}`];
+  });
+  const reason = String(event.reason || 'state');
+  // These changes already have named BUFF rows; their snapshots only synchronize engine state.
+  if (
+    !resources.length &&
+    ['resources', 'lead-attacks', 'daredevil-dodge', 'spider-venom', 'skale-venom', 'devourer-venom'].includes(reason)
+  )
+    return null;
+  const label = reason
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
   return {
     type: event.type,
-    description: [event.reason || 'State', `Initiative ${Number(state.initiative || 0).toFixed(1)}`].join(' · '),
+    description: `${resources.length ? `RESOURCE ${resources.join(' · ')}` : 'STATE'} [${reason === 'resources' ? 'Regeneration' : label}]`,
     className: 'resource',
     order: 30,
     flags: []
