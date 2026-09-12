@@ -2,6 +2,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
@@ -15,6 +16,7 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
   RevenantCoreState,
+  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -226,34 +228,31 @@ export function consumeBattleScar(context: RevenantSchedulerContext, event: Reve
   });
 }
 
-/** Grants Assassin's Presence Fury on its first qualifying strike per ICD. */
-export function applyAssassinsPresence(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const state = professionCoreState(context);
-  if (
-    !hasTrait(context.config, TRAIT.ASSASSINS_PRESENCE) ||
-    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.assassinsPresence || 0))
-  ) {
-    return;
-  }
+export const ASSASSINS_PRESENCE_TASK = 'revenant.assassins-presence';
 
+/** Anchor the combat cadence once; attacks neither trigger nor delay its pulses. */
+export function scheduleAssassinsPresence(context: RevenantSchedulerContext, at = 0): void {
+  if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE)) return;
+  context.tasks.cancelOwner(ASSASSINS_PRESENCE_TASK);
+  context.tasks.schedule({ type: ASSASSINS_PRESENCE_TASK, at, ownerId: ASSASSINS_PRESENCE_TASK });
+}
+
+/** Emit combat-only party Fury, then schedule the next interval independently of player actions. */
+export function handleAssassinsPresencePulse(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
+  if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE) || !revenantCombatActive(context, task.at)) return;
   const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
   const boon = profileEffect(profile, 'boon');
-  const sourceSkill =
-    context.catalog.skillsById.get(event.skillId ?? '') ||
-    ({ id: TRAIT.ASSASSINS_PRESENCE, name: "Assassin's Presence" } as RevenantSkill);
-  state.traitProcReadyAt.assassinsPresence = event.at + Number(profile.cooldown || 0);
-  emitSkillBuff(context, {
-    cause: event,
-    at: event.at,
-    source: 'revenant',
-    sourceId: TRAIT.ASSASSINS_PRESENCE,
-    actorType: 'player',
-    skillId: TRAIT.ASSASSINS_PRESENCE,
-    skillName: "Assassin's Presence",
-    name: "Assassin's Presence — fury",
+  emitSkillBuff(context, { id: TRAIT.ASSASSINS_PRESENCE, name: profile.name } as RevenantSkill, {
+    at: task.at,
     kind: String(boon.boon || 'fury'),
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, String(boon.boon || 'fury'), Number(boon.duration || 0)),
-    stacks: Number(boon.stacks || 0)
+    duration: Number(boon.duration),
+    stacks: Number(boon.stacks),
+    audience: { recipients: 'party', maximumRecipients: 5 }
+  });
+  context.tasks.schedule({
+    type: ASSASSINS_PRESENCE_TASK,
+    at: task.at + Math.max(context.epsilon, Number(profile.cooldown)),
+    ownerId: ASSASSINS_PRESENCE_TASK
   });
 }
 

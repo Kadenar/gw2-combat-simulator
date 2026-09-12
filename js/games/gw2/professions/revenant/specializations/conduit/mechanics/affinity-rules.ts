@@ -343,8 +343,8 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantS
   }
 
   const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-  // Found Purpose fires Numinous Gift to allies on every legend swap.
-  if (swapSkill && hasTrait(context.config, TRAIT.FOUND_PURPOSE)) {
+  // Found Purpose grants invocation boons only once combat has started.
+  if (swapSkill && revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.FOUND_PURPOSE)) {
     emitNuminousGift(context, swapSkill, { allies: true });
   }
 }

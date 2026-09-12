@@ -1,3 +1,8 @@
+import {
+  ASSASSINS_PRESENCE_TASK,
+  scheduleAssassinsPresence,
+  handleAssassinsPresencePulse
+} from '#gw2/professions/revenant/core/traits/devastation.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -82,6 +87,7 @@ export const revenantCastRules = Object.freeze({
  * Revenant scheduler lifecycle hooks and typed task dispatch table.
  */
 export const revenantSchedulerHooks = Object.freeze({
+  initialize: scheduleAssassinsPresence,
   advance,
   prepareEvent: {
     id: 'revenant.hitbox',
@@ -99,6 +105,7 @@ export const revenantSchedulerHooks = Object.freeze({
   },
   onEventScheduled,
   taskHandlers: Object.freeze({
+    [ASSASSINS_PRESENCE_TASK]: handleAssassinsPresencePulse,
     'revenant.blossoming-aura': handleBlossomingAura,
     'revenant.abyssal-raze-recharge': handleAbyssalRazeRechargeReduction,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
@@ -194,12 +201,6 @@ function targetHasDefensiveBoon(context: RevenantModifierContext): boolean {
   return Boolean(
     (boons as Record<string, boolean | number>).stability || (boons as Record<string, boolean | number>).protection
   );
-}
-
-function periodicAssassinsPresence(context: RevenantModifierContext): boolean {
-  if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE)) return false;
-  const start = Number(context.runtime?.combatStartTime ?? context.runtime?.firstHitTime ?? context.time);
-  return Math.max(0, context.time - start) % 10 < 3;
 }
 
 // Count distinct self-affecting boons active at the query time for Revenant
@@ -307,9 +308,7 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
 ]);
 
 function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
-  return hasTrait(context, TRAIT.ROILING_MISTS) && (boonActive(context, 'fury') || periodicAssassinsPresence(context))
-    ? chance + 0.25
-    : chance;
+  return hasTrait(context, TRAIT.ROILING_MISTS) && boonActive(context, 'fury') ? chance + 0.25 : chance;
 }
 
 // Apply Revenant's condition- and skill-specific base duration modifiers before

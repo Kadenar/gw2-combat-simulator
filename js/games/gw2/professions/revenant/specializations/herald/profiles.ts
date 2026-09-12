@@ -4,8 +4,30 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 export const HERALD_SPIRIT_BOON_PROFILE_ID = 'revenant.spirit-boon.dragon';
 export const HERALD_ELEVATED_COMPASSION_PROFILE_ID = 'revenant.elevated-compassion';
 export const HERALD_SHARED_EMPOWERMENT_PROFILE_ID = 'revenant.shared-empowerment';
+export const HERALD_DRACONIC_ECHO_PROFILE_ID = 'revenant.draconic-echo';
+export const HERALD_NATURE_ASSASSIN_PROFILE_ID = 'revenant.nature-assassin';
 
 export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // PvE passive bonuses remain patchable; Elements modifies outgoing damage, not the condition-damage attribute.
+  {
+    id: HERALD_DRACONIC_ECHO_PROFILE_ID,
+    name: 'Draconic Echo',
+    profileKind: 'trait',
+    duration: 6,
+    damageBonus: 0.1,
+    criticalChanceBonus: 0.1,
+    boonDurationBonus: 10,
+    outgoingHealingBonus: 0.1,
+    incomingDamageReduction: 0.1,
+    effects: []
+  },
+  {
+    id: HERALD_NATURE_ASSASSIN_PROFILE_ID,
+    name: 'Facet of Nature — Assassin',
+    profileKind: 'mechanic',
+    cooldown: 0.5,
+    effects: [{ type: 'strike', coefficient: 0, flatStrikeBase: 53, flatStrikePowerCoeff: 0.0666, actorType: 'effect' }]
+  },
   {
     id: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
     name: 'Shared Empowerment',

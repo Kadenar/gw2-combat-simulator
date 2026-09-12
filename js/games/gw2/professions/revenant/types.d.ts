@@ -132,6 +132,11 @@ export interface RevenantCoreState {
 export interface HeraldState {
   elevatedCompassionReadyAt: number;
   sharedEmpowermentReadyAt: number;
+  /** Consumed passives retain their window and legend without retaining upkeep drain. */
+  lingeringFacets: Record<string, { startsAt: number; expiresAt: number; legendId: string }>;
+  facetPulseReadyAt: Record<string, number>;
+  /** Resolver-owned life-steal cooldown; scheduler snapshots must not rewind it. */
+  natureSiphonReadyAt: number;
 }
 
 export interface RenegadeState {

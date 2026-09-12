@@ -1,5 +1,5 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -52,7 +52,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     effects: []
   },
   [ID.ANCIENT_ECHO]: {
-    // Custom: Restores energy using the active legend's amount; see `core/execution/actions.ts`.
+    // The replacing handler selects only the currently channeled legend's package and restores Energy.
     handlerId: 'revenant.ancient-echo',
     castTimeMs: 500,
     cooldown: 20,
@@ -63,13 +63,29 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         type: 'boon',
         boon: 'regeneration',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        metadata: { legendId: LEGEND.CENTAUR }
       },
       {
         type: 'boon',
-        boon: 'Resistance',
+        boon: 'resistance',
         duration: 3,
-        stacks: 1
+        stacks: 1,
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'buff',
+        kind: 'unblockable',
+        duration: 5,
+        stacks: 2,
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'buff',
+        kind: 'rite-of-the-great-dwarf',
+        duration: 3,
+        stacks: 1,
+        metadata: { legendId: LEGEND.DWARF }
       }
     ]
   }

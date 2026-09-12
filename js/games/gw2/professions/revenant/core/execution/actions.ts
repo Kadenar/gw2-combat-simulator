@@ -5,6 +5,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Pays the profession-wide endurance cost for a dodge. */
@@ -20,6 +21,18 @@ export function gainAncientEchoEnergy(context: RevenantCastContext): void {
   if (context.action.cancelled) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  // Legend metadata selects one self-only effect package; the generic materializer must not emit all four.
+  for (const effect of context.skill.effects || []) {
+    if (effect.metadata?.legendId !== state.activeLegendId || (effect.type !== 'boon' && effect.type !== 'buff'))
+      continue;
+    emitSkillBuff(context, context.skill, {
+      at,
+      kind: String(effect.boon || effect.kind),
+      duration: effect.duration,
+      stacks: effect.stacks
+    });
+  }
+
   state.energy = Math.min(state.maximumEnergy, state.energy + Number(context.skill.resourceGain || 0));
   emitRevenantStateSnapshot(context, at, 'ancient-echo');
 }

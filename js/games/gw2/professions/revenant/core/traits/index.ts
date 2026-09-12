@@ -20,7 +20,7 @@ import {
 } from '#gw2/professions/revenant/core/traits/invocation.js';
 import { applyAbyssalChill, applyInvokingTorment } from '#gw2/professions/revenant/core/traits/corruption.js';
 import {
-  applyAssassinsPresence,
+  scheduleAssassinsPresence,
   applyBattleScarred,
   applyBrutality,
   applyDanceOfDeath,
@@ -157,6 +157,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
 
 /** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */
 export function observeRevenantEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  if (event.type === 'combat_start') scheduleAssassinsPresence(context, event.at);
   if (revenantCombatActive(context, event.at)) applyIncensedResponse(context, event);
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
@@ -200,7 +201,6 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: R
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient || 0) > 0) {
     applyThrillOfCombat(context, event);
     consumeBattleScar(context, event);
-    applyAssassinsPresence(context, event);
     applyViciousReprisal(context, event);
     if (revenantCombatActive(context, event.at)) applyExposeDefenses(context, event);
 

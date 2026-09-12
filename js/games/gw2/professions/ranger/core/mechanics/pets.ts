@@ -196,6 +196,7 @@ function startPetAuto(context: RangerSchedulerContext, at: number, reset = false
     state.petAutoTaskId = '';
     state.petAutoNextAt = 0;
   }
+
   if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;

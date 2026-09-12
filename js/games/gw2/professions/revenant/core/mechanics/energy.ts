@@ -2,6 +2,7 @@ import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engi
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -52,10 +53,10 @@ function activeUpkeepCost(state: RevenantCoreState, at: number): number {
 
 export function revenantEnduranceRegenerationRate(
   context: RevenantEnergyContext,
-  at = Number(context.start ?? context.time ?? context.state?.time ?? 0)
+  at = Number(context.start ?? context.time ?? context.state?.time ?? 0),
+  vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at))
 ): number {
   const profile = resourceProfile(context);
-  const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
   const enduringRecovery = hasTrait(context, TRAIT.ENDURING_RECOVERY)
     ? Number(
         context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery)
@@ -70,10 +71,29 @@ export function revenantEnduranceRegenerationRate(
   );
 }
 
+/** Share actual Vigor windows between accrual and resource-funded dodge scheduling. */
+function* enduranceIntervals(context: RevenantSchedulerContext, start: number, end: number) {
+  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+    yield {
+      ...interval,
+      rate: revenantEnduranceRegenerationRate(
+        context,
+        interval.start,
+        Boolean(context.config.boons?.vigor || interval.active)
+      )
+    };
+  }
+}
+
 export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {
-  const current = Number(professionCoreState(context).endurance || 0);
-  const rate = revenantEnduranceRegenerationRate(context, context.start);
-  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
+  let current = Number(professionCoreState(context).endurance || 0);
+  for (const interval of enduranceIntervals(context, context.start, Infinity)) {
+    const readyAt = enduranceReadyAt(current, cost, interval.start, interval.rate, context.epsilon);
+    if (readyAt != null && readyAt <= interval.end) return readyAt;
+    current += (interval.end - interval.start) * interval.rate;
+  }
+
+  return null;
 }
 
 /** Keeps regeneration-funded casts on the absolute 40 ms grid without rounding the stored Energy. */
@@ -158,8 +178,9 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
-    const enduranceRate = revenantEnduranceRegenerationRate(context, (enduranceFrom + target) / 2);
-    Object.assign(state, advanceEndurance(state, target, enduranceRate, state.maximumEndurance));
+    for (const interval of enduranceIntervals(context, enduranceFrom, target)) {
+      Object.assign(state, advanceEndurance(state, interval.end, interval.rate, state.maximumEndurance));
+    }
   }
 
   // Integrate once per rate/cap change, including upkeeps reserved for a future cast completion.

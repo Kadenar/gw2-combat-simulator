@@ -34,11 +34,16 @@ import {
   afterHeraldFacetCast,
   handleElevatedCompassionPulse,
   handleHeraldFacetPulse,
+  expireHeraldEcho,
   HERALD_ELEVATED_COMPASSION_TASK,
   syncElevatedCompassion
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
 import type { RevenantCastContext, RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import {
+  heraldPassiveModifierRules,
+  modifyHeraldPassiveAttributes
+} from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 
 export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -79,7 +84,8 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 ]);
 
 export const heraldAttributeRules = Object.freeze({
-  modifierRules: heraldModifierRules
+  modifierRules: [...heraldModifierRules, ...heraldPassiveModifierRules],
+  modifyAttributes: modifyHeraldPassiveAttributes
 });
 
 function heraldCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
@@ -210,6 +216,7 @@ export const heraldSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     'revenant.herald-facet-pulse': handleHeraldFacetPulse,
+    'revenant.herald-echo-expiry': expireHeraldEcho,
     [HERALD_ELEVATED_COMPASSION_TASK]: handleElevatedCompassionPulse,
     [HERALD_SHARED_EMPOWERMENT_TASK]: handleSharedEmpowerment
   })

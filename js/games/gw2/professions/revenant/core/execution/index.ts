@@ -40,7 +40,7 @@ const handlers = Object.freeze({
   'revenant.abyssal-raze': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantSpearSkillHandlers['revenant.abyssal-raze'] as SkillHandlerPhase<RevenantCastContext>
   }),
-  'revenant.ancient-echo': augmentSkill<RevenantCastContext>({
+  'revenant.ancient-echo': replaceSkill<RevenantCastContext>({
     afterEffects: gainAncientEchoEnergy
   })
 });

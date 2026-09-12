@@ -13,8 +13,12 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 import { HERALD_MECHANICS as MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
+import {
+  HERALD_ELEVATED_COMPASSION_PROFILE_ID,
+  HERALD_DRACONIC_ECHO_PROFILE_ID
+} from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 
 interface HeraldFacetPulsePayload extends SchedulerRecord {
   readonly skillId: SkillId;
@@ -100,12 +104,14 @@ export function handleElevatedCompassionPulse(context: RevenantSchedulerContext,
 
 /** Removes the active facet and consumes its temporary flip. */
 export function consumeRevenantFacet(context: RevenantCastContext, skill: RevenantSkill): void {
+  if (context.action?.cancelled) return;
   const state = professionCoreState(context);
   // Use cast completion time so cooldowns start after the animation finishes, consistent with other skills.
   const at = context.effectiveEnd;
   const facetByConsume = MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>;
   const facetId = facetByConsume[skill.id];
   const facet = facetId == null ? undefined : context.catalog.skillsById.get(facetId);
+  const wasActive = state.activeUpkeeps.some((upkeep) => upkeep.skillId === facet?.id);
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== facet?.id);
   // Remove the consume flip itself from availableFlips so it can't be cast a second time.
   delete state.availableFlips[skill.id];
@@ -118,6 +124,32 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
 
     // Cancel the recurring upkeep-pulse task; without this the pulse loop would continue firing after the facet is gone.
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
+    if (wasActive && hasTrait(context.config, TRAIT.DRACONIC_ECHO)) {
+      const passive = heraldState.from(context);
+      const profile = context.catalog.balanceProfilesById.get(HERALD_DRACONIC_ECHO_PROFILE_ID);
+      if (!profile) throw new Error('Missing Draconic Echo balance profile.');
+      const expiresAt = at + Number(profile.duration);
+      // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
+      passive.lingeringFacets[facet.id] = { startsAt: at, expiresAt, legendId: state.activeLegendId };
+      const ownerId = `revenant.echo:${facet.id}`;
+      context.tasks.cancelOwner(ownerId);
+      const nextAt = passive.facetPulseReadyAt[facet.id];
+      if (facet.upkeepPulse && nextAt >= at && nextAt < expiresAt) {
+        context.tasks.schedule({
+          type: 'revenant.herald-facet-pulse',
+          at: nextAt,
+          ownerId,
+          payload: { skillId: facet.id }
+        });
+      }
+
+      context.tasks.schedule({
+        type: 'revenant.herald-echo-expiry',
+        at: expiresAt,
+        ownerId,
+        payload: { skillId: facet.id }
+      });
+    }
   }
 
   emitRevenantStateSnapshot(context, at, 'facet-consumed');
@@ -137,12 +169,17 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   const state = professionCoreState(context);
   const active = state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;
+  const passive = heraldState.from(context);
+  delete passive.lingeringFacets[skill.id];
+  context.tasks.cancelOwner(`revenant.echo:${skill.id}`);
   const consumeId = heraldFacetConsumeId(skill, state.activeLegendId);
   if (consumeId != null) state.availableFlips[consumeId] = true;
   if (!skill.upkeepPulse) return;
+  passive.facetPulseReadyAt[skill.id] =
+    context.effectiveEnd + Math.max(context.epsilon, Number(skill.pulseInterval ?? 3));
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',
-    at: context.effectiveEnd + Math.max(0, Number(skill.pulseInterval ?? 3)),
+    at: passive.facetPulseReadyAt[skill.id],
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id }
   });
@@ -154,7 +191,9 @@ export function handleHeraldFacetPulse(
   task: RevenantScheduledTask<HeraldFacetPulsePayload>
 ): void {
   const skillId = task.payload?.skillId;
-  if (skillId == null || !professionCoreState(context).activeUpkeeps.some((upkeep) => upkeep.skillId === skillId)) {
+  const state = heraldState.from(context);
+  const core = professionCoreState(context);
+  if (skillId == null || !heraldFacetPassiveActive(core, state, skillId, task.at)) {
     return;
   }
 
@@ -170,10 +209,27 @@ export function handleHeraldFacetPulse(
     stacks: pulse.stacks,
     audience: { recipients: 'party' as const }
   });
+  const nextAt = task.at + Math.max(context.epsilon, Number(skill.pulseInterval ?? 3));
+  state.facetPulseReadyAt[skillId] = nextAt;
+  if (!heraldFacetPassiveActive(core, state, skillId, nextAt)) return;
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',
-    at: task.at + Math.max(0, Number(skill.pulseInterval ?? 3)),
-    ownerId: `revenant.upkeep:${skill.id}`,
+    at: nextAt,
+    ownerId: task.ownerId,
     payload: { skillId }
   });
+}
+
+/** Expire retained bonuses in both phases, even when no attack occurs at the boundary. */
+export function expireHeraldEcho(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<HeraldFacetPulsePayload>
+): void {
+  const skillId = task.payload?.skillId;
+  if (skillId == null) return;
+  const state = heraldState.from(context);
+  if (state.lingeringFacets[skillId]?.expiresAt !== task.at) return;
+  delete state.lingeringFacets[skillId];
+  context.tasks.cancelOwner(`revenant.echo:${skillId}`);
+  emitRevenantStateSnapshot(context, task.at, 'facet-passive-expired');
 }

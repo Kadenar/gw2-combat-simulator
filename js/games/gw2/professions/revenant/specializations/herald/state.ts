@@ -5,9 +5,12 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 export function createHeraldState(): HeraldState {
   return {
     elevatedCompassionReadyAt: 0,
-    sharedEmpowermentReadyAt: 0
+    sharedEmpowermentReadyAt: 0,
+    lingeringFacets: {},
+    facetPulseReadyAt: {},
+    natureSiphonReadyAt: 0
   };
 }
 
-// The same factory is used for both scheduler and resolver state (see module.ts) because Herald needs no resolver-only state.
+// Each phase owns its state; snapshot restoration preserves the resolver's Nature siphon clock.
 export const heraldState = defineProfessionSpecializationState('Herald', createHeraldState);

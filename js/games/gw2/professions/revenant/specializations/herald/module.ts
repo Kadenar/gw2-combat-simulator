@@ -1,5 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
+import { augmentSkill, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { resolveNatureSiphon } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext } from '#gw2/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
@@ -39,6 +40,9 @@ export const heraldModule = defineNativeModule({
       // Herald owns facet activation/consume availability while Core supplies only the shared upkeep resource gate.
       castRules: heraldCastRules,
       hooks: heraldSchedulerHooks
+    },
+    resolution: {
+      reactions: [onResolvedDamage({ id: 'revenant.herald.nature-siphon', handler: resolveNatureSiphon })]
     }
   },
   presentation: heraldUi

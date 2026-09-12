@@ -23,6 +23,7 @@ import {
   VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import type {
+  HeraldState,
   RenegadeState,
   RevenantResolverContext,
   RevenantResolverEvent,
@@ -75,6 +76,10 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
   const core = professionCoreState(context);
   const specialization = context.profession.specialization.state;
   const preservedCoreTraitProcReadyAt = core.traitProcReadyAt || {};
+  const preservedNatureSiphonReadyAt =
+    context.profession.specialization.kind === 'Herald'
+      ? (specialization as HeraldState).natureSiphonReadyAt
+      : undefined;
   const preservedSoulcleaveReadyAt =
     context.profession.specialization.kind === 'Renegade'
       ? (specialization as RenegadeState).soulcleaveReadyAt
@@ -82,6 +87,10 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
   restoreFlatProfessionState(core, specialization, event.state);
 
   core.traitProcReadyAt = preservedCoreTraitProcReadyAt;
+  if (context.profession.specialization.kind === 'Herald') {
+    (specialization as HeraldState).natureSiphonReadyAt = Number(preservedNatureSiphonReadyAt || 0);
+  }
+
   if (context.profession.specialization.kind === 'Renegade') {
     (specialization as RenegadeState).soulcleaveReadyAt = Number(preservedSoulcleaveReadyAt || 0);
   }
