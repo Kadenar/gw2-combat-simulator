@@ -27,15 +27,11 @@ const TALE_INSTRUMENTS: Readonly<Record<number, string>> = Object.freeze({
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: 'Flute'
 });
 
-/** Restores one Troubadour dodge charge, the scheduler representation of 50 endurance. */
+/** Restores 50 endurance as one dodge charge, stopping recharge when the pool fills. */
 function restoreHonorableRogueEndurance(context: MesmerSchedulerContext, at: number): void {
   const runtime = mesmerRuntimeFor(context);
   const dodge = runtime.skillsById.get(ID.DODGE_TROUBADOUR);
-  const ammo = dodge ? context.cooldownController.refreshAmmo(dodge, at) : null;
-  if (!dodge || !ammo || ammo.charges >= ammo.maximum) return;
-  ammo.charges += 1;
-  if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
-  context.state.cooldowns.delete(dodge.id);
+  if (dodge) context.cooldownController.restoreAmmo(dodge, 1, at, 'reset');
 }
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */

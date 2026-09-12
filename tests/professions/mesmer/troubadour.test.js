@@ -349,6 +349,38 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
   assert.ok(aegis.every((event) => event.duration === 4));
 });
 
+test('Honorable Rogue restores dodge readiness and stops recharge only when the pool fills', () => {
+  for (const flute of [false, true]) {
+    for (const dodges of [1, 2]) {
+      const config = {
+        specialization: 'Troubadour',
+        initialResource: 3,
+        selectedTraitIds: [],
+        boons: { quickness: false, alacrity: false }
+      };
+      const rotation = [
+        ...(flute ? ['Flustering Flute'] : []),
+        ...Array(dodges).fill('Dodge'),
+        { type: 'wait', durationMs: 1000 }
+      ];
+      const before = simulateMesmer(rotation, config);
+      const after = simulateMesmer([...rotation, 'Tale of the Honorable Rogue'], config);
+      const priorAmmo = before.endState.ammoBySkillId[ID.DODGE_TROUBADOUR];
+      const restoredAmmo = after.endState.ammoBySkillId[ID.DODGE_TROUBADOUR];
+      assert.deepEqual(before.warnings, []);
+      assert.deepEqual(after.warnings, []);
+      assert.equal(priorAmmo.charges, 2 - dodges);
+      assert.equal(restoredAmmo.charges, 3 - dodges);
+      assert.equal(Object.hasOwn(before.endState.cooldowns, 'Dodge'), dodges === 2);
+      assert.equal(Object.hasOwn(after.endState.cooldowns, 'Dodge'), false);
+      // Partial refunds keep the original recharge deadline, including Flute's faster recovery.
+      assert.equal(restoredAmmo.rechargeDuration, flute ? 8 : 10);
+      assert.equal(restoredAmmo.nextRechargeAt, dodges === 1 ? null : priorAmmo.nextRechargeAt);
+      assert.ok(after.endState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
+    }
+  }
+});
+
 test('Troubadour instrument note spends retain rotation timeline metadata', () => {
   const result = simulateMesmer(
     ['Lively Lute', 'Tale of the Soulkeeper', 'Flustering Flute'],
