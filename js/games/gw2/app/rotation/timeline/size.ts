@@ -1,6 +1,7 @@
-/** Owns the persisted display size and idle-time visibility of the application timeline. */
+/** Owns persisted timeline size, timing emphasis, and idle-time visibility. */
 export const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
+const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
 
 export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
   { value: 'normal', label: '100%' },
@@ -109,5 +110,34 @@ export function mountRotationTimelineSize(root: Document = document): void {
 
     const startState = toolbar.querySelector('.start-att-selector');
     toolbar.insertBefore(control, startState || toolbar.querySelector('.rotation-btns'));
+  }
+
+  // Timing emphasis is a display preference, independent of zoom and simulation settings.
+  if (!root.getElementById('rotation-timing-display')) {
+    const control = root.createElement('label');
+    control.className = 'rotation-size-control';
+    control.htmlFor = 'rotation-timing-display';
+    control.innerHTML = '<span>Display</span>';
+    const select = root.createElement('select');
+    select.id = 'rotation-timing-display';
+    select.innerHTML = '<option value="classic">Classic</option><option value="timings">Larger timings</option>';
+    try {
+      select.value =
+        root.defaultView?.localStorage.getItem(TIMING_DISPLAY_STORAGE_KEY) === 'timings' ? 'timings' : 'classic';
+    } catch {
+      // Keep the classic default when browser storage is unavailable.
+    }
+
+    panel.dataset.timingDisplay = select.value;
+    select.addEventListener('change', () => {
+      panel.dataset.timingDisplay = select.value;
+      try {
+        root.defaultView?.localStorage.setItem(TIMING_DISPLAY_STORAGE_KEY, select.value);
+      } catch {
+        // The display still changes when browser storage is unavailable.
+      }
+    });
+    control.append(select);
+    root.getElementById('rotation-timeline-size')?.closest('label')?.after(control);
   }
 }
