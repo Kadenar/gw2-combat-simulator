@@ -42,9 +42,22 @@ retaining their combined duration. The accompanying detonation is already repres
 releases remain unsupported rather than creating an absent charge. Tome entry/stow bundle-swap signals are removed from
 replay; the tome actions themselves remain concurrent and never truncate an ongoing skill.
 
-Both import paths resolve combined Solace casts only when recorded charge timing supports the distinction; otherwise
-they remain ambiguous. Source records and inference metadata are preserved. Reimport older exports to restore casts
-omitted by the previous importer.
+Both import paths resolve EI's combined Solace (`-20`) and Potence (`-22`) casts from isolated three-charge bursts. A
+subsequent use before final-charge recharge completes identifies a normal charge even in a sparse rotation. The
+remaining normal-charge count uses conservative base-rate ammo recovery; this assumes no recharge-slowing effects. Final
+charges outside tight bursts are identified only when even maximum Alacrity recovery leaves a single charge. Unresolved
+or contradictory histories remain ambiguous. Source records and inference metadata are preserved. Reimport older exports
+to restore casts omitted by the previous importer.
+
+The June 13 Condition Firebrand report (`hs0X-20260613-132856_golem`) exposed two such final Solace charges, at 26.929 s
+and 89.164 s. Recovering them restores their page refunds and removes the resulting Igniting Burst/Stow Tome warnings.
+
+The May 9 Quickness Firebrand report (`qhoR-20260509-162737_golem`) starts with an unpaired Jurisdiction release, which
+remains an import warning. Page regeneration now keeps ticking at maximum pages after the first spend; natural recovery,
+Swift Scholar, Weighty Terms, and Renewed Focus preserve its phase. This fixes the premature tome exit after Igniting
+Burst. Fresh January, April, and May report imports simulate without runtime warnings. The saved Condition Firebrand
+preset still contains an invalid Stow Tome; the saved Quickness Firebrand preset has five weapon-cast warnings caused by
+an active tome. The Guardian preset check remains failing, with no warnings suppressed or benchmark targets changed.
 
 The following pinned ordinary-finder declarations were excluded because their finder/checker family was unsupported by
 the ordinary table. Some have a separately implemented custom path described above; listing a declaration here does not
