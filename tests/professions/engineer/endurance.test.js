@@ -14,7 +14,7 @@ const vigor = (at, duration, includesSelf = true) => ({
   kind: 'vigor',
   at,
   duration,
-  resolvedAudience: { includesSelf, includesSummons: false, companionIds: [] }
+  resolvedAudience: { includesSelf, includesSummons: !includesSelf, companionIds: [] }
 });
 
 function resourceContext(events, config = {}) {
@@ -30,6 +30,31 @@ function resourceContext(events, config = {}) {
     }
   };
 }
+
+test('Engineer ignores cancelled Vigor grants and extensions in recovery and readiness', () => {
+  // Shared replay must exclude cancelled effects without changing wait partitioning or snapshot timing.
+  for (const cancelledType of ['buff', 'boon_extension']) {
+    for (const targets of [[8], [2, 3, 4, 6, 8]]) {
+      const context = resourceContext([
+        vigor(0, 20, false),
+        vigor(2, 2),
+        { ...vigor(0, 20), cancelled: true },
+        { type: 'boon_extension', at: 3, duration: 2, kind: 'vigor', cancelled: cancelledType === 'boon_extension' }
+      ]);
+      const readyAt = cancelledType === 'buff' ? 8 : 9;
+      assert.equal(engineerEnduranceReadyAt(context, 50), readyAt);
+      for (const at of targets) advanceEngineerResources(context, at);
+      const state = context.state.profession.core;
+      assert.equal(state.endurance, cancelledType === 'buff' ? 50 : 45);
+      assert.equal(engineerEnduranceReadyAt({ ...context, start: 8 }, 50), readyAt);
+      advanceEngineerResources(context, readyAt);
+      assert.equal(state.endurance, 50);
+      assert.equal(state.enduranceUpdatedAt, readyAt);
+      assert.equal(context.events.at(-1).type, 'engineer.state');
+      assert.equal(context.events.at(-1).at, readyAt);
+    }
+  }
+});
 
 test('Engineer recovery and dodge predictions cross self-Vigor applications and expiry', () => {
   const context = resourceContext([vigor(2, 2), vigor(0, 20, false)]);

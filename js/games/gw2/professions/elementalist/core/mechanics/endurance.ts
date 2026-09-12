@@ -8,12 +8,7 @@ import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/s
 import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
@@ -32,31 +27,12 @@ export function elementalistEnduranceRegenerationRate(context: ElementalistSched
   return regeneration * (vigor ? vigorMultiplier : 1);
 }
 
-/** Splits recovery at self-Vigor applications and pooled expiry so waits and dodge retries use identical rates. */
+/** Maps shared, cancellation-aware self-Vigor windows to local rates for both recovery and dodge readiness. */
 function* enduranceIntervals(context: ElementalistSchedulerContext, start: number, end: number) {
   const baseRate = elementalistEnduranceRegenerationRate(context, false);
   const vigorRate = elementalistEnduranceRegenerationRate(context, true);
-  if (context.config.boons?.vigor) {
-    yield { end, rate: vigorRate };
-    return;
-  }
-
-  const applications = boonApplicationsAt(context.events, 'vigor', Infinity).filter((application) =>
-    buffMatchesAudience(application, 'all')
-  );
-  const boundaries = [
-    ...new Set(applications.map((event) => event.at).filter((at) => at > start && at < end)),
-    end
-  ].sort((left, right) => left - right);
-  for (const boundary of boundaries) {
-    // ponytail: replays the small Vigor history per boundary; cache duration windows if long rotations make this costly.
-    const remaining = remainingDurationStackSeconds(applications, start, {
-      maximum: durationStackingBoonCapSeconds('vigor')
-    });
-    const vigorEnd = Math.min(boundary, start + remaining);
-    if (vigorEnd > start) yield { end: vigorEnd, rate: vigorRate };
-    if (boundary > vigorEnd) yield { end: boundary, rate: baseRate };
-    start = boundary;
+  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+    yield { end: interval.end, rate: interval.active ? vigorRate : baseRate };
   }
 }
 
