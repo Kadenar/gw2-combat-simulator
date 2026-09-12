@@ -7,7 +7,7 @@ import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
@@ -32,7 +32,7 @@ function* enduranceIntervals(context: ElementalistSchedulerContext, start: numbe
   const baseRate = elementalistEnduranceRegenerationRate(context, false);
   const vigorRate = elementalistEnduranceRegenerationRate(context, true);
   for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { end: interval.end, rate: interval.active ? vigorRate : baseRate };
+    yield { start: interval.start, end: interval.end, rate: interval.active ? vigorRate : baseRate };
   }
 }
 
@@ -41,9 +41,10 @@ export function updateEndurance(context: ElementalistSchedulerContext, state: El
   if (at <= state.enduranceUpdatedAt) return;
 
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-  for (const interval of enduranceIntervals(context, state.enduranceUpdatedAt, at)) {
-    Object.assign(state, advanceEndurance(state, interval.end, interval.rate, maximum));
-  }
+  Object.assign(
+    state,
+    advanceEnduranceIntervals(state, enduranceIntervals(context, state.enduranceUpdatedAt, at), maximum)
+  );
 }
 
 /** Projects the first affordable dodge across known Vigor windows, including recovery after expiry. */
@@ -53,12 +54,11 @@ export function elementalistEnduranceReadyAt(
   cost: number,
   at: number
 ): number | null {
-  for (const interval of enduranceIntervals(context, at, Infinity)) {
-    const readyAt = enduranceReadyAt(current, cost, at, interval.rate, context.epsilon);
-    if (readyAt != null && readyAt <= interval.end) return readyAt;
-    current += (interval.end - at) * Math.max(0, interval.rate);
-    at = interval.end;
-  }
-
-  return null;
+  return enduranceIntervalsReadyAt(
+    { endurance: current, enduranceUpdatedAt: at },
+    cost,
+    enduranceIntervals(context, at, Infinity),
+    balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100),
+    context.epsilon
+  );
 }

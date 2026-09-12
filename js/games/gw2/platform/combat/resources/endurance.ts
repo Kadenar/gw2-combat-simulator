@@ -10,6 +10,13 @@ export interface Gw2EnduranceUpdate {
   readonly enduranceUpdatedAt: number;
 }
 
+/** A chronological recovery window; professions supply their own boon and trait rate policy. */
+export interface Gw2EnduranceInterval {
+  readonly start: number;
+  readonly end: number;
+  readonly rate: number;
+}
+
 function cappedEndurance(value: number, maximumEndurance: number): number {
   return Math.max(0, Math.min(Math.max(0, maximumEndurance), value));
 }
@@ -28,9 +35,11 @@ export function advanceEndurance(
     };
   }
 
+  // A zero rate must remain idle even when an observation window has no finite endpoint.
+  const rate = Math.max(0, regenerationPerSecond);
   return {
     endurance: cappedEndurance(
-      state.endurance + (at - state.enduranceUpdatedAt) * Math.max(0, regenerationPerSecond),
+      state.endurance + (rate === 0 ? 0 : (at - state.enduranceUpdatedAt) * rate),
       maximumEndurance
     ),
     enduranceUpdatedAt: at
@@ -74,4 +83,55 @@ export function enduranceReadyAt(
   const missing = Math.max(0, Math.max(0, cost) - currentEndurance);
   if (missing <= Math.max(0, epsilon)) return at;
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
+}
+
+/** Integrates chronological windows without mutating the caller, accruing gaps, or replaying settled time. */
+export function advanceEnduranceIntervals(
+  state: Gw2EnduranceState,
+  intervals: Iterable<Gw2EnduranceInterval>,
+  maximumEndurance: number
+): Gw2EnduranceUpdate {
+  let current = { endurance: state.endurance, enduranceUpdatedAt: state.enduranceUpdatedAt };
+  for (const interval of intervals) {
+    const start = Math.max(current.enduranceUpdatedAt, interval.start);
+    if (interval.end <= start) continue;
+    current = advanceEndurance(
+      { endurance: current.endurance, enduranceUpdatedAt: start },
+      interval.end,
+      interval.rate,
+      maximumEndurance
+    );
+  }
+
+  return current;
+}
+
+/** Predicts affordability using advancement's capped, nonnegative recovery and stops at the first funded window. */
+export function enduranceIntervalsReadyAt(
+  state: Gw2EnduranceState,
+  cost: number,
+  intervals: Iterable<Gw2EnduranceInterval>,
+  maximumEndurance: number,
+  epsilon: number
+): number | null {
+  if (cost - Math.max(0, maximumEndurance) > Math.max(0, epsilon)) return null;
+  let current = {
+    endurance: cappedEndurance(state.endurance, maximumEndurance),
+    enduranceUpdatedAt: state.enduranceUpdatedAt
+  };
+  for (const interval of intervals) {
+    const start = Math.max(current.enduranceUpdatedAt, interval.start);
+    if (interval.end <= start) continue;
+    const readyAt = enduranceReadyAt(current.endurance, cost, start, interval.rate, epsilon);
+    if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end) return readyAt;
+    if (interval.end === Infinity) return null;
+    current = advanceEndurance(
+      { endurance: current.endurance, enduranceUpdatedAt: start },
+      interval.end,
+      interval.rate,
+      maximumEndurance
+    );
+  }
+
+  return null;
 }

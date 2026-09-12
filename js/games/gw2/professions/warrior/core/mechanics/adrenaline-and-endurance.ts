@@ -1,6 +1,10 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { advanceEndurance, enduranceReadyAt, grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  grantEndurance
+} from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
@@ -12,47 +16,36 @@ function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigo
   return base * (vigor ? vigorMultiplier : 1);
 }
 
+/** Maps pooled Vigor windows to Warrior rates while shared traversal owns capped recovery and readiness. */
+function* enduranceIntervals(context: WarriorSchedulerContext, start: number, end: number) {
+  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+    yield {
+      start: interval.start,
+      end: interval.end,
+      rate: warriorEnduranceRegenerationRate(context, interval.active)
+    };
+  }
+}
+
 export function advanceWarriorResources(context: WarriorSchedulerContext, target: number): void {
   const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
-  // Integrate pooled Vigor windows so incidental scheduler boundaries cannot change recovery.
-  for (const interval of selfBoonIntervals(
-    context.events,
-    'vigor',
-    from,
-    target,
-    Boolean(context.config.boons?.vigor)
-  )) {
-    Object.assign(
-      state,
-      advanceEndurance(
-        state,
-        interval.end,
-        warriorEnduranceRegenerationRate(context, interval.active),
-        state.maximumEndurance
-      )
-    );
-  }
+  Object.assign(
+    state,
+    advanceEnduranceIntervals(state, enduranceIntervals(context, from, target), state.maximumEndurance)
+  );
 }
 
 export function warriorEnduranceReadyAt(context: WarriorCastContext, cost: number): number | null {
-  let current = professionCoreState(context).endurance;
-  // Predict Dodge affordability using the same Vigor windows as resource advancement.
-  for (const interval of selfBoonIntervals(
-    context.events,
-    'vigor',
-    context.start,
-    Infinity,
-    Boolean(context.config.boons?.vigor)
-  )) {
-    const rate = warriorEnduranceRegenerationRate(context, interval.active);
-    const readyAt = enduranceReadyAt(current, cost, interval.start, rate, context.epsilon);
-    if (readyAt != null && readyAt <= interval.end) return readyAt;
-    current += (interval.end - interval.start) * rate;
-  }
-
-  return null;
+  const state = professionCoreState(context);
+  return enduranceIntervalsReadyAt(
+    { endurance: state.endurance, enduranceUpdatedAt: context.start },
+    cost,
+    enduranceIntervals(context, context.start, Infinity),
+    state.maximumEndurance,
+    context.epsilon
+  );
 }
 
 export function gainWarriorEndurance(context: WarriorSchedulerContext, amount: number, at = context.state.time): void {

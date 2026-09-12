@@ -2,7 +2,7 @@ import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
-import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -37,27 +37,30 @@ export function thiefEnduranceRegenerationRate(
   return Math.min(Number(resources?.threshold ?? 10), base * (vigorActive ? vigorMultiplier : 1));
 }
 
-export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
-  let current = Number(professionCoreState(context).endurance || 0);
-  // Predict affordability using shared Vigor windows, bypassing history for permanent Vigor.
-  for (const interval of selfBoonIntervals(
-    context.events,
-    'vigor',
-    context.start,
-    Infinity,
-    Boolean(context.config.boons?.vigor)
-  )) {
-    const rate = thiefEnduranceRegenerationRate(
-      context,
-      interval.start,
-      Boolean(context.config.boons?.vigor || interval.active)
-    );
-    const readyAt = enduranceReadyAt(current, cost, interval.start, rate, context.epsilon);
-    if (readyAt != null && readyAt <= interval.end) return readyAt;
-    current += (interval.end - interval.start) * rate;
+/** Maps shared Vigor windows to Thief's capped rate for both recovery and dodge readiness. */
+function* enduranceIntervals(context: ThiefSchedulerContext, start: number, end: number) {
+  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+    yield {
+      start: interval.start,
+      end: interval.end,
+      rate: thiefEnduranceRegenerationRate(
+        context,
+        interval.start,
+        Boolean(context.config.boons?.vigor || interval.active)
+      )
+    };
   }
+}
 
-  return null;
+export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
+  const state = professionCoreState(context);
+  return enduranceIntervalsReadyAt(
+    { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
+    cost,
+    enduranceIntervals(context, context.start, Infinity),
+    state.maximumEndurance,
+    context.epsilon
+  );
 }
 
 // Advance initiative and endurance regeneration while pruning expired Lead
@@ -91,27 +94,10 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
 
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   // Integrate shared Vigor windows so waits cannot change recovery; permanent Vigor needs no history replay.
-  for (const interval of selfBoonIntervals(
-    context.events,
-    'vigor',
-    enduranceFrom,
-    target,
-    Boolean(context.config.boons?.vigor)
-  )) {
-    Object.assign(
-      state,
-      advanceEndurance(
-        state,
-        interval.end,
-        thiefEnduranceRegenerationRate(
-          context,
-          interval.start,
-          Boolean(context.config.boons?.vigor || interval.active)
-        ),
-        state.maximumEndurance
-      )
-    );
-  }
+  Object.assign(
+    state,
+    advanceEnduranceIntervals(state, enduranceIntervals(context, enduranceFrom, target), state.maximumEndurance)
+  );
 
   emitThiefStateSnapshot(context, target, 'resources');
 }

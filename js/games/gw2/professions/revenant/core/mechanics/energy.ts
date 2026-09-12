@@ -1,7 +1,7 @@
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
-import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -86,14 +86,15 @@ function* enduranceIntervals(context: RevenantSchedulerContext, start: number, e
 }
 
 export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {
-  let current = Number(professionCoreState(context).endurance || 0);
-  for (const interval of enduranceIntervals(context, context.start, Infinity)) {
-    const readyAt = enduranceReadyAt(current, cost, interval.start, interval.rate, context.epsilon);
-    if (readyAt != null && readyAt <= interval.end) return readyAt;
-    current += (interval.end - interval.start) * interval.rate;
-  }
-
-  return null;
+  const state = professionCoreState(context);
+  // Use capped endurance traversal without changing Revenant's separate energy accrual policy.
+  return enduranceIntervalsReadyAt(
+    { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
+    cost,
+    enduranceIntervals(context, context.start, Infinity),
+    state.maximumEndurance,
+    context.epsilon
+  );
 }
 
 /** Keeps regeneration-funded casts on the absolute 40 ms grid without rounding the stored Energy. */
@@ -178,9 +179,10 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
-    for (const interval of enduranceIntervals(context, enduranceFrom, target)) {
-      Object.assign(state, advanceEndurance(state, interval.end, interval.rate, state.maximumEndurance));
-    }
+    Object.assign(
+      state,
+      advanceEnduranceIntervals(state, enduranceIntervals(context, enduranceFrom, target), state.maximumEndurance)
+    );
   }
 
   // Integrate once per rate/cap change, including upkeeps reserved for a future cast completion.

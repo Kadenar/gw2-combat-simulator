@@ -3,7 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
@@ -43,7 +43,7 @@ function* enduranceIntervals(context: EngineerSchedulerContext, start: number, e
   const baseRate = engineerEnduranceRegenerationRate(context, false);
   const vigorRate = engineerEnduranceRegenerationRate(context, true);
   for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { end: interval.end, rate: interval.active ? vigorRate : baseRate };
+    yield { start: interval.start, end: interval.end, rate: interval.active ? vigorRate : baseRate };
   }
 }
 
@@ -52,16 +52,17 @@ export function engineerEnduranceReadyAt(
   context: EngineerSchedulerContext & { readonly start: number },
   cost: number
 ): number | null {
-  let current = Number(professionCoreState(context).endurance || 0);
-  let at = context.start;
-  for (const interval of enduranceIntervals(context, at, Infinity)) {
-    const readyAt = enduranceReadyAt(current, cost, at, interval.rate, context.epsilon);
-    if (readyAt != null && readyAt <= interval.end) return readyAt;
-    current += (interval.end - at) * Math.max(0, interval.rate);
-    at = interval.end;
-  }
-
-  return null;
+  const state = professionCoreState(context);
+  return enduranceIntervalsReadyAt(
+    { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
+    cost,
+    enduranceIntervals(context, context.start, Infinity),
+    Number(
+      state.maximumEndurance ||
+        balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
+    ),
+    context.epsilon
+  );
 }
 
 /** Advances Core endurance to a target time and emits the updated Engineer state. */
@@ -73,9 +74,7 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
     state.maximumEndurance ||
       balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
   );
-  for (const interval of enduranceIntervals(context, from, target)) {
-    Object.assign(state, advanceEndurance(state, interval.end, interval.rate, maximum));
-  }
+  Object.assign(state, advanceEnduranceIntervals(state, enduranceIntervals(context, from, target), maximum));
 
   emitEngineerStateSnapshot(context, target, 'resources');
 }
