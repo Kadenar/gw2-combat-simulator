@@ -83,10 +83,8 @@ export function applyRevenantBuildAttributeRules(
       kind: 'flat',
       source: 'Empire Divided',
       to: 'Power',
-      amount:
-        Number(revenantBuild.assumptions?.playerHealthFraction ?? revenantBuild.playerHealthFraction ?? 1) > 0.5
-          ? 240
-          : 0,
+      // Build health uses the UI percentage so static Power agrees with the runtime health gate.
+      amount: Number(revenantBuild.assumptions?.playerHealthPercent ?? 100) > 50 ? 240 : 0,
       feedsConversions: false,
       enabled: hasTrait('Empire Divided')
     }
