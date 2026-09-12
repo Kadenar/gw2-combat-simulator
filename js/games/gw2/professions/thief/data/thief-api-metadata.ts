@@ -2000,23 +2000,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: 56880
   },
   {
-    id: 13060,
-    name: 'Signet of Shadows',
-    description:
-      'Signet Passive: Grants a 25% increase in movement speed.\nSignet Active: Gain stealth and swiftness. Remove all movement-impairing conditions from yourself.',
-    icon: 'https://render.guildwars2.com/file/EEB01E570A64D061E3CDD76BD802DA02B1B3970A/104080.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Signet'],
-    recharge: 16,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 13062,
     name: 'Signet of Agility',
     description:

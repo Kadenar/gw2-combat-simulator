@@ -17,9 +17,8 @@ const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Ranger: Object.freeze([
     12494, 12500, 12502, 12542, 12550, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256, 72920
   ]),
-  // The simulator supports the Luxon Alliance bar, without Kurzick skills or side switching.
   Revenant: Object.freeze([62680, 62687, 62702, 62729, 62738, 62796, 62941, 72931]),
-  Thief: Object.freeze([13020, 13035, 13096, 76784, 76808, 76879, 77361]),
+  Thief: Object.freeze([13020, 13035, 13060, 13096, 76784, 76808, 76879, 77361]),
   Warrior: Object.freeze([
     14368, 14372, 14392, 14403, 14406, 14408, 14409, 14412, 14413, 14479, 14528, 14575, 41919, 43745, 45380, 62804,
     76769, 76934
