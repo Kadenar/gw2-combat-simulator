@@ -756,24 +756,27 @@ test("Zealot's Flame preserves one-handed roots without exempting its flip", () 
   );
 });
 
-test("Zealot's Fire retains its fixed reuse lockout after rearming the flip", () => {
-  // Spending the second Flame charge arms another throw without bypassing its independent ICD.
+test("Zealot's Fire locks out Flame until 400 ms or an intervening skill", () => {
   for (const alacrity of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: ["Zealot's Flame", "Zealot's Fire", "Zealot's Flame", "Zealot's Fire"],
-      config: {
-        ...config,
-        primaryWeapon: 'Sword',
-        secondaryWeapon: 'Torch',
-        boons: { quickness: true, alacrity },
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE]
-      }
-    });
-    const throws = result.steps.filter((step) => step.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE);
-    assert.deepEqual(result.warnings, []);
-    assert.equal(throws.length, 2);
-    assert.equal(throws[1].start - throws[0].end, 400);
+    for (const between of [[], [{ type: 'wait', durationMs: 50 }], [{ name: 'Symbol of Blades', interruptMs: 320 }]]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: ["Zealot's Flame", "Zealot's Fire", ...between, "Zealot's Flame", "Zealot's Fire"],
+        config: {
+          ...config,
+          primaryWeapon: 'Sword',
+          secondaryWeapon: 'Torch',
+          boons: { quickness: true, alacrity },
+          selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE]
+        }
+      });
+      const throws = result.steps.filter((step) => step.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE);
+      const flames = result.steps.filter((step) => step.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(throws.length, 2);
+      assert.equal(flames[1].start - throws[0].end, between[0]?.name === 'Symbol of Blades' ? 320 : 400);
+      assert.equal(throws[1].start, flames[1].end);
+    }
   }
 });
 
@@ -808,7 +811,7 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     flameActions.map((event) => event.at),
-    [0, 0.68, 12]
+    [0, 1.08, 12]
   );
   assert.equal(result.endState.ammo["Zealot's Flame"].maximum, 2);
   assert.equal(flameBurns.length, 12);
