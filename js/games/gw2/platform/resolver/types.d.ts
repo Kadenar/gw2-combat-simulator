@@ -9,7 +9,6 @@ import type {
   Gw2CombatQuery,
   Gw2CriticalChanceContributor,
   Gw2CriticalResult,
-  Gw2QueryRuntime,
   Gw2ResolvedStats
 } from '#gw2/platform/combat/query/types.js';
 import type {
@@ -334,7 +333,6 @@ export interface Gw2ResolverReactionRegistry {
 export interface Gw2ResolverExtensions {
   readonly reactions: Gw2ResolverReactionRegistry;
   readonly strikeMultiplier: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
-  readonly conditionDurationBonus: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
   readonly beforeResolveTimeline: (
     context: Gw2ResolverRuntime,
     events: readonly Gw2ResolverEvent[],

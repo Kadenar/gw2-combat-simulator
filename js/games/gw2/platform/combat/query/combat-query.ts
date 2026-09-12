@@ -44,7 +44,6 @@ import type {
   Gw2ResolvedStats
 } from '#gw2/platform/combat/query/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverExtensions } from '#gw2/platform/resolver/types.js';
 
 interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];
@@ -55,7 +54,7 @@ interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
-  readonly conditionDurationBonus?: Gw2ResolverExtensions['conditionDurationBonus'];
+  readonly conditionDurationBonus?: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
 }
 
 interface HookContextOptions {
@@ -116,8 +115,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   // `query` is assigned after `completedQuery` is constructed. Hook handlers
   // that reference `query` are only called during scheduling/resolution (after
   // this function returns), so the null-during-construction window is safe.
-  // Keep the exported standalone query backward compatible. Production
-  // resolver composition supplies this capability explicitly.
+  // Default to chronological live relic state, replaying history only when no live relic is supplied.
   const equipmentConditionDurationBonus =
     conditionDurationBonus ||
     ((runtime: Gw2QueryRuntime | null | undefined, at: number): number =>

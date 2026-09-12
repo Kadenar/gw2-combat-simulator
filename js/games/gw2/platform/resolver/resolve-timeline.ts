@@ -162,8 +162,6 @@ export function resolveGw2Timeline({
   if (!profession?.id) throw new TypeError('GW2 timeline resolver requires a profession.');
   // Assemble common mechanics once so queries, handlers, and runtime callbacks share the same reactions.
   const extensions = createGw2ResolverExtensions({
-    config,
-    events: scheduled.events,
     professionReactions: profession.eventReactions
   });
   const query =
@@ -172,8 +170,7 @@ export function resolveGw2Timeline({
       profession,
       config,
       events: scheduled.events,
-      traits,
-      conditionDurationBonus: extensions.conditionDurationBonus
+      traits
     });
   const hits = createGw2HitResolution({ strikeMultiplier: extensions.strikeMultiplier });
   const conditions = createGw2ConditionResolution({ config, reactions: extensions.reactions });
