@@ -686,7 +686,8 @@ test('Engineer and Thief contracts present state and suppress known packet event
 
   assert.equal(thiefRows.length, 1);
   assert.equal(thiefRows[0].type, 'thief.state');
-  assert.match(thiefRows[0].description, /initiative-spent.*Initiative 7\.0/);
+  // Resource rows use readable reason labels after the displayed values.
+  assert.match(thiefRows[0].description, /RESOURCE Initiative 7\.0.*\[Initiative Spent\]/);
   assert.notEqual(thiefRows[0].type, 'diagnostic');
 
   const originalWarn = console.warn;

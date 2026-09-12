@@ -77,6 +77,17 @@ export function mountRotationTimelineSize(root: Document = document): void {
   panel.dataset.rotationSize = storedSize;
   panel.dataset.showDeadTime = String(showDeadTime);
 
+  // Group display preferences so narrow panels can stack them within one toolbar grid cell.
+  let controls = toolbar.querySelector('.rotation-display-controls');
+  if (!controls) {
+    controls = root.createElement('div');
+    controls.className = 'rotation-display-controls';
+    toolbar.insertBefore(
+      controls,
+      toolbar.querySelector('.start-att-selector') || toolbar.querySelector('.rotation-btns')
+    );
+  }
+
   const existing = root.getElementById('rotation-timeline-size');
   if (existing?.tagName === 'SELECT') {
     (existing as HTMLSelectElement).value = storedSize;
@@ -108,8 +119,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
     });
     control.append(select);
 
-    const startState = toolbar.querySelector('.start-att-selector');
-    toolbar.insertBefore(control, startState || toolbar.querySelector('.rotation-btns'));
+    controls.append(control);
   }
 
   // Timing emphasis is a display preference, independent of zoom and simulation settings.

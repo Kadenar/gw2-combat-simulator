@@ -385,6 +385,8 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 
 .rotation-mid {
   display: flex;
+  /* Wrap toolbar groups before narrow panels clip the rotation actions. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
@@ -474,8 +476,13 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
 
 .rotation-btns {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.rotation-btns .btn {
+  white-space: nowrap;
 }
 
 /* Persistent timing checks stay a compact part of the rotation toolbar instead of becoming a second workflow. */
@@ -665,7 +672,7 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
     grid-area: label;
   }
 
-  body[data-profession]:not(.elementalist-theme) .rotation-size-control {
+  body[data-profession]:not(.elementalist-theme) .rotation-display-controls {
     grid-area: size;
   }
 
@@ -679,10 +686,6 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
     grid-area: buttons;
     justify-self: end;
     flex-wrap: wrap;
-  }
-
-  body[data-profession]:not(.elementalist-theme) .rotation-btns .btn {
-    white-space: nowrap;
   }
 }
 
