@@ -1,5 +1,9 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import { loadProfession } from '#gw2/app/profession/registry.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import type { ProfessionAppContract } from '#gw2/app/types.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifiers/types.js';
 
 /**
@@ -12,13 +16,22 @@ interface ModifierContributionsWorkerMessage {
 }
 
 /**
- * Calculates one comparison batch through the profession's app adapter.
+ * Calculates prepared comparisons through the engine without loading browser adapters.
  *
  * The worker posts one terminal response with the same request ID and either
  * `contributions` or a string `error`.
  */
-createGameWorkerEndpoint<Gw2AppAdapter, ModifierContributionsWorkerMessage>({
-  calculate(adapter, { request }) {
-    return { contributions: adapter.calculateModifierContributions(request) };
+createGameWorkerEndpoint<ProfessionAppContract, ModifierContributionsWorkerMessage>({
+  async loadDriver({ gameId, contentId }) {
+    if (gameId !== 'gw2') return null;
+    const profession = await loadProfession(contentId);
+    return profession ? withActivePatchPreview(profession) : null;
+  },
+  calculate(profession, { request }) {
+    return {
+      contributions: calculateContributionComparisons(request, (rotation, config) =>
+        simulateGw2({ profession, rotation, config })
+      )
+    };
   }
 });

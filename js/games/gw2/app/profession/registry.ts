@@ -8,6 +8,11 @@
  */
 
 import type { Gw2AppAdapter, ProfessionAppContract } from '#gw2/app/types.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+
+// Preserve native composition metadata so engine consumers can apply previews without loading an app adapter.
+type RegisteredProfession = ProfessionAppContract &
+  NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;
 
 /** Armor classes, ordered as navigation surfaces group professions. */
 export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
@@ -30,7 +35,7 @@ export interface ProfessionRegistryEntry {
   /** Landing-card artwork plus bundled transparent portraits for optimizer character previews. */
   readonly specializationArtwork?: readonly Readonly<{ name: string; image: string; conceptArt?: string }>[];
   /** Lazy profession loader. */
-  readonly loadProfession: () => Promise<ProfessionAppContract>;
+  readonly loadProfession: () => Promise<RegisteredProfession>;
   /** Lazy shared-shell adapter loader. */
   readonly loadAppAdapter: () => Promise<Gw2AppAdapter>;
 }
@@ -504,7 +509,7 @@ export function getProfessionEntry(professionId: string): ProfessionRegistryEntr
 /**
  * Lazily loads a profession contract, or `null` for an unknown ID.
  */
-export async function loadProfession(professionId: string): Promise<ProfessionAppContract | null> {
+export async function loadProfession(professionId: string): Promise<RegisteredProfession | null> {
   const entry = getProfessionEntry(professionId);
   return entry ? entry.loadProfession() : null;
 }
