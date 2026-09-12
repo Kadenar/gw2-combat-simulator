@@ -291,7 +291,8 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
     projectWarriorEndState({ schedulerState: renamed.state, schedulerContext: renamed }).activeRefrain,
     'Renamed ' + W.CHANT_OF_ACTION
   );
-  activateChant(renamed, skillsById.get(W.CHANT_OF_FREEDOM));
+  // Direct activation needs the successful cast action normally supplied by the scheduler.
+  activateChant({ ...renamed, action: { cancelled: false } }, skillsById.get(W.CHANT_OF_FREEDOM));
   assert.equal(state.activeRefrainId, W.CHANT_OF_FREEDOM);
   assert.equal(rule.when({ config: renamed.config, runtime: { profession: renamed.state.profession } }), false);
   assert.equal(
