@@ -11,13 +11,7 @@ import {
   gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients
 } from '#gw2/platform/combat/state/allied-players.js';
-import {
-  durationStackingBoonCapSeconds,
-  isDurationStackingBoon,
-  isStandardBoon,
-  recordBuffApplication,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 
@@ -43,23 +37,9 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   Object.assign(event, { resolvedAudience });
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.reporting) ctx.resolved.push(event);
-  const applications = recordBuffApplication(ctx.boons, event);
-  // Keep expired applications for historical timestamp queries, but report
-  // only stacks active immediately after this application.
-  const activeStacks = isDurationStackingBoon(kind)
-    ? Number(
-        remainingDurationStackSeconds(applications, event.at, {
-          includes: (application) => application.resolvedAudience.includesSelf,
-          maximum: durationStackingBoonCapSeconds(kind)
-        }) > 0
-      )
-    : applications
-        .filter((application) => application.resolvedAudience.includesSelf && application.expiresAt > event.at)
-        .reduce((sum, application) => sum + application.stacks, 0);
-  reactions.dispatch('buff.applied', ctx, event, {
-    activeStacks,
-    applications
-  });
+  // Record before reactions so their boon queries include this application at its timestamp.
+  recordBuffApplication(ctx.boons, event);
+  reactions.dispatch('buff.applied', ctx, event);
 }
 
 /**

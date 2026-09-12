@@ -5,6 +5,7 @@ import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
@@ -56,7 +57,8 @@ test('resolver setup shares reactions and creates fresh profession state for eac
 });
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
-test('shared buff handling prioritizes allied players over summon recipients', () => {
+test('shared buff handling records allied recipient scope before reactions run', () => {
+  const seen = [];
   const handlers = createGw2ResolverEventHandlers({
     hitResolution: {
       buildHitResolutionContext: () => ({}),
@@ -67,7 +69,24 @@ test('shared buff handling prioritizes allied players over summon recipients', (
       handleConditionTick: () => ({}),
       handleEnvironmentConditionTick: () => {}
     },
-    reactions: { dispatch: () => {} }
+    reactions: createGw2ResolverReactionRegistry({
+      professionReactions: {
+        'buff.applied': (ctx, event) => {
+          // Reactions must see the new application and its resolved recipients immediately.
+          assert.deepEqual(ctx.boons.get(event.kind), [
+            {
+              at: event.at,
+              expiresAt: event.at + event.duration,
+              stacks: event.stacks,
+              source: event.source,
+              resolvedAudience: event.resolvedAudience
+            }
+          ]);
+          assert.deepEqual(ctx.resolved, [event]);
+          seen.push(event);
+        }
+      }
+    })
   });
   const context = {
     reporting: true,
@@ -95,6 +114,7 @@ test('shared buff handling prioritizes allied players over summon recipients', (
   };
 
   handlers.buff(context, application);
+  assert.deepEqual(seen, [application]);
   // Reporting retains the same application with its final audience exactly once.
   assert.deepEqual(context.resolved, [application]);
 
