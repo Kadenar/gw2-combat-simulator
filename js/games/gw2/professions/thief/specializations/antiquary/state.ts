@@ -26,6 +26,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     chakInitiativeRefundUntil: 0,
     holoUtilityCooldownReductionExpirations: [],
     forgedSurferGeneration: 0,
+    forgedSurferBombDropUntil: 0,
     // clamped 1-5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
     forgedSurferMaximumBombHits: Math.max(
       1,
@@ -40,6 +41,8 @@ export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] 
   'initiativePipRows',
   'artifactSlots',
   'artifactUsesRemaining',
+  // Expose spending progress so the insertion snapshot can show the next Pincher pilfer.
+  'initiativeSpentSincePilfer',
   'scoundrelsLuck',
   'scoundrelsLuckReadyAt',
   'improvisationReadyAt',
@@ -55,6 +58,7 @@ export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] 
   'chakInitiativeRefundUntil',
   'holoUtilityCooldownReductionExpirations',
   'forgedSurferGeneration',
+  'forgedSurferBombDropUntil',
   'forgedSurferMaximumBombHits',
   'canachCoinIndex'
 ]);
@@ -62,6 +66,7 @@ export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] 
 export const ANTIQUARY_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AntiquaryState>> = Object.freeze({
   artifactSlots: [],
   artifactUsesRemaining: 0,
+  initiativeSpentSincePilfer: 0,
   scoundrelsLuck: 0,
   scoundrelsLuckReadyAt: 0,
   improvisationReadyAt: 0,
@@ -79,6 +84,7 @@ export const ANTIQUARY_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AntiquaryState>
   chakInitiativeRefundUntil: 0,
   holoUtilityCooldownReductionExpirations: [],
   forgedSurferGeneration: 0,
+  forgedSurferBombDropUntil: 0,
   forgedSurferMaximumBombHits: 5,
   canachCoinIndex: 0
 });

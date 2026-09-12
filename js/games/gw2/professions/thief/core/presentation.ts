@@ -165,13 +165,37 @@ function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEve
   };
 }
 
-/** Shows the mutually exclusive Stealth and Revealed gates that control stealth attacks. */
+/** Show weapon trackers alongside the mutually exclusive Stealth and Revealed gates. */
 function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
+  const items: RotationStateSnapshotItem[] = [];
+  const axes = (state.spinningAxeExpirations || []).filter((expiresAt) => expiresAt > at);
+  if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
+    items.push({
+      id: 'thief-spinning-axes',
+      label: 'Spinning Axes',
+      value: `${axes.length}/6`,
+      title: axes.length
+        ? `Axes available to recall; next axe expires in ${(Math.min(...axes) - at).toFixed(1)}s`
+        : 'Axes available to recall'
+    });
+  }
+
+  const distractingThrowRemaining = Number(state.distractingThrowBuffUntil || 0) - at;
+  if (distractingThrowRemaining > 0) {
+    items.push({
+      id: 'thief-distracting-throw',
+      label: 'Distracting Throw',
+      value: `${distractingThrowRemaining.toFixed(1)}s`,
+      title: 'Time remaining on the outgoing damage bonus granted after a spear finisher'
+    });
+  }
+
   const revealedRemaining = Number(state.revealedUntil || 0) - at;
   if (revealedRemaining > 0) {
     return [
+      ...items,
       {
         id: 'thief-revealed',
         label: 'Revealed',
@@ -184,6 +208,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const stealthRemaining = Number(state.stealthStartedAt || 0) <= at ? Number(state.stealthUntil || 0) - at : 0;
   return stealthRemaining > 0
     ? [
+        ...items,
         {
           id: 'thief-stealth',
           label: 'Stealth',
@@ -191,7 +216,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
           title: 'Time remaining in Stealth'
         }
       ]
-    : [];
+    : items;
 }
 
 export const thiefCoreUi = Object.freeze({

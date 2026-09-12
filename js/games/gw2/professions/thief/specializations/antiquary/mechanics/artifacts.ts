@@ -186,6 +186,8 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
       expiresAt
     ];
   } else if (skill.id === ID.FORGED_SURFER_DASH_ID_76633) {
+    // The bomb-drop buff has its own duration, independent of how many bombs hit the target.
+    state.forgedSurferBombDropUntil = at + (meticulous ? enhancedDuration : standardDuration);
     state.forgedSurferGeneration += 1; // bumped here (before task scheduling) so the task payload and state always agree on which run is current
   }
 }

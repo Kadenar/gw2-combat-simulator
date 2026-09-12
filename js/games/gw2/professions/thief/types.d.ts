@@ -88,6 +88,7 @@ export interface ThiefCoreState {
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
   distractingThrowBuffUntil: number;
+  spinningAxeExpirations: number[];
   venomChargeBatches: Record<string, { generation: number; charges: number; expiresAt: number }[]>;
   venomAllyLastProcAt: Record<string, number>;
   venomGeneration: number;
@@ -183,6 +184,7 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   chakInitiativeRefundUntil: number;
   holoUtilityCooldownReductionExpirations: number[];
   forgedSurferGeneration: number;
+  forgedSurferBombDropUntil: number;
   forgedSurferMaximumBombHits: number;
   canachCoinIndex: number;
 }

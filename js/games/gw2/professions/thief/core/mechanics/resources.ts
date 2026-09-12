@@ -73,6 +73,8 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     : Number(resources?.maximumStacks ?? 12);
   state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
+  // Ground axes expire independently, including while waiting or using another weapon.
+  state.spinningAxeExpirations = state.spinningAxeExpirations.filter((expiresAt) => expiresAt > target);
   refreshVenomCharges(state, target);
 
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {

@@ -9,6 +9,9 @@ import { spearChainStageForSkill, updateSpearChainState } from '#gw2/professions
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ThiefCastContext,
+  ThiefScheduledTask,
+  ThiefSchedulerContext,
+  ThiefSimulationEvent,
   ThiefSkill,
   ThiefState,
   ThiefWeaponMatcherContext
@@ -101,6 +104,37 @@ export function grantThiefStealth(
   emitThiefStateSnapshot(context, at, 'stealth');
 }
 
+/** Count each thrown axe at its strike timestamp so interrupted volleys retain only emitted axes. */
+export function observeThiefAxe(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
+  if (
+    event.type !== 'damage' ||
+    event.actorType !== 'player' ||
+    event.cancelled === true ||
+    ![ID.SPINNING_AXE, ID.SPINNING_AXE_ID_71967, ID.VENOMOUS_VOLLEY, ID.CUNNING_SALVO, ID.MALICIOUS_CUNNING_SALVO].some(
+      (id) => id === event.skillId
+    )
+  )
+    return;
+  context.tasks.schedule({
+    type: 'thief.spinning-axe',
+    at: event.at,
+    ownerId: event.activationId,
+    payload: { eventOrder: event.eventOrder }
+  });
+}
+
+/** Keep the six newest axes for ten seconds, sharing one pool across both weapon sets. */
+export function materializeThiefAxe(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+  const event = context.eventByOrder(Number(task.payload.eventOrder));
+  if (!event || event.cancelled === true) return;
+  const state = professionCoreState(context);
+  state.spinningAxeExpirations = [
+    ...state.spinningAxeExpirations.filter((expiresAt) => expiresAt > task.at),
+    task.at + 10
+  ].slice(-6);
+  emitThiefStateSnapshot(context, task.at, 'spinning-axe');
+}
+
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -128,6 +162,12 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   }
 
   updateSpearChainState(context, skill, at);
+  // All axe recall variants consume the shared ground pool only when the cast completes.
+  if (completed && [ID.HARROWING_STORM, ID.ORCHESTRATED_ASSAULT, ID.RECALL_AXES].some((id) => id === skill.id)) {
+    state.spinningAxeExpirations = [];
+    emitThiefStateSnapshot(context, at, 'axes-recalled');
+  }
+
   // Weapon sequence skills share one state contract: completing the opener
   // arms its replacement for the declared window, and using the child restores
   // the opener. This covers dual attacks plus sword, shortbow, staff, and rifle.

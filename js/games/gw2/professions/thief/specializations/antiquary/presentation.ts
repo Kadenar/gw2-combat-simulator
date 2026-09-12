@@ -1,5 +1,13 @@
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/antiquary-assumptions.js';
-import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import {
+  THIEF_ARTIFACT_IDS,
+  THIEF_SKILL_IDS as ID,
+  THIEF_TRAIT_IDS as TRAIT
+} from '#gw2/professions/thief/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
+import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
@@ -9,6 +17,31 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
+  // Pincher is spending progress, while Scuffle predicts the next automatic artifact replacement.
+  if (
+    hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
+    getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER)
+  ) {
+    const threshold = balanceProfileValueFromContext(context, PROFILE.prodigiousPincher, 'threshold', 15);
+    const spent = Math.max(0, Number(state.initiativeSpentSincePilfer || 0));
+    items.push({
+      id: 'antiquary-prodigious-pincher',
+      label: 'Prodigious Pincher',
+      value: `${spent}/${threshold}`,
+      title: `Initiative spent toward the next pilfer; ${Math.max(0, threshold - spent)} more required`
+    });
+  }
+
+  const nextPilferRemaining = Number(state.nextSkrittScufflePilferAt || 0) - at;
+  if (nextPilferRemaining > 0) {
+    items.push({
+      id: 'antiquary-skritt-scuffle',
+      label: 'Skritt Scuffle',
+      value: `${nextPilferRemaining.toFixed(1)}s`,
+      title: 'Time until the next artifact set is pilfered'
+    });
+  }
+
   const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
   const combatHighStacks = Math.max(0, Math.min(10, Math.trunc(Number(state.combatHighStacks || 0))));
   if (combatHighRemaining > 0 && combatHighStacks > 0) {
@@ -23,12 +56,25 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const timedEffects: readonly [string, string, number][] = [
     ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', Number(state.antiquaryDamageUntil || 0)],
     ['antiquary-kryptis-turret', 'Kryptis Turret', Number(state.kryptisDamageUntil || 0)],
+    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', Number(state.forgedSurferBombDropUntil || 0)],
     ['antiquary-chak-shield', 'Chak Shield', Number(state.chakInitiativeRefundUntil || 0)]
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
     if (remaining <= 0) continue;
-    items.push({ id, label, value: `${remaining.toFixed(1)}s`, title: `${label} artifact effect remaining` });
+    items.push({
+      id,
+      label,
+      value: `${remaining.toFixed(1)}s`,
+      title:
+        id === 'antiquary-forged-surfer-dash'
+          ? 'Time remaining on the additional bomb-drop buff'
+          : id === 'antiquary-kryptis-turret'
+            ? 'Time remaining on the strike damage modifier'
+            : id === 'antiquary-chak-shield'
+              ? 'Time remaining on initiative refunds for weapon skills'
+              : `${label} artifact effect remaining`
+    });
   }
 
   for (const [id, label, chargesValue, expiresAt] of [
@@ -42,7 +88,10 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
       id,
       label,
       value: `${charges} ${charges === 1 ? 'charge' : 'charges'} · ${remaining.toFixed(1)}s`,
-      title: `${label} charges and time remaining`
+      title:
+        id === 'antiquary-metal-legion-guitar'
+          ? 'Stealth attacks remaining without entering Stealth, and time until they expire'
+          : `${label} charges and time remaining`
     });
   }
 

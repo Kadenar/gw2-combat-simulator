@@ -24,7 +24,11 @@ import {
   observeThiefCriticalBoons,
   materializeThiefCriticalBoons
 } from '#gw2/professions/thief/core/traits/index.js';
-import { updateThiefWeaponState } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
+import {
+  updateThiefWeaponState,
+  observeThiefAxe,
+  materializeThiefAxe
+} from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/task-handlers.js';
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
@@ -315,6 +319,7 @@ export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
   onCastStart: spendThiefCoreResources,
   onEventScheduled: Object.freeze([
+    { id: 'thief.spinning-axe', order: 40, handler: observeThiefAxe },
     { id: 'thief.critical-boons', order: 30, handler: observeThiefCriticalBoons },
     {
       id: 'thief.stealth-breaking-strikes',
@@ -346,6 +351,10 @@ export const thiefCoreSchedulerHooks = Object.freeze({
       handler: updateThiefTraitCastState
     }
   ]),
-  taskHandlers: { ...thiefCoreTaskHandlers, 'thief.critical-boons': materializeThiefCriticalBoons },
+  taskHandlers: {
+    ...thiefCoreTaskHandlers,
+    'thief.critical-boons': materializeThiefCriticalBoons,
+    'thief.spinning-axe': materializeThiefAxe
+  },
   snapshot: (context: ThiefSchedulerContext) => snapshotThiefState(context.state.profession)
 });
