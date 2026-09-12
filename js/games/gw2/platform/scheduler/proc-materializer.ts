@@ -88,20 +88,22 @@ export function createGw2TriggerMaterializer(
         materializeConditionRelics(context, state.relic, event);
         break;
       case 'damage': {
-        // Later same-time trait tasks must use this hit's pre-reaction critical chance.
-        if (state.criticalFactsRequired && Number.isFinite(event.eventOrder)) {
-          criticalFacts.set(event, state.query!.critical(event, event.at, state));
-        }
+        // Trigger decisions and later same-time trait tasks share this hit's pre-reaction critical chance.
+        const critical =
+          state.criticalFactsRequired && Number.isFinite(event.eventOrder)
+            ? state.query!.critical(event, event.at, state)
+            : undefined;
+        if (critical) criticalFacts.set(event, critical);
 
         if (!state.combatActive) {
           if (state.random.stochastic) {
-            resolveCriticalTrigger(context, event, state);
+            resolveCriticalTrigger(context, event, state, critical);
           }
 
           break;
         }
 
-        const criticalCause = resolveCriticalTrigger(context, event, state);
+        const criticalCause = resolveCriticalTrigger(context, event, state, critical);
         if (criticalCause) {
           sigils.materialize('crit', context, event, criticalCause);
         }

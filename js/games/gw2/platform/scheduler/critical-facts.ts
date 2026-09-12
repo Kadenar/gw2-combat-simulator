@@ -1,5 +1,6 @@
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
@@ -78,7 +79,8 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
 export function resolveCriticalTrigger(
   context: SchedulerContext,
   event: SimulationEvent,
-  state: MaterializerState
+  state: MaterializerState,
+  observedCritical?: Gw2CriticalResult
 ): SimulationEvent | null {
   // Ignore non-strikes and skip critical work when no consumer requested it.
   if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired) {
@@ -88,8 +90,8 @@ export function resolveCriticalTrigger(
   // Player strikes qualify by default; derived effects must explicitly opt in.
   const canTriggerSigils = isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
 
-  // Evaluate critical chance against combat state at the hit's timestamp.
-  const critical = state.query!.critical(event, event.at, state);
+  // Reuse the hit's pre-reaction observation, querying only when no cached fact was supplied.
+  const critical = observedCritical ?? state.query!.critical(event, event.at, state);
 
   // Stochastic mode creates one binary outcome shared by every consumer.
   if (state.random.stochastic) {

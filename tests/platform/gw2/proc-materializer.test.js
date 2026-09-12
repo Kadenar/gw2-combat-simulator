@@ -132,6 +132,57 @@ test('queued shared facts use replacements made by earlier same-time tasks', () 
   assert.equal(policy.critical(context, { ...hit, at: 11 }).chance, 0);
 });
 
+test('one critical query supplies trigger decisions and survives same-time boon changes', (t) => {
+  for (const mode of ['deterministic', 'stochastic']) {
+    const config = { stats: { precision: 2470 }, randomness: { mode, seed: 42 } };
+    const materializer = createGw2TriggerMaterializer(config);
+    materializer.requireCriticalFacts();
+    const scheduler = createScheduler({
+      profession: testProfession,
+      config,
+      schedulerPolicy: {
+        prepareEvent: createGw2SchedulerPolicy(config).prepareEvent,
+        initialize: materializer.initialize,
+        onEventScheduled: materializer.onEventScheduled,
+        onEventReplaced: (_context, previous, replacement) => materializer.onEventReplaced(previous, replacement),
+        taskHandlers: { [GW2_MATERIALIZE_EVENT_TASK]: materializer.handleTask }
+      }
+    });
+    const { state } = materializer;
+    const queryCritical = t.mock.fn(state.query.critical);
+    const roll = t.mock.fn(state.random.roll);
+    state.query = { ...state.query, critical: queryCritical };
+    state.random = { ...state.random, roll };
+    const { context } = scheduler;
+    const owner = { source: 'fixture', sourceId: 'fixture.critical', actorType: 'player' };
+    const hit = context.emit({ ...owner, type: 'damage', at: 1, coefficient: 1 });
+    context.emit({ ...owner, type: 'buff', at: 1, kind: 'fury', stacks: 1, duration: 10 });
+    scheduler.advanceTo(1);
+
+    // The original and any stochastic replacement retain the observation from before Fury arrived.
+    const observed = queryCritical.mock.calls[0].result;
+    const canonical = context.eventByOrder(hit.eventOrder);
+    assert.equal(observed.chance, 0.75);
+    assert.equal(materializer.critical(hit), observed);
+    assert.equal(materializer.critical(canonical), observed);
+    assert.equal(queryCritical.mock.callCount(), 1);
+    if (mode === 'stochastic') {
+      assert.equal(roll.mock.callCount(), 1);
+      assert.deepEqual(roll.mock.calls[0].arguments, [observed.chance, 'critical:player']);
+      assert.equal(canonical.didCrit, roll.mock.calls[0].result);
+      assert.notEqual(canonical, hit);
+    } else {
+      assert.equal(roll.mock.callCount(), 0);
+      assert.equal(state.sigil.criticalProgress, observed.chance);
+      assert.equal(canonical.didCrit, undefined);
+    }
+
+    // Hypothetical copies still query current state, including the later same-time boon.
+    assert.equal(materializer.critical({ ...hit }).chance, 1);
+    assert.equal(queryCritical.mock.callCount(), 2);
+  }
+});
+
 test('critical facts follow weapon swaps without proc sigils', () => {
   const defaults = defaultSimulationConfig();
   const stats = {
