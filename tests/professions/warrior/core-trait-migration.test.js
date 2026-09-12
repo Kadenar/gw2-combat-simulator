@@ -122,17 +122,6 @@ const traitCases = [
     verify: (result) => assert.ok(result.events.some((event) => event.sourceId === TRAIT.MARTIAL_CADENCE))
   },
   {
-    name: 'Phalanx Strength',
-    trait: TRAIT.PHALANX_STRENGTH,
-    rotation: ['Signet of Might'],
-    verify: (result) =>
-      assert.ok(
-        result.events.some(
-          (event) => event.sourceId === TRAIT.PHALANX_STRENGTH && event.audience?.recipients === 'party'
-        )
-      )
-  },
-  {
     name: 'Thick Skin',
     trait: TRAIT.THICK_SKIN,
     rotation: ['Mending'],

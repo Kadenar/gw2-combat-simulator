@@ -44,38 +44,6 @@ export function applyLegSpecialist(context: WarriorSchedulerContext, event: Warr
   });
 }
 
-// Mirror self Might to allies without recursively consuming the mirrored packet.
-export function applyPhalanxStrength(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
-  if (
-    event.type !== 'buff' ||
-    event.kind !== 'might' ||
-    !event.resolvedAudience?.includesSelf ||
-    event.sourceId === TRAIT.PHALANX_STRENGTH ||
-    !hasTrait(context, TRAIT.PHALANX_STRENGTH)
-  ) {
-    return;
-  }
-
-  emitSkillBuff(context, {
-    skill:
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.PHALANX_STRENGTH, name: 'Phalanx Strength' } as WarriorSkill),
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.PHALANX_STRENGTH,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: 'Phalanx Strength',
-    kind: 'might',
-    boon: 'might',
-    duration: 5,
-    stacks: 1,
-    audience: { recipients: 'party' as const, affectsSelf: false }
-  });
-}
-
 // Start Soldier's Focus and emit its base Might packet on the first eligible burst hit.
 export function applyMarchingOrders(context: WarriorSchedulerContext, event: WarriorSimulationEvent): boolean {
   const state = professionCoreState(context);

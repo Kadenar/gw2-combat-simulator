@@ -54,7 +54,6 @@ import {
   applyMarchingOrders,
   applyMartialCadence,
   applyMartialCadenceWeaponSwap,
-  applyPhalanxStrength,
   applySoldiersComfort,
   modifyWarriorTacticsAttributes,
   warriorTacticsModifierRules
@@ -252,7 +251,6 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   applyBodyBlow(context, event);
   applyAggressiveOnslaught(context, event);
   applyLegSpecialist(context, event);
-  applyPhalanxStrength(context, event);
 
   if (
     event.type === 'damage' &&
