@@ -499,6 +499,8 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
 }
 
 export function completeSkrittScuffle(context: ThiefCastContext, skill: ThiefSkill): void {
+  // Cancelled summons grant neither the initial artifact nor recurring pilfers.
+  if (context.action?.cancelled === true) return;
   const state = antiquaryState.from(context);
   const at = context.effectiveEnd;
   const profile = balanceProfileFromContext(context, PROFILE.scuffle);

@@ -164,6 +164,8 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.HEARTSEEKER]: {
     movementSkill: true,
+    // Resolve the leap at impact through the shared field-selection contract.
+    comboFinishers: [{ ownerId: 'thief', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }],
     quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 3,

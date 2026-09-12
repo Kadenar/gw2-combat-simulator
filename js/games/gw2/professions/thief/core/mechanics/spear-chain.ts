@@ -100,6 +100,8 @@ export function completeSpearStealthAttack(context: ThiefCastContext, skill: Thi
 // Advance or reset the three-stage spear chain, arming Distracting Throw's bonus
 // only when it follows a completed finisher.
 export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSkill, at: number): void {
+  // A cancelled attack leaves the previously committed chain stage intact.
+  if (context.action?.cancelled === true) return;
   const state = professionCoreState(context);
   const requiredStage = spearChainStageForSkill(skill.id);
   if (requiredStage != null) {

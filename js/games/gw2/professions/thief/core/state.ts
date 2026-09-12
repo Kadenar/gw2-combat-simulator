@@ -31,6 +31,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     initiativeUpdatedAt: 0,
     stealthStartedAt: 0,
     stealthUntil: 0,
+    hiddenKillerUntil: 0,
     revealedUntil: 0,
     storedStolenSkillId: null,
     storedStolenSkillIds: [],

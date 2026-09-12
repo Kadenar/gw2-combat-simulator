@@ -57,6 +57,8 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
 
   state.stealthStartedAt = at;
   state.stealthUntil = at;
+  // Only a real stealth exit starts the linger; bonus attack charges do not.
+  state.hiddenKillerUntil = at + 4;
   if (!skill.preservesStealth) state.revealedUntil = at + 3;
   emitThiefStateSnapshot(context, at, reason);
   return true;

@@ -44,6 +44,8 @@ export function handleShadowShroudDepletion(context: ThiefSchedulerContext): voi
 }
 
 export function completeSiphon(context: ThiefCastContext): void {
+  // Cancellation preserves shadow force and stored-skill state.
+  if (context.action?.cancelled === true) return;
   const state = specterState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.shadowForce = Math.min(
@@ -63,6 +65,8 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   const profile = balanceProfileFromContext(context, PROFILE.enterShadowShroud);
   const barrier = balanceProfileEffect(profile, 'buff');
   state.shadowShroudActive = true;
+  // Manual exit waits half a second; depletion continues to force an immediate exit.
+  state.shadowShroudExitReadyAt = at + 0.5;
   state.shadowForceUpdatedAt = at;
   scheduleShadowShroudDepletion(context);
   // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.

@@ -51,7 +51,8 @@ function enqueueSiphon(
   event: ThiefResolverEvent,
   sourceId: SkillId,
   name: string,
-  coefficient: number
+  coefficient: number,
+  flatStrikeBase?: number
 ): void {
   context.queue.enqueue({
     type: 'damage',
@@ -63,6 +64,8 @@ function enqueueSiphon(
     skillName: name,
     name,
     coefficient,
+    // Flat life stealing bypasses armor, weapon strength, critical hits, and ordinary strike multipliers.
+    ...(flatStrikeBase == null ? {} : { flatStrikeBase, flatStrikePowerCoeff: coefficient }),
     hits: 1,
     canCrit: false,
     noCrit: true,
@@ -74,7 +77,14 @@ function enqueueSiphon(
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.leechingVenoms), 'strike');
-  enqueueSiphon(context, event, TRAIT.LEECHING_VENOMS, 'Leeching Venoms', Number(strike?.coefficient ?? 0.033));
+  enqueueSiphon(
+    context,
+    event,
+    TRAIT.LEECHING_VENOMS,
+    'Leeching Venoms',
+    Number(strike?.flatStrikePowerCoeff ?? 0.033),
+    Number(strike?.flatStrikeBase ?? 320)
+  );
 }
 
 export function applyAlliedLeechingVenoms(context: ThiefResolverContext, application: ThiefResolverEvent): void {

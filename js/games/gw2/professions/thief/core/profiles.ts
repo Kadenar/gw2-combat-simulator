@@ -254,7 +254,8 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     maximumStacks: 6,
     resourceGain: 3,
     durationMultiplier: 24,
-    effects: [{ type: 'strike', coefficient: 0.033, hits: 1 }]
+    // Leeching Venoms owns a flat life-steal formula, independent of weapon damage.
+    effects: [{ type: 'strike', flatStrikeBase: 320, flatStrikePowerCoeff: 0.033, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowsRejuvenation, "Shadow's Rejuvenation", { resourceGain: 1 }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowSiphoning, 'Shadow Siphoning', {

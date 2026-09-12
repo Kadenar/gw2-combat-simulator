@@ -59,6 +59,8 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
     skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
     skillName: 'Zephyrite Sun Crystal',
     name: 'Zephyrite Sun Crystal - Meticulous Burning',
+    // Preserve trait provenance so the already-enhanced duration is not multiplied again.
+    triggeredBy: event.skillName,
     condition: String(burning?.condition || 'Burning'),
     stacks: Number(burning?.stacks ?? 1),
     duration: Number(burning?.duration ?? 5)

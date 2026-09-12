@@ -89,7 +89,8 @@ export function reactToThiefCoreBuff(context: ThiefResolverContext, event: Thief
 /** Runs damage reactions after the base venom packet in their established cross-line order. */
 export function reactToThiefCoreDamage(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   const venomProcs = applyActiveVenoms(context, event);
-  for (let index = 0; index < venomProcs; index += 1) applyLeechingVenoms(context, event);
+  // Multiple venom types consume their charges but share one siphon per player strike.
+  if (venomProcs > 0) applyLeechingVenoms(context, event);
   applyShadowSiphoning(context, event);
   applyPanicStrike(context, event);
 }

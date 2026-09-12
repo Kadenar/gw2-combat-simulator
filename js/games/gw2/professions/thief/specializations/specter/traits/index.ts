@@ -2,7 +2,7 @@ import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -179,12 +179,16 @@ export function handleDarkSentry(
     stacks: Number(venom?.stacks ?? 1),
     audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: recipientCount }
   });
-  // Rot Wallow Venom procs on the next allied strike, not immediately on application.
-  if (party.strikesPerSecond > 0) {
-    const procAt = task.at + 1 / party.strikesPerSecond;
-    for (const allyIndex of eligibleAllies) {
+  // The next allied strike must fit the grant, including the shared allied expiry boundary.
+  for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
+    start: task.at,
+    duration: Number(venom?.duration ?? 10),
+    maximumPerAlly: 1
+  })) {
+    if (eligibleAllies.includes(proc.allyIndex)) {
+      const allyIndex = proc.allyIndex;
       emitSkillCondition(context, {
-        at: procAt,
+        at: proc.at,
         source: 'Trait',
         sourceId: TRAIT.DARK_SENTRY,
         actorType: 'player',

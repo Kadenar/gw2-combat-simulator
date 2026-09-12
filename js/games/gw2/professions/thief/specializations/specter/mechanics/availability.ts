@@ -20,6 +20,11 @@ export function specterCastAvailability(context: ThiefPrecastContext, skill: Thi
     return deny(skill, 'thief.not-in-shroud', 'Shadow Shroud is not active.');
   }
 
+  // Retry a manual exit after entry's form lockout without blocking forced depletion.
+  if (skill.id === ID.EXIT_SHADOW_SHROUD && state.shadowShroudExitReadyAt > context.start + context.epsilon) {
+    return deny(skill, 'thief.shroud-exit-lockout', 'Shadow Shroud exit is not ready.', state.shadowShroudExitReadyAt);
+  }
+
   if (skill.shadowShroudSkill && !state.shadowShroudActive) {
     return deny(skill, 'thief.not-in-shroud', 'enter Shadow Shroud first.');
   }

@@ -177,6 +177,7 @@ test('Shadow Shroud depletion follows force gains and cooldown resets', () => {
 });
 
 test('manual Shadow Shroud exit cancels depletion and preserves remaining force', () => {
+  // Keep enough force to survive entry's mandatory half-second exit lockout.
   const result = simulate(
     'Specter',
     [
@@ -185,14 +186,14 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
       'Exit Shadow Shroud',
       { type: 'wait', durationMs: 1000 }
     ],
-    { initialShadowForce: 1 }
+    { initialShadowForce: 2 }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.events.some((event) => event.reason === 'shadow-shroud-depleted'),
     false
   );
-  assert.equal(result.endState.profession.shadowForce, 0.5);
+  assert.equal(result.endState.profession.shadowForce, 1);
   assert.equal(result.endState.profession.shadowShroudActive, false);
 });
 

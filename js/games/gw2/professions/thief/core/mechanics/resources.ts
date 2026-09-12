@@ -3,6 +3,7 @@ import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-pr
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { advanceEndurance, enduranceReadyAt } from '#gw2/platform/combat/resources/endurance.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -27,9 +28,9 @@ export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kne
 
 export function thiefEnduranceRegenerationRate(
   context: ThiefResourceContext,
-  at = Number(context.start ?? context.state?.time ?? 0)
+  at = Number(context.start ?? context.state?.time ?? 0),
+  vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at))
 ): number {
-  const vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at));
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   const base = Number(resources?.enduranceRegenerationPerSecond ?? 5);
   const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier ?? 1.5);
@@ -37,9 +38,20 @@ export function thiefEnduranceRegenerationRate(
 }
 
 export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
-  const current = Number(professionCoreState(context).endurance || 0);
-  const rate = thiefEnduranceRegenerationRate(context, context.start);
-  return enduranceReadyAt(current, Number(cost || 0), context.start, rate, Number(context.epsilon || 0.0001));
+  let current = Number(professionCoreState(context).endurance || 0);
+  // Predict affordability across the same pooled Vigor windows used by advancement.
+  for (const interval of selfBoonIntervals(context.events, 'vigor', context.start, Infinity)) {
+    const rate = thiefEnduranceRegenerationRate(
+      context,
+      interval.start,
+      Boolean(context.config.boons?.vigor || interval.active)
+    );
+    const readyAt = enduranceReadyAt(current, cost, interval.start, rate, context.epsilon);
+    if (readyAt != null && readyAt <= interval.end) return readyAt;
+    current += (interval.end - interval.start) * rate;
+  }
+
+  return null;
 }
 
 // Advance initiative and endurance regeneration while pruning expired Lead
@@ -72,13 +84,18 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   }
 
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-  if (target > enduranceFrom) {
+  // Integrate each rate window so unrelated wait boundaries cannot change recovery.
+  for (const interval of selfBoonIntervals(context.events, 'vigor', enduranceFrom, target)) {
     Object.assign(
       state,
       advanceEndurance(
         state,
-        target,
-        thiefEnduranceRegenerationRate(context, (enduranceFrom + target) / 2),
+        interval.end,
+        thiefEnduranceRegenerationRate(
+          context,
+          interval.start,
+          Boolean(context.config.boons?.vigor || interval.active)
+        ),
         state.maximumEndurance
       )
     );

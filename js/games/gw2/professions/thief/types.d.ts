@@ -70,6 +70,7 @@ export interface ThiefCoreState {
   initiativeUpdatedAt: number;
   stealthStartedAt: number;
   stealthUntil: number;
+  hiddenKillerUntil: number;
   revealedUntil: number;
   storedStolenSkillId: SkillId | null;
   storedStolenSkillIds: SkillId[];
@@ -130,6 +131,7 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
 }
 
 export interface SpecterState {
+  shadowShroudExitReadyAt: number;
   shadowForce: number;
   maximumShadowForce: number;
   shadowForcePoolCapacity: number;

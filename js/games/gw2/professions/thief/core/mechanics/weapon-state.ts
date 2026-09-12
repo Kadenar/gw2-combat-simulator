@@ -73,6 +73,8 @@ export function grantThiefStealth(
   const entering = state.stealthStartedAt > at || state.stealthUntil <= at;
   if (entering) state.stealthStartedAt = at;
   state.stealthUntil = Math.min(at + 15, Math.max(at, state.stealthUntil) + duration);
+  // Natural stealth expiry also grants Hidden Killer's four-second linger.
+  state.hiddenKillerUntil = state.stealthUntil + 4;
   if (entering && hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, 'enter-stealth');
   }

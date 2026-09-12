@@ -222,8 +222,9 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       return (
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.HIDDEN_KILLER) &&
-        ((Number(state.stealthStartedAt || 0) <= context.time && Number(state.stealthUntil || 0) > context.time) ||
-          Number(state.revealedUntil || 0) + 1 > context.time)
+        // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.
+        Number(state.stealthStartedAt || 0) <= context.time &&
+        (Number(state.stealthUntil || 0) > context.time || Number(state.hiddenKillerUntil || 0) > context.time)
       );
     }
   }

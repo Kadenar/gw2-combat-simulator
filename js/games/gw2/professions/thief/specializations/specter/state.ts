@@ -12,6 +12,7 @@ export function createSpecterState(config: ThiefConfig = {}): SpecterState {
     maximumShadowForce: 100,
     shadowForcePoolCapacity: maximumHealth * SHADOW_FORCE_HEALTH_MULTIPLIER,
     shadowShroudActive: false,
+    shadowShroudExitReadyAt: 0,
     shadowForceUpdatedAt: 0,
     // Per-ally map so that a barrier given to ally 1 does not lock out ally 2.
     darkSentryReadyAtByAlly: {}
@@ -22,6 +23,7 @@ export const SPECTER_PUBLIC_END_STATE_KEYS: readonly (keyof SpecterState)[] = Ob
   'shadowForce',
   'maximumShadowForce',
   'shadowForcePoolCapacity',
+  'shadowShroudExitReadyAt',
   'shadowShroudActive'
 ]);
 
@@ -29,6 +31,7 @@ export const SPECTER_INACTIVE_STATE_DEFAULTS: Readonly<Partial<SpecterState>> = 
   shadowForce: 0,
   maximumShadowForce: 100,
   shadowForcePoolCapacity: 0,
+  shadowShroudExitReadyAt: 0,
   shadowShroudActive: false
 });
 

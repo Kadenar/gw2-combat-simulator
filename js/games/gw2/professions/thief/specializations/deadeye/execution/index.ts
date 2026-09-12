@@ -25,6 +25,7 @@ import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/s
 
 interface DeadeyeHandlerState {
   readonly malice?: number;
+  readonly markExpiresAt?: number;
   readonly grantsStealth?: boolean;
 }
 
@@ -59,7 +60,8 @@ function prepareDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkil
   const state = deadeyeState.from(context);
   // Only existing malice empowers this attack; Malicious Intent grants its stacks after consumption.
   const handlerState = {
-    malice: Math.min(state.maximumMalice, Math.max(0, Number(state.malice || 0)))
+    malice: Math.min(state.maximumMalice, Math.max(0, Number(state.malice || 0))),
+    markExpiresAt: state.markedTargetId ? state.markExpiresAt : 0
   };
   beginStealthAttack(context, skill);
   return handlerState;
@@ -72,6 +74,26 @@ function observeDeadeyeStealthEffect(
   handlerState: unknown
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
+  // New malicious benefits use the pre-consumption snapshot only against a live mark.
+  const malice =
+    context.action?.offTarget !== true && Number(prepared.markExpiresAt || 0) > event.at
+      ? Number(prepared.malice || 0)
+      : 0;
+  if (event.type === 'condition' && event.condition === 'Poisoned') {
+    if (skill.id === ID.MALICIOUS_CUNNING_SALVO) {
+      context.replaceEvent(event, { duration: Number(event.duration || 0) + malice });
+    } else if (skill.id === ID.MALICIOUS_SHADOWSQUALL) {
+      context.replaceEvent(event, { duration: Number(event.duration || 0) * (1 + 0.2 * malice) });
+    }
+  }
+
+  if (skill.id === ID.MALICIOUS_HOOK_STRIKE && event.type === 'buff' && event.kind === 'quickness') {
+    context.replaceEvent(event, {
+      duration: Number(event.duration || 0) * malice,
+      stacks: malice > 0 ? event.stacks : 0
+    });
+  }
+
   if (skill.malicious && event.type === 'damage') {
     context.replaceEvent(event, {
       deadeyeMaliceSnapshot: Number(prepared.malice || 0)
@@ -144,6 +166,8 @@ function completeMercy(context: ThiefCastContext): void {
 }
 
 function completeShadowFlare(context: ThiefCastContext): void {
+  // Shadow Swap is granted only by an accepted Shadow Flare activation.
+  if (context.action?.cancelled === true) return;
   const core = professionCoreState(context);
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
   core.availableFlips[ID.SHADOW_SWAP] =

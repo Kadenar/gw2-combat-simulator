@@ -53,6 +53,8 @@ function startThievesGuildAttacks(context: ThiefSchedulerContext, at: number): v
 }
 
 export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill): void {
+  // Cancelled summons must not create persistent allies or their scheduled attacks.
+  if (context.action?.cancelled === true) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const profile = skill.summonAttack;

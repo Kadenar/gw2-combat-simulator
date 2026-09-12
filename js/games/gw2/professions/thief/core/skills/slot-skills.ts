@@ -141,25 +141,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     durationMultiplier: 3,
     effects: []
   },
-  [ID.SIGNET_OF_SHADOWS]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 10,
-        stacks: 1
-      }
-    ]
-  },
   [ID.SIGNET_OF_AGILITY]: {
     castTimeMs: 0,
     cooldown: 30,

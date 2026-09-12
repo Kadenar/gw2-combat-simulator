@@ -15,6 +15,7 @@ import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/sta
 import { applyMaleficentSeven } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
@@ -68,6 +69,8 @@ export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
 export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   if (
     event.type !== 'damage' ||
+    // A missed strike cannot spend malice or grant its on-hit resource benefit.
+    event.offTarget === true ||
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
     typeof event.activationId !== 'string'
@@ -105,6 +108,11 @@ function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: Thief
 
 function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
+  // The first marked hit refunds sword endurance once, before Malicious Intent seeds the next cycle.
+  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE) {
+    gainThiefEndurance(context, Number(event.deadeyeMaliceSnapshot || 0) * 10, event.at, 'malicious-tactical-strike');
+  }
+
   // Spend the attack's malice before Malicious Intent seeds the next malice cycle.
   state.malice = 0;
   state.maleficentSevenTriggered = false;

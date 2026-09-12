@@ -110,6 +110,8 @@ const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
   'Shadow Refuge',
   'Shadow Return',
   'Shadowstep',
+  // Keep this unsupported utility out of runtime catalogs and skill selectors.
+  'Signet of Shadows',
   'Smoke Screen'
 ]);
 

@@ -159,7 +159,8 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: (context) =>
       hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
       context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
-      context.event?.condition === 'Burning'
+      context.event?.condition === 'Burning' &&
+      context.event?.triggeredBy == null // only the base skill packet needs enhancement
   }
 ]);
 
