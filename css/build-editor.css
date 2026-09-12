@@ -732,53 +732,118 @@
   text-align: center;
 }
 
-/* The miniature workspace holds still while a staggered gold glow travels through its skill slots. */
+/* Forged workspace: artwork and real startup copy sit above a quietly assembling interface. */
 .loader-workspace {
-  width: min(100%, 600px);
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 720px);
+  overflow: hidden;
+  text-align: left;
+}
+
+.loader-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 360px;
+}
+
+.loader-art {
+  position: absolute;
+  top: -64px;
+  right: -24px;
+  width: min(78%, 520px);
+  pointer-events: none;
+  /* Fade into the page itself so a tinted backdrop cannot reveal a rectangular image edge. */
+  mask-image: linear-gradient(90deg, transparent, #000 38%);
 }
 
 .loader-crest {
-  /* Tuck the artwork's lower edge behind the workspace card so both read as one composition. */
   display: block;
-  width: min(100%, 460px);
+  width: 100%;
   height: auto;
   object-fit: contain;
-  margin: 0 auto calc(-1 * clamp(80px, 20vw, 130px));
-  opacity: 0.85;
-  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 35%, transparent));
+  opacity: 0.9;
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 20%, transparent));
+  animation: loader-art-drift 9s ease-in-out infinite;
 }
 
-/* Keep real startup announcements available to screen readers without visible loading copy. */
-#loading-status {
+.loader-sparks {
   position: absolute;
-  width: 1px;
+  inset: 20% 12% 12%;
+}
+
+.loader-sparks i {
+  position: absolute;
+  left: calc(10% + var(--spark) * 11%);
+  top: calc(40% + var(--spark) * 5%);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 7px var(--accent);
+  opacity: 0;
+  animation: loader-spark-rise 6s ease-out infinite;
+  animation-delay: calc(var(--spark) * -0.7s);
+}
+
+.loader-heading {
+  position: relative;
+  z-index: 1;
+  max-width: 320px;
+  padding: 24px 0;
+}
+
+.loader-heading::before {
+  content: '';
+  display: block;
+  width: 54px;
   height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  margin-bottom: 22px;
+  background: var(--loader-gold);
+}
+
+.loader-eyebrow {
+  margin-bottom: 12px;
+  color: var(--loader-gold);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.loader-workspace h1 {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 12px var(--bg-dark);
+}
+
+/* Show the existing live startup status; animation never invents stages or delays readiness. */
+#loading-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+#loading-status::before {
+  content: '';
+  flex: 0 0 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--loader-gold);
+  box-shadow: 0 0 9px #d0aa5555;
 }
 
 .loader-preview {
   position: relative;
-  padding: clamp(12px, 3vw, 24px);
-  border: 1px solid #d0aa5526;
-  border-radius: 8px;
-  background: var(--bg-panel);
-  box-shadow: 0 16px 64px #0002;
-}
-
-/* Keep the white heading readable over the artwork just above the workspace card. */
-.loader-workspace h1 {
-  position: relative;
-  margin-bottom: 20px;
-  color: var(--text-bright);
-  font-size: clamp(20px, 4vw, 26px);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  text-shadow:
-    0 2px 12px var(--bg-dark),
-    0 1px 4px var(--bg-dark);
+  margin: 16px 0 24px;
 }
 
 .loader-skill-bar {
@@ -793,13 +858,15 @@
   align-items: end;
   aspect-ratio: 1;
   padding-bottom: 2px;
+  overflow: hidden;
+  text-align: center;
   border: 1px solid #d0aa552e;
   border-radius: 3px;
   background: linear-gradient(145deg, #d0aa5510, transparent);
   color: #d0aa5570;
-  font: 9px var(--mono);
-  animation: loader-skill-reveal 2.8s ease-in-out infinite;
-  animation-delay: calc(var(--slot) * 0.12s);
+  font: 11px var(--mono);
+  animation: loader-skill-assemble 6s ease-in-out infinite both;
+  animation-delay: calc(var(--slot) * 0.14s);
 }
 
 .loader-skill-bar > span::before {
@@ -816,9 +883,8 @@
 .loader-panels {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: 16px;
-  margin-top: 22px;
-  opacity: 0.45;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .loader-traits,
@@ -832,25 +898,165 @@
 }
 
 .loader-panels i {
-  height: 22px;
+  height: 20px;
   border: 1px solid var(--border-light);
   border-radius: 3px;
   background: linear-gradient(90deg, #ffffff08, transparent);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: loader-panel-assemble 6s ease-in-out infinite both;
+  animation-delay: calc(0.6s + var(--row, 0) * 0.16s);
 }
 
-@keyframes loader-skill-reveal {
-  25% {
-    color: var(--loader-gold);
-    border-color: var(--loader-gold);
-    box-shadow:
-      0 0 14px #d0aa5526,
-      inset 0 0 12px #d0aa551a;
+.loader-traits i:nth-child(2),
+.loader-gear i:nth-child(3),
+.loader-gear i:nth-child(4) {
+  --row: 1;
+}
+
+.loader-traits i:nth-child(3),
+.loader-gear i:nth-child(5),
+.loader-gear i:nth-child(6) {
+  --row: 2;
+}
+
+.loader-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+}
+
+.loader-sweep::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, #d0aa5508 49.8%, #d0aa5560 50%, transparent 50.2%);
+  animation: loader-forge-sweep 6s ease-in-out infinite;
+}
+
+/* Only transform and opacity run continuously across the composition. */
+@keyframes loader-art-drift {
+  50% {
+    transform: translate(-5px, -2px) scale(1.018);
+  }
+}
+
+@keyframes loader-spark-rise {
+  20% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(14px, -70px);
+    opacity: 0;
+  }
+}
+
+@keyframes loader-skill-assemble {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(6px);
+  }
+  24%,
+  72% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loader-panel-assemble {
+  0%,
+  100% {
+    transform: translateY(3px) scaleX(0.92);
+    opacity: 0.2;
+  }
+  36%,
+  74% {
+    transform: none;
+    opacity: 0.55;
+  }
+}
+
+@keyframes loader-forge-sweep {
+  0%,
+  10% {
+    transform: translateY(-60%);
+    opacity: 0;
+  }
+  25%,
+  70% {
+    opacity: 0.7;
+  }
+  95%,
+  100% {
+    transform: translateY(60%);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .loader-hero {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .loader-art {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(100%, 360px);
+    margin: -24px auto -80px;
+    mask-image: none;
+  }
+
+  .loader-heading {
+    max-width: none;
+    padding: 0;
+  }
+
+  .loader-heading::before {
+    display: none;
+  }
+
+  .loader-workspace h1 {
+    font-size: 26px;
+  }
+
+  #loading-status {
+    margin-top: 12px;
+  }
+
+  .loader-preview {
+    margin-top: 28px;
+  }
+
+  .loader-skill-bar > span {
+    aspect-ratio: 0.8;
+    min-height: 40px;
+  }
+
+  .loader-panels {
+    gap: 8px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loader-skill-bar > span {
+  #loading-overlay .loader-workspace *,
+  #loading-overlay .loader-workspace *::before,
+  #loading-overlay .loader-workspace *::after {
     animation: none;
+  }
+
+  .loader-sparks,
+  .loader-sweep {
+    display: none;
+  }
+
+  .loader-skill-bar > span {
     color: var(--loader-gold);
   }
 }
