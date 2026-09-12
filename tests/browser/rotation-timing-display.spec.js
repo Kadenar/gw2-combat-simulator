@@ -18,7 +18,7 @@ test('rotation toolbar adapts display preferences and keeps load accessible', as
         expect(display.y + display.height).toBeGreaterThan(size.y);
         expect(display.x).toBeGreaterThanOrEqual(size.x + size.width);
       }
-      
+
       const load = toolbar.getByRole('button', { name: /Load Rotation/i });
       await load.click({ trial: true });
       const panel = await page.locator('.rotation-panel').boundingBox();
