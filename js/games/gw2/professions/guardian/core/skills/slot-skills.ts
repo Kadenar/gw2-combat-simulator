@@ -44,7 +44,9 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.SIGNET_OF_WRATH]: {
-    castTimeMs: 1000,
+    // The active commits before the Quickness cast finishes, allowing the remaining recovery to be canceled.
+    quicknessCastTimeMs: 880,
+    interruptCommitMs: 820,
     cooldown: 18,
     effects: [
       {
