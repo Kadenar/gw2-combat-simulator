@@ -23,6 +23,17 @@ export async function assertManifestRegressions(professionId) {
   const adapter = await loadProfessionAppAdapter(professionId);
 
   assert.ok(adapter, `${professionId} has no native app adapter`);
+  assert.ok(
+    manifest.some((section) => section.presets.length > 0),
+    `${professionId} has no presets`
+  );
+  // Validate asset ownership while loading so a second suite need not reread every preset.
+  const readAsset = async (path, kind) => {
+    const url = repoUrl(path);
+    assert.ok(url.href.startsWith(repoUrl(`data/gw2/${kind}/${professionId}/`).href), path);
+    return JSON.parse(await readFile(url, 'utf8'));
+  };
+
   const mismatches = [];
   const unexpectedWarnings = [];
 
@@ -32,15 +43,18 @@ export async function assertManifestRegressions(professionId) {
 
       assert.ok(Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0, label);
 
-      if (!preset.rotation) continue;
-
       const [savedBuild, savedRotation] = await Promise.all([
-        readFile(repoUrl(preset.build), 'utf8').then(JSON.parse),
-        readFile(repoUrl(preset.rotation), 'utf8').then(JSON.parse)
+        readAsset(preset.build, 'builds'),
+        preset.rotation ? readAsset(preset.rotation, 'rotations') : null
       ]);
+      assert.equal(savedBuild.profession, professionId, label);
+      assert.ok(Number.isInteger(savedBuild.schemaVersion) && savedBuild.schemaVersion > 0, label);
+      const rotation = preset.rotation ? (savedRotation?.rotation ?? savedRotation) : (savedBuild.rotation ?? []);
+      assert.ok(Array.isArray(rotation), label);
+      if (preset.rotation) assert.ok(rotation.length > 0, label);
       const build = adapter.toApplicationBuild({
         ...savedBuild,
-        rotation: savedRotation.rotation ?? savedRotation
+        rotation
       });
       // The app object mirrors the real shell: `adapter` exposes the assumption
       // controls (e.g. reaper `permanentIceField`) and `profession` backs the
@@ -56,11 +70,13 @@ export async function assertManifestRegressions(professionId) {
 
       adapter.recalculate(app);
       const config = adapter.simulationConfig(app);
+      // Build-only presets still exercise loading and configuration without inventing a benchmark rotation.
+      if (!preset.rotation) continue;
       const result = adapter.simulateBuild(build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
 
       if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });
-      if (dpsError > 0.01) {
+      if (!Number.isFinite(result.dps) || dpsError > 0.01) {
         mismatches.push({
           label,
           expectedDps: preset.benchmarkDps,

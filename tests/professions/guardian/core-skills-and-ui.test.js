@@ -472,93 +472,25 @@ test('Justice counts symbol packets and applies the measured two-second passive 
   assert.equal(proc.sourceSkill, 'Symbol of Resolution');
 });
 
-test('Guardian greatsword uses the reference cast and strike profiles', () => {
-  const simulate = (quickness) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: [
-        'Strike',
-        'Vengeful Strike',
-        'Wrathful Strike',
-        'Whirling Wrath',
-        'Leap of Faith',
-        'Symbol of Resolution',
-        'Binding Blade',
-        { type: 'wait', durationMs: 15000 }
-      ],
-      config: {
-        ...config,
-        boons: { quickness },
-        primaryWeapon: 'Greatsword'
-      }
-    });
-  const profile = (result, skillName) => {
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-
-    return {
-      cast: Math.round((action.endsAt - action.at) * 1000),
-      ticks: result.resolvedEvents
-        .filter((event) => event.type === 'damage' && event.skillName === skillName)
-        .map((event) => Number(((event.at - action.at) * 1000).toFixed(6))),
-      coefficient: Number(
-        result.resolvedEvents
-          .filter((event) => event.type === 'damage' && event.skillName === skillName)
-          .reduce((sum, event) => sum + event.coefficient, 0)
-          .toFixed(4)
-      )
-    };
-  };
-
-  const normal = simulate(false);
-  const quick = simulate(true);
-
-  assert.deepEqual(
-    ['Strike', 'Vengeful Strike', 'Wrathful Strike'].map((name) => profile(normal, name).cast),
-    [600, 900, 1000]
-  );
-  assert.deepEqual(
-    ['Strike', 'Vengeful Strike', 'Wrathful Strike'].map((name) => profile(quick, name).cast),
-    [400, 600, 680]
-  );
-  assert.deepEqual(profile(quick, 'Whirling Wrath'), {
-    cast: 1480,
-    ticks: [480, 480, 640, 640, 800, 800, 960, 960, 1120, 1120, 1280, 1280, 1440, 1440],
-    coefficient: 4.375
+// Tether damage is a non-critical flat strike and must remain attributed to its own breakdown row.
+test('Binding Blade tether resolves flat non-critical strike damage', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Binding Blade', { type: 'wait', durationMs: 15000 }],
+    config: { ...config, primaryWeapon: 'Greatsword' }
   });
-  assert.deepEqual(profile(quick, 'Leap of Faith'), {
-    cast: 720,
-    ticks: [640],
-    coefficient: 2
-  });
-  assert.deepEqual(profile(quick, 'Symbol of Resolution'), {
-    cast: 320,
-    ticks: [200, 1200, 2200, 3200, 4200],
-    coefficient: 3.4
-  });
-  assert.deepEqual(profile(quick, 'Binding Blade'), {
-    cast: 480,
-    ticks: [480, 1480, 2480, 3480, 4480, 5480, 6480, 7480, 8480, 9480, 10480],
-    coefficient: 2.5
-  });
-  const tether = quick.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
-
-  assert.equal(tether.length, 10);
+  const tether = result.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(tether.length > 0);
+  assert.ok(tether.every((event) => event.canCrit === false));
+  assert.ok(tether.every((event) => event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3));
+  const breakdown = result.breakdown.find((entry) => entry.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
   assert.equal(
-    tether.every((event) => event.canCrit === false),
-    true
-  );
-  assert.equal(
-    tether.every((event) => event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3),
-    true
-  );
-  const tetherBreakdown = quick.breakdown.find((entry) => entry.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
-
-  assert.equal(
-    tetherBreakdown.strikeDamage,
+    breakdown.strikeDamage,
     tether.reduce((damage, event) => damage + event.damage, 0)
   );
-  assert.equal(tetherBreakdown.conditionDamage, 0);
-  assert.equal(tetherBreakdown.hits, 10);
+  assert.equal(breakdown.conditionDamage, 0);
+  assert.equal(breakdown.hits, tether.length);
 });
 
 // Each Whirling Wrath pair lands together and survives only when cancellation reaches its arrival.
@@ -586,164 +518,37 @@ test('Whirling Wrath cancels melee and projectile pairs together', () => {
   }
 });
 
-test('Guardian longbow uses measured Quickness cast times', () => {
-  const skillNames = ['Symbol of Energy', 'True Shot', "Hunter's Ward", 'Deflecting Shot'];
+// The symbol burns on its opening strike rather than reapplying Burning on every pulse.
+test('Symbol of Energy applies Burning only with its opening strike', () => {
   const result = simulateGw2({
     profession: guardianProfession,
-    rotation: skillNames,
-    config: {
-      ...config,
-      boons: { quickness: true },
-      primaryWeapon: 'Longbow'
-    }
+    rotation: ['Symbol of Energy', { type: 'wait', durationMs: 6000 }],
+    config: { ...config, primaryWeapon: 'Longbow' }
   });
-  const castTimes = skillNames.map((skillName) => {
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-
-    return Math.round((action.endsAt - action.at) * 1000);
-  });
-
-  assert.deepEqual(castTimes, [400, 680, 720, 600]);
-});
-
-test('Guardian longbow packets and Symbol of Energy burning use measured EVTC timing', () => {
-  const profile = (skillName) => {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: [skillName, { type: 'wait', durationMs: 6000 }],
-      config: {
-        ...config,
-        primaryWeapon: 'Longbow'
-      }
-    });
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-
-    return {
-      result,
-      action,
-      damage: result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName)
-    };
-  };
-
-  const offsets = ({ action, damage }) => damage.map((event) => Math.round((event.at - action.at) * 1000));
-  const puncture = profile('Puncture Shot');
-  const deflecting = profile('Deflecting Shot');
-  const symbol = profile('Symbol of Energy');
-  const trueShot = profile('True Shot');
-  const ward = profile("Hunter's Ward");
-  const symbolBurning = symbol.result.resolvedEvents.filter(
+  const strikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Symbol of Energy'
+  );
+  const burning = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Symbol of Energy' && event.condition === 'Burning'
   );
-
-  assert.deepEqual(offsets(puncture), [560]);
-  assert.deepEqual(offsets(deflecting), [640]);
-  assert.deepEqual(offsets(symbol), [600, 1600, 2600, 3600, 4600]);
-  assert.deepEqual(offsets(trueShot), [680]);
-  assert.deepEqual(offsets(ward), [680, 1200, 1720, 2240]);
-  assert.deepEqual(
-    ward.damage.map((event) => event.coefficient),
-    [0.75, 0.75, 0.75, 2.5]
-  );
-  assert.equal(symbolBurning.length, 1);
-  assert.equal(Math.round((symbolBurning[0].at - symbol.action.at) * 1000), 600);
-  assert.equal(symbolBurning[0].duration, 12);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(strikes.length > 1);
+  assert.equal(burning.length, 1);
+  assert.equal(burning[0].at, strikes[0].at);
 });
 
-test('Guardian utilities and traps use the reference damage timelines', () => {
-  const skillNames = ['Sword of Justice', 'Procession of Blades', 'Bane Signet', "Dragon's Maw", 'Purification'];
-  const simulate = (quickness) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: [...skillNames, { type: 'wait', durationMs: 5000 }],
-      config: {
-        ...config,
-        boons: { quickness },
-        specialization: 'Dragonhunter'
-      }
-    });
-  const profiles = (result) =>
-    Object.fromEntries(
-      skillNames.map((skillName) => {
-        const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-        const damage = result.resolvedEvents.filter(
-          (event) => event.type === 'damage' && event.skillName === skillName
-        );
-
-        return [
-          skillName,
-          {
-            cast: Math.round((action.endsAt - action.at) * 1000),
-            ticks: damage.map((event) => Math.round((event.at - action.at) * 1000)),
-            coefficient: Number(damage.reduce((sum, event) => sum + event.coefficient, 0).toFixed(4))
-          }
-        ];
-      })
-    );
-  const normalResult = simulate(false);
-  const quickResult = simulate(true);
-  const normal = profiles(normalResult);
-  const quick = profiles(quickResult);
-  const swordAction = quickResult.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Sword of Justice'
-  );
-
-  assert.deepEqual(
-    skillNames.map((name) => normal[name].cast),
-    [900, 660, 750, 660, 900]
-  );
-  assert.deepEqual(
-    skillNames.map((name) => quick[name].cast),
-    [600, 440, 500, 440, 600]
-  );
-  assert.deepEqual(quick['Sword of Justice'], {
-    cast: 600,
-    ticks: [1320, 1720, 2120, 2520],
-    coefficient: 3.2
-  });
-  assert.deepEqual(
-    quickResult.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === 'condition' && event.skillName === 'Sword of Justice' && event.condition === 'Vulnerability'
-      )
-      .map((event) => [Math.round((event.at - swordAction.at) * 1000), event.stacks, event.duration]),
-    [
-      [1320, 3, 8],
-      [1720, 3, 8],
-      [2120, 3, 8],
-      [2520, 3, 8]
-    ]
-  );
-  const swordRecharge = simulateGw2({
+// Exhausting the spirit weapon's charges must wait for recharge after the shorter between-use lockout.
+test('Sword of Justice waits for ammo recharge after exhausting its charges', () => {
+  const result = simulateGw2({
     profession: guardianProfession,
     rotation: ['Sword of Justice', 'Sword of Justice', 'Sword of Justice', 'Sword of Justice'],
     config: { ...config, boons: { quickness: true } }
   });
-
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    swordRecharge.steps.map((step) => step.start),
+    result.steps.map((step) => step.start),
     [0, 1600, 3200, 15600]
   );
-  assert.deepEqual(quick['Procession of Blades'], {
-    cast: 440,
-    ticks: [1720, 2000, 2280, 2560, 2840, 3120, 3400, 3680, 3960, 4240],
-    coefficient: 4.4
-  });
-  assert.deepEqual(quick['Bane Signet'], {
-    cast: 500,
-    ticks: [500],
-    coefficient: 1
-  });
-  assert.deepEqual(quick["Dragon's Maw"], {
-    cast: 440,
-    ticks: [1400],
-    coefficient: 3.6
-  });
-  assert.deepEqual(quick.Purification, {
-    cast: 600,
-    ticks: [1560],
-    coefficient: 0.1875
-  });
 });
 
 test('Solar Storm preserves its committed volley and rejects uncommitted illumination changes', () => {

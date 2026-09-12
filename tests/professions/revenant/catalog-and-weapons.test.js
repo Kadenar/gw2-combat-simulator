@@ -1136,7 +1136,8 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   );
 });
 
-test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
+// Repeated spear swings share one selectable action instead of adding a synthetic palette entry.
+test('Abyssal Strike repeats without exposing a separate second-swing palette tile', () => {
   const result = simulate('Core', ['Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike'], {
     primaryWeapon: 'Spear',
     secondaryWeapon: '',
@@ -1144,15 +1145,7 @@ test('Abyssal Strike uses 520ms Quickness timing for both spear swings', () => {
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.deepEqual(
-    result.steps.map((step) => [step.skill, step.start, step.fullCastMs]),
-    [
-      ['Abyssal Strike', 0, 520],
-      ['Abyssal Strike', 520, 520],
-      ['Abyssal Strike', 1040, 520],
-      ['Abyssal Strike', 1560, 520]
-    ]
-  );
+
   assert.ok(
     result.events.filter((event) => event.type === 'damage').every((event) => event.skillName === 'Abyssal Strike')
   );

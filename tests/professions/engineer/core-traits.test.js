@@ -376,10 +376,8 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const serratedBleed = bleed([TRAIT.SERRATED_STEEL]);
   const powerBleed = bleed([TRAIT.SHARPSHOOTER]);
 
-  assert.ok(
-    Math.abs((serratedBleed.naturalExpiresAt - serratedBleed.at) / (baseBleed.naturalExpiresAt - baseBleed.at) - 1.33) <
-      1e-12
-  );
+  // Duration bonuses apply before the natural lifetime rounds up to 40ms.
+  assert.equal(serratedBleed.effectiveDuration, Math.ceil(baseBleed.effectiveDuration * 1.33 * 25) / 25);
   assert.equal(baseBleed.damageTicks[0].damage, 82);
   assert.ok(Math.abs(powerBleed.damageTicks[0].damage - 102) < 1e-12);
 
@@ -415,10 +413,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const chemicalBurn = pistolBurn([TRAIT.CHEMICAL_ROUNDS]);
   const thermalBurn = pistolBurn([TRAIT.THERMAL_VISION]);
 
-  assert.ok(
-    Math.abs((chemicalBurn.naturalExpiresAt - chemicalBurn.at) / (baseBurn.naturalExpiresAt - baseBurn.at) - 4 / 3) <
-      1e-12
-  );
+  assert.equal(chemicalBurn.effectiveDuration, Math.ceil(((baseBurn.duration * 4) / 3) * 25) / 25);
   assert.ok(Math.abs(thermalBurn.damageTicks[0].damage / baseBurn.damageTicks[0].damage - 1.05) < 1e-12);
 
   const ammunitionBase = simulate('Core', ['Puncturing Jab'], {
@@ -470,7 +465,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
     const base = conditionDuration(skillName, condition, []);
     const chemical = conditionDuration(skillName, condition, [TRAIT.CHEMICAL_ROUNDS]);
 
-    assert.ok(Math.abs(chemical / base - 4 / 3) < 1e-12, `${skillName} — ${condition}`);
+    assert.ok(Math.abs(chemical - Math.ceil(((base * 4) / 3) * 25) / 25) < 1e-12, `${skillName} — ${condition}`);
   }
 });
 

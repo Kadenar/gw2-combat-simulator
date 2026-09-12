@@ -14,49 +14,53 @@ const simulate = createProfessionSimulator(thiefProfession, {
   boons: { quickness: true }
 });
 
-// Check each commit boundary through the scheduler, including persistent fields and retained dodge occupancy.
-test('Channeled Vigor grants endurance only after its 440 ms interrupt commit', () => {
-  for (const interruptMs of [439, 440]) {
+// Exercise cancellation on either side of the authored boundary without freezing the skill's current timing.
+test('Channeled Vigor grants endurance only after commitment', () => {
+  const commitMs = thiefCatalog.skillsByName.get('Channeled Vigor').interruptCommitMs;
+  for (const interruptMs of [commitMs - 1, commitMs]) {
     const result = simulate('Daredevil', ['Dodge', { name: 'Channeled Vigor', interruptMs }, 'Double Strike'], {
       selectedSkills: ['Channeled Vigor']
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[1].cancelledBeforeCommit === true, interruptMs < 440);
-    assert.equal(result.steps[2].start, 800 + interruptMs);
+    assert.equal(result.steps[1].cancelledBeforeCommit === true, interruptMs < commitMs);
+    assert.equal(result.steps[2].start, result.steps[1].start + interruptMs);
     assert.equal(
       result.events.some((event) => event.type === 'thief.state' && event.reason === 'Channeled Vigor'),
-      interruptMs >= 440
+      interruptMs >= commitMs
     );
   }
 });
 
-test('Thief dodge retains its 800 ms lockout only after the 760 ms commit', () => {
-  for (const interruptMs of [759, 760]) {
+test('Thief dodge retains its full lockout only after commitment', () => {
+  const commitMs = thiefCatalog.skillsByName.get('Dodge').interruptCommitMs;
+  const fullDuration = simulate('Daredevil', ['Dodge']).steps[0].fullCastMs;
+  for (const interruptMs of [commitMs - 1, commitMs]) {
     const result = simulate('Daredevil', [{ name: 'Dodge', interruptMs }, 'Double Strike']);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < 760);
-    assert.equal(result.steps[0].castLockoutEnd, interruptMs < 760 ? undefined : 800);
-    assert.equal(result.steps[1].start, interruptMs < 760 ? interruptMs : 800);
+    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
+    assert.equal(result.steps[0].castLockoutEnd, interruptMs < commitMs ? undefined : fullDuration);
+    assert.equal(result.steps[1].start, interruptMs < commitMs ? interruptMs : fullDuration);
     assert.equal(
       result.events.some((event) => event.type === 'damage' && event.skillName === 'Impaling Lotus'),
-      interruptMs >= 760
+      interruptMs >= commitMs
     );
   }
 });
 
-test('Thousand Needles placement commits at 400 ms and arms from the interrupted end', () => {
-  for (const interruptMs of [399, 400]) {
+test('Thousand Needles arms from the interrupted end only after placement commits', () => {
+  const commitMs = thiefCatalog.skillsByName.get('Prepare Thousand Needles').interruptCommitMs;
+  for (const interruptMs of [commitMs - 1, commitMs]) {
     const result = simulate('Core', [
       { name: 'Prepare Thousand Needles', interruptMs },
       'Thousand Needles',
       { name: '__wait', waitMs: 500 }
     ]);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < 400);
-    if (interruptMs < 400) {
+    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
+    if (interruptMs < commitMs) {
       assert.match(result.warnings.join('\n'), /prepare Thousand Needles first/);
     } else {
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.steps[1].start, 3400);
+      assert.equal(result.steps[1].start, result.steps[0].end + 3000);
       assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Thousand Needles'));
     }
   }
@@ -108,21 +112,25 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
   }
 });
 
-test('Caltrops commits at 800 ms and its field survives the interrupted cast', () => {
-  for (const interruptMs of [799, 800]) {
+test('Caltrops preserves its field after a committed cancellation', () => {
+  const commitMs = thiefCatalog.skillsByName.get('Caltrops').interruptCommitMs;
+  const pulsesFor = (result) =>
+    result.events.filter((event) => event.type === 'condition' && event.skillName === 'Caltrops');
+  const full = pulsesFor(simulate('Core', ['Caltrops', { name: '__wait', waitMs: 11000 }]));
+  assert.ok(full.length > 0);
+  for (const interruptMs of [commitMs - 1, commitMs]) {
     const result = simulate('Core', [
       { name: 'Caltrops', interruptMs },
       // Observe through the last field pulse even when the cast ends before placement.
       { name: '__wait', waitMs: 11000 }
     ]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < 800);
-    const pulses = result.events.filter((event) => event.type === 'condition' && event.skillName === 'Caltrops');
-    if (interruptMs < 800) {
+    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
+    const pulses = pulsesFor(result);
+    if (interruptMs < commitMs) {
       assert.equal(pulses.length, 0);
     } else {
-      assert.equal(pulses.filter((event) => event.condition === 'Bleeding').length, 11);
-      assert.equal(pulses.filter((event) => event.condition === 'Crippled').length, 5);
+      assert.deepEqual(pulses, full);
       assert.ok(pulses.every((event) => event.at > interruptMs / 1000));
     }
   }

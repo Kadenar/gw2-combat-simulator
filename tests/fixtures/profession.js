@@ -1,6 +1,7 @@
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
+// Shared fixture only; its filename keeps Node from reporting this helper as an empty test.
 const catalog = createCanonicalCatalog({
   generated: [
     {

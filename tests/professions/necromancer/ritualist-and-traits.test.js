@@ -870,7 +870,7 @@ test('Soul Barbs and Dark Gunslinger change their documented outputs', () => {
     (event) => event.skillId === ID.VILE_BLAST && event.condition === 'Poisoned'
   );
 
-  assert.ok(Math.abs(gunslingerPoison.effectiveDuration - 6.496) < 1e-12);
+  assert.ok(Math.abs(gunslingerPoison.effectiveDuration - 6.52) < 1e-12);
 });
 
 test('Lesser Chilblains owns its strike and poison damage attribution', () => {

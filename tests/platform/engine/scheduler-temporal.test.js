@@ -5,7 +5,7 @@ import { createCooldownController } from '#gw2/platform/engine/execution/cooldow
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 
 // Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
 test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {

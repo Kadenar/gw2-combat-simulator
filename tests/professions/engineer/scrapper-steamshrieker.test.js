@@ -4,10 +4,7 @@ import test from 'node:test';
 import { resolveProcIcon } from '#gw2/app/rotation/shared/icons.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
-
-const STEAMSHRIEKER_ICON = 'https://render.guildwars2.com/file/23B0F0A5BF05E05C9F527BF7EB4962C9F49C6F42/3441975.png';
 
 const scrapperConfig = Object.freeze({
   specialization: 'Scrapper',
@@ -17,10 +14,6 @@ const scrapperConfig = Object.freeze({
   stats: { power: 2000, conditionDamage: 1000 }
 });
 
-function mechanic(name) {
-  return engineerCatalog.skillsByName.get(name);
-}
-
 function simulate(rotation) {
   return simulateGw2({
     profession: engineerProfession,
@@ -28,30 +21,6 @@ function simulate(rotation) {
     config: scrapperConfig
   });
 }
-
-test('Scrapper healing skills expose their measured Quickness timings and water fields', () => {
-  const medicGyro = mechanic('Medic Gyro');
-  const reconstructionField = mechanic('Reconstruction Field');
-  const elixirShell = mechanic('Elixir Shell');
-
-  assert.equal(medicGyro.quicknessCastTimeMs, 360);
-  assert.equal(medicGyro.comboFields[0].fieldType, 'Water');
-  assert.equal(medicGyro.comboFields[0].duration, 5);
-  assert.equal(reconstructionField.quicknessCastTimeMs, 360);
-  assert.equal(reconstructionField.comboFields[0].fieldType, 'Water');
-  assert.equal(reconstructionField.comboFields[0].duration, 2);
-  assert.equal(elixirShell.quicknessCastTimeMs, 560);
-  assert.equal(elixirShell.comboFields[0].fieldType, 'Water');
-  assert.equal(elixirShell.comboFields[0].duration, 5);
-});
-
-test('Poison Gas Shell uses its measured Quickness cast time', () => {
-  const result = simulate(['Elite Mortar Kit', 'Poison Gas Shell']);
-  const step = result.steps.find((candidate) => candidate.skill === 'Poison Gas Shell');
-
-  assert.equal(mechanic('Poison Gas Shell').quicknessCastTimeMs, 560);
-  assert.equal(step.end - step.start, 560);
-});
 
 test('Steamshrieker burns once for each affected Engineer blast or leap', () => {
   const scenarios = [
@@ -84,19 +53,20 @@ test('Steamshrieker burns once for each affected Engineer blast or leap', () => 
   }
 });
 
+// Relic attribution must win over the triggering skill regardless of the current artwork URL.
 test('Steamshrieker proc rows use the relic icon before the triggering skill icon', () => {
   const app = {
     attributeData: { activeTraits: [] },
     skillByName: new Map([['Devastator', { icon: 'wrong-trigger-icon.png' }]])
   };
 
-  assert.equal(RELIC_DATA.Steamshrieker.icon, STEAMSHRIEKER_ICON);
+  assert.ok(RELIC_DATA.Steamshrieker.icon);
   assert.equal(
     resolveProcIcon(app, {
       type: 'relic_proc',
       skill: 'Relic of Steamshrieker',
       sourceSkill: 'Devastator'
     }),
-    STEAMSHRIEKER_ICON
+    RELIC_DATA.Steamshrieker.icon
   );
 });

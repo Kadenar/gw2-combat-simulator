@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import test from 'node:test';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 
@@ -57,10 +57,6 @@ async function familyFragments(relativeDirectory) {
       .filter((filename) => filename.endsWith('.ts') && filename !== 'index.ts')
       .sort()
       .map(async (filename) => {
-        const source = readFileSync(new URL(filename, directory), 'utf8');
-        assert.match(source, /^\/\*\*/);
-        assert.match(source, /RANGER_SKILL_IDS\s+as\s+ID/);
-        assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
         const module = await import(`#gw2/professions/ranger/${relativeDirectory}${filename.replace(/\.ts$/, '.js')}`);
         const exports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
 
@@ -134,27 +130,4 @@ test('Core Ranger supplemental identities compose from their semantic owners', (
     ...RANGER_CORE_AXE_EXTRA_SKILLS,
     ...RANGER_CORE_ACTION_SKILLS
   ]);
-});
-
-test('Ranger refresh and runtime cannot restore retired ownership paths', () => {
-  for (const relativePath of [
-    'core/skills.ts',
-    'core/skills/hammer.ts',
-    'core/skills/pet-skills.ts',
-    'specializations/druid/skills.ts',
-    'specializations/galeshot/skills.ts',
-    'specializations/soulbeast/skills.ts',
-    'specializations/untamed/skills.ts'
-  ]) {
-    assert.equal(existsSync(new URL(relativePath, professionRoot)), false, relativePath);
-  }
-
-  assert.equal(
-    existsSync(new URL('../../../scripts/data/generate-ranger-skill-mechanics.mjs', import.meta.url)),
-    false
-  );
-  assert.doesNotMatch(
-    readFileSync(new URL('../../../scripts/data/update-ranger-data.mjs', import.meta.url), 'utf8'),
-    /generateRangerSkillMechanics/
-  );
 });

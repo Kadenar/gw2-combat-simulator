@@ -1060,10 +1060,10 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     selectedTraitIds: [TRAIT.LOTUS_TRAINING]
   });
 
-  // The damage row must use the triggered skill's icon rather than the Lotus Training trait icon.
+  // Pin the dagger artwork so a loadable but incorrect API icon cannot pass this check.
   assert.equal(
     skillBreakdownRows(impalingLotus).find((row) => row.name === 'Impaling Lotus')?.icon,
-    thiefCatalog.skillsById.get(ID.IMPALING_LOTUS).icon
+    'https://render.guildwars2.com/file/E5724D46CEE62333E00CE26905C5FDD5439F6667/1058552.png'
   );
 });
 

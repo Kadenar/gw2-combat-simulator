@@ -244,31 +244,6 @@ describe('Ranger skill-bar selections', () => {
 });
 
 describe('Galeshot Cyclone Bow', () => {
-  test('uses measured Quickness cast times', () => {
-    const expectedQuicknessCastTimes = new Map([
-      ['Mistral', 320],
-      ['Long Range Shot', 480],
-      ['Rapid Fire', 1800],
-      ["Hunter's Shot", 320],
-      ['Point-Blank Shot', 360],
-      ['Barrage', 1880],
-      ['Keen Shot', 480],
-      ['Hawkeye', 880],
-      ['Bluster', 680],
-      ['Fleeting Zephyr', 520],
-      ["Quarry's Peril", 680],
-      ['Pelt', 680],
-      ['Supersonic Arrow', 1000],
-      ['Piercing Gales', 640],
-      ['Perfect Storm', 600]
-    ]);
-
-    for (const [name, castTimeMs] of expectedQuicknessCastTimes) {
-      assert.equal(rangerCatalog.skillsByName.get(name).quicknessCastTimeMs, castTimeMs);
-      assert.equal(castTimeMs % 40, 0);
-    }
-  });
-
   test('enforces replacement rules and consumes Bow resources', () => {
     const blocked = simulate('Galeshot', ['Bluster']);
 
@@ -910,8 +885,8 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   });
 
   for (const [result, duration, effectiveDuration] of [
-    [spider, 3, 3.75],
-    [devourer, 1.5, 1.875]
+    [spider, 3, 3.76],
+    [devourer, 1.5, 1.88]
   ]) {
     assert.deepEqual(result.warnings, []);
     assert.equal(

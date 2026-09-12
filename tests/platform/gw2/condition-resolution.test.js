@@ -98,9 +98,9 @@ test('condition applications shorter than one second deal fractional damage', ()
   });
 
   assert.ok(result.conditionDamage > 0);
-  assert.equal(result.firstHitTime, 0.5);
+  assert.equal(result.firstHitTime, 0.52);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
-  assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
+  assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.52);
   assert.deepEqual(result.warnings, ['resolver handoff warning']);
 });
 
@@ -164,13 +164,12 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
 
   const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
 
-  // Independent fractional durations integrate to 1.75 stack-seconds instead
-  // of being rounded onto a shared one-second condition-tick cadence.
+  // Each natural duration rounds up to 40ms independently: 1.25 + 0.5 becomes 1.28 + 0.52.
   assert.equal(
     applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
-    1.75
+    1.8
   );
-  assert.equal(result.conditionDamage, 143.5);
+  assert.ok(Math.abs(result.conditionDamage - 82 * 1.8) < 1e-9);
 });
 
 function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, startingHealthFraction = 1 } = {}) {
@@ -221,6 +220,27 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, 
   });
 }
 
+// The rounded remainder occurs only at natural expiry, never at an earlier observation cutoff.
+test('partial condition ticks round up to 40ms without rounding full seconds or observation cutoffs', () => {
+  for (const [duration, expected] of [
+    [3 * 1.6719, 5.04],
+    [5.04, 5.04],
+    [5, 5],
+    [0.001, 0.04]
+  ]) {
+    const result = resolveBleedThrough(6, { duration });
+    const application = result.resolvedEvents.find((event) => event.type === 'condition');
+    assert.equal(application.effectiveDuration, expected);
+    assert.equal(application.damageTicks.at(-1).at, expected);
+    assert.ok(Math.abs(application.damage - 82 * expected) < 1e-9);
+  }
+
+  const clipped = resolveBleedThrough(5.02, { duration: 3 * 1.6719 });
+  const application = clipped.resolvedEvents.find((event) => event.type === 'condition');
+  assert.equal(application.damageTicks.at(-1).at, 5);
+  assert.equal(application.damage, 82 * 5);
+});
+
 test('observation horizons omit future condition ticks without creating endpoint damage', () => {
   const clipped = resolveBleedThrough(1.5);
   const extended = resolveBleedThrough(2);
@@ -255,12 +275,12 @@ test('target death occurs on natural condition ticks rather than the observation
   assert.equal(halfHealthTarget.deathTime, 2);
   assert.equal(deadTarget.deathTime, 0);
   assert.equal(deadTarget.totalDamage, 0);
-  assert.equal(throughNaturalRemainder.deathTime, 1.5);
+  assert.equal(throughNaturalRemainder.deathTime, 1.52);
   assert.deepEqual(
     remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
     [
       { at: 1, fraction: 1 },
-      { at: 1.5, fraction: 0.5 }
+      { at: 1.52, fraction: 0.52 }
     ]
   );
 });

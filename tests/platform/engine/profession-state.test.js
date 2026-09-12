@@ -8,7 +8,7 @@ import {
   projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 
 // Shared profession state preserves isolated runtime fields and detached public snapshots.
 test('profession snapshots flatten and deeply clone active runtime state', () => {

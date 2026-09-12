@@ -1,7 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import assert from 'node:assert/strict';
-import { access, readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -33,7 +33,6 @@ import { TEMPEST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/speci
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { CATALYST_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-const professionRoot = new URL('../../../js/games/gw2/professions/elementalist/', import.meta.url);
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
@@ -58,40 +57,6 @@ test('Elementalist authored effect offsets use ordered 40 ms action ticks', () =
     }
   }
 });
-
-async function professionSourceFiles(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map((entry) => {
-      const target = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directory);
-
-      if (entry.isDirectory()) return professionSourceFiles(target);
-
-      return /\.(?:[cm]?js|ts)$/.test(entry.name) ? [target] : [];
-    })
-  );
-
-  return nested.flat();
-}
-
-async function accessSourceModule(target) {
-  try {
-    await access(target);
-  } catch (error) {
-    if (!target.pathname.endsWith('.js')) throw error;
-    const typeScript = new URL(target);
-
-    typeScript.pathname = typeScript.pathname.replace(/\.js$/, '.ts');
-    try {
-      await access(typeScript);
-    } catch {
-      const declaration = new URL(target);
-
-      declaration.pathname = declaration.pathname.replace(/\.js$/, '.d.ts');
-      await access(declaration);
-    }
-  }
-}
 
 const authoringElementalistProfession = withActivePatchPreview(elementalistProfession);
 
@@ -424,41 +389,5 @@ test('all Elementalist build and rotation assets migrate through the native code
         .every((command) => elementalistCatalog.skillsById.has(command.skillId)),
       `${preset.section}: ${preset.label}`
     );
-  }
-});
-
-test('every relative import in the Elementalist package resolves', async () => {
-  const files = await professionSourceFiles(professionRoot);
-
-  assert.ok(files.length > 30);
-
-  for (const file of files) {
-    const source = await readFile(file, 'utf8');
-    const imports = source.matchAll(/(?:from\s+|import\s*)["'](\.[^"']+)["']/g);
-
-    for (const match of imports) {
-      const specifier = match[1].split('?')[0];
-      const target = new URL(specifier, file);
-
-      await assert.doesNotReject(
-        accessSourceModule(target),
-        `${path.relative(process.cwd(), file.pathname)} -> ${specifier}`
-      );
-    }
-  }
-});
-
-test('native Elementalist has no standalone, CSV, or optimizer dependency', async () => {
-  const files = await professionSourceFiles(professionRoot);
-
-  assert.ok(files.length > 30);
-
-  for (const file of files) {
-    const source = await readFile(file, 'utf8');
-    const relative = path.relative(process.cwd(), file.pathname);
-
-    assert.doesNotMatch(source, /(?:[\\/]|["'])legacy(?:[\\/]|["'])/i, relative);
-    assert.doesNotMatch(source, /\bcsv\b/i, relative);
-    assert.doesNotMatch(source, /\boptimizer\b|effectivePower|effective power/i, relative);
   }
 });

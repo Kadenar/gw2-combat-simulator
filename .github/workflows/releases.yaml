@@ -118,7 +118,7 @@ jobs:
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
           --test-reporter-destination=dist/test-reports/tooling.xml "tests/architecture/**/*.test.*js"
-          "tests/scripts/**/*.test.mjs" "tests/fixtures/test-*.js"
+          "tests/scripts/**/*.test.mjs"
       - name: Validate compiled modules
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: node scripts/build/check-dist.mjs

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
 import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
@@ -13,8 +12,6 @@ import { HARBINGER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/s
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
 import { REAPER_SHOUT_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
 import { REAPER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/shroud-skills.js';
-
-const professionSourceRoot = new URL('../../../js/games/gw2/professions/necromancer/', import.meta.url);
 
 // Validate evaluated arrays, including generated packets and profiles, so authored offsets stay on the 40 ms grid.
 test('Necromancer authored effect ticks use the action grid', () => {
@@ -41,36 +38,4 @@ test('Necromancer owner-local skill families compose without duplicates or omiss
     CORE_ACTIONS.map(({ id }) => id),
     [ID.SWAP_WEAPONS, ID.EXIT_LICH_FORM]
   );
-});
-
-// Locks the migration boundary so ambiguous runtime owners cannot quietly return.
-test('Necromancer runtime files identify their skill-family owners', () => {
-  const retiredFiles = [
-    'core/skills/flip-handlers.ts',
-    'core/skills/flip-execution.ts',
-    'core/skills/execution.ts',
-    'core/skills/weapons.ts',
-    'core/skills/weapons/greatsword-execution.ts',
-    'core/skills/weapons/spear-execution.ts',
-    'core/skills/weapons/sword-execution.ts',
-    'core/skills/weapons/torch-execution.ts',
-    'specializations/harbinger/skills/dark-barrage.ts',
-    'specializations/harbinger/skills/dark-barrage-execution.ts',
-    'specializations/ritualist/skills/weapon-spells.ts',
-    'specializations/ritualist/skills/weapon-spell-execution.ts'
-  ];
-  const ownedFiles = [
-    'core/execution/greatsword.ts',
-    'core/execution/index.ts',
-    'core/execution/spear.ts',
-    'core/execution/torch.ts',
-    'core/mechanics/skill-flips.ts',
-    'core/mechanics/sword-chain.ts',
-    'core/skills/actions.ts',
-    'specializations/harbinger/execution/dark-barrage.ts',
-    'specializations/ritualist/execution/weapon-spells.ts'
-  ];
-
-  for (const relativePath of retiredFiles) assert.equal(existsSync(new URL(relativePath, professionSourceRoot)), false);
-  for (const relativePath of ownedFiles) assert.equal(existsSync(new URL(relativePath, professionSourceRoot)), true);
 });

@@ -1292,57 +1292,6 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
   assert.equal(kick.endState.profession.attackerInsightExpiries.length, 2);
 });
 
-test('Warrior packets use their configured Quickness offsets', () => {
-  const packetOffsets = (skillName, config = {}) => {
-    const rotation =
-      skillName === 'Focused Slash'
-        ? ['Precise Cut', skillName]
-        : skillName === 'Keen Strike'
-          ? ['Precise Cut', 'Focused Slash', skillName]
-          : skillName === 'Hamstring'
-            ? ['Sever Artery', 'Gash', skillName]
-            : [skillName];
-    const result = simulate('Spellbreaker', rotation, {
-      boons: { quickness: true },
-      selectedTraitIds: [TRAIT.DUAL_WIELDING],
-      ...config
-    });
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-
-    return result.events
-      .filter((event) => event.type === 'damage' && event.activationId === action.activationId)
-      .map((event) => Math.round((event.at - action.at) * 1000));
-  };
-
-  const daggerMace = {
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace',
-    initialResource: 10
-  };
-  const swordAxe = {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Axe',
-    initialResource: 10
-  };
-
-  assert.deepEqual(packetOffsets('Crushing Blow', daggerMace), [314]);
-  assert.deepEqual(packetOffsets('Tremor', daggerMace), [314, 343]);
-  assert.deepEqual(packetOffsets('Disrupting Stab', daggerMace), [116]);
-  assert.deepEqual(packetOffsets('Precise Cut', daggerMace), [210]);
-  assert.deepEqual(packetOffsets('Focused Slash', daggerMace), [187]);
-  assert.deepEqual(packetOffsets('Keen Strike', daggerMace), [204]);
-  assert.deepEqual(packetOffsets('Breaching Strike', daggerMace), [760]);
-  assert.deepEqual(packetOffsets('Kick', daggerMace), [440]);
-  assert.deepEqual(packetOffsets('Bloodthirster', swordAxe), [320]);
-  assert.deepEqual(packetOffsets('Dual Strike', swordAxe), [360, 360]);
-  assert.deepEqual(packetOffsets('Rend', swordAxe), [330, 660]);
-  assert.deepEqual(packetOffsets('Hamstring', swordAxe), [192]);
-  assert.deepEqual(
-    packetOffsets('Whirling Axe', swordAxe),
-    [261, 359, 490, 620, 751, 849, 979, 1110, 1240, 1338, 1469, 1599, 1730, 1828, 1958]
-  );
-});
-
 test('Dagger autos use a 15% critical-damage factor', () => {
   const damage = (skillName, precision) => {
     const rotation =

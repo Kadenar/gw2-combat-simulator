@@ -8,7 +8,7 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 
 test('GW2 resolver registry orders hooks stably and returns the last result', () => {
@@ -242,6 +242,6 @@ test('resolver duration queries use live relic state while historical queries re
       }
     }
   });
-  assert.deepEqual(durations, [1, 1, 1.03]);
+  assert.deepEqual(durations, [1, 1, 1.04]);
   assert.deepEqual(liveBonuses, [1, 1.03, 1.03]);
 });

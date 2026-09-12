@@ -671,7 +671,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
     (event) => event.type === 'condition' && event.skillName === 'Shattershot' && event.condition === 'Bleeding'
   );
 
-  assert.ok(Math.abs(bleeding.naturalExpiresAt - bleeding.at - 3.75) < 1e-9);
+  assert.ok(Math.abs(bleeding.naturalExpiresAt - bleeding.at - 3.76) < 1e-9);
   assert.equal(
     revenantAttributeRules.modifyConditionDuration(
       {

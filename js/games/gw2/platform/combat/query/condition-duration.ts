@@ -15,5 +15,8 @@ export function conditionApplicationDuration(
   const baseDurationMultiplier = event.fixedDuration
     ? 1
     : (query.conditionBaseDurationMultiplier?.(name, event.at, event, runtime) ?? 1);
-  return Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
+  const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
+  // Round natural lifetimes up to 40ms in both phases, ignoring floating-point noise at exact boundaries.
+  const ticks = duration * 25;
+  return Math.ceil(ticks - Number.EPSILON * ticks) / 25;
 }

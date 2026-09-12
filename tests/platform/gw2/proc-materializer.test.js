@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';

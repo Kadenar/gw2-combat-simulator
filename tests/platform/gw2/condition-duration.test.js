@@ -11,7 +11,9 @@ test('condition duration preserves phase context, fixed durations, and natural e
   for (const [fixedDuration, baseMultiplier, expectedDuration] of [
     [false, 2, 6],
     [true, 2, 2],
-    [false, undefined, 3]
+    [false, undefined, 3],
+    [false, 1.6719, 5.04],
+    [false, 1.68, 5.04]
   ]) {
     const event = {
       type: 'condition',

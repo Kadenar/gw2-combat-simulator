@@ -11,7 +11,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 
 // Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
 test('resolver setup shares reactions and creates fresh profession state for each pass', () => {

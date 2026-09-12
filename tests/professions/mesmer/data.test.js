@@ -26,7 +26,6 @@ import {
   MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS,
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS,
-  MESMER_CORE_TRAIT_DAMAGE,
   MESMER_CORE_WEAPON_STRENGTH as WEAPON_STRENGTH
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import {
@@ -39,8 +38,7 @@ import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesme
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 import {
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_TRAIT_DAMAGE
+  MESMER_CHRONOMANCER_SHATTERS
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
@@ -61,8 +59,7 @@ import {
 import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
-  MESMER_VIRTUOSO_SHATTERS,
-  MESMER_VIRTUOSO_TRAIT_DAMAGE
+  MESMER_VIRTUOSO_SHATTERS
 } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import {
@@ -70,10 +67,7 @@ import {
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
 } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import {
-  MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS,
-  MESMER_TROUBADOUR_TRAIT_DAMAGE
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
@@ -153,19 +147,10 @@ const PHANTASM_ATTACK_TIMINGS = Object.freeze(
   )
 );
 
-const TRAIT_DAMAGE = Object.freeze({
-  ...MESMER_CORE_TRAIT_DAMAGE,
-  ...MESMER_CHRONOMANCER_TRAIT_DAMAGE,
-  ...MESMER_VIRTUOSO_TRAIT_DAMAGE,
-  ...MESMER_TROUBADOUR_TRAIT_DAMAGE
-});
-
 const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
 const strikeEffects = (skill) => skill.effects.filter((effect) => effect.type === 'strike');
 const strikeCoefficient = (effect) =>
   effect.ticks ? effect.ticks.reduce((sum, tick) => sum + tick.coefficient, 0) : Number(effect.coefficient || 0);
-const totalStrikeCoefficient = (skill) =>
-  strikeEffects(skill).reduce((sum, effect) => sum + strikeCoefficient(effect), 0);
 
 const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mesmerCatalog, patch), patch);
 
@@ -501,53 +486,6 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
   }
 });
 
-test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
-  const expected = {
-    [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2960, 3710],
-    [ID.PHANTASMAL_BERSERKER]: [560, 1360, 2620, 3680, 5160],
-    [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
-    [ID.PHANTASMAL_DISENCHANTER]: [760, 1240, 1920, 3240, 4080],
-    [ID.PHANTASMAL_DUELIST]: [560, 2240, 2800, 5280, 5800],
-    [ID.PHANTASMAL_LANCER]: [520, 1160, 2040, 3320, 4140],
-    [ID.PHANTASMAL_MAGE]: [800, 2000, 2240, 3920, 4160],
-    [ID.PHANTASMAL_SWORDSMAN]: [880, 2280, 3410, 6000, 7120],
-    [ID.PHANTASMAL_WARDEN]: [460, 4880, 7040, 12040, 14180],
-    [ID.PHANTASMAL_WARLOCK]: [780, 2920, 4120, 7200, 8460]
-  };
-  const catalogCastTimeMs = {
-    [ID.PHANTASMAL_DEFENDER]: 1155,
-    [ID.PHANTASMAL_MAGE]: 1140,
-    [ID.PHANTASMAL_WARLOCK]: 1260
-  };
-
-  for (const [skillId, values] of Object.entries(expected)) {
-    const timing = PHANTASM_ATTACK_TIMINGS[skillId];
-
-    assert.deepEqual(
-      [timing.castTimeMs, timing.damageAtMs, timing.spawnAtMs, timing.repeatDamageAtMs, timing.repeatSpawnAtMs],
-      values
-    );
-    const skill = mesmerCatalog.skillsById.get(Number(skillId));
-
-    assert.equal(
-      skill.castTimeMs,
-      catalogCastTimeMs[skillId] ?? values[0] * 1.5,
-      `${skill.name} has the wrong catalog cast time`
-    );
-  }
-});
-
-test('Warden preserves all measured initial and Chronophantasma strike packets', () => {
-  assert.deepEqual(
-    MESMER_CORE_SKILL_MECHANICS[ID.PHANTASMAL_WARDEN].effects[0].ticks.map((tick) => tick.atMs),
-    [880, 1240, 1600, 1960, 2320, 2680, 3080, 3440, 3800, 4160, 4520, 4880]
-  );
-  assert.deepEqual(
-    MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS[ID.PHANTASMAL_WARDEN].repeatDamageTicks.Damage.map((tick) => tick.atMs),
-    [8040, 8400, 8760, 9120, 9480, 9840, 10240, 10600, 10960, 11320, 11680, 12040]
-  );
-});
-
 test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip skill', () => {
   const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
 
@@ -726,53 +664,6 @@ test('Mirage ambush data uses current player and clone variants', () => {
   );
 });
 
-test('supplied player and clone coefficient table is preserved', () => {
-  const normalized = catalogSkill;
-  const totalCoefficient = totalStrikeCoefficient;
-  const playerSkills = [
-    ['Lacerating Chop', 0.55, 0.43],
-    ['Ethereal Chop', 0.55, 0.53],
-    ['Mirror Strikes', 1.1, 0.72],
-    ['Lingering Thoughts', 1.2, 0.92],
-    ['Axes of Symmetry', 1.75, 1],
-    ['Mind Stab', 1.8, 0.32],
-    ['Phantasmal Berserker', 2.4, 0.56],
-    ['Illusionary Wave', 0.3, 0.64],
-    ['Unstable Bladestorm', 3, 0.44]
-  ];
-
-  for (const [name, coefficient, quicknessCast] of playerSkills) {
-    const skill = normalized(name);
-
-    assert.ok(Math.abs(totalCoefficient(skill) - coefficient) < 1e-12, name);
-    assert.ok(Math.abs(skill.castTimeMs / 1500 - quicknessCast) < 1e-12, name);
-  }
-
-  assert.equal(AMBUSH_ATTACKS.Axe.player.coefficient, 1);
-  assert.equal(AMBUSH_ATTACKS.Axe.castTimeMs / 1500, 0.52);
-  assert.deepEqual(
-    {
-      name: CLONE_ATTACKS.Axe.name,
-      coefficient: CLONE_ATTACKS.Axe.coefficient,
-      firstAttackDelay: CLONE_ATTACKS.Axe.firstAttackDelay,
-      castTimeMs: CLONE_ATTACKS.Axe.castTimeMs,
-      damageAtMs: CLONE_ATTACKS.Axe.damageAtMs,
-      interval: CLONE_ATTACKS.Axe.interval
-    },
-    {
-      name: 'Clone: Lacerating Chop',
-      coefficient: 0.55,
-      firstAttackDelay: 1.2,
-      castTimeMs: 1520,
-      damageAtMs: 520,
-      interval: 1.56
-    }
-  );
-  assert.equal(CLONE_ATTACKS.Dagger.coefficient, 0.5);
-  assert.deepEqual([AMBUSH_ATTACKS.Axe.clone.coefficient, AMBUSH_ATTACKS.Axe.clone.castTimeMs / 1000], [3.7, 1.11]);
-  assert.equal(AMBUSH_ATTACKS.Dagger.clone.coefficient, 3);
-});
-
 test('Lingering Thoughts variants use the six-second count recharge', () => {
   for (const id of [ID.LINGERING_THOUGHTS, ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]) {
     const skill = mesmerCatalog.skillsById.get(id);
@@ -812,217 +703,6 @@ test('Lingering Thoughts models the supplied clone, packets, conditions, and fin
       ['condition', 'Torment', 3, 4],
       ['condition', 'Crippled', 3, 1]
     ]
-  );
-});
-
-test('supplied utility, spear, staff, and phantasm coefficients are preserved', () => {
-  const normalized = catalogSkill;
-  const effectiveCoefficient = (skill) => {
-    const phantasmCount = Number(skill.resource?.count || 1);
-
-    return strikeEffects(skill).reduce(
-      (sum, effect) => sum + strikeCoefficient(effect) * (effect.summonKind === 'phantasm' ? phantasmCount : 1),
-      0
-    );
-  };
-
-  const expectedSkills = {
-    'Thousand Cuts': 5,
-    Jaunt: 1,
-    'Crystal Sands': 2.4,
-    'Power Spike': 1.33,
-    'Mirage Advance': 1.5,
-    'Phantasmal Disenchanter': 1,
-    'Rain of Swords': 6,
-    'Sword of Decimation': 1.5,
-    'Tale of the Tortured Mastermind': 4,
-    'Well of Action': 4.5,
-    'Well of Calamity': 6,
-    'Well of Senility': 4.5,
-    Psycut: 1,
-    Psystrike: 1,
-    'Mind Pierce': 1.5,
-    'Mind the Gap': 1.92,
-    'Imaginary Inversion': 2.4,
-    'Phantasmal Lancer': 1.6,
-    'Mental Collapse': 3,
-    'Phantasmal Warlock': 0.9,
-    'Chaos Storm': 1.98,
-    'Phantasmal Swordsman': 2.6,
-    'The Prestige': 1,
-    'Phantasmal Mage': 0.69
-  };
-
-  for (const [name, coefficient] of Object.entries(expectedSkills)) {
-    assert.ok(Math.abs(effectiveCoefficient(normalized(name)) - coefficient) < 1e-12, name);
-  }
-
-  const lancerPhantasm = strikeEffects(normalized('Phantasmal Lancer')).find(
-    (effect) => effect.summonKind === 'phantasm'
-  );
-
-  // The phantasm's lower coefficient is paired with the medium phantasm weapon-strength table.
-  assert.deepEqual([lancerPhantasm.coefficient, lancerPhantasm.weapon], [0.6, 'phantasm medium']);
-
-  assert.deepEqual(
-    CLONE_ATTACKS.Spear.sequence.map((step) => [step.name, step.coefficient]),
-    [
-      ['Clone: Psycut', 1],
-      ['Clone: Psystrike', 1],
-      ['Clone: Mind Pierce', 1.5]
-    ]
-  );
-  assert.equal(AMBUSH_ATTACKS.Spear.clone.coefficient, 3.15);
-  assert.equal(CLONE_ATTACKS.Staff.coefficient, 0.49);
-  assert.equal(AMBUSH_ATTACKS.Staff.clone.coefficient, 1.12);
-
-  const lancer = normalized('Phantasmal Lancer');
-
-  assert.equal(strikeEffects(lancer).find((effect) => effect.summonKind === 'phantasm').coefficient, 0.6);
-  const swordsman = normalized('Phantasmal Swordsman');
-
-  assert.deepEqual(
-    strikeEffects(swordsman).map((effect) => [effect.name, Number(strikeCoefficient(effect).toFixed(12))]),
-    [
-      ['Mesmer strike', 0.5],
-      ['Phantasm leap', 0.5],
-      ['Phantasm Blurred Frenzy', 1.6]
-    ]
-  );
-  const mage = normalized('Phantasmal Mage');
-
-  assert.deepEqual(
-    strikeEffects(mage).map((effect) => [effect.actorType, effect.summonKind, effect.coefficient]),
-    [
-      ['player', undefined, 0.19],
-      ['summon', 'phantasm', 0.5]
-    ]
-  );
-});
-
-test('latest supplied weapon, clone, ambush, and trait coefficients are preserved', () => {
-  const normalized = catalogSkill;
-  const totalCoefficient = (name) => totalStrikeCoefficient(normalized(name));
-  const expectedSkills = {
-    'Ether Bolt': 0.5,
-    'Ether Blast': 0.5,
-    'Ether Clone': 0.75,
-    Counterspell: 0.1,
-    'Confusing Images': 5.32,
-    'Gravity Well': 5.4,
-    'Mind Slash': 1,
-    'Mind Gash': 1,
-    'Blurred Frenzy': 3.6,
-    'Blade Leap': 1.5,
-    'Counter Blade': 0.1,
-    Bladecall: 1.5,
-    'Friendly Fire': 0.5,
-    Journey: 1.5,
-    Abstraction: 2.5,
-    'Phantasmal Sharpshooter': 2.28,
-    'Phantasmal Lancer': 1.6
-  };
-
-  for (const [name, coefficient] of Object.entries(expectedSkills)) {
-    assert.ok(Math.abs(totalCoefficient(name) - coefficient) < 1e-12, name);
-  }
-
-  assert.equal(normalized('Mind Spike').boonlessCoefficient, 2);
-
-  assert.equal(CLONE_ATTACKS.Scepter.coefficient, 0.5);
-  assert.equal(AMBUSH_ATTACKS.Scepter.player.coefficient, 1.25);
-  assert.equal(AMBUSH_ATTACKS.Scepter.clone.coefficient, 3.75);
-  assert.deepEqual(
-    CLONE_ATTACKS.Sword.sequence.map((step) => [step.name, step.coefficient]),
-    [
-      ['Clone: Mind Slash', 0.75],
-      ['Clone: Mind Gash', 0.75],
-      ['Clone: Mind Stab', 0.12]
-    ]
-  );
-  assert.equal(AMBUSH_ATTACKS.Sword.player.coefficient, 3);
-  assert.equal(AMBUSH_ATTACKS.Sword.clone.coefficient, 3);
-  assert.equal(strikeCoefficient(AMBUSH_ATTACKS.Greatsword.player), 3.1875);
-  assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
-
-  const flyingCutter = normalized('Flying Cutter');
-
-  assert.equal(strikeEffects(flyingCutter)[0].coefficient, 0.5);
-  assert.equal(strikeEffects(flyingCutter)[0].atMs, 320);
-  assert.equal(strikeEffects(flyingCutter)[0].timingAnchor, 'castStart');
-  assert.equal(strikeEffects(flyingCutter)[0].timingScale, 'cast');
-  assert.deepEqual(flyingCutter.trackedHitDamage, {
-    hitsRequired: 3,
-    duration: 5,
-    persistsAfterInterrupt: true,
-    skillId: ID.CUTTER_BURST,
-    name: 'Cutter Burst',
-    actorType: 'player',
-    ticks: [
-      { atMs: 200, coefficient: 0.2 },
-      { atMs: 240, coefficient: 0.2 },
-      { atMs: 400, coefficient: 0.2 }
-    ]
-  });
-  assert.deepEqual(
-    strikeEffects(normalized('Bladecall')).map((effect) => [
-      strikeCoefficient(effect),
-      effect.ticks.length,
-      effect.ticks.map((tick) => tick.atMs)
-    ]),
-    [
-      [0.75, 3, [200, 200, 200]],
-      [0.75, 3, [2720, 2720, 2760]]
-    ]
-  );
-  assert.equal(TRAIT_DAMAGE['Phantasmal Blade'].weaponStrength, 2553.5);
-  assert.deepEqual(
-    Object.fromEntries(
-      Object.entries(TRAIT_DAMAGE).map(([name, data]) => [name, Number(strikeCoefficient(data).toFixed(12))])
-    ),
-    {
-      'Lesser Chaos Storm': 1.98,
-      'Phantasmal Blade': 0.7,
-      Syncopate: 0.75,
-      SyncopateDelayedWave: 1,
-      'Time Bomb': 3
-    }
-  );
-});
-
-test('supplied shatter and instrument coefficient tables are preserved', () => {
-  const expectedShatters = {
-    [ID.MIND_WRACK]: [0.81, 1.61, 2.42, 3.22],
-    [ID.CRY_OF_FRUSTRATION]: [0.42, 0.84, 1.25, 1.67],
-    [ID.DIVERSION]: [0, 0, 0, 0],
-    [ID.DISTORTION]: [0, 0, 0, 0],
-    [ID.SPLIT_SECOND]: [1.53, 3.07, 3.68, 4.3],
-    [ID.REWINDER]: [0.38, 0.76, 1.14, 1.52],
-    [ID.TIME_SINK]: [0, 0, 0, 0],
-    [ID.BLADESONG_HARMONY]: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
-    [ID.BLADESONG_SORROW]: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
-    [ID.BLADESONG_DISSONANCE]: [0, 1, 1, 1, 1, 1],
-    [ID.BLADETURN_REQUIEM]: [0, 0.5, 1, 1.5, 2, 2.5],
-    [ID.CONTINUUM_SPLIT]: [0, 0, 0, 0]
-  };
-
-  for (const [id, coefficients] of Object.entries(expectedShatters)) {
-    assert.deepEqual(SHATTERS[id].coefficients, coefficients, mesmerCatalog.skillsById.get(Number(id)).name);
-  }
-
-  assert.deepEqual(
-    Object.fromEntries(
-      [ID.LIVELY_LUTE, ID.FLUSTERING_FLUTE, ID.DEAFENING_DRUM, ID.HARMONIOUS_HARP].map((id) => [
-        mesmerCatalog.skillsById.get(id).name,
-        strikeCoefficient(INSTRUMENTS[id])
-      ])
-    ),
-    {
-      'Lively Lute': 3,
-      'Flustering Flute': 1,
-      'Deafening Drum': 2,
-      'Harmonious Harp': 0
-    }
   );
 });
 

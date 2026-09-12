@@ -5,7 +5,7 @@ import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 
 // Opening hits must start the same sigil cooldown in both simulation phases.
 test('scheduler sigil predictions include the combat boundary and exclude earlier hits', () => {

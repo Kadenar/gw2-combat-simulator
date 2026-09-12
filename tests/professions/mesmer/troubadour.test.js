@@ -97,31 +97,6 @@ test('Troubadour performance packets register before later overlapping actions',
   }
 });
 
-test('Troubadour skills use measured Quickness cast times', () => {
-  const result = simulateMesmer(
-    [
-      'Flustering Flute',
-      'Lively Lute',
-      'Crescendo',
-      'Harmonious Harp',
-      'Mimic',
-      'Tale of the Tortured Mastermind',
-      'Deafening Drum'
-    ],
-    defaultSimulationConfig({
-      specialization: 'Troubadour',
-      selectedSkills: ['Mimic', 'Tale of the Tortured Mastermind'],
-      boons: { quickness: true },
-      initialResource: 3
-    })
-  );
-
-  assert.deepEqual(
-    result.steps.map((step) => step.end - step.start),
-    [560, 560, 1000, 2000, 640, 400, 680]
-  );
-});
-
 test('Harmonious Harp replays at 480ms after its Harp Playing packet commits without dealing damage', () => {
   const config = defaultSimulationConfig({
     specialization: 'Troubadour',

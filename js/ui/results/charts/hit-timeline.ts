@@ -8,6 +8,7 @@ export interface SkillHit {
   readonly crit?: boolean | null;
   readonly activationId?: string;
   readonly damageType?: 'strike' | 'condition';
+  readonly conditionType?: string;
 }
 
 const CONDITION_WINDOW_MS = 5000;
@@ -197,7 +198,7 @@ export function drawHitTimeline(
     if (!(value > 0)) continue;
     const x = pad.left + (Number(hit.t || 0) / durationMs) * plotWidth;
     const markerHeight = minMarker + (plotHeight - minMarker) * (value / maxValue);
-    // Condition bars summarize window damage; the detail view retains every original tick.
+    // Condition bars summarize window damage; the detail view groups ticks by time and condition.
     if (conditionOverview && hit.damageType === 'condition') {
       const [start, end] = conditionWindow([hit], timeOffsetMs, durationMs);
       context.fillRect(
@@ -308,9 +309,10 @@ function mountHitTimelineLane(
   const resolvedDuration = Math.max(1, Number(durationMs) || 0);
   const isCondition = hits[0]?.damageType === 'condition';
   const noun = isCondition ? 'tick' : 'hit';
-  const detailLabel = `Individual ${noun}s · fight time`;
+  const detailLabel = isCondition ? 'Ticks by time and condition · fight time' : 'Individual hits · fight time';
   let layout: HitTimelineLayout | null = null;
   let selectedGroup: number | null = null;
+  let detailHits: readonly SkillHit[] = [];
 
   const drawDetail = (): void => {
     const group = selectedGroup == null ? null : layout?.groups[selectedGroup];
@@ -319,7 +321,7 @@ function mountHitTimelineLane(
     const duration = Math.max(1, group.at(-1)!.t - start);
     drawHitTimeline(
       detail.querySelector('canvas'),
-      group.map((hit) => ({ ...hit, t: hit.t - start })),
+      detailHits.map((hit) => ({ ...hit, t: hit.t - start })),
       duration,
       {
         color,
@@ -345,6 +347,18 @@ function mountHitTimelineLane(
       return;
     }
 
+    // Sum simultaneous ticks of the same condition across applications for one readable detail entry.
+    detailHits = group;
+    if (isCondition) {
+      const ticks = new Map<string, SkillHit>();
+      for (const hit of group) {
+        const key = JSON.stringify([hit.t, hit.conditionType || '']);
+        ticks.set(key, { ...hit, v: (ticks.get(key)?.v || 0) + hit.v });
+      }
+
+      detailHits = [...ticks.values()];
+    }
+
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
     detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b>
@@ -352,10 +366,11 @@ function mountHitTimelineLane(
       <div><canvas class="chart-canvas" aria-hidden="true"></canvas></div>
       <div class="hit-detail-table"><table>
         <caption>${detailLabel}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th><th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
-        <tbody>${group
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
+        <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
+          ${isCondition ? `<td>${escapeHtml(hit.conditionType || 'Unknown')}</td>` : ''}
           <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
@@ -421,6 +436,7 @@ function mountHitTimelineLane(
         tooltip.innerHTML = `<div><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b></div>
           ${group.length > 1 ? `<div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div><div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>` : ''}
           <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>
+          ${isCondition && group.length === 1 ? `<div>Condition type: ${escapeHtml(first.conditionType || 'Unknown')}</div>` : ''}
           ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}`;
         tooltip.style.display = 'block';
         tooltip.style.left = `${Math.max(0, Math.min(left, layout.cssWidth - tooltip.offsetWidth))}px`;

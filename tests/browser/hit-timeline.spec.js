@@ -33,7 +33,8 @@ test('conditions use separate bounded windows with accessible tick details', asy
         v: 10,
         crit: null,
         activationId: 'cast:1',
-        damageType: 'condition'
+        damageType: 'condition',
+        conditionType: 'Bleeding'
       }))
     ];
     mountHitTimeline(document.querySelector('#standalone'), hits, { durationMs: 12_000, label: 'Damage events' });
@@ -101,8 +102,8 @@ test('conditions use separate bounded windows with accessible tick details', asy
     await expect(detail.getByRole('columnheader', { name: 'Tick', exact: true })).toBeVisible();
     await expect(detail.getByRole('columnheader', { name: 'Critical', exact: true })).toHaveCount(0);
     await expect(detail.locator('tbody tr')).toHaveCount(5);
-    await expect(detail.locator('tbody tr').first().locator('td')).toHaveText(['1', '5.00s', '10']);
-    await expect(detail.locator('tbody tr').last().locator('td')).toHaveText(['5', '9.00s', '10']);
+    await expect(detail.locator('tbody tr').first().locator('td')).toHaveText(['1', '5.00s', 'Bleeding', '10']);
+    await expect(detail.locator('tbody tr').last().locator('td')).toHaveText(['5', '9.00s', 'Bleeding', '10']);
     await detail.getByRole('button', { name: 'Close tick details' }).press('Escape');
     await expect(detail).toBeHidden();
     await expect(window).toBeFocused();
@@ -127,9 +128,40 @@ test('conditions use separate bounded windows with accessible tick details', asy
   await expect(phase.locator('.hit-group')).toHaveCount(2);
   await phase.getByRole('button', { name: '2.30s–5.00s · 2 ticks', exact: true }).click();
   await expect(phase.locator('tbody tr')).toHaveCount(2);
-  await expect(phase.locator('tbody tr').first().locator('td')).toHaveText(['1', '3.00s', '10']);
+  await expect(phase.locator('tbody tr').first().locator('td')).toHaveText(['1', '3.00s', 'Bleeding', '10']);
   await phase.getByRole('button', { name: '5.00s–8.80s · 4 ticks', exact: true }).click();
   await expect(phase.locator('tbody tr')).toHaveCount(4);
+});
+
+// Condition labels survive projection, and only identical timestamps and types combine across applications.
+test('condition details sum simultaneous ticks by type', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async () => {
+    const { mountHitTimeline } = await import('/js/ui/results/charts/hit-timeline.ts');
+    const { buildChartSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
+    const series = buildChartSeries(
+      {
+        duration: 5,
+        resolvedEvents: [
+          { type: 'condition', condition: 'Bleeding', at: 0, damageTicks: [{ at: 1, damage: 10 }] },
+          { type: 'condition', condition: 'Poisoned', at: 0, damageTicks: [{ at: 1, damage: 20 }] },
+          { type: 'condition', condition: 'Bleeding', at: 0.5, damageTicks: [{ at: 1, damage: 30 }] },
+          { type: 'condition', condition: 'Bleeding', at: 1.001, damage: 5 }
+        ]
+      },
+      250,
+      { skillKey: () => 'skill' }
+    );
+    document.body.innerHTML = '<div id="timeline"></div>';
+    mountHitTimeline(document.querySelector('#timeline'), series.skillDamage.skill, { durationMs: series.durationMs });
+  });
+  await page.getByRole('button', { name: '0.00s–5.00s · 4 ticks', exact: true }).click();
+  await expect(page.getByRole('columnheader', { name: 'Condition type', exact: true })).toBeVisible();
+  const rows = page.locator('tbody tr');
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(0).locator('td')).toHaveText(['1', '1.00s', 'Bleeding', '40']);
+  await expect(rows.nth(1).locator('td')).toHaveText(['2', '1.00s', 'Poisoned', '20']);
+  await expect(rows.nth(2).locator('td')).toHaveText(['3', '1.00s', 'Bleeding', '5']);
 });
 
 // Both chart placements share native cast controls, detailed hits, and absolute timestamps after phase changes.

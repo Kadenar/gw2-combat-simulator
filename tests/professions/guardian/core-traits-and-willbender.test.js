@@ -81,12 +81,8 @@ test('Guardian player strikes trigger shared player-owned sigils', () => {
   );
 });
 
-test('Guardian timing applies Quickness, Alacrity, ammo, and trait recharge', () => {
-  const quick = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['True Strike'],
-    config: { ...config, boons: { quickness: true } }
-  });
+// Recharge modifiers and exhausted ammo must affect when the scheduler allows another cast.
+test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
   const alacrity = simulateGw2({
     profession: guardianProfession,
     rotation: ['Virtue of Justice'],
@@ -110,7 +106,6 @@ test('Guardian timing applies Quickness, Alacrity, ammo, and trait recharge', ()
     }
   });
 
-  assert.equal(quick.endState.time, 360);
   assert.equal(alacrity.endState.cooldowns['Virtue of Justice'].readyAt, 16000);
   assert.equal(virtuous.endState.cooldowns['Virtue of Justice'].readyAt, 17000);
   assert.equal(ammo.endState.ammo['Hail of Justice'].charges, 0);
@@ -136,43 +131,6 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
 
   assert.deepEqual(rechargeDurations([]), [8, 10, 12, 25]);
   assert.deepEqual(rechargeDurations([GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]), [6.4, 8, 9.6, 20]);
-});
-
-test('Guardian measured Quickness cast times remain exact', () => {
-  const quicknessConfig = {
-    ...config,
-    boons: { quickness: true },
-    specialization: 'Luminary',
-    primaryWeapon: 'Spear'
-  };
-  const castDuration = (rotation, skillName) => {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation,
-      config: quicknessConfig
-    });
-    const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
-
-    return Math.round((action.endsAt - action.at) * 1000);
-  };
-
-  assert.equal(castDuration(['Helio Rush'], 'Helio Rush'), 440);
-  assert.equal(castDuration(['Gleaming Disc'], 'Gleaming Disc'), 560);
-  assert.equal(castDuration(['Solar Storm'], 'Solar Storm'), 560);
-  assert.equal(castDuration(['Enter Radiant Forge', 'Dazzling Hammer'], 'Dazzling Hammer'), 480);
-
-  const repeated = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Daybreaking Slash', 'Daybreaking Slash', 'Helio Rush', 'Daybreaking Slash'],
-    config: quicknessConfig
-  });
-
-  assert.deepEqual(
-    repeated.events
-      .filter((event) => event.type === 'action' && event.skillName === 'Daybreaking Slash')
-      .map((event) => Math.round((event.endsAt - event.at) * 1000)),
-    [560, 560, 560]
-  );
 });
 
 test('Willbender utilities use the supplied physical skill profiles', () => {

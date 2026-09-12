@@ -283,6 +283,8 @@ export function buildChartSeries(
       const crit = event.didCrit ?? null;
       // Preserve damage kind so periodic ticks cannot bridge otherwise separate strike bursts.
       const damageType = event.type === 'condition' ? 'condition' : 'strike';
+      // Keep the condition label so skill tick details can distinguish simultaneous damage types.
+      const conditionType = damageType === 'condition' ? effectName(event.condition, event) : undefined;
       // Preserve cast ownership for multi-hit inspection; unowned condition ticks share only their application.
       const activationId = event.activationId || `event:${eventIndex}`;
       const damageTicks = eventDamageTicks(event);
@@ -292,14 +294,21 @@ export function buildChartSeries(
           const value = Number(tick.damage || 0);
           const time = Number(tick.at || 0) * 1000 - dpsStartMs;
           if (value > 0 && time >= 0 && time <= durationMs) {
-            hits.push({ t: time, v: value, crit: null, activationId, damageType });
+            hits.push({ t: time, v: value, crit: null, activationId, damageType, conditionType });
           }
         }
       } else {
         const value = Number(event.damage || 0);
         const time = Number(event.at || 0) * 1000 - dpsStartMs;
         if (value > 0 && time >= 0 && time <= durationMs) {
-          hits.push({ t: time, v: value, crit: damageType === 'condition' ? null : crit, activationId, damageType });
+          hits.push({
+            t: time,
+            v: value,
+            crit: damageType === 'condition' ? null : crit,
+            activationId,
+            damageType,
+            conditionType
+          });
         }
       }
     }

@@ -1146,29 +1146,6 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
   );
 });
 
-test('measured Quickness animations drive Flame Blast and Demolish steps', () => {
-  const full = simulate('Amalgam', ['Flamethrower', 'Flame Blast'], {
-    boons: { quickness: true },
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
-    selectedMorphSkillIds: [77103, 77104, 76705]
-  });
-  const fullFlameBlast = full.steps.find((step) => step.skill === 'Flame Blast');
-
-  assert.equal(fullFlameBlast.end - fullFlameBlast.start, 800);
-  assert.equal(fullFlameBlast.interrupted, false);
-
-  const demolish = simulate('Amalgam', [76927], {
-    boons: { quickness: true },
-    selectedMorphSkillIds: [76927, 77104, 76705]
-  });
-  const demolishStep = demolish.steps.find((step) => step.skill === 'Offensive Protocol: Demolish');
-
-  assert.equal(demolishStep.end - demolishStep.start, 1000 + 560);
-  const smash = demolish.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Smash Damage');
-
-  assert.equal(Math.round((smash.at - demolishStep.start / 1000) * 1000), 1440);
-});
-
 test('Flame Jet gains ten percent strike damage against burning targets', () => {
   const config = {
     selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],

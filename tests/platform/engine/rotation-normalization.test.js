@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import { testProfession } from '../../fixtures/test-profession.js';
+import { testProfession } from '../../fixtures/profession.js';
 
 // Rotation normalization preserves command intent while validating legacy cast options.
 test('normalized commands migrate legacy cast options', () => {
