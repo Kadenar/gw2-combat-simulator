@@ -122,8 +122,8 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): void {
  * an exhausted tome, and emits the resulting resource snapshot.
  */
 function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
-  // Interrupted casts retain their pages and do not activate page-use bonuses.
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  // Page costs and bonuses follow the scheduler's commitment decision, including committed aftercast cancels.
+  if (context.action.cancelled) return;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   // The regen timer only ticks while below maximum; spending a page from a full
@@ -184,7 +184,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
-    const at = context.effectiveEnd;
+    // Both supplied EVTCs grant Ashes during the animation, independently of its cancellation cutoff.
+    const at = context.start + 0.56;
     const ashes = balanceProfileFromContext(context, PROFILE.ashes);
     const burn = balanceProfileEffect(ashes, 'condition');
     const ashesBuff = balanceProfileEffect(ashes, 'buff');
@@ -195,6 +196,13 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     // A newly granted charge is unarmed so its first hit can trigger immediately.
     state.ashesNextTriggerAt = 0;
     state.ashesExpiresAt = at + ashesDuration;
+    emitGuardianEvent(context, skill, 'guardian.ashes-granted', {
+      at,
+      ashesCharges: state.ashesCharges,
+      ashesBurnDuration: state.ashesBurnDuration,
+      ashesNextTriggerAt: state.ashesNextTriggerAt,
+      ashesExpiresAt: state.ashesExpiresAt
+    });
     emitSkillBuff(context, {
       at,
       source: 'guardian',
@@ -275,15 +283,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     pageCost,
     pagesRemaining: state.tomePages,
     activeTome: state.activeTome,
-    nextTomePageAt: state.nextTomePageAt,
-    ...(skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
-      ? {
-          ashesCharges: state.ashesCharges,
-          ashesBurnDuration: state.ashesBurnDuration,
-          ashesNextTriggerAt: state.ashesNextTriggerAt,
-          ashesExpiresAt: state.ashesExpiresAt
-        }
-      : {})
+    nextTomePageAt: state.nextTomePageAt
   });
 }
 
@@ -307,10 +307,15 @@ function handleTomeStowed(context: GuardianResolverContext): void {
  */
 function handleTomePageUsed(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   firebrandState.from(context).tomePages = Number(event.pagesRemaining || 0);
-  firebrandState.from(context).activeTome = String(event.activeTome || '');
+  // A resource snapshot cannot reopen a tome explicitly stowed during this page's animation.
+  if (Number(event.pagesRemaining) === 0) firebrandState.from(context).activeTome = '';
   firebrandState.from(context).nextTomePageAt = Number(
     event.nextTomePageAt ?? firebrandState.from(context).nextTomePageAt
   );
+}
+
+/** Arms charges at their application event; later page snapshots cannot restore consumed charges. */
+function handleAshesGranted(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   firebrandState.from(context).ashesCharges = Number(event.ashesCharges ?? firebrandState.from(context).ashesCharges);
   firebrandState.from(context).ashesBurnDuration = Number(
     event.ashesBurnDuration ?? firebrandState.from(context).ashesBurnDuration
@@ -341,6 +346,7 @@ function handleAshesExpired(context: GuardianResolverContext, event: GuardianRes
 export const guardianTomeEventHandlers = Object.freeze({
   'guardian.tome-stowed': handleTomeStowed,
   'guardian.tome-page-used': handleTomePageUsed,
+  'guardian.ashes-granted': handleAshesGranted,
   'guardian.ashes-expired': handleAshesExpired
 });
 

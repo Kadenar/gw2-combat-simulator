@@ -19,7 +19,8 @@ function firebrandEventLogRow(
 ): ProfessionEventLogDescriptor | null | undefined {
   // null suppresses the row entirely; these internal bookkeeping events have no
   // meaningful log representation and would clutter the event timeline.
-  if (['guardian.ashes-expired', 'guardian.firebrand-virtue-activated'].includes(event.type)) return null;
+  if (['guardian.ashes-expired', 'guardian.ashes-granted', 'guardian.firebrand-virtue-activated'].includes(event.type))
+    return null;
   const base = {
     type: event.type,
     className: 'resource',

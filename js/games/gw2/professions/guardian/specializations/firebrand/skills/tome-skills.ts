@@ -8,6 +8,8 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {
     quicknessCastTimeMs: 920,
+    // The Fire combo field lasts four seconds from the first pulse.
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -20,66 +22,20 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1440, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2440, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 3440, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 4440, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1440, condition: 'Bleeding', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2440, condition: 'Bleeding', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 3440, condition: 'Bleeding', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 4440, condition: 'Bleeding', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      // Each pulse applies both conditions, retaining their separate durations and packet order.
+      ...(
+        [
+          { condition: 'Burning', duration: 3 },
+          { condition: 'Bleeding', duration: 5 }
+        ] as const
+      ).flatMap(({ condition, duration }) =>
+        [440, 1440, 2440, 3440, 4440].map((atMs) => ({
+          type: 'condition' as const,
+          ticks: [{ atMs, condition, stacks: 1, duration }],
+          timingAnchor: 'castStart' as const,
+          timingScale: 'fixed' as const
+        }))
+      )
     ]
   },
   [ID.IGNITING_BURST]: {
@@ -151,6 +107,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.SEARING_SPELL]: {
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 640,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -158,29 +115,36 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.95 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 2.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 2, duration: 10 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
   [ID.STOW_TOME]: {
+    // Tome transitions change the available bar without cancelling the active animation.
+    canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.stow-tome',
     effects: []
   },
   [ID.TOME_OF_RESOLVE]: {
+    // Tome transitions change the available bar without cancelling the active animation.
+    canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
@@ -259,12 +223,14 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TOME_OF_COURAGE]: {
+    canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.TOME_OF_COURAGE_ID_42371]: {
+    canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',
@@ -316,6 +282,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TOME_OF_JUSTICE]: {
+    // Tome transitions change the available bar without cancelling the active animation.
+    canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.virtue',

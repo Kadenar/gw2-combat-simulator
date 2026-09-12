@@ -25,19 +25,22 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ZEALOTS_FIRE]: {
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 600,
     cooldown: 0,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 2.25 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

@@ -64,6 +64,74 @@ test('Guardian sword animation segments import as one activation without merging
   }
 });
 
+test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps', () => {
+  // Tome entry and stow signal bar changes, not animation cancellation or a weapon cooldown.
+  const report = reportFixture(
+    'Firebrand',
+    [
+      { id: 40624, skills: [{ castTime: 0, duration: 800 }] },
+      { id: 44364, skills: [{ castTime: 300, duration: 0 }] },
+      { id: 42898, skills: [{ castTime: 800, duration: 880 }] },
+      { id: 41380, skills: [{ castTime: 1100, duration: 0 }] },
+      { id: -2, skills: [301, 1101, 2000].map((castTime) => ({ castTime, duration: 0 })) }
+    ],
+    {
+      s40624: { name: 'Symbol of Vengeance' },
+      s44364: { name: 'Tome of Justice' },
+      s42898: { name: 'Epilogue: Ashes of the Just' },
+      s41380: { name: 'Stow Tome' },
+      's-2': { name: 'Weapon Swap', isSwap: true }
+    }
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  assert.deepEqual(
+    result.actions.filter((a) => a.kind === 'weapon-swap').map((a) => a.timestampMs),
+    [2000]
+  );
+  assert.ok(result.sourceActions.some((a) => a.rawSkillId === -2 && a.startMs === 301));
+  assert.ok(result.rotation.filter((a) => [40624, 42898].includes(a.skillId)).every((a) => a.interruptMs == null));
+  const sim = simulateGw2({
+    profession: guardianProfession,
+    rotation: result.rotation,
+    config: {
+      ...defaultSimulationConfig(),
+      specialization: 'Firebrand',
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Torch'
+    }
+  });
+  assert.deepEqual(sim.warnings, []);
+  assert.equal(sim.endState.profession.activeTome, '');
+});
+
+test('Guardian Jurisdiction charge and release consume one activation without inventing an absent charge', () => {
+  const report = reportFixture(
+    'Guardian',
+    [
+      { id: 71817, skills: [{ castTime: 100, duration: 480 }] },
+      {
+        id: 71818,
+        skills: [
+          { castTime: 580, duration: 320 },
+          { castTime: 5000, duration: 320 }
+        ]
+      },
+      { id: 71989, skills: [{ castTime: 740, duration: 0 }] }
+    ],
+    {
+      s71817: { name: 'Jurisdiction' },
+      s71818: { name: 'Fire Jurisdiction (Level 1)' },
+      s71989: { name: 'Detonate Jurisdiction' }
+    }
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  const charge = result.actions.find((a) => a.rawSkillId === 71817);
+  assert.equal(charge.endTimestampMs, 900);
+  assert.ok(result.sourceActions.some((a) => a.rawSkillId === 71989));
+  assert.ok(!result.actions.some((a) => a.rawSkillId === 71989));
+  assert.ok(result.actions.some((a) => a.rawSkillId === 71818 && a.timestampMs === 5000 && !a.supportedByCatalog));
+});
+
 test('preserves standalone autoattack identity and shortened timing with localized report names', () => {
   // Hammer Bolt has no chain; its numeric identity must survive without an English name fallback.
   for (const duration of [560, 480]) {

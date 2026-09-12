@@ -28,6 +28,8 @@ export interface EiInstantRule {
   readonly minEvtcBuild?: number;
   readonly maxEvtcBuild?: number;
   readonly secondary?: readonly string[];
+  readonly relatedHit?: number;
+  readonly absentRelatedHits?: readonly number[];
 }
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
@@ -1096,6 +1098,17 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     minBuild: 141374,
     disableWithEffects: true
   },
+  // EI FirebrandHelper identifies the charge from a credited hit beside the destination-owned mantra effect.
+  ...[45082, 42924, -61].map((skillId) => ({
+    profession: 'guardian',
+    specialization: 'firebrand',
+    skillId,
+    signal: 'AF2B09AC1145AA4880B967C32A11E81C',
+    kind: 'effect-dst' as const,
+    rule: `FirebrandHelper.EffectCastFinderByDst(${skillId === 45082 ? 'FlameRush' : skillId === 42924 ? 'FlameSurge' : 'FlameRushOrFlameSurge'})`,
+    minBuild: 141374,
+    ...(skillId === -61 ? { absentRelatedHits: [45082, 42924] } : { relatedHit: skillId })
+  })),
   {
     profession: 'guardian',
     specialization: 'firebrand',

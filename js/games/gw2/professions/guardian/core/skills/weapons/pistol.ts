@@ -29,8 +29,9 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAIL_OF_JUSTICE]: {
-    // Use the reference simulator's hit offsets for both strikes and their conditions.
+    // EVTC impact offsets keep the five strikes and their conditions on the same timeline.
     quicknessCastTimeMs: 1120,
+    interruptCommitMs: 960,
     cooldown: 10,
     ammo: 2,
     ammoRecharge: 10,
@@ -38,17 +39,18 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
+        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.3,
           projectile: true
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
+        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           condition: 'Bleeding',
           stacks: 1,
@@ -56,11 +58,12 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           projectile: true
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
-        ticks: [200, 420, 640, 860, 1120].map((atMs) => ({
+        ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           condition: 'Crippled',
           stacks: 1,
@@ -68,59 +71,38 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           projectile: true
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
   [ID.PEACEKEEPER]: {
-    // Keep Burning aligned with each strike on the reference simulator's timeline.
+    // EVTC impact offsets keep Burning aligned with each strike.
     quicknessCastTimeMs: 1040,
     cooldown: 6,
     rechargeAnchor: 'castStart',
     effects: [
       {
         type: 'strike',
-        ticks: [240, 440, 640, 840, 1040].map((atMs) => ({
+        ticks: [280, 480, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.25
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 240, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 840, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1040, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      // Each strike applies the same Burning packet at its impact time.
+      ...[280, 480, 640, 800, 960].map((atMs) => ({
+        type: 'condition' as const,
+        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 1.5 }],
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const
+      }))
     ]
   },
   [ID.SYMBOL_OF_IGNITION]: {
     quicknessCastTimeMs: 360,
+    interruptCommitMs: 320,
     comboFields: [
       {
         ownerId: 'guardian',
@@ -137,7 +119,8 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           coefficient: 0.4
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       ...[280, 960, 1640, 2320, 3000].map((atMs) => ({
         type: 'boon' as const,
@@ -147,24 +130,28 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         audience: { recipients: 'party' as const },
         atMs,
         timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const
+        timingScale: 'fixed' as const,
+        persistsAfterInterrupt: true
       }))
     ]
   },
   [ID.THROUGH_THE_HEART]: {
     quicknessCastTimeMs: 600,
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 360, coefficient: 0.6, projectile: true }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         projectile: true
       }
     ]

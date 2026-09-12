@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_VENGEANCE]: {
     quicknessCastTimeMs: 800,
+    interruptCommitMs: 760,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 680, startAnchor: 'castStart' }],
     effects: [
@@ -15,7 +16,8 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
           coefficient: 0.6
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -26,45 +28,24 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
           duration: 3
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 1.5
       },
-      {
-        type: 'boon',
+      // Later symbol pulses repeat Fury at their fixed offsets after the initial application.
+      ...[1680, 2680, 3680, 4680].map((atMs) => ({
+        type: 'boon' as const,
         boon: 'fury',
         duration: 1.5,
-        atMs: 1680,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 1.5,
-        atMs: 2680,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 1.5,
-        atMs: 3680,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 1.5,
-        atMs: 4680,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
+        atMs,
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const,
+        persistsAfterInterrupt: true
+      })),
       {
         type: 'control',
         controlKind: 'daze'
@@ -93,6 +74,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLEEDING_EDGE]: {
     quicknessCastTimeMs: 680,
+    interruptCommitMs: 640,
     effects: [
       {
         type: 'strike',
@@ -101,13 +83,15 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
           { atMs: 640, coefficient: 0.36 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 1 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

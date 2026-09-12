@@ -64,7 +64,10 @@ test('Scorched Aftermath applies Burning with its field strikes', () => {
     burning.map((event) => event.at),
     strikes.map((event) => event.at)
   );
-  assert.ok(packets.some((event) => event.type === 'combo_field' && event.fieldType === 'Fire'));
+  const field = packets.find((event) => event.type === 'combo_field');
+  assert.equal(field.fieldType, 'Fire');
+  assert.equal(field.at, strikes[0].at);
+  assert.equal(field.expiresAt - field.at, 4);
 });
 
 test('Ashes of the Just grants party charges using Firebrand condition stats', () => {
@@ -124,7 +127,7 @@ test('Ashes of the Just cannot trigger before its application event', () => {
     }
   });
   const ashesAppliedAt = result.events.find(
-    (event) => event.type === 'guardian.tome-page-used' && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
+    (event) => event.type === 'guardian.ashes-granted' && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
   ).at;
   const ashes = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
@@ -132,6 +135,23 @@ test('Ashes of the Just cannot trigger before its application event', () => {
 
   assert.ok(ashes.length > 0);
   assert.ok(ashes.every((event) => event.at >= ashesAppliedAt));
+});
+
+test('stowing during a tome page preserves its effects and resource spend without reopening the tome', () => {
+  // Stow changes only the bar; the in-flight page must finish and its buff applies before aftercast ends.
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Tome of Justice', 'Epilogue: Ashes of the Just', { name: 'Stow Tome', offset: 100 }],
+    config: { ...config, specialization: 'Firebrand', initialTomePages: 5 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const cast = result.events.find((e) => e.type === 'action' && e.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST);
+  const granted = result.events.find((e) => e.type === 'guardian.ashes-granted');
+  const spent = result.events.find((e) => e.type === 'guardian.tome-page-used');
+  assert.equal(cast.interrupted, false);
+  assert.ok(granted.at > cast.at && granted.at < cast.endsAt);
+  assert.equal(result.endState.profession.tomePages, 5 - spent.pageCost);
+  assert.equal(result.endState.profession.activeTome, '');
 });
 
 test('later tome pages do not restore consumed Ashes charges', () => {

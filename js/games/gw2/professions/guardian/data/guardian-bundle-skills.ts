@@ -126,15 +126,7 @@ export const GUARDIAN_BUNDLE_SKILLS: readonly GuardianSkill[] = Object.freeze([
     nextChainId: null,
     flipSkillId: null,
     tome: 'justice',
-    pageCost: 1,
-    comboFields: [
-      {
-        ownerId: 'guardian',
-        fieldType: 'Fire',
-        duration: 4,
-        startAnchor: 'castEnd'
-      }
-    ]
+    pageCost: 1
   },
   {
     id: 42898,

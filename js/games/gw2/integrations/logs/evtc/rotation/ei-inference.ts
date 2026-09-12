@@ -122,6 +122,23 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
     eventsBySkill.set(event.skillId, group);
   });
   const names = new Map(log.skills.map((s) => [s.id, s.name]));
+  // CombatData.HasRelatedHit checks credited damage ownership within the strict 10 ms server tolerance.
+  const isDamage = (event: ParsedEvtcEvent): boolean =>
+    event.stateChange === 0 &&
+    (evtcBuild >= 20260501 ||
+      (event.activation === 0 && event.buffRemove === 0 && (event.buff === 0 || event.value === 0))) &&
+    (event.buff === 0
+      ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13].includes(event.result)
+      : evtcBuild >= 20260501
+        ? [5, 6, 8, 9, 13, 14, 15, 16, 17, 18].includes(event.result)
+        : event.result < 5);
+  const hasRelatedHit = (skillId: number, time: number): boolean =>
+    (eventsBySkill.get(skillId) ?? []).some(
+      ({ event }) =>
+        isDamage(event) &&
+        (owners.get(event.source) ?? event.source) === playerAddress &&
+        Math.abs(event.time - time) < 10
+    );
   const swaps = log.events.filter((e) => e.stateChange === 11);
   const actions: EvtcRecordedRotationAction[] = [];
   const rules = EI_INSTANT_RULES.filter(
@@ -147,6 +164,8 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
           e.guid === rule.signal &&
           owns(caster(e.event)) &&
           (rule.kind !== 'effect-dst' || ![60, 79].includes(e.event.stateChange)) &&
+          (rule.relatedHit == null || hasRelatedHit(rule.relatedHit, e.event.time)) &&
+          (rule.absentRelatedHits ?? []).every((skillId) => !hasRelatedHit(skillId, e.event.time)) &&
           (rule.secondary ?? []).every((guid) =>
             effects.some(
               (other) =>
@@ -190,16 +209,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
                 species.get(event.target) === rule.signal;
               break;
             case 'damage':
-              matches =
-                event.source === playerAddress &&
-                event.stateChange === 0 &&
-                (evtcBuild >= 20260501 ||
-                  (event.activation === 0 && event.buffRemove === 0 && (event.buff === 0 || event.value === 0))) &&
-                (event.buff === 0
-                  ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13].includes(event.result)
-                  : evtcBuild >= 20260501
-                    ? [5, 6, 8, 9, 13, 14, 15, 16, 17, 18].includes(event.result)
-                    : event.result < 5);
+              matches = event.source === playerAddress && isDamage(event);
               break;
           }
 

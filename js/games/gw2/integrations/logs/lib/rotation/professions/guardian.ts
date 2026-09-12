@@ -15,6 +15,17 @@ export function reconstructGuardianDpsReportActions(
   context: LogActionNormalizationContext
 ): readonly RecordedLogAction[] {
   // Weaponmaster Training makes the sword composite available to every Guardian specialization.
-  const normalized = { ...context, recordedActions: reconstructGuardianCompositeActions(context) };
+  const composites = reconstructGuardianCompositeActions(context);
+  // EI emits a bundle swap 1 ms after tome entry/stow; neither transition swaps weapons or cancels an animation.
+  const tomeIds = new Set([44364, 41780, 42259, 42371, 41380]);
+  const recordedActions =
+    context.profile.specializationId === 'firebrand'
+      ? composites.filter(
+          (action) =>
+            !action.isSwap ||
+            !composites.some((tome) => tomeIds.has(tome.rawSkillId) && Math.abs(action.start - tome.start) <= 5)
+        )
+      : composites;
+  const normalized = { ...context, recordedActions };
   return specializationReconstructors.get(context.profile.specializationId)?.(normalized) || normalized.recordedActions;
 }

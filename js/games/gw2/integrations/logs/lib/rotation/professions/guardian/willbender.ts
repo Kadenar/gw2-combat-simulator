@@ -8,6 +8,8 @@ const RUSHING_JUSTICE_IMPACT_ID = 62624;
 const EXECUTIONERS_CALLING_ID = 62525;
 const EXECUTIONERS_CALLING_DUAL_STRIKE_ID = 62656;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;
+const JURISDICTION_ID = 71817;
+const JURISDICTION_RELEASE_ID = 71818;
 
 function numericSkillId(action: RecordedLogAction): number {
   return Number(action.canonicalSkillId ?? action.rawSkillId);
@@ -30,9 +32,14 @@ export function reconstructGuardianCompositeActions(
         ? RUSHING_JUSTICE_IMPACT_ID
         : skillId === EXECUTIONERS_CALLING_ID
           ? EXECUTIONERS_CALLING_DUAL_STRIKE_ID
-          : null;
+          : skillId === JURISDICTION_ID
+            ? JURISDICTION_RELEASE_ID
+            : null;
     if (followupId == null) {
-      normalized.push(action);
+      // EVTC labels every charge level simply "Jurisdiction"; an unpaired release must not become a new charge cast.
+      normalized.push(
+        skillId === JURISDICTION_RELEASE_ID ? { ...action, canonicalName: 'Fire Jurisdiction (Level 1)' } : action
+      );
       continue;
     }
 
@@ -49,17 +56,31 @@ export function reconstructGuardianCompositeActions(
     }
 
     consumed.add(impact);
+    // The supported level-one Jurisdiction activation already owns its detonation packet.
+    if (skillId === JURISDICTION_ID) {
+      for (const candidate of sorted) {
+        if (numericSkillId(candidate) === 71989 && candidate.start >= impact.start && candidate.start <= impact.end) {
+          consumed.add(candidate);
+        }
+      }
+    }
+
     normalized.push({
       ...action,
       end: Math.max(action.end, impact.end),
       expectedDurationMs:
-        skillId === EXECUTIONERS_CALLING_ID
+        skillId === EXECUTIONERS_CALLING_ID || skillId === JURISDICTION_ID
           ? Number(action.expectedDurationMs || action.end - action.start) +
             Number(impact.expectedDurationMs || impact.end - impact.start)
           : Math.max(Number(action.expectedDurationMs || 0), Number(impact.expectedDurationMs || 0)),
       status: impact.status,
       canonicalSkillId: skillId,
-      canonicalName: skillId === RUSHING_JUSTICE_ID ? 'Rushing Justice' : "Executioner's Calling"
+      canonicalName:
+        skillId === RUSHING_JUSTICE_ID
+          ? 'Rushing Justice'
+          : skillId === JURISDICTION_ID
+            ? 'Jurisdiction'
+            : "Executioner's Calling"
     });
   }
 

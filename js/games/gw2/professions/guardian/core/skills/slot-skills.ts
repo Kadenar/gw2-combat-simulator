@@ -131,42 +131,13 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 3320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 4320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 5320, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      // Each field pulse applies the same Burning packet alongside its strike.
+      ...[320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
+        type: 'condition' as const,
+        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 2 }],
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const
+      }))
     ]
   },
   [ID.JUDGES_INTERVENTION]: {

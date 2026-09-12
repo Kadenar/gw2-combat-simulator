@@ -22,6 +22,40 @@ function context(profession, specialization, events, agents = log().agents) {
   };
 }
 
+test('Firebrand effect finders distinguish mantra charges using nearby credited hits', () => {
+  // An effect supplies the cast timestamp; only same-owner damage strictly inside EI's tolerance identifies its charge.
+  const guid = Buffer.from('AF2B09AC1145AA4880B967C32A11E81C', 'hex');
+  const mapping = event({
+    stateChange: 46,
+    skillId: 77,
+    source: guid.readBigUInt64LE(0),
+    target: guid.readBigUInt64LE(8)
+  });
+  const effect = event({ time: 100, stateChange: 51, skillId: 77, source: 0n, target: PLAYER });
+  const find = (build, extra = [], overrides = {}) =>
+    eiInstantActions(
+      context('guardian', 'firebrand', [
+        event({ stateChange: 15, source: BigInt(build) }),
+        mapping,
+        { ...effect, ...overrides },
+        ...extra
+      ])
+    ).filter((action) => [45082, 42924, -61].includes(action.rawSkillId));
+  for (const skillId of [45082, 42924]) {
+    const hit = event({ time: 109, skillId, value: 100 });
+    const [cast] = find(141374, [hit]);
+    assert.equal(cast.rawSkillId, skillId);
+    assert.equal(cast.start, effect.time);
+    assert.match(cast.eiRule, /EffectCastFinderByDst/);
+    assert.equal(find(141374, [{ ...hit, time: 110 }])[0].rawSkillId, -61);
+    assert.equal(find(141374, [{ ...hit, source: 0x9999n }])[0].rawSkillId, -61);
+    assert.deepEqual(find(141374, [hit], { target: 0x9999n }), []);
+    assert.deepEqual(find(141373, [hit]), []);
+  }
+
+  assert.equal(find(141374)[0].rawSkillId, -61);
+});
+
 test('EI missile finders preserve creation evidence and suppress duplicate projectiles per skill and caster', () => {
   // Creation is sufficient without a hit; launches, removals, damage and another actor cannot invent a cast.
   const events = [
