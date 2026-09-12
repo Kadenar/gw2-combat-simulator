@@ -356,7 +356,8 @@ export function renderGear(app: ProfessionAppState): void {
         trigger.focus();
         menu.showPopover();
         positionGearPopover(menu, trigger);
-        menu.querySelector<HTMLSelectElement>('select')?.focus();
+        // Focus the visible control so iOS does not open the hidden native select.
+        menu.querySelector<HTMLButtonElement>('.weapon-controls .gear-select-trigger')?.focus({ preventScroll: true });
       }
     });
     menu.addEventListener('toggle', () => trigger.setAttribute('aria-expanded', String(menu.matches(':popover-open'))));

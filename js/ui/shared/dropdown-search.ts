@@ -44,12 +44,13 @@ export function bindDropdownSearch(
     empty.hidden = options.some((option) => !option.hidden);
   };
 
-  const openSearch = () => {
+  const openSearch = (focusSearch = true) => {
     input.value = '';
     open();
     filter();
     results.scrollTop = 0;
-    input.focus({ preventScroll: true });
+    // Touch users browse first and tap Search to type; keyboard users keep immediate search focus.
+    (focusSearch ? input : trigger).focus({ preventScroll: true });
     trigger.setAttribute('aria-expanded', 'true');
   };
 
@@ -65,7 +66,7 @@ export function bindDropdownSearch(
     event.preventDefault();
     event.stopPropagation();
     if (menu.checkVisibility()) closeSearch();
-    else openSearch();
+    else openSearch(event.detail === 0 || !window.matchMedia('(pointer: coarse)').matches);
   });
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
