@@ -116,3 +116,39 @@ test('Distracting Throw stays visible alongside Revealed and disappears at expir
   assert.equal(values(5)['thief-spinning-axes'], '1/6');
   assert.equal(values(10)['thief-distracting-throw'], undefined);
 });
+
+// The display follows projected buff expiry, while Signet recharge continues after its active bonus ends.
+test("Lotus Training and Assassin's Signet show only their remaining active durations", () => {
+  const config = { selectedDodge: 'Lotus Training', selectedSkills: ["Assassin's Signet"] };
+  const rotation = ['Dodge', "Assassin's Signet"];
+  const started = activeState(simulate('Daredevil', rotation, config), 'Daredevil');
+  assert.equal(started['daredevil-lotus-training'], '6.0s');
+  assert.equal(started['thief-assassins-signet'], '5.0s');
+  assert.equal(started['daredevil-bounding-dodger'], undefined);
+  const elapsed = activeState(
+    simulate('Daredevil', [...rotation, { type: 'wait', durationMs: 5000 }], config),
+    'Daredevil'
+  );
+  assert.equal(elapsed['daredevil-lotus-training'], '1.0s');
+  assert.equal(elapsed['thief-assassins-signet'], undefined);
+  const expired = activeState(
+    simulate('Daredevil', [...rotation, { type: 'wait', durationMs: 6000 }], config),
+    'Daredevil'
+  );
+  assert.equal(expired['daredevil-lotus-training'], undefined);
+});
+
+test('Lead Attacks displays current stacks as separate initiative-spending grants expire', () => {
+  const config = { selectedTraitIds: [TRAIT.LEAD_ATTACKS] };
+  const rotation = ['Venomous Volley', { type: 'wait', durationMs: 5000 }, 'Venomous Volley'];
+  assert.equal(activeState(simulate('Core', rotation, config))['thief-lead-attacks'], '6 stacks');
+  assert.equal(
+    activeState(simulate('Core', [...rotation, { type: 'wait', durationMs: 5000 }], config))['thief-lead-attacks'],
+    '3 stacks'
+  );
+  assert.equal(
+    activeState(simulate('Core', [...rotation, { type: 'wait', durationMs: 10000 }], config))['thief-lead-attacks'],
+    undefined
+  );
+  assert.equal(activeState(simulate('Core', ['Venomous Volley']))['thief-lead-attacks'], undefined);
+});

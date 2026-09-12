@@ -165,7 +165,7 @@ function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEve
   };
 }
 
-/** Show weapon trackers alongside the mutually exclusive Stealth and Revealed gates. */
+/** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
 function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
@@ -182,14 +182,32 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const distractingThrowRemaining = Number(state.distractingThrowBuffUntil || 0) - at;
-  if (distractingThrowRemaining > 0) {
+  const leadAttacksStacks = Math.max(0, Math.trunc(Number(state.leadAttacksStacks || 0)));
+  if (leadAttacksStacks > 0) {
     items.push({
-      id: 'thief-distracting-throw',
-      label: 'Distracting Throw',
-      value: `${distractingThrowRemaining.toFixed(1)}s`,
-      title: 'Time remaining on the outgoing damage bonus granted after a spear finisher'
+      id: 'thief-lead-attacks',
+      label: 'Lead Attacks',
+      value: `${leadAttacksStacks} stacks`,
+      title: 'Active damage-bonus stacks gained from spending initiative'
     });
+  }
+
+  for (const [id, label, expiresAt, title] of [
+    [
+      'thief-distracting-throw',
+      'Distracting Throw',
+      state.distractingThrowBuffUntil,
+      'Time remaining on the outgoing damage bonus granted after a spear finisher'
+    ],
+    [
+      'thief-assassins-signet',
+      "Assassin's Signet",
+      state.assassinsSignetActiveUntil,
+      "Time remaining on Assassin's Signet's active Power bonus"
+    ]
+  ] as const) {
+    const remaining = Number(expiresAt || 0) - at;
+    if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 
   const revealedRemaining = Number(state.revealedUntil || 0) - at;
