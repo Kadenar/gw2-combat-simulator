@@ -21,6 +21,13 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
   // Banish fully refreshes Mighty Blow only after Banish completes successfully.
   if (skill.id === GUARDIAN_SKILL_IDS.BANISH) context.state.cooldowns.delete(GUARDIAN_SKILL_IDS.MIGHTY_BLOW);
 
+  // Rearming the flip cannot bypass the throw's post-cast ICD, which recharge reductions do not shorten.
+  if (skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE) {
+    for (const lockout of skill.lockouts || []) {
+      context.state.lockouts.set(lockout.group, context.effectiveEnd + lockout.durationMs / 1000);
+    }
+  }
+
   if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip?.flipParentId === skill.id) {

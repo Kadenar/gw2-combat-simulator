@@ -26,6 +26,8 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ZEALOTS_FIRE]: {
     quicknessCastTimeMs: 680,
     cooldown: 0,
+    // Weapon-state commitment anchors this fixed reuse lockout to the end of the throw.
+    lockouts: [{ group: 'guardian-zealots-fire', durationMs: 400 }],
     effects: [
       {
         type: 'strike',

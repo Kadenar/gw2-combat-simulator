@@ -756,6 +756,27 @@ test("Zealot's Flame preserves one-handed roots without exempting its flip", () 
   );
 });
 
+test("Zealot's Fire retains its fixed reuse lockout after rearming the flip", () => {
+  // Spending the second Flame charge arms another throw without bypassing its independent ICD.
+  for (const alacrity of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ["Zealot's Flame", "Zealot's Fire", "Zealot's Flame", "Zealot's Fire"],
+      config: {
+        ...config,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Torch',
+        boons: { quickness: true, alacrity },
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE]
+      }
+    });
+    const throws = result.steps.filter((step) => step.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(throws.length, 2);
+    assert.equal(throws[1].start - throws[0].end, 400);
+  }
+});
+
 test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => {
   const result = simulateGw2({
     profession: guardianProfession,
