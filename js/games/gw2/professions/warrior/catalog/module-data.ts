@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createSpecializationSkillIds,
@@ -47,18 +48,12 @@ const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
     const { recharge: legacyRecharge, ...sourceSkill } = skill;
     const maximumAmmo = Number(skill.ammo || 0);
-    const ammoRecharge = Number(skill.ammoRecharge || 0);
-
-    const cooldown =
-      maximumAmmo > 0
-        ? Number(ammoRecharge || skill.cooldown || legacyRecharge || 0)
-        : Number(skill.cooldown || legacyRecharge || 0);
-
     const ammoCastLockout = maximumAmmo > 0 ? Number(skill.ammoCastLockout ?? legacyRecharge ?? 0) : 0;
 
     return {
       ...sourceSkill,
-      cooldown,
+      // Adopt shared finite/explicit-zero recharge selection while retaining the separate legacy ammo lockout.
+      cooldown: gw2BaseRecharge(skill),
       ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       flipParentId: flipParentById.get(skill.id) ?? null,
       ...(WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)

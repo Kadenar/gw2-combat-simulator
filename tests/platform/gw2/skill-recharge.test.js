@@ -5,15 +5,21 @@ import { gw2EffectiveCooldown } from '#gw2/platform/combat/query/runtime-rules.j
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 
 test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {
   assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 8);
   assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 10, recharge: 12 }), 10);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: -8, cooldown: 10, recharge: 12 }), 10);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: Number.POSITIVE_INFINITY, recharge: 12 }), 12);
   assert.equal(gw2BaseRecharge({ ammo: 0, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 10);
 });
 
 test('GW2 base recharge prefers finite canonical cooldown and then legacy recharge', () => {
   assert.equal(gw2BaseRecharge({ cooldown: 10, recharge: 12 }), 10);
+  assert.equal(gw2BaseRecharge({ cooldown: 0, recharge: 12 }), 0);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 0, recharge: 12 }), 0);
   assert.equal(gw2BaseRecharge({ cooldown: Number.NaN, recharge: 12 }), 12);
   assert.equal(gw2BaseRecharge({ cooldown: Number.POSITIVE_INFINITY, recharge: Number.NaN }), 0);
   assert.equal(gw2BaseRecharge({}), 0);
@@ -22,6 +28,40 @@ test('GW2 base recharge prefers finite canonical cooldown and then legacy rechar
 test('effective cooldown applies modifiers to the shared ammo-aware base recharge', () => {
   const skill = { id: 1, name: 'Ammo', ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 };
   assert.equal(gw2EffectiveCooldown(skill, {}, { cooldownMultiplier: 0.5, rechargeRate: 2 }), 2);
+});
+
+// Warrior's legacy recharge remains a cast lockout while each spent charge recovers independently of it.
+test('Warrior ammo normalization preserves charge recovery and the legacy-derived cast lockout', () => {
+  const scheduler = createScheduler({
+    profession: warriorProfession,
+    config: { selectedSkills: ['Throw Bolas'] }
+  });
+  const { context, state } = scheduler;
+  const skill = context.catalog.skillsByName.get('Throw Bolas');
+  assert.equal(skill.cooldown, 16);
+  assert.equal(skill.ammoCastLockout, 1);
+  assert.equal(Object.hasOwn(skill, 'recharge'), false);
+
+  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
+  const first = scheduler.events.findLast((event) => event.type === 'action');
+  scheduler.advanceTo(first.endsAt);
+  const ammo = state.ammo.get(skill.id);
+  assert.equal(ammo.charges, 1);
+  assert.equal(ammo.nextRechargeAt, first.endsAt + 16);
+  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 1);
+
+  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
+  const second = scheduler.events.findLast((event) => event.type === 'action');
+  assert.equal(second.at, first.endsAt + 1);
+  scheduler.advanceTo(second.endsAt);
+  assert.equal(ammo.charges, 0);
+  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 16);
+  scheduler.advanceTo(first.endsAt + 16);
+  context.cooldownController.refreshAmmo(skill, state.time);
+  assert.equal(ammo.charges, 1);
+  assert.equal(ammo.nextRechargeAt, first.endsAt + 32);
+  assert.equal(state.cooldowns.has(skill.id), false);
+  assert.deepEqual(scheduler.warnings, []);
 });
 
 test('declarative ammo consumes and recharges shared charges', () => {
