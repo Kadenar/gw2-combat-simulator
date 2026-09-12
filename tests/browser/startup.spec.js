@@ -18,13 +18,15 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await route.continue();
   });
   try {
+    await page.setViewportSize({ width: 1130, height: 760 });
     await page.goto('/engineer.html?embed=1', { waitUntil: 'domcontentloaded' });
     const overlay = page.locator('#loading-overlay');
     await expect(overlay).toBeVisible();
     await expect(overlay.getByRole('status')).toHaveText('Loading Engineer data…');
+    await expect(overlay.getByRole('status')).toBeVisible();
     await expect(page.locator('#app')).toHaveAttribute('inert', '');
     const slot = overlay.locator('.loader-skill-bar > span').first();
-    await expect(slot).toHaveCSS('animation-name', 'loader-skill-reveal');
+    await expect(slot).toHaveCSS('animation-name', 'loader-skill-assemble');
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
       .toBeGreaterThan(0);
@@ -34,8 +36,10 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     const preview = await overlay.locator('.loader-preview').boundingBox();
     expect(preview.x).toBeGreaterThanOrEqual(0);
     expect(preview.x + preview.width).toBeLessThanOrEqual(320);
+    await expect(overlay.getByRole('status')).toBeInViewport();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(slot).toHaveCSS('animation-name', 'none');
+    await expect.poll(() => overlay.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
     await page.screenshot({ path: testInfo.outputPath('loading-mobile.png') });
 
     releaseModule();

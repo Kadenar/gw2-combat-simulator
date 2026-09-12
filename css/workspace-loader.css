@@ -1,0 +1,315 @@
+/* Owns the startup overlay, decorative workspace assembly, and accessible responsive states. */
+#loading-overlay {
+  --loader-gold: #d0aa55;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, #d0aa550a, transparent 65%), var(--bg-dark);
+  display: flex;
+  padding: 24px 16px;
+  overflow: auto;
+  z-index: 1000;
+}
+
+#loading-overlay.hidden {
+  display: none;
+}
+
+.loader-content {
+  margin: auto;
+  text-align: center;
+}
+
+/* Forged workspace: artwork and real startup copy sit above a quietly assembling interface. */
+.loader-workspace {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 720px);
+  overflow: hidden;
+  text-align: left;
+}
+
+.loader-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 360px;
+}
+
+.loader-art {
+  position: absolute;
+  top: -64px;
+  right: -24px;
+  width: min(78%, 520px);
+  pointer-events: none;
+  /* Fade into the page itself so a tinted backdrop cannot reveal a rectangular image edge. */
+  mask-image: linear-gradient(90deg, transparent, #000 38%);
+}
+
+.loader-crest {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.9;
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 20%, transparent));
+  animation: loader-art-drift 9s ease-in-out infinite;
+}
+
+.loader-sparks {
+  position: absolute;
+  inset: 20% 12% 12%;
+}
+
+.loader-sparks i {
+  position: absolute;
+  left: calc(10% + var(--spark) * 11%);
+  top: calc(40% + var(--spark) * 5%);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 7px var(--accent);
+  opacity: 0;
+  animation: loader-spark-rise 6s ease-out infinite;
+  animation-delay: calc(var(--spark) * -0.7s);
+}
+
+.loader-heading {
+  position: relative;
+  z-index: 1;
+  max-width: 320px;
+  padding: 24px 0;
+}
+
+.loader-heading::before {
+  content: '';
+  display: block;
+  width: 54px;
+  height: 1px;
+  margin-bottom: 22px;
+  background: var(--loader-gold);
+}
+
+.loader-eyebrow {
+  margin-bottom: 12px;
+  color: var(--loader-gold);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.loader-workspace h1 {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 12px var(--bg-dark);
+}
+
+/* Show the existing live startup status; animation never invents stages or delays readiness. */
+#loading-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+#loading-status::before {
+  content: '';
+  flex: 0 0 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--loader-gold);
+  box-shadow: 0 0 9px #d0aa5555;
+}
+
+.loader-preview {
+  position: relative;
+  margin: 16px 0 24px;
+}
+
+.loader-skill-bar {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: clamp(3px, 1vw, 8px);
+}
+
+/* Tint placeholder frames, symbols, and labels with the profession's existing accent. */
+.loader-skill-bar > span {
+  position: relative;
+  display: grid;
+  align-items: end;
+  aspect-ratio: 1;
+  padding-bottom: 2px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 3px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent);
+  color: color-mix(in srgb, var(--accent) 44%, transparent);
+  font: 11px var(--mono);
+  animation: loader-skill-assemble 6s ease-in-out infinite both;
+  animation-delay: calc(var(--slot) * 0.14s);
+}
+
+.loader-skill-bar > span::before {
+  content: '';
+  position: absolute;
+  width: 22%;
+  height: 22%;
+  top: 25%;
+  left: 39%;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.loader-panels {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.loader-traits,
+.loader-gear {
+  display: grid;
+  gap: 8px;
+}
+
+.loader-gear {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.loader-panels i {
+  height: 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ffffff08, transparent);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: loader-panel-assemble 6s ease-in-out infinite both;
+  animation-delay: calc(0.6s + var(--row, 0) * 0.16s);
+}
+
+.loader-traits i:nth-child(2),
+.loader-gear i:nth-child(3),
+.loader-gear i:nth-child(4) {
+  --row: 1;
+}
+
+.loader-traits i:nth-child(3),
+.loader-gear i:nth-child(5),
+.loader-gear i:nth-child(6) {
+  --row: 2;
+}
+
+/* Only transform and opacity run continuously across the composition. */
+@keyframes loader-art-drift {
+  50% {
+    transform: translate(-5px, -2px) scale(1.018);
+  }
+}
+
+@keyframes loader-spark-rise {
+  20% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(14px, -70px);
+    opacity: 0;
+  }
+}
+
+@keyframes loader-skill-assemble {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(6px);
+  }
+  24%,
+  72% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loader-panel-assemble {
+  0%,
+  100% {
+    transform: translateY(3px) scaleX(0.92);
+    opacity: 0.2;
+  }
+  36%,
+  74% {
+    transform: none;
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 600px) {
+  .loader-hero {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .loader-art {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(100%, 360px);
+    margin: -24px auto -80px;
+    mask-image: none;
+  }
+
+  .loader-heading {
+    max-width: none;
+    padding: 0;
+  }
+
+  .loader-heading::before {
+    display: none;
+  }
+
+  .loader-workspace h1 {
+    font-size: 26px;
+  }
+
+  #loading-status {
+    margin-top: 12px;
+  }
+
+  .loader-preview {
+    margin-top: 28px;
+  }
+
+  .loader-skill-bar > span {
+    aspect-ratio: 0.8;
+    min-height: 40px;
+  }
+
+  .loader-panels {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #loading-overlay .loader-workspace *,
+  #loading-overlay .loader-workspace *::before,
+  #loading-overlay .loader-workspace *::after {
+    animation: none;
+  }
+
+  .loader-sparks {
+    display: none;
+  }
+
+  .loader-skill-bar > span {
+    color: var(--accent);
+  }
+}

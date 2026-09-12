@@ -172,10 +172,6 @@
   grid-row: 3;
 }
 
-#loading-overlay.hidden {
-  display: none;
-}
-
 .start-att-selector {
   pointer-events: auto;
 }
