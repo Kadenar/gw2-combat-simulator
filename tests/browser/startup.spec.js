@@ -56,6 +56,10 @@ test('embedded loader follows the visible host viewport until startup completes'
 
 // Hold real startup dependencies so loading, reduced motion, and the handoff can be checked without artificial delays.
 test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }, testInfo) => {
+  // Select the final specialization to verify artwork changes before profession data finishes loading.
+  await page.addInitScript(() => {
+    Math.random = () => 0.999;
+  });
   const { promise: moduleReady, resolve: releaseModule } = Promise.withResolvers();
   const { promise: templatesReady, resolve: releaseTemplates } = Promise.withResolvers();
   await page.route(moduleUrl, async (route) => {
@@ -77,6 +81,7 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await expect(page.locator('#app')).toHaveAttribute('inert', '');
     const slot = overlay.locator('.loader-skill-bar > span').first();
     await expect(slot).toHaveCSS('animation-name', 'loader-skill-assemble');
+    await expect(overlay.locator('.loader-crest')).toHaveAttribute('src', /\/professions\/amalgam\.png$/);
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
       .toBeGreaterThan(0);

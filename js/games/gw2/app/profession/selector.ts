@@ -14,7 +14,7 @@ import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/size.js';
 import { mountRotationWorkspace } from '#app/shell/workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/profession/navigation.js';
-import { professionGroups, type ProfessionRegistryEntry } from '#gw2/app/profession/registry.js';
+import { getProfessionEntry, professionGroups, type ProfessionRegistryEntry } from '#gw2/app/profession/registry.js';
 
 const GITHUB_ISSUES_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues';
 const BUILD_SUBMISSION_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues/new?template=build-submission.yml';
@@ -181,6 +181,19 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
   }
 }
 
+/** Vary the startup portrait per visit, keeping the core artwork if a specialization image fails. */
+function renderLoaderArtwork(root: Document): void {
+  const image = root.querySelector<HTMLImageElement>('.loader-crest');
+  const artwork = getProfessionEntry(root.body.dataset.profession ?? '')?.specializationArtwork?.filter(
+    ({ conceptArt }) => conceptArt
+  );
+  if (!image || !artwork?.length) return;
+
+  const fallback = image.src;
+  image.addEventListener('error', () => (image.src = fallback), { once: true });
+  image.src = artwork[Math.floor(Math.random() * artwork.length)].conceptArt!;
+}
+
 /**
  * Binds profession navigation within a document-like root.
  *
@@ -189,6 +202,7 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
  * landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
+  renderLoaderArtwork(root);
   mountGw2IconFallback(root);
   mountLegalFooter(root);
   mountRotationWorkspace(root);
