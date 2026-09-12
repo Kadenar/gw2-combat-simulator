@@ -89,7 +89,7 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   if (state.tomePages >= pageCost) return CAST_READY;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
-  // terminating condition. A non-finite next page (tome already at maximum)
+  // terminating condition. A non-finite next page (regeneration not started)
   // leaves retryAt null so the denial stays final rather than looping forever.
   const reason = `${skill.name} is unavailable — requires ${pageCost} tome page${pageCost === 1 ? '' : 's'}.`;
   return Number.isFinite(state.nextTomePageAt)
@@ -126,9 +126,8 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   if (skill.handlerId !== 'guardian.tome-page' || context.action.cancelled) return;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
-  // The regen timer only ticks while below maximum; spending a page from a full
-  // pool restarts the interval from this cast rather than from last regen tick.
-  if (state.tomePages >= state.maximumTomePages) {
+  // The first spend starts regeneration; later spends and refunds preserve its cadence, even at the cap.
+  if (!Number.isFinite(state.nextTomePageAt)) {
     state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
   }
 
@@ -136,10 +135,6 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   const pageGain = Number(context.eventByOrder(Number(context.action.eventOrder))?.tomePageRefund ?? 0);
   if (pageGain > 0) {
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
-    if (state.tomePages >= state.maximumTomePages) {
-      state.nextTomePageAt = Number.POSITIVE_INFINITY;
-    }
-
     context.emit({
       type: 'proc',
       procType: 'trait',
@@ -363,20 +358,15 @@ export const guardianTomeEventHandlers = Object.freeze({
 });
 
 /**
- * Regenerates all tome pages due by the target scheduler time and disables the
- * next-page timer when the resource reaches its maximum.
+ * Advances every page tick through the target time, discarding gains above the cap without stopping the timer.
  */
 export function advanceTomeState(context: GuardianSchedulerContext, target: number): void {
   const state = firebrandState.from(context);
   // Loop rather than a single add so multiple pages that matured in the same
   // advance window are all credited without needing separate advance calls.
-  while (state.tomePages < state.maximumTomePages && state.nextTomePageAt <= target + context.epsilon) {
-    state.tomePages += 1;
+  while (state.nextTomePageAt <= target + context.epsilon) {
+    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 1);
     state.nextTomePageAt += state.tomePageInterval;
-  }
-
-  if (state.tomePages >= state.maximumTomePages) {
-    state.nextTomePageAt = Number.POSITIVE_INFINITY;
   }
 
   if (state.ashesCharges > 0 && state.ashesExpiresAt <= target + context.epsilon) {

@@ -31,7 +31,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.HAIL_OF_JUSTICE]: {
     // EVTC impact offsets keep the five strikes and their conditions on the same timeline.
     quicknessCastTimeMs: 1120,
-    interruptCommitMs: 960,
+    interruptCommitMs: 920,
     cooldown: 10,
     ammo: 2,
     ammoRecharge: 10,
@@ -137,7 +137,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.THROUGH_THE_HEART]: {
     quicknessCastTimeMs: 600,
-    interruptCommitMs: 440,
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',

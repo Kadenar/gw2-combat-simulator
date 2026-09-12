@@ -23,22 +23,27 @@ function context(profession, specialization, events, agents = log().agents) {
   };
 }
 
-test('Firebrand Solace effect evidence resolves a complete charge burst without replacing source identity', () => {
-  const guid = Buffer.from('8F0C77784AFD7F40B27446617DC05CDC', 'hex');
-  const source = context('guardian', 'firebrand', [
-    event({ stateChange: 15, source: 141374n }),
-    event({ stateChange: 46, skillId: 77, source: guid.readBigUInt64LE(0), target: guid.readBigUInt64LE(8) }),
-    ...[100, 1100, 2100].map((time) => event({ time, stateChange: 51, skillId: 77, source: 0n, target: PLAYER }))
-  ]);
-  source.catalog = guardianCatalog;
-  source.recordedActions = eiInstantActions(source);
-  const actions = reconstructProfessionActions(source);
-  assert.deepEqual(
-    actions.map((action) => action.canonicalSkillId),
-    [41475, 41475, 42960]
-  );
-  assert.ok(actions.every((action) => action.rawSkillId === -20 && action.evidence === 'effect'));
-});
+for (const [name, effectGuid, combinedId, normalId, finalId] of [
+  ['Solace', '8F0C77784AFD7F40B27446617DC05CDC', -20, 41475, 42960],
+  ['Potence', '95B52793B838524AB237EB9FED7834BF', -22, 42983, 41988]
+]) {
+  test(`Firebrand ${name} effect evidence resolves a complete charge burst without replacing source identity`, () => {
+    const guid = Buffer.from(effectGuid, 'hex');
+    const source = context('guardian', 'firebrand', [
+      event({ stateChange: 15, source: 141374n }),
+      event({ stateChange: 46, skillId: 77, source: guid.readBigUInt64LE(0), target: guid.readBigUInt64LE(8) }),
+      ...[100, 1100, 2100].map((time) => event({ time, stateChange: 51, skillId: 77, source: 0n, target: PLAYER }))
+    ]);
+    source.catalog = guardianCatalog;
+    source.recordedActions = eiInstantActions(source);
+    const actions = reconstructProfessionActions(source);
+    assert.deepEqual(
+      actions.map((action) => action.canonicalSkillId),
+      [normalId, normalId, finalId]
+    );
+    assert.ok(actions.every((action) => action.rawSkillId === combinedId && action.evidence === 'effect'));
+  });
+}
 
 test('Firebrand effect finders distinguish mantra charges using nearby credited hits', () => {
   // An effect supplies the cast timestamp; only same-owner damage strictly inside EI's tolerance identifies its charge.

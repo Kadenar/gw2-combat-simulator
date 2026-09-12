@@ -46,14 +46,21 @@
 }
 
 .loader-crest {
+  /* Fit every specialization into the original square composition; reveal only the decoded selection. */
+  visibility: hidden;
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 1;
   object-fit: contain;
   opacity: 0.9;
   mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
   filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 20%, transparent));
   animation: loader-art-drift 9s ease-in-out infinite;
+}
+
+.loader-crest.is-ready {
+  visibility: visible;
 }
 
 .loader-sparks {

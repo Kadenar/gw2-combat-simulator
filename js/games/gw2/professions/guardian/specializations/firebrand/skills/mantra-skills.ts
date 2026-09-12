@@ -12,8 +12,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     cooldown: 25,
     ammo: 3,
     ammoRecharge: 25,
-    ammoCastLockout: 0,
-    lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
+    ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'stability', duration: 5, audience: { recipients: 'party' as const } },
@@ -34,8 +33,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     cooldown: 10,
     ammo: 3,
     ammoRecharge: 10,
-    ammoCastLockout: 0,
-    lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
+    ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'protection', duration: 2, audience: { recipients: 'party' as const } },
@@ -53,7 +51,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.OVERWHELMING_CELERITY]: {
     castTimeMs: 0,
     canCastConcurrently: true,
-    lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'quickness', duration: 5, audience: { recipients: 'party' as const } },
@@ -76,8 +73,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     cooldown: 10,
     ammo: 3,
     ammoRecharge: 10,
-    ammoCastLockout: 0,
-    lockouts: [{ group: 'firebrand-mantra-potence', durationMs: 1000 }],
+    ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'quickness', duration: 2.5, audience: { recipients: 'party' as const } },
@@ -102,8 +98,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     cooldown: 10,
     ammo: 3,
     ammoRecharge: 10,
-    ammoCastLockout: 0,
-    lockouts: [{ group: 'firebrand-mantra-flame', durationMs: 1000 }],
+    ammoCastLockout: 1,
     tags: ['specialization-managed-flip'],
     effects: [
       {
@@ -130,7 +125,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.FLAME_SURGE]: {
     castTimeMs: 0,
     canCastConcurrently: true,
-    lockouts: [{ group: 'firebrand-mantra-flame', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
       {
@@ -149,7 +143,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.REJUVENATING_RESPITE]: {
     castTimeMs: 0,
     canCastConcurrently: true,
-    lockouts: [{ group: 'firebrand-mantra-solace', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'aegis', duration: 2, audience: { recipients: 'party' as const } },
@@ -160,7 +153,6 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.UNHINDERED_DELIVERY]: {
     castTimeMs: 0,
     canCastConcurrently: true,
-    lockouts: [{ group: 'firebrand-mantra-liberation', durationMs: 1000 }],
     tags: ['specialization-managed-flip'],
     effects: [
       { type: 'boon', boon: 'resolution', duration: 8, audience: { recipients: 'party' as const } },

@@ -181,17 +181,28 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
   }
 }
 
-/** Vary the startup portrait per visit, keeping the core artwork if a specialization image fails. */
-function renderLoaderArtwork(root: Document): void {
+/** Reveal only decoded artwork so the initial core portrait never flashes before the random selection. */
+async function renderLoaderArtwork(root: Document): Promise<void> {
   const image = root.querySelector<HTMLImageElement>('.loader-crest');
   const artwork = getProfessionEntry(root.body.dataset.profession ?? '')?.specializationArtwork?.filter(
     ({ conceptArt }) => conceptArt
   );
-  if (!image || !artwork?.length) return;
+  if (!image) return;
 
   const fallback = image.src;
-  image.addEventListener('error', () => (image.src = fallback), { once: true });
-  image.src = artwork[Math.floor(Math.random() * artwork.length)].conceptArt!;
+  if (artwork?.length) image.src = artwork[Math.floor(Math.random() * artwork.length)].conceptArt!;
+  try {
+    await image.decode();
+  } catch {
+    image.src = fallback;
+    try {
+      await image.decode();
+    } catch {
+      return;
+    }
+  }
+
+  image.classList.add('is-ready');
 }
 
 /**
@@ -202,7 +213,7 @@ function renderLoaderArtwork(root: Document): void {
  * landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
-  renderLoaderArtwork(root);
+  void renderLoaderArtwork(root);
   mountGw2IconFallback(root);
   mountLegalFooter(root);
   mountRotationWorkspace(root);

@@ -35,6 +35,7 @@ const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> = Object.fr
   ['summon.weapon-type-1', 2427, 2680],
   ['summon.weapon-type-2', 2706, 3050],
   ['summon.weapon-type-3', 2448, 3050],
+  ['bundle.exotic', 876, 969],
   ['bundle.ascended', 920, 1017],
   ['transform.radiant-forge', 954, 1076],
   ['transform.rampage', 726, 819],
@@ -191,8 +192,9 @@ export function weaponStrengthProfileIdForEvent(
     return SHROUD_PROFILE_IDS[skillShroud];
   }
 
-  // Kits and Firebrand tome chapters use ascended bundle strength instead of the equipped weapon fallback.
-  if (skill?.kit || skill?.tome) return 'bundle.ascended';
+  // Tome strike ranges match the exotic bundle; engineering kits scale to ascended equipment.
+  if (skill?.tome) return 'bundle.exotic';
+  if (skill?.kit) return 'bundle.ascended';
 
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);

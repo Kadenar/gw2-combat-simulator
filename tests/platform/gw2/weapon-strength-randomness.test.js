@@ -39,6 +39,7 @@ const EXPECTED_PROFILES = Object.freeze({
   'summon.weapon-type-1': [2427, 2680, 2553.5],
   'summon.weapon-type-2': [2706, 3050, 2878],
   'summon.weapon-type-3': [2448, 3050, 2749],
+  'bundle.exotic': [876, 969, 922.5],
   'bundle.ascended': [920, 1017, 968.5],
   'transform.radiant-forge': [954, 1076, 1015],
   'transform.rampage': [726, 819, 772.5],
@@ -101,7 +102,7 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
       skill: { id: 2, name: 'Tome Chapter', tome: 'justice' },
       config: { primaryWeapon: 'Axe' }
     }),
-    'bundle.ascended'
+    'bundle.exotic'
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {

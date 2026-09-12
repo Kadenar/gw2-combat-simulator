@@ -107,7 +107,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.SEARING_SPELL]: {
     quicknessCastTimeMs: 680,
-    interruptCommitMs: 640,
+    // A cancel after commitment retains the completed page use and its effects.
+    interruptCommitMs: 480,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -254,6 +255,8 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.ASHES_OF_THE_JUST]: {
     quicknessCastTimeMs: 880,
+    // Commitment precedes the animation end; the Ashes grant keeps its separate application time.
+    interruptCommitMs: 640,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []

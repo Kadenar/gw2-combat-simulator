@@ -64,7 +64,9 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
     const state = result.endState.profession;
     const focus = result.events.find((event) => event.type === 'action' && event.skillName === 'Renewed Focus');
     assert.equal(state.tomePages, state.maximumTomePages - Number(interrupted));
-    assert.equal(state.nextTomePageAt === Number.POSITIVE_INFINITY, !interrupted);
+    // Refilling pages must preserve the regeneration phase established by the earlier spend.
+    const spent = result.events.find((event) => event.type === 'guardian.tome-page-used');
+    assert.equal(state.nextTomePageAt, spent.nextTomePageAt);
     assert.equal(state.tomeDormantReadyAt.justice > focus.endsAt, interrupted);
     if (!interrupted) assert.deepEqual(state.tomeDormantReadyAt, state.virtueReadyAt);
   }

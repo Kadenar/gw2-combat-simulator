@@ -2,6 +2,57 @@ import { expect, test } from '@playwright/test';
 
 const moduleUrl = '**/js/games/gw2/professions/engineer/app/app-definition.ts*';
 
+// Slow scripts and images must not expose the initial portrait or move the mobile loader; failures use core art.
+for (const failArtwork of [false, true]) {
+  test(`loader reserves its artwork frame until ${failArtwork ? 'fallback' : 'selected'} artwork decodes`, async ({
+    page
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      Math.random = () => 0.999;
+    });
+    const selector = Promise.withResolvers();
+    const artwork = Promise.withResolvers();
+    const startup = Promise.withResolvers();
+    await page.route('**/js/games/gw2/app/profession/selector.ts*', async (route) => {
+      await selector.promise;
+      await route.continue();
+    });
+    await page.route('**/images/professions/amalgam.png', async (route) => {
+      await artwork.promise;
+      await (failArtwork ? route.abort() : route.continue());
+    });
+    await page.route(moduleUrl, async (route) => {
+      await startup.promise;
+      await route.continue();
+    });
+    try {
+      await page.goto('/engineer.html', { waitUntil: 'commit' });
+      await expect(page.locator('#loading-status')).toBeVisible();
+      const portrait = page.locator('.loader-crest');
+      await expect(portrait).toHaveCSS('visibility', 'hidden');
+      const frame = await page.locator('.loader-art').boundingBox();
+      expect(frame.height).toBeCloseTo(frame.width, 0);
+      selector.resolve();
+      await expect(portrait).toHaveAttribute('src', /\/professions\/amalgam\.png$/);
+      await expect(portrait).toHaveCSS('visibility', 'hidden');
+      artwork.resolve();
+      await expect(portrait).toBeVisible();
+      await expect(portrait).toHaveAttribute(
+        'src',
+        failArtwork ? /\/professions\/engineer\.png$/ : /\/professions\/amalgam\.png$/
+      );
+      expect(await portrait.evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+      expect(await page.locator('.loader-art').boundingBox()).toEqual(frame);
+    } finally {
+      selector.resolve();
+      artwork.resolve();
+      startup.resolve();
+    }
+  });
+}
+
 // A tall cross-origin iframe must center startup in the visible host area as the host scrolls and resizes.
 test('embedded loader follows the visible host viewport until startup completes', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -82,6 +133,7 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     const slot = overlay.locator('.loader-skill-bar > span').first();
     await expect(slot).toHaveCSS('animation-name', 'loader-skill-assemble');
     await expect(overlay.locator('.loader-crest')).toHaveAttribute('src', /\/professions\/amalgam\.png$/);
+    await expect(overlay.locator('.loader-crest')).toBeVisible();
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
       .toBeGreaterThan(0);

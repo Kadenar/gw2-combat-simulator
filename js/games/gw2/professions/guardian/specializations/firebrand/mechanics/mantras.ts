@@ -137,6 +137,12 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
     );
   }
 
+  // The final flip shares the normal charge's Alacrity-scaled ammo cooldown.
+  const chargeReadyAt = Number(context.state.cooldowns.get(definition.normalId) || 0);
+  if (final && chargeReadyAt > context.start + context.epsilon) {
+    return retryCast(chargeReadyAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
+  }
+
   // The flip being absent means this specific charge variant (normal vs. final)
   // is not the one currently available; no retry time because the scheduler
   // already controls which flip is live.

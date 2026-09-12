@@ -276,6 +276,31 @@ test('Firebrand page exhaustion stows the tome and pages regenerate', () => {
   assert.equal(traited.endState.profession.tomePageInterval, 5);
 });
 
+test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
+  for (const refund of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        'Tome of Justice',
+        'Chapter 1: Searing Spell',
+        'Stow Tome',
+        ...(refund ? ['Flame Rush', 'Flame Rush', 'Flame Surge'] : []),
+        { type: 'wait', durationMs: 17000 },
+        'Tome of Justice',
+        'Chapter 1: Searing Spell'
+      ],
+      config: { ...config, specialization: 'Firebrand', selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS] }
+    });
+    assert.deepEqual(result.warnings, []);
+    const [first, last] = result.events.filter((event) => event.type === 'guardian.tome-page-used');
+    const state = result.endState.profession;
+    // Full-pool ticks advance the original clock without banking extra pages or restarting on the next spend.
+    assert.equal(last.pagesRemaining, state.maximumTomePages - last.pageCost);
+    assert.equal(last.nextTomePageAt, first.nextTomePageAt + 2 * state.tomePageInterval);
+    assert.equal(state.nextTomePageAt, last.nextTomePageAt);
+  }
+});
+
 test('Firebrand page exhaustion injects a timeline stow and closes its lane', () => {
   const rotation = ['Tome of Resolve', 'Epilogue: Eternal Oasis', 'True Strike'];
   const firebrandConfig = {
@@ -552,6 +577,48 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(rearmed.steps.at(-1).start, rechargeReadyAt);
   assert.equal(rearmed.endState.ammo['Flame Rush'].charges, normal.endState.ammo['Flame Rush'].charges);
   assert.ok(rearmed.endState.profession.availableFlips[rush.id]);
+});
+
+test('mantra charge cooldowns carry across the final flip and scale with Alacrity', () => {
+  // Both transitions spend the same short cooldown, independently of ammo regeneration.
+  for (const alacrity of [false, true]) {
+    for (const [root, normal, final] of [
+      ['Mantra of Flame', 'Flame Rush', 'Flame Surge'],
+      ['Mantra of Solace', 'Restoring Reprieve', 'Rejuvenating Respite'],
+      ['Mantra of Potence', 'Potent Haste', 'Overwhelming Celerity'],
+      ['Mantra of Liberation', 'Portent of Freedom', 'Unhindered Delivery']
+    ]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: [normal, normal, final],
+        config: { ...config, specialization: 'Firebrand', selectedSkills: [root], boons: { alacrity } }
+      });
+      assert.deepEqual(result.warnings, []);
+      const cooldown = alacrity ? 800 : 1000;
+      const starts = result.steps.map((step) => step.start);
+      assert.deepEqual(starts, [0, cooldown, cooldown * 2]);
+    }
+  }
+});
+
+test('Tome of Justice applies Amplified Wrath once before the condition duration cap', () => {
+  for (const amplifiedWrath of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Peacekeeper', { type: 'wait', durationMs: 3000 }],
+      config: {
+        ...config,
+        specialization: 'Firebrand',
+        primaryWeapon: 'Pistol',
+        secondaryWeapon: 'Pistol',
+        stats: { ...config.stats, expertise: 1500 },
+        selectedTraitIds: amplifiedWrath ? [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH] : []
+      }
+    });
+    // Expertise doubles the base duration; the trait's separate multiplier must not be baked in twice.
+    const passive = result.resolvedEvents.find((event) => event.sourceId === 'guardian.justice-passive');
+    assert.equal(passive.effectiveDuration, amplifiedWrath ? 2.4 : 2);
+  }
 });
 
 test('Firebrand tome transitions are weapon swaps and timeline row changes', () => {

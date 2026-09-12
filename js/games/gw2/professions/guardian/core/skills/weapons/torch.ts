@@ -25,7 +25,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ZEALOTS_FIRE]: {
     quicknessCastTimeMs: 680,
-    interruptCommitMs: 600,
+    interruptCommitMs: 560,
     cooldown: 0,
     effects: [
       {

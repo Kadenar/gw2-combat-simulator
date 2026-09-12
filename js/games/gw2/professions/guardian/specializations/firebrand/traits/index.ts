@@ -134,10 +134,8 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     const profile = balanceProfileFromContext(context, PROFILE.weightyTerms);
     const slow = balanceProfileEffect(profile, 'condition');
     const pageGain = Number(profile?.resourceGain ?? 2);
+    // Refunds refill the pool without resetting its running regeneration timer.
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
-    if (state.tomePages >= state.maximumTomePages) {
-      state.nextTomePageAt = Number.POSITIVE_INFINITY;
-    }
 
     emitSkillCondition(context, {
       at,
@@ -167,7 +165,6 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   // The completed Renewed Focus event restores the shared page pool and re-enables tome activation passives.
   if (event.type === 'guardian.virtues-refreshed') {
     state.tomePages = state.maximumTomePages;
-    state.nextTomePageAt = Number.POSITIVE_INFINITY;
     state.tomeDormantReadyAt = { justice: event.at, resolve: event.at, courage: event.at };
     return;
   }
@@ -285,7 +282,9 @@ export function reactToFirebrandJusticeHit(
   reactToJusticeHitWithOptions(context, event, dependencies, {
     retainsPassive: hasTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE),
     skillId: GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
-    skillName: 'Tome of Justice'
+    skillName: 'Tome of Justice',
+    // Tome passive Burning starts at one second; Amplified Wrath applies separately.
+    passiveBurnDuration: 1
   });
 }
 

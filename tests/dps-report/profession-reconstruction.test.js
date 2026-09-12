@@ -113,16 +113,22 @@ test('Firebrand resolves complete Solace charge bursts while preserving ambiguou
   const result = reconstructDpsReportRotation(report, guardianCatalog);
   assert.deepEqual(
     result.actions.map((action) => action.skillId),
-    [41475, 41475, 42960, -20, -20]
+    [41475, 41475, 42960, 41475, -20]
   );
   assert.ok(result.actions.every((action) => action.rawSkillId === -20));
   assert.ok(result.sourceActions.every((action) => action.rawSkillId === -20));
 });
 
 test('Firebrand does not infer final Solace charges across possible recharge or conflicting casts', () => {
-  for (const castTimes of [
-    [100, 1100, 9000],
-    [100, 1100, 2100, 3100]
+  for (const [castTimes, expected] of [
+    [
+      [100, 1100, 9000],
+      [41475, 41475, -20]
+    ],
+    [
+      [100, 1100, 2100, 3100],
+      [-20, -20, -20, -20]
+    ]
   ]) {
     const report = reportFixture(
       'Firebrand',
@@ -130,8 +136,50 @@ test('Firebrand does not infer final Solace charges across possible recharge or 
       { 's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true } }
     );
     const result = reconstructDpsReportRotation(report, guardianCatalog);
-    assert.ok(result.actions.every((action) => action.skillId === -20));
+    assert.deepEqual(
+      result.actions.map((action) => action.skillId),
+      expected
+    );
   }
+});
+
+test('Firebrand recognizes an exhausted mantra even when its uses span an ammo recharge', () => {
+  // Five uses exhaust three starting charges plus at most two recovered charges; a third recovery stays ambiguous.
+  for (const [lastCast, expected] of [
+    [23000, 42960],
+    [25000, -20]
+  ]) {
+    const report = reportFixture(
+      'Firebrand',
+      [{ id: -20, skills: [100, 2100, 9100, 18100, lastCast].map((castTime) => ({ castTime, duration: 0 })) }],
+      { 's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true } }
+    );
+    const result = reconstructDpsReportRotation(report, guardianCatalog);
+    assert.equal(result.actions.at(-1).skillId, expected);
+    assert.ok(result.sourceActions.every((action) => action.rawSkillId === -20));
+  }
+});
+
+test('Firebrand resolves Potence bursts independently of sparse Solace recovery', () => {
+  // Potence empties its pool while Solace preserves charges and recharges between uses.
+  const report = reportFixture(
+    'Firebrand',
+    [
+      { id: -22, skills: [100, 1100, 2100, 19100, 20100, 21100].map((castTime) => ({ castTime, duration: 0 })) },
+      { id: -20, skills: [100, 9100, 18100, 29100, 38100].map((castTime) => ({ castTime, duration: 0 })) }
+    ],
+    {
+      's-22': { name: 'Potent Haste or Overwhelming Celerity', isInstantCast: true },
+      's-20': { name: 'Restoring Reprieve or Rejunevating Respite', isInstantCast: true }
+    }
+  );
+  const result = reconstructDpsReportRotation(report, guardianCatalog);
+  assert.deepEqual(
+    result.actions.filter((action) => action.rawSkillId === -22).map((action) => action.skillId),
+    [42983, 42983, 41988, 42983, 42983, 41988]
+  );
+  assert.ok(result.actions.filter((action) => action.rawSkillId === -20).every((action) => action.skillId === 41475));
+  assert.ok(result.sourceActions.every((action) => [-20, -22].includes(action.rawSkillId)));
 });
 
 test('Firebrand retains an explicitly identified Solace charge instead of contradicting it', () => {
