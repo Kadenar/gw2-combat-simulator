@@ -1,5 +1,6 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
@@ -68,6 +69,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   const state = professionCoreState(context);
   const shroud = state.activeShroud;
   if (!shroud || shroud === 'lich') return;
+  emitTransitionLockout(context, 'shroudExitMs', at);
   // Clear transform and flip state before callbacks observe the exit.
   const entryId = state.activeShroudEntryId;
   const exitId = state.activeShroudExitId;

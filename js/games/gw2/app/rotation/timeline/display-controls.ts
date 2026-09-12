@@ -1,4 +1,9 @@
-import { rotationDeadTimeVisibility, setRotationDeadTimeVisibility } from '#gw2/app/rotation/timeline/size.js';
+import {
+  rotationDeadTimeVisibility,
+  setRotationDeadTimeVisibility,
+  rotationTransitionDelayVisibility,
+  setRotationTransitionDelayVisibility
+} from '#gw2/app/rotation/timeline/size.js';
 import { storeRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
 import { activeSpecialization } from '#gw2/app/rotation/shared/context.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -34,6 +39,7 @@ function checkboxControl(root: Document, options: CheckboxControlOptions): HTMLL
 export function mountRotationDisplayControls(app: ProfessionAppState, root: Document = document): void {
   const container = root.getElementById('perma-boons');
   if (!container) return;
+  root.documentElement.setAttribute('data-show-transition-delays', String(rotationTransitionDelayVisibility(root)));
 
   container.querySelector('#rotation-display-controls')?.remove();
 
@@ -57,6 +63,13 @@ export function mountRotationDisplayControls(app: ProfessionAppState, root: Docu
       title: 'Show time between skills when no skill cast is active',
       checked: rotationDeadTimeVisibility(root),
       onChange: (checked) => setRotationDeadTimeVisibility(root, checked)
+    }),
+    checkboxControl(root, {
+      id: 'rotation-show-transition-delays',
+      label: 'Display transition delays',
+      title: 'Show forced recovery gaps separately from idle time; overlapping casts and waits are not duplicated',
+      checked: rotationTransitionDelayVisibility(root),
+      onChange: (checked) => setRotationTransitionDelayVisibility(root, checked)
     }),
     checkboxControl(root, {
       id: 'rotation-overlay-sigil-procs',

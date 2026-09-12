@@ -1,6 +1,7 @@
 /** Owns persisted timeline size, timing emphasis, and idle-time visibility. */
 export const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
+const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
 const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
 
 export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
@@ -18,6 +19,24 @@ export function normalizeRotationTimelineSize(value: unknown): RotationTimelineS
 
 export function normalizeRotationDeadTimeVisibility(value: unknown): boolean {
   return value === true || value === 'true';
+}
+
+/** Transition recovery has its own display preference and never changes simulation timing. */
+export function rotationTransitionDelayVisibility(root: Document): boolean {
+  try {
+    return root.defaultView?.localStorage.getItem(TRANSITION_DELAY_VISIBILITY_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+export function setRotationTransitionDelayVisibility(root: Document, visible: boolean): void {
+  root.documentElement.setAttribute('data-show-transition-delays', String(visible));
+  try {
+    root.defaultView?.localStorage.setItem(TRANSITION_DELAY_VISIBILITY_KEY, String(visible));
+  } catch {
+    // Keep the display toggle usable when browser storage is unavailable.
+  }
 }
 
 function readStoredSize(root: Document): RotationTimelineSize {

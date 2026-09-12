@@ -18,6 +18,7 @@ import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/profession
 import { advanceNecromancerState, leaveShroud } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { addCarapace, gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { runNecromancerShroudEnter } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 // Snapshot current life-force-related state, arm the matching exit skill, and
@@ -65,6 +66,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     (state.selfConditions || []).some((application) => application.appliedAt <= at && application.expiresAt > at);
   state.plagueSendingEntrySkillId = null;
   runNecromancerShroudEnter(context, skill, at);
+  emitTransitionLockout(context, 'shroudEntryMs', at, skill);
 
   // Emit shared on-entry boons and trait attacks after specialization lifecycle effects.
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {

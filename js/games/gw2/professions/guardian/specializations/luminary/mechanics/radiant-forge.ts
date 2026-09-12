@@ -4,6 +4,7 @@ import { luminaryState } from '#gw2/professions/guardian/specializations/luminar
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
@@ -169,6 +170,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void 
     radiantWeapon: ''
   });
   emitForgeTransition(context, skill);
+  emitTransitionLockout(context, 'forgeEntryMs', context.effectiveEnd, skill);
 }
 
 /**
@@ -410,6 +412,7 @@ function exitRadiantForge(
 ): void {
   const state = luminaryState.from(context);
   if (!state.radiantForge) return;
+  emitTransitionLockout(context, 'forgeExitMs', at, skill);
   finalizeRadiantForgeCooldown(context, at);
   const transition = {
     radiantForge: false,

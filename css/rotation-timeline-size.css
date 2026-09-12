@@ -134,3 +134,29 @@
   font-size: 9px;
   font-weight: 700;
 }
+
+/* Solid cyan stripes distinguish forced input recovery from dashed idle-time markers. */
+.rot-skill.rot-injected.rot-forced-delay {
+  display: flex;
+  box-sizing: border-box;
+  width: 46px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid #64cedb;
+  background: repeating-linear-gradient(135deg, #18343d 0 5px, #122730 5px 10px);
+  color: #a0edf4;
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rot-skill.rot-forced-delay:hover {
+  transform: none;
+}
+
+html[data-show-transition-delays='false'] .rot-skill.rot-forced-delay {
+  display: none;
+}

@@ -129,6 +129,15 @@ export function simulationEventLogRows(
   for (const event of result?.events || []) {
     if (event.type === 'damage' || event.type === 'condition') continue;
     switch (event.type) {
+      case 'gw2.transition-lockout':
+        // Recovery is a scheduling fact with no combat effect, presented separately from skill casts.
+        push(
+          event,
+          'trigger',
+          `TRANSITION DELAY ${event.skillName || event.kind} (${Math.round(Number(event.duration) * 1000)}ms)`,
+          'trigger'
+        );
+        break;
       case 'combat_start':
         push(event, event.type, 'COMBAT START', 'trigger');
         break;

@@ -33,6 +33,7 @@ import {
 } from '#gw2/platform/scheduler/combo-materializer.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
@@ -264,6 +265,16 @@ export function createGw2SchedulerPolicy(
   );
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
+    inputReadyAt(context, at) {
+      // Only transitions already reached can block an input; future emissions must not block earlier overlaps.
+      return context
+        .eventsOfType(TRANSITION_LOCKOUT_EVENT)
+        .reduce(
+          (readyAt, event) =>
+            event.at <= at + context.epsilon ? Math.max(readyAt, event.at + Number(event.duration || 0)) : readyAt,
+          Number.NEGATIVE_INFINITY
+        );
+    },
     taskHandlers: Object.freeze({
       [GW2_MATERIALIZE_EVENT_TASK]: (context, task) => materializer.handleTask(context, task),
       [GW2_COMBO_MATERIALIZE_EVENT_TASK]: (context, task) => comboMaterializer.handleTask(context, task)

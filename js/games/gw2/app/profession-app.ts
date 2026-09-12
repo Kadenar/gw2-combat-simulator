@@ -19,6 +19,7 @@ import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/reli
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { renderRotationComparison, renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/index.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/profession/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/workspace.js';
@@ -54,6 +55,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   patchId: string;
   patchComparison: ProfessionAppState['patchComparison'];
   build: Gw2ApplicationBuild;
+  simulationSettings: SimulationSettings;
   skills: ProfessionAppState['skills'];
   skillByName: ProfessionAppState['skillByName'];
   skillById: ProfessionAppState['skillById'];
@@ -102,6 +104,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.activeCatalog = this.profession.catalogFor?.(this.patchId) || this.profession.catalog;
     this.patchComparison = null;
     this.build = activeTab.build;
+    this.simulationSettings = loadSimulationSettings();
     this.skills = [...this.activeCatalog.skills];
     this.skillByName = this.activeCatalog.skillsByName;
     this.skillById = this.activeCatalog.skillsById;

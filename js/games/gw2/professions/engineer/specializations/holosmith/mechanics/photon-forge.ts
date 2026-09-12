@@ -1,3 +1,4 @@
+import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -204,6 +205,7 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
 
 /** Ejects Photon Forge at maximum heat and schedules the delayed Overheat or PBM consequences. */
 function forceOverheat(context: EngineerSchedulerContext, at: number): void {
+  emitTransitionLockout(context, 'forgeExitMs', at);
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
   const effectDelay = photonicBlastingModule
@@ -350,6 +352,7 @@ export function handlePhotonForgeOverheatPenalty(
 
 /** Enters Photon Forge, starts heat cadence, and applies entry lockout and trait state. */
 function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
+  emitTransitionLockout(context, 'forgeEntryMs', context.effectiveEnd, skill);
   const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
@@ -372,6 +375,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
 
 /** Exits Photon Forge voluntarily and starts cooling and exit trait state. */
 function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): void {
+  emitTransitionLockout(context, 'forgeExitMs', context.effectiveEnd, skill);
   const state = holosmithState.from(context);
   const at = context.effectiveEnd;
   state.photonForgeActive = false;
@@ -534,6 +538,7 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
 export function handleHolosmithKitEquip(context: EngineerCastContext, skill: EngineerSkill): void {
   if (skill.handlerId !== 'engineer.kit-equip' || !holosmithState.from(context).photonForgeActive) return;
   const at = context.effectiveEnd;
+  emitTransitionLockout(context, 'forgeExitMs', at, skill);
   holosmithState.from(context).photonForgeActive = false;
   holosmithState.from(context).forgeExitedAt = at;
   startPassiveHeatCadence(context, at);

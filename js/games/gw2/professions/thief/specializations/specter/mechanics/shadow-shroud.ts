@@ -5,6 +5,7 @@ import { specterState } from '#gw2/professions/thief/specializations/specter/sta
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitThiefShroudSwap } from '#gw2/professions/thief/core/mechanics/resource-events.js';
+import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 
 import { completeStealWithStoredSkills } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
@@ -38,6 +39,7 @@ export function handleShadowShroudDepletion(context: ThiefSchedulerContext): voi
   }
 
   state.shadowForce = 0;
+  emitTransitionLockout(context, 'shroudExitMs', context.state.time);
   state.shadowShroudActive = false;
   emitThiefShroudSwap(context, { id: SHADOW_SHROUD_DEPLETION_TASK, name: 'Exit Shadow Shroud' }, context.state.time);
   emitThiefStateSnapshot(context, context.state.time, 'shadow-shroud-depleted');
@@ -60,6 +62,7 @@ export function completeSiphon(context: ThiefCastContext): void {
 }
 
 export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
+  emitTransitionLockout(context, 'shroudEntryMs', context.effectiveEnd, skill);
   const state = specterState.from(context);
   const at = context.effectiveEnd;
   const profile = balanceProfileFromContext(context, PROFILE.enterShadowShroud);
@@ -100,6 +103,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
 }
 
 export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): void {
+  emitTransitionLockout(context, 'shroudExitMs', context.effectiveEnd, skill);
   const at = context.effectiveEnd;
   specterState.from(context).shadowShroudActive = false;
   context.tasks.cancelOwner(SHADOW_SHROUD_DEPLETION_TASK);

@@ -144,6 +144,8 @@ export interface SchedulerTaskAccess {
 }
 
 export interface SchedulerPolicy<TProfessionState extends object = SchedulerRecord> {
+  /** Earliest next input after transition recovery, independent of each skill's cast lane. */
+  readonly inputReadyAt?: (context: SchedulerContext<TProfessionState>, at: number) => number;
   readonly initialWeaponSet?: (input: {
     profession: NormalizedProfessionContract<TProfessionState>;
     config: SchedulerConfig;

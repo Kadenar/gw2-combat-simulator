@@ -66,6 +66,10 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
+    'gw2.transition-lockout'(ctx, event) {
+      // Preserve forced recovery for timeline occupancy without applying combat effects.
+      if (ctx.reporting) ctx.resolved.push(event);
+    },
     buff(ctx, event) {
       handleBuff(ctx, event, reactions);
     },

@@ -11,6 +11,8 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
+import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 
 export interface GearOptimizerSelections {
   prefixes?: string[];
@@ -43,6 +45,7 @@ export interface GearOptimizerRequest {
   readonly contentId: string;
   readonly revision: number;
   readonly build: Gw2ApplicationBuild;
+  readonly simulationSettings?: SimulationSettings;
   readonly patchId: string;
   readonly observationPolicy: ObservationPolicy;
   readonly selections: GearOptimizerSelections;
@@ -108,6 +111,8 @@ export function captureGearOptimizerRequest(
     contentId: app.contentId,
     revision: app.buildRevision,
     build: app.build,
+    // Candidate workers reconstruct application input, so carry browser settings outside the build snapshot.
+    simulationSettings: { transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays) },
     patchId: app.patchId,
     observationPolicy,
     selections,
@@ -399,6 +404,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
     // The runtime preparation seam reads only these fields; UI methods are deliberately unavailable headlessly.
     const app = {
       build: { ...request.build, ...equipment },
+      simulationSettings: request.simulationSettings,
       adapter,
       profession: adapter.profession,
       activeCatalog,

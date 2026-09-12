@@ -36,6 +36,7 @@ import {
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
+  timelineTransitionDelayMarkers,
   timelineItem,
   timelineSkillCastOrdinals,
   timelineStepsWithChargeFills,
@@ -101,6 +102,14 @@ export function timelineRowsView(
     (results?.events || [])
       .filter((event) => event.type === 'action' && event.activationId && event.detail)
       .map((event) => [String(event.activationId), String(event.detail)])
+  );
+  const transitionDetails = new Map(
+    (results?.events || [])
+      .filter((event) => event.type === 'gw2.transition-lockout' && event.activationId)
+      .map((event) => [
+        String(event.activationId),
+        `Transition delay: ${Math.round(Number(event.duration) * 1000)} ms (overlaps cast recovery)`
+      ])
   );
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SchedulerStep>(
@@ -168,6 +177,11 @@ export function timelineRowsView(
     { includeExplicitWaits: false }
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
+  const transitionDelays = timelineTransitionDelayMarkers(
+    resultSteps,
+    results?.events || [],
+    Number(results?.schedulerState?.time || 0) * 1000
+  );
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
@@ -356,6 +370,13 @@ export function timelineRowsView(
         </div>`;
   };
 
+  const renderTransitionDelay = (marker: (typeof transitionDelays)[number]): string => {
+    const detail = `Forced transition delay: ${marker.durationMs} ms\nRecovery from ${formatTime(marker.start)} to ${formatTime(marker.end)}\nAlready overlaps any cast recovery or explicit wait.`;
+    return `<div class="rot-skill rot-injected rot-forced-delay" role="note" aria-label="${esc(detail)}" title="${esc(detail)}">
+      <span class="rot-dead-time-label">Delay</span><strong class="rot-dead-time-duration">${esc(formatTimelineDuration(marker.durationMs))}</strong>
+    </div>`;
+  };
+
   const renderOverlayProcMarker = (marker: (typeof overlayProcMarkers)[number]): string => {
     const key = procFilterKey(marker);
     const time = formatTime(marker.start);
@@ -521,6 +542,9 @@ export function timelineRowsView(
         step && !invalid && item.type === 'cast'
           ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, [
               ...(actionDetail ? [actionDetail] : []),
+              ...(step.activationId && transitionDetails.has(step.activationId)
+                ? [transitionDetails.get(step.activationId)!]
+                : []),
               ...(cancelledWithoutDamage ? ['Cancelled without dealing damage'] : []),
               ...chargeOutcomeDetails
             ])
@@ -544,7 +568,15 @@ export function timelineRowsView(
       const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
-      const deadTimeHtml = (deadTimesByIndex.get(index) || []).map(renderDeadTime).join('');
+      const deadTimeHtml = [
+        ...(deadTimesByIndex.get(index) || []).map((marker) => ({ start: marker.start, html: renderDeadTime(marker) })),
+        ...transitionDelays
+          .filter((marker) => marker.insertionIndex === index)
+          .map((marker) => ({ start: marker.start, html: renderTransitionDelay(marker) }))
+      ]
+        .sort((left, right) => left.start - right.start)
+        .map((marker) => marker.html)
+        .join('');
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip + titleSuffix + resourceTitle)}" style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
@@ -611,6 +643,9 @@ export function timelineRowsView(
 
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
+      rowItems.push(
+        ...transitionDelays.filter((marker) => marker.insertionIndex === rotation.length).map(renderTransitionDelay)
+      );
       for (const marker of overlayProcMarkersByIndex.get(rotation.length) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
       }

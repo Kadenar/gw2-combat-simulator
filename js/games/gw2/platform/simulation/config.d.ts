@@ -1,12 +1,14 @@
 /** Owns the simulation/config.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
+import type { TransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
 import type { Gw2AttributeProvenance } from '#gw2/platform/builds/types.js';
 import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';
 import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2Config extends SchedulerRecord {
+  readonly transitionDelays?: Partial<TransitionDelays>;
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
   readonly attributes?: Gw2Stats;

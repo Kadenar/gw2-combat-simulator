@@ -6,6 +6,7 @@ import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 
 export type TimelineRotationEntry = RotationCommand;
 
@@ -173,6 +174,15 @@ export function timelineDeadTimeMarkers(
     }
   }
 
+  // Forced transition recovery is occupied time, never an editable Wait shape or idle-time suggestion.
+  for (const event of resolvedEvents) {
+    if (event.type !== TRANSITION_LOCKOUT_EVENT) continue;
+    const start = Math.round(event.at * 1000);
+    const end = Math.round((event.at + Number(event.duration || 0)) * 1000);
+    const following = steps.find((step) => Number(step.start) >= end && isTimelineSkillStep(step));
+    intervals.push({ start, end, insertionIndex: following?.ri ?? 0, containsSkill: false });
+  }
+
   // Simultaneous actions anchor to the earliest authored entry so preceding idle time renders before all of them.
   intervals.sort(
     (left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex || right.end - left.end
@@ -242,6 +252,49 @@ export function timelineDeadTimeMarkers(
   }
 
   return markers.sort((left, right) => left.start - right.start || left.insertionIndex - right.insertionIndex);
+}
+
+/** Display only recovery that adds a gap; existing casts, retained recovery, and authored waits already occupy time. */
+export function timelineTransitionDelayMarkers(
+  steps: readonly TimelineDeadTimeStep[],
+  events: readonly SimulationEvent[],
+  endMs: number
+): TimelineDeadTimeMarker[] {
+  const occupied = steps
+    .filter((step) => isTimelineSkillStep(step) || isTimelineWaitStep(step))
+    .map((step) => ({ start: step.start, end: Math.max(step.end, step.castLockoutEnd ?? step.end) }))
+    .sort((left, right) => left.start - right.start);
+  const intervals: Array<{ start: number; end: number }> = [];
+  for (const event of events) {
+    if (event.type !== TRANSITION_LOCKOUT_EVENT) continue;
+    let start = Math.round(event.at * 1000);
+    const end = Math.min(endMs, Math.round((event.at + Number(event.duration || 0)) * 1000));
+    for (const busy of occupied) {
+      if (busy.end <= start || busy.start >= end) continue;
+      if (busy.start > start) intervals.push({ start, end: busy.start });
+      start = Math.max(start, busy.end);
+    }
+
+    if (start < end) intervals.push({ start, end });
+  }
+
+  // Overlapping transitions impose one deadline, so their visible uncovered intervals are a union too.
+  const merged: typeof intervals = [];
+  for (const interval of intervals.sort((left, right) => left.start - right.start)) {
+    const previous = merged.at(-1);
+    if (previous && interval.start < previous.end) previous.end = Math.max(previous.end, interval.end);
+    else merged.push({ ...interval });
+  }
+
+  const skills = steps
+    .filter(isTimelineSkillStep)
+    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+  return merged.map(({ start, end }) => ({
+    start,
+    end,
+    durationMs: end - start,
+    insertionIndex: skills.find((step) => step.start >= end)?.ri ?? Math.max(0, ...steps.map((step) => step.ri + 1))
+  }));
 }
 
 export function formatTimelineDuration(durationMs: unknown): string {

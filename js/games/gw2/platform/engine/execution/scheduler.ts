@@ -793,6 +793,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     result: AvailabilityResult;
     castContext: CastContext<TProfessionState>;
   } {
+    // Input recovery is checked before profession rules, which may change while scheduled events advance.
+    const inputReadyAt = schedulerPolicy.inputReadyAt?.(context, start) ?? start;
     const preliminaryContext: CastContext<TProfessionState> = {
       ...context,
       command,
@@ -801,6 +803,13 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       start,
       ammo: state.ammo.get(skill.id) || null
     };
+    if (inputReadyAt > start + epsilon) {
+      return {
+        result: retryCast(inputReadyAt, 'platform.input-lockout', 'Transition delay'),
+        castContext: preliminaryContext
+      };
+    }
+
     const professionAvailability = activeProfession.availability(preliminaryContext, skill);
     // A command-scoped profession denial cannot become valid after shared state
     // is refreshed, so return it before running shared and policy availability.
@@ -888,6 +897,9 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
     // Explicit overlaps still queue behind the companion's own animation.
     if (independent && !overlappingIndependent) start = Math.max(start, independentReadyAt);
+
+    // Queue authored overlaps through input recovery without moving the transition past retained aftercast.
+    start = Math.max(start, schedulerPolicy.inputReadyAt?.(context, state.time) ?? start);
 
     if (start < state.time - epsilon) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
@@ -1207,7 +1219,19 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       }
     }
 
-    const rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);
+    let rotationEnd = Math.max(state.time, serialReadyAt, latestReservedEnd);
+    // Recovery belongs to the last entered action too; tails never recursively extend their observation boundary.
+    if (schedulerPolicy.inputReadyAt) {
+      let guard = 0;
+      while (true) {
+        if (++guard > ACTION_SAFETY_LIMIT) throw new Error('Input recovery safety limit exceeded.');
+        advanceTo(rotationEnd);
+        const readyAt = schedulerPolicy.inputReadyAt(context, rotationEnd);
+        if (readyAt <= rotationEnd + epsilon) break;
+        rotationEnd = readyAt;
+      }
+    }
+
     const normalizedRotationEnd = Math.max(rotationEnd, 0);
     const resolutionEnd = observationEndTime(normalizedObservationPolicy, normalizedRotationEnd);
     context.observationEndTime = resolutionEnd;
