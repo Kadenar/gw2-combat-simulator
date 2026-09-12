@@ -118,26 +118,27 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   if (initiativeCost <= 0 || !hasTrait(context.config, TRAIT.LEAD_ATTACKS)) return;
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
-  const expirations = state.leadAttackExpirations || [];
-  const previousStacks = expirations.length;
-  for (let stack = 0; stack < initiativeCost && expirations.length < Number(profile?.maximumStacks ?? 15); stack += 1) {
+  const maximumStacks = Number(profile?.maximumStacks ?? 15);
+  const expirations = (state.leadAttackExpirations || []).filter((expiresAt) => expiresAt > at);
+  // New initiative spending replaces the oldest stacks at the cap without refreshing the remaining stacks.
+  for (let stack = 0; stack < initiativeCost; stack += 1) {
     expirations.push(at + Number(profile?.durationMultiplier ?? 10));
   }
+
+  expirations.splice(0, Math.max(0, expirations.length - maximumStacks));
 
   state.leadAttackExpirations = expirations;
   state.leadAttacksStacks = expirations.length;
 
-  // Publish actual added stacks as buffs so the log shows their individual duration.
-  if (expirations.length > previousStacks) {
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.LEAD_ATTACKS,
-      kind: 'lead-attacks',
-      duration: Number(profile?.durationMultiplier ?? 10),
-      stacks: expirations.length - previousStacks
-    });
-  }
+  // Include replacements so the capped chart retains every new stack's full duration.
+  emitSkillBuff(context, skill, {
+    at,
+    source: 'Trait',
+    sourceId: TRAIT.LEAD_ATTACKS,
+    kind: 'lead-attacks',
+    duration: Number(profile?.durationMultiplier ?? 10),
+    stacks: Math.min(initiativeCost, maximumStacks)
+  });
 
   emitThiefStateSnapshot(context, at, 'lead-attacks');
 }

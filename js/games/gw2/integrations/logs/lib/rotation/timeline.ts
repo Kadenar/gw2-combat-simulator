@@ -85,6 +85,44 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     return leftIndex - rightIndex;
   });
 
+  // A tied outgoing weapon cast must start before attuning; incoming weapon casts need the swap first.
+  // Reorder only those slots, preserving source timestamps and unrelated inputs. Multiple tied swaps stay ambiguous.
+  for (let start = 0; start < entries.length;) {
+    const first = entries[start];
+    const time = first.type === 'action' ? first.action.start : first.at;
+    let end = start + 1;
+    while (end < entries.length) {
+      const entry = entries[end];
+      if ((entry.type === 'action' ? entry.action.start : entry.at) !== time) break;
+      end += 1;
+    }
+
+    const tied = entries.slice(start, end);
+    const swaps = tied.filter(
+      (entry) => entry.type === 'action' && /^(Fire|Water|Air|Earth) Attunement$/.test(entry.action.name)
+    );
+    const swap = swaps.length === 1 ? swaps[0] : null;
+    if (swap?.type === 'action') {
+      const element = swap.action.name.split(' ')[0];
+      const indices = tied.flatMap((entry, index) =>
+        entry === swap ||
+        (entry.type === 'action' &&
+          entry.action.skill?.type === 'Weapon' &&
+          /^(Fire|Water|Air|Earth)$/.test(String(entry.action.skill.attunement)))
+          ? [start + index]
+          : []
+      );
+      const rank = (entry: (typeof entries)[number]): number =>
+        entry === swap ? 1 : entry.type === 'action' && entry.action.skill?.attunement === element ? 2 : 0;
+      const ordered = indices.map((index) => entries[index]).sort((left, right) => rank(left) - rank(right));
+      indices.forEach((index, offset) => {
+        entries[index] = ordered[offset];
+      });
+    }
+
+    start = end;
+  }
+
   // Tied Revenant swaps must trigger the outgoing weapon's sigils before changing weapons.
   // Exchange only the swap slots so other simultaneous inputs retain their source order.
   const weaponSwapIndices = new Map<number, number>();

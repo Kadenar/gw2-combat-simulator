@@ -2,6 +2,9 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
+import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -143,6 +146,45 @@ test('Lead Attacks records one stack per initiative spent', () => {
   updateThiefTraitCastState(context, { id: 900002, name: 'Initiative Test', initiativeCost: 3 });
   assert.equal(core.leadAttacksStacks, 3);
   assert.deepEqual(core.leadAttackExpirations, [11, 11, 11]);
+});
+
+test('Lead Attacks replaces oldest stacks across and at the cap while preserving independent expiry', () => {
+  // Four grants cross the cap; a fifth arrives at the cap. Both state and chart must retain the new durations.
+  for (const grants of [4, 5]) {
+    const { context, core, events } = traitContext([TRAIT.LEAD_ATTACKS]);
+    const skill = { id: 900002, name: 'Initiative Test', initiativeCost: 4 };
+    for (let at = 0; at < grants; at += 1) {
+      advanceThiefCoreResources(context, at);
+      context.effectiveEnd = at;
+      updateThiefTraitCastState(context, skill);
+    }
+
+    assert.equal(core.leadAttacksStacks, 15);
+    assert.deepEqual(
+      core.leadAttackExpirations,
+      Array.from({ length: grants }, (_, at) => Array(4).fill(at + 10))
+        .flat()
+        .slice(-15)
+    );
+    const series = buildChartSeries(
+      {
+        duration: 14,
+        events: events
+          .filter((event) => event.type === 'buff')
+          .map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }))
+      },
+      1000,
+      thiefCoreUi.effectPresentations(context)
+    );
+    assert.equal(chartValueAt(series.effects['Lead Attacks'], (grants - 1) * 1000), 15);
+    const expected = grants === 4 ? [12, 8, 4, 0, 0] : [15, 12, 8, 4, 0];
+    for (let index = 0; index < expected.length; index += 1) {
+      const at = 10 + index;
+      advanceThiefCoreResources(context, at);
+      assert.equal(core.leadAttacksStacks, expected[index], `state at ${at}s after ${grants} grants`);
+      assert.equal(chartValueAt(series.effects['Lead Attacks'], at * 1000), expected[index]);
+    }
+  }
 });
 
 test('Fluid Strikes snapshots its movement-skill duration', () => {

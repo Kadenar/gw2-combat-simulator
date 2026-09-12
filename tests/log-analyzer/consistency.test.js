@@ -8,6 +8,10 @@ import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.
 import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '../helpers/evtc-fixture.js';
 
 const fixtureSkill = {
@@ -20,6 +24,69 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = { skills: [fixtureSkill] };
+
+test('both importers place tied weapon casts on the correct side of an attunement transition', () => {
+  // Source order cannot put a Fire cast in Earth, but a distinct earlier swap must retain that invalid input.
+  for (const skillId of [5508, 5695]) {
+    for (const swapOffset of [0, -1]) {
+      for (const reverse of [false, true]) {
+        const skill = elementalistCatalog.skillsById.get(skillId);
+        const starts = [
+          evtcEvent({ time: 1000 + swapOffset, stateChange: 69, target: PLAYER, skillId: 5580, buff: 1, value: 1000 }),
+          evtcEvent({ time: 1000, stateChange: 67, skillId, value: 760 })
+        ];
+        const rotation = [
+          { id: 5495, skills: [{ castTime: 1000 + swapOffset, duration: 0 }] },
+          { id: skillId, skills: [{ castTime: 1000, duration: 760 }] }
+        ];
+        if (reverse) {
+          starts.reverse();
+          rotation.reverse();
+        }
+
+        const results = [
+          reconstructEvtcRotation(
+            log({
+              agents: [{ ...log().agents[0], profession: 6, elite: 0 }],
+              skills: [{ id: skillId, name: skill.name }],
+              events: [...starts, evtcEvent({ time: 1760, stateChange: 68, skillId, value: 760, activation: 3 })]
+            }),
+            elementalistCatalog,
+            { includeCombatStart: false }
+          ),
+          reconstructDpsReportRotation(
+            {
+              players: [{ name: 'Fixture', profession: 'Elementalist', rotation }],
+              phases: [{ start: 999, end: 2000, name: 'Full Fight' }],
+              skillMap: { s5495: { name: 'Earth Attunement', isSwap: true }, [`s${skillId}`]: { name: skill.name } }
+            },
+            elementalistCatalog
+          )
+        ];
+        for (const imported of results) {
+          const castIndex = imported.rotation.findIndex((command) => command.skillId === skillId);
+          const swapIndex = imported.rotation.findIndex((command) => command.skillId === 5495);
+          const outgoingTie = skillId === 5508 && swapOffset === 0;
+          assert.equal(castIndex < swapIndex, outgoingTie);
+          if (outgoingTie) assert.equal(imported.rotation[swapIndex].offset, 0);
+          const result = simulateGw2({
+            profession: elementalistProfession,
+            rotation: imported.rotation,
+            config: defaultSimulationConfig({
+              specialization: 'Core',
+              primaryWeapon: 'Scepter',
+              startAttunement: 'Fire'
+            })
+          });
+          assert.equal(
+            Boolean(result.steps.find((step) => step.skillId === skillId)?.invalid),
+            skillId === 5508 && swapOffset < 0
+          );
+        }
+      }
+    }
+  }
+});
 
 test('both importers order tied legend swaps before weapon swaps without reversing distinct timestamps', () => {
   // Report skill-group order and EVTC record order cannot decide which weapon owns a tied legend-swap proc.
