@@ -823,6 +823,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .log-controls {
   display: flex;
+  /* Let log navigation and filters wrap on narrow screens. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 2px 0;
@@ -858,7 +860,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--text);
 }
 
-.btn-csv-export {
+.btn-csv-export,
+.log-jump {
   margin: 6px 0;
   padding: 4px 12px;
   background: var(--bg-panel-alt);
@@ -869,7 +872,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   cursor: pointer;
 }
 
-.btn-csv-export:hover {
+.btn-csv-export:hover,
+.log-jump:hover {
   background: var(--accent);
   color: #000;
 }
