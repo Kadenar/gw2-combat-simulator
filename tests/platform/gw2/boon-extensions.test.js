@@ -60,6 +60,7 @@ test('permanent self-boon windows bypass event history for integration and readi
   for (const end of [5, Infinity]) {
     assert.deepEqual([...selfBoonIntervals(events, 'vigor', 2, end, true)], [{ start: 2, end, active: true }]);
   }
+
   assert.deepEqual([...selfBoonIntervals(events, 'alacrity', 2, 2, true)], []);
 });
 
