@@ -1,8 +1,4 @@
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  snapshotProfessionState
-} from '#gw2/platform/engine/profession/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type {
   ProfessionStateSnapshotEmissionContext,
@@ -66,24 +62,14 @@ const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<NecromancerSt
   ...RITUALIST_PUBLIC_END_STATE_DEFAULTS
 });
 
-/** Projects only the public cross-phase state while folding resolver-owned life-force gains into the result. */
+/** Project the scheduler's resource state after timestamped resolver gains have been replayed. */
 export function projectNecromancerEndState({
-  schedulerState,
-  resolverState
+  schedulerState
 }: NecromancerEndStateProjectionOptions): Record<string, unknown> {
   const state = snapshotNecromancerState(schedulerState.profession);
-  const projected = projectPublicProfessionState(
+  return projectPublicProfessionState(
     state,
     NECROMANCER_PUBLIC_END_STATE_KEYS,
     NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS
-  ) as Record<string, unknown> & {
-    lifeForce: number;
-    maximumLifeForce: number;
-    resource: number;
-  };
-  const resolver = flattenProfessionState(resolverState || {});
-  const resolverLifeForce = Math.max(0, Number(resolver.spitefulFortitudeLifeForce || 0));
-  projected.lifeForce = Math.min(projected.maximumLifeForce, projected.lifeForce + resolverLifeForce);
-  projected.resource = projected.lifeForce;
-  return projected;
+  );
 }

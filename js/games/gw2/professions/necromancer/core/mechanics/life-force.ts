@@ -33,9 +33,13 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-function targetConditionCount(config: NecromancerConfig): number {
-  return Object.values(config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length;
-}
+import {
+  observeTargetConditionCount,
+  type NecromancerSchedulerFeedback
+} from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+
+// Each scheduler run consumes observed strike gains exactly once, including gains at time zero.
+const resourceFeedbackCursors = new WeakMap<object, number>();
 
 function targetBoonCount(config: NecromancerConfig): number {
   if (config.target?.boonless) return 0;
@@ -179,41 +183,116 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     cursor: 'tasteForBloodAlliedNextAt'
   });
 
-  // Resolve passive signet pulses over the elapsed interval without duplicating the starting boundary.
-  if (activeSignetOfUndeath(context)) {
-    const passive = balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive);
-    const interval = Number(passive?.pulseInterval ?? 3);
-    const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0);
+  const undeath = activeSignetOfUndeath(context)
+    ? balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive)
+    : undefined;
+  const vampirism = activeSignetOfVampirism(context)
+    ? balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive)
+    : undefined;
+  const undeathInterval = Number(undeath?.pulseInterval ?? 3);
+  const vampirismInterval = Number(vampirism?.pulseInterval ?? 3);
+  const eternalLife = hasTrait(context, TRAIT.ETERNAL_LIFE);
+  const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
+  const gains = feedback?.lifeForceGains || [];
+  // The resolver supplies gains in time order. Keep our position across advances so overlapping or repeated
+  // requests cannot grant the same strike's life force twice.
+  let gainIndex = resourceFeedbackCursors.get(context.state) || 0;
+  let at = start;
+
+  // Drain before each discrete gain, expiry, or depletion so wait partitioning cannot change capped resources.
+  // Example: 100 LF, 3 LF/sec drain, and +4 LF at t=3 gives 91 + 4 = 95 at t=3, then 92 at t=4.
+  // Adding the pulse before draining the whole four seconds would discard it at the cap and incorrectly give 88.
+  while (true) {
+    // The previous iteration drained up to `at`; apply all strike gains due there before choosing another boundary.
+    // This also handles gains at the initial timestamp, when no time needs to elapse.
+    while (gainIndex < gains.length && gains[gainIndex].at <= at + context.epsilon) {
+      const gain = gains[gainIndex++];
+      // Apply gains at their timestamps, but publish state at the advance boundary: specialization clocks may already
+      // hold cast-end state, which must not leak into earlier hits through a backdated full snapshot.
+      gainNecromancerLifeForce(context, gain.amount, at);
+    }
+
+    // Check AFTER gains so a gain exactly at `end` still applies. This is the exit from while (true).
+    if (at >= end) break;
+    // Recompute after each boundary: depletion or Lich expiry may have changed which resource rules are active.
+    const shroudProfile = balanceProfileFromContext(context, state.activeShroudProfileId || PROFILE.shroud);
+    const rate =
+      state.activeShroud && state.activeShroud !== 'lich'
+        ? (state.maximumLifeForce * Number(shroudProfile?.lifeForceDrain || 0)) / 100
+        : 0;
+    // Infinity excludes inactive clocks from Math.min; nonpositive pulse intervals disable recurring pulses.
+    const nextUndeath = undeath && undeathInterval > 0 ? state.signetNextLifeForceAt : Infinity;
+    const nextVampirism = vampirism && vampirismInterval > 0 ? state.vampirismNextAt : Infinity;
+    const nextRegeneration = eternalLife && !state.activeShroud ? Math.floor(at + context.epsilon) + 1 : Infinity;
+    // Stop at the earliest event or the requested end, including the exact instant drain would exhaust life force.
+    // Math.max prevents a stale pulse cursor from moving time backward; its branch below advances that cursor.
+    const next = Math.max(
+      at,
+      Math.min(
+        end,
+        nextUndeath,
+        nextVampirism,
+        nextRegeneration,
+        state.activeShroud === 'lich' ? state.lichEndsAt : Infinity,
+        rate > 0 ? at + state.lifeForce / rate : Infinity,
+        gains[gainIndex]?.at ?? Infinity
+      )
+    );
+
+    // Integrate only this slice before applying gains at its endpoint, so each gain sees the capacity drain created.
+    runNecromancerResourceAdvance(context, at, next);
+    state.lifeForce = Math.max(0, state.lifeForce - rate * (next - at));
+    syncNecromancerResources(state);
+    // Depletion takes precedence over a simultaneous pulse: later gains do not automatically re-enter shroud.
+    if (rate > 0 && state.lifeForce <= context.epsilon) {
+      state.lifeForce = 0;
+      leaveShroud(context, next, 'life-force-depleted');
+    }
+
+    // Clear the transform before its exit refund so subsequent iterations cannot refund it again.
+    if (state.activeShroud === 'lich' && state.lichEndsAt <= next + context.epsilon) {
+      state.activeShroud = '';
+      state.lichEndsAt = 0;
+      delete state.availableFlips[ID.EXIT_LICH_FORM];
+      gainNecromancerLifeForce(context, 15, next);
+    }
+
+    if (nextRegeneration <= next + context.epsilon) {
+      const threshold = state.maximumLifeForce * 0.66;
+      // Eternal Life fills only below its threshold; resources earned elsewhere remain intact.
+      if (state.lifeForce < threshold) {
+        state.lifeForce = Math.min(threshold, state.lifeForce + state.maximumLifeForce * 0.03);
+      }
+    }
+
+    // Evaluate the recharge exception after exits, using the form actually active at this pulse's timestamp.
     const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
-    // A zero interval disables recurring pulses instead of advancing a clock by zero.
-    while (interval > 0 && state.signetNextLifeForceAt <= end + context.epsilon) {
-      // Casting suspends the passive during recharge, with the same shroud-trait exception as Vampirism.
+    if (nextUndeath <= next + context.epsilon) {
+      // The starting boundary belongs to the previous advance. Skip it, and suppress recharge-time pulses unless
+      // Signets of Suffering permits them; epsilon tolerates floating-point rounding at the boundary.
       if (
-        state.signetNextLifeForceAt > start + context.epsilon &&
-        (cooldownReadyAt <= state.signetNextLifeForceAt + context.epsilon || passiveWhileRecharging)
+        nextUndeath > start + context.epsilon &&
+        (Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0) <= next + context.epsilon ||
+          passiveWhileRecharging)
       ) {
-        gainNecromancerLifeForce(context, Number(passive?.lifeForceGain || 0), state.signetNextLifeForceAt);
+        gainNecromancerLifeForce(context, Number(undeath?.lifeForceGain || 0), next);
       }
 
-      state.signetNextLifeForceAt += interval;
+      // Advance even when suppressed so the next iteration cannot revisit this pulse indefinitely.
+      state.signetNextLifeForceAt += undeathInterval;
     }
-  }
 
-  if (activeSignetOfVampirism(context)) {
-    const passive = balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive);
-    const strike = balanceProfileEffect(passive, 'strike');
-    const interval = Number(passive?.pulseInterval ?? 3);
-    const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0);
-    const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
-    while (interval > 0 && state.vampirismNextAt <= end + context.epsilon) {
+    if (nextVampirism <= next + context.epsilon) {
       if (
-        state.vampirismNextAt > start + context.epsilon &&
-        (cooldownReadyAt <= state.vampirismNextAt + context.epsilon || passiveWhileRecharging)
+        nextVampirism > start + context.epsilon &&
+        (Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0) <= next + context.epsilon ||
+          passiveWhileRecharging)
       ) {
+        const strike = balanceProfileEffect(vampirism, 'strike');
         const skill = context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
         if (skill)
           emitSkillDamage(context, skill, {
-            at: state.vampirismNextAt,
+            at: next,
             name: 'Signet of Vampirism - Passive Life Siphon',
             coefficient: 0,
             skillWeapon: 'Unequipped',
@@ -224,42 +303,17 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
           });
       }
 
-      state.vampirismNextAt += interval;
+      state.vampirismNextAt += vampirismInterval;
     }
+
+    // Continue from the boundary just processed. A boundary at the same time still consumes a cursor or exits a form;
+    // otherwise time advances toward `end`. Strike gains at `next` are applied at the top of the loop.
+    at = next;
   }
 
-  if (!state.activeShroud && hasTrait(context, TRAIT.ETERNAL_LIFE)) {
-    const seconds = Math.max(0, Math.floor(end) - Math.floor(start));
-    const threshold = state.maximumLifeForce * 0.66;
-    state.lifeForce = Math.min(threshold, state.lifeForce + seconds * state.maximumLifeForce * 0.03);
-  }
+  resourceFeedbackCursors.set(context.state, gainIndex);
 
-  // Let active specializations integrate their clocks before Core applies shroud depletion and expiry.
-  runNecromancerResourceAdvance(context, start, end);
-
-  if (state.activeShroud && state.activeShroud !== 'lich') {
-    const shroudProfile = balanceProfileFromContext(context, state.activeShroudProfileId || PROFILE.shroud);
-    const rate = (Number(state.maximumLifeForce || 100) * Number(shroudProfile?.lifeForceDrain || 0)) / 100;
-    const elapsed = end - start;
-    const potentialDrain = rate * elapsed;
-    const exitAt = potentialDrain >= state.lifeForce && rate > 0 ? start + state.lifeForce / rate : end;
-
-    state.lifeForce = Math.max(0, state.lifeForce - rate * (exitAt - start));
-    syncNecromancerResources(state);
-    if (state.lifeForce <= context.epsilon) {
-      state.lifeForce = 0;
-      leaveShroud(context, exitAt, 'life-force-depleted');
-    }
-  }
-
-  // Lich Form expires independently of life-force shroud drain and refunds life force once.
-  if (state.activeShroud === 'lich' && state.lichEndsAt <= end + context.epsilon) {
-    state.activeShroud = '';
-    state.lichEndsAt = 0;
-    delete state.availableFlips[ID.EXIT_LICH_FORM];
-    gainNecromancerLifeForce(context, 15, end);
-  }
-
+  // Save both cursors and publish the complete state at the requested time, ready for the next scheduler decision.
   state.lastResourceAt = end;
   syncNecromancerResources(state);
   emitNecromancerStateSnapshot(context, end, 'advance', {
@@ -275,7 +329,7 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
   }
 
   if (new Set<string | number>([ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]).has(skill.id)) {
-    amount += Math.min(5, targetConditionCount(context.config));
+    amount += Math.min(5, observeTargetConditionCount(context, context.effectiveEnd));
   }
 
   // Dark Pact's fixed gain is conditional on having at least one target boon to remove.

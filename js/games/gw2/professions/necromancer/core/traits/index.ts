@@ -67,7 +67,9 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
     skill.flipSkillId != null &&
     skill.flipSkillId !== chainNext &&
     skill.flipSkillId !== skill.nextChainId &&
-    skill.handlerId !== 'necromancer.minion'
+    skill.handlerId !== 'necromancer.minion' &&
+    // Dedicated flip handlers own their active windows; cooldowns must not extend those windows.
+    skill.handlerId !== 'necromancer.flip'
   ) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {

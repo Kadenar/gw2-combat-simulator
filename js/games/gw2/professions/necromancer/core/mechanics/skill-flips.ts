@@ -9,6 +9,8 @@ import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/
 
 // Arms follow-up skills for their skill-specific window and clears them when the follow-up is consumed.
 function flip(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  // An interrupted parent cannot arm a follow-up that requires its completed effect.
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return false;
   const state = professionCoreState(context);
   // Arm the follow-up for the skill-specific duration measured from cast completion.
   if (skill.flipSkillId != null) {

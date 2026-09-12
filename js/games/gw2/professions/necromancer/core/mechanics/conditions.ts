@@ -1,3 +1,4 @@
+import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
@@ -347,13 +348,11 @@ function darkPactOnHit(
   });
 }
 
-// Scale Devouring Darkness torment by the configured number of target conditions, capped at five.
+// Sample live conditions before this impact adds its own Torment, capped at five.
 function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
-  const count = Math.min(
-    5,
-    Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
-  );
+  if (impactAt > context.effectiveEnd + context.epsilon) return true;
+  const count = Math.min(5, observeTargetConditionCount(context, impactAt));
   emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
   if (count > 0) {
     emitSkillCondition(context, skill, { at: impactAt, condition: 'Torment', stacks: count, duration: 4 });

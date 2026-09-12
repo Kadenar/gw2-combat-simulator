@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
@@ -270,6 +271,8 @@ function queueMinionCommandAttacks(
 
 // Establish a fresh minion generation, arm its command, publish state, and start autonomous attacks.
 function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  // Interrupted summons never create a creature, arm its command, or start its attack clock.
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   const definition = minionDefinitionForSkill(context, skill.id);
   if (!definition) return false;
   const state = professionCoreState(context);
@@ -469,30 +472,25 @@ function handleMinionCommandImpact(
 // ownership so simultaneous creatures remain independently attributable.
 function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const start = context.effectiveEnd;
-  const attack = skill.effects?.find((effect) => effect.type === 'strike' && effect.packetLabel === 'attack');
-  const explosion = skill.effects?.find((effect) => effect.type === 'strike' && effect.packetLabel === 'explosion');
   // Give each staggered horror independent attribution for its attack and terminal explosion.
   for (let index = 0; index < Number(skill.summons || 0); index += 1) {
     const summonAt = start + index * Number(skill.summonInterval || 0);
     runCreatureSummonReactions(context, skill, summonAt);
-    emitSkillDamage(context, skill, {
-      at: summonAt + Number(attack?.atMs || 0) / 1000,
-      name: String(attack?.name || 'Unstable Horror - Attack'),
-      source: 'Minion',
-      sourceId: `unstable-horror.${index}`,
-      actorType: 'summon',
-      coefficient: Number(attack?.coefficient || 0),
-      summonKind: 'minion'
-    });
-    emitSkillDamage(context, skill, {
-      at: summonAt + Number(explosion?.atMs || 0) / 1000,
-      name: String(explosion?.name || 'Unstable Horror - Explosion'),
-      source: 'Minion',
-      sourceId: `unstable-horror.${index}`,
-      actorType: 'summon',
-      coefficient: Number(explosion?.coefficient || 0),
-      summonKind: 'minion'
-    });
+    // Preserve every authored strike tick relative to this horror's summon time.
+    for (const effect of skill.effects || []) {
+      if (effect.type !== 'strike') continue;
+      for (const tick of strikeEffectTicks(effect)) {
+        emitSkillDamage(context, skill, {
+          at: summonAt + Number(tick.atMs) / 1000,
+          name: String(effect.name || `Unstable Horror - ${effect.packetLabel}`),
+          source: 'Minion',
+          sourceId: `unstable-horror.${index}`,
+          actorType: 'summon',
+          coefficient: Number(tick.coefficient),
+          summonKind: 'minion'
+        });
+      }
+    }
   }
 
   return true;

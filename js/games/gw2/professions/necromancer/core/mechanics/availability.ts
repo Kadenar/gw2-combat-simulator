@@ -90,6 +90,20 @@ function shroudEntryGate(
   return READY;
 }
 
+// Form approval still requires an armed follow-up; exits and canonical chains own their eligibility separately.
+function flipAvailability(context: NecromancerPrecastContext, skill: NecromancerSkill): Readonly<AvailabilityResult> {
+  if (
+    skill.flipParentId != null &&
+    !skill.shroudExit &&
+    !context.catalog.autoattackChainPositions.has(Number(skill.id)) &&
+    !(Number(professionCoreState(context).availableFlips[skill.id] || 0) > context.start)
+  ) {
+    return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
+  }
+
+  return READY;
+}
+
 // Allow an exit only while its matching transform or persistent flip is active.
 function shroudExitGate(
   context: NecromancerPrecastContext,
@@ -113,17 +127,19 @@ function lichFormGate(
 
 // Restrict the Lich replacement bar to its active transform window.
 function lichSkillGate(
-  _context: NecromancerPrecastContext,
+  context: NecromancerPrecastContext,
   skill: NecromancerSkill,
   { activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   if (!LICH_SKILL_IDS.has(skill.id)) return null;
-  return activeShroud === 'lich' ? READY : deny(skill, 'necromancer.requires-lich', 'requires Lich Form.');
+  return activeShroud === 'lich'
+    ? flipAvailability(context, skill)
+    : deny(skill, 'necromancer.requires-lich', 'requires Lich Form.');
 }
 
 // Match each specialization shroud skill to the currently active shroud identity.
 function inShroudGate(
-  _context: NecromancerPrecastContext,
+  context: NecromancerPrecastContext,
   skill: NecromancerSkill,
   { activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
@@ -133,7 +149,7 @@ function inShroudGate(
     return deny(skill, 'necromancer.wrong-shroud', `requires ${shroud} shroud.`);
   }
 
-  return READY;
+  return flipAvailability(context, skill);
 }
 
 // Prevent a replacement summon from bypassing its active minion's death-recharge contract.
@@ -155,7 +171,7 @@ function baselineGate(
   skill: NecromancerSkill,
   { state, activeShroud }: AvailabilityEnvironment
 ): Readonly<AvailabilityResult> {
-  if (skill.usableInShroud) return READY;
+  if (skill.usableInShroud) return flipAvailability(context, skill);
   if (activeShroud) {
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
@@ -171,17 +187,7 @@ function baselineGate(
     );
   }
 
-  // Cataloged autoattack links are armed by their chain position and retention window, not duplicate API flip state.
-  const isAutoattackChainSkill = context.catalog.autoattackChainPositions.has(Number(skill.id));
-  if (
-    skill.flipParentId != null &&
-    !isAutoattackChainSkill &&
-    !(Number(state.availableFlips[skill.id] || 0) > context.start)
-  ) {
-    return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
-  }
-
-  return READY;
+  return flipAvailability(context, skill);
 }
 
 // Validate slot selection before transform-specific gates can approve a cast.

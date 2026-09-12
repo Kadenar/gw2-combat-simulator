@@ -223,6 +223,9 @@ export function necromancerEventLogRow(
   // resolution; hiding them keeps bookkeeping out of the player event log.
   if (
     [
+      // Scheduler feedback is internal observation data, not a player action.
+      'necromancer.target-condition-count',
+      'necromancer.life-force-gain',
       'necromancer.summon-attack',
       'necromancer.taste-for-blood-grant',
       'necromancer.taste-for-blood-allied-hit',

@@ -11,11 +11,13 @@ import {
   reactToTasteForBloodGrant,
   reactToVampiricPresenceAlliedHit
 } from '#gw2/professions/necromancer/core/traits/index.js';
+import { resolveTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 
 /**
  * Necromancer resolver-side handlers for profession state and summon events.
  */
 export const necromancerCoreResolverEventHandlers = Object.freeze({
+  'necromancer.target-condition-count': resolveTargetConditionCount,
   'necromancer.state': handleNecromancerStateEvent,
   'necromancer.summon-attack': handleNecromancerSummonAttack,
   'necromancer.taste-for-blood-grant': reactToTasteForBloodGrant,

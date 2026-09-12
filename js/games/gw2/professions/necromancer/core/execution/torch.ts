@@ -3,14 +3,13 @@
  * Torch skill fragments remain in `skills/weapons/torch.ts`; `index.ts` assigns cast phases.
  */
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 // Converts the target's active-condition count into party Might, subject to Oppressive Collapse's seven-condition cap.
 function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  const conditionCount = Math.min(
-    7,
-    Object.values(context.config.target?.conditions || {}).filter((value) => value === true || Number(value) > 0).length
-  );
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const conditionCount = Math.min(7, observeTargetConditionCount(context, context.effectiveEnd));
   if (!conditionCount) return;
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,

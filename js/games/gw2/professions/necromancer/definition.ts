@@ -1,3 +1,4 @@
+import type { NecromancerSchedulerFeedback } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createNecromancerBuildDefaults,
@@ -50,28 +51,40 @@ function targetBelowHalfAt(result: Gw2SimulationResult, config: NecromancerConfi
   return null;
 }
 
-/** Feeds Gravedigger's observed half-health boundary back into scheduling until it stabilizes. */
+/** Replay live condition observations and timestamped resource gains alongside the Gravedigger health boundary. */
 function refineNecromancerSchedulerConfig(
   config: NecromancerConfig,
   result: Gw2SimulationResult
 ): NecromancerConfig | null {
-  const targetHealth = Number(config.target?.health || 0);
-  if (!(targetHealth > 0)) return null;
-  // Only Gravedigger changes future scheduling at the 50% threshold; other health-based effects resolve in one pass.
+  const previous = (config._schedulerFeedback || {}) as NecromancerSchedulerFeedback;
   const hasGravediggerCast = result.events.some(
     (event) => event.type === 'action' && Number(event.skillId) === ID.GRAVEDIGGER
   );
-  if (!hasGravediggerCast) return null;
-  const belowHalfAt = targetBelowHalfAt(result, config);
-  if (belowHalfAt == null) return null;
-  const schedulerFeedback = config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
-  const previous = Number(schedulerFeedback?.targetBelowHalfAt);
-  if (Number.isFinite(previous) && previous === belowHalfAt) return null;
+  const conditionCounts: Record<string, number> = {};
+  const lifeForceGains: { at: number; amount: number }[] = [];
+  for (const event of result.resolvedEvents || []) {
+    if (event.type === 'necromancer.target-condition-count') {
+      conditionCounts[String(event.observationKey)] = Number(event.conditionCount);
+    } else if (event.type === 'necromancer.life-force-gain') {
+      lifeForceGains.push({ at: event.at, amount: Number(event.amount) });
+    }
+  }
+
+  const targetBelowHalf =
+    hasGravediggerCast && Number(config.target?.health) > 0 ? targetBelowHalfAt(result, config) : null;
+  if (
+    (previous.targetBelowHalfAt ?? null) === targetBelowHalf &&
+    JSON.stringify(previous.conditionCounts || {}) === JSON.stringify(conditionCounts) &&
+    JSON.stringify(previous.lifeForceGains || []) === JSON.stringify(lifeForceGains)
+  )
+    return null;
   return {
     ...config,
     _schedulerFeedback: {
-      ...(config._schedulerFeedback || {}),
-      targetBelowHalfAt: belowHalfAt
+      ...previous,
+      targetBelowHalfAt: targetBelowHalf ?? undefined,
+      conditionCounts,
+      lifeForceGains
     }
   };
 }

@@ -85,6 +85,15 @@ export function applySpitefulFortitude(
   professionCoreState(context).spitefulFortitudeLifeForce =
     Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
     Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1) * lifeForceMultiplier;
+  // Replay raw percentage gains at the strike timestamp; the scheduler owns normalization, Gluttony, and capping.
+  context.resolved.push({
+    type: 'necromancer.life-force-gain',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.SPITEFUL_FORTITUDE,
+    actorType: 'effect',
+    amount: Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1)
+  });
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

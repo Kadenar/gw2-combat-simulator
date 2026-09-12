@@ -258,7 +258,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.LICH_FORM]: {
     castTimeMs: 1000,
     effects: [],
-    lifeForceGain: 15,
+    // Life force is granted once when the transform ends, by its manual or timed exit.
     cooldown: 120,
     // Custom: Enters or exits Lich Form and updates transform state; see `core/mechanics/shroud.ts`.
     handlerId: 'necromancer.lich'
