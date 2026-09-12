@@ -11,20 +11,18 @@ import type { MesmerState } from '#gw2/professions/mesmer/state/types.js';
 interface CloneAttackSchedulerOptions {
   readonly state: MesmerState;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
-  readonly epsilon: number;
   readonly addDamage: MesmerAddDamage;
   readonly addCondition: MesmerAddCondition;
-  readonly scheduleTask?: ((clone: MesmerClone, at: number) => unknown) | null;
+  readonly scheduleTask: (clone: MesmerClone, at: number) => unknown;
 }
 
-/** Owns task-driven periodic clone attacks and their damage packets. */
+/** Owns periodic clone attacks, scheduling the next cycle only when a live clone's task is dispatched. */
 export function createCloneAttackScheduler({
   state,
   cloneAttacks,
-  epsilon,
   addDamage,
   addCondition,
-  scheduleTask = null
+  scheduleTask
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
   const profession = 'profession' in state ? professionCoreState(state) : state;
   const attackFor = (clone: MesmerClone) => cloneAttacks[clone.weapon] || cloneAttacks.Sword;
@@ -41,17 +39,8 @@ export function createCloneAttackScheduler({
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
     clone.nextAttackAt = clone.createdAt + Number(attack.firstAttackDelay ?? step.interval);
-    if (scheduleTask) scheduleTask(clone, clone.nextAttackAt);
+    scheduleTask(clone, clone.nextAttackAt);
     return clone;
-  };
-
-  const nextAttackAt = (): number => {
-    let next = Infinity;
-    for (const clone of profession.clones) {
-      next = Math.min(next, clone.nextAttackAt ?? Infinity);
-    }
-
-    return next;
   };
 
   // Schedule one clone-owned attack cycle with identity and generation metadata
@@ -108,28 +97,17 @@ export function createCloneAttackScheduler({
     }
   };
 
-  const scheduleAt = (at: number): void => {
-    for (const clone of profession.clones) {
-      if ((clone.nextAttackAt ?? Infinity) > at + epsilon) continue;
-      scheduleAttack(clone, at);
-      const attack = attackFor(clone);
-      clone.nextAttackAt = Number(clone.nextAttackAt) + Number(sequenceStep(clone, attack).interval);
-    }
-  };
-
   const handleTask = (cloneId: number, at: number): void => {
     const clone = profession.clones.find((candidate) => candidate.id === Number(cloneId));
     if (!clone) return;
     scheduleAttack(clone, at);
     const attack = attackFor(clone);
     clone.nextAttackAt = at + Number(sequenceStep(clone, attack).interval);
-    if (scheduleTask) scheduleTask(clone, clone.nextAttackAt);
+    scheduleTask(clone, clone.nextAttackAt);
   };
 
   return {
     handleTask,
-    initializeClone,
-    nextAttackAt,
-    scheduleAt
+    initializeClone
   };
 }

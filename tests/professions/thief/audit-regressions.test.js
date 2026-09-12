@@ -9,6 +9,7 @@ import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modif
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { advanceThiefCoreResources, thiefEnduranceReadyAt } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { reactToThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
@@ -37,6 +38,41 @@ function scheduler(specialization = 'Core', overrides = {}) {
   const config = { ...baseConfig, ...overrides, specialization };
   return createScheduler({ profession: thiefProfession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
 }
+
+test('Thief resource grants preserve snapshot identity, deduplication, and passive recovery', () => {
+  // Grants publish immediate state without moving the passive recovery anchor or changing earlier snapshots.
+  const { context } = scheduler('Core', { boons: { vigor: false } });
+  const state = context.state.profession.core;
+  Object.assign(state, { initiative: 3, initiativeUpdatedAt: 1, endurance: 10, enduranceUpdatedAt: 1 });
+  gainThiefInitiative(context, 2, 2, 'initiative-grant');
+  const initiative = context.events.at(-1);
+  gainThiefInitiative(context, 0, 2, 'initiative-grant');
+  assert.equal(context.events.at(-1), initiative);
+  gainThiefEndurance(context, 7, 2, 'endurance-grant');
+  const endurance = context.events.at(-1);
+  gainThiefEndurance(context, 0, 2, 'endurance-grant');
+  assert.equal(context.events.at(-1), endurance);
+  assert.ok(initiative.eventOrder < endurance.eventOrder);
+  for (const [snapshot, reason] of [
+    [initiative, 'initiative-grant'],
+    [endurance, 'endurance-grant']
+  ]) {
+    assert.equal(snapshot.type, 'thief.state');
+    assert.equal(snapshot.source, 'thief');
+    assert.equal(snapshot.sourceId, `thief.state.${reason}`);
+    assert.equal(snapshot.actorType, 'player');
+    assert.equal(snapshot.reason, reason);
+    assert.equal(snapshot.at, 2);
+  }
+
+  assert.equal(state.enduranceUpdatedAt, 1);
+  advanceThiefCoreResources(context, 2);
+  assert.equal(state.endurance, 22);
+  assert.equal(state.initiative, 6);
+  assert.equal(initiative.state.initiative, 5);
+  assert.equal(initiative.state.endurance, 10);
+  assert.equal(endurance.state.endurance, 17);
+});
 
 test('permanent Vigor bypasses history for Thief advancement and readiness', () => {
   // Both resource entry points must select the fixed-rate path, including capped recovery.

@@ -194,7 +194,6 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   const cloneAttackScheduler = createCloneAttackScheduler({
     state,
     cloneAttacks: runtime.cloneAttacks,
-    epsilon: EPSILON,
     addDamage,
     addCondition,
     scheduleTask: scheduleCloneTask

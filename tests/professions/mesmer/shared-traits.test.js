@@ -3,6 +3,29 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { handleExpectedProcTask } from '#gw2/professions/mesmer/core/mechanics/illusions/execution.js';
+
+test('delayed Mesmer hit procs retain annotations and prefer canonical critical facts', () => {
+  // Canonical replacement supplies sampled facts without dropping annotations on the original scheduled hit.
+  const event = Object.freeze({ type: 'damage', at: 2, eventOrder: 7, blade: true, didCrit: false });
+  for (const canonical of [undefined, { type: 'damage', at: 2, eventOrder: 7, didCrit: true }]) {
+    const processed = [];
+    const context = {
+      mesmerRuntime: { expected: { process: (candidate) => processed.push(candidate) } },
+      eventByOrder(order) {
+        assert.equal(order, 7);
+        return canonical;
+      }
+    };
+    handleExpectedProcTask(context, { at: 2, payload: { type: 'hit', at: 2, event, cloneId: 1 } });
+    assert.equal(processed.length, 1);
+    assert.equal(processed[0].cloneId, 1);
+    assert.equal(processed[0].at, 2);
+    assert.equal(processed[0].event.blade, true);
+    assert.equal(processed[0].event.didCrit, Boolean(canonical));
+    assert.equal(event.didCrit, false);
+  }
+});
 
 // Shared traits retain their damage, boon, and resource contracts across Mesmer specializations.
 test('Maim the Disillusioned applies torment for defensive shatters', () => {

@@ -211,13 +211,13 @@ export function handleExpectedProcTask(
   task: MesmerSchedulerTask<'expectedProc'>
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  const payloadEvent = task.payload.type === 'hit' ? task.payload.event : null;
-  const canonicalEvent = payloadEvent ? context.eventByOrder(Number(payloadEvent.eventOrder)) : null;
+  const payloadEvent = task.payload.event;
+  const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
   // The trigger materializer runs first and replaces the canonical event with
   // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
   // original candidate (such as a skill-derived `blade` flag).
-  const event = payloadEvent ? { ...payloadEvent, ...(canonicalEvent || {}) } : null;
-  runtime.expected.process(task.payload.type === 'hit' && event ? { ...task.payload, event } : task.payload);
+  const event = { ...payloadEvent, ...canonicalEvent };
+  runtime.expected.process({ ...task.payload, event });
 }
 
 /** Records a landed default-scheduled hit only when the shared clock reaches its packet time. */

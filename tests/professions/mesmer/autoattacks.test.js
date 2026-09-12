@@ -321,10 +321,12 @@ test('split autoattacks preserve each full-chain cadence', () => {
   }
 });
 
-test('clone attacks are scheduled lazily as the timeline advances', () => {
+test('clone attack tasks rearm on dispatch and ignore destroyed clones', () => {
+  // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
   const state = { clones: [] };
   const damage = [];
   const conditions = [];
+  const tasks = [];
   const scheduler = createCloneAttackScheduler({
     state,
     cloneAttacks: {
@@ -336,9 +338,9 @@ test('clone attacks are scheduled lazily as the timeline advances', () => {
         conditions: [{ name: 'Bleeding', duration: 1, stacks: 1 }]
       }
     },
-    epsilon: 0.0001,
     addDamage: (...args) => damage.push(args),
-    addCondition: (...args) => conditions.push(args)
+    addCondition: (...args) => conditions.push(args),
+    scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })
   });
 
   state.clones.push(
@@ -349,12 +351,17 @@ test('clone attacks are scheduled lazily as the timeline advances', () => {
     })
   );
 
-  assert.equal(scheduler.nextAttackAt(), 3);
+  assert.deepEqual(tasks, [{ cloneId: 1, at: 3 }]);
   assert.equal(damage.length, 0);
-  scheduler.scheduleAt(2.9);
-  assert.equal(damage.length, 0);
-  scheduler.scheduleAt(3);
+  const first = tasks.shift();
+  scheduler.handleTask(first.cloneId, first.at);
   assert.equal(damage.length, 1);
   assert.equal(conditions.length, 1);
-  assert.equal(scheduler.nextAttackAt(), 5);
+  assert.deepEqual(tasks, [{ cloneId: 1, at: 5 }]);
+  state.clones.length = 0;
+  const next = tasks.shift();
+  scheduler.handleTask(next.cloneId, next.at);
+  assert.equal(damage.length, 1);
+  assert.equal(conditions.length, 1);
+  assert.deepEqual(tasks, []);
 });
