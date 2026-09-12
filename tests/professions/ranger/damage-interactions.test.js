@@ -1,6 +1,7 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   skillBreakdownRows,
@@ -20,6 +21,48 @@ const simulate = createProfessionSimulator(rangerProfession, {
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const hits = (result, skillId) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skillId);
+
+test('Ranger condition-count bonuses use canonical active conditions and query precedence', () => {
+  // Both formulas must count condition variety at the observation time, not raw names or inactive stacks.
+  const stack = { appliedAt: 5, expiresAt: 10, weight: 2 };
+  const runtime = { conditionState: new Map([['Burning', { stacks: [stack] }]]) };
+  const config = { target: { conditions: { burn: true } } };
+  const cases = [
+    [{ config, runtime }, 1],
+    ...[{ appliedAt: 6 }, { removedAt: 5 }, { expiresAt: 5 }, { weight: 0 }].map((patch) => [
+      { runtime: { conditionState: new Map([['Burning', { stacks: [{ ...stack, ...patch }] }]]) } },
+      0
+    ]),
+    [{ config, runtime, query: { targetHasCondition: () => false } }, 0],
+    [{ query: { targetHasCondition: (condition) => condition === 'Bleeding' } }, 1]
+  ];
+  const bonus = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.condition-count-skill-bonus');
+  const bite = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.consuming-bite-condition-count');
+  for (const [inputs, count] of cases) {
+    const context = { time: 5, ...inputs };
+    const strike = { ...context, event: { damageKind: 'ranger-unleashed-disabled-condition-count' } };
+    const pet = { ...context, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
+    assert.equal(bonus.when(strike), true);
+    assert.equal(bite.when(pet), true);
+    assert.equal(bonus.factor(strike, bonus.target, bonus.parameters), 1 + count * 0.02);
+    assert.equal(bite.factor(pet, bite.target, bite.parameters), (0.45 + count * 0.025) / 0.45);
+  }
+});
+
+test('Ranger condition bonuses retain the Consuming Bite cap and coefficient guard', () => {
+  // Only Consuming Bite caps condition variety; its coefficient conversion must remain safe for nonpositive inputs.
+  const config = {
+    target: { conditions: { burn: true, bleed: true, poison: true, chill: true, slow: true, weakness: true } }
+  };
+  const bonus = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.condition-count-skill-bonus');
+  const bite = rangerCoreModifierRules.find((rule) => rule.id === 'ranger.consuming-bite-condition-count');
+  const context = { config, time: 5, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
+  assert.equal(bonus.factor(context, bonus.target, bonus.parameters), 1.12);
+  assert.equal(bite.factor(context, bite.target, bite.parameters), (0.45 + 0.125) / 0.45);
+  for (const coefficient of [undefined, 0, -1]) {
+    assert.equal(bite.factor({ ...context, event: { coefficient } }, bite.target, bite.parameters), 1);
+  }
+});
 
 test('One Wolf Pack uses its own strength and accepts periodic hits at the recharge boundary', () => {
   // Five evenly spaced pulses must each produce one echo; weapon triggers must use the same stance formula.

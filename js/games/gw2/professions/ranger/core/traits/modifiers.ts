@@ -8,6 +8,7 @@ import {
   eventSkill as gw2EventSkill,
   hasSelectedSkill,
   targetConditionActive,
+  targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -29,28 +30,6 @@ import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
 import type { RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-
-// Count distinct configured or live target conditions at query time for traits
-// that scale from condition variety rather than stack count.
-function targetConditionCount(context: Gw2ModifierContext): number {
-  const active = new Set(
-    Object.entries(context.config?.target?.conditions || {})
-      .filter(([, value]) => value === true || Number(value) > 0)
-      .map(([condition]) => condition)
-  );
-  const runtime = context.runtime as
-    | {
-        conditionState?: Map<string, { stacks?: readonly { expiresAt?: number }[] }>;
-      }
-    | undefined;
-  for (const [condition, entry] of runtime?.conditionState || []) {
-    if ((entry.stacks || []).some((stack) => Number(stack.expiresAt) > context.time)) {
-      active.add(condition);
-    }
-  }
-
-  return active.size;
-}
 
 function weaponSetIncludes(context: Gw2ModifierContext, weaponSet: number, names: readonly string[]): boolean {
   const weapons = gw2ConfiguredWeaponSet(context.config, weaponSet);
@@ -430,6 +409,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     parameters: { baseFactor: 1, damagePerCondition: 0.02 } as Readonly<Record<string, number>>,
+    // Canonical queries deduplicate aliases and count only conditions active at this observation time.
     factor: (context, _target, parameters) =>
       parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition,
     when: (context) => context.event?.damageKind === 'ranger-unleashed-disabled-condition-count'
