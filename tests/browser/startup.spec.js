@@ -12,7 +12,8 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await moduleReady;
     await route.continue();
   });
-  await page.route('**/data/gw2/builds/engineer/manifest.json', async (route) => {
+  // Include the cache-busting query so template loading holds the preparing state until explicitly released.
+  await page.route('**/data/gw2/builds/engineer/manifest.json*', async (route) => {
     await templatesReady;
     await route.continue();
   });
