@@ -328,15 +328,16 @@ export function createGw2SchedulerPolicy(
     },
 
     buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {
+      // Configured duration presence is fixed even with extensions; intensity stacks still need replay.
+      if (configuredStacks > 0 && isDurationStackingBoon(kind)) return 1;
       if (context.eventsOfType('boon_extension').length > 0 && isStandardBoon(kind)) {
         const extended = boonApplicationsAt(context.events, kind, at + context.epsilon).filter(
           (application) => application.resolvedAudience.includesSelf
         );
         if (isDurationStackingBoon(kind)) {
-          return configuredStacks > 0 ||
-            remainingDurationStackSeconds(extended, at + context.epsilon, {
-              maximum: durationStackingBoonCapSeconds(kind)
-            }) > context.epsilon
+          return remainingDurationStackSeconds(extended, at + context.epsilon, {
+            maximum: durationStackingBoonCapSeconds(kind)
+          }) > context.epsilon
             ? 1
             : 0;
         }
@@ -350,7 +351,6 @@ export function createGw2SchedulerPolicy(
       }
 
       if (!isDurationStackingBoon(kind)) return defaultStacks;
-      if (configuredStacks > 0) return 1;
       return remainingDurationStackSeconds(applications, at + context.epsilon, {
         maximum: durationStackingBoonCapSeconds(kind)
       }) > context.epsilon

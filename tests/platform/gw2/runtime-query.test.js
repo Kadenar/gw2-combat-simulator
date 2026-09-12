@@ -25,6 +25,29 @@ function context(overrides = {}) {
   };
 }
 
+test('configured duration stacks bypass history and retain output caps without changing additive buffs', () => {
+  // Fixed duration presence needs no live or scheduler history, but additive buffs still include active stacks.
+  const boons = new Proxy(new Map(), { get: () => assert.fail('Configured duration boons must not read history') });
+  for (const stateKey of ['runtime', 'state']) {
+    for (const permanent of [true, 3]) {
+      const current = context({ config: { boons: { vigor: permanent } }, [stateKey]: { boons } });
+      for (const maximum of [0, 0.5, 1, 25]) {
+        assert.equal(activeBoonStacks(current, 'vigor', maximum), Math.min(1, maximum));
+      }
+    }
+  }
+
+  for (const kind of ['might', 'stability', 'custom']) {
+    const current = context({
+      config: { boons: { [kind]: 3 } },
+      runtime: { boons: new Map([[kind, [{ at: 0, expiresAt: 10, stacks: 2 }]]]) }
+    });
+    assert.equal(activeBoonStacks(current, kind), 5);
+    assert.equal(activeBoonStacks(current, kind, 4), 4);
+    assert.equal(activeBoonStacks({ ...current, time: 10 }, kind), 3);
+  }
+});
+
 // Stack queries must agree with accumulated duration even after every original packet has expired.
 test('duration boon stacks use capped presence in live and scheduler state', () => {
   for (const kind of ['fury', 'vigor', 'swiftness', 'protection', 'alacrity', 'quickness']) {

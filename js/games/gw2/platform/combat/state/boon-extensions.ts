@@ -26,6 +26,8 @@ export function* selfBoonIntervals(
   end: number,
   permanent = false
 ) {
+  // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
+  if (end <= start) return;
   // Permanent boon assumptions keep the rate constant, so resource updates need no event-history replay.
   if (permanent) {
     if (end > start) yield { start, end, active: true };

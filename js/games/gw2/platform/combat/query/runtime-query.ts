@@ -85,6 +85,8 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
 export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
   const permanent = context.config?.boons?.[boon];
   const base = permanent === true ? 1 : Number(permanent || 0);
+  // Configured duration presence needs no history, but must still respect the caller's output cap.
+  if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
   const schedulerState = context.state as { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
   const boons = context.runtime?.boons ?? schedulerState?.boons;
   const applications = boons?.get(boon) || [];
@@ -92,7 +94,7 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
     const remaining = remainingDurationStackSeconds(applications, context.time, {
       maximum: durationStackingBoonCapSeconds(boon)
     });
-    return clamp(base > 0 || remaining > 0 ? 1 : 0, 0, maximum);
+    return clamp(remaining > 0 ? 1 : 0, 0, maximum);
   }
 
   const dynamic = applications

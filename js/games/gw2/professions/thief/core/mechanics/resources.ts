@@ -39,8 +39,14 @@ export function thiefEnduranceRegenerationRate(
 
 export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
   let current = Number(professionCoreState(context).endurance || 0);
-  // Predict affordability across the same pooled Vigor windows used by advancement.
-  for (const interval of selfBoonIntervals(context.events, 'vigor', context.start, Infinity)) {
+  // Predict affordability using shared Vigor windows, bypassing history for permanent Vigor.
+  for (const interval of selfBoonIntervals(
+    context.events,
+    'vigor',
+    context.start,
+    Infinity,
+    Boolean(context.config.boons?.vigor)
+  )) {
     const rate = thiefEnduranceRegenerationRate(
       context,
       interval.start,
@@ -84,8 +90,14 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   }
 
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-  // Integrate each rate window so unrelated wait boundaries cannot change recovery.
-  for (const interval of selfBoonIntervals(context.events, 'vigor', enduranceFrom, target)) {
+  // Integrate shared Vigor windows so waits cannot change recovery; permanent Vigor needs no history replay.
+  for (const interval of selfBoonIntervals(
+    context.events,
+    'vigor',
+    enduranceFrom,
+    target,
+    Boolean(context.config.boons?.vigor)
+  )) {
     Object.assign(
       state,
       advanceEndurance(

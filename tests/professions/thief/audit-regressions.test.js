@@ -38,6 +38,69 @@ function scheduler(specialization = 'Core', overrides = {}) {
   return createScheduler({ profession: thiefProfession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
 }
 
+test('permanent Vigor bypasses history for Thief advancement and readiness', () => {
+  // Both resource entry points must select the fixed-rate path, including capped recovery.
+  const { context } = scheduler('Core', { boons: { vigor: true } });
+  const state = context.state.profession.core;
+  state.endurance = 0;
+  const current = {
+    ...context,
+    events: new Proxy(context.events, {
+      get(events, key, receiver) {
+        if (key === 'filter') assert.fail('Permanent Vigor scanned history');
+        return Reflect.get(events, key, receiver);
+      }
+    })
+  };
+  near(thiefEnduranceReadyAt({ ...current, start: 0 }, 50), 50 / 7.5);
+  advanceThiefCoreResources(current, 4);
+  assert.equal(state.endurance, 30);
+  near(thiefEnduranceReadyAt({ ...current, start: 4 }, 50), 4 + 20 / 7.5);
+  advanceThiefCoreResources(current, 100);
+  assert.equal(state.endurance, state.maximumEndurance);
+});
+
+test('empty Thief endurance windows still advance initiative, expire temporary state, and emit a snapshot', () => {
+  // An endurance-only no-op must not skip the rest of the resource update.
+  for (const enduranceUpdatedAt of [2, 3]) {
+    const { context } = scheduler('Core', { boons: { vigor: false } });
+    const state = context.state.profession.core;
+    Object.assign(state, {
+      endurance: 10,
+      enduranceUpdatedAt,
+      initiative: 0,
+      initiativeUpdatedAt: 0,
+      leadAttackExpirations: [1, 4],
+      availableFlips: { [ID.SHADOW_SWAP]: 2 },
+      activeThievesGuild: { expiresAt: 2 }
+    });
+    addVenomCharges(state, ID.SPIDER_VENOM, 0, 2, 2);
+    advanceThiefCoreResources(
+      {
+        ...context,
+        events: new Proxy(context.events, {
+          get(events, key, receiver) {
+            if (key === 'filter') assert.fail('Empty endurance window scanned history');
+            return Reflect.get(events, key, receiver);
+          }
+        })
+      },
+      2
+    );
+    assert.equal(state.endurance, 10);
+    assert.equal(state.enduranceUpdatedAt, enduranceUpdatedAt);
+    assert.equal(state.initiative, 2);
+    assert.equal(state.initiativeUpdatedAt, 2);
+    assert.deepEqual(state.leadAttackExpirations, [4]);
+    assert.equal(state.leadAttacksStacks, 1);
+    assert.deepEqual(state.availableFlips, {});
+    assert.equal(state.activeThievesGuild, null);
+    assert.deepEqual(state.venomChargeBatches[ID.SPIDER_VENOM], []);
+    assert.equal(context.events.at(-1).type, 'thief.state');
+    assert.equal(context.events.at(-1).at, 2);
+  }
+});
+
 test('THF-001: Hidden Killer requires stealth and lingers after either natural expiry or an attack', () => {
   const { context } = scheduler('Core', { selectedTraitIds: [TRAIT.HIDDEN_KILLER] });
   const state = context.state.profession.core;

@@ -64,6 +64,43 @@ test('permanent self-boon windows bypass event history for integration and readi
   assert.deepEqual([...selfBoonIntervals(events, 'alacrity', 2, 2, true)], []);
 });
 
+test('empty and reversed self-boon windows bypass history with or without permanent boons', () => {
+  // No resource time elapses, so even a dynamic boon needs no reconstruction.
+  const events = new Proxy([], { get: () => assert.fail('Empty windows must not read event history') });
+  for (const permanent of [false, true]) {
+    for (const [start, end] of [
+      [2, 2],
+      [2, 1],
+      [Infinity, Infinity]
+    ]) {
+      assert.deepEqual([...selfBoonIntervals(events, 'vigor', start, end, permanent)], []);
+    }
+  }
+});
+
+test('scheduler configured duration boons bypass history while intensity and custom stacks stay additive', () => {
+  // Permanent presence is fixed even when extensions exist; intensity still needs its extended applications.
+  const policy = createGw2SchedulerPolicy();
+  const unreadable = new Proxy([], { get: () => assert.fail('Configured duration boons must not read history') });
+  const fixed = { events: unreadable, eventsOfType: () => unreadable, epsilon: 1e-8 };
+  for (const kind of ['vigor', 'alacrity', 'fury']) {
+    for (const configured of [1, 3]) assert.equal(policy.buffStacks(fixed, kind, 4, configured, unreadable, 0), 1);
+  }
+
+  for (const kind of ['vigor', 'might', 'stability', 'custom']) {
+    const events = [
+      buff(0, 2, self, kind, kind === 'vigor' ? 1 : 2),
+      { ...buff(1, 3), type: 'boon_extension', kind: undefined }
+    ];
+    const current = { events, eventsOfType: (type) => events.filter((event) => event.type === type), epsilon: 1e-8 };
+    assert.equal(policy.buffStacks(current, kind, 3, 3, [], 3), kind === 'vigor' ? 1 : kind === 'custom' ? 3 : 5);
+    if (kind === 'vigor') {
+      assert.equal(policy.buffStacks(current, kind, 3, 0, [], 0), 1);
+      assert.equal(policy.buffStacks(current, kind, 5, 0, [], 0), 0);
+    }
+  }
+});
+
 test('extensions preserve past duration and intensity observations across recipients and charts', () => {
   const events = [
     buff(0, 5, shared),
