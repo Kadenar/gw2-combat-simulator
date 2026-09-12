@@ -130,6 +130,12 @@ export function mountEventLog(
   const resolvedRows = rows || [];
   const filters = options.filters || [];
   const previousDetails = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
+  const previousLog = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
+  const scrollTop = previousLog?.scrollTop || 0;
+  // Keep readers in place after recalculation; readers at the end follow the updated log.
+  const followEnd = Boolean(
+    previousLog && scrollTop > 0 && previousLog.scrollHeight - previousLog.clientHeight - scrollTop <= 1
+  );
   const wasMounted = Boolean(previousDetails);
   // Preserve disclosure and filter state when simulation results rerender.
   const open = wasMounted ? Boolean(previousDetails?.open) : Boolean(options.initiallyOpen);
@@ -159,8 +165,10 @@ export function mountEventLog(
     <div class="log-controls">
       <button type="button" class="btn-csv-export" data-role="event-log-download"
         data-filename="${escapeHtml(filename)}">Download CSV Log</button>
+      <button type="button" class="log-jump" data-role="event-log-start">Jump to start</button>
+      <button type="button" class="log-jump" data-role="event-log-end">Jump to end</button>
       <input type="search" class="log-search" data-role="event-log-search"
-        placeholder="Filter events…" value="${escapeHtml(searchQuery)}" />
+        aria-label="Filter events" placeholder="Filter events…" value="${escapeHtml(searchQuery)}" />
       ${filters
         .map((filter) => {
           const id = String(filter.id);
@@ -178,21 +186,39 @@ export function mountEventLog(
 
   const details = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
   const logElement = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
+  const restoreScroll = (): void => {
+    if (logElement) logElement.scrollTop = followEnd ? logElement.scrollHeight : scrollTop;
+  };
+
   const renderLogLines = (force = false): void => {
     // Large logs are rendered lazily the first time the details element opens.
     if (!logElement || (!force && logElement.dataset.rendered === 'true')) {
       return;
     }
 
+    const previousTop = logElement.scrollTop;
     logElement.innerHTML = eventLogLinesHtml(filteredRows());
     logElement.dataset.rendered = 'true';
+    logElement.scrollTop = previousTop;
   };
 
-  if (details?.open) renderLogLines();
+  if (details?.open) restoreScroll();
   if (details) {
     details.ontoggle = () => {
-      if (details.open) renderLogLines();
+      if (details.open && logElement?.dataset.rendered !== 'true') {
+        renderLogLines();
+        restoreScroll();
+      }
     };
+  }
+
+  // Explicit jumps avoid dragging through long logs and leave normal reading under user control.
+  for (const edge of ['start', 'end']) {
+    const button = container.querySelector<HTMLButtonElement>(`[data-role="event-log-${edge}"]`);
+    if (button && logElement)
+      button.onclick = () => {
+        logElement.scrollTop = edge === 'end' ? logElement.scrollHeight : 0;
+      };
   }
 
   for (const checkbox of container.querySelectorAll<HTMLInputElement>('[data-role="event-log-filter"]')) {
