@@ -34,6 +34,15 @@ export interface EiInstantRule {
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
     profession: 'elementalist',
+    skillId: 5780,
+    signal: 5780,
+    kind: 'missile',
+    rule: 'ElementalistHelper.MissileCastFinder(Hurl)',
+    // EI groups the five projectiles released over 800 ms into one Hurl input.
+    icd: 900
+  },
+  {
+    profession: 'elementalist',
     skillId: 5492,
     signal: 5585,
     kind: 'buff-gain',

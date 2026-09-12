@@ -118,6 +118,29 @@ test('EI missile finders preserve creation evidence and suppress duplicate proje
   assert.ok(imported.warnings.some((warning) => warning.includes('3 instant casts')));
 });
 
+test('Hurl missile inference uses a sliding 900 ms window for every Elementalist specialization', () => {
+  // Only the player's creations advance the volley window; its exact boundary permits another input.
+  const events = [
+    ...[100, 300, 500, 700, 900, 1799, 2699].map((time) => event({ time, stateChange: 57, skillId: 5780 })),
+    event({ time: 2200, stateChange: 57, skillId: 5780, source: 0x2000n, sourceMasterInstance: 1 }),
+    ...[0, 58, 59].map((stateChange) => event({ time: 2600, stateChange, skillId: 5780, value: 100 }))
+  ];
+  for (const profile of ROTATION_PROFILES.filter((p) => p.professionId === 'elementalist')) {
+    const actions = eiInstantActions(context('elementalist', profile.specializationId, events));
+    assert.deepEqual(
+      actions.map((action) => action.start),
+      [100, 2699]
+    );
+    for (const action of actions) {
+      assert.equal(action.rawSkillId, 5780);
+      assert.equal(action.evidence, 'missile');
+      assert.equal(action.metadataAccurate, true);
+      assert.equal(action.castOrigin, 'skill');
+      assert.equal(action.eiRule, 'ElementalistHelper.MissileCastFinder(Hurl)');
+    }
+  }
+});
+
 test('EVTC Forge bundle changes replace an equipped kit without replaying swaps or stows', () => {
   // Buff transitions identify Forge actions; their paired bundle signals must collapse into those same inputs.
   const fixture = log({
