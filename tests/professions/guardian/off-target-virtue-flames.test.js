@@ -54,7 +54,13 @@ test('off-target virtue flames also keep Searing Pact conditions off target', ()
 
 test('an on-target Resolve cast does not make a previous off-target field start hitting', () => {
   const r = run([{ name: 'Flowing Resolve', offTarget: true }, { name: '__combat_start' }, 'Flowing Resolve', wait]);
-  const fields = Map.groupBy(flames(r), (e) => e.activationId);
+  // Group each field's ticks by activation without requiring APIs unavailable in Node 20.
+  const fields = new Map();
+  for (const event of flames(r)) {
+    if (!fields.has(event.activationId)) fields.set(event.activationId, []);
+    fields.get(event.activationId).push(event);
+  }
+
   assert.equal(fields.size, 2);
   const groups = [...fields.values()].sort((a, b) => a[0].at - b[0].at);
   assert.ok(groups[0].every((e) => e.offTarget === true));
