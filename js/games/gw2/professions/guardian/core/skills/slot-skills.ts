@@ -78,7 +78,6 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SWORD_OF_JUSTICE]: {
     quicknessCastTimeMs: 600,
-    // Can be interrupted at 400ms but retains lockout
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
@@ -90,6 +89,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         // Include the spirit's arrival delay: four strikes begin 1320 ms after cast start, 400 ms apart.
         ticks: [1320, 1720, 2120, 2520].map((atMs) => ({ atMs, coefficient: 0.8 })),
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -102,6 +102,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
           stacks: 3,
           duration: 8
         })),
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

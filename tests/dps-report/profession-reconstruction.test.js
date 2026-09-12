@@ -33,6 +33,37 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
   });
 }
 
+test('Guardian sword animation segments import as one activation without merging an unpaired follow-up', () => {
+  // Weaponmaster and Willbender imports share the same composite; missing opener evidence stays unmodified.
+  for (const profession of ['Guardian', 'Willbender']) {
+    const report = reportFixture(
+      profession,
+      [
+        { id: 62525, skills: [{ castTime: 100, duration: 300, timeGained: 0 }] },
+        {
+          id: 62656,
+          skills: [
+            { castTime: 400, duration: 500, timeGained: 0 },
+            { castTime: 10000, duration: 500, timeGained: 0 }
+          ]
+        }
+      ],
+      {
+        s62525: { name: "Executioner's Calling" },
+        s62656: { name: "Executioner's Calling (Dual Strike)" }
+      }
+    );
+    const result = reconstructDpsReportRotation(report, guardianCatalog);
+    assert.deepEqual(
+      result.actions.map((action) => [action.rawSkillId, action.durationMs]),
+      [
+        [62525, 800],
+        [62656, 500]
+      ]
+    );
+  }
+});
+
 test('preserves standalone autoattack identity and shortened timing with localized report names', () => {
   // Hammer Bolt has no chain; its numeric identity must survive without an English name fallback.
   for (const duration of [560, 480]) {

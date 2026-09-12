@@ -15,11 +15,14 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RAY_OF_JUDGMENT]: {
-    castTimeMs: 750,
+    quicknessCastTimeMs: 600,
+    // Once launched, the ray keeps striking even when the remaining cast animation is cancelled.
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',
-        ticks: [760, 1240, 1760, 2240, 2760, 3240].map((atMs) => ({ atMs, coefficient: 4.05 / 6 })),
+        ticks: [1040, 1520, 2000, 2480, 2960, 3440].map((atMs) => ({ atMs, coefficient: 4.05 / 6 })),
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },

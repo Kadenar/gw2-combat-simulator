@@ -29,6 +29,26 @@
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true
+      },
+      {
+        "label": "Power Alacrity (Greatsword + Sword / Sword)",
+        "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
+        "benchmarkDps": 33256,
+        "sourceBenchmarkDps": 33543,
+        "dpsReportUrl": "https://dps.report/fcpL-20260723-040840_golem",
+        "upToDate": true
+      },
+      {
+        "label": "Power Alacrity (Greatsword + Sword / Focus)",
+        "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
+        "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
+        "benchmarkDps": 32900,
+        "sourceBenchmarkDps": 32976,
+        "dpsReportUrl": "https://dps.report/tH4i-20260726-111551_golem",
+        "upToDate": true
       }
     ]
   },

@@ -4,13 +4,16 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_BLADES]: {
-    castTimeMs: 250,
+    quicknessCastTimeMs: 560,
+    // The symbol is placed before the animation ends and continues pulsing after a committed cancel.
+    interruptCommitMs: 320,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
-    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 240, startAnchor: 'castStart' }],
+    comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 320, startAnchor: 'castStart' }],
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 240 + index * 1000, coefficient: 3.25 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 320 + index * 1000, coefficient: 3.25 / 5 })),
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -26,72 +29,95 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_OF_WRATH]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 360,
+    // Sword chain hits land before their recovery animations, allowing committed cancels to advance the chain.
+    interruptCommitMs: 200,
     effects: [
       {
         type: 'strike',
         coefficient: 0.75,
-        hits: 1
+        hits: 1,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.SWORD_ARC]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 520,
+    interruptCommitMs: 280,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
-        hits: 1
+        hits: 1,
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.ZEALOTS_DEFENSE]: {
-    castTimeMs: 3000,
+    quicknessCastTimeMs: 1400,
+    // Cancelling the channel retains only projectiles that arrive within the observed cast window.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
-        ticks: [240, 520, 760, 1000, 1240, 1520, 1760, 2000].map((atMs) => ({ atMs, coefficient: 4.8 / 8 })),
+        ticks: [400, 400, 640, 680, 880, 880, 1120, 1160].map((atMs) => ({ atMs, coefficient: 4.8 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
     ]
   },
   [ID.SWORD_WAVE]: {
-    castTimeMs: 500,
+    quicknessCastTimeMs: 680,
+    interruptCommitMs: 480,
     effects: [
       {
         type: 'strike',
         coefficient: 1.65,
         hits: 3,
-        atMs: 0
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.EXECUTIONERS_CALLING]: {
-    castTimeMs: 750,
+    // The initial slash and dual strike occupy one cast, with damage on each segment's impact.
+    quicknessCastTimeMs: 1040,
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
         coefficient: 1.25,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 2.5,
+        // The initial strike marks the same target, increasing the four follow-up hits by 20%.
+        coefficient: 2.5 * 1.2,
         hits: 4,
-        atMs: 0,
+        atMs: 880,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: "Executioner's Calling — Secondary Attacks"
       }
     ]
   },
   [ID.ADVANCING_STRIKE]: {
-    castTimeMs: 750,
+    quicknessCastTimeMs: 520,
+    // The dash lands two strikes before its recovery ends.
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 2,
-        atMs: 0
+        ticks: [320, 360].map((atMs) => ({ atMs, coefficient: 1.75 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   }

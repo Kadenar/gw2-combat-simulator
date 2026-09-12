@@ -26,6 +26,36 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
+test('a summoned Sword of Justice completes its queued attacks after the player cancels the recovery animation', () => {
+  // A completed summon owns its delayed damage and conditions independently of the remaining player animation.
+  const run = (cast) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: [cast, { type: 'wait', durationMs: 4000 }],
+      config: { ...config, boons: { quickness: true } }
+    });
+  const full = run('Sword of Justice');
+  const cancelled = run({ name: 'Sword of Justice', interruptMs: 500 });
+  assert.deepEqual(cancelled.warnings, []);
+  assert.ok(cancelled.totalDamage > 0);
+  assert.equal(cancelled.totalDamage, full.totalDamage);
+  assert.equal(
+    cancelled.events.filter((event) => event.type === 'condition' && event.condition === 'Vulnerability').length,
+    full.events.filter((event) => event.type === 'condition' && event.condition === 'Vulnerability').length
+  );
+});
+
+test('off-hand sword coefficients include the PvE dash damage and marked-target dual strike bonus', () => {
+  // The focused formula contract includes the follow-up bonus earned by the same cast's initial hit.
+  const advancing = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ADVANCING_STRIKE);
+  const executioner = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.EXECUTIONERS_CALLING);
+  assert.equal(
+    advancing.effects[0].ticks.reduce((sum, tick) => sum + tick.coefficient, 0),
+    3.5
+  );
+  assert.equal(executioner.effects[1].coefficient, 2.5 * 1.2);
+});
+
 test('Guardian player strikes trigger shared player-owned sigils', () => {
   const result = simulateGw2({
     profession: guardianProfession,
