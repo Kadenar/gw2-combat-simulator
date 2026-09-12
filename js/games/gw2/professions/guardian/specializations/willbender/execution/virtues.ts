@@ -56,7 +56,7 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
     type: 'guardian.willbender-flame-activate',
     at: flameAt,
     priority: -10, // run after same-timestamp strike/condition events so flame window opens last
-    payload: { flameId, virtue }
+    payload: { flameId, virtue, offTarget: context.action.offTarget === true }
   });
 }
 
