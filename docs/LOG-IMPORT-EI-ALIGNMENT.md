@@ -34,6 +34,11 @@ metadata. These declarations have no extra build gate or minion attribution. The
 also declares an ambiguous effect fallback with a secondary same-source check and `UsingDisableWithMissileData`. That
 fallback remains excluded; damage is not used to guess either skill. The EI pin is unchanged.
 
+Hurl now follows the pinned
+[ElementalistHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Elementalist/ElementalistHelper.cs)
+missile rule for all Elementalist specializations: player-owned missile creations with a sliding 900 ms duplicate window
+group the five rocks into one cast at the first creation timestamp. Reimport affected EVTC logs to recover Hurl.
+
 Firebrand's Flame Rush, Flame Surge, and combined ambiguous finder follow the pinned EI effect rules. The EI pin is
 unchanged.
 
@@ -65,12 +70,12 @@ mean all evidence for its skill is absent. These are coverage exclusions, not re
 
 - **Elementalist:** `Elementalist.HealingRipple`, `Elementalist.HealingRippleWvW`, `Elementalist.FlowLikeWaterHealing`,
   `Elementalist.FlameWheelSkill`, `Elementalist.IcyCoilSkill`, `Elementalist.CrescentWindSkill`,
-  `Elementalist.RockyLoopSkill`, `Elementalist.Hurl`, `Weaver.FlameWheelSkill`, `Weaver.DualOrbitFireAndWater`,
-  `Weaver.DualOrbitFireAndAir`, `Weaver.DualOrbitFireAndEarth`, `Weaver.IcyCoilSkill`, `Weaver.DualOrbitFireAndWater`,
-  `Weaver.DualOrbitWaterAndAir`, `Weaver.DualOrbitWaterAndEarth`, `Weaver.CrescentWindSkill`,
-  `Weaver.DualOrbitFireAndAir`, `Weaver.DualOrbitWaterAndAir`, `Weaver.DualOrbitAirAndEarth`, `Weaver.RockyLoopSkill`,
-  `Weaver.DualOrbitFireAndEarth`, `Weaver.DualOrbitWaterAndEarth`, `Weaver.DualOrbitAirAndEarth`,
-  `Catalyst.FlameWheelSkill`, `Catalyst.IcyCoilSkill`, `Catalyst.CrescentWindSkill`, `Catalyst.RockyLoopSkill`.
+  `Elementalist.RockyLoopSkill`, `Weaver.FlameWheelSkill`, `Weaver.DualOrbitFireAndWater`, `Weaver.DualOrbitFireAndAir`,
+  `Weaver.DualOrbitFireAndEarth`, `Weaver.IcyCoilSkill`, `Weaver.DualOrbitFireAndWater`, `Weaver.DualOrbitWaterAndAir`,
+  `Weaver.DualOrbitWaterAndEarth`, `Weaver.CrescentWindSkill`, `Weaver.DualOrbitFireAndAir`,
+  `Weaver.DualOrbitWaterAndAir`, `Weaver.DualOrbitAirAndEarth`, `Weaver.RockyLoopSkill`, `Weaver.DualOrbitFireAndEarth`,
+  `Weaver.DualOrbitWaterAndEarth`, `Weaver.DualOrbitAirAndEarth`, `Catalyst.FlameWheelSkill`, `Catalyst.IcyCoilSkill`,
+  `Catalyst.CrescentWindSkill`, `Catalyst.RockyLoopSkill`.
 - **Engineer:** `Engineer.MagneticInversion`, `Engineer.EngineerKitFinder(BombKit),`,
   `Engineer.EngineerKitFinder(ElixirGun),`, `Engineer.EngineerKitFinder(Flamethrower),`,
   `Engineer.EngineerKitFinder(GrenadeKit),`, `Engineer.EngineerKitFinder(MedKitSkill),`,
