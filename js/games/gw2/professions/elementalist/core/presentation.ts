@@ -8,9 +8,11 @@
  * exception is `updatePaletteControl`, which edits the build's starting stock.
  */
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import {
   AURA_TRANSMUTE_SKILLS,
+  CONJURE_SKILLS,
   ETCHING_CHAINS,
   HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
@@ -212,40 +214,51 @@ function elementalistPaletteGroups(context: SchedulerRecord): ProfessionPaletteG
     }
   ];
   const conjureEquipped = String(state.conjureEquipped || '');
-  if (conjureEquipped) {
+  const selectedSkills = selectedSkillNameSet(
+    (context.build as SchedulerRecord | undefined)?.selectedSkills ||
+      (context.config as SchedulerRecord | undefined)?.selectedSkills
+  );
+  // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
+  const conjures = new Set(
+    Object.entries(CONJURE_SKILLS)
+      .filter(([id]) => selectedSkills.has(elementalistCatalog.skillsById.get(Number(id))?.name || ''))
+      .map(([, weapon]) => weapon)
+  );
+  if (conjureEquipped) conjures.add(conjureEquipped);
+  for (const weapon of conjures) {
     groups.push({
-      id: 'elementalist-conjure-weapon',
-      label: conjureEquipped,
+      id: `elementalist-conjure-weapon-${weapon.toLowerCase().replaceAll(' ', '-')}`,
+      label: weapon === 'Lightning Hammer' ? 'LH' : weapon,
+      placement: 'utility',
       skillIds: elementalistCatalog.skills
-        .filter((skill) => skill.type === 'Weapon' && (skill.weapon || skill.skillWeapon) === conjureEquipped)
+        .filter((skill) => skill.type === 'Weapon' && (skill.weapon || skill.skillWeapon) === weapon)
         .map((skill) => skill.id),
       color: '#d4a43f'
-    });
-  }
-
-  const now = Number(context.time || 0);
-  const actionNames = conjureEquipped
-    ? ['__drop_bundle']
-    : Object.entries(state.conjurePickups || {})
-        .filter(([, expiresAt]) => Number(expiresAt) >= now)
-        .map(([weapon]) => `__pickup_${weapon}`);
-  const actionSkillIds = actionNames.flatMap((name) => {
-    const skill = elementalistCatalog.skillsByName.get(name);
-    return skill ? [skill.id] : [];
-  });
-  if (actionSkillIds.length) {
-    groups.push({
-      id: 'elementalist-conjure-actions',
-      label: conjureEquipped ? 'Drop' : 'Pick',
-      skillIds: actionSkillIds,
-      color: '#d4a43f',
-      includeActionSkills: true
     });
   }
 
   const pistolBullets = pistolBulletPaletteGroup(context);
   if (pistolBullets) groups.push(pistolBullets);
   return groups;
+}
+
+// Put available conjure controls beside Dodge in ACT, keeping the equipped weapon bar below utilities.
+function paletteActionSkills(context: SchedulerRecord, skills: readonly Skill[]): Skill[] {
+  const state = elementalistUiState(context);
+  const now = Number(context.time || 0);
+  const actionNames = [
+    ...(state.conjureEquipped ? ['__drop_bundle'] : []),
+    ...Object.entries(state.conjurePickups || {})
+      .filter(([, expiresAt]) => Number.isFinite(expiresAt) && Number(expiresAt) > now)
+      .map(([weapon]) => `__pickup_${weapon}`)
+  ];
+  return [
+    ...skills,
+    ...actionNames.flatMap((name) => {
+      const skill = elementalistCatalog.skillsByName.get(name);
+      return skill ? [skill] : [];
+    })
+  ];
 }
 
 // Live attunement when a run exists, otherwise the build's configured start.
@@ -360,6 +373,16 @@ function eventLogRow(
   _context: SchedulerRecord,
   event: SimulationEvent
 ): ProfessionEventLogDescriptor | null | undefined {
+  if (event.type === 'elementalist.conjure') {
+    return {
+      type: event.type,
+      description: event.conjureEquipped ? `Equipped ${String(event.conjureEquipped)}` : 'Dropped conjured weapon',
+      className: 'resource',
+      order: 20,
+      flags: []
+    };
+  }
+
   if (event.type === 'elementalist.attunement') {
     if (event.fromSecondaryAttunement) return undefined;
     return {
@@ -434,6 +457,7 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
 export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
   paletteGroups: elementalistPaletteGroups,
+  paletteActionSkills,
   paletteWeaponSkills,
   updatePaletteControl,
   paletteSkillAvailability: paletteAvailability,

@@ -87,6 +87,7 @@ export interface ElementalistCoreState {
   spearNextControlHit: boolean;
   spearFollowups: Record<string, { damage: boolean; critical: boolean; control: boolean }>;
   conjureEquipped: string | null;
+  conjureExpiresAt: number;
   conjurePickups: Record<string, number>;
   signetOfFireDisabledUntil: number;
   availableFlips: Record<string, number>;
@@ -158,6 +159,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     spearNextControlHit: false,
     spearFollowups: {},
     conjureEquipped: null,
+    conjureExpiresAt: 0,
     conjurePickups: {},
     signetOfFireDisabledUntil: 0,
     availableFlips: {},
@@ -231,6 +233,7 @@ export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'spearNextGuaranteedCritical',
   'spearNextControlHit',
   'conjureEquipped',
+  'conjureExpiresAt',
   'conjurePickups',
   'signetOfFireDisabledUntil',
   'availableFlips',

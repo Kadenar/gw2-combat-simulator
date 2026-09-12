@@ -42,8 +42,15 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
     }
   }
 
+  // Expiring the wielded copy restores the normal weapon bar and prevents further bundle casts.
+  if (state.conjureEquipped && state.conjureExpiresAt <= at) {
+    state.conjureEquipped = null;
+    state.conjureExpiresAt = 0;
+    resetAutoattackChains(context);
+  }
+
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups)) {
-    if (expiresAt < at) delete state.conjurePickups[weapon];
+    if (expiresAt <= at) delete state.conjurePickups[weapon];
   }
 
   if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;

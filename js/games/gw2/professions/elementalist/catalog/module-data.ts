@@ -208,7 +208,7 @@ function finalizedSkillMechanics(
   );
 }
 
-// Discover only closed slot-one chains from API next-chain links; open chains
+// Include conjured weapon bars when discovering closed slot-one chains; open chains
 // and non-autoattack sequences are registered through explicit declarations.
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
   const skillsById = new Map(generated.map((skill) => [Number(skill.id), skill]));
@@ -223,7 +223,7 @@ function circularElementalistAutoattackChains(): readonly (readonly number[])[] 
       visited.has(rootId) ||
       root.type !== 'Weapon' ||
       root.slot !== 'Weapon_1' ||
-      !root.weapon ||
+      !(root.weapon || root.skillWeapon) ||
       root.nextChainId == null
     ) {
       continue;

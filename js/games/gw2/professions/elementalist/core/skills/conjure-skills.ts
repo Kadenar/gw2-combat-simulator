@@ -340,6 +340,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'blind',
         atMs: 320,
+        duration: 3,
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -426,7 +427,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: 'launch'
       }
     ]
   },
@@ -468,10 +469,10 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         )
       ]
     },
-    9
+    // Ten guaranteed hits plus half the ten random strikes on small targets; all twenty on large targets.
+    15
   ),
-  // Lays a 4s Lightning combo field that opens at cast end (not cast start), and lands two
-  // separate strike + crowd-control pulses of its own.
+  // The initial strike stuns once and opens a four-second Lightning field for subsequent finishers.
   [ID.STATIC_FIELD_LIGHTNING_HAMMER]: {
     name: 'Static Field',
     type: 'Weapon',
@@ -508,27 +509,8 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'crowd-control'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 680,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 680,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
+        controlKind: 'stun',
+        duration: 2
       }
     ]
   },

@@ -15,6 +15,7 @@ import type { ProfessionStartControl, ProfessionUiContract } from '#gw2/platform
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -80,8 +81,7 @@ function weaponSkillMatchesSet(
   weapons: readonly (string | undefined)[],
   context: SchedulerRecord
 ): boolean {
-  // A held conjure bundle replaces the weapon bar, so no equipped-set skill matches.
-  if (state(context).conjureEquipped) return false;
+  // Keep normal attunement rows visible while wielding a conjure; cast availability still enforces dropping it first.
   // Dual-attunement ("Fire+Air") skills exist in the shared catalog but only Weaver has them.
   if (String(skill.attunement || '').includes('+') && specialization(context) !== 'Weaver') return false;
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
@@ -90,6 +90,18 @@ function weaponSkillMatchesSet(
 // Apply family-level attunement and hammer-orb gates for non-Weavers; Weaver's
 // two-hand model is delegated to its specialization UI contract.
 function paletteSkillAvailability(context: SchedulerRecord, skill: Skill) {
+  // Keep the standard weapon rows visible but disabled until the wielded conjure is dropped or expires.
+  const conjure = state(context).conjureEquipped;
+  const weapon = String(skill.skillWeapon || skill.weapon || '');
+  // Inactive conjure bars remain visible but cannot queue attacks until their own bundle is wielded.
+  if (skill.type === 'Weapon' && CONJURED_WEAPONS.has(weapon) && conjure !== weapon) {
+    return { available: false, message: `Equip ${weapon} before using its skills.` };
+  }
+
+  if (conjure && skill.type === 'Weapon' && weapon !== conjure) {
+    return { available: false, message: `Drop ${String(conjure)} before using normal weapon skills.` };
+  }
+
   if (specialization(context) === 'Weaver') return { available: true, message: '' };
   const primary = String(
     state(context).primaryAttunement || (context.build as SchedulerRecord | undefined)?.startAttunement || 'Fire'

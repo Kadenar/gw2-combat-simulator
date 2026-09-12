@@ -147,9 +147,9 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   },
   {
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.conjurePickups,
-    name: 'Conjured Weapon Pickup',
+    name: 'Conjured Weapon Duration',
     profileKind: 'mechanic',
-    durationMultiplier: 35,
+    durationMultiplier: 30,
     effects: []
   },
   {

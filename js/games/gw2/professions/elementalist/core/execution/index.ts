@@ -12,7 +12,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { produceGw2OwnedComboEvents } from '#gw2/platform/scheduler/combo-materializer.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { AURA_TRANSMUTE_SKILLS, DODGE_ENDURANCE_COST } from '#gw2/professions/elementalist/core/constants.js';
+import {
+  AURA_TRANSMUTE_SKILLS,
+  CONJURE_PICKUP_WEAPONS,
+  DODGE_ENDURANCE_COST
+} from '#gw2/professions/elementalist/core/constants.js';
 import { onAttunementComplete, targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
@@ -83,6 +87,11 @@ export function elementalistOnCastStart(context: ElementalistLifecycleContext, s
   beginElementalistGlyphCast(context, skill);
   beginElementalistSpearCast(context, skill);
   const state = professionCoreState(context);
+  // Preserve a valid pickup begun before ground expiry even if its animation finishes afterward.
+  const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+  if (pickupWeapon) {
+    context.replaceEvent(context.action, { conjurePickupExpiresAt: state.conjurePickups[pickupWeapon] });
+  }
 
   if (Number(skill.id) === ID.GRAND_FINALE) {
     // Grand Finale re-authors the orbs' damage, so any packet still pending from

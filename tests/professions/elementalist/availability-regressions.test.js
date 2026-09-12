@@ -147,16 +147,16 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
         effectiveEnd: 0.3,
         emit: (event) => events.push(event)
       };
-      const expected = expiry === 0 || expiry === 0.1 || expiry === 1;
+      const expected = expiry === 0.1 || expiry === 1;
       assert.equal(elementalistCoreAvailability(context, skill).ready, expected, `${weapon}: ${expiry}`);
       applyConjureState(context, skill);
       assert.equal(core.conjureEquipped, expected ? weapon : null);
-      assert.equal(events.length, expected ? 1 : 0);
+      assert.equal(events.filter((event) => event.type === 'sigil_swap').length, expected ? 1 : 0);
       if (expected) {
         assert.equal(Object.hasOwn(core.conjurePickups, weapon), false);
         assert.equal(elementalistCoreAvailability(context, skill).ready, false);
         applyConjureState(context, skill);
-        assert.equal(events.length, 1);
+        assert.equal(events.filter((event) => event.type === 'sigil_swap').length, 1);
       }
     }
   }

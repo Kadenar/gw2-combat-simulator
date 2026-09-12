@@ -37,8 +37,10 @@ function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement 
   return coreState(context).primaryAttunement || String(context.config?.startAttunement || 'Fire');
 }
 
-function eventWeapon(context: Gw2ModifierContext): string {
-  return String(context.event?.skillWeapon || context.event?.weapon || '');
+// Conjure attributes belong to the wielder, including utility attacks, only during the equipped copy's lifetime.
+function wieldedConjure(context: Gw2ModifierContext): string | null {
+  const state = coreState(context);
+  return Number(state.conjureExpiresAt || 0) > context.time ? state.conjureEquipped || null : null;
 }
 
 /** Might stacks at the event's instant, falling back to the build's assumed might. */
@@ -197,7 +199,7 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'multiply',
     factor: 1.2,
-    when: (context) => eventWeapon(context) === 'Frost Bow'
+    when: (context) => wieldedConjure(context) === 'Frost Bow'
   }
 ]);
 
@@ -255,9 +257,8 @@ export function modifyElementalistAttributes(
       balanceProfileValueFromContext(context, PROFILE.arcaneLightning, 'attributeBonus', 150);
   }
 
-  // Conjured bundles carry their own attribute bonuses only while wielded, so
-  // they key off the weapon that produced this event rather than the build.
-  const weapon = eventWeapon(context);
+  // Read equipped state at damage resolution so dropping or expiry also removes the bonuses from lingering hits.
+  const weapon = wieldedConjure(context);
   if (weapon === 'Fiery Greatsword') {
     modified.power =
       Number(modified.power || 0) +

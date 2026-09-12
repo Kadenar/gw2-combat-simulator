@@ -42,6 +42,7 @@ import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js'
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/event-handlers.js';
+import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import {
   advanceElementalistState,
   observeElementalistEvent
@@ -171,6 +172,7 @@ export const elementalistCoreModule = defineNativeModule({
         // so the marker-only scheduler events (Fresh Air, Evasive Arcana,
         // attunement entry) are registered as explicit no-ops.
         eventHandlers: {
+          'elementalist.conjure': applyElementalistResolverConjure,
           'elementalist.attunement': applyElementalistResolverAttunement,
           'elementalist.aura': applyElementalistResolverAura,
           'elementalist.fresh-air': () => {},

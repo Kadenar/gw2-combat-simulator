@@ -844,7 +844,7 @@ test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () 
     },
     {
       skill: 'Invoke Lightning',
-      small: 9,
+      small: 15,
       large: 20,
       rotationPrefix: ['Conjure Lightning Hammer'],
       selectedSkill: 'Conjure Lightning Hammer',
@@ -975,6 +975,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   const initialHtml = renderResult(null);
 
   assert.match(initialHtml, /data-skill="Dodge"/);
+  assert.match(initialHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
   assert.doesNotMatch(initialHtml, /data-skill="__drop_bundle"/);
   assert.doesNotMatch(initialHtml, /data-skill="__pickup_/);
 
@@ -987,9 +988,23 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   );
 
   assert.match(equippedHtml, /data-skill="Frost Volley"/);
+  assert.doesNotMatch(equippedHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
   assert.match(equippedHtml, /data-skill="__drop_bundle"/);
-  assert.doesNotMatch(equippedHtml, /data-skill="__pickup_/);
-  assert.doesNotMatch(equippedHtml, /data-skill="Flame Uprising"/);
+  assert.match(equippedHtml, /data-skill="__pickup_Frost Bow"/);
+  assert.match(equippedHtml, /data-skill="Flame Uprising"/);
+  assert.match(equippedHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Flame Uprising"/);
+  // The weapon bar stays below utilities, while drop and pickup controls share ACT with Dodge.
+  assert.match(equippedHtml, /data-role="utility-palette-stack"/);
+  assert.ok(equippedHtml.indexOf('data-skill="Conjure Frost Bow"') < equippedHtml.indexOf('data-skill="Frost Volley"'));
+  assert.ok(equippedHtml.indexOf('data-skill="Frost Volley"') < equippedHtml.indexOf('data-skill="__drop_bundle"'));
+  const actionRow = equippedHtml.slice(
+    equippedHtml.indexOf('action-palette-group'),
+    equippedHtml.indexOf('timeline-tools-palette-stack')
+  );
+  assert.match(actionRow, /data-skill="Dodge"/);
+  assert.match(actionRow, /data-skill="__drop_bundle"/);
+  assert.match(actionRow, /data-skill="__pickup_Frost Bow"/);
+  assert.doesNotMatch(equippedHtml, /data-palette-group="elementalist-conjure-actions"/);
 
   const pickupHtml = renderResult(
     runNative({
@@ -1002,4 +1017,5 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   assert.match(pickupHtml, /data-skill="__pickup_Frost Bow"/);
   assert.doesNotMatch(pickupHtml, /data-skill="__drop_bundle"/);
   assert.match(pickupHtml, /data-skill="Flame Uprising"/);
+  assert.match(pickupHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
 });
