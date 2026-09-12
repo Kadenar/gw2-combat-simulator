@@ -8,7 +8,7 @@
  */
 
 import { resetRotationWorkspace } from '#app/shell/workspace.js';
-import { embedRoute, isEmbedded } from '#app/embed.js';
+import { navigationRoute } from '#app/embed.js';
 
 export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer';
 type SimulatorSection = 'professions' | SimulatorView;
@@ -163,7 +163,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
           : section === 'analysis'
             ? 'Analysis'
             : 'Gear Optimizer',
-      isEmbedded() ? embedRoute(route) : route,
+      navigationRoute(route),
       view
     );
     navigation.append(link);

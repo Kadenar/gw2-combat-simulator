@@ -212,8 +212,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
     id: TRAIT.UNRELENTING_STRIKES
   },
   handler: (context, event, _details, application) => {
+    // One invocation shares authored effects; each queued boon still samples live duration scaling.
+    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unrelentingStrikes), 'boon');
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unrelentingStrikes), 'boon');
       queueThiefBoon(context, event, {
         traitId: TRAIT.UNRELENTING_STRIKES,
         traitName: 'Unrelenting Strikes',
@@ -251,8 +252,9 @@ export const noQuarterCriticalReaction = Object.freeze({
   },
   attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
   handler: (context, event, _details, application) => {
+    // Reuse authored duration within this batch while extending the live pool for each proc.
+    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noQuarter), 'boon');
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noQuarter), 'boon');
       extendActiveFury(context, event, Number(fury?.duration ?? 2));
     }
   }

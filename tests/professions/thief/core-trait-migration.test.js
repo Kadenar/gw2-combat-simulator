@@ -199,6 +199,31 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
   assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
 });
 
+test('Thief critical proc batches reread patched effects and retain live boon scaling', () => {
+  // Effects are invocation-local; Unrelenting Strikes still samples concentration separately for each queued boon.
+  for (const [id, reaction] of [
+    [TRAIT.UNRELENTING_STRIKES, thiefCoreCriticalReactions.unrelentingStrikes],
+    [TRAIT.NO_QUARTER, thiefCoreCriticalReactions.noQuarter]
+  ]) {
+    const { context } = traitContext([id]);
+    const profiles = new Map();
+    context.catalog = { balanceProfilesById: profiles };
+    for (const duration of [2, 3]) {
+      profiles.set(id, { effects: [{ type: 'boon', boon: 'Fury', duration, stacks: 1 }] });
+      context.boons.set('fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]);
+      let statReads = 0;
+      context.query.statsAt = () => ({ concentration: 1500 * statReads++ });
+      reaction.handler(context, { at: 1, actorType: 'player', skillName: 'Test' }, {}, { quantity: 2 });
+      assert.equal(context.queue.dequeue().duration, duration);
+      assert.equal(context.queue.dequeue().duration, id === TRAIT.UNRELENTING_STRIKES ? duration * 2 : duration);
+      assert.equal(context.queue.length, 0);
+      if (id === TRAIT.NO_QUARTER) {
+        assert.equal(remainingDurationStackSeconds(context.boons.get('fury'), 1, { maximum: 30 }), 4 + 2 * duration);
+      }
+    }
+  }
+});
+
 test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
   const { context } = traitContext([TRAIT.NO_QUARTER]);
   context.boons.set('fury', [

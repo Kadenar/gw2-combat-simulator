@@ -8,7 +8,7 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
-import { embedRoute, isEmbedded } from '#app/embed.js';
+import { navigationRoute } from '#app/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/presentation/shared/gw2-icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/size.js';
 import { mountRotationWorkspace } from '#app/shell/workspace.js';
@@ -115,7 +115,7 @@ function renderProfessionCards(root: Document): void {
 }
 
 function professionLink(entry: ProfessionRegistryEntry): string {
-  return isEmbedded() ? embedRoute(entry.route) : entry.route;
+  return navigationRoute(entry.route);
 }
 
 /** Shows one random specialization image per profession so each compact card varies between page visits. */

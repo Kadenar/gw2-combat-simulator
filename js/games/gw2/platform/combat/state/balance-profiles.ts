@@ -56,15 +56,20 @@ export function balanceProfileFromContext(context: unknown, id: SkillId): Balanc
   );
 }
 
-/** Selects one profile effect by type and optional authored name without changing declaration order. */
+/** Returns the requested matching effect in declaration order without allocating or scanning past it. */
 export function balanceProfileEffect<TType extends SkillEffect['type']>(
   profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
   type: TType,
   index = 0,
   name?: string
 ): SkillEffectByType<TType> | undefined {
-  return profile?.effects?.filter((effect) => effect.type === type && (name == null || effect.name === name))[index] as
-    SkillEffectByType<TType> | undefined;
+  if (!Number.isInteger(index) || index < 0) return undefined;
+  for (const effect of profile?.effects || []) {
+    if (effect.type !== type || (name != null && effect.name !== name)) continue;
+    if (index-- === 0) return effect as SkillEffectByType<TType>;
+  }
+
+  return undefined;
 }
 
 /** Resolves a profile and selects one authored effect without profession-local lookup wrappers. */

@@ -158,9 +158,9 @@ export const rangerCoreCriticalReactions = Object.freeze({
     id: TRAIT.SHARPENED_EDGES
   },
   handler(context, event, _details, application): void {
-    // Sharpened Edges emits one bleeding application per threshold proc.
+    // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
+    const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
       queueBleeding(
         context,
         event,

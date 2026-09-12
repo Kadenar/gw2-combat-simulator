@@ -83,7 +83,8 @@ test('balance-profile effect lookup preserves order and supports optional name f
     effects: [
       { type: 'strike', name: 'First', coefficient: 1, hits: 1 },
       { type: 'boon', name: 'Middle', boon: 'might', stacks: 1, duration: 5 },
-      { type: 'strike', name: 'Second', coefficient: 2, hits: 1 }
+      { type: 'strike', name: 'Second', coefficient: 2, hits: 1 },
+      { type: 'strike', name: 'Second', coefficient: 3, hits: 1 }
     ]
   });
 
@@ -91,11 +92,28 @@ test('balance-profile effect lookup preserves order and supports optional name f
   assert.equal(balanceProfileEffect(profile, 'strike', 1)?.name, 'Second');
   assert.equal(balanceProfileEffect(profile, 'strike', 0, 'Second')?.coefficient, 2);
   assert.equal(balanceProfileEffect(profile, 'condition'), undefined);
+  // Matching ordinals preserve the authored object and apply after both filters.
+  assert.equal(balanceProfileEffect(profile, 'strike'), profile.effects[0]);
+  assert.equal(balanceProfileEffect(profile, 'strike', 1, 'Second'), profile.effects[3]);
+  assert.equal(balanceProfileEffect(profile, 'strike', 0, 'Missing'), undefined);
+  for (const index of [-1, 0.5, NaN, Infinity, 3]) {
+    assert.equal(balanceProfileEffect(profile, 'strike', index), undefined);
+  }
+
+  for (const missing of [null, undefined, {}]) assert.equal(balanceProfileEffect(missing, 'strike'), undefined);
   assert.equal(
     balanceProfileEffectFromContext({ catalog: { balanceProfilesById: new Map([[101, profile]]) } }, 101, 'strike', 1)
       ?.name,
     'Second'
   );
+});
+
+test('balance-profile effect lookup stops at the requested match', () => {
+  // Selecting a first effect must not allocate a filtered list or inspect later entries.
+  const first = { type: 'boon', boon: 'might', duration: 2 };
+  const effects = [first];
+  Object.defineProperty(effects, 1, { get: () => assert.fail('Read past the selected effect') });
+  assert.equal(balanceProfileEffect({ effects }, 'boon'), first);
 });
 
 test('balance-profile numeric lookup returns patched values and explicit fallbacks', () => {

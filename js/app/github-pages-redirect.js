@@ -12,7 +12,13 @@
   const onGithubPages = window.location.hostname === GITHUB_PAGES_HOST;
   const topLevel = window.self === window.top;
 
-  if (SNOWCROWS_URL && onGithubPages && topLevel) {
+  if (!onGithubPages || !topLevel) return;
+
+  // The unlisted ?standalone=1 link bypasses the redirect only while the URL carries the flag.
+  // This is a convenience flag, not access control; embed styling still uses ?embed=1 independently.
+  const standalone = new URLSearchParams(window.location.search).get('standalone') === '1';
+
+  if (!standalone) {
     window.location.replace(SNOWCROWS_URL);
   }
 })();

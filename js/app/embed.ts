@@ -90,26 +90,31 @@ function isFramed(): boolean {
 }
 
 /**
- * Returns `route` with the embed flag applied so navigation stays embedded.
- * Idempotent, and preserves an existing query string and hash.
+ * Carries active embed and standalone flags into internal links so navigation and new tabs retain the current mode.
+ * Other destination query parameters and the hash are preserved; unrelated source parameters are not copied.
  */
-export function embedRoute(route: string): string {
-  if (/[?&]embed(=|&|$)/.test(route)) return route;
+export function navigationRoute(route: string, search = globalThis.location?.search || ''): string {
+  const current = new URLSearchParams(search);
+  if (!current.has(EMBED_PARAM) && current.get('standalone') !== '1') return route;
   const hashAt = route.indexOf('#');
   const path = hashAt === -1 ? route : route.slice(0, hashAt);
   const hash = hashAt === -1 ? '' : route.slice(hashAt);
-  const sep = path.includes('?') ? '&' : '?';
-  return `${path}${sep}${EMBED_PARAM}=1${hash}`;
+  const queryAt = path.indexOf('?');
+  const pathname = queryAt === -1 ? path : path.slice(0, queryAt);
+  const params = new URLSearchParams(queryAt === -1 ? '' : path.slice(queryAt + 1));
+  if (current.has(EMBED_PARAM) && !params.has(EMBED_PARAM)) params.set(EMBED_PARAM, '1');
+  if (current.get('standalone') === '1') params.set('standalone', '1');
+  return `${pathname}?${params}${hash}`;
 }
 
-/** Rewrites same-document relative links to carry the embed flag. */
+/** Rewrites static internal page links to preserve the active navigation flags. */
 function decorateStaticLinks(root: Document): void {
-  const links = root.querySelectorAll<HTMLAnchorElement>('a[href$=".html"]');
+  const links = root.querySelectorAll<HTMLAnchorElement>('a[href]');
   for (const link of links) {
     const href = link.getAttribute('href');
     // Skip absolute/protocol-relative URLs; only decorate in-app pages.
-    if (!href || /^([a-z]+:)?\/\//i.test(href)) continue;
-    link.setAttribute('href', embedRoute(href));
+    if (!href || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(href) || !/\.html(?:[?#]|$)/.test(href)) continue;
+    link.setAttribute('href', navigationRoute(href));
   }
 }
 
@@ -141,13 +146,12 @@ function setupResizeReporter(root: Document): void {
  * Initializes embed behavior for a document.
  *
  * The resize reporter runs whenever the page is framed (independent of the
- * embed flag) so a host can always size the frame. Chrome hiding and link
- * decoration only apply when the embed flag is present.
+ * embed flag) so a host can always size the frame. Chrome hiding requires the
+ * embed flag; internal links preserve both embed and standalone flags.
  */
 export function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
-  if (!isEmbedded()) return;
-  root.documentElement.classList.add('embed');
+  if (isEmbedded()) root.documentElement.classList.add('embed');
   decorateStaticLinks(root);
 }
 

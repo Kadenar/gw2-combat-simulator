@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { advanceRangerResources, rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { advanceGaleshotArrows } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
@@ -70,6 +71,29 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
   assert.deepEqual(split.warnings, []);
   assert.equal(whole.steps.at(-1).start, split.steps.at(-1).start);
   close(whole.state.profession.core.endurance, split.state.profession.core.endurance);
+});
+
+test('Ranger recovery rates retain numeric fallbacks and reread patched profiles between invocations', () => {
+  // Shared numeric reads preserve finite fallbacks; invocation-local rates must not survive a profile replacement.
+  for (const invalid of [NaN, Infinity, undefined]) {
+    const scheduler = schedulerFor({ selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
+    const state = scheduler.state.profession.core;
+    const profiles = new Map([
+      [PROFILE.resources, { enduranceRegenerationPerSecond: invalid, vigorRegenerationMultiplier: invalid }],
+      [PROFILE.naturalVigor, { vigorRegenerationMultiplier: invalid }]
+    ]);
+    const context = { ...scheduler.context, catalog: { balanceProfilesById: profiles } };
+    state.endurance = 0;
+    boon(scheduler, 'vigor', 1, 2);
+    close(rangerEnduranceReadyAt({ ...context, start: 0 }, 30), 4);
+    advanceRangerResources(context, 4);
+    close(state.endurance, 30);
+    profiles.set(PROFILE.resources, { enduranceRegenerationPerSecond: 4, vigorRegenerationMultiplier: 2 });
+    profiles.set(PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.5 });
+    close(rangerEnduranceReadyAt({ ...context, start: 4 }, 36), 5);
+    advanceRangerResources(context, 5);
+    close(state.endurance, 36);
+  }
 });
 
 test('Galeshot retains normalized partial recharge across Alacrity gain and expiry', () => {

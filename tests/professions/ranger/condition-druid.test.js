@@ -563,6 +563,21 @@ test('Sharpened Edges procs for player and pet critical hits at 33%', () => {
   assert.deepEqual(rangerCoreCriticalReactions.actorTypes, ['player', 'summon']);
 });
 
+test('Sharpened Edges rereads patched effects between proc batches', () => {
+  // One authored effect serves each batch, but the next invocation must see a replacement with the same ID.
+  const queued = [];
+  const profiles = new Map();
+  const context = { catalog: { balanceProfilesById: profiles }, queue: { enqueue: (event) => queued.push(event) } };
+  const hit = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
+  for (const duration of [3, 6]) {
+    profiles.set(TRAIT.SHARPENED_EDGES, { effects: [{ type: 'condition', duration, stacks: 2 }] });
+    rangerCoreCriticalReactions.handler(context, hit, {}, { quantity: 2 });
+    assert.equal(queued.length, 2);
+    assert.ok(queued.every((event) => event.duration === duration && event.stacks === 2));
+    queued.length = 0;
+  }
+});
+
 test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', () => {
   const selectedTraitIds = [
     TRAIT.CELESTIAL_BEING,
