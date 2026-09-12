@@ -1204,9 +1204,10 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
       active === 'Herald',
       `${active}:facet-task`
     );
+    // Only Herald's Nature's Siphon and Renegade's Soulcleave's Summit need resolved-damage reactions.
     assert.equal(
       Object.hasOwn(runtime.eventReactions, 'damage.resolved'),
-      active === 'Renegade',
+      active === 'Herald' || active === 'Renegade',
       `${active}:damage-reaction`
     );
   }
