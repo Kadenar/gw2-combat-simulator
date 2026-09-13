@@ -615,14 +615,15 @@ export function mountRotationResults(
             <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
           </div>
           ${group.conditions
-            .map(
-              (condition) => `<div class="res-row">
+            .map((condition) => {
+              const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
+              return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
           <span class="res-skill condi">${escapeHtml(condition.name)}</span>
           <span class="condi">${number(condition.damage)}</span>
           <span class="dps">${number(condition.dps)}</span>
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-        </div>`
-            )
+        </div>`;
+            })
             .join('')}
         </div>`
           )
@@ -824,6 +825,43 @@ export function mountRotationResults(
   }
 
   bindSkillSelection();
+  // Conditions disclose the same timeline as skills, with payouts combined across every source.
+  let selectedCondition: string | null = null;
+  const conditionRows = container.querySelectorAll<HTMLElement>('[data-condition-name]');
+  const selectCondition = (row: HTMLElement): void => {
+    const name = row.dataset.conditionName!;
+    selectedCondition = selectedCondition === name ? null : name;
+    container.querySelector('[data-role="condition-timeline"]')?.remove();
+    for (const conditionRow of conditionRows) {
+      const active = conditionRow.dataset.conditionName === selectedCondition;
+      conditionRow.classList.toggle('res-row-selected', active);
+      conditionRow.setAttribute('aria-expanded', String(active));
+    }
+
+    if (!selectedCondition || !chartSeries) return;
+    const timeline = container.ownerDocument.createElement('div');
+    timeline.className = 'res-skill-timeline';
+    timeline.dataset.role = 'condition-timeline';
+    timeline.setAttribute('role', 'region');
+    timeline.setAttribute('aria-label', `${name} damage ticks`);
+    row.after(timeline);
+    mountHitTimeline(timeline, chartSeries.conditionDamage?.[name] || [], {
+      durationMs: chartSeries.durationMs,
+      color: options.chartOptions?.colors?.[name],
+      label: `${name} damage · all sources`
+    });
+  };
+
+  for (const row of conditionRows) {
+    row.onclick = () => selectCondition(row);
+    row.onkeydown = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectCondition(row);
+      }
+    };
+  }
+
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {

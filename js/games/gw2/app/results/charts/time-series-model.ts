@@ -24,6 +24,8 @@ export interface ChartSeries {
   readonly skillDamage?: Readonly<Record<string, readonly SkillHit[]>>;
   // Display name per skill key, for timeline labels and tooltips.
   readonly skillNames?: Readonly<Record<string, string>>;
+  // One payout per condition and timestamp, retaining each application's full or partial share.
+  readonly conditionDamage?: Readonly<Record<string, readonly SkillHit[]>>;
 }
 
 export interface BuildChartSeriesOptions {
@@ -50,7 +52,7 @@ interface ChartEffectApplication {
   readonly replacementGroup: string;
 }
 
-function eventDamageTicks(event: Gw2ResolverEvent): Array<{ at: number; damage: number }> {
+function eventDamageTicks(event: Gw2ResolverEvent): Array<{ at: number; damage: number; fraction?: number }> {
   return Array.isArray(event.damageTicks) ? (event.damageTicks as Array<{ at: number; damage: number }>) : [];
 }
 
@@ -318,6 +320,43 @@ export function buildChartSeries(
     }
   }
 
+  // Collect independently of skill attribution so every source contributes to its condition's payout.
+  const conditionTicks = new Map<string, Map<number, SkillHit>>();
+  for (const event of resolved) {
+    if (event.type !== 'condition') continue;
+    const conditionType = effectName(event.condition, event);
+    if (!conditionType) continue;
+    const recordedTicks = eventDamageTicks(event);
+    const ticks = recordedTicks.length ? recordedTicks : [{ at: event.at, damage: Number(event.damage || 0) }];
+    for (const tick of ticks) {
+      const time = Number(tick.at) * 1000 - dpsStartMs;
+      const damage = Number(tick.damage || 0);
+      // Keep zero-damage shares in a positive packet: shared rounding can assign an application zero.
+      if (time < 0 || time > durationMs || damage < 0 || !(damage > 0 || Number(tick.fraction) > 0)) continue;
+      const payouts = conditionTicks.get(conditionType) || new Map<number, SkillHit>();
+      const previous = payouts.get(time);
+      payouts.set(time, {
+        t: time,
+        v: (previous?.v || 0) + damage,
+        crit: null,
+        damageType: 'condition',
+        conditionType,
+        contributions: [
+          ...(previous?.contributions || []),
+          {
+            source: event.name || event.skillName || event.sourceSkill || 'Unknown source',
+            actor: String(event.summonOwner || event.summonKind || event.actorType || event.source || 'Unknown'),
+            appliedAtMs: Number(event.at) * 1000 - dpsStartMs,
+            stacks: Number(event.stacks || 0),
+            fraction: tick.fraction,
+            damage
+          }
+        ]
+      });
+      conditionTicks.set(conditionType, payouts);
+    }
+  }
+
   return {
     durationMs,
     dps,
@@ -326,7 +365,13 @@ export function buildChartSeries(
     effectUnits: Object.fromEntries(Object.keys(durationStackCaps).map((name) => [name, 's'])),
     cumulativeDamage,
     skillDamage,
-    skillNames
+    skillNames,
+    conditionDamage: Object.fromEntries(
+      [...conditionTicks].map(([name, ticks]) => [
+        name,
+        [...ticks.values()].filter((tick) => tick.v > 0).sort((left, right) => left.t - right.t)
+      ])
+    )
   };
 }
 

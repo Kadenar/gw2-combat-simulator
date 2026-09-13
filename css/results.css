@@ -701,6 +701,15 @@
   cursor: pointer;
 }
 
+/* Mark condition rows as disclosures before the user selects one. */
+[data-condition-name] .res-skill::before {
+  content: '▸';
+}
+
+[data-condition-name][aria-expanded='true'] .res-skill::before {
+  transform: rotate(90deg);
+}
+
 .res-row-selected {
   background: rgba(181, 124, 224, 0.16);
 }
@@ -1183,6 +1192,22 @@ span.hit-group {
 
 .hit-detail-table caption {
   text-align: left;
+  color: var(--text-dim);
+}
+
+/* Keep application attribution readable inside the condition inspector's scrollable table. */
+.condition-tick-attribution summary {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.condition-tick-attribution td,
+.condition-tick-attribution th {
+  white-space: nowrap;
+}
+
+.condition-tick-note {
+  font-size: 11px;
   color: var(--text-dim);
 }
 

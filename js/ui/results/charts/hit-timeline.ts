@@ -1,5 +1,14 @@
 import { escapeHtml } from '#ui/shared/html.js';
 
+export interface ConditionTickContribution {
+  readonly source: string;
+  readonly actor: string;
+  readonly appliedAtMs: number;
+  readonly stacks: number;
+  readonly fraction?: number;
+  readonly damage: number;
+}
+
 // One resolved hit/tick: time (ms, relative to the DPS window), damage, and
 // whether it critically struck (null when deterministic runs use expected crits).
 export interface SkillHit {
@@ -9,6 +18,7 @@ export interface SkillHit {
   readonly activationId?: string;
   readonly damageType?: 'strike' | 'condition';
   readonly conditionType?: string;
+  readonly contributions?: readonly ConditionTickContribution[];
 }
 
 const CONDITION_WINDOW_MS = 5000;
@@ -46,6 +56,18 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
 }
 
 const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(2)}s`;
+
+/** Disclose each application's buffered share without inferring missing fractions from rounded damage. */
+function tickAttributionHtml(contributions: readonly ConditionTickContribution[]): string {
+  const full = contributions.filter((entry) => entry.fraction === 1).length;
+  const partial = contributions.filter((entry) => entry.fraction != null && entry.fraction < 1).length;
+  const unknown = contributions.length - full - partial;
+  return `<details class="condition-tick-attribution"><summary>${full} full · ${partial} partial${unknown ? ` · ${unknown} unknown` : ''}</summary>
+    <table><thead><tr><th scope="col">Source</th><th scope="col">Actor</th><th scope="col">Applied</th><th scope="col">Stacks</th><th scope="col">Buffered</th><th scope="col">Damage</th></tr></thead>
+    <tbody>${contributions.map((entry) => `<tr><td>${escapeHtml(entry.source)}</td><td>${escapeHtml(entry.actor)}</td><td>${hitTime(entry.appliedAtMs)}</td><td>${entry.stacks}</td><td>${entry.fraction == null ? 'Unknown' : `${entry.fraction === 1 ? 'Full' : 'Partial'} · ${Math.round(entry.fraction * 1000)}ms`}</td><td>${Math.round(entry.damage).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+    </details>`;
+}
+
 // Clip the displayed window at phase boundaries without moving its fight-time bucket.
 const conditionWindow = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): [number, number] => {
   const start = Math.floor((hits[0]!.t + offsetMs) / CONDITION_WINDOW_MS) * CONDITION_WINDOW_MS - offsetMs;
@@ -353,7 +375,12 @@ function mountHitTimelineLane(
       const ticks = new Map<string, SkillHit>();
       for (const hit of group) {
         const key = JSON.stringify([hit.t, hit.conditionType || '']);
-        ticks.set(key, { ...hit, v: (ticks.get(key)?.v || 0) + hit.v });
+        const previous = ticks.get(key);
+        ticks.set(key, {
+          ...hit,
+          v: (previous?.v || 0) + hit.v,
+          contributions: [...(previous?.contributions || []), ...(hit.contributions || [])]
+        });
       }
 
       detailHits = [...ticks.values()];
@@ -361,17 +388,19 @@ function mountHitTimelineLane(
 
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
+    const showAttribution = detailHits.some((hit) => hit.contributions?.length);
     detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b>
       <button type="button" class="hit-detail-close" data-role="close-hit-detail" aria-label="Close ${noun} details">Close</button></div>
       <div><canvas class="chart-canvas" aria-hidden="true"></canvas></div>
+      ${showAttribution ? '<p class="condition-tick-note">Expand attribution to inspect each application. Buffered time is per stack; damage includes all its stacks and shared rounding.</p>' : ''}
       <div class="hit-detail-table"><table>
         <caption>${detailLabel}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
         <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
           ${isCondition ? `<td>${escapeHtml(hit.conditionType || 'Unknown')}</td>` : ''}
-          <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}</tr>`
+          <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showAttribution ? `<td>${hit.contributions?.length ? tickAttributionHtml(hit.contributions) : 'Unavailable'}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
       </table></div>`;
