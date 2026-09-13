@@ -29,11 +29,7 @@ import {
   handleCrushingAbyssGain,
   observeRevenantSpearEvent
 } from '#gw2/professions/revenant/core/mechanics/crushing-abyss.js';
-import {
-  afterRevenantCast,
-  handleImpossibleOddsStrike,
-  observeRevenantEvent
-} from '#gw2/professions/revenant/core/traits/index.js';
+import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
@@ -42,7 +38,10 @@ import {
   resetCoalescenceOfRuin
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
-import { handleRevenantUpkeepPulse } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import {
+  handleRevenantUpkeepPulse,
+  handleImpossibleOddsStrike
+} from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/hitbox.js';
 import { spendRevenantEnergy } from '#gw2/professions/revenant/energy.js';
 import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';

@@ -12,7 +12,7 @@ import { createRenegadeState } from '#gw2/professions/revenant/specializations/r
 import { createConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { releaseRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { observeRevenantEvent } from '#gw2/professions/revenant/core/traits/index.js';
+import { observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
 import { observeRenegadeTraits } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 import {
   revenantEnduranceRegenerationRate,
@@ -104,6 +104,56 @@ function contextFor(specialization = 'Renegade', selectedTraitIds = []) {
     }
   };
 }
+
+test('Core strike dispatch preserves upkeep, relic, trait, and dagger order with the original cause', () => {
+  // One strike exercises the mixed dispatcher while queued upkeep remains separate from immediate reactions.
+  const context = contextFor('Renegade', [TRAIT.VICIOUS_REPRISAL, TRAIT.EXPOSE_DEFENSES]);
+  context.config.relic = 'Peitha';
+  context.hasBuff = (kind) => kind === 'resolution';
+  const core = context.state.profession.core;
+  core.battleScars = [{ at: 0, expiresAt: 10 }];
+  core.enchantedDaggers = { charges: 2, expiresAt: 10, readyAt: 0 };
+  const order = [];
+  const tasks = [];
+  context.tasks.schedule = (task) => {
+    tasks.push(task);
+    order.push(task.type);
+  };
+
+  context.emit = (event) => {
+    order.push(event.type === 'peitha' ? 'peitha' : event.sourceId);
+    context.events.push(event);
+    return event;
+  };
+
+  const strike = {
+    type: 'damage',
+    at: 1,
+    eventOrder: 7,
+    actorType: 'player',
+    source: 'revenant',
+    sourceId: SKILL.PHASE_SMASH,
+    skillId: SKILL.PHASE_SMASH,
+    skillName: 'Phase Smash',
+    coefficient: 1
+  };
+
+  observeRevenantEvent(context, strike);
+
+  assert.deepEqual(order, [
+    'revenant.impossible-odds-strike',
+    'peitha',
+    'revenant.battle-scars',
+    TRAIT.VICIOUS_REPRISAL,
+    TRAIT.EXPOSE_DEFENSES,
+    SKILL.ENCHANTED_DAGGERS
+  ]);
+  assert.equal(tasks[0].at, strike.at);
+  assert.equal(tasks[0].payload.event, strike);
+  assert.ok(context.events.every((event) => event.parentEventOrder === strike.eventOrder));
+  assert.equal(core.battleScars.length, 0);
+  assert.equal(core.enchantedDaggers.charges, 1);
+});
 
 test('Canceled Beguiling Haze retires its reservation without granting charges or rewriting recharge', () => {
   const context = contextFor('Conduit');

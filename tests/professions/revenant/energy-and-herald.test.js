@@ -18,7 +18,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/traits/index.js';
+import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import {
   legalRevenantLegendIds,

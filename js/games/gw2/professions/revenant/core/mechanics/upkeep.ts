@@ -1,3 +1,7 @@
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
+import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import {
@@ -19,6 +23,7 @@ import type {
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
+  RevenantSimulationEvent,
   RevenantSkill,
   RevenantUpkeepState
 } from '#gw2/professions/revenant/types.js';
@@ -177,4 +182,91 @@ export function handleRevenantUpkeepPulse(
     ownerId: `revenant.upkeep:${payload.skillId}`,
     payload
   });
+}
+
+interface ImpossibleOddsTaskPayload extends SchedulerRecord {
+  readonly event: SimulationEvent;
+}
+
+const IMPOSSIBLE_ODDS_TASK = 'revenant.impossible-odds-strike';
+
+function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
+  return (
+    event.type === 'damage' &&
+    Number(event.coefficient || 0) > 0 &&
+    event.skillId !== ID.IMPOSSIBLE_ODDS &&
+    // Form attacks inherit player modifiers but must not recursively trigger on-hit attacks.
+    event.skillId !== ID.LESSER_ENCHANTED_DAGGERS &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK &&
+    event.skillId !== ID.FORM_OF_THE_DERVISH_ATTACK_ELITE &&
+    // Only Assassin's final shockwave triggers a follow-up.
+    (event.skillId !== ID.RELEASE_POTENTIAL_ASSASSIN || event.hitIndex === event.totalHits) &&
+    // Player-owned strikes include equipment effects; display source labels do not gate the proc.
+    (event.actorType === 'player' || (event.actorType === 'effect' && isGw2PlayerModifierOwnedEvent(event)))
+  );
+}
+
+/** Schedules eligible strike follow-ups; the task rechecks active upkeep and its cooldown at execution. */
+export function scheduleImpossibleOddsStrike(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+  if (canTriggerImpossibleOdds(event)) {
+    context.tasks.schedule({
+      id: `${IMPOSSIBLE_ODDS_TASK}:${event.eventOrder}`,
+      type: IMPOSSIBLE_ODDS_TASK,
+      at: event.at,
+      payload: { event }
+    });
+  }
+}
+
+/** Emits a delayed Impossible Odds strike when its upkeep and ICD are active. */
+export function handleImpossibleOddsStrike(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<ImpossibleOddsTaskPayload>
+): void {
+  if (!task.payload) return;
+  const cause = task.payload.event;
+  const state = professionCoreState(context);
+  const impossible = context.catalog.skillsById.get(ID.IMPOSSIBLE_ODDS);
+  if (
+    !impossible ||
+    !(state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === impossible.id) ||
+    task.at + context.epsilon < Number(state.traitProcReadyAt.impossibleOdds || 0)
+  ) {
+    return;
+  }
+
+  const strike = effectByType(impossible, 'strike');
+  if (strike?.type !== 'strike') return;
+  state.traitProcReadyAt.impossibleOdds = task.at + Number(impossible.triggerIntervalMs || 0) / 1000;
+  emitSkillDamage(context, {
+    cause,
+    at: task.at + Number(effectFirstAtMs(strike) || 0) / 1000,
+    name: 'Impossible Odds',
+    skillName: 'Impossible Odds',
+    coefficient: strikeEffectCoefficient(strike),
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: 'revenant',
+    sourceId: impossible.id,
+    actorType: 'effect',
+    ownerActorType: 'player',
+    skillId: impossible.id,
+    skillWeapon: 'Unequipped',
+    canTriggerCriticalSigils: true
+  });
+}
+
+/** Arms the next Embrace pulse only after another Energy-costing skill is handled. */
+export function empowerEmbraceTheDarkness(context: RevenantCastContext, skill: RevenantSkill): void {
+  if (
+    !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id)) &&
+    // Only Energy-costing skills empower Embrace; free attacks such as Shattershot do not.
+    effectiveRevenantEnergyCost(context, skill) > 0
+  ) {
+    const embrace = professionCoreState(context).activeUpkeeps.find(
+      (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS
+    );
+    if (embrace) embrace.empoweredNextPulse = true;
+  }
 }
