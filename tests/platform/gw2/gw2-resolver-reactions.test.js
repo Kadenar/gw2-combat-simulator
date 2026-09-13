@@ -220,7 +220,10 @@ test('resolver duration queries use live relic state while historical queries re
   const query = createGw2CombatQuery({ profession: testProfession, config, events });
   assert.equal(query.conditionDurationMultiplier('Bleeding', 1.001), 1);
   events.splice(1, 0, {
-    type: 'weakness_vulnerability',
+    type: 'condition',
+    condition: 'Vulnerability',
+    stacks: 1,
+    duration: 5,
     at: 1,
     source: 'Fixture',
     sourceId: 'fixture.trigger',
@@ -236,6 +239,7 @@ test('resolver duration queries use live relic state while historical queries re
     stream: buildScheduledEventStream({ events, rotationEndTime: 3 }),
     professionReactions: {
       'condition.applied': (context, application) => {
+        if (application.condition !== 'Bleeding') return;
         durations.push(application.effectiveDuration);
         // Live state must exclude the queued trigger until its handler has run.
         liveBonuses.push(context.query.conditionDurationMultiplier('Bleeding', 1.001, undefined, application, context));

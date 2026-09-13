@@ -55,8 +55,7 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const bonusEffects = Boolean(context.config.target?.defiant || context.config.target?.activatingSkills);
   emitSkillControl(context, skill, {
     at: context.effectiveEnd,
-    controlKind: 'daze',
-    duration: bonusEffects ? 1.5 : 0.25
+    controlKind: 'daze'
   });
   if (soulShardsAtActivation >= 3) {
     emitSkillCondition(context, skill, {

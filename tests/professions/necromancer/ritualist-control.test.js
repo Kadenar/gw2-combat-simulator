@@ -39,14 +39,12 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
     controls(commanded).map((event) => ({
       skillId: event.skillId,
       controlKind: event.controlKind,
-      duration: event.duration,
       spiritAttackType: event.metadata?.spiritAttackType
     })),
     [
       {
         skillId: ID.SUMMON_SPIRITS,
         controlKind: 'daze',
-        duration: 2,
         spiritAttackType: 'summon-spirits'
       }
     ]
@@ -55,7 +53,6 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
     controls(innervated).map((event) => ({
       skillId: event.skillId,
       controlKind: event.controlKind,
-      duration: event.duration,
       actorType: event.actorType,
       spiritAttackType: event.metadata?.spiritAttackType
     })),
@@ -63,7 +60,6 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
       {
         skillId: ID.INNERVATE_WANDERLUST,
         controlKind: 'fear',
-        duration: 1.5,
         actorType: 'player',
         spiritAttackType: 'innervate'
       }

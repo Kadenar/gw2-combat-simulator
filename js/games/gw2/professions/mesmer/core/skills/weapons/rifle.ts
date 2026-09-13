@@ -68,11 +68,13 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
       count: 1
     },
     effects: [
-      // Keep the existing cast-completion control alongside the phantasm's effects.
+      // The phantasm's shot supplies the stun, at its own impact rather than the player's cast completion.
       {
         type: 'control',
-        source: 'Player',
-        actorType: 'player',
+        source: 'Phantasm',
+        actorType: 'summon',
+        summonKind: 'phantasm',
+        controlKind: 'stun',
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'

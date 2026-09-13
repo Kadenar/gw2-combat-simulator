@@ -158,6 +158,10 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     maximumStacks: 5,
     durationMultiplier: 8
   }),
+  // Dazzling owns the debuff independently of any equipped relic.
+  trait(TRAIT.DAZZLING, 'Dazzling', {
+    effects: [{ type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }]
+  }),
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.cryOfPain, 'Cry of Pain', {
     effects: [
       {

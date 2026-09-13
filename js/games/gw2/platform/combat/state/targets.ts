@@ -3,15 +3,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
-const HOSTILE_TARGET_EVENT_TYPES = new Set([
-  'damage',
-  'condition',
-  'condition_tick',
-  'control',
-  'blind',
-  'weakness_vulnerability',
-  'peitha'
-]);
+const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
 
 /** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
 export function missesTarget(event: SimulationEvent): boolean {

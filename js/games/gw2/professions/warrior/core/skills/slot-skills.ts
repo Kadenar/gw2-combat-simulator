@@ -118,8 +118,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 2
+        controlKind: 'daze'
       }
     ]
   },
@@ -253,8 +252,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       }
     ]
   },

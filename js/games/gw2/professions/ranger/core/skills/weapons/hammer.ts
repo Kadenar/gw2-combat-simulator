@@ -154,8 +154,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'knockdown',
-        duration: 2
+        controlKind: 'knockdown'
       }
     ],
     castTimeMs: 960

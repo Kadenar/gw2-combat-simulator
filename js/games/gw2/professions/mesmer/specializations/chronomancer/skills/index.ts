@@ -258,7 +258,18 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ],
     rechargeAnchor: 'castStart',
     cooldown: 38,
-    effects: []
+    effects: [
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'daze',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      { type: 'condition', condition: 'Slow', stacks: 1, duration: 2 }
+    ]
   },
   [ID.REWINDER]: {
     type: 'Profession',

@@ -471,8 +471,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockback',
-        duration: 450
+        controlKind: 'knockback'
       }
     ]
   },
@@ -582,14 +581,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       },
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 3
+        controlKind: 'daze'
       },
       {
         type: 'condition',
@@ -660,8 +657,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockdown',
-        duration: 4
+        controlKind: 'knockdown'
       }
     ],
     requiredMainHand: 'Staff',

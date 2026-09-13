@@ -188,10 +188,8 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: [
       {
         type: 'control',
-        duration: 1,
         actorType: 'player',
-        controlKind: 'daze',
-        breakbar: 100
+        controlKind: 'daze'
       }
     ]
   })

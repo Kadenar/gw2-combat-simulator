@@ -112,8 +112,6 @@ const EFFECT_FIELDS = new Set([
   'forceCrit',
   'projectile',
   'controlKind',
-  'breakbar',
-  'bonusDefianceBreak',
   'target',
   'persistsAfterInterrupt',
   'interruptCommitMs',

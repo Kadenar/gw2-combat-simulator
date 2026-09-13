@@ -490,7 +490,6 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillId: skill.id,
         skillName: skill.name,
         controlKind: 'daze',
-        duration: 2,
         ...spiritEventFields(context, spirit.key, 'summon-spirits')
       });
     }
@@ -574,7 +573,6 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       skillId: skill.id,
       skillName: skill.name,
       controlKind: 'fear',
-      duration: 1.5,
       ...spiritEventFields(context, 'wanderlust', 'innervate')
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {

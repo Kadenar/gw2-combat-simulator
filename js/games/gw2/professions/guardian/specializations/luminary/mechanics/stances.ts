@@ -96,7 +96,6 @@ export function replayInitialLuminaryState(context: GuardianCastContext, skill: 
       ...common,
       type: 'control',
       controlKind: 'initial-state',
-      duration: 0,
       initialStateDuration: duration,
       skillId: skill.id,
       skillName: skill.name
@@ -131,7 +130,6 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
   const state = luminaryState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
   const strike = balanceProfileEffect(profile, 'strike');
-  const control = balanceProfileEffect(profile, 'control');
   const maximumStacks = Number(profile?.maximumStacks ?? 10);
   const stacks = Math.max(0, Math.min(maximumStacks, Number(state.effulgentStacks || 0)));
   state.effulgentActiveUntil = 0;
@@ -160,8 +158,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       actorType: 'player',
       skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
       skillName: 'Effulgent Stance',
-      controlKind: 'daze',
-      duration: Number(control?.duration ?? 2)
+      controlKind: 'daze'
     });
   }
 }

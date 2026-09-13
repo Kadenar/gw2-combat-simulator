@@ -43,7 +43,6 @@ interface MinionAttackTaskPayload extends SchedulerRecord {
   readonly cycleIndex: number;
   readonly controlUntil: number;
   readonly controlKind?: string;
-  readonly controlDuration: number;
 }
 
 interface MinionAttackStopTaskPayload extends SchedulerRecord {
@@ -101,13 +100,13 @@ function queueSummonAttacks(
     initialDelay = definition.initialDelay ?? definition.interval,
     controlUntil = 0,
     controlKind,
-    controlDuration = 0,
+
     initialCycleIndex = 0
   }: {
     readonly initialDelay?: number;
     readonly controlUntil?: number;
     readonly controlKind?: string;
-    readonly controlDuration?: number;
+
     readonly initialCycleIndex?: number;
   } = {}
 ): void {
@@ -126,8 +125,7 @@ function queueSummonAttacks(
       attackGeneration,
       cycleIndex: initialCycleIndex + 1,
       controlUntil,
-      controlKind,
-      controlDuration
+      controlKind
     }
   });
 }
@@ -174,9 +172,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
         onHitCondition: attack.condition,
         controlKind:
           attack.controlKind || (task.at <= payload.controlUntil + context.epsilon ? payload.controlKind : undefined),
-        controlDuration:
-          attack.controlDuration ||
-          (task.at <= payload.controlUntil + context.epsilon ? payload.controlDuration : undefined),
+
         ...(Number.isFinite(Number(damagePerCoefficient))
           ? {}
           : {
@@ -249,7 +245,7 @@ function queueMinionCommandAttacks(
         deferredComboFinishers: attack.comboFinishers,
         onHitCondition: attack.condition,
         controlKind: attack.controlKind,
-        controlDuration: attack.controlDuration,
+
         ...(Number.isFinite(Number(damagePerCoefficient))
           ? {}
           : {
@@ -392,7 +388,7 @@ function restartMinionAttacks(
     initialDelay: minion.commandRecoveryDelay,
     controlUntil: context.effectiveEnd + Number(definition.controlWindow || 0),
     controlKind: definition.control,
-    controlDuration: Number(definition.controlDuration || 0),
+
     initialCycleIndex: nextCycleIndex
   });
 }

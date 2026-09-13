@@ -128,7 +128,7 @@ test('Dazzling observes control before later control-trait work', () => {
   );
   const control = result.events.find((event) => event.type === 'control' && event.skillName === 'Magic Bullet');
   const dazzling = result.events.find(
-    (event) => event.type === 'weakness_vulnerability' && event.skillName === 'Magic Bullet'
+    (event) => event.type === 'condition' && event.condition === 'Vulnerability' && event.sourceId === TRAIT.DAZZLING
   );
 
   assert.ok(control);

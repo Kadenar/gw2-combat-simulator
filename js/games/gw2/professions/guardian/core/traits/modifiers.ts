@@ -67,13 +67,9 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
 }
 
 export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
-  if (context.config?.target?.disabled || context.config?.target?.defiant || context.config?.target?.defianceBroken)
-    return true;
-  return (context.events || []).some(
-    (event) =>
-      event.type === 'control' &&
-      event.at <= context.time &&
-      event.at + Math.max(0, Number(event.duration || 0)) > context.time
+  // Control events trigger effects without modeling disable windows; bonuses use the configured target state.
+  return Boolean(
+    context.config?.target?.disabled || context.config?.target?.defiant || context.config?.target?.defianceBroken
   );
 }
 

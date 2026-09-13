@@ -62,7 +62,6 @@ export type ComboOutcome =
       readonly kind: 'control';
       readonly name: string;
       readonly control: string;
-      readonly duration: number;
     }
   | {
       readonly kind: 'life-steal';
@@ -211,8 +210,7 @@ const definitions: readonly ComboDefinition[] = [
     outcome: Object.freeze({
       kind: 'control',
       name: 'Dazing Strike',
-      control: 'daze',
-      duration: 1
+      control: 'daze'
     })
   },
   {
@@ -431,8 +429,7 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           ...base,
           type: 'control',
           name: outcome.name,
-          controlKind: outcome.control,
-          duration: outcome.duration
+          controlKind: outcome.control
         };
       case 'life-steal':
         return {

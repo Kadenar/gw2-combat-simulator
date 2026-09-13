@@ -16,10 +16,6 @@ export const MESMER_TROUBADOUR_TRAIT_DAMAGE: Readonly<Record<string, MesmerTrait
     hits: 1
   }
 });
-export const MESMER_TROUBADOUR_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.FLUSTERING_FLUTE,
-  ID.DEAFENING_DRUM
-]);
 export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze({
   [ID.LIVELY_LUTE]: {
     slot: 1,

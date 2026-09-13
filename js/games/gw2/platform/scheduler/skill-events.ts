@@ -82,7 +82,6 @@ export interface EmitSkillControlOptions extends SkillEventOwnership, SkillEvent
   readonly at: number;
   readonly name?: string;
   readonly controlKind?: string;
-  readonly duration?: number;
 }
 
 function standardEnvelope<TProfessionState extends object>(
@@ -264,7 +263,7 @@ export function emitSkillBuff<TProfessionState extends object>(
   return emitProceduralEvent(context, event, options.cause);
 }
 
-/** Emits one control packet with an explicit control kind and optional duration. */
+/** Emits an instantaneous control fact for proc consumers; it does not model a disable window. */
 export function emitSkillControl<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
@@ -286,8 +285,7 @@ export function emitSkillControl<TProfessionState extends object>(
     type: 'control',
     at: options.at,
     ...(options.name ? { name: options.name } : {}),
-    controlKind: options.controlKind ?? 'control',
-    ...(options.duration == null ? {} : { duration: options.duration })
+    controlKind: options.controlKind ?? 'control'
   };
   return emitProceduralEvent(context, event, options.cause);
 }

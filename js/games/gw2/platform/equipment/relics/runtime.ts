@@ -12,7 +12,7 @@ import {
   isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
+import { missesTarget, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -93,8 +93,20 @@ function compareTimelineEvents(left: SimulationEvent, right: SimulationEvent): n
   );
 }
 
+/** Only real landed player applications and explicitly player-owned effects can grant stacks. */
+function isAristocracyApplication(event: SimulationEvent): boolean {
+  return (
+    event.type === 'condition' &&
+    !missesTarget(event) &&
+    (isGw2PlayerActorEvent(event) || (event.actorType === 'effect' && event.ownerActorType === 'player')) &&
+    (event.condition === 'Weakness' || event.condition === 'Vulnerability') &&
+    Number(event.stacks) > 0 &&
+    Number(event.duration) > 0
+  );
+}
+
 function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): AristocracyActivation | null {
-  if (event.type !== 'weakness_vulnerability' || !isInternalCooldownReady(event.at, state.readyAt)) {
+  if (!isAristocracyApplication(event) || !isInternalCooldownReady(event.at, state.readyAt)) {
     return null;
   }
 
@@ -115,7 +127,7 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
 function replayAristocracyTimeline(events: readonly SimulationEvent[], combatStartTime: number): AristocracyState {
   const state = createAristocracyState();
   const ordered = [...events]
-    .filter((event) => event.type === 'weakness_vulnerability' && event.at >= combatStartTime - EPSILON)
+    .filter((event) => isAristocracyApplication(event) && event.at >= combatStartTime - EPSILON)
     .sort(compareTimelineEvents);
   for (const event of ordered) applyAristocracyTrigger(state, event);
   return state;
@@ -325,29 +337,14 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
   Aristocracy: defineRelic({
     createState: createAristocracyState,
-    // Real player debuffs feed the shared relic timeline without profession-specific skill lists.
-    materializeCondition(ctx, _state, event) {
-      if (
-        !isGw2PlayerActorEvent(event) ||
-        (event.condition !== 'Weakness' && event.condition !== 'Vulnerability') ||
-        !(Number(event.stacks) > 0 && Number(event.duration) > 0)
-      )
-        return;
-      ctx.emitDerived(event, {
-        type: 'weakness_vulnerability',
-        at: event.at,
-        source: event.source,
-        sourceId: event.sourceId,
-        actorType: event.actorType,
-        skillId: event.skillId,
-        skillName: event.skillName
-      });
+    // Scheduler state and resolver state consume the same condition fact independently.
+    materializeCondition(ctx, state, event) {
+      if (ctx.hasExplicitCombatStart && ctx.combatStartTime == null) return;
+      if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
+      applyAristocracyTrigger(state as AristocracyState, event);
     },
-    weaknessVulnerability(ctx, state, event) {
-      if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) {
-        return;
-      }
-
+    condition(ctx, state, event) {
+      if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
       applyAristocracyTrigger(state as AristocracyState, event);
     },
     timeline(ctx, _state, events) {
@@ -787,15 +784,37 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
   Peitha: defineRelic({
     createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
+    timeline(ctx, _state, events, rotationEndTime) {
+      // Accepted Deceptions trigger on activation, before their attack animation finishes.
+      if (!ctx.helpers) return;
+      for (const event of events) {
+        if (event.type !== 'action' || event.cancelled || !isGw2PlayerActorEvent(event)) continue;
+        const skill = skillForEvent(ctx.helpers, event);
+        if (!skill?.categories?.includes('Deception')) continue;
+        if (skill.shadowstepSkill) continue;
+        const at = event.at;
+        if (at > rotationEndTime + EPSILON) continue;
+        ctx.queue.enqueue({ ...event, type: 'peitha', at, offTarget: false, projectileDelay: 0.24 });
+      }
+    },
     peitha(ctx, state, event, applyCondition) {
       const triggerAt = event.at;
       if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
       state.readyAt = triggerAt + 4;
       const combatStart = Number(ctx.combatStartTime ?? -Infinity);
-      // If the trigger fires before combat starts (pre-cast), clamp the impact
-      // to combatStartTime so the damage and condition don't preload before combat.
+      const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : null;
+      // Authored movement delays include launch latency and travel; legacy events already denote projectile impact.
+      // Clamp pre-combat impacts so their conditions cannot preload before combat.
       const impactAt =
-        triggerAt < combatStart ? combatStart : triggerAt + Math.max(0, Number(event.projectileDelay || 0));
+        triggerAt < combatStart
+          ? combatStart
+          : triggerAt +
+            Math.max(
+              0,
+              Number(
+                event.projectileDelay ?? (event.type === 'shadowstep' ? (skill?.peithaProjectileDelay ?? 0.24) : 0)
+              )
+            );
       state.buffFrom = impactAt;
       state.buffUntil = impactAt + 4;
       ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));
@@ -809,7 +828,10 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         stacks: 2,
         source: 'Relic',
         actorType: 'effect',
-        ownerActorType: 'player'
+        ownerActorType: 'player',
+        sourceId: 'relic.peitha',
+        activationId: event.activationId,
+        triggeredBy: event.skillName
       });
     },
     // Follow-up strikes inherit their owner's Peitha bonus; summoned actors remain excluded.
@@ -863,7 +885,6 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         name: 'Relic of the Shackles',
         skillName: 'Relic of the Shackles',
         controlKind: 'stun',
-        duration: 1,
         source: 'Relic',
         sourceId: 'relic.shackles',
         actorType: 'effect',

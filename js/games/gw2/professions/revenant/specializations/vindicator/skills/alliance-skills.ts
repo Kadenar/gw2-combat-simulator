@@ -83,8 +83,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 1.5
+        controlKind: 'daze'
       }
     ],
     legendId: 'LegendaryAlliance'

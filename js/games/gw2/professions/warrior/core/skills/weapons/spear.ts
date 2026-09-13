@@ -81,8 +81,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 3
+        controlKind: 'daze'
       }
     ]
   },

@@ -914,12 +914,7 @@ describe('Band Together summon enhancement', () => {
 
     assert.ok(
       enhancedDarkrazor.events.some(
-        (event) =>
-          event.skillName === "Darkrazor's Daring" &&
-          event.type === 'control' &&
-          event.duration === 2 &&
-          event.breakbar === 600 &&
-          event.bonusDefianceBreak === 400
+        (event) => event.skillName === "Darkrazor's Daring" && event.type === 'control' && event.controlKind === 'daze'
       )
     );
     assert.deepEqual(

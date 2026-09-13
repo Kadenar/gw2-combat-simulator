@@ -283,7 +283,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
             sourceId: 3634,
             name: 'Rigor Mortis - Bone Shard',
             controlKind: 'immobilize',
-            controlDuration: 2,
+
             comboFinishers: [
               {
                 ownerId: 'necromancer',
@@ -299,7 +299,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
             sourceId: 3634,
             name: 'Rigor Mortis - Bone Shard',
             controlKind: 'immobilize',
-            controlDuration: 2,
+
             comboFinishers: [
               {
                 ownerId: 'necromancer',

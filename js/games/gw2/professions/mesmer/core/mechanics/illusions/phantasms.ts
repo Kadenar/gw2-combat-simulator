@@ -1,4 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
 import type {
   MesmerAddCondition,
@@ -65,7 +66,7 @@ export interface MesmerPhantasmEffectController {
     group: MesmerStrikeEffect,
     castStart: number
   ): MesmerPhantasmStrikeResult;
-  scheduleConditions(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
+  scheduleStatuses(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
   queueConversion(execution: MesmerPhantasmExecution, amount?: number): void;
 }
 
@@ -457,10 +458,31 @@ export function createPhantasmEffectController({
     return { damageGroup, initialHitTimes, repeatHitTimes };
   };
 
-  const scheduleConditions = (
-    execution: MesmerPhantasmExecution,
-    conditions: readonly MesmerConditionEffect[]
-  ): void => {
+  const scheduleStatuses = (execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void => {
+    // Summon controls follow each actual attack cycle, including a committed Chronophantasma repeat.
+    for (const effect of execution.skill.effects || []) {
+      if (effect.type !== 'control' || effect.summonKind !== 'phantasm') continue;
+      for (const impactAt of execution.hasRepeat
+        ? [execution.damageAt, execution.repeatDamageAt]
+        : [execution.damageAt]) {
+        for (const application of materializeSkillEffectApplications({
+          skill: execution.skill,
+          effect,
+          start: impactAt,
+          fullEnd: impactAt,
+          baseEvent: {
+            source: 'Phantasm',
+            sourceId: execution.skill.id,
+            skillId: execution.skill.id,
+            skillName: execution.skill.name,
+            actorType: 'summon',
+            summonKind: 'phantasm'
+          }
+        }))
+          addEvent({ ...application.event, summonKind: 'phantasm' });
+      }
+    }
+
     // Conditions with a phantasmEntityIndex only apply to that specific entity
     // (e.g. only the first Berserker applies vulnerability on its leap).
     const entityConditions = conditions.filter(
@@ -604,7 +626,7 @@ export function createPhantasmEffectController({
     prepare,
     scheduleLifecycle,
     scheduleStrike,
-    scheduleConditions,
+    scheduleStatuses,
     queueConversion
   };
 }

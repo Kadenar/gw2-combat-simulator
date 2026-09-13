@@ -178,7 +178,17 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ],
     cooldown: 30,
     blade: true,
-    effects: []
+    effects: [
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'daze',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.BLADESONG_SORROW]: {
     type: 'Profession',

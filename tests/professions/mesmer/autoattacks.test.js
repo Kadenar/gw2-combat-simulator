@@ -45,7 +45,6 @@ test('sword and spear autos apply their authored debuffs with or without Aristoc
       }
 
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy').length, relic ? 1 : 0);
-      if (!relic) assert.ok(result.events.every((event) => event.type !== 'weakness_vulnerability'));
     }
   }
 });

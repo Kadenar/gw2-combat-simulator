@@ -98,6 +98,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.STORM_SPIRIT]: {
+    // Apply vulnerability and the slam's daze before four shakes, using Sun Spirit's pulse timing.
     effects: [
       {
         type: 'condition',
@@ -106,19 +107,23 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 10
       },
       {
-        type: 'boon',
-        boon: 'fury',
-        duration: 2,
-        stacks: 4
+        type: 'control',
+        controlKind: 'daze'
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 2,
-        stacks: 4
+        stacks: 1,
+        applications: 4,
+        atMs: 2840,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
-    castTimeMs: 167
+    castTimeMs: 360
   },
   [ID.STONE_SPIRIT]: {
     effects: [

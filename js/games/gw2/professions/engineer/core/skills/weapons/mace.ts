@@ -144,8 +144,7 @@ export const ENGINEER_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ]
   }

@@ -1282,9 +1282,6 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
   assertOffsets(['Well of Calamity'], { specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] }, [
     ['Well of Calamity', 0, [560, 1560, 2560, 3560]]
   ]);
-  assertOffsets(['Bladesong Dissonance'], { specialization: 'Virtuoso', initialResource: 5 }, [
-    ['Bladesong Dissonance', 0, [400]]
-  ]);
   assertOffsets(
     ['Illusionary Counter', 'Counterspell'],
     {

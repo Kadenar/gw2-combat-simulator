@@ -136,8 +136,7 @@ export function materializeNecromancerSummonAttack(
       skillName: event.skillName,
       parentSkillName: event.parentSkillName,
       name: event.skillName || event.name,
-      controlKind: event.controlKind,
-      duration: Number(event.controlDuration || 0)
+      controlKind: event.controlKind
     });
   }
 }

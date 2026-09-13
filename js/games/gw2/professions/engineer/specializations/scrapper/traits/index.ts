@@ -121,12 +121,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       skillId: skill.id,
       skillName: skill.name,
       name: 'System Shocker — daze',
-      controlKind: 'daze',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.systemShocker, 'control'),
-        'duration',
-        1
-      )
+      controlKind: 'daze'
     });
   }
 

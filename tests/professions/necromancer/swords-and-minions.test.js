@@ -442,11 +442,7 @@ test('off-hand sword follow-ups use their complete PvE effects', () => {
   );
   assert.equal(
     result.events.some(
-      (event) =>
-        event.type === 'control' &&
-        event.skillId === ID.DEVOURING_VISAGE &&
-        event.controlKind === 'fear' &&
-        event.duration === 1.5
+      (event) => event.type === 'control' && event.skillId === ID.DEVOURING_VISAGE && event.controlKind === 'fear'
     ),
     true
   );
@@ -1228,11 +1224,8 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
     true
   );
   assert.deepEqual(
-    controls.map((event) => [event.controlKind, event.controlDuration]),
-    [
-      ['immobilize', 2],
-      ['immobilize', 2]
-    ]
+    controls.map((event) => event.controlKind),
+    ['immobilize', 'immobilize']
   );
   assert.equal(controlledFollowup.length, 2);
   assert.equal(disruptionTorment.length, 4);

@@ -77,9 +77,6 @@ export function createGw2ResolverEventHandlers({
       applyBoonExtension(ctx.boons, event);
       if (ctx.reporting) ctx.resolved.push(event);
     },
-    weakness_vulnerability(ctx, event) {
-      reactions.dispatch('weakness-vulnerability.resolved', ctx, event);
-    },
 
     damage(ctx, event) {
       // Apply impact-time adjustments to both scheduled hits and resolver-created procs before calculating damage.
@@ -127,6 +124,13 @@ export function createGw2ResolverEventHandlers({
       reactions.dispatch('peitha.resolved', ctx, event, {
         activeConditionStackCount
       });
+    },
+
+    // Movement is a fact even when the associated attack misses; the relic selects qualifying player shadowsteps.
+    shadowstep(ctx, event) {
+      if (event.actorType === 'player') {
+        reactions.dispatch('peitha.resolved', ctx, event, { activeConditionStackCount });
+      }
     },
 
     weapon_set(ctx, event) {

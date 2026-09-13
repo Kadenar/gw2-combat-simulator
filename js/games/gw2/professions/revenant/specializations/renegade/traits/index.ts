@@ -96,7 +96,6 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
   const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.vindication);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
   if (!profile || !effect) return;
-  const duration = Number(effect.duration || 0);
   emitSkillControl(context, {
     cause: event,
 
@@ -108,9 +107,7 @@ function applyVindication(context: RevenantSchedulerContext, event: RevenantSimu
     skillName: 'Vindication',
     name: 'Vindication — Daze',
     metadata: effect.metadata,
-    controlKind: String(effect.controlKind || 'daze'),
-    duration,
-    breakbar: Number(effect.breakbar ?? duration * 100)
+    controlKind: String(effect.controlKind || 'daze')
   });
 }
 

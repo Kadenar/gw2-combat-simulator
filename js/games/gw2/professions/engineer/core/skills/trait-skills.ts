@@ -85,8 +85,7 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'pull',
-        duration: 300
+        controlKind: 'pull'
       }
     ]
   },

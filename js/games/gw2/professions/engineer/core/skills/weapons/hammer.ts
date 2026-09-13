@@ -180,8 +180,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ]
   }

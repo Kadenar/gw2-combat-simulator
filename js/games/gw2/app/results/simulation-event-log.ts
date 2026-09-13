@@ -198,9 +198,6 @@ export function simulationEventLogRows(
       case 'control':
         push(event, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
         break;
-      case 'weakness_vulnerability':
-        push(event, 'trigger', `WEAKNESS/VULNERABILITY TRIGGER ${event.skillName}`, 'trigger');
-        break;
       case 'peitha':
         if (!build || build.relic === 'Peitha') {
           push(event, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');

@@ -53,8 +53,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         timingScale: 'cast',
         persistsAfterInterrupt: true,
         actorType: 'summon',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ],
     mechanicSlot: 3
@@ -146,8 +145,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         atMs: 1320,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'knockback',
-        duration: 232
+        controlKind: 'knockback'
       }
     ],
     mechanicSlot: 3
@@ -226,8 +224,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         timingScale: 'cast',
         persistsAfterInterrupt: true,
         actorType: 'summon',
-        controlKind: 'launch',
-        duration: 232
+        controlKind: 'launch'
       }
     ],
     mechanicSlot: 2

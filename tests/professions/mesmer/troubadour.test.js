@@ -196,7 +196,7 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
   );
   assert.deepEqual(
     taleConditions
-      .filter((event) => event.condition !== 'Torment')
+      .filter((event) => event.condition !== 'Torment' && event.sourceId !== TRAIT.DAZZLING)
       .map((event) => [event.condition, Number(event.at.toFixed(3)), event.stacks, event.duration]),
     [
       ['Weakness', 0.92, 1, 5],
@@ -686,8 +686,8 @@ test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', 
   assert.equal(shackles.length, 1);
   assert.equal(shackles[0].at, lancerConditions[1].at + 5);
   assert.deepEqual(
-    shacklesStuns.map((event) => [event.at, event.controlKind, event.duration]),
-    [[lancerConditions[1].at + 5, 'stun', 1]]
+    shacklesStuns.map((event) => [event.at, event.controlKind]),
+    [[lancerConditions[1].at + 5, 'stun']]
   );
   assert.equal(syncopate.length, 1);
   assert.equal(syncopate[0].at, shacklesStuns[0].at);

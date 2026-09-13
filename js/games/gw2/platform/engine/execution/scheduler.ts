@@ -124,9 +124,9 @@ function cancelledBeforeEffectCommit<TProfessionState extends object>(
 
 /**
  * Expands declarative skill effects into canonical scheduled events. This is
- * only used when the skill handler does not replace declarative effects.
+ * also reusable by replacing handlers after their owning mechanic resolves dynamic effects.
  */
-function scheduleDeclarativeEffects<TProfessionState extends object>(
+export function scheduleDeclarativeEffects<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
   activationId: string,

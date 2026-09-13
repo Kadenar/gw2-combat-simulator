@@ -304,15 +304,6 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
           invokeRelicHook(ctx, 'peitha', event, conditionHelpers(ctx, details).applyCondition);
         }
       }
-    ],
-    'weakness-vulnerability.resolved': [
-      {
-        id: 'relic.weakness-vulnerability',
-        order: GW2_REACTION_ORDER.COMMON,
-        handler(ctx, event) {
-          invokeRelicHook(ctx, 'weaknessVulnerability', event);
-        }
-      }
     ]
   });
 }

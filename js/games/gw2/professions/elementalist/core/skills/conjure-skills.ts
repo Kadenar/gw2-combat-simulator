@@ -509,8 +509,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         applications: 1,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   },

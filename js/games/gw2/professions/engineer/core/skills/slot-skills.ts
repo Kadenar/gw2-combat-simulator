@@ -33,8 +33,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'summon',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   },
@@ -99,8 +98,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   },
@@ -118,8 +116,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   },
@@ -186,8 +183,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   },
@@ -205,8 +201,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ]
   }

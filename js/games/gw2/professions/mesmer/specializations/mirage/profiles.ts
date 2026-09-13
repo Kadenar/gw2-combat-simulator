@@ -190,6 +190,8 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     durationPerTier: 1.5,
     effects: [
       { type: 'strike', coefficient: 0.6, hits: 1 },
+      // Touching a mirror weakens nearby enemies; creating it does not apply the condition.
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 },
       { type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
     ]
   },

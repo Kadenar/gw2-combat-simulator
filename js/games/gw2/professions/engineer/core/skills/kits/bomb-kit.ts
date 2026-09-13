@@ -42,8 +42,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       }
     ],
     kit: 'Bomb Kit'
@@ -85,8 +84,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ],
     kit: 'Bomb Kit'
@@ -199,8 +197,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        controlKind: 'pull',
-        duration: 300
+        controlKind: 'pull'
       }
     ],
     kit: 'Bomb Kit'

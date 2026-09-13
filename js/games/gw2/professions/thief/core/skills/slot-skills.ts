@@ -331,9 +331,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 40,
     initiativeCost: 0,
     // Model only its control contribution on activation; venom sharing and on-hit charges are intentionally omitted.
-    effects: [
-      { type: 'control', controlKind: 'stun', duration: 1.5, atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
-    ]
+    effects: [{ type: 'control', controlKind: 'stun', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }]
   },
   [ID.SKELK_VENOM]: {
     castTimeMs: 680,
@@ -382,8 +380,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       }
     ]
   },

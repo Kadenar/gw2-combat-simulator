@@ -89,7 +89,6 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
 
 export function applySleightOfHand(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) return;
-  const control = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sleightOfHand), 'control');
   emitSkillControl(context, {
     at,
     source: 'Trait',
@@ -98,8 +97,7 @@ export function applySleightOfHand(context: ThiefCastContext, at: number): void 
     skillId: context.skill?.id,
     skillName: context.skill?.name,
     name: 'Sleight of Hand - Daze',
-    effect: 'Daze',
-    duration: Number(control?.duration ?? 1)
+    effect: 'Daze'
   });
 }
 

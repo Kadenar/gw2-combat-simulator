@@ -7,6 +7,7 @@ import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
@@ -32,7 +33,7 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
 /** Queues Virtuoso-owned critical resolution for blade strikes that can trigger Deadly Blades vulnerability. */
 export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = mesmerRuntimeFor(context);
-  if (event.type !== 'damage' || !runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
+  if (event.type !== 'damage' || !isGw2PlayerActorEvent(event) || !runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
   const skill = runtime.skillsById.get(Number(event.skillId));
   if (!event.blade && !skill?.blade) return;
@@ -75,15 +76,8 @@ export function handleDeadlyBladesCriticalTask(
     duration: Number(deadlyBlades?.duration ?? 5),
     source: 'Trait',
     sourceId: TRAIT.DEADLY_BLADES,
-    sourceSkill: event.skillName
-  });
-  // The relic observation belongs to the trait effect, independent of its display-oriented source label.
-  context.emitDerived(event, {
-    type: 'weakness_vulnerability',
-    at: event.at,
-    source: 'Trait',
     actorType: 'effect',
-    sourceId: TRAIT.DEADLY_BLADES,
-    skillName: event.skillName
+    ownerActorType: 'player',
+    sourceSkill: event.skillName
   });
 }

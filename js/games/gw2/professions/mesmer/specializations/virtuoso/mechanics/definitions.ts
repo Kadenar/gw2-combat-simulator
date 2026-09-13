@@ -84,5 +84,3 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
     coefficients: [0, 0, 0, 0, 0, 0]
   }
 });
-export const MESMER_VIRTUOSO_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.BLADESONG_DISSONANCE]);
-export const MESMER_VIRTUOSO_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<number>([ID.RAIN_OF_SWORDS]);

@@ -136,8 +136,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'pull',
-        duration: 360
+        controlKind: 'pull'
       }
     ]
   }

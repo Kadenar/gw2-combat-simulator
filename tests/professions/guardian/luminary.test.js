@@ -726,9 +726,10 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
     }
   });
 
-  assert.ok(
-    Math.abs(damage(defiantAfterDaze, 'Shining Spin').damage / damage(ordinaryAfterDaze, 'Shining Spin').damage - 1) <
-      1e-9
+  assertFlooredDamageMultiplier(
+    damage(defiantAfterDaze, 'Shining Spin').damage,
+    damage(ordinaryAfterDaze, 'Shining Spin').damage,
+    1.2
   );
   // Hammer gains its armament before the first impact; selecting staff removes it before any staff pulse.
   assertFlooredDamageMultiplier(dazzling.damage, damage(empowered, 'Dazzling Hammer').damage, 1.07);
@@ -1187,7 +1188,6 @@ test('Luminary hidden actions restore supplied opening-state durations', () => {
   assert.equal(buffDuration('guardian-empowered-armaments'), durations.empoweredArmaments / 1000);
   assert.equal(buffDuration('guardian-radiant-armaments'), durations.radiantHammer / 1000);
   assert.equal(claw.expiresAt, durations.claw);
-  assert.equal(result.events.find((event) => event.controlKind === 'initial-state').duration, 0);
 });
 
 test('Luminary Light Aura follows resolved combos instead of hardcoded leap casts', () => {

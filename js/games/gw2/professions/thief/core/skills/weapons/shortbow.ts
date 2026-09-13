@@ -49,8 +49,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ]
   },

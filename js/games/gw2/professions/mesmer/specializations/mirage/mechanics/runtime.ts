@@ -4,13 +4,7 @@ import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/m
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import {
-  MESMER_MIRAGE_AMBUSH_ATTACKS,
-  MESMER_MIRAGE_BLIND_SKILLS,
-  MESMER_MIRAGE_CONTROL_SKILLS,
-  MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS,
-  MESMER_MIRAGE_PEITHA_SKILLS
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/definitions.js';
+import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/professions/mesmer/specializations/mirage/mechanics/definitions.js';
 import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
@@ -34,11 +28,7 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
         weapon,
         mesmerProfiledAmbush(context, attack, MIRAGE_AMBUSH_PROFILE_IDS[weapon])
       ])
-    ),
-    controlSkills: MESMER_MIRAGE_CONTROL_SKILLS,
-    blindSkills: MESMER_MIRAGE_BLIND_SKILLS,
-    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS,
-    peithaProjectileDelays: MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS
+    )
   });
   const mirage = createMirageActionController({
     state: context.state,

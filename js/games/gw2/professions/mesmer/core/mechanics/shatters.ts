@@ -1,4 +1,5 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -84,7 +85,20 @@ export function resolveCloneShatter(
       },
       { shatter: true, shatterTraitEligible: true }
     );
-  } else if (shatter.kind !== 'control') {
+  } else if (shatter.kind === 'control') {
+    // The resolved spend supplies player plus clone applications; no cast-completion observation substitutes for them.
+    scheduleDeclarativeEffects(
+      context,
+      {
+        ...skill,
+        effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
+      },
+      context.reservationId,
+      context.start,
+      at,
+      context.effectiveEnd
+    );
+  } else {
     throw new Error(`Unsupported clone shatter kind: ${shatter.kind}.`);
   }
 

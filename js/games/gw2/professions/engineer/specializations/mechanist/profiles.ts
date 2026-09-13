@@ -65,7 +65,7 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       { type: 'strike', coefficient: 1, hits: 1 },
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 },
-      { type: 'control', duration: 100 }
+      { type: 'control' }
     ]
   }),
   trait(MECHANIST_BALANCE_PROFILE_IDS.jadeDynamo, 'Jade Dynamo', {

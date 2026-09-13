@@ -98,8 +98,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'launch',
-        duration: 0
+        controlKind: 'launch'
       }
     ],
     forgeSkill: true

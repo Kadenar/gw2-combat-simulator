@@ -1,4 +1,5 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -66,7 +67,8 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-control') {
-    const damageAt = shatter.damageAtMs == null ? at : castStart + Number(shatter.damageAtMs) / 1000;
+    // A blade cannot impact before the activation has actually committed its resource spend.
+    const damageAt = Math.max(at, castStart + Number(shatter.damageAtMs || 0) / 1000);
     runtime.addDamage(
       skill,
       damageAt,
@@ -78,6 +80,7 @@ export function resolveBladesong(
       },
       { shatter: true, shatterTraitEligible: true, blade: true }
     );
+    scheduleDeclarativeEffects(context, skill, context.reservationId, castStart, damageAt, damageAt);
     return [{ at: damageAt, count: 1 }];
   }
 

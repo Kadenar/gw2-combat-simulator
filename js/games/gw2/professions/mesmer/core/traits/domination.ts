@@ -5,6 +5,8 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 
 /** Adds two enemy packets to Mirror Blade's four-hit base inside the existing cast-emission interruption scope. */
 export function scheduleBountifulBlades(context: MesmerCastContext, skill: MesmerSkill): void {
@@ -30,7 +32,7 @@ export function scheduleBountifulBlades(context: MesmerCastContext, skill: Mesme
   );
 }
 
-/** Emits Dazzling's control observation without taking ownership of control-event classification. */
+/** A landed disable applies the player-owned trait condition, which equipment can then observe. */
 export function triggerDazzling(
   context: MesmerSchedulerContext,
   event: SimulationEvent,
@@ -38,11 +40,20 @@ export function triggerDazzling(
   skillName: string
 ): void {
   const runtime = context.mesmerRuntime;
-  if (!runtime?.traits.has(TRAIT.DAZZLING)) return;
-  runtime.addEvent({
-    type: 'weakness_vulnerability',
+  if (!runtime?.traits.has(TRAIT.DAZZLING) || missesTarget(event)) return;
+  if (event.actorType !== 'player' && event.actorType !== 'summon') return;
+  const effect = balanceProfileEffectFromContext(context, TRAIT.DAZZLING, 'condition');
+  emitSkillCondition(context, {
+    cause: event,
     at: event.at,
     skillId: Number.isFinite(skillId) ? skillId : undefined,
-    skillName
+    skillName,
+    source: 'Trait',
+    sourceId: TRAIT.DAZZLING,
+    actorType: 'effect',
+    ownerActorType: 'player',
+    condition: String(effect?.condition || 'Vulnerability'),
+    stacks: Number(effect?.stacks ?? 5),
+    duration: Number(effect?.duration ?? 8)
   });
 }

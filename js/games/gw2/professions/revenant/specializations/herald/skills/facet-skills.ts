@@ -189,8 +189,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         atMs: 560,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'knockback',
-        duration: 360
+        controlKind: 'knockback'
       },
       {
         type: 'buff',

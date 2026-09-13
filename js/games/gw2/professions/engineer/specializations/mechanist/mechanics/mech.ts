@@ -231,7 +231,6 @@ function scheduleMechAttack(context: EngineerSchedulerContext, at: number, paylo
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const strike = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'strike');
   const condition = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'condition');
-  const control = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'control');
   // Rocket Punch is the mech's activation, not another packet from the
   // player's triggering weapon cast, so it owns a separate strength roll.
   const activationId = context.createActivationId('summon-attack');
@@ -277,7 +276,6 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
     skillName: 'Rocket Punch (Mech)',
     name: 'Rocket Punch (Mech)',
     controlKind: 'defiance',
-    duration: balanceProfileValue(control, 'duration', 100),
     metadata: { engineerMech: true },
     activationId,
     triggeredBy: skill.name

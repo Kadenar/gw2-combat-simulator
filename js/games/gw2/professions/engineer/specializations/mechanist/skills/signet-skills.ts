@@ -98,8 +98,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockback',
-        duration: 240
+        controlKind: 'knockback'
       }
     ]
   },

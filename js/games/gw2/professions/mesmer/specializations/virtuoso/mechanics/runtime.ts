@@ -5,8 +5,6 @@ import { resolveDeadlyBlades } from '#gw2/professions/mesmer/specializations/vir
 import { resolveBladesong } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import { resolveInfiniteForgeRefund } from '#gw2/professions/mesmer/specializations/virtuoso/traits/shatters.js';
 import {
-  MESMER_VIRTUOSO_ARISTOCRACY_SKILLS,
-  MESMER_VIRTUOSO_CONTROL_SKILLS,
   MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS,
   MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_TRAIT_DAMAGE
@@ -48,9 +46,7 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
             }
           }
         : {})
-    },
-    controlSkills: MESMER_VIRTUOSO_CONTROL_SKILLS,
-    aristocracySkills: MESMER_VIRTUOSO_ARISTOCRACY_SKILLS
+    }
   });
 
   // Virtuoso critical traits consume canonical per-hit critical facts in specialization-owned observers.

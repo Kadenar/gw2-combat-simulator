@@ -110,12 +110,16 @@ export interface ConditionEffect extends SkillEffectBase {
   readonly target?: string;
 }
 
+/** Controls record applications for proc consumers without modeling disable windows. */
 export interface ControlEffect extends SkillEffectBase {
-  readonly type: 'control' | 'blind';
+  readonly type: 'control';
   readonly controlKind?: string;
+}
+
+/** Blind retains its status duration independently of control applications. */
+export interface BlindEffect extends SkillEffectBase {
+  readonly type: 'blind';
   readonly duration?: number;
-  readonly breakbar?: number;
-  readonly bonusDefianceBreak?: number;
 }
 
 export interface StatusEffect extends SkillEffectBase {
@@ -132,7 +136,7 @@ export interface CustomEffect extends SkillEffectBase {
   readonly event: Readonly<Record<string, unknown>>;
 }
 
-export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
+export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | BlindEffect | StatusEffect | CustomEffect;
 
 export interface Skill extends CatalogSkill {
   readonly description?: string;

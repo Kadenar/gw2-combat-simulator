@@ -76,8 +76,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockback',
-        duration: 400
+        controlKind: 'knockback'
       }
     ],
     kit: 'Flamethrower'

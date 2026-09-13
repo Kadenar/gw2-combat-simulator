@@ -335,8 +335,7 @@ export type Gw2ResolverStage =
   | 'condition-tick.resolved'
   | 'control.resolved'
   | 'blind.resolved'
-  | 'peitha.resolved'
-  | 'weakness-vulnerability.resolved';
+  | 'peitha.resolved';
 
 export type Gw2ResolverReactions = Readonly<Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>>;
 

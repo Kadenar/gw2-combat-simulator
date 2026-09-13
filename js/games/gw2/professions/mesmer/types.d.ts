@@ -171,11 +171,6 @@ export interface MesmerRuntime {
   skillCompletionHandlers: MesmerSkillCompletionHandler[];
   instruments: Record<number, MesmerInstrument>;
   balanceProfile: (id: SkillId) => BalanceProfile | undefined;
-  controlSkills: Set<number>;
-  blindSkills: Set<number>;
-  aristocracySkills: Set<number>;
-  peithaSkills: Set<number>;
-  peithaProjectileDelays: Record<number, number>;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
   addEvent: MesmerAddEvent;
   addTraitProc: MesmerAddTraitProc;
@@ -228,7 +223,6 @@ export interface MesmerAmbushAttack {
     readonly stacks: number;
   };
   readonly createsClone?: boolean;
-  readonly control?: boolean;
 }
 
 export interface MesmerInstrument {

@@ -210,8 +210,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     mechanicSlot: 2
@@ -389,8 +388,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     mechanicSlot: 3
@@ -417,8 +415,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     mechanicSlot: 4

@@ -636,6 +636,39 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
   assert.match(petAlacrityApplication.resolvedAudience.companionIds[0], /^ranger-pet:/);
 });
 
+test('Storm Spirit applies vulnerability and daze before four separate Fury shakes', () => {
+  // A single summon checks effect ordering and pulse scheduling without a saved rotation.
+  const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
+    selectedSkills: ['Storm Spirit'],
+    selectedTraitIds: [],
+    stats: { concentration: 0 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const events = result.events.filter((event) => event.skillId === ID.STORM_SPIRIT);
+  const action = events.find((event) => event.type === 'action');
+  const vulnerability = events.find((event) => event.type === 'condition');
+  const daze = events.find((event) => event.type === 'control');
+  const fury = events.filter((event) => event.type === 'buff' && event.kind === 'fury');
+
+  assert.equal(vulnerability.condition, 'Vulnerability');
+  assert.equal(vulnerability.stacks, 10);
+  assert.equal(vulnerability.duration, 10);
+  assert.equal(vulnerability.at, action.endsAt);
+  assert.equal(daze.controlKind, 'daze');
+  assert.equal(daze.at, action.endsAt);
+  assert.ok(daze.at < fury[0].at);
+  assert.deepEqual(
+    fury.map((event) => [event.at - action.at, event.stacks, event.duration]),
+    [
+      [2.84, 1, 2],
+      [3.84, 1, 2],
+      [4.84, 1, 2],
+      [5.84, 1, 2]
+    ]
+  );
+  assert.ok(fury.every((event) => event.audience.recipients === 'party' && event.audience.maximumRecipients === 5));
+});
+
 test('Ranger party boons prioritize players before the active pet', () => {
   const simulateSunSpirit = (alliedPlayerCount) =>
     simulate('Core', ['Sun Spirit', { type: 'wait', durationMs: 6000 }], {

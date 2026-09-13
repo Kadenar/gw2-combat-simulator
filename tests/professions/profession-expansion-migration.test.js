@@ -243,7 +243,9 @@ test('profession registry entries conform to the shared contracts', async () => 
         assert.equal(typeof handler, 'object', skill.handlerId);
         assert.equal(Object.values(SKILL_HANDLER_MODES).includes(handler.mode), true, `${skill.handlerId} mode`);
         assert.equal(
-          ['beforeEffects', 'afterEffect', 'afterEffects'].some((phase) => typeof handler[phase] === 'function'),
+          // A replace declaration can suppress fixed effects while its owning cast lifecycle supplies them.
+          handler.mode === SKILL_HANDLER_MODES.REPLACE ||
+            ['beforeEffects', 'afterEffect', 'afterEffects'].some((phase) => typeof handler[phase] === 'function'),
           true,
           `${skill.handlerId} phases`
         );

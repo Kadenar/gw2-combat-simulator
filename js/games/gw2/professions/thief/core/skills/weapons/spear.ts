@@ -91,8 +91,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 1.5
+        controlKind: 'daze'
       }
     ]
   },

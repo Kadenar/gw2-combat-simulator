@@ -55,7 +55,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [
       { type: 'strike', coefficient: 2, hits: 1 },
       { type: 'strike', coefficient: 3, hits: 1 },
-      { type: 'control', duration: 1 }
+      { type: 'control' }
     ]
   },
   {

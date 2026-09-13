@@ -55,8 +55,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         atMs: PIERCING_STANCE_IMPACT_MS,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'daze',
-        duration: 0.5
+        controlKind: 'daze'
       }
     ]
   },

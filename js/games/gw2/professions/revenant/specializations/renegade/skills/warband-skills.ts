@@ -138,13 +138,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       },
       {
         type: 'control',
-        duration: 2,
         actorType: 'player',
         atMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        controlKind: 'daze',
-        breakbar: 200
+        controlKind: 'daze'
       }
     ],
     legendId: 'LegendaryRenegade'
@@ -295,14 +293,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       },
       {
         type: 'control',
-        duration: 2,
         actorType: 'player',
         atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'daze',
-        breakbar: 600,
-        bonusDefianceBreak: 400
+        controlKind: 'daze'
       }
     ],
     legendId: 'LegendaryRenegade'

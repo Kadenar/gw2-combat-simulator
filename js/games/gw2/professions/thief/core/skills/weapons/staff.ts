@@ -71,8 +71,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockdown',
-        duration: 4
+        controlKind: 'knockdown'
       }
     ],
     requiredMainHand: 'Staff',
@@ -202,8 +201,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 2
+        controlKind: 'daze'
       }
     ]
   }

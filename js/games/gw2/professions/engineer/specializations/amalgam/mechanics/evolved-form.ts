@@ -83,8 +83,7 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphKind: Amalga
       actorType: 'player',
       skillName: 'Volatile Strain',
       name: 'Volatile Strain',
-      controlKind: 'stun',
-      duration: 2
+      controlKind: 'stun'
     });
   } else if (morphKind === 'obliterate') {
     state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + strainDuration);

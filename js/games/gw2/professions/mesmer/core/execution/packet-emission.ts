@@ -187,7 +187,7 @@ export function createSkillDamageController({
     const phantasmConditions = conditions.filter((effect) => effect.summonKind === 'phantasm');
     schedulePlayerConditions(skill, at, castStart, playerConditions);
     for (const phantasm of phantasmExecutions) {
-      phantasms.scheduleConditions(phantasm, phantasmConditions);
+      phantasms.scheduleStatuses(phantasm, phantasmConditions);
     }
 
     return { firstFencerTriggerAt };

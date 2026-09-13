@@ -110,7 +110,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.garishPillar,
     name: 'Garish Pillar - Fear',
     profileKind: 'skill-variant',
-    effects: [{ type: 'control', duration: 1, actorType: 'player' }]
+    effects: [{ type: 'control', actorType: 'player' }]
   },
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.desertShroud,

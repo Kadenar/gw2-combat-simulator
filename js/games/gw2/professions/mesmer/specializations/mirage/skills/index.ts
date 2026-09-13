@@ -66,12 +66,24 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     ]
   },
   [ID.MIRAGE_ADVANCE]: {
+    shadowstepSkill: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
     castTimeMs: 500,
     cooldown: 25,
     effects: [
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'daze',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      { type: 'condition', condition: 'Blinded', stacks: 1, duration: 5 },
+
       {
         type: 'strike',
         coefficient: 1.5,
@@ -99,6 +111,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.ILLUSIONARY_AMBUSH]: {
+    shadowstepSkill: true,
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
@@ -114,6 +127,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.JAUNT]: {
+    shadowstepSkill: true,
     type: 'Elite',
     weapon: '',
     specialization: 'Mirage',
@@ -172,7 +186,17 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
     castTimeMs: 500,
     cooldown: 1,
     ambush: true,
-    effects: []
+    effects: [
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'daze',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.PHANTOM_RAZOR]: {
     castTimeMs: 600,

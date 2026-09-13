@@ -133,8 +133,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'fear',
-        duration: 1
+        controlKind: 'fear'
       }
     ],
     comboFinishers: [
@@ -155,8 +154,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 2
+        controlKind: 'daze'
       }
     ]
   },
@@ -232,14 +230,12 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'pull',
-        duration: 1
+        controlKind: 'pull'
       },
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'pull',
-        duration: 50
+        controlKind: 'pull'
       }
     ]
   },

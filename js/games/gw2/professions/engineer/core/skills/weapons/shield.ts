@@ -22,8 +22,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ]
   },
@@ -44,8 +43,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ]
   },

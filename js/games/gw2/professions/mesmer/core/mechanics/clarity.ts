@@ -4,11 +4,26 @@ import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
-import type { MesmerAddEvent, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerAddEvent, MesmerRuntime, MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 
 const CLARITY_DURATION = 15;
 const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';
 const CLARITY_CONSUMERS = new Set<number>([ID.IMAGINARY_INVERSION, ID.PHANTASMAL_LANCER, ID.MENTAL_COLLAPSE]);
+
+/** Clarity belongs to the accepted activation, even if another spear cast changes state before impact. */
+export function scheduleClarityEffects(context: MesmerHandlerContext, skill: MesmerSkill): void {
+  if (context.action.cancelled || !context.mesmerRuntime.castDetails.get(context.reservationId)?.clarityConsumed)
+    return;
+  scheduleDeclarativeEffects(
+    context,
+    { ...skill, effects: skill.clarityEffects || [] },
+    context.reservationId,
+    context.start,
+    context.fullEnd,
+    context.effectiveEnd
+  );
+}
 
 /** Consumes Clarity at cast start only for the spear skills it empowers. */
 export function consumeMesmerClarity(

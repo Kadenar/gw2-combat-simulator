@@ -12,8 +12,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ],
     adrenalineCost: 10,
@@ -46,8 +45,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ],
     castTimeMs: 1000,
@@ -70,8 +68,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ],
     castTimeMs: 333,
@@ -148,8 +145,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ],
     castTimeMs: 500,
@@ -236,8 +232,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     adrenalineCost: 10,
@@ -288,8 +283,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ],
     adrenalineCost: 10,

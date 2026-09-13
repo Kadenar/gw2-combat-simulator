@@ -66,8 +66,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'launch',
-        duration: 240
+        controlKind: 'launch'
       }
     ]
   },

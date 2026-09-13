@@ -166,4 +166,3 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
     ])
   }
 });
-export const MESMER_CHRONOMANCER_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.GRAVITY_WELL, ID.TIME_SINK]);

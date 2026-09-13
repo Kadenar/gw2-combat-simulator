@@ -31,6 +31,7 @@ import type {
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 
 interface MirageActionControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -131,11 +132,6 @@ export function createMirageActionController({
       '',
       { source: 'Player', sourceId: ambush.id, skillId: ambush.id, actorType: 'player' }
     );
-    addEvent({
-      type: 'weakness_vulnerability',
-      at,
-      skillName: ambush.name
-    });
   };
 
   // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
@@ -161,6 +157,28 @@ export function createMirageActionController({
       };
       // Explicit summon ownership keeps clone ambush packets independent of their display labels.
       const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
+      // Clone ambushes use the weapon's authored control and retain summon ownership.
+      const skill = skillsById.get(ambush.id);
+      for (const effect of skill?.effects || []) {
+        if (effect.type !== 'control') continue;
+        for (const application of materializeSkillEffectApplications({
+          skill: skill!,
+          effect,
+          start: at,
+          fullEnd: impactAt,
+          baseEvent: {
+            source: 'Clone',
+            sourceId: ambush.id,
+            skillId: ambush.id,
+            skillName: ambush.name,
+            actorType: 'summon',
+            summonKind: 'clone',
+            cloneId: clone.id
+          }
+        }))
+          addEvent({ ...application.event, summonKind: 'clone' });
+      }
+
       addDamage(
         pseudo,
         ambush.clone.ticks?.length ? at : impactAt,
@@ -433,11 +451,19 @@ export function createMirageActionController({
       hits: 1,
       source: 'Player'
     });
-    addEvent({
-      type: 'weakness_vulnerability',
+    // Only a consumed, available mirror applies its authored Weakness.
+    addCondition(
+      pseudo.name,
       at,
-      skillName: source
-    });
+      statusFromEffect(profileEffect(PROFILE.mechanics, 'condition'), {
+        name: 'Weakness',
+        stacks: 1,
+        duration: 4
+      }),
+      'Player',
+      '',
+      { skillId: pseudo.id, sourceId: pseudo.id, actorType: 'player' }
+    );
     grantMirageCloak(at, source);
     return true;
   };

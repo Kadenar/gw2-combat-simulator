@@ -594,10 +594,7 @@ describe('Mechanist grandmaster active effects', () => {
     assert.ok(
       fighter.events.some(
         (event) =>
-          event.type === 'control' &&
-          event.skillName === 'Rocket Punch (Mech)' &&
-          event.controlKind === 'defiance' &&
-          event.duration === 100
+          event.type === 'control' && event.skillName === 'Rocket Punch (Mech)' && event.controlKind === 'defiance'
       )
     );
   });

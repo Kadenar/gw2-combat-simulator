@@ -107,8 +107,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ]
   },

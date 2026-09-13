@@ -42,7 +42,7 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: [{ type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.systemShocker, 'System Shocker', {
-    effects: [{ type: 'control', duration: 1 }]
+    effects: [{ type: 'control' }]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce, 'Applied Force', {
     maximumStacks: 25,

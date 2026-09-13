@@ -18,7 +18,6 @@ export interface MinionAttack {
   readonly comboFinishers?: readonly SchedulerRecord[];
   readonly condition?: readonly (string | number)[];
   readonly controlKind?: string;
-  readonly controlDuration?: number;
 }
 
 export interface MinionDefinition {
@@ -46,7 +45,7 @@ export interface MinionCommandDefinition {
   readonly condition?: readonly (string | number)[];
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
-  readonly controlDuration?: number;
+
   readonly controlWindow?: number;
   readonly blindDuration?: number;
   readonly impactDelay?: number;
@@ -138,8 +137,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     offset: Number(tick.atMs || 0) / 1000,
     skillId: tick.sourceId as SkillId | undefined,
     comboFinishers: Array.isArray(tick.comboFinishers) ? tick.comboFinishers : undefined,
-    controlKind: String(tick.controlKind || ''),
-    controlDuration: Number(tick.controlDuration || 0)
+    controlKind: String(tick.controlKind || '')
   }));
   const conditions = effects
     .filter((effect) => effect.type === 'condition')
@@ -154,7 +152,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     control: String(
       controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || ''
     ),
-    controlDuration: Number(controlEffect?.duration ?? attacks[0]?.controlDuration ?? 0),
+
     controlWindow: Number(skill.controlWindow || 0),
     blindDuration: Number(controlEffect?.duration || 0),
     impactDelay: Number(skill.impactDelay || 0),

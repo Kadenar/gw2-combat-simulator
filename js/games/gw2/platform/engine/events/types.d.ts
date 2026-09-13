@@ -56,6 +56,7 @@ export type CommonSimulationEventType =
   | 'condition_tick'
   | 'control'
   | 'blind'
+  | 'shadowstep'
   | 'weapon_set'
   | 'sigil_swap'
   | 'proc'
@@ -65,7 +66,6 @@ export type CommonSimulationEventType =
   | 'boon_extension'
   | 'cooldown_snapshot'
   | 'self_condition'
-  | 'weakness_vulnerability'
   | 'peitha';
 
 export type CustomSimulationEventType = `${string}.${string}`;

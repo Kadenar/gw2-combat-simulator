@@ -25,8 +25,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockback',
-        duration: 120
+        controlKind: 'knockback'
       }
     ]
   },

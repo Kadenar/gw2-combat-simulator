@@ -31,8 +31,7 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       },
       {
         type: 'boon',

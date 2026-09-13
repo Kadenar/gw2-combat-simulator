@@ -97,11 +97,11 @@ test('condition and control helpers retain explicit trait attribution and contro
     skillId: 9002,
     skillName: 'Control Trait',
     controlKind: 'daze',
-    duration: 0.5,
     priority: -5,
     triggeredBy: skill.name
   });
 
+  assert.equal(Object.hasOwn(events[1], 'duration'), false);
   assert.deepEqual(
     events.map((event) => ({
       type: event.type,
@@ -113,7 +113,7 @@ test('condition and control helpers retain explicit trait attribution and contro
       name: event.name,
       condition: event.condition,
       stacks: event.stacks,
-      duration: event.duration,
+      ...(event.type === 'control' ? {} : { duration: event.duration }),
       controlKind: event.controlKind,
       priority: event.priority,
       triggeredBy: event.triggeredBy
@@ -144,7 +144,6 @@ test('condition and control helpers retain explicit trait attribution and contro
         name: undefined,
         condition: undefined,
         stacks: undefined,
-        duration: 0.5,
         controlKind: 'daze',
         priority: -5,
         triggeredBy: 'Trigger Skill'

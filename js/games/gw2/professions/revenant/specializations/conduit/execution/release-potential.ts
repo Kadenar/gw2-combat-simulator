@@ -157,8 +157,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       const control = (skill.effects || []).find((effect) => effect.type === 'control');
       emitSkillControl(context, skill, {
         at: effectAt(context, control),
-        controlKind: String(control?.controlKind || 'daze'),
-        duration: Number(control?.duration || 0)
+        controlKind: String(control?.controlKind || 'daze')
       });
       break;
     }

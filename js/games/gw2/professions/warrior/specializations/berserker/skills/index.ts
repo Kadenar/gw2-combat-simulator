@@ -80,8 +80,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       },
       {
         type: 'condition',
@@ -197,8 +196,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 3
+        controlKind: 'daze'
       },
       {
         type: 'boon',
@@ -280,8 +278,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'stun',
-        duration: 3
+        controlKind: 'stun'
       }
     ],
     castTimeMs: 800,
@@ -415,8 +412,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ],
     castTimeMs: 920,

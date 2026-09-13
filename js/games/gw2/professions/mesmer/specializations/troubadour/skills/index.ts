@@ -109,7 +109,18 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     specialization: 'Troubadour',
     castTimeMs: 560,
     cooldown: 20,
-    effects: []
+    effects: [
+      // Performance and afterimage impacts materialize the same authored control.
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'daze',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
     type: 'Utility',
@@ -218,7 +229,18 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     specialization: 'Troubadour',
     castTimeMs: 680,
     cooldown: 25,
-    effects: []
+    effects: [
+      // Performance and afterimage impacts materialize the same authored control.
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'stun',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
     type: 'Utility',

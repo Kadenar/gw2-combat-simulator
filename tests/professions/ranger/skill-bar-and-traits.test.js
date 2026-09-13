@@ -779,8 +779,7 @@ test('Call of the Wild dazes, weakens, and resolves a blast combo at completion'
   const weakness = result.events.find((event) => event.type === 'condition' && event.skillId === ID.CALL_OF_THE_WILD);
   const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.CALL_OF_THE_WILD);
   assert.equal(daze.controlKind, 'daze');
-  assert.equal(daze.duration, 2);
-  assert.equal(daze.breakbar, 200);
+
   assert.equal(weakness.condition, 'Weakness');
   assert.equal(weakness.duration, 5);
   assert.equal(combo.finisherType, 'Blast');

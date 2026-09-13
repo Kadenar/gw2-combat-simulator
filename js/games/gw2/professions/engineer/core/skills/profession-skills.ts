@@ -128,8 +128,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockdown',
-        duration: 2
+        controlKind: 'knockdown'
       }
     ],
     toolbeltParentName: 'Seed Turret'
@@ -154,8 +153,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        controlKind: 'daze',
-        duration: 2
+        controlKind: 'daze'
       }
     ],
     toolbeltParentName: 'A.E.D.',

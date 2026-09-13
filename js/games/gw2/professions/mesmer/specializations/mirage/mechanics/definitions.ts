@@ -298,21 +298,6 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<Record<string, MesmerAmbushA
       hits: 1,
       atMs: 0
     },
-    createsClone: true,
-    control: true
+    createsClone: true
   }
-});
-export const MESMER_MIRAGE_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([ID.MIRAGE_ADVANCE, ID.MIRAGE_THRUST]);
-export const MESMER_MIRAGE_BLIND_SKILLS: ReadonlySet<number> = new Set<number>([ID.MIRAGE_ADVANCE]);
-export const MESMER_MIRAGE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.FALSE_OASIS,
-  ID.CRYSTAL_SANDS,
-  ID.MIRAGE_ADVANCE,
-  ID.SAND_THROUGH_GLASS,
-  ID.ILLUSIONARY_AMBUSH,
-  ID.JAUNT
-]);
-export const MESMER_MIRAGE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
-  [ID.CRYSTAL_SANDS]: 0.241,
-  [ID.JAUNT]: 0.241
 });

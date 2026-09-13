@@ -49,8 +49,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         intervalMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'float',
-        duration: 1
+        controlKind: 'float'
       }
     ],
     // Aggregate the three 3% siphons because the simulator assumes every strike connects.

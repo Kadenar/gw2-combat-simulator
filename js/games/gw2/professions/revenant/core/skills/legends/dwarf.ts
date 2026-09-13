@@ -45,8 +45,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt',
-        duration: 4
+        controlKind: 'taunt'
       }
     ],
     legendId: 'LegendaryDwarf'
@@ -156,8 +155,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt',
-        duration: 4
+        controlKind: 'taunt'
       }
     ],
     legendId: 'LegendaryDwarf'

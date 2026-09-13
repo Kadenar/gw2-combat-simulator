@@ -20,8 +20,7 @@ export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
   'condition-tick.resolved',
   'control.resolved',
   'blind.resolved',
-  'peitha.resolved',
-  'weakness-vulnerability.resolved'
+  'peitha.resolved'
 ]);
 
 const STAGES = new Set<string>(GW2_RESOLVER_STAGES);

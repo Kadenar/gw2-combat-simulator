@@ -29,6 +29,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'condition_tick',
   'control',
   'blind',
+  'shadowstep',
   'weapon_set',
   'sigil_swap',
   'proc',
@@ -38,7 +39,6 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'boon_extension',
   'cooldown_snapshot',
   'self_condition',
-  'weakness_vulnerability',
   'peitha'
 ]);
 const COMMON_EVENT_TYPE_SET = new Set(COMMON_EVENT_TYPES);

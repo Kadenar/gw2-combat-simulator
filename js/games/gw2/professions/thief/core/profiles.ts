@@ -208,7 +208,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.sleightOfHand, 'Sleight of Hand', {
     rechargeMultiplier: 0.8,
-    effects: [{ type: 'control', kind: 'daze', duration: 1 }]
+    effects: [{ type: 'control', kind: 'daze' }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.hiddenThief, 'Hidden Thief', {
     internalCooldown: 2,

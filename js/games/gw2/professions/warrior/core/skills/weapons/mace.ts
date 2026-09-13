@@ -64,8 +64,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
         atMs: 440,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       }
     ]
   },
@@ -79,8 +78,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       }
     ]
   },

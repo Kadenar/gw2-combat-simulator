@@ -113,8 +113,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        controlKind: 'pull',
-        duration: 360
+        controlKind: 'pull'
       }
     ],
     legendId: 'LegendaryDemon'

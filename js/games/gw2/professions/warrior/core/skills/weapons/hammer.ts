@@ -125,8 +125,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'knockdown',
-        duration: 3
+        controlKind: 'knockdown'
       }
     ]
   }

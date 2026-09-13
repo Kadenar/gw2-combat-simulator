@@ -2,6 +2,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -83,7 +84,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
   triggerThePledge(context, event);
-  if (event.type === 'control') {
+  if (event.type === 'control' && !missesTarget(event)) {
     const skillId = Number(event.skillId);
     const skillName = String(event.skillName || event.name || 'Control effect');
     triggerDazzling(context, event, skillId, skillName);

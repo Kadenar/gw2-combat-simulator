@@ -43,8 +43,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     artifactKind: 'offensive'
@@ -82,8 +81,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       }
     ],
     artifactKind: 'offensive'
@@ -144,8 +142,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'taunt',
-        duration: 3
+        controlKind: 'taunt'
       },
       {
         type: 'strike',
@@ -361,8 +358,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'knockback',
-        duration: 180
+        controlKind: 'knockback'
       }
     ],
     backfire: true
@@ -521,8 +517,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'launch',
-        duration: 0
+        controlKind: 'launch'
       }
     ],
     doubleEdge: true

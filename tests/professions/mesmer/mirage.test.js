@@ -680,7 +680,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   assert.equal(result.endState.profession.availableMirrors, 0);
   assert.equal(result.endState.profession.availableAmbush.source, 'Pick Up Mirage Mirror');
   assert.deepEqual(
-    result.events.filter((event) => event.type === 'peitha').map((event) => event.skillName),
+    result.procSteps.filter((step) => step.skill === 'Relic of Peitha').map((step) => step.sourceSkill),
     ['Crystal Sands']
   );
 });

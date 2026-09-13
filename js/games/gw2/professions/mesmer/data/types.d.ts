@@ -83,7 +83,10 @@ export type MesmerTrackedHitDamage = MesmerDamageGroup & {
 
 export interface MesmerSkill extends Skill {
   readonly shadowstepSkill?: boolean;
+  /** Seconds from shadowstep activation to Peitha impact, including launch latency and travel. */
   readonly peithaProjectileDelay?: number;
+  /** Additional spear effects require the Clarity consumed by this activation. */
+  readonly clarityEffects?: readonly SkillEffect[];
   readonly id: number;
   readonly ambush?: boolean;
   readonly duration?: number;

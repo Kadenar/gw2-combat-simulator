@@ -85,8 +85,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'stun',
-        duration: 1
+        controlKind: 'stun'
       }
     ]
   },

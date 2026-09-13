@@ -131,9 +131,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 760
   },
   [ID.PHASE_RETREAT]: {
-    // Shadowstep metadata drives movement relics and their measured projectile delay.
     shadowstepSkill: true,
-    peithaProjectileDelay: 0.856,
+    peithaProjectileDelay: 0.84,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',

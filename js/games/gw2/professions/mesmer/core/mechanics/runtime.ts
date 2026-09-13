@@ -75,11 +75,6 @@ export interface MesmerRuntimeManifest {
   readonly ambushAttacks?: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly phantasmAttackTimings?: Readonly<Record<number, Partial<MesmerPhantasmAttackTiming>>>;
   readonly phantasmPolicy?: Partial<MesmerPhantasmPolicy>;
-  readonly controlSkills?: Iterable<number>;
-  readonly blindSkills?: Iterable<number>;
-  readonly aristocracySkills?: Iterable<number>;
-  readonly peithaSkills?: Iterable<number>;
-  readonly peithaProjectileDelays?: Readonly<Record<number, number>>;
 }
 
 /** Folds a specialization's mechanics manifest into the shared runtime. */
@@ -120,16 +115,5 @@ export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: Mes
         ...manifest.phantasmPolicy.spawnModifiers
       }
     };
-  }
-
-  for (const id of manifest.controlSkills || []) runtime.controlSkills.add(id);
-  for (const id of manifest.blindSkills || []) runtime.blindSkills.add(id);
-  for (const id of manifest.aristocracySkills || []) {
-    runtime.aristocracySkills.add(id);
-  }
-
-  for (const id of manifest.peithaSkills || []) runtime.peithaSkills.add(id);
-  if (manifest.peithaProjectileDelays) {
-    Object.assign(runtime.peithaProjectileDelays, manifest.peithaProjectileDelays);
   }
 }

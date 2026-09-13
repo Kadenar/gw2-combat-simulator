@@ -48,13 +48,11 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'control',
-        duration: 2,
         actorType: 'player',
         atMs: 280,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'daze',
-        breakbar: 200
+        controlKind: 'daze'
       }
     ]
   },

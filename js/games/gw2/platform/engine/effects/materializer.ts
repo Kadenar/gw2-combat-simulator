@@ -194,9 +194,8 @@ export function materializeSkillEffectApplications({
           at,
           type: effect.type,
           ...(effect.controlKind != null ? { controlKind: effect.controlKind } : {}),
-          ...(effect.duration != null ? { duration: Number(effect.duration) } : {}),
-          ...(effect.breakbar != null ? { breakbar: Number(effect.breakbar) } : {}),
-          ...(effect.bonusDefianceBreak != null ? { bonusDefianceBreak: Number(effect.bonusDefianceBreak) } : {}),
+          // Controls are instantaneous proc facts; only blindness retains an authored duration.
+          ...(effect.type === 'blind' && effect.duration != null ? { duration: Number(effect.duration) } : {}),
           applicationIndex,
           totalApplications: count,
           ...nestedEffectMetadata(effect.metadata),

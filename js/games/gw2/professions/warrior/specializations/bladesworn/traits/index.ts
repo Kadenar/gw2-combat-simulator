@@ -157,8 +157,7 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
       skillName: skill.name,
       source: 'Trait',
       actorType: 'player',
-      controlKind: 'stun',
-      duration: 1
+      controlKind: 'stun'
     });
   }
 

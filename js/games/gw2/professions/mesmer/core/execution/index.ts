@@ -3,9 +3,10 @@ import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 import type { MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { scheduleClarityEffects } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import {
   isCommittedInterruptedPhantasm,
   scheduleMesmerPhantasmEffects,
@@ -13,35 +14,23 @@ import {
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 
 /** Replacing handlers own their damage, but still honor skill-authored CC and its interruption window. */
-function scheduleProfileControls(context: MesmerHandlerContext, skill: Skill): void {
+export function scheduleProfileControls(context: MesmerHandlerContext, skill: Skill): void {
   if (context.action.cancelled) return;
-  const end =
-    context.effectiveEnd >= context.fullEnd - context.epsilon ||
-    isCommittedInterruptedPhantasm(context, skill as MesmerSkill)
-      ? Infinity
-      : context.effectiveEnd;
-  for (const effect of skill.effects || []) {
-    if (effect.type !== 'control') continue;
-    for (const application of materializeSkillEffectApplications({
-      skill,
-      effect,
-      start: context.start,
-      fullEnd: context.fullEnd,
-      baseEvent: {
-        activationId: context.reservationId,
-        source: effect.source || 'Player',
-        sourceId: effect.sourceId ?? skill.id,
-        actorType: effect.actorType || 'player',
-        skillId: skill.id,
-        skillName: skill.name
-      }
-    })) {
-      if (application.at <= end + context.epsilon) context.emit(application.event);
-    }
-  }
+  scheduleDeclarativeEffects(
+    context,
+    {
+      ...skill,
+      effects: (skill.effects || []).filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm')
+    },
+    context.reservationId,
+    context.start,
+    context.fullEnd,
+    isCommittedInterruptedPhantasm(context, skill as MesmerSkill) ? context.fullEnd : context.effectiveEnd
+  );
 }
 
-export const mesmerReplaceProfile = replaceSkill<MesmerHandlerContext>({ afterEffects: scheduleProfileControls });
+// These casts emit their state-dependent effects through the owning cast lifecycle.
+export const mesmerReplaceProfile = replaceSkill<MesmerHandlerContext>({});
 
 // Dynamic phantasm and clone packets register with the cast instead of appearing retroactively at completion.
 const mesmerPhantasm = replaceSkill<MesmerHandlerContext>({
@@ -68,6 +57,9 @@ export const mesmerCoreSkillHandlers: Readonly<Record<string, Readonly<SkillHand
   Object.freeze({
     'mesmer.axes-of-symmetry': mesmerAxesOfSymmetry,
     'mesmer.mind-spike': mesmerMindSpike,
+    'mesmer.mental-collapse': augmentSkill<MesmerHandlerContext>({
+      afterEffects: (context, skill) => scheduleClarityEffects(context, skill as MesmerSkill)
+    }),
     'mesmer.weapon-swap': gw2WeaponSwapSkillHandler,
     'mesmer.shatter': mesmerReplaceProfile,
     'mesmer.inspiring-imagery': mesmerReplaceProfile,

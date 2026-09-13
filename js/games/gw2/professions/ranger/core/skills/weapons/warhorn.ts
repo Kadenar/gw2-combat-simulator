@@ -56,9 +56,7 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        duration: 2,
-        breakbar: 200
+        controlKind: 'daze'
       }
     ],
     castTimeMs: 600

@@ -28,6 +28,8 @@ export interface Gw2RelicRuntimeContext extends SchedulerRecord {
 }
 
 export interface Gw2RelicMaterializerContext {
+  readonly combatStartTime?: number | null;
+  readonly hasExplicitCombatStart?: boolean;
   emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
 }
 
@@ -102,11 +104,6 @@ export interface Gw2RelicRule {
     state: Gw2RelicState,
     events: readonly SimulationEvent[],
     rotationEndTime: number
-  ) => unknown;
-  readonly weaknessVulnerability?: (
-    context: Gw2RelicRuntimeContext,
-    state: Gw2RelicState,
-    event: SimulationEvent
   ) => unknown;
   readonly boon?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly combo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;

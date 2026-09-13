@@ -80,10 +80,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     parentId: ID.EFFULGENT_STANCE,
     maximumStacks: 10,
     damageIncreasePerStack: 0.35,
-    effects: [
-      { type: 'strike', coefficient: 0.5, hits: 1 },
-      { type: 'control', duration: 2 }
-    ]
+    effects: [{ type: 'strike', coefficient: 0.5, hits: 1 }, { type: 'control' }]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.lightAura,

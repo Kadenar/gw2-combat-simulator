@@ -11,6 +11,7 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
 import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
 function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
@@ -179,39 +180,6 @@ function applyMimicCompletion(context: MesmerCastContext, skill: MesmerSkill, at
   }
 }
 
-function emitCompletionEvents(
-  context: MesmerCastContext,
-  skill: MesmerSkill,
-  at: number,
-  clarityConsumed: boolean
-): void {
-  const runtime = mesmerRuntimeFor(context);
-  const disabled = runtime.controlSkills.has(skill.id) || (skill.id === ID.MENTAL_COLLAPSE && clarityConsumed);
-  if (disabled && !runtime.instruments[skill.id]) {
-    runtime.addEvent({
-      type: 'control',
-      at,
-      source: 'Player',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name
-    });
-  }
-
-  if (runtime.blindSkills.has(skill.id)) {
-    runtime.addEvent({ type: 'blind', at, skillName: skill.name });
-  }
-
-  if (runtime.aristocracySkills.has(skill.id)) {
-    runtime.addEvent({
-      type: 'weakness_vulnerability',
-      at,
-      skillName: skill.name
-    });
-  }
-}
-
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
 export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
@@ -238,7 +206,6 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
     if (context.action.cancelled) return;
 
     if (skill.id === ID.SWAP_WEAPONS) return;
-    const clarityConsumed = Boolean(details.clarityConsumed);
     const specializationHandled = dispatchSpecializationCompletion(context, skill, at);
 
     if (specializationHandled) {
@@ -257,7 +224,6 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
 
     runtime.skillEffects.complete(skill, at, context.start);
     applyMimicCompletion(context, skill, at);
-    emitCompletionEvents(context, skill, at, clarityConsumed);
   } finally {
     runtime.activeEmission = null;
     runtime.castDetails.delete(context.reservationId);
@@ -270,17 +236,22 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
  */
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
-  if (skill.id === ID.ABSTRACTION && !context.action.cancelled) detonateInspiringImagery(context);
-  if (skill.shadowstepSkill || runtime.peithaSkills.has(skill.id)) {
-    // Movement relic triggers register on activation so overlapping casts observe the correct ICD state.
-    runtime.addEvent({
-      type: 'peitha',
-      activationId: context.reservationId,
-      at: context.start,
-      projectileDelay: skill.peithaProjectileDelay ?? runtime.peithaProjectileDelays[skill.id] ?? 0,
-      skillName: skill.name
-    });
+  // Shadowstep activation precedes the attack animation's end; only accepted casts emit the movement fact.
+  if (skill.shadowstepSkill && !context.action.cancelled) {
+    scheduleDeclarativeEffects(
+      context,
+      {
+        ...skill,
+        effects: [{ type: 'custom', eventType: 'shadowstep', event: {}, atMs: 0, timingAnchor: 'castStart' }]
+      },
+      context.reservationId,
+      context.start,
+      context.fullEnd,
+      context.effectiveEnd
+    );
   }
+
+  if (skill.id === ID.ABSTRACTION && !context.action.cancelled) detonateInspiringImagery(context);
 
   withMesmerCastEmission(context, skill, () => scheduleBountifulBlades(context, skill));
   const shatter = runtime.shatters[skill.id];

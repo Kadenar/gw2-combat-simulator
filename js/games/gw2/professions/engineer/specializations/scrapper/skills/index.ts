@@ -99,8 +99,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       {
         type: 'control',
         actorType: 'effect',
-        controlKind: 'stun',
-        duration: 3
+        controlKind: 'stun'
       },
       {
         type: 'boon',

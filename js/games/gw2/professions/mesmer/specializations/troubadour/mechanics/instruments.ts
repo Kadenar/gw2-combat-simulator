@@ -11,6 +11,7 @@ import { troubadourState } from '#gw2/professions/mesmer/specializations/troubad
 import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(
@@ -77,17 +78,24 @@ function instrumentAttack(
     );
   }
 
-  if (data.instrument === 'Flute' || data.instrument === 'Drum') {
-    runtime.addEvent({
-      type: 'control',
-      at: damageAt,
-      skillId: skill.id,
-      skillName: skill.name,
-      source,
-      sourceId: skill.id,
-      actorType
-    });
-  }
+  // Player and valid afterimage impacts use the same authored control with distinct ownership.
+  scheduleDeclarativeEffects(
+    context,
+    {
+      ...skill,
+      effects: (skill.effects || [])
+        .filter((effect) => effect.type === 'control')
+        .map((effect) => ({
+          ...effect,
+          source,
+          actorType
+        }))
+    },
+    context.reservationId,
+    damageAt,
+    damageAt,
+    actorType === 'summon' ? damageAt : Math.min(damageAt, context.effectiveEnd)
+  );
 
   if (data.instrument === 'Drum' && runtime.traits.has(TRAIT.SYNCOPATE)) {
     const delayedAt = damageAt + profileValue(runtime, TRAIT.SYNCOPATE, 'initialDelay', 3);
@@ -311,6 +319,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
 
 /** Registers performance packets at cast start while leaving note spending and instrument state at completion. */
 export function scheduleTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
+  if (context.action.cancelled) return;
   const runtime = mesmerRuntimeFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument && skill.id !== ID.CRESCENDO) return;

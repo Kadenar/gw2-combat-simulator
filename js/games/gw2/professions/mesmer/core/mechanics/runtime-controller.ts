@@ -119,13 +119,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     shatterResolvedHandlers: [],
     skillCompletionHandlers: [],
     instruments: {},
-    balanceProfile: (id: SkillId) => balanceProfileFromContext(context, id),
-    // Core CC is authored as skill effects; specialization manifests still contribute their procedural controls.
-    controlSkills: new Set<number>(),
-    blindSkills: new Set<number>(),
-    aristocracySkills: new Set<number>(),
-    peithaSkills: new Set<number>(),
-    peithaProjectileDelays: {}
+    balanceProfile: (id: SkillId) => balanceProfileFromContext(context, id)
   };
   const activePrimaryWeapon = () => {
     const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;

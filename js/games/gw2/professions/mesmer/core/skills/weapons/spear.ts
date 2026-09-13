@@ -53,9 +53,21 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     }
   },
   [ID.MENTAL_COLLAPSE]: {
-    // Shadowstep metadata drives movement relics and their measured projectile delay.
     shadowstepSkill: true,
     peithaProjectileDelay: 0.8,
+    handlerId: 'mesmer.mental-collapse',
+    // Only the initial impact stuns when this activation consumed Clarity.
+    clarityEffects: [
+      {
+        type: 'control',
+        source: 'Player',
+        controlKind: 'stun',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ],
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',

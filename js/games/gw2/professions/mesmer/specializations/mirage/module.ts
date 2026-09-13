@@ -14,7 +14,7 @@ import {
   MESMER_MIRAGE_SKILL_MECHANICS,
   MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/professions/mesmer/core/execution/index.js';
+import { mesmerReplaceProfile, scheduleProfileControls } from '#gw2/professions/mesmer/core/execution/index.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mirageControllerFor } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { MIRAGE_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
@@ -33,7 +33,8 @@ const mesmerAmbushProfile = replaceSkill<MesmerHandlerContext>({
         context.start
       )
     );
-  }
+  },
+  afterEffects: scheduleProfileControls
 });
 
 export const mirageModule = defineNativeModule({

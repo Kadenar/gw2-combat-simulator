@@ -176,7 +176,6 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   });
   const profile = balanceProfileFromContext(context, PROFILE.artillerySlash);
   const strike = balanceProfileEffect(profile, 'strike', charges >= 2 ? 1 : 0);
-  const control = balanceProfileEffect(profile, 'control');
   emitSkillDamage(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
@@ -195,8 +194,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     skillName: skill.name,
     source: 'Warrior',
     actorType: 'player',
-    controlKind: 'daze',
-    duration: Number(control?.duration ?? 1)
+    controlKind: 'daze'
   });
 }
 

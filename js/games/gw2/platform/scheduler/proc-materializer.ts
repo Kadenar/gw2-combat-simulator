@@ -4,11 +4,7 @@ import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
-import {
-  materializeBoonRelics,
-  materializeConditionRelics,
-  materializeWeaknessVulnerabilityRelic
-} from '#gw2/platform/scheduler/relic-materializer.js';
+import { materializeBoonRelics, materializeConditionRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2TriggerMaterializer } from '#gw2/platform/scheduler/types.js';
@@ -25,7 +21,7 @@ interface CreateGw2TriggerMaterializerOptions {
   readonly traits?: ReadonlySet<string | number> | null;
 }
 
-type MaterializerCapability = 'combatTracking' | 'buffFacts' | 'relicTriggers' | 'swapSigils' | 'weaponFacts';
+type MaterializerCapability = 'combatTracking' | 'buffFacts' | 'swapSigils' | 'weaponFacts';
 
 // This is the single source of truth for which canonical event types the
 // materializer observes and why each one matters.
@@ -38,8 +34,7 @@ const EVENT_REQUIRED_CAPABILITY: Readonly<Record<string, MaterializerCapability>
   buff: 'buffFacts',
   boon_extension: 'buffFacts',
   weapon_set: 'weaponFacts',
-  sigil_swap: 'swapSigils',
-  weakness_vulnerability: 'relicTriggers'
+  sigil_swap: 'swapSigils'
 });
 
 export const GW2_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-event';
@@ -65,7 +60,6 @@ export function createGw2TriggerMaterializer(
   const capabilityEnabled: Readonly<Record<MaterializerCapability, () => boolean>> = Object.freeze({
     combatTracking: () => true,
     buffFacts: () => state.criticalFactsRequired || typeof state.relic.rules.materializeBoon === 'function',
-    relicTriggers: () => typeof state.relic.rules.weaknessVulnerability === 'function',
     swapSigils: () => sigilSupport.swap,
     weaponFacts: () => true
   });
@@ -119,18 +113,6 @@ export function createGw2TriggerMaterializer(
       case 'control':
         if (state.combatActive) {
           sigils.materialize('control', context, event);
-        }
-
-        break;
-      case 'weakness_vulnerability':
-        if (!context.hasExplicitCombatStart || context.combatStartTime != null) {
-          materializeWeaknessVulnerabilityRelic(
-            {
-              relic: state.relic,
-              combatStartTime: context.hasExplicitCombatStart ? context.combatStartTime : null
-            },
-            event
-          );
         }
 
         break;

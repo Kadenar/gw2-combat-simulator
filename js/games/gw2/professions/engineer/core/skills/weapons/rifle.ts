@@ -145,8 +145,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'launch',
-        duration: 450
+        controlKind: 'launch'
       }
     ]
   },

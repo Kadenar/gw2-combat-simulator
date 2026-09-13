@@ -169,8 +169,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       },
       {
         type: 'control',
-        controlKind: 'taunt',
-        duration: 2
+        controlKind: 'taunt'
       },
       {
         type: 'boon',

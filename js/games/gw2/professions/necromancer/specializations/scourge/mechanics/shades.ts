@@ -153,10 +153,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   } else if (skill.id === ID.GARISH_PILLAR) {
     emitSkillControl(context, skill, {
       at,
-      controlKind: 'fear',
-      duration: Number(
-        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.garishPillar), 'control')?.duration ?? 1
-      )
+      controlKind: 'fear'
     });
   } else if (skill.id === ID.DESERT_SHROUD) {
     if (hasTrait(context, TRAIT.SOUL_BARBS)) {

@@ -586,8 +586,12 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
   const context = { relic };
   const trigger = (at) =>
-    invokeRelicHook(context, 'weaknessVulnerability', {
-      type: 'weakness_vulnerability',
+    invokeRelicHook(context, 'condition', {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
       at,
       skillName: `Trigger ${at}`
     });
@@ -605,11 +609,43 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
 
 test('Aristocracy historical queries preserve combat and timestamp boundaries', () => {
   const events = [
-    { type: 'weakness_vulnerability', at: 1.001, skillName: 'Second' },
-    { type: 'weakness_vulnerability', at: -1, skillName: 'Precombat' },
+    {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
+      at: 1.001,
+      skillName: 'Second'
+    },
+    {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
+      at: -1,
+      skillName: 'Precombat'
+    },
     { type: 'combat_start', at: 0 },
-    { type: 'weakness_vulnerability', at: 0, skillName: 'First' },
-    { type: 'weakness_vulnerability', at: 1, skillName: 'Blocked' }
+    {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
+      at: 0,
+      skillName: 'First'
+    },
+    {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
+      at: 1,
+      skillName: 'Blocked'
+    }
   ];
   const context = {
     relic: createRelicTimelineRuntime('Aristocracy', events)
@@ -618,6 +654,34 @@ test('Aristocracy historical queries preserve combat and timestamp boundaries', 
   assert.equal(relicConditionDurationBonus(context, 0), 0);
   assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
   assert.equal(relicConditionDurationBonus(context, 1.002), 0.06);
+});
+
+// Labels cannot grant eligibility, and summons do not become player effects merely by carrying an owner.
+test('Aristocracy requires a landed condition with eligible explicit ownership', () => {
+  for (const [actorType, ownerActorType, expected] of [
+    ['player', undefined, 1],
+    ['effect', 'player', 1],
+    ['effect', undefined, 0],
+    ['summon', 'player', 0],
+    ['environment', 'player', 0],
+    ['unknown', undefined, 0]
+  ]) {
+    for (const offTarget of [false, true]) {
+      const relic = createRelicRuntime('Aristocracy');
+      invokeRelicHook({ relic }, 'condition', {
+        type: 'condition',
+        at: 1,
+        source: 'Trait',
+        actorType,
+        ownerActorType,
+        offTarget,
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 5
+      });
+      assert.equal(relic.state.stacks, offTarget ? 0 : expected);
+    }
+  }
 });
 
 test('Nourys owns its generic stack cadence and additive damage window', () => {
@@ -1124,7 +1188,6 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
     stuns.map((event) => ({
       at: event.at,
       controlKind: event.controlKind,
-      duration: event.duration,
       source: event.source,
       triggeredBy: event.triggeredBy
     })),
@@ -1132,14 +1195,12 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
       {
         at: 5,
         controlKind: 'stun',
-        duration: 1,
         source: 'Relic',
         triggeredBy: 'Fixture Immobilize'
       },
       {
         at: 15.001,
         controlKind: 'stun',
-        duration: 1,
         source: 'Relic',
         triggeredBy: 'Fixture Immobilize'
       }

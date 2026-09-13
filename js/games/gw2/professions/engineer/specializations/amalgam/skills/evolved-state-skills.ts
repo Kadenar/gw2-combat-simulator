@@ -129,8 +129,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'pull',
-        duration: 360
+        controlKind: 'pull'
       }
     ]
   },
@@ -148,8 +147,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'control',
         actorType: 'player',
-        controlKind: 'stun',
-        duration: 2
+        controlKind: 'stun'
       },
       {
         type: 'boon',

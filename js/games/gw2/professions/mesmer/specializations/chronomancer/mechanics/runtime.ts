@@ -8,7 +8,6 @@ import {
   resolveIllusionaryReversion
 } from '#gw2/professions/mesmer/specializations/chronomancer/traits/shatters.js';
 import {
-  MESMER_CHRONOMANCER_CONTROL_SKILLS,
   MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
@@ -47,8 +46,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
             damageMultiplier: balanceProfileValueFromContext(context, PROFILE.chronophantasma, 'damageMultiplier', 1.05)
           }
         }
-      : undefined,
-    controlSkills: MESMER_CHRONOMANCER_CONTROL_SKILLS
+      : undefined
   });
   for (const skill of context.catalog.skills) {
     if (context.maximumAmmoFor(skill) > 0) {

@@ -920,9 +920,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
         event.type === 'condition' && event.condition === 'Confusion' && event.stacks === 6 && event.duration === 8
     )
   );
-  assert.ok(
-    galvanic.events.some((event) => event.type === 'control' && event.controlKind === 'daze' && event.duration === 1)
-  );
+  assert.ok(galvanic.events.some((event) => event.type === 'control' && event.controlKind === 'daze'));
   assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').comboFinishers[0].finisherType, 'Blast');
   assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').castTimeMs, 600);
 

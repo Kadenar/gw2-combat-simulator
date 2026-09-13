@@ -1,7 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import {
-  MESMER_TROUBADOUR_CONTROL_SKILLS,
   MESMER_TROUBADOUR_INSTRUMENTS,
   MESMER_TROUBADOUR_TRAIT_DAMAGE
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
@@ -35,8 +34,7 @@ export function initializeTroubadourRuntime(context: MesmerSchedulerContext): vo
         ),
         hits: Number(delayedWave?.hits ?? MESMER_TROUBADOUR_TRAIT_DAMAGE.SyncopateDelayedWave.hits)
       }
-    },
-    controlSkills: MESMER_TROUBADOUR_CONTROL_SKILLS
+    }
   });
   // Initialize trait-added instrument ammo after the Troubadour manifest makes slot identities available.
   for (const skill of context.catalog.skills) {

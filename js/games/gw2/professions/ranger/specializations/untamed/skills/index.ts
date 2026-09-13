@@ -95,8 +95,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 1640,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'knockdown',
-        duration: 2
+        controlKind: 'knockdown'
       }
     ],
     castTimeMs: 480,
@@ -264,8 +263,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        controlKind: 'daze',
-        duration: 1
+        controlKind: 'daze'
       },
       {
         type: 'strike',

@@ -43,8 +43,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
       {
         type: 'control',
         actorType: 'summon',
-        controlKind: 'defiance',
-        duration: 100
+        controlKind: 'defiance'
       }
     ]
   },

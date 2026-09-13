@@ -243,8 +243,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast',
         controlKind: 'daze',
-        persistsAfterInterrupt: true,
-        duration: 2
+        persistsAfterInterrupt: true
       }
     ]
   },

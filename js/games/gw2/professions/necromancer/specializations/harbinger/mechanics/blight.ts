@@ -297,8 +297,7 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   if (skill.id !== ID.DEVOURING_CUT) {
     emitSkillControl(context, skill, {
       at: impactAt,
-      controlKind: hasTrait(context, TRAIT.DOOM_APPROACHES) ? 'fear' : 'daze',
-      duration: 0.5
+      controlKind: hasTrait(context, TRAIT.DOOM_APPROACHES) ? 'fear' : 'daze'
     });
   }
 
