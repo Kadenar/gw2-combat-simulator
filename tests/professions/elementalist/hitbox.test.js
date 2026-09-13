@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
-import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/event-handlers.js';
+import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
 
 test('small-hitbox caps pair offensive packets by timestamp and occurrence while preserving independent effects', () => {
   // Unequal timelines and simultaneous layers must preserve the companion of each retained strike.

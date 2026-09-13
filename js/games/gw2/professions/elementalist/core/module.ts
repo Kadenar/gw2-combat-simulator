@@ -41,7 +41,7 @@ import { processFreshAirCandidates } from '#gw2/professions/elementalist/core/tr
 import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
-import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/event-handlers.js';
+import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
 import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import {
   advanceElementalistState,

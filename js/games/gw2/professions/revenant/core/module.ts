@@ -43,7 +43,7 @@ import {
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
 import { handleRevenantUpkeepPulse } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/event-handlers.js';
+import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/hitbox.js';
 import { spendRevenantEnergy } from '#gw2/professions/revenant/energy.js';
 import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
