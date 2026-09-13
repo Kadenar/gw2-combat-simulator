@@ -64,6 +64,9 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
     triggerShatterTraits: runtime.actions.triggerShatterTraits,
     addEvent: runtime.addEvent,
     durationPerSource: balanceProfileValueFromContext(context, PROFILE.continuumSplit, 'durationPerTier', 1.5),
+    bonusDuration: runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
+      ? balanceProfileValueFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier', 1)
+      : 0,
     scheduleExpiry: (at) =>
       context.tasks.schedule({
         type: 'mesmer.continuum-expire',

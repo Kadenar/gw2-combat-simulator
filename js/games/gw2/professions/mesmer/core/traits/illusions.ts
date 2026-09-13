@@ -2,6 +2,7 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
@@ -16,6 +17,37 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
 type CryOfPainContext = Pick<MesmerRuntime, 'traits' | 'balanceProfile'>;
+
+/** Applies Fragmentation conditions once per native impact, inheriting hit timing and cancellation. */
+export function triggerMasterOfFragmentation(context: MesmerSchedulerContext, event: SimulationEvent): void {
+  if (
+    !context.mesmerRuntime?.traits.has(TRAIT.MASTER_OF_FRAGMENTATION) ||
+    event.type !== 'damage' ||
+    !isGw2PlayerActorEvent(event) ||
+    event.sourceId !== event.skillId ||
+    missesTarget(event)
+  )
+    return;
+  const drum = event.skillId === ID.DEAFENING_DRUM;
+  if (
+    !drum &&
+    ![ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some((id) => id === event.skillId)
+  )
+    return;
+  const effect = balanceProfileEffectFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'condition', drum ? 1 : 0);
+  emitSkillCondition(context, {
+    cause: event,
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.MASTER_OF_FRAGMENTATION,
+    actorType: 'player',
+    skillId: event.skillId,
+    skillName: event.skillName,
+    condition: drum ? 'Weakness' : 'Cripple',
+    duration: Number(effect?.duration ?? 3),
+    stacks: Number(effect?.stacks ?? 1)
+  });
+}
 
 /** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
 export function triggerThePledge(context: MesmerSchedulerContext, event: SimulationEvent): void {

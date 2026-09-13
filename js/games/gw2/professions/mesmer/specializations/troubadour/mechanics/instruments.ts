@@ -222,10 +222,12 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
   const damageAt = context.start + Number(skill.damageAtMs || 0) / 1000;
   const activeInstruments = Object.entries(state.instruments).filter(([, expiresAt]) => expiresAt > damageAt);
   const strike = profileEffect(runtime, PROFILE.crescendo, 'strike');
+  // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
+  const effectiveness = runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
+    ? profileValue(runtime, TRAIT.MASTER_OF_FRAGMENTATION, 'damageIncreasePerStack', 0.3)
+    : profileValue(runtime, PROFILE.crescendo, 'damageIncreasePerStack', 0.25);
   runtime.addDamage(skill, damageAt, {
-    coefficient:
-      Number(strike?.coefficient ?? 2.25) *
-      (1 + activeInstruments.length * profileValue(runtime, PROFILE.crescendo, 'damageIncreasePerStack', 0.25)),
+    coefficient: Number(strike?.coefficient ?? 2.25) * (1 + activeInstruments.length * effectiveness),
     hits: Number(strike?.hits ?? 1),
     source: 'Player',
     weaponStrengthProfileId: 'nonweapon.profession-mechanic'

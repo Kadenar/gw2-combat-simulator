@@ -380,10 +380,10 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
 
   assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].castTimeMs, 760);
   assert.equal(MESMER_SKILL_MECHANICS['Winds of Chaos'], undefined);
-  assert.deepEqual(
-    MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].effects,
-    MESMER_SKILL_MECHANICS[ID.BLADECALL].effects
-  );
+  // Bladecall variants share strike definitions; interruption persistence belongs to each specialization's cast.
+  const bladecallEffects = (id) =>
+    MESMER_SKILL_MECHANICS[id].effects.map((effect) => ({ ...effect, persistsAfterInterrupt: undefined }));
+  assert.deepEqual(bladecallEffects(ID.TROUBADOUR_BLADECALL), bladecallEffects(ID.BLADECALL));
   assert.equal(
     MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].castTimeMs,
     MESMER_SKILL_MECHANICS[ID.BLADECALL].castTimeMs

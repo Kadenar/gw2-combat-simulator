@@ -23,6 +23,7 @@ interface ContinuumControllerOptions {
   readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
   readonly addEvent: MesmerAddEvent;
   readonly durationPerSource: number;
+  readonly bonusDuration?: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
 }
 
@@ -45,6 +46,7 @@ export function createContinuumController({
   triggerShatterTraits,
   addEvent,
   durationPerSource,
+  bonusDuration = 0,
   scheduleExpiry = null
 }: ContinuumControllerOptions): ContinuumController {
   // Restore the captured Continuum Split resources and cooldowns exactly once,
@@ -122,6 +124,8 @@ export function createContinuumController({
       ])
     );
     const chronomancer = chronomancerState.from(state);
+    // Fragmentation extends the base window once, independently of the number of clones spent.
+    const duration = durationPerSource * (spent + 1) + bonusDuration;
     chronomancer.continuum = {
       splitId: skill.id,
       splitReady: state.cooldowns.get(skill.id),
@@ -129,7 +133,7 @@ export function createContinuumController({
       remainingCooldowns,
       ammo,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
-      expiresAt: at + durationPerSource * (spent + 1)
+      expiresAt: at + duration
     };
     scheduleExpiry?.(chronomancer.continuum.expiresAt);
     const resolution: MesmerShatterResolution = {
@@ -143,7 +147,7 @@ export function createContinuumController({
       type: 'marker',
       at,
       name: 'Continuum Split',
-      detail: `${(durationPerSource * (spent + 1)).toFixed(1)}s window`
+      detail: `${duration.toFixed(1)}s window`
     });
     return resolution;
   };

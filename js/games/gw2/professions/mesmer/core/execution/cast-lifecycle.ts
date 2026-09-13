@@ -191,13 +191,15 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
   }
 
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill);
+  // A committed bladesong keeps its projectile train and completion reactions on their authored timeline.
+  const committedBladesong = details.reservedShatterResources && details.shatterSpendCommitted;
   runtime.activeEmission = {
     skill,
-    effectiveEnd: interrupted && !completedInterruptedPhantasm ? context.effectiveEnd : Infinity,
+    effectiveEnd: interrupted && !completedInterruptedPhantasm && !committedBladesong ? context.effectiveEnd : Infinity,
     activationId: context.reservationId
   };
   try {
-    if (details.reservedShatterResources && context.effectiveEnd < context.fullEnd - EPSILON) {
+    if (details.reservedShatterResources && !details.shatterSpendCommitted) {
       runtime.actions.restoreReservedResources(Number(details.shatterSpent || 0));
       return;
     }
@@ -299,12 +301,12 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
     shatterSpendCommitted: !delayedResourceSpend,
     shatterSpent
   });
-  if (delayedResourceSpend) {
+  if (delayedResourceSpend && !context.action.cancelled) {
     context.tasks.schedule({
       type: 'mesmer.blade-spend',
-      at: spendProgress === 1 ? context.fullEnd : context.start + (context.fullEnd - context.start) * spendProgress,
-      // Run before the core cast-completion task (-100) when the spend is
-      // scheduled exactly at fullEnd, so completion receives the spent count.
+      // Accepted interrupts commit the reservation before completion; cancelled attempts only restore it.
+      at: Math.min(context.effectiveEnd, context.start + (context.fullEnd - context.start) * spendProgress),
+      // Run before the core cast-completion task (-100) so completion receives the spent count.
       priority: -110,
       ownerId: context.reservationId,
       payload: {

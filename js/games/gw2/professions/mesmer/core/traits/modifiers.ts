@@ -6,7 +6,8 @@ import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modif
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
@@ -94,6 +95,20 @@ function superiorityComplexFactor(
 }
 
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'mesmer.master-of-fragmentation-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: 0.25,
+    // Improve every native F1 strike, including repeats, without affecting trait procs or afterimages.
+    when: (context) =>
+      hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION) &&
+      isGw2PlayerActorEvent(context.event) &&
+      context.event?.sourceId === context.event?.skillId &&
+      [ID.MIND_WRACK, ID.SPLIT_SECOND, ID.BLADESONG_HARMONY, ID.LIVELY_LUTE, ID.LIVELY_LUTE_ALTERNATE].some(
+        (id) => id === context.event?.skillId
+      )
+  },
   {
     id: 'mesmer.phantasmal-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,

@@ -10,6 +10,69 @@ import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 
+// Committed projectiles survive an ended animation; only skills with retained aftercast reserve the cast lane.
+test('committed dagger casts preserve projectiles and their declared cast occupancy', () => {
+  for (const name of ['Bladecall', 'Flying Cutter']) {
+    const skill = mesmerCatalog.skillsByName.get(name);
+    const interruptMs = (skill.interruptCommitMs + skill.castTimeMs) / 2;
+    const rotation = (cast) => [cast, 'Flying Cutter', { type: 'wait', durationMs: 3000 }];
+    const full = simulateMesmer(rotation(name), { initialResource: 0 });
+    const committed = simulateMesmer(rotation({ name, interruptMs }), { initialResource: 0 });
+    const cancelled = simulateMesmer(rotation({ name, interruptMs: 100 }), { initialResource: 0 });
+    const firstCastHits = (result) =>
+      result.events.filter((event) => event.type === 'damage' && event.activationId === result.steps[0].activationId);
+
+    assert.deepEqual(committed.warnings, []);
+    assert.deepEqual(cancelled.warnings, []);
+    assert.ok(firstCastHits(committed).length > 0);
+    assert.deepEqual(
+      firstCastHits(committed).map((event) => event.at),
+      firstCastHits(full).map((event) => event.at)
+    );
+    assert.equal(firstCastHits(cancelled).length, 0);
+    assert.equal(committed.endState.profession.resource, full.endState.profession.resource);
+    assert.equal(cancelled.endState.profession.resource, 0);
+    assert.equal(committed.steps[1].start, name === 'Bladecall' ? full.steps[1].start : committed.steps[0].end);
+    assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
+  }
+});
+
+// An accepted bladesong commits reserved blades once, preserving delayed hits and trait refunds after interruption.
+test('committed Harmony spends its reservation while cancelled Harmony restores it', () => {
+  const skill = mesmerCatalog.skillsById.get(ID.BLADESONG_HARMONY);
+  const interruptMs = (skill.interruptCommitMs + skill.castTimeMs) / 2;
+  const config = { initialResource: 5, selectedTraitIds: [TRAIT.DEADLY_BLADES, TRAIT.INFINITE_FORGE] };
+  const rotation = (cast) => [cast, 'Flying Cutter', { type: 'wait', durationMs: 1000 }];
+  const full = simulateMesmer(rotation(skill.name), config);
+  const committed = simulateMesmer(rotation({ name: skill.name, interruptMs }), config);
+  const cancelled = simulateMesmer(rotation({ name: skill.name, interruptMs: 100 }), config);
+  const spends = (result) =>
+    result.events.filter((event) => event.type === 'resource' && event.sourceSkill === skill.name && event.amount < 0);
+  const hits = (result) => result.events.filter((event) => event.type === 'damage' && event.skillId === skill.id);
+
+  assert.deepEqual(committed.warnings, []);
+  assert.deepEqual(cancelled.warnings, []);
+  assert.equal(spends(committed).length, 1);
+  assert.equal(spends(committed)[0].amount, -5);
+  assert.equal(spends(committed)[0].at, committed.events.find((event) => event.type === 'action').endsAt);
+  assert.equal(committed.endState.profession.resource, 2);
+  assert.equal(spends(cancelled).length, 0);
+  assert.equal(cancelled.endState.profession.resource, 5);
+  assert.ok(hits(committed).length > 0);
+  assert.deepEqual(
+    hits(committed).map((event) => event.at),
+    hits(full).map((event) => event.at)
+  );
+  assert.equal(hits(cancelled).length, 0);
+  assert.equal(committed.steps[1].start, full.steps[1].start);
+  assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
+  assert.ok(committed.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'));
+  assert.equal(
+    cancelled.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'),
+    false
+  );
+});
+
 // Committed Warlock interrupts reserve the remaining cast lane; early cancellations release it.
 test('Warlock retains its cast lockout only after commitment', () => {
   const config = { specialization: 'Core', primaryWeapon: 'Staff', secondaryWeapon: '' };

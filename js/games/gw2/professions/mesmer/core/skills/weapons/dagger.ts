@@ -4,12 +4,11 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLYING_CUTTER]: {
-    interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
     castTimeMs: 440,
-    interruptCommitMs: 380,
+    interruptCommitMs: 360,
     cooldown: 0,
     blade: true,
     effects: [
@@ -94,6 +93,8 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     weapon: 'Dagger',
     specialization: '',
     cooldown: 5,
+    interruptCommitMs: 280,
+    retainsCastLockoutAfterInterrupt: true,
     resource: {
       mode: 'add',
       count: 1,
@@ -119,6 +120,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
           }
         ],
         name: 'Outgoing damage',
+        persistsAfterInterrupt: true,
         actorType: 'player',
         weapon: 'dagger',
         timingAnchor: 'castStart',
@@ -141,6 +143,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
           }
         ],
         name: 'Returning damage',
+        persistsAfterInterrupt: true,
         actorType: 'player',
         weapon: 'dagger',
         timingAnchor: 'castStart',

@@ -210,6 +210,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     weapon: '',
     specialization: 'Virtuoso',
     castTimeMs: 640,
+    interruptCommitMs: 560,
+    retainsCastLockoutAfterInterrupt: true,
     lockouts: [
       {
         group: 'mesmer.shatter',

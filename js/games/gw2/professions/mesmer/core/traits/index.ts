@@ -28,6 +28,7 @@ export {
   applyCryOfPain,
   phantasmalHasteSpeed,
   triggerCompoundingPower,
+  triggerMasterOfFragmentation,
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/illusions.js';
 

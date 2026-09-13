@@ -16,6 +16,7 @@ import {
   recordFencersFinesseProc,
   triggerChaoticInterruption,
   triggerDazzling,
+  triggerMasterOfFragmentation,
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
@@ -84,6 +85,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
   triggerThePledge(context, event);
+  triggerMasterOfFragmentation(context, event);
   if (event.type === 'control' && !missesTarget(event)) {
     const skillId = Number(event.skillId);
     const skillName = String(event.skillName || event.name || 'Control effect');

@@ -1,6 +1,8 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerShatterResolverRequest,
@@ -85,7 +87,18 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-requiem') {
-    const ticks = packetTicks();
+    const ticks = [...packetTicks()];
+    // Fragmentation extends the spinning blades by one pulse with the same damage as the last pulse.
+    if (runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)) {
+      const last = ticks[ticks.length - 1];
+      ticks.push({
+        ...last,
+        atMs:
+          last.atMs +
+          balanceProfileValueFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier', 1) * 1000
+      });
+    }
+
     addBladeDamage(ticks);
     return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
   }

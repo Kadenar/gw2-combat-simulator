@@ -33,6 +33,7 @@ export const MESMER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   maimTheDisillusioned: TRAIT.MAIM_THE_DISILLUSIONED,
   maliciousSorcery: TRAIT.MALICIOUS_SORCERY,
   masterFencer: TRAIT.MASTER_FENCER,
+  masterOfFragmentation: TRAIT.MASTER_OF_FRAGMENTATION,
   masterOfMisdirection: TRAIT.MASTER_OF_MISDIRECTION,
   methodOfMadness: TRAIT.METHOD_OF_MADNESS,
   phantasmalHaste: TRAIT.PHANTASMAL_HASTE,
@@ -232,6 +233,16 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     ]
   }),
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfMisdirection, 'Master of Misdirection', { rechargeMultiplier: 0.85 }),
+  // Shared shatter improvements remain trait-owned across elite specializations.
+  trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfFragmentation, 'Master of Fragmentation', {
+    durationMultiplier: 1,
+    damageIncreasePerStack: 0.3,
+    effects: [
+      { type: 'condition', condition: 'Cripple', duration: 3, stacks: 1 },
+      // provisional 3s Weakness; replace when Deafening Drum's trait duration is confirmed.
+      { type: 'condition', condition: 'Weakness', duration: 3, stacks: 1 }
+    ]
+  }),
   mesmerTraitDamageProfile(
     MESMER_CORE_BALANCE_PROFILE_IDS.methodOfMadness,
     'Method of Madness',
