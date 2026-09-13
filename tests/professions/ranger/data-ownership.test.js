@@ -19,6 +19,15 @@ import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specia
 
 const professionRoot = new URL('../../../js/games/gw2/professions/ranger/', import.meta.url);
 
+// Removed skills and pets must be absent from the catalog, not merely hidden in the palette.
+test('Unsupported Druid glyphs and White Moa are absent from Ranger data', () => {
+  for (const id of [30238, 31322, 12711]) assert.equal(rangerCatalog.skillsById.has(id), false);
+  assert.equal(
+    RANGER_PETS.some((pet) => pet.id === 14 || pet.name === 'White Moa'),
+    false
+  );
+});
+
 // Validate evaluated arrays so generated pet pulses and balance profiles obey the authored packet grid too.
 test('Ranger authored effect ticks use the 40 ms action grid', () => {
   for (const entry of [...rangerCatalog.skills, ...rangerCatalog.balanceProfiles]) {

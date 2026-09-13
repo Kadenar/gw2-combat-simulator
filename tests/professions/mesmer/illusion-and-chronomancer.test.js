@@ -1276,6 +1276,67 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
   );
 });
 
+// Well effects stay on a fixed cadence after completion and grant endurance only when the field ends.
+test('Well of Precognition schedules protection pulses and an endurance grant at expiry', () => {
+  const result = simulateMesmer(
+    ['Well of Precognition', { name: '__wait', waitMs: 4000 }],
+    defaultSimulationConfig({
+      specialization: 'Chronomancer',
+      selectedSkills: ['Well of Precognition'],
+      boons: { quickness: false, alacrity: false },
+      stats: { concentration: 0 }
+    })
+  );
+  const cast = result.steps[0];
+  const events = result.events.filter((event) => event.skillId === ID.WELL_OF_PRECOGNITION);
+  const offset = (event) => Math.round(event.at * 1000 - cast.end);
+
+  assert.deepEqual(
+    events
+      .filter((event) => event.type === 'buff' && event.kind === 'aegis')
+      .map((event) => [offset(event), event.duration]),
+    [
+      [0, 3],
+      [1000, 3],
+      [2000, 3]
+    ]
+  );
+  assert.deepEqual(
+    events
+      .filter((event) => event.type === 'buff' && event.kind === 'stability')
+      .map((event) => [offset(event), event.stacks, event.duration]),
+    [
+      [0, 1, 1],
+      [1000, 3, 5]
+    ]
+  );
+  const field = events.find((event) => event.type === 'combo_field');
+  assert.equal(field.fieldType, 'Ethereal');
+  assert.equal(offset(field), 0);
+  assert.equal(field.expiresAt - field.at, 3);
+  const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
+  assert.equal(endurance.at, field.expiresAt);
+  assert.equal(endurance.amount, 30);
+  assert.equal(result.endState.cooldowns['Well of Precognition'].readyAt - cast.end, 60000);
+  assert.deepEqual(result.warnings, []);
+});
+
+test('cancelled Well of Precognition grants no protection, field, or endurance', () => {
+  const result = simulateMesmer(
+    [
+      { name: 'Well of Precognition', interruptMs: 100 },
+      { name: '__wait', waitMs: 4000 }
+    ],
+    defaultSimulationConfig({ specialization: 'Chronomancer' })
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.skillId === ID.WELL_OF_PRECOGNITION && ['buff', 'combo_field', 'resource'].includes(event.type)
+    ),
+    false
+  );
+});
+
 test('Well of Calamity uses its measured cast, pulse conditions, and ethereal field', () => {
   const result = simulateMesmer(
     [

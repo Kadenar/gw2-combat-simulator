@@ -20,11 +20,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillF
     quicknessCastTimeMs: 667,
     petSkill: true
   },
-  [ID.ICY_SCREECH]: {
-    effects: [],
-    quicknessCastTimeMs: 333,
-    petSkill: true
-  },
   [ID.DAZING_SCREECH]: {
     effects: [
       {

@@ -22,6 +22,7 @@ import {
   mesmerCoreSignetSkillMechanicHandlers
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { handleChaoticInterruptionTask } from '#gw2/professions/mesmer/core/traits/index.js';
+import { mesmerCoreRifleSkillMechanicHandlers } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { mesmerCoreAttributeRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { projectMesmerEndState, snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
@@ -83,7 +84,7 @@ export const mesmerCoreModule = defineNativeModule({
     execution: {
       skillHandlers: mesmerCoreSkillHandlers,
       castRules: mesmerCastRules,
-      skillMechanicHandlers: mesmerCoreSignetSkillMechanicHandlers,
+      skillMechanicHandlers: { ...mesmerCoreSignetSkillMechanicHandlers, ...mesmerCoreRifleSkillMechanicHandlers },
       hooks: {
         ...mesmerCoreSchedulerHooks,
         snapshot: (context: MesmerSchedulerContext) => snapshotMesmerState(context.state.profession)

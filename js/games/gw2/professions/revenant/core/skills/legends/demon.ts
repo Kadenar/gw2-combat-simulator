@@ -14,6 +14,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.PAIN_ABSORPTION]: {
+    // Grant the base boons without assuming any allied conditions were absorbed.
     castTimeMs: 360,
     cooldown: 0,
     energyCost: 30,
@@ -28,12 +29,6 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         type: 'boon',
         boon: 'resolution',
         duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 1,
         stacks: 1
       }
     ],

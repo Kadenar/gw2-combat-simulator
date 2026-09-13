@@ -100,7 +100,11 @@ export function createGw2TimelineIndex({
         insertOrdered(indexed.weaponSet, event);
       }
 
-      if (event.type === 'action' || event.type === 'cooldown_snapshot') {
+      if (
+        event.type === 'action' ||
+        event.type === 'cooldown_snapshot' ||
+        (event.type === 'marker' && event.action === 'cooldown-reset')
+      ) {
         insertOrdered(indexed.cooldown, event);
       }
     }
@@ -197,6 +201,9 @@ export function createGw2TimelineIndex({
         // A snapshot replaces prior knowledge for the requested skill.
         const cooldowns = (event.cooldowns || {}) as Readonly<Record<string, unknown>>;
         readyAt = Number(cooldowns[String(skillId)] || 0);
+      } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
+        // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
+        readyAt = 0;
       }
     }
 
@@ -207,8 +214,10 @@ export function createGw2TimelineIndex({
     onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void {
       // Rebuild lazily for changed history, but ignore unindexed packets such as critical damage facts.
       if (
-        [previous, replacement].some((event) =>
-          ['buff', 'boon_extension', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type)
+        [previous, replacement].some(
+          (event) =>
+            ['buff', 'boon_extension', 'weapon_set', 'action', 'cooldown_snapshot'].includes(event.type) ||
+            (event.type === 'marker' && event.action === 'cooldown-reset')
         )
       ) {
         resetIndex();

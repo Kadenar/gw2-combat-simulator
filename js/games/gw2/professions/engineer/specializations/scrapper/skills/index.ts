@@ -125,30 +125,5 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       }
     ],
     mechanicSlot: 5
-  },
-  [ID.FUNCTION_GYRO_TOOL_BELT_SKILL]: {
-    countsAsToolbeltSkill: true,
-    castTimeMs: 280,
-    cooldown: 25,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Function Gyro (tool belt skill)',
-        actorType: 'player'
-      }
-    ],
-    mechanicSlot: 5
-  },
-  [ID.FUNCTION_GYRO_ID_72103]: {
-    castTimeMs: 0,
-    cooldown: 1,
-    effects: []
-  },
-  [ID.FUNCTION_GYRO_ID_72114]: {
-    castTimeMs: 0,
-    cooldown: 1,
-    effects: []
   }
 });

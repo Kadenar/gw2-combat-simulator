@@ -148,6 +148,9 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.INFILTRATORS_SIGNET]: {
+    // The active shadowstep participates in movement traits and relic triggers.
+    movementSkill: true,
+    shadowstepSkill: true,
     castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
@@ -327,7 +330,10 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 680,
     cooldown: 40,
     initiativeCost: 0,
-    effects: []
+    // Model only its control contribution on activation; venom sharing and on-hit charges are intentionally omitted.
+    effects: [
+      { type: 'control', controlKind: 'stun', duration: 1.5, atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ]
   },
   [ID.SKELK_VENOM]: {
     castTimeMs: 680,

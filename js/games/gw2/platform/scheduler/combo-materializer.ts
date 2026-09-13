@@ -363,6 +363,13 @@ export function createGw2ComboMaterializer(
   const materializer = {
     state,
 
+    // Detonated fields must stop accepting future finishers in both predictions and final resolution.
+    onEventReplaced(context: SchedulerContext, event: SimulationEvent): void {
+      if (event.type !== 'combo_field') return;
+      registerComboField(state, event as ComboFieldEvent);
+      rebindPendingFinishers(context, String(event.ownerId));
+    },
+
     onEventScheduled(context: SchedulerContext, event: SimulationEvent): void {
       if (event.schedulerPrediction === 'combo-result') return;
       if (event.type === 'combo_field' || event.type === 'combo_finisher') {

@@ -118,6 +118,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 32,
+    // Feedback's dome provides an ethereal combo field for its six-second lifetime.
+    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 6, startAnchor: 'castStart' }],
     effects: []
   },
   [ID.TIME_WARP]: {
@@ -126,7 +128,38 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     specialization: '',
     castTimeMs: 640,
     cooldown: 120,
-    effects: []
+    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 5, startAnchor: 'castEnd' }],
+    // Apply an immediate pulse when the field forms, then pulse once per second through its fifth second.
+    effects: [
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'buff',
+        kind: 'superspeed',
+        duration: 1.5,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        condition: 'Slow',
+        stacks: 1,
+        duration: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.PHANTASMAL_DEFENDER]: {
     type: 'Utility',

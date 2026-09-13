@@ -403,20 +403,6 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Blue Moa']
   },
   {
-    id: ID.ICY_SCREECH,
-    name: 'Icy Screech',
-    description: 'Beast. Screech to grant nearby allies frost aura.',
-    icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    categories: ['Pet'],
-    specialization: '',
-    recharge: 20,
-    cooldown: 20,
-    petSkill: true,
-    petNames: ['White Moa']
-  },
-  {
     id: ID.DAZING_SCREECH,
     name: 'Dazing Screech',
     description: 'Beast. Create a high-pitched screech, dazing nearby foes.',
@@ -1394,17 +1380,6 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
     archetype: 'Stout',
     skillIds: [ID.PROTECTING_SCREECH],
     beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.UNFLINCHING_FORTITUDE]
-  },
-  {
-    id: 14,
-    name: 'White Moa',
-    icon: 'https://render.guildwars2.com/file/71DEFA80B950FA6C297AFD7A6BE1DA9726F57D94/52561.png',
-    description:
-      'White moas are particularly ornery birds that assault their foes with chilling screeches, pecks, harmonic cries, and a frenzied attack style. —Acht',
-    family: 'moa',
-    archetype: 'Supportive',
-    skillIds: [ID.ICY_SCREECH],
-    beastmodeSkillIds: [ID.HARMONIC_CRY, ID.FRENZIED_ATTACK, ID.SPIRITUAL_REPRIEVE]
   },
   {
     id: 15,

@@ -5,7 +5,11 @@ import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { thiefCoreAttributeRules, thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { advanceThiefCoreResources, thiefEnduranceReadyAt } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -38,6 +42,141 @@ function scheduler(specialization = 'Core', overrides = {}) {
   const config = { ...baseConfig, ...overrides, specialization };
   return createScheduler({ profession: thiefProfession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
 }
+
+test('Basilisk Venom contributes control and retains its 40-second recharge', () => {
+  const scheduled = scheduler('Core', { selectedSkills: ['Basilisk Venom'] });
+  const result = scheduled.run(['Basilisk Venom']);
+  assert.deepEqual(result.warnings, []);
+  const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
+  assert.equal(control.controlKind, 'stun');
+  assert.equal(control.duration, 1.5);
+  near(scheduled.context.state.cooldowns.get(ID.BASILISK_VENOM) - control.at, 40);
+});
+
+test("Sniper's Cover spends four initiative and opens a five-second smoke field and follow-up", () => {
+  const config = { primaryWeapon: 'Rifle', secondaryWeapon: '' };
+  const result = simulate('Deadeye', ['Kneel', "Sniper's Cover"], config);
+  assert.deepEqual(result.warnings, []);
+  const spentIndex = result.events.findLastIndex((event) => event.reason === 'initiative-spent');
+  const before = result.events.slice(0, spentIndex).findLast((event) => event.type === 'thief.state');
+  near(before.state.initiative - result.events[spentIndex].state.initiative, 4);
+  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.SNIPERS_COVER);
+  assert.equal(field.fieldType, 'Smoke');
+  near(field.expiresAt - field.at, 5);
+  near(result.endState.profession.availableFlips[ID.DEATHS_ADVANCE], field.expiresAt);
+  const followup = simulate('Deadeye', ['Kneel', "Sniper's Cover", "Death's Advance"], config);
+  assert.deepEqual(followup.warnings, []);
+  assert.equal(followup.endState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
+  const expired = simulate('Deadeye', ['Kneel', "Sniper's Cover", wait(5000)], config);
+  assert.equal(expired.endState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
+});
+
+test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
+  const selectedSkills = ["Infiltrator's Signet"];
+  // Splitting waits cannot change the pulse, and the normal resource cap still applies.
+  for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
+    const scheduled = scheduler('Core', { selectedSkills, initialInitiative: 0 });
+    const result = scheduled.run(rotation);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(scheduled.context.state.profession.core.initiative, 11);
+    assert.equal(result.events.find((event) => event.reason === 'infiltrators-signet').at, 10);
+  }
+
+  const unequipped = scheduler('Core', { selectedSkills: [], initialInitiative: 0 });
+  unequipped.run([wait(10000)]);
+  assert.equal(unequipped.context.state.profession.core.initiative, 10);
+  const capped = scheduler('Core', { selectedSkills });
+  capped.run([wait(20000)]);
+  assert.equal(capped.context.state.profession.core.initiative, 12);
+
+  const active = scheduler('Core', { selectedSkills, initialInitiative: 0 });
+  active.run(["Infiltrator's Signet", wait(10000)]);
+  assert.equal(active.context.state.profession.core.initiative, 10);
+  assert.equal(active.context.state.cooldowns.get(ID.INFILTRATORS_SIGNET), 20);
+  assert.equal(active.context.tasks.nextAt('thief.infiltrators-signet'), 30);
+  const reset = scheduler('Core', { selectedSkills, initialInitiative: 0 });
+  reset.run(["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }]);
+  assert.equal(reset.context.tasks.nextAt('thief.infiltrators-signet'), 11);
+
+  const step = simulate('Core', ["Infiltrator's Signet", wait(1000)], {
+    selectedSkills,
+    relic: 'Peitha',
+    selectedTraitIds: [TRAIT.FLUID_STRIKES]
+  });
+  assert.deepEqual(step.warnings, []);
+  assert.ok(step.events.some((event) => event.type === 'peitha' && event.skillId === ID.INFILTRATORS_SIGNET));
+  assert.ok(step.endState.profession.fluidStrikesUntil > 1);
+  assert.ok(
+    step.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'
+    )
+  );
+});
+
+test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
+  const selectedSkills = ['Signet of Agility'];
+  const calculate = createCalculateAttributes(applyThiefBuildAttributeRules);
+  const build = createThiefBuildDefaults();
+  assert.equal(
+    calculate(build, [thiefCatalog.skillsById.get(ID.SIGNET_OF_AGILITY)]).attributes.Precision.final -
+      calculate(build, []).attributes.Precision.final,
+    180
+  );
+
+  // Real activation events drive passive suppression, recovery, and cooldown resets for raw and panel stats.
+  for (const specialization of ['Core', 'Daredevil']) {
+    for (const initial of [0, 75]) {
+      const scheduled = scheduler(specialization, { selectedSkills });
+      const core = scheduled.context.state.profession.core;
+      core.endurance = initial;
+      const result = scheduled.run(['Signet of Agility']);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(core.endurance, Math.min(core.maximumEndurance, initial + 100));
+      assert.equal(scheduled.context.state.cooldowns.get(ID.SIGNET_OF_AGILITY), 30);
+      const timeline = createGw2TimelineIndex({ events: result.events });
+      for (const professionStaticRulesApplied of [false, true]) {
+        const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
+        const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
+        assert.equal(
+          thiefCoreAttributeRules.modifyAttributes({ config, timeline: createGw2TimelineIndex(), time: 0 }, attributes)
+            .precision,
+          1180
+        );
+        for (const [time, expected] of [
+          [1, 1000],
+          [29.9, 1000],
+          [30, 1180]
+        ]) {
+          assert.equal(
+            thiefCoreAttributeRules.modifyAttributes({ config, timeline, time }, attributes).precision,
+            expected
+          );
+        }
+
+        assert.equal(
+          thiefCoreAttributeRules.modifyAttributes(
+            { config: { selectedSkills: [] }, timeline, time: 1 },
+            baseConfig.stats
+          ).precision,
+          1000
+        );
+      }
+    }
+  }
+
+  const reset = scheduler('Core', { selectedSkills }).run([
+    'Signet of Agility',
+    wait(1000),
+    { type: 'cooldown-reset' }
+  ]);
+  assert.deepEqual(reset.warnings, []);
+  const timeline = createGw2TimelineIndex({ events: reset.events });
+  assert.equal(
+    thiefCoreAttributeRules.modifyAttributes({ config: { selectedSkills }, timeline, time: 2 }, baseConfig.stats)
+      .precision,
+    1180
+  );
+});
 
 test('Thief resource grants preserve snapshot identity, deduplication, and passive recovery', () => {
   // Grants publish immediate state without moving the passive recovery anchor or changing earlier snapshots.

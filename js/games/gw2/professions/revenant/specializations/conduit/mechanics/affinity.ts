@@ -48,7 +48,7 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   return state.affinity - previous;
 }
 
-/** Refreshes Conduit-owned Energy overrides from the active Mesmer form profiles. */
+/** Applies Mesmer-form costs to canonical skills; input aliases have already been resolved. */
 export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext): void {
   const state = conduitState.from(context);
   if (state.conduitForm !== 'Mesmer') {
@@ -57,10 +57,13 @@ export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext
   }
 
   state.energyCostOverrides = {
-    [ID.BANISH_ENCHANTMENT]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
+    [ID.EMPOWERING_MISERY]: Number(
+      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmpoweringMisery)?.energyCost || 0
     ),
-    [ID.BANISH_ENCHANTMENT_ID_78587]: Number(
+    [ID.PAIN_ABSORPTION]: Number(
+      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerPainAbsorption)?.energyCost || 0
+    ),
+    [ID.BANISH_ENCHANTMENT]: Number(
       balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
     ),
     [ID.CALL_TO_ANGUISH]: Number(

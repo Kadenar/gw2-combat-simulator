@@ -1324,20 +1324,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 56921,
-    name: 'Function Gyro (tool belt skill)',
-    description:
-      'Create a lightning field at the specified point. Then summon gyros to finish foes and revive allies within the field. The recharge of this skill is increased for each gyro created beyond the first.<br>{{gray|Interrupted gyros are destroyed.}}',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Function_Gyro_(tool_belt_skill).png',
-    type: 'Profession',
-    slot: 'Profession_5',
-    specialization: 'Scrapper',
-    categories: ['tool belt', 'Scrapper'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 59562,
     name: 'Explosive Entrance (trait skill)',
     description: 'Your first attack explodes, dealing extra damage to nearby enemies.',

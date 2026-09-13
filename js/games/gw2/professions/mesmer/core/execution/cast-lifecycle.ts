@@ -8,6 +8,7 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
@@ -100,9 +101,11 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
     state.cooldowns.delete(armedFlip.id);
     context.cooldownController.ensureAmmo(armedFlip, at);
   } else if (armedFlip) {
+    // Abstraction remains available for the image's full lifetime after creation.
+    const flipStart = armedFlip.id === ID.ABSTRACTION ? at : context.start;
     const flip = {
-      availableAt: context.start + Number(armedFlip.flipDelay || 0),
-      expiresAt: context.start + Number(armedFlip.flipDuration || 0)
+      availableAt: flipStart + Number(armedFlip.flipDelay || 0),
+      expiresAt: flipStart + Number(armedFlip.flipDuration || 0)
     };
     if (flip.expiresAt >= at - EPSILON) {
       professionCoreState(state).availableFlips[armedFlip.id] = flip;
@@ -267,6 +270,7 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
  */
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
+  if (skill.id === ID.ABSTRACTION && !context.action.cancelled) detonateInspiringImagery(context);
   if (runtime.peithaSkills.has(skill.id)) {
     // Movement relic triggers register on activation so overlapping casts observe the correct ICD state.
     runtime.addEvent({

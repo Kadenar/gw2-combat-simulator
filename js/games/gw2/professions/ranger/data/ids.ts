@@ -71,8 +71,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   SPIT: 12724, // Spit
   WATER_SPIRIT: 21773, // Water Spirit
   AQUA_SURGE: 21776, // Aqua Surge
-  GLYPH_OF_THE_TIDES: 30238, // Glyph of the Tides
-  GLYPH_OF_ALIGNMENT: 31322, // Glyph of Alignment
   GLYPH_OF_REJUVENATION: 31407, // Glyph of Rejuvenation
   RELEASE_CELESTIAL_AVATAR: 31411, // Release Celestial Avatar
   SUBLIME_CONVERSION: 31496, // Sublime Conversion
@@ -228,7 +226,6 @@ export const RANGER_SKILL_IDS = Object.freeze({
   INSECT_SWARM: 12701, // Insect Swarm
   POISON_CLOUD: 12700, // Poison Cloud
   PROTECTING_SCREECH: 12713, // Protecting Screech
-  ICY_SCREECH: 12711, // Icy Screech
   DAZING_SCREECH: 12708, // Dazing Screech
   DAZING_SCREECH_ID_12709: 12709, // Dazing Screech
   FURIOUS_SCREECH: 12712, // Furious Screech

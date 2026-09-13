@@ -17,6 +17,62 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   });
 }
 
+// Shortening a live field must preserve earlier combos and unbind later scheduled finishers.
+test('replacing field expiry updates combo predictions and pending bindings', () => {
+  const profession = defineProfession({
+    id: 'combo-fixture',
+    name: 'Combo Fixture',
+    catalog: createCanonicalCatalog(),
+    resources: { createProfessionState: () => ({}) },
+    schedulerHooks: {
+      initialize(context) {
+        context.emit({
+          type: 'combo_field',
+          at: 0,
+          source: 'Field',
+          sourceId: 'field',
+          actorType: 'effect',
+          fieldId: 'field',
+          fieldType: 'Ethereal',
+          expiresAt: 3,
+          ownerId: 'combo-fixture',
+          ownerActorType: 'player'
+        });
+        for (const at of [0.5, 2]) {
+          context.emit({
+            type: 'damage',
+            at,
+            source: 'Blast',
+            sourceId: 'blast',
+            actorType: 'player',
+            coefficient: 1,
+            weaponStrength: 1000,
+            comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }]
+          });
+        }
+
+        context.tasks.schedule({ type: 'expire-field', at: 1 });
+      },
+      taskHandlers: {
+        'expire-field': (context, task) =>
+          context.replaceEvent(context.eventsOfType('combo_field')[0], { expiresAt: task.at })
+      }
+    }
+  });
+  const rotation = [{ type: 'wait', durationMs: 3000 }];
+  const predicted = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() }).run(rotation);
+  const resolved = simulateGw2({ profession, rotation, config: { target: { armor: 2597, conditions: {} } } });
+  for (const events of [predicted.events, resolved.resolvedEvents]) {
+    assert.deepEqual(
+      events.filter((event) => event.type === 'combo').map((event) => event.at),
+      [0.5]
+    );
+  }
+
+  assert.deepEqual(predicted.warnings, []);
+  assert.deepEqual(resolved.warnings, []);
+});
+
 test('combo boon predictions reuse profession duration modifiers at the combo time with finisher ownership', () => {
   const profession = defineProfession({
     id: 'combo-duration-fixture',

@@ -233,6 +233,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,
+    // The smoke field lasts through the existing five-second Death's Advance follow-up window.
+    comboFields: [{ ownerId: 'thief', fieldType: 'Smoke', duration: 5, startAnchor: 'castEnd' }],
     effects: [],
     kneelSkill: true
   },

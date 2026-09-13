@@ -2264,38 +2264,6 @@ export const SKILLS: readonly RangerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 30238,
-    name: 'Glyph of the Tides',
-    description: 'Glyph. Draw your enemies in or knock them away.',
-    icon: 'https://render.guildwars2.com/file/DA5EC8C2DF961ED9022B64F519053C0A406661EE/1128638.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Druid',
-    categories: ['Glyph'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 31322,
-    name: 'Glyph of Alignment',
-    description: 'Glyph. Damage and impair foes, or heal and remove conditions from allies.',
-    icon: 'https://render.guildwars2.com/file/580715C2B8F00800A4D23615DD1E019050BF4B50/1128635.png',
-    type: 'Utility',
-    weapon: '',
-    slot: 'Utility',
-    specialization: 'Druid',
-    categories: ['Glyph'],
-    recharge: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 31407,
     name: 'Glyph of Rejuvenation',
     description: 'Glyph. Greatly heal yourself and your pet, while healing nearby allies for a minor amount.',

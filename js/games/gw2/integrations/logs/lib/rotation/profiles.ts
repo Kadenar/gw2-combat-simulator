@@ -155,8 +155,7 @@ const sources: readonly RotationProfileSource[] = [
       conduit: {
         78191: 28287,
         78203: 27917,
-        78351: 76503,
-        78587: 27505
+        78351: 76503
       }
     }
   }

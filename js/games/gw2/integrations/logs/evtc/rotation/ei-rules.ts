@@ -2399,13 +2399,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   },
   {
     profession: 'ranger',
-    skillId: 12711,
-    signal: 6886,
-    kind: 'minion-command',
-    rule: 'RangerHelper.MinionCommandCastFinder(IcyScreech)'
-  },
-  {
-    profession: 'ranger',
     skillId: 12709,
     signal: 6887,
     kind: 'minion-command',

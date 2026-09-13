@@ -161,6 +161,15 @@ export function applyThiefBuildAttributeRules(
       amount: 180,
       feedsConversions: false,
       enabled: hasSelectedSkill("Assassin's Signet")
+    },
+    {
+      // The equipped signet contributes panel precision while its passive is available.
+      kind: 'flat',
+      source: 'Signet of Agility',
+      to: 'Precision',
+      amount: 180,
+      feedsConversions: false,
+      enabled: hasSelectedSkill('Signet of Agility')
     }
   ];
 

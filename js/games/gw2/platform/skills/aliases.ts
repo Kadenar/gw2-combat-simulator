@@ -39,6 +39,10 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
 
   // Engineer
   30881: 21659, // A.E.D.
+  // Function Gyro variants share the F5 mechanics, trait effects, and charge pool.
+  56921: 56920, // Function Gyro (tool belt skill)
+  72103: 56920, // Function Gyro (at your location)
+  72114: 56920, // Function Gyro (at the specified point)
 
   // Thief
   80278: 40436, // Death's Advance
@@ -50,6 +54,10 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   46474: 44946, // Manifest Sand Shade
 
   // Revenant
+  // Cosmic Wisdom button identities use the same skill and cooldown; form hooks supply the altered costs.
+  78505: 27322, // Pain Absorption
+  78587: 27505, // Banish Enchantment
+  78681: 28219, // Empowering Misery
   29082: 27025, // Natural Harmony
   29114: 27356, // Energy Expulsion
   29197: 27715, // Purifying Essence

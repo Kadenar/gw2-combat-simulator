@@ -1,4 +1,4 @@
-/** Owns Conduit Cosmic Wisdom form, attack, and alternate skill identities. */
+/** Owns Conduit Cosmic Wisdom form and attack skills; Demon button aliases resolve to Core skills. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -81,23 +81,5 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Skil
         actorType: 'player'
       }
     ]
-  },
-  [ID.PAIN_ABSORPTION_ID_78505]: {
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.BANISH_ENCHANTMENT_ID_78587]: {
-    castTimeMs: 0,
-    cooldown: 5,
-    energyCost: 0,
-    effects: []
-  },
-  [ID.EMPOWERING_MISERY_ID_78681]: {
-    castTimeMs: 0,
-    cooldown: 30,
-    energyCost: 0,
-    effects: []
   }
 });

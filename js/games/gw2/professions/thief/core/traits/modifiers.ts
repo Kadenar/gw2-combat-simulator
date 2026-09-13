@@ -16,6 +16,8 @@ import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics
 import {
   advanceThiefCoreResources,
   completeThiefCoreResources,
+  restartInfiltratorsSignetPassive,
+  pulseInfiltratorsSignet,
   spendThiefCoreResources
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
@@ -240,6 +242,13 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const result = { ...attributes };
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
+  if (hasSelectedSkill(context, 'Signet of Agility')) {
+    // Reconcile panel precision with recharge so the passive disappears only while the signet is unavailable.
+    const passiveDisabled = context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_AGILITY, context.time);
+    if (staticRulesApplied && passiveDisabled) result.precision -= 180;
+    if (!staticRulesApplied && !passiveDisabled) result.precision += 180;
+  }
+
   if (hasSelectedSkill(context, "Assassin's Signet")) {
     const profile = balanceProfileFromContext(context, PROFILE.assassinsSignet);
     const passive = Number(profile?.attributeBonus ?? 180);
@@ -316,6 +325,8 @@ export const thiefCoreCastRules = Object.freeze({
 });
 
 export const thiefCoreSchedulerHooks = Object.freeze({
+  initialize: { id: 'thief.infiltrators-signet', order: 10, handler: restartInfiltratorsSignetPassive },
+  onCooldownReset: { id: 'thief.infiltrators-signet', order: 10, handler: restartInfiltratorsSignetPassive },
   advance: advanceThiefCoreResources,
   onCastStart: spendThiefCoreResources,
   onEventScheduled: Object.freeze([
@@ -352,6 +363,7 @@ export const thiefCoreSchedulerHooks = Object.freeze({
     }
   ]),
   taskHandlers: {
+    'thief.infiltrators-signet': pulseInfiltratorsSignet,
     ...thiefCoreTaskHandlers,
     'thief.critical-boons': materializeThiefCriticalBoons,
     'thief.spinning-axe': materializeThiefAxe

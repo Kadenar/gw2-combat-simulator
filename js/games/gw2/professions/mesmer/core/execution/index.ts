@@ -37,5 +37,6 @@ export const mesmerCoreSkillHandlers: Readonly<Record<string, Readonly<SkillHand
     'mesmer.mind-spike': mesmerMindSpike,
     'mesmer.weapon-swap': gw2WeaponSwapSkillHandler,
     'mesmer.shatter': mesmerReplaceProfile,
+    'mesmer.inspiring-imagery': mesmerReplaceProfile,
     'mesmer.phantasm': mesmerPhantasm
   });

@@ -34,6 +34,25 @@ function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
 
+test('Function Gyro aliases share Ex Machina charges and canonical trait effects', () => {
+  // Mixed canonical and compatibility IDs must consume one trait-granted ammo pool.
+  for (const skillId of [56921, 72103, 72114]) {
+    const result = simulate('Scrapper', [56920, skillId], {
+      selectedTraitIds: [TRAIT.EX_MACHINA, TRAIT.SYSTEM_SHOCKER]
+    });
+
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual([...result.schedulerState.ammo.keys()], [56920]);
+    assert.equal(result.schedulerState.ammo.get(56920).maximum, 2);
+    assert.equal(result.schedulerState.ammo.get(56920).charges, 0);
+    assert.equal(result.events.filter((event) => event.type === 'control' && event.controlKind === 'daze').length, 2);
+
+    const untraited = simulate('Scrapper', [skillId]);
+    assert.deepEqual(untraited.warnings, []);
+    assert.equal(untraited.schedulerState.ammo.size, 0);
+  }
+});
+
 test('Scrapper traits apply gyro control, superspeed, boons, and charges', () => {
   const result = simulate(
     'Scrapper',

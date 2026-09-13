@@ -42,7 +42,8 @@ async function rangerPetSkills() {
     pets.push(...(await fetchJson(`/pets?ids=${petIds.slice(index, index + 100).join(',')}`)));
   }
 
-  const ids = [...new Set(pets.flatMap((pet) => pet.skills.map((skill) => skill.id)))];
+  // Keep White Moa's Icy Screech out of generated constants as well as the pet catalog.
+  const ids = [...new Set(pets.filter((pet) => pet.id !== 14).flatMap((pet) => pet.skills.map((skill) => skill.id)))];
   const skills = [];
 
   for (let index = 0; index < ids.length; index += 100) {

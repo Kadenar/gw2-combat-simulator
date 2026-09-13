@@ -476,6 +476,76 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
   }
 });
 
+// Check base boon grants and form-dependent resources/recharge using isolated Demon casts.
+test('Pain Absorption grants its base boons and changes cost and recharge only in Mesmer form', () => {
+  const config = {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 30,
+    stats: { concentration: 0 }
+  };
+  for (const skillId of [SKILL.PAIN_ABSORPTION, SKILL.PAIN_ABSORPTION_ID_78505]) {
+    const base = simulate('Conduit', [skillId], config);
+    assert.deepEqual(base.warnings, []);
+    assert.deepEqual(
+      base.events
+        .filter((event) => event.type === 'buff' && event.skillId === SKILL.PAIN_ABSORPTION)
+        .map((event) => [event.kind, event.duration]),
+      [
+        ['resistance', 3],
+        ['resolution', 5]
+      ]
+    );
+    assert.ok(Math.abs(base.endState.profession.energy - (base.endState.time / 1000) * 5) < 1e-9);
+    assert.match(simulate('Conduit', [skillId], { ...config, initialEnergy: 29 }).warnings[0], /requires 30 energy/);
+    assert.match(
+      simulate('Conduit', ['Cosmic Wisdom', skillId], { ...config, initialEnergy: 9 }).warnings[0],
+      /requires 10 energy/
+    );
+
+    for (const alacrity of [false, true]) {
+      const formed = simulate('Conduit', ['Cosmic Wisdom', skillId, SKILL.PAIN_ABSORPTION], {
+        ...config,
+        initialEnergy: 10,
+        boons: { alacrity }
+      });
+      assert.deepEqual(formed.warnings, []);
+      const actions = formed.events.filter(
+        (event) => event.type === 'action' && event.skillId === SKILL.PAIN_ABSORPTION
+      );
+      for (const action of actions) {
+        assert.ok(Math.abs(action.rechargeReadyAt - action.fullEndsAt - 5 / (alacrity ? 1.25 : 1)) < 1e-9);
+      }
+
+      assert.equal(actions.length, 2);
+      assert.ok(Math.abs(actions[1].at - actions[0].rechargeReadyAt) < 1e-9);
+      assert.ok(Math.abs(formed.endState.profession.energy - (10 - 20 + (formed.endState.time / 1000) * 5)) < 1e-9);
+    }
+
+    const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, skillId], config);
+    assert.deepEqual(expired.warnings, []);
+    assert.equal(
+      expired.events.find((event) => event.type === 'action' && event.skillId === SKILL.PAIN_ABSORPTION)
+        .rechargeReadyAt,
+      null
+    );
+    assert.ok(Math.abs(expired.endState.profession.energy - (20 + (expired.endState.time / 1000 - 7) * 5)) < 1e-9);
+  }
+});
+
+// Either input identity must pay the canonical skill's form-dependent healing cost.
+test('Empowering Misery and its alias cost one energy in Mesmer form', () => {
+  for (const skillId of [SKILL.EMPOWERING_MISERY, SKILL.EMPOWERING_MISERY_ID_78681]) {
+    const result = simulate('Conduit', ['Cosmic Wisdom', skillId], {
+      selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DEMON,
+      initialEnergy: 1
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(Math.abs(result.endState.profession.energy - (result.endState.time / 1000) * 5) < 1e-9);
+  }
+});
+
 test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => {
   const blocked = simulate('Conduit', ['Cosmic Wisdom', 'Banish Enchantment'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
@@ -485,7 +555,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
 
   assert.match(blocked.warnings[0], /requires 5 energy/);
 
-  const result = simulate('Conduit', ['Cosmic Wisdom', 'Banish Enchantment', 'Banish Enchantment'], {
+  const result = simulate('Conduit', ['Cosmic Wisdom', 'Banish Enchantment', SKILL.BANISH_ENCHANTMENT_ID_78587], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
     startingLegend: LEGEND.DEMON,
     initialEnergy: 5

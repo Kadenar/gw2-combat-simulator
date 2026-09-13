@@ -438,17 +438,89 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
   assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 24333);
 });
 
-test('Abstraction records its detonation strike damage', () => {
+// The image's natural expiry and early detonation must remain mutually exclusive.
+test('Inspiring Imagery grants boons at field expiry and closes Abstraction', () => {
   const result = simulateMesmer(
-    ['Inspiring Imagery', 'Abstraction'],
+    ['Inspiring Imagery', { name: '__wait', waitMs: 2000 }, 'Abstraction'],
     defaultSimulationConfig({
       specialization: 'Core',
-      primaryWeapon: '',
-      secondaryWeapon: ''
+      primaryWeapon: 'Rifle',
+      secondaryWeapon: '',
+      boons: { quickness: false, alacrity: false },
+      stats: { concentration: 0 }
     })
   );
+  const cast = result.steps[0];
+  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.INSPIRING_IMAGERY);
+  const boons = result.events.filter((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY);
 
-  assert.ok(result.breakdown.some((entry) => entry.sourceSkill === 'Abstraction' && entry.strikeDamage > 0));
+  assert.equal(field.at, cast.end / 1000);
+  assert.equal(field.fieldType, 'Ethereal');
+  assert.equal(field.expiresAt - field.at, 2);
+  assert.deepEqual(
+    boons.map((event) => [event.at, event.kind, event.stacks, event.duration]),
+    [
+      [field.expiresAt, 'might', 12, 9],
+      [field.expiresAt, 'fury', 1, 9]
+    ]
+  );
+  assert.equal(result.endState.cooldowns['Inspiring Imagery'].readyAt - cast.end, 12000);
+  assert.equal(result.steps.at(-1).invalid, true);
+  assert.match(result.warnings[0], /Inspiring Imagery is not active/);
+});
+
+test('Abstraction replaces boons with damage and conditions and blasts only its image', () => {
+  for (const waitMs of [0, 1700]) {
+    const result = simulateMesmer(
+      ['Feedback', 'Inspiring Imagery', { name: '__wait', waitMs }, 'Abstraction', { name: '__wait', waitMs: 3000 }],
+      defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Rifle',
+        secondaryWeapon: '',
+        boons: { quickness: false, alacrity: false },
+        stats: { concentration: 0, expertise: 0 },
+        target: { conditions: {} }
+      })
+    );
+    const cast = result.steps.find((step) => step.skill === 'Abstraction');
+    const events = result.events.filter((event) => event.skillId === ID.ABSTRACTION);
+    const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.INSPIRING_IMAGERY);
+    assert.equal(cast.invalid, undefined);
+    assert.equal(events.find((event) => event.type === 'damage').coefficient, 1.81);
+    assert.deepEqual(
+      events.filter((event) => event.type === 'condition').map((event) => [event.condition, event.duration]),
+      [
+        ['Weakness', 5],
+        ['Blinded', 5]
+      ]
+    );
+    assert.equal(
+      result.events.some((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY),
+      false
+    );
+    assert.ok(Math.abs(field.expiresAt - cast.start / 1000) < 0.001);
+    const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.ABSTRACTION);
+    assert.equal(combo.fieldId, field.fieldId);
+    assert.equal(combo.finisherType, 'Blast');
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+test('cancelled Inspiring Imagery creates neither a field nor boons', () => {
+  const result = simulateMesmer(
+    [
+      { name: 'Inspiring Imagery', interruptMs: 100 },
+      { name: '__wait', waitMs: 3000 }
+    ],
+    defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Rifle', secondaryWeapon: '' })
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.skillId === ID.INSPIRING_IMAGERY && ['combo_field', 'buff'].includes(event.type)
+    ),
+    false
+  );
+  assert.equal(result.endState.profession.availableFlips.Abstraction, undefined);
 });
 
 test('The Prestige has a 40ms quickness activation and explodes 3s later', () => {

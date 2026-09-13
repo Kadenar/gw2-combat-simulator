@@ -109,15 +109,18 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 2,
     flipDelay: 0,
+    // Early detonation replaces the image's boons with an offensive blast of its own field.
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
+        coefficient: 1.81,
         hits: 1,
         name: 'Detonation',
         actorType: 'player',
         weapon: 'rifle'
-      }
+      },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 5 },
+      { type: 'condition', condition: 'Blinded', stacks: 1, duration: 5 }
     ]
   }
 });

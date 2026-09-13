@@ -3,14 +3,6 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.GLYPH_OF_THE_TIDES]: {
-    effects: [],
-    castTimeMs: 333
-  },
-  [ID.GLYPH_OF_ALIGNMENT]: {
-    effects: [],
-    castTimeMs: 333
-  },
   [ID.GLYPH_OF_REJUVENATION]: {
     effects: [],
     castTimeMs: 333

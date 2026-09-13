@@ -2564,40 +2564,6 @@ export const SKILLS: readonly EngineerSkill[] = [
     flipSkillId: null
   },
   {
-    id: 72103,
-    name: 'Function Gyro',
-    description:
-      'Create a lightning field at your location, then summon gyros to finish foes and revive allies within the field.\nInterrupted gyros are destroyed.',
-    icon: 'https://render.guildwars2.com/file/42BCB9C83B05D048C0E0BA1804F13D6FAC180DCD/2175057.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_5',
-    specialization: '',
-    categories: [],
-    recharge: 1,
-    ammo: 0,
-    ammoRecharge: 25,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 72114,
-    name: 'Function Gyro',
-    description:
-      'Create a lightning field at the specified point, then summon gyros to finish foes and revive allies within the field.\nInterrupted gyros are destroyed.',
-    icon: 'https://render.guildwars2.com/file/42BCB9C83B05D048C0E0BA1804F13D6FAC180DCD/2175057.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_5',
-    specialization: '',
-    categories: [],
-    recharge: 1,
-    ammo: 0,
-    ammoRecharge: 25,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 72944,
     name: 'Puncturing Jab',
     description: 'Stab your foe, inflicting bleeding. Inflict vulnerability if your target is focused.',

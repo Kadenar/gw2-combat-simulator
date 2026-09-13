@@ -13,6 +13,8 @@ export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
   numinousGift: 'revenant.conduit.numinous-gift',
   mistfire: 'revenant.conduit.mistfire',
   mesmerBanishEnchantment: 'revenant.conduit.mesmer-banish-enchantment',
+  mesmerPainAbsorption: 'revenant.conduit.mesmer-pain-absorption',
+  mesmerEmpoweringMisery: 'revenant.conduit.mesmer-empowering-misery',
   mesmerCallToAnguish: 'revenant.conduit.mesmer-call-to-anguish',
   mesmerUnyieldingImpact: 'revenant.conduit.mesmer-unyielding-impact',
   mesmerEmbraceTheDarkness: 'revenant.conduit.mesmer-embrace-the-darkness'
@@ -190,6 +192,21 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         actorType: 'effect'
       }
     ]
+  },
+  {
+    id: CONDUIT_BALANCE_PROFILE_IDS.mesmerEmpoweringMisery,
+    name: 'Empowering Misery (Form of the Mesmer)',
+    profileKind: 'skill-variant',
+    energyCost: 1,
+    effects: []
+  },
+  {
+    id: CONDUIT_BALANCE_PROFILE_IDS.mesmerPainAbsorption,
+    name: 'Pain Absorption (Form of the Mesmer)',
+    profileKind: 'skill-variant',
+    energyCost: 10,
+    cooldown: 5,
+    effects: []
   },
   {
     id: CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment,

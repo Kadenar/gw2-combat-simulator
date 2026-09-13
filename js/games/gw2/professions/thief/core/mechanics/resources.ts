@@ -6,17 +6,40 @@ import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platf
 import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
+import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { refreshVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type {
   ThiefPrecastContext,
   ThiefCastContext,
   ThiefCoreState,
   ThiefResourceContext,
   ThiefSchedulerContext,
+  ThiefScheduledTask,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
+
+/** Restart the equipped signet's ten-second pulse after it becomes ready, including cooldown resets. */
+export function restartInfiltratorsSignetPassive(context: ThiefSchedulerContext): void {
+  if (!selectedSkillNameSet(context.config.selectedSkills).has("Infiltrator's Signet")) return;
+  context.tasks.cancelOwner('thief.infiltrators-signet');
+  context.tasks.schedule({
+    type: 'thief.infiltrators-signet',
+    ownerId: 'thief.infiltrators-signet',
+    at: Math.max(context.state.time, Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0)) + 10,
+    payload: {}
+  });
+}
+
+/** Grant discrete initiative pulses so queued skills can become affordable at the pulse timestamp. */
+export function pulseInfiltratorsSignet(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+  if (Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= task.at + context.epsilon) {
+    gainThiefInitiative(context, 1, task.at, 'infiltrators-signet');
+  }
+
+  restartInfiltratorsSignetPassive(context);
+}
 
 export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context?: unknown): number {
   const resources = balanceProfileFromContext(context, PROFILE.resources);
@@ -128,6 +151,17 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
 }
 
 export function completeThiefCoreResources(context: ThiefCastContext, skill: ThiefSkill): void {
+  if (skill.id === ID.INFILTRATORS_SIGNET) {
+    restartInfiltratorsSignetPassive(context);
+    return;
+  }
+
+  // Agility restores a fixed 100 endurance on activation, capped by the specialization's endurance pool.
+  if (skill.id === ID.SIGNET_OF_AGILITY) {
+    gainThiefEndurance(context, 100, context.effectiveEnd, 'signet-of-agility');
+    return;
+  }
+
   if (skill.id !== ID.UNLOAD) return;
   // A default commit-mode interruption cannot award Unload's on-completion refund when its damage was cancelled.
   if (context.action?.cancelled === true) return;

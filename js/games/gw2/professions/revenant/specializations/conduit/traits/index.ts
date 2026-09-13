@@ -64,8 +64,14 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
     );
   }
 
+  const mesmerRechargeProfile =
+    skill?.id === ID.PAIN_ABSORPTION
+      ? CONDUIT_BALANCE_PROFILE_IDS.mesmerPainAbsorption
+      : skill?.id === ID.BANISH_ENCHANTMENT
+        ? CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment
+        : null;
   if (
-    ([ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587] as readonly number[]).includes(Number(skill?.id)) &&
+    mesmerRechargeProfile &&
     revenantConduitFormIsActive(
       conduitState.from(context),
       'Mesmer',
@@ -73,8 +79,8 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
       context.start ?? context.at
     )
   ) {
-    // Mesmer form overrides Banish Enchantment's cooldown entirely; alacrity still applies to the new 5 s base.
-    const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment);
+    // Mesmer form gives these Demon utilities a recharge; alacrity still applies to the new base.
+    const profile = context.catalog.balanceProfilesById.get(mesmerRechargeProfile);
     const base = Math.max(0, Number(profile?.cooldown || 0));
     const rate = context.hasBuff?.('alacrity', context.at) ? Number(context.config.alacrityRechargeRate || 1.25) : 1;
     return base / rate;

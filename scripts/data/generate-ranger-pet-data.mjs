@@ -231,7 +231,8 @@ export async function generateRangerPetData({ skills: apiSkills }) {
   for (const skill of apiSkills) keyFor(skill);
 
   const petIds = await fetchJson('/pets');
-  const pets = await fetchMany('pets', petIds);
+  // White Moa and its Icy Screech are unsupported; omit the pet before collecting its skills.
+  const pets = (await fetchMany('pets', petIds)).filter((pet) => pet.id !== 14);
   const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
   const petSkillIds = [
     ...new Set([

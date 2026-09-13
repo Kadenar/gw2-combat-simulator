@@ -12,9 +12,39 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    castTimeMs: 333.333333333,
+    castTimeMs: 800,
     cooldown: 60,
-    effects: []
+    // Protect allies during the well's three-second lifetime, then refund endurance when it ends.
+    comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 3, startAnchor: 'castEnd' }],
+    effects: [
+      {
+        type: 'boon',
+        boon: 'aegis',
+        duration: 3,
+        applications: 3,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      { type: 'boon', boon: 'stability', stacks: 1, duration: 1 },
+      {
+        type: 'boon',
+        boon: 'stability',
+        stacks: 3,
+        duration: 5,
+        atMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'custom',
+        eventType: 'resource',
+        event: { resource: 'endurance', amount: 30, name: 'Well of Precognition' },
+        atMs: 3000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
+    ]
   },
   [ID.CONTINUUM_SPLIT]: {
     type: 'Profession',
