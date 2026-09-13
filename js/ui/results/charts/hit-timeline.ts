@@ -75,6 +75,7 @@ function conditionTickTotalsHtml(hits: readonly SkillHit[], offsetMs: number): s
           bucket.count += entry.stacks;
           bucket.damage += entry.damage;
         }
+
         const values = [
           totals.full.count,
           totals.full.damage,

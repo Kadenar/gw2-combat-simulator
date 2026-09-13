@@ -264,11 +264,13 @@ export function createGw2ConditionResolution({
           application.bufferedSteps = 0;
           application.settledThrough = Math.min(at, application.naturalExpiresAt);
         }
+
         pruneGroup(group, at);
         group.nextPulseAt = at + 1;
         scheduleGroup(ctx, group);
       }
     }
+
     for (const entry of ctx.environmentConditions.values()) entry.bufferedRate = 0;
     if (ctx.environmentConditions.size || [...ctx.conditionState.values()].some((state) => state.groups?.size))
       scheduleBuffer(ctx, at);
@@ -409,6 +411,7 @@ export function createGw2ConditionResolution({
       ctx.queue.enqueue({ ...event, at: origin + Math.floor(elapsed + EPSILON) + 1 });
       return;
     }
+
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, Number(event.stacks || 0));
     const entry = ctx.environmentConditions.get(condition);

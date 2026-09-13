@@ -194,6 +194,7 @@ export function createGw2ResolverRuntimeState({
         // A condition-only opener already committed on the provisional pulse; retain its simultaneous owner batch.
         if (!conditionPulse) anchorConditionClock?.(this, at);
       }
+
       this.lastHitTime = at;
     }
   };
