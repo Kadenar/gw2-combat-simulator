@@ -8,8 +8,8 @@ All conditions and owners follow one global one-second cadence anchored at simul
 activates queued processing; it does not change that phase. Empty target windows stop unnecessary queued work, and later
 applications still join the same whole-second cadence. No configurable phase offset is currently exposed.
 
-Conditions sample current stats and source-specific modifiers on each global 40ms step after application, capped by
-natural expiry. A target-wide queued sampler accumulates unrounded contributions while mutable combat state is current;
+Each application samples its condition owner's current stats and modifiers on each global 40ms step, capped by natural
+expiry. A target-wide queued sampler accumulates unrounded contributions while mutable combat state is current;
 whole-second payouts consume those stored values without querying stats again. Existing natural durations still round
 upward to 40ms. Integer buffer-step counts preserve the full lifetime without rounding split contributions twice.
 
@@ -45,8 +45,13 @@ retain the concrete `engineer.mech` identity and the independent marker. Other s
 audiences and lifetimes without creating separate condition rounding groups. This includes minions, spirits, elementals,
 Thieves Guild, clones, and phantasms.
 
-Grouping does not replace source-specific stat or modifier queries. Existing boon inheritance, equipment eligibility,
-and profession rules still apply to each sampled contribution. Skill IDs and display labels do not determine owners.
+Each application retains its own lifetime and buffer. Condition queries resolve the owner independently of the strike
+actor: non-pet/non-mech summons use player attributes, Might, equipment condition bonuses, trait modifiers, and duration
+bonuses. This includes Thieves Guild conditions, clones, and minions. Pet and mech conditions retain independent
+scaling. The scheduler and resolver use the same duration query. Each 40ms sample reads current owner stats; payout only
+rounds and attributes accumulated contributions. Original summon metadata remains on the application for reporting and
+lifetime tracking. Strike queries retain the summon actor and its independent strike profile. Skill IDs and display
+labels do not determine condition owners.
 
 Applications remain the canonical lifetime and reporting records. Owner groups reference them rather than duplicating
 mutable duration state. Each application retains its sampling cursor, buffered step count, and sum of sampled damage
@@ -94,3 +99,8 @@ and Ranger removal tests cover their original contracts using synchronized pulse
 Run `npm run check` for repository validation and `npm run benchmarks:compare` for supported preset comparisons.
 Numerical preset regressions retain the maximum 1% relative DPS tolerance; expected values must not be silently rebased
 to accommodate changes or warnings.
+
+The player-condition inheritance correction updates two stored Mesmer simulation baselines: Chronomancer Condition
+(Staff-Scepter/Pistol), 46,841 to 47,422 DPS; and Mirage Condition (Staff-Axe/Torch) - Dune Cloak, 41,030 to 41,889 DPS.
+These changes record the corrected owner-stat behavior, not new in-game measurements. Other preset baselines and the 1%
+regression tolerance are unchanged.

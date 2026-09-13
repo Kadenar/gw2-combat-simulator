@@ -632,7 +632,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
       traits: new Set(selected ? [TRAIT.POISON_MASTER] : [])
     });
     assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'player' }), selected ? 1.25 : 1);
-    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'summon' }), 1);
+    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'summon', independentConditionOwner: true }), 1);
   }
 
   const skirmishing = simulate('Soulbeast', ['__combat_start', 'Swap Weapons', 'Whirling Defense'], {
