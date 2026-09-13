@@ -5,6 +5,8 @@ export default defineConfig({
   testDir: './tests/browser',
   testMatch: '**/*.spec.js',
   outputDir: 'dist/playwright-results',
+  // Run one browser worker so page simulation workers and Vite startup do not contend across tests.
+  workers: 1,
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',
