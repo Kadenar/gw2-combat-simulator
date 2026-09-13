@@ -150,7 +150,7 @@ export function createGw2ConditionResolution({
       return;
     }
 
-    const at = group.pulseIndex;
+    const at = group.nextPulseAt;
     if (group.wakeAt != null && Math.abs(group.wakeAt - at) <= EPSILON) return;
     group.wakeAt = at;
     group.wakeToken += 1;
@@ -176,7 +176,8 @@ export function createGw2ConditionResolution({
 
   /** Queue one target-wide 40ms sampler so mutable combat state is observed before it changes again. */
   function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number): void {
-    const at = (Math.floor(after * 25 + EPSILON) + 1) / 25;
+    const origin = ctx.firstHitTime ?? 0;
+    const at = origin + (Math.floor((after - origin) * 25 + EPSILON) + 1) / 25;
     if (ctx.conditionBufferAt != null || at > ctx.horizon + EPSILON) return;
     ctx.conditionBufferAt = at;
     const causalOrder = ctx.queue.currentCausalOrder;
@@ -198,14 +199,15 @@ export function createGw2ConditionResolution({
   function bufferConditions(ctx: Gw2ResolverRuntime, at: number): void {
     if (ctx.conditionBufferedAt != null && at <= ctx.conditionBufferedAt + EPSILON) return;
     ctx.conditionBufferedAt = at;
-    const step = Math.round(at * 25);
+    const origin = ctx.firstHitTime ?? 0;
+    const step = Math.round((at - origin) * 25);
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
         for (const application of group.applications) {
           if (isRemoved(application, at)) continue;
           if (
-            step > Math.floor(application.settledThrough * 25 + EPSILON) &&
-            step <= Math.floor(application.naturalExpiresAt * 25 + EPSILON)
+            step > Math.floor((application.settledThrough - origin) * 25 + EPSILON) &&
+            step <= Math.floor((application.naturalExpiresAt - origin) * 25 + EPSILON)
           ) {
             const stats = ctx.query.statsAt(at, application, ctx);
             // Sum rates before dividing by 25 to avoid accumulating repeated 0.04 multiplication noise.
@@ -229,9 +231,12 @@ export function createGw2ConditionResolution({
   }
 
   function handleConditionBuffer(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+    // A first hit can replace the provisional sampler; obsolete queue entries must not sample twice.
+    if (ctx.conditionBufferAt == null || Math.abs(event.at - ctx.conditionBufferAt) > EPSILON) return;
     ctx.conditionBufferAt = undefined;
     bufferConditions(ctx, event.at);
-    const step = Math.round(event.at * 25);
+    const origin = ctx.firstHitTime ?? 0;
+    const step = Math.round((event.at - origin) * 25);
     // Natural expiry stops sampling, while the owner wake retains its buffered remainder until payout.
     const active =
       ctx.environmentConditions.size > 0 ||
@@ -239,11 +244,34 @@ export function createGw2ConditionResolution({
         [...(state.groups?.values() ?? [])].some((group) =>
           group.applications.some(
             (application) =>
-              !isRemoved(application, event.at) && Math.floor(application.naturalExpiresAt * 25 + EPSILON) > step
+              !isRemoved(application, event.at) &&
+              Math.floor((application.naturalExpiresAt - origin) * 25 + EPSILON) > step
           )
         )
       );
     if (active) scheduleBuffer(ctx, event.at);
+  }
+
+  /** First damage fixes the phase for the rest of the fight, including empty gaps and every condition owner. */
+  function anchorClock(ctx: Gw2ResolverRuntime, at: number): void {
+    ctx.conditionBufferAt = undefined;
+    ctx.conditionBufferedAt = at;
+    for (const state of ctx.conditionState.values()) {
+      for (const group of state.groups?.values() ?? []) {
+        // Pre-fight samples do not belong to the new clock; surviving stacks begin accruing from first damage.
+        for (const application of group.applications) {
+          application.bufferedRate = 0;
+          application.bufferedSteps = 0;
+          application.settledThrough = Math.min(at, application.naturalExpiresAt);
+        }
+        pruneGroup(group, at);
+        group.nextPulseAt = at + 1;
+        scheduleGroup(ctx, group);
+      }
+    }
+    for (const entry of ctx.environmentConditions.values()) entry.bufferedRate = 0;
+    if (ctx.environmentConditions.size || [...ctx.conditionState.values()].some((state) => state.groups?.size))
+      scheduleBuffer(ctx, at);
   }
 
   function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null {
@@ -299,11 +327,12 @@ export function createGw2ConditionResolution({
     }
 
     if (!group) {
-      // Empty gaps stop queued work, but the global one-second phase remains anchored at zero.
+      // Empty gaps stop queued work without resetting the first-damage clock.
+      const origin = ctx.firstHitTime ?? 0;
       group = {
         owner,
         condition: name,
-        pulseIndex: Math.floor(event.at + EPSILON) + 1,
+        nextPulseAt: origin + Math.floor(event.at - origin + EPSILON) + 1,
         wakeToken: 0,
         wakeAt: null,
         applications: []
@@ -329,7 +358,7 @@ export function createGw2ConditionResolution({
     group.wakeAt = null;
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
-    group.pulseIndex += 1;
+    group.nextPulseAt += 1;
     const canDamage = ctx.combatStartTime == null || event.at >= ctx.combatStartTime - EPSILON;
     const contributions = [];
     for (const application of group.applications) {
@@ -363,7 +392,7 @@ export function createGw2ConditionResolution({
       entry.damage += damage;
       entry.stackSeconds += contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0);
       ctx.conditions.set(group.condition, entry);
-      if (damage > 0) ctx.markDamageTime(event.at);
+      if (damage > 0) ctx.markDamageTime(event.at, true);
     }
 
     pruneGroup(group, event.at);
@@ -373,6 +402,13 @@ export function createGw2ConditionResolution({
 
   /** Applies only the condition's base formula and target Vulnerability, never player-owned outgoing effects. */
   function handleEnvironmentConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+    // Permanent conditions were queued before first damage was known; move each wake onto the same fight phase.
+    const origin = ctx.firstHitTime ?? 0;
+    const elapsed = event.at - origin;
+    if (Math.abs(elapsed - Math.round(elapsed)) > EPSILON) {
+      ctx.queue.enqueue({ ...event, at: origin + Math.floor(elapsed + EPSILON) + 1 });
+      return;
+    }
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, Number(event.stacks || 0));
     const entry = ctx.environmentConditions.get(condition);
@@ -390,6 +426,7 @@ export function createGw2ConditionResolution({
   }
 
   return Object.freeze({
+    anchorClock,
     activeConditionStackCount,
     applyCondition,
     handleConditionTick,

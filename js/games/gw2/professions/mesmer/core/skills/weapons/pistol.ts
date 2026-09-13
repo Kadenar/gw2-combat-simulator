@@ -9,6 +9,9 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     specialization: '',
     cooldown: 16,
     phantasm: true,
+    // Cancelling after commitment preserves the Duelist's attacks and clone conversion while retaining its cast lockout.
+    interruptCommitMs: 360,
+    phantasmSummonProgress: 360 / 560,
     // Weapon-swap cancellation does not shorten Duelist's cast lane, so replay must not add the same aftercast as idle time.
     retainsCastLockoutAfterInterrupt: true,
     resource: {

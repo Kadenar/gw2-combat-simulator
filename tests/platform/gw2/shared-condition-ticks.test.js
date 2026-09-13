@@ -38,7 +38,7 @@ function resolve(
     traits: new Set(),
     professionReactions: reactions,
     query: {
-      statsAt: () => ({ conditionDamage: 125 }),
+      statsAt: () => ({ power: 1000, conditionDamage: 125 }),
       conditionDurationMultiplier: () => 1,
       conditionMultiplier: () => 1,
       vulnerabilityStacksAt: () => 0,
@@ -62,6 +62,105 @@ function packetDamage(result, name = 'Bleeding') {
 
   return [...packets];
 }
+
+// Offset the whole encounter, including off-grid starts, to verify that first damage owns both sampling and payout.
+test('first damage anchors every owner and permanent condition through later empty gaps', () => {
+  for (const origin of [0, 0.36, 1, 1.375]) {
+    for (const output of ['detailed', 'score']) {
+      const payouts = [];
+      const samples = [];
+      const result = resolve(
+        [
+          { type: 'damage', at: origin, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
+          condition(origin, { duration: 0.52 }),
+          condition(origin + 0.96, { condition: 'Torment' }),
+          condition(origin + 0.96, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet' }),
+          condition(origin + 3.96)
+        ],
+        {
+          output,
+          end: origin + 5,
+          combatStartTime: origin,
+          target: { conditions: { Bleeding: 1 } },
+          query: {
+            conditionMultiplier: (_name, at, application) => {
+              if (application.at === origin) samples.push(Math.round((at - origin) * 1000));
+              return 1;
+            }
+          },
+          reactions: { 'condition-tick.resolved': (_ctx, event) => payouts.push(event.at - origin) }
+        }
+      );
+      assert.equal(result.firstHitTime, origin);
+      assert.deepEqual(
+        samples,
+        Array.from({ length: 13 }, (_, i) => (i + 1) * 40)
+      );
+      assert.deepEqual(
+        payouts.map((at) => Math.round(at * 1000)),
+        [1000, 1000, 1000, 2000, 2000, 4000, 5000]
+      );
+      if (output === 'detailed') {
+        assert.deepEqual(
+          applications(result)[0].damageTicks.map(({ fraction }) => fraction),
+          [0.52]
+        );
+        assert.deepEqual(
+          applications(result)[1].damageTicks.map(({ fraction }) => fraction),
+          [0.04, 0.96]
+        );
+        assert.deepEqual(
+          result.environmentConditionBreakdown[0].damageTicks.map(({ at }) => Math.round((at - origin) * 1000)),
+          [1000, 2000, 3000, 4000, 5000]
+        );
+      }
+    }
+  }
+});
+
+// Misses, zero damage and explicit combat markers cannot fix the phase before a surviving positive hit.
+test('first damage replaces provisional wakes without duplicate or pre-fight buffered damage', () => {
+  const damage = (at, extra = {}) => ({
+    type: 'damage',
+    at,
+    source: 'Player',
+    sourceId: 'opener',
+    actorType: 'player',
+    flatDamage: 1,
+    ...extra
+  });
+  const result = resolve(
+    [
+      condition(0, { duration: 3 }),
+      condition(0, { condition: 'Torment', duration: 0.04 }),
+      damage(0.1),
+      damage(0.25, { offTarget: true }),
+      damage(0.3, { flatDamage: 0 }),
+      damage(0.375),
+      damage(0.6)
+    ],
+    { combatStartTime: 0.2, end: 3.375 }
+  );
+  assert.equal(result.firstHitTime, 0.375);
+  assert.deepEqual(
+    applications(result)[0].damageTicks.map(({ at, fraction }) => [at, fraction]),
+    [
+      [1.375, 1],
+      [2.375, 1],
+      [3.375, 0.6]
+    ]
+  );
+  assert.deepEqual(applications(result)[1].damageTicks, []);
+});
+
+test('a first hit on a provisional pulse starts a fresh second instead of paying at fight time zero', () => {
+  const result = resolve([
+    condition(0.96),
+    { type: 'damage', at: 1, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 }
+  ]);
+  assert.equal(result.firstHitTime, 1);
+  assert.deepEqual(applications(result)[0].damageTicks, [{ at: 2, fraction: 0.96, damage: 28 }]);
+});
 
 test('same-owner skills and player effects round once with stable integer attribution in both output modes', () => {
   for (const output of ['detailed', 'score']) {

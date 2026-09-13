@@ -119,7 +119,8 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     coefficient: 0.49,
     hits: 2,
     atMs: 0,
-    firstAttackDelay: 1.12,
+    // Delay the first impact to include clone startup and projectile travel observed in combat logs.
+    firstAttackDelay: 1.96,
     interval: 2.24,
     weaponStrength: 26,
     conditions: [

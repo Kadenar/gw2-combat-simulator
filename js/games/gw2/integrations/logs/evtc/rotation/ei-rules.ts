@@ -30,6 +30,7 @@ export interface EiInstantRule {
   readonly secondary?: readonly string[];
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
+  readonly gainedBuff?: number;
 }
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
@@ -1426,6 +1427,35 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     rule: 'MesmerHelper.DamageCastFinder(PowerSpike)',
     minBuild: 0,
     maxBuild: 115190
+  },
+  // EI distinguishes Distortion from the shared Mind Wrack effect using the caster's buff application.
+  {
+    profession: 'mesmer',
+    specialization: 'core',
+    skillId: 10192,
+    signal: '3D29ABD39CB5BD458C4D50A22FCC0E4B',
+    kind: 'effect',
+    gainedBuff: 10243,
+    rule: 'MesmerHelper.EffectCastFinder(DistortionSkill)'
+  },
+  {
+    profession: 'mesmer',
+    specialization: 'mirage',
+    skillId: 10192,
+    signal: '3D29ABD39CB5BD458C4D50A22FCC0E4B',
+    kind: 'effect',
+    gainedBuff: 10243,
+    rule: 'MesmerHelper.EffectCastFinder(DistortionSkill)'
+  },
+  {
+    profession: 'mesmer',
+    specialization: 'chronomancer',
+    skillId: 10192,
+    signal: '3D29ABD39CB5BD458C4D50A22FCC0E4B',
+    kind: 'effect',
+    gainedBuff: 10243,
+    minBuild: 135242,
+    rule: 'MesmerHelper.EffectCastFinder(DistortionSkill)'
   },
   {
     profession: 'mesmer',

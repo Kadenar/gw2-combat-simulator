@@ -199,7 +199,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     effects: [],
-    castTimeMs: 919
+    castTimeMs: 920
   },
   [ID.SIGNET_OF_HUMILITY]: {
     type: 'Elite',

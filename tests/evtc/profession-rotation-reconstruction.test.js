@@ -236,6 +236,64 @@ test('every profession imports incomplete evidence without inventing setup from 
   }
 });
 
+// A shared visual alone cannot identify Distortion; EI requires a nearby buff on that caster and an eligible spec.
+test('Distortion effect inference requires matching buff evidence and respects specialization build gates', () => {
+  const guid = Buffer.from('3D29ABD39CB5BD458C4D50A22FCC0E4B', 'hex');
+  const mapping = event({
+    stateChange: 46,
+    skillId: 77,
+    source: guid.readBigUInt64LE(0),
+    target: guid.readBigUInt64LE(8)
+  });
+  const effect = event({ time: 100, stateChange: 51, skillId: 77 });
+  for (const arcdpsBuild of ['20260430', '20260501']) {
+    const buff = event({
+      time: 109,
+      stateChange: arcdpsBuild === '20260430' ? 0 : 69,
+      buff: 1,
+      value: 1000,
+      skillId: 10243,
+      target: PLAYER
+    });
+    const find = (specialization, build, evidence = [effect, buff]) => {
+      const source = context('mesmer', specialization, [
+        event({ stateChange: 15, source: BigInt(build) }),
+        mapping,
+        ...evidence
+      ]);
+      source.log.header.arcdpsBuild = arcdpsBuild;
+      return eiInstantActions(source).filter((action) => action.rawSkillId === 10192);
+    };
+
+    for (const specialization of ['core', 'mirage', 'chronomancer']) {
+      const [cast] = find(specialization, 135242);
+      assert.equal(cast.start, effect.time);
+      assert.equal(cast.evidence, 'effect');
+      assert.equal(cast.castOrigin, 'skill');
+      assert.match(cast.eiRule, /MesmerHelper\.EffectCastFinder/);
+      assert.equal(find(specialization, 135241).length, specialization === 'chronomancer' ? 0 : 1);
+    }
+
+    for (const specialization of ['virtuoso', 'troubadour']) {
+      assert.deepEqual(find(specialization, 200000), []);
+    }
+
+    for (const evidence of [
+      [effect],
+      [buff],
+      [effect, { ...buff, time: 110 }],
+      [effect, { ...buff, target: 0x9999n }],
+      [{ ...effect, source: 0x9999n }, buff],
+      [effect, { ...buff, stateChange: 70 }]
+    ]) {
+      assert.deepEqual(find('chronomancer', 135242, evidence), []);
+    }
+
+    // HasGainedBuff accepts a snapshot only as corroboration of an actual effect, unlike a buff-gain finder.
+    assert.equal(find('chronomancer', 135242, [effect, { ...buff, stateChange: 18 }]).length, 1);
+  }
+});
+
 test('buff gain finders reject initial snapshots and extensions, and use sliding duplicate suppression', () => {
   const c = context('mesmer', 'chronomancer', [
     event({ time: 0, stateChange: 18, target: PLAYER, skillId: 30136, value: 1000 }),

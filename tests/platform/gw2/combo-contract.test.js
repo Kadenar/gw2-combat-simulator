@@ -18,6 +18,7 @@ import {
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
+import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 
 const context = {
   catalog: { skillsById: new Map(), skillsByName: new Map() },
@@ -104,6 +105,8 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
       applications: 1,
       successfulCombos: 1,
       independentSummonStrike: true,
+      independentConditionOwner: true,
+      summonOwner: 'ranger-pet:1:0',
       summonBasePower: 1524,
       summonBaseConditionDamage: 1000,
       summonBaseExpertise: 375,
@@ -112,6 +115,24 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     { stochastic: false, roll: () => true, warn: () => {} }
   );
   const [poison] = materializeComboOutcome(combo);
+
+  // Resolver-authored follow-up finishers must retain the same independent caster too.
+  let followup;
+  enqueueGw2OwnedComboFinisher({ combo: state, queue: { enqueue: (event) => (followup = event) } }, poison, {
+    ownerId: 'ranger',
+    attemptId: 'attempt:followup',
+    finisherType: 'Projectile'
+  });
+  const [followupCombo] = resolveComboAttempt(state, followup, {
+    stochastic: false,
+    roll: () => true,
+    warn: () => {}
+  });
+  for (const event of [combo, poison, followup, ...materializeComboOutcome(followupCombo)]) {
+    assert.equal(event.independentConditionOwner, true);
+    assert.equal(event.summonOwner, 'ranger-pet:1:0');
+    assert.equal(event.summonBaseConditionDamage, 1000);
+  }
 
   assert.deepEqual(
     [poison.actorType, poison.independentSummonStrike, poison.summonBaseConditionDamage, poison.summonBaseExpertise],

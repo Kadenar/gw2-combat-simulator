@@ -1195,19 +1195,128 @@ span.hit-group {
   color: var(--text-dim);
 }
 
-/* Keep application attribution readable inside the condition inspector's scrollable table. */
+/* Inspect payouts at viewport width instead of nesting tables inside the condition column. */
+.condition-inspector {
+  --dialog-width: 1120px;
+}
+
+.condition-inspector[open] {
+  display: flex;
+  flex-direction: column;
+  height: min(860px, calc(var(--embed-viewport-height, 100vh) - 32px));
+  overflow: hidden;
+}
+
+.condition-inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.condition-inspector-heading h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.condition-inspector-heading p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.condition-inspector-heading .hit-detail-close {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Leave room below the collapsed overview so its floating tooltip is not clipped by the scroller. */
+.condition-inspector-body {
+  flex: 1;
+  min-height: 0;
+  padding: 16px 20px;
+  overflow: auto;
+}
+
+.condition-payouts {
+  display: grid;
+  gap: 8px;
+}
+
+/* Chart windows filter the full payout ledger while the view selector changes its presentation. */
+.condition-tick-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.condition-tick-attribution {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
 .condition-tick-attribution summary {
   cursor: pointer;
+  padding: 12px;
+  font-size: 13px;
+  background: var(--bg-panel-alt);
+}
+
+.condition-tick-attribution summary span {
+  display: inline-block;
+  margin-left: 16px;
+  color: var(--text-dim);
+}
+
+.condition-attribution-table {
+  overflow: auto;
+}
+
+.condition-attribution-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Payout totals remain a compact table across the full fight, independent of source attribution. */
+.condition-tick-totals th,
+.condition-tick-totals td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
   white-space: nowrap;
+}
+
+.condition-tick-totals th:first-child {
+  text-align: left;
 }
 
 .condition-tick-attribution td,
 .condition-tick-attribution th {
+  padding: 10px 12px;
+  text-align: left;
   white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.condition-tick-attribution td:first-child {
+  min-width: 160px;
+  max-width: 400px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .condition-tick-note {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-dim);
 }
 

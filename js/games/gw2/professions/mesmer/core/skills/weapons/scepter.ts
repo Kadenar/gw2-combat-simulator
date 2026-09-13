@@ -50,7 +50,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 6,
     effects: [],
     defaultInterruptMs: 120,
-    interruptCommitMs: 120
+    interruptCommitMs: 80
   },
   [ID.ETHER_BOLT]: {
     type: 'Weapon',
@@ -103,7 +103,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ETHER_CLONE]: {
-    interruptMode: 'per-packet',
+    interruptCommitMs: 440,
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',

@@ -127,7 +127,7 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 export interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
-  pulseIndex: number;
+  nextPulseAt: number;
   wakeToken: number;
   wakeAt: number | null;
   applications: Gw2ResolvedConditionApplication[];
@@ -262,7 +262,7 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
     source?: Gw2ResolverEvent | null,
     critical?: Gw2CriticalResult | null
   ): void;
-  markDamageTime(at: number): void;
+  markDamageTime(at: number, conditionPulse?: boolean): void;
 }
 
 export interface Gw2HitResolutionContext {
@@ -304,6 +304,7 @@ export interface Gw2ConditionTickResult {
 }
 
 export interface Gw2ConditionResolution {
+  anchorClock(context: Gw2ResolverRuntime, at: number): void;
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
@@ -433,5 +434,6 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly applyCondition: Gw2ConditionResolution['applyCondition'];
+  readonly anchorConditionClock?: Gw2ConditionResolution['anchorClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

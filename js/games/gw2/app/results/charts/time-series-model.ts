@@ -24,7 +24,7 @@ export interface ChartSeries {
   readonly skillDamage?: Readonly<Record<string, readonly SkillHit[]>>;
   // Display name per skill key, for timeline labels and tooltips.
   readonly skillNames?: Readonly<Record<string, string>>;
-  // One payout per condition and timestamp, retaining each application's full or partial share.
+  // One payout per condition in fight time, retaining each application's full or partial share.
   readonly conditionDamage?: Readonly<Record<string, readonly SkillHit[]>>;
 }
 
@@ -320,7 +320,7 @@ export function buildChartSeries(
     }
   }
 
-  // Collect independently of skill attribution so every source contributes to its condition's payout.
+  // Use the first-damage observation origin for both payouts and applications, matching the engine's fight clock.
   const conditionTicks = new Map<string, Map<number, SkillHit>>();
   for (const event of resolved) {
     if (event.type !== 'condition') continue;
@@ -329,10 +329,11 @@ export function buildChartSeries(
     const recordedTicks = eventDamageTicks(event);
     const ticks = recordedTicks.length ? recordedTicks : [{ at: event.at, damage: Number(event.damage || 0) }];
     for (const tick of ticks) {
-      const time = Number(tick.at) * 1000 - dpsStartMs;
+      const time = Math.round(Number(tick.at) * 1000 - dpsStartMs);
       const damage = Number(tick.damage || 0);
       // Keep zero-damage shares in a positive packet: shared rounding can assign an application zero.
-      if (time < 0 || time > durationMs || damage < 0 || !(damage > 0 || Number(tick.fraction) > 0)) continue;
+      if (time < 0 || time > Math.round(endMs - dpsStartMs) || damage < 0 || !(damage > 0 || Number(tick.fraction) > 0))
+        continue;
       const payouts = conditionTicks.get(conditionType) || new Map<number, SkillHit>();
       const previous = payouts.get(time);
       payouts.set(time, {
@@ -346,7 +347,7 @@ export function buildChartSeries(
           {
             source: event.name || event.skillName || event.sourceSkill || 'Unknown source',
             actor: String(event.summonOwner || event.summonKind || event.actorType || event.source || 'Unknown'),
-            appliedAtMs: Number(event.at) * 1000 - dpsStartMs,
+            appliedAtMs: Math.round(Number(event.at) * 1000 - dpsStartMs),
             stacks: Number(event.stacks || 0),
             fraction: tick.fraction,
             damage

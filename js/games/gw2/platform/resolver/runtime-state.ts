@@ -27,6 +27,7 @@ export function createGw2ResolverRuntimeState({
   professionState = {},
   warnings = [],
   applyCondition,
+  anchorConditionClock,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const runtime: Gw2ResolverRuntime = {
@@ -186,8 +187,13 @@ export function createGw2ResolverRuntimeState({
       this.breakdown.set(key, current);
     },
 
-    markDamageTime(at: number): void {
-      if (this.firstHitTime == null) this.firstHitTime = at;
+    markDamageTime(at: number, conditionPulse = false): void {
+      // Only surviving positive damage establishes the fight clock; casts and combat markers cannot shift it.
+      if (this.firstHitTime == null) {
+        this.firstHitTime = at;
+        // A condition-only opener already committed on the provisional pulse; retain its simultaneous owner batch.
+        if (!conditionPulse) anchorConditionClock?.(this, at);
+      }
       this.lastHitTime = at;
     }
   };

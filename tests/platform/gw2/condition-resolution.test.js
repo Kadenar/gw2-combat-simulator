@@ -552,7 +552,8 @@ test('environment conditions do not change player attribution over an equal obse
 });
 
 test('environment damage can end a player sequence early without entering player totals', () => {
-  const events = [0.5, 1.5, 2.5].map((at, index) => ({
+  // The opener anchors environment payouts at 1.5s and 2.5s, before the final attack.
+  const events = [0.5, 1.5, 2.6].map((at, index) => ({
     type: 'damage',
     at,
     source: 'Player',
@@ -572,7 +573,7 @@ test('environment damage can end a player sequence early without entering player
 
   assert.equal(baseline.deathTime, null);
   assert.equal(baseline.totalDamage, 60);
-  assert.equal(ambient.deathTime, 2);
+  assert.equal(ambient.deathTime, 2.5);
   assert.equal(ambient.totalDamage, 40);
   assert.equal(ambient.environmentDamage, 44);
   assert.ok(ambient.totalDamage + ambient.environmentDamage >= 75);
@@ -626,7 +627,8 @@ test('target-health coefficient thresholds include environment damage', () => {
     },
     {
       type: 'damage',
-      at: 1.5,
+      // Observe health after the first environment pulse, one second after the opener.
+      at: 1.6,
       source: 'Player',
       sourceId: 'threshold-finisher',
       actorType: 'player',

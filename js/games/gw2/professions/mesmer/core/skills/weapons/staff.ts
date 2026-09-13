@@ -51,9 +51,10 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'phantasm',
       count: 2
     },
-    // Shared interrupt consumers use the fixed cutoff while the custom lifecycle retains the launched phantasm.
+    // Committed interrupts retain the full cast lockout and the phantasm launched at the fixed summon point.
+    retainsCastLockoutAfterInterrupt: true,
     interruptCommitMs: 640,
-    phantasmSummonProgress: 640 / 840,
+    phantasmSummonProgress: 640 / 880,
     effects: [
       {
         type: 'strike',
@@ -76,7 +77,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         summonKind: 'phantasm'
       }
     ],
-    castTimeMs: 840
+    castTimeMs: 880
   },
   [ID.WINDS_OF_CHAOS]: {
     type: 'Weapon',

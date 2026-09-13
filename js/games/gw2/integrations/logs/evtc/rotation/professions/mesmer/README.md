@@ -9,6 +9,11 @@ examines nearby same-position boon effects and clone deaths in EI's 20 ms forwar
 reverse-time order. Split Second's represented identity uses the pinned credited-damage check. It does not restore
 lifecycle-only casts using arbitrary clustering or guess a shatter when every player signal is missing.
 
+Distortion follows the pinned `MesmerHelper.EffectCastFinder(DistortionSkill)`: its shared Mind Wrack/Distortion effect
+requires a Distortion buff application on the same caster within the strict 10 ms server window. EI's `HasGainedBuff`
+accepts initial applications as corroboration, but a buff alone cannot create a cast. Core and Mirage are eligible;
+Chronomancer requires GW2 build 135242 or later. Virtuoso and Troubadour are excluded.
+
 Other shatters are emitted only by listed ordinary finders and their declared build/effect gates. Initial Time Anchored
 state cannot create Continuum Split through an ordinary buff-gain finder. Unsupported custom predicates remain omitted;
 there is no generic shatter damage fallback or reconstructed opening Mimic.

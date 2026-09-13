@@ -8,22 +8,22 @@ import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 test('condition payouts retain full and partial attribution independently of skill grouping', () => {
   const series = buildChartSeries(
     {
-      dpsStartTime: 1,
-      deathTime: 4,
+      dpsStartTime: 0.36,
+      deathTime: 4.36,
       resolvedEvents: [
         {
           type: 'condition',
           condition: 'Torment',
           name: 'Player application',
           actorType: 'player',
-          at: 0.5,
+          at: 0.86,
           stacks: 2,
           damageTicks: [
             { at: 0, damage: 999, fraction: 1 },
-            { at: 1, damage: 20, fraction: 0.5 },
-            { at: 2, damage: 40, fraction: 1 },
-            { at: 4, damage: 10, fraction: 0.25 },
-            { at: 5, damage: 999, fraction: 1 }
+            { at: 1.36, damage: 20, fraction: 0.5 },
+            { at: 2.36, damage: 40, fraction: 1 },
+            { at: 4.36, damage: 10, fraction: 0.25 },
+            { at: 5.36, damage: 999, fraction: 1 }
           ]
         },
         {
@@ -32,24 +32,24 @@ test('condition payouts retain full and partial attribution independently of ski
           name: 'Clone application',
           actorType: 'summon',
           summonKind: 'clone',
-          at: 1.96,
+          at: 2.32,
           stacks: 1,
           damageTicks: [
-            { at: 2, damage: 2, fraction: 0.04 },
-            { at: 3, damage: 50, fraction: 1 },
-            { at: 4, damage: 48, fraction: 0.96 }
+            { at: 2.36, damage: 2, fraction: 0.04 },
+            { at: 3.36, damage: 50, fraction: 1 },
+            { at: 4.36, damage: 48, fraction: 0.96 }
           ]
         },
         {
           type: 'condition',
           condition: 'Torment',
           name: 'Rounded to zero',
-          at: 1.99,
+          at: 2.35,
           stacks: 0.01,
-          damageTicks: [{ at: 2, damage: 0, fraction: 0.04 }]
+          damageTicks: [{ at: 2.36, damage: 0, fraction: 0.04 }]
         },
-        { type: 'condition', condition: 'Burning', at: 1, stacks: 1, damageTicks: [{ at: 2, damage: 100 }] },
-        { type: 'damage', at: 2, damage: 500 }
+        { type: 'condition', condition: 'Burning', at: 1.36, stacks: 1, damageTicks: [{ at: 2.36, damage: 100 }] },
+        { type: 'damage', at: 2.36, damage: 500 }
       ]
     },
     250,
@@ -59,10 +59,10 @@ test('condition payouts retain full and partial attribution independently of ski
   assert.deepEqual(
     ticks.map(({ t, v }) => [t, v]),
     [
-      [0, 20],
-      [1000, 42],
-      [2000, 50],
-      [3000, 58]
+      [1000, 20],
+      [2000, 42],
+      [3000, 50],
+      [4000, 58]
     ]
   );
   for (const tick of ticks)
@@ -79,8 +79,9 @@ test('condition payouts retain full and partial attribution independently of ski
     ]
   );
   assert.equal(ticks[1].contributions[1].actor, 'clone');
-  assert.equal(ticks[1].contributions[1].appliedAtMs, 960);
-  assert.equal(ticks[0].contributions[0].appliedAtMs, -500);
+  assert.equal(ticks[1].contributions[1].appliedAtMs, 1960);
+  assert.equal(ticks[0].contributions[0].appliedAtMs, 500);
+  assert.equal(series.durationMs, 4000);
   assert.equal(ticks[0].contributions[0].stacks, 2);
   assert.equal(series.conditionDamage.Burning[0].contributions[0].fraction, undefined);
   assert.deepEqual(series.skillDamage, {});

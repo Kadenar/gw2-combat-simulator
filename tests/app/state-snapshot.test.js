@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 test('critical chance tooltips list contributors and cap behavior', () => {
@@ -101,4 +103,45 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
     });
     assert.equal(items.find((item) => item.id === 'relic:Relic of the Deadeye')?.value, waitMs ? undefined : '8.0s');
   }
+});
+
+// Conversion countdowns follow the actual scheduled grants, including separate entities, repeats, and cursor history.
+test('Chronomancer active state shows only pending conversions from phantasms already summoned', () => {
+  const result = simulateGw2({
+    profession: mesmerProfession,
+    rotation: ['Phantasmal Warlock', { type: 'wait', durationMs: 12000 }],
+    config: {
+      specialization: 'Chronomancer',
+      selectedTraitIds: [MESMER_TRAIT.CHRONOPHANTASMA],
+      primaryWeapon: 'Staff',
+      initialResource: 0
+    }
+  });
+  const summon = result.events.find((event) => event.type === 'mesmer.phantasm-summoned');
+  const conversions = result.events.filter(
+    (event) => event.type === 'resource' && event.reason === 'Phantasmal Warlock phantasm conversion'
+  );
+  assert.deepEqual(
+    summon.conversionTimes,
+    conversions.map((event) => event.at)
+  );
+  const snapshot = (at) =>
+    rotationStateSnapshot({
+      build: { rotation: ['Phantasmal Warlock', '__wait'] },
+      results: result,
+      profession: mesmerProfession,
+      rotationInsertionIndex: 1,
+      adapter: {
+        eliteSpecialization: () => 'Chronomancer',
+        rotationEndStateAt: () => ({ time: at * 1000, profession: {} })
+      }
+    }).items.filter((item) => item.id.startsWith('chronomancer-phantasm:'));
+
+  assert.deepEqual(snapshot(summon.at - 0.1), []);
+  const [pending] = snapshot(summon.at);
+  assert.equal(pending.label, 'Phantasmal Warlock → clone');
+  assert.equal(pending.value, conversions.map((event) => `${(event.at - summon.at).toFixed(3)}s`).join(', '));
+  const between = (conversions[0].at + conversions[1].at) / 2;
+  assert.equal(snapshot(between)[0].value, `${(conversions[1].at - between).toFixed(3)}s`);
+  assert.deepEqual(snapshot(conversions[1].at + 0.1), []);
 });

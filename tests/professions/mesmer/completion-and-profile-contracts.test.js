@@ -10,6 +10,46 @@ import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 
+// Committed Warlock interrupts reserve the remaining cast lane; early cancellations release it.
+test('Warlock retains its cast lockout only after commitment', () => {
+  const config = { specialization: 'Core', primaryWeapon: 'Staff', secondaryWeapon: '' };
+  const completed = simulateMesmer(['Phantasmal Warlock', 'Winds of Chaos'], config);
+
+  for (const interruptMs of [100, 700]) {
+    const result = simulateMesmer([{ name: 'Phantasmal Warlock', interruptMs }, 'Winds of Chaos'], config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[1].start, interruptMs === 100 ? interruptMs : completed.steps[1].start);
+  }
+});
+
+// Once summoned, a Duelist survives a cancelled player animation and a weapon swap through its repeat and conversion.
+test('committed Duelist interruptions preserve the eventual clone while early cancellations do not', () => {
+  for (const interruptMs of [100, 400]) {
+    const result = simulateMesmer(
+      [
+        { name: 'Phantasmal Duelist', interruptMs },
+        'Swap Weapons',
+        'Winds of Chaos',
+        { type: 'wait', durationMs: 10000 }
+      ],
+      {
+        specialization: 'Chronomancer',
+        selectedTraitIds: [TRAIT.CHRONOPHANTASMA],
+        initialResource: 0,
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Pistol',
+        weaponSet2Primary: 'Staff',
+        weaponSet2Secondary: ''
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.resource, interruptMs === 100 ? 0 : 1);
+    const duelist = result.steps.find((step) => step.skill === 'Phantasmal Duelist');
+    const nextCast = result.steps.find((step) => step.skill === 'Winds of Chaos');
+    assert.equal(nextCast.start, interruptMs === 100 ? duelist.end : duelist.start + duelist.fullCastMs);
+  }
+});
+
 // Cancelled completions retain existing cooldowns instead of granting successful reset effects.
 test('cancelled Ether preserves an established phantasm cooldown', () => {
   const rotation = ['Phantasmal Swordsman', { name: 'Signet of the Ether', interruptMs: 100 }];

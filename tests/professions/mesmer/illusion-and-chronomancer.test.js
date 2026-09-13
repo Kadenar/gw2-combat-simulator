@@ -659,19 +659,19 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
   assert.deepEqual(
     normalConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 4.9201],
-      [1, 5.0201]
+      [1, 4.9601],
+      [1, 5.0601]
     ]
   );
   assert.deepEqual(
     chronoConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 9.2801],
-      [1, 9.3201]
+      [1, 9.3201],
+      [1, 9.3601]
     ]
   );
-  assert.ok(Math.abs(proc.at - 4.92) < 0.00001);
-  assert.ok(Math.abs(repeat.at - 6.4) < 0.00001);
+  assert.ok(Math.abs(proc.at - 4.96) < 0.00001);
+  assert.ok(Math.abs(repeat.at - 6.44) < 0.00001);
 
   const normalDamage = normal.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Warlock' && event.summonKind === 'phantasm'
@@ -818,7 +818,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
   assert.deepEqual(
     triggers.map((event) => Number(event.at.toFixed(4))),
-    [0.84, 4.92, 9.2801, 9.3201]
+    [0.88, 4.96, 9.3201, 9.3601]
   );
 });
 
