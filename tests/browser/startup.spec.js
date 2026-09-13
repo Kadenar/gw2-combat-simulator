@@ -150,7 +150,7 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await page.screenshot({ path: testInfo.outputPath('loading-mobile.png') });
 
     releaseModule();
-    await expect(overlay.getByRole('status')).toHaveText('Preparing your build workspace…');
+    await expect(overlay.getByRole('status')).toHaveText('Loading builds and controls…');
     releaseTemplates();
     await expect(overlay).toBeHidden();
     await expect(page.locator('#app')).not.toHaveAttribute('inert');

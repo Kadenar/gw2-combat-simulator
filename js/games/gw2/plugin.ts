@@ -13,7 +13,7 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
   ]);
   // Report the real data-to-render transition and keep unfinished controls out of keyboard navigation.
   const loadingStatus = root.getElementById('loading-status');
-  if (loadingStatus) loadingStatus.textContent = 'Preparing your build workspace…';
+  if (loadingStatus) loadingStatus.textContent = 'Loading builds and controls…';
   const app = new ProfessionApp(adapter);
   const globalScope = (root.defaultView || window) as unknown as Record<string, unknown>;
   globalScope.professionApp = app;
