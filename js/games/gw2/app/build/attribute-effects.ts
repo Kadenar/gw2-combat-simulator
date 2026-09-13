@@ -56,6 +56,17 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
     controls.push(control);
   };
 
+  // Equipped Aristocracy exposes its active stacks without changing the saved build.
+  if (app.build.relic === 'Aristocracy')
+    add({
+      key: 'aristocracy',
+      label: 'Relic of the Aristocracy',
+      group: 'Other buffs',
+      kind: 'special',
+      max: 5,
+      description: 'stacks; +3% Condition Duration per stack'
+    });
+
   const trait = (name: string, control: Omit<AttributeEffectControl, 'label' | 'group'>): void => {
     if (has(name)) add({ label: name, group: 'Trait conditionals', ...control });
   };

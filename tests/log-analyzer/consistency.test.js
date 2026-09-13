@@ -137,23 +137,28 @@ test('both importers order tied legend swaps before weapon swaps without reversi
   }
 });
 
-test('both importers preserve idle after cancelled and committed retained-lockout casts', () => {
-  // An idle gap beyond boundary jitter follows the occupied lane, which ends early only below the commit cutoff.
+test('both importers allow swaps during retained lockout and count only subsequent idle as a wait', () => {
+  // Swapping ends the animation immediately; only idle beyond the retained cast lane needs an explicit wait.
   const attack = {
     ...fixtureSkill,
     castTimeMs: 600,
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true
   };
-  const skills = [attack, { ...fixtureSkill, id: 1001, name: 'Follow-up' }];
-  for (const duration of [80, 400]) {
-    const nextStart = 1000 + (duration < 400 ? duration : 600) + 80;
+  const skills = [
+    attack,
+    { ...fixtureSkill, id: 1001, name: 'Follow-up' },
+    { id: -3, name: 'Swap Weapons', castTimeMs: 0, effects: [] }
+  ];
+  for (const [duration, idle] of [80, 400].flatMap((duration) => [0, 80].map((idle) => [duration, idle]))) {
+    const nextStart = 1000 + (duration < 400 ? duration : 600) + idle;
     const evtc = reconstructEvtcRotation(
       log({
         skills,
         events: [
           evtcEvent({ time: 1000, skillId: attack.id, stateChange: 67, value: 600 }),
           evtcEvent({ time: 1000 + duration, skillId: attack.id, stateChange: 68, activation: 4, value: duration }),
+          evtcEvent({ time: 1000 + duration, stateChange: 11, target: 4n }),
           evtcEvent({ time: nextStart, skillId: 1001, stateChange: 67, value: 400 }),
           evtcEvent({ time: nextStart + 400, skillId: 1001, stateChange: 68, activation: 3, value: 400 })
         ]
@@ -169,12 +174,17 @@ test('both importers preserve idle after cancelled and committed retained-lockou
             profession: 'Mesmer',
             rotation: [
               { id: attack.id, skills: [{ castTime: 1000, duration, timeGained: -duration }] },
+              { id: 65001, skills: [{ castTime: 1000 + duration, duration: 0 }] },
               { id: 1001, skills: [{ castTime: nextStart, duration: 400, timeGained: 0 }] }
             ]
           }
         ],
         phases: [{ start: 1000, end: 2500, name: 'Full Fight' }],
-        skillMap: { s1000: { name: attack.name }, s1001: { name: 'Follow-up' } }
+        skillMap: {
+          s1000: { name: attack.name },
+          s1001: { name: 'Follow-up' },
+          s65001: { name: 'Weapon Swap', isSwap: true }
+        }
       },
       { skills }
     );
@@ -183,7 +193,8 @@ test('both importers preserve idle after cancelled and committed retained-lockou
         result.rotation.filter((command) => command.name !== '__combat_start'),
         [
           { name: attack.name, skillId: attack.id, interruptMs: duration },
-          { name: '__wait', waitMs: 80 },
+          { name: 'Swap Weapons', skillId: -3 },
+          ...(idle ? [{ name: '__wait', waitMs: idle }] : []),
           { name: 'Follow-up', skillId: 1001 }
         ]
       );

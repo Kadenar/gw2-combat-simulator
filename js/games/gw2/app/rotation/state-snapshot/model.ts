@@ -4,6 +4,7 @@ import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/shared/context.js';
+import { procStackLabel } from '#gw2/app/rotation/timeline/model.js';
 
 function percent(value: number, signed = false): string {
   const numeric = Number(value || 0) * 100;
@@ -59,17 +60,24 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
 
   // Relic proc deadlines include refreshes and surviving precast buffs; ignore activations after the cursor.
   const relicExpirations = new Map<string, number>();
+  const relicStacks = new Map<string, { start: number; label: string }>();
   for (const proc of result?.procSteps || []) {
     if (proc.type !== 'relic_proc' || proc.start > timeMs || !(Number(proc.expiresAt) > timeMs)) continue;
     relicExpirations.set(proc.skill, Math.max(relicExpirations.get(proc.skill) || 0, Number(proc.expiresAt)));
+    // Stack counts describe the latest activation at the cursor, even when proc records arrive out of order.
+    if (proc.start >= (relicStacks.get(proc.skill)?.start ?? -Infinity)) {
+      relicStacks.set(proc.skill, { start: proc.start, label: procStackLabel(proc) });
+    }
   }
 
   for (const [name, expiresAt] of relicExpirations) {
+    const stacks = relicStacks.get(name)?.label;
+    const remaining = `${((expiresAt - timeMs) / 1000).toFixed(1)}s`;
     items.push({
       id: `relic:${name}`,
       label: name,
-      value: `${((expiresAt - timeMs) / 1000).toFixed(1)}s`,
-      title: `${name} buff time remaining`
+      value: stacks ? `${stacks} stacks` : remaining,
+      title: stacks ? `${name}: ${stacks} stacks, ${remaining} remaining` : `${name} buff time remaining`
     });
   }
 

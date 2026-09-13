@@ -1,6 +1,8 @@
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
@@ -160,7 +162,16 @@ export function calculateBuffedAttributes(
   }
 
   const query = createGw2CombatQuery({ profession, config: queryConfig, events });
-  const runtime = { profession: professionState, activeWeaponSet: weaponSet, boons: liveBoons, combatStartTime: 0 };
+  // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.
+  const relic = values.aristocracy ? createRelicRuntime('Aristocracy') : undefined;
+  if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy), event }];
+  const runtime = {
+    profession: professionState,
+    activeWeaponSet: weaponSet,
+    boons: liveBoons,
+    combatStartTime: 0,
+    relic
+  };
   const stats = query.statsAt(1, event, runtime);
   const critical = query.critical(event, 1, runtime);
   const set = (name: string, final: number): void => {
@@ -174,7 +185,12 @@ export function calculateBuffedAttributes(
 
   set('Critical Chance', (critical.chanceBeforeCap ?? critical.chance) * 100);
   set('Critical Damage', critical.damage * 100);
-  set('Condition Duration', data.attributes['Condition Duration'].final + (stats.expertise - primaries.expertise) / 15);
+  set(
+    'Condition Duration',
+    data.attributes['Condition Duration'].final +
+      (stats.expertise - primaries.expertise) / 15 +
+      relicConditionDurationBonus(runtime, 1) * 100
+  );
   set('Boon Duration', data.attributes['Boon Duration'].final + (stats.concentration - primaries.concentration) / 15);
   if (values.conjure === 'Frost Bow') {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;

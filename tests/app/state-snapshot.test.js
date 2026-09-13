@@ -105,6 +105,37 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
   }
 });
 
+// Stack snapshots follow cursor history and reset after expiry, independently of proc array order.
+test('Aristocracy shows current stacks with the remaining duration in its tooltip', () => {
+  const proc = (start, stacks) => ({
+    type: 'relic_proc',
+    skill: 'Relic of Aristocracy',
+    start,
+    expiresAt: start + 8000,
+    detail: `${stacks}/5 stacks`
+  });
+  const app = {
+    build: { rotation: ['a', 'b'] },
+    results: {
+      endState: { time: 11000 },
+      procSteps: [proc(2000, 3), proc(11000, 1), proc(0, 1), proc(1000, 2)]
+    },
+    profession: { ui: { rotationStateSnapshot: () => [] } },
+    adapter: { eliteSpecialization: () => 'Core', rotationEndStateAt: () => ({ time: 1500 }) },
+    rotationInsertionIndex: 1
+  };
+  const item = rotationStateSnapshot(app).items[0];
+  assert.equal(item.value, '2/5 stacks');
+  assert.equal(item.title, 'Relic of Aristocracy: 2/5 stacks, 7.5s remaining');
+  app.rotationInsertionIndex = null;
+  app.results.endState.time = 2500;
+  assert.equal(rotationStateSnapshot(app).items[0].value, '3/5 stacks');
+  app.results.endState.time = 10000;
+  assert.deepEqual(rotationStateSnapshot(app).items, []);
+  app.results.endState.time = 11000;
+  assert.equal(rotationStateSnapshot(app).items[0].value, '1/5 stacks');
+});
+
 // Conversion countdowns follow the actual scheduled grants, including separate entities, repeats, and cursor history.
 test('Chronomancer active state shows only pending conversions from phantasms already summoned', () => {
   const result = simulateGw2({

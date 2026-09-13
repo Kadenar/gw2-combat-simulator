@@ -61,6 +61,36 @@ function previewApp(name, traitNames = [], specialization = null) {
 const stats = (app, input = {}) => calculateBuffedAttributes(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
 
+// Relic stacks affect duration only while equipped, and preview state never leaks into the build.
+test('Aristocracy previews bounded condition duration stacks for every profession', () => {
+  for (const profession of Object.keys(adapters)) {
+    const app = previewApp(profession);
+    app.build.relic = 'Aristocracy';
+    app.adapter.recalculate(app);
+    const original = structuredClone({ build: app.build, attributes: app.attributeData });
+    const control = attributeEffectControls(app).find((control) => control.key === 'aristocracy');
+    assert.equal(control.max, 5);
+    const base = stats(app);
+    for (const [input, stacks] of [
+      [0, 0],
+      [2, 2],
+      [5, 5],
+      [99, 5],
+      [-1, 0]
+    ]) {
+      const current = stats(app, { aristocracy: input });
+      close(current['Condition Duration'].final, base['Condition Duration'].final + stacks * 3);
+      assert.equal(current.Expertise.final, base.Expertise.final);
+    }
+
+    assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
+    app.build.relic = '';
+    app.adapter.recalculate(app);
+    assert.ok(!attributeEffectControls(app).some((control) => control.key === 'aristocracy'));
+    close(stats(app, { aristocracy: 5 })['Condition Duration'].final, stats(app)['Condition Duration'].final);
+  }
+});
+
 test('boons are independent, bounded, reversible and isolated from the displayed weapon set and saved build', () => {
   const app = previewApp('guardian');
   app.attributeWeaponSet = 2;
