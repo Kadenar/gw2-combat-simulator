@@ -34,6 +34,8 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly stacks?: number;
   readonly condition?: string;
   readonly application?: Gw2ResolvedConditionApplication;
+  readonly conditionGroup?: Gw2ResolverConditionGroup;
+  readonly wakeToken?: number;
   readonly fraction?: number;
   readonly fixedDuration?: boolean;
   readonly coefficient?: number;
@@ -97,6 +99,7 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly expiresAt: number;
   readonly naturalExpiresAt: number;
   removedAt?: number;
+  settledThrough: number;
   damage: number;
   damagingStackSeconds: number;
   readonly damageTicks: Array<{
@@ -115,6 +118,18 @@ export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
 
 export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
   stacks: Gw2ResolverConditionStack[];
+  groups?: Map<string | Gw2ResolvedConditionApplication, Gw2ResolverConditionGroup>;
+}
+
+/** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
+export interface Gw2ResolverConditionGroup {
+  readonly owner: string | Gw2ResolvedConditionApplication;
+  readonly condition: string;
+  readonly anchor: number;
+  pulseIndex: number;
+  wakeToken: number;
+  wakeAt: number | null;
+  applications: Gw2ResolvedConditionApplication[];
 }
 
 export interface Gw2DamageBreakdownEntry {
@@ -196,6 +211,8 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   environmentDamage: number;
   environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
   conditionState: Map<string, Gw2ResolverConditionState>;
+  /** All condition/owner packets follow this target clock until its final unsettled group is drained. */
+  conditionClock?: { readonly anchor: number; readonly groups: Set<Gw2ResolverConditionGroup> };
   resolved: Gw2ResolverEvent[];
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;
@@ -268,12 +285,20 @@ export interface Gw2HitResolution {
   ): Gw2ResolverEvent;
 }
 
-export interface Gw2ConditionTickResult {
+export interface Gw2ConditionTickContribution {
   readonly application: Gw2ResolvedConditionApplication;
   readonly damage: number;
+  readonly rawDamage: number;
   readonly fraction: number;
   readonly perStack: number;
   readonly stackSeconds: number;
+}
+
+/** A single rounded packet with integer shares retained only for application attribution. */
+export interface Gw2ConditionTickResult {
+  readonly condition: string;
+  readonly damage: number;
+  readonly contributions: readonly Gw2ConditionTickContribution[];
 }
 
 export interface Gw2ConditionResolution {

@@ -16,7 +16,7 @@ import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 function tormentDamageAtMight(might) {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Ether Bolt', { name: '__wait', waitMs: 1000 }],
+    ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
       specialization: 'Core',
       primaryWeapon: 'Scepter',
@@ -42,7 +42,9 @@ function tormentDamageAtMight(might) {
     })
   );
 
-  return result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment').damage;
+  return result.resolvedEvents
+    .find((event) => event.type === 'condition' && event.condition === 'Torment')
+    .damageTicks.find((tick) => tick.fraction === 1).damage;
 }
 
 test('Might increases condition damage as well as strike power', () => {
@@ -100,7 +102,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   });
 
   assert.ok(result.conditionDamage > 0);
-  assert.equal(result.firstHitTime, 0.52);
+  assert.equal(result.firstHitTime, 1);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.52);
   assert.deepEqual(result.warnings, ['resolver handoff warning']);
@@ -171,7 +173,8 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
     applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
     1.8
   );
-  assert.equal(result.conditionDamage, 82 + 23 + 43);
+  // At 1s: 82 * 1.25 = 102.5 rounds to 102; at 2s: 82 * (0.28 + 0.27) rounds to 45.
+  assert.equal(result.conditionDamage, 102 + 45);
 });
 
 function resolveBleedThrough(
@@ -233,8 +236,8 @@ function resolveBleedThrough(
   });
 }
 
-// The rounded remainder occurs only at natural expiry, never at an earlier observation cutoff.
-test('partial condition ticks round up to 40ms without rounding full seconds or observation cutoffs', () => {
+// Natural expiry caps elapsed duration; the next shared pulse settles its remainder, never an observation cutoff.
+test('condition lifetimes round up to 40ms and settle on shared pulses without endpoint damage', () => {
   for (const [duration, expected, damage] of [
     [3 * 1.6719, 5.04, 413],
     [5.04, 5.04, 413],
@@ -244,7 +247,7 @@ test('partial condition ticks round up to 40ms without rounding full seconds or 
     const result = resolveBleedThrough(6, { duration });
     const application = result.resolvedEvents.find((event) => event.type === 'condition');
     assert.equal(application.effectiveDuration, expected);
-    assert.equal(application.damageTicks.at(-1).at, expected);
+    assert.equal(application.damageTicks.at(-1).at, Math.ceil(expected));
     assert.equal(application.damage, damage);
   }
 
@@ -277,7 +280,7 @@ test('condition damage uses half-even rounding before accumulation and target de
 
     const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1956, output });
     assert.equal(result.conditionDamage, 1956);
-    assert.equal(result.deathTime, 5.04);
+    assert.equal(result.deathTime, 6);
     if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 16);
   }
 });
@@ -302,7 +305,7 @@ test('observation horizons omit future condition ticks without creating endpoint
   assert.equal(clipped.conditionDamage, extendedApplication.damageTicks[0].damage);
 });
 
-test('target death occurs on natural condition ticks rather than the observation horizon', () => {
+test('target death occurs on shared condition pulses rather than expiry or the observation horizon', () => {
   const beforeNextTick = resolveBleedThrough(1.5, { targetHealth: 100 });
   const throughNextTick = resolveBleedThrough(2, { targetHealth: 100 });
   const throughNaturalRemainder = resolveBleedThrough(2, { duration: 1.5, targetHealth: 100 });
@@ -316,12 +319,12 @@ test('target death occurs on natural condition ticks rather than the observation
   assert.equal(halfHealthTarget.deathTime, 2);
   assert.equal(deadTarget.deathTime, 0);
   assert.equal(deadTarget.totalDamage, 0);
-  assert.equal(throughNaturalRemainder.deathTime, 1.52);
+  assert.equal(throughNaturalRemainder.deathTime, 2);
   assert.deepEqual(
     remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
     [
       { at: 1, fraction: 1 },
-      { at: 1.52, fraction: 0.52 }
+      { at: 2, fraction: 0.52 }
     ]
   );
 });
@@ -720,7 +723,7 @@ test('profession condition-duration hooks remain under the GW2 cap', () => {
 test('stationary torment uses the current PvE formula', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
-    ['Ether Bolt', { name: '__wait', waitMs: 1000 }],
+    ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
     defaultSimulationConfig({
       specialization: 'Core',
       primaryWeapon: 'Scepter',
@@ -747,7 +750,7 @@ test('stationary torment uses the current PvE formula', () => {
   );
   const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
 
-  assert.equal(torment.damage, 122);
+  assert.equal(torment.damageTicks.find((tick) => tick.fraction === 1).damage, 122);
 });
 
 test('static and condition-specific duration bonuses reach the resolver', () => {

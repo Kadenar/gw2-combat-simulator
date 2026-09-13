@@ -699,6 +699,16 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
     [6, 6]
   );
   assert.ok(normalTorment.every((event) => event.source === 'Phantasm'));
+  // Each entity's strikes and conditions retain the same owner; resummoned entities own separate packets.
+  const originalOwners = new Set(normalDamage.map((event) => event.summonOwner));
+  assert.ok(!originalOwners.has(undefined));
+  assert.equal(originalOwners.size, normalTorment.length);
+  assert.deepEqual(new Set(normalTorment.map((event) => event.summonOwner)), originalOwners);
+  assert.ok(repeatedDamage.every((event) => event.summonOwner && !originalOwners.has(event.summonOwner)));
+  assert.deepEqual(
+    new Set(repeatedTorment.map((event) => event.summonOwner)),
+    new Set(repeatedDamage.map((event) => event.summonOwner))
+  );
   assert.deepEqual(
     {
       coefficient: repeatedDamage.reduce((sum, event) => sum + event.coefficient, 0),

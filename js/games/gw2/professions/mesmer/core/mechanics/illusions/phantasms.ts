@@ -24,6 +24,7 @@ export interface MesmerPhantasmExecution {
   readonly skill: MesmerSkill;
   // Index among co-spawned entities (e.g. Bountiful Blades spawns 2 Berserkers: 0 and 1).
   readonly entityIndex: number;
+  readonly ownerId: string;
   // Scales coefficient down when multiple phantasms share a skill's total damage budget (Bountiful Blades: 0.66).
   readonly damageMultiplier: number;
   readonly summonAt: number;
@@ -101,6 +102,8 @@ export function createPhantasmEffectController({
   addDamage,
   balanceProfile
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
+  // Each summoned entity owns its condition packets independently of skill and modifier inheritance.
+  let nextOwnerId = 0;
   const prepare = (
     skill: MesmerSkill,
     castStart: number,
@@ -143,6 +146,7 @@ export function createPhantasmEffectController({
       return {
         skill,
         entityIndex,
+        ownerId: `mesmer.phantasm:${nextOwnerId++}`,
         damageMultiplier: Number(spawnModifier?.damageMultiplier ?? 1),
         summonAt,
         damageAt,
@@ -284,7 +288,8 @@ export function createPhantasmEffectController({
       ...group,
       source: 'Phantasm',
       actorType: 'summon',
-      summonKind: 'phantasm'
+      summonKind: 'phantasm',
+      summonOwner: execution.ownerId
     };
     const baseTicks = sourcedGroup.ticks?.length ? sourcedGroup.ticks : null;
     const damageGroup: MesmerDamageGroup = {
@@ -417,6 +422,7 @@ export function createPhantasmEffectController({
           {
             name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
             ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
+            summonOwner: `${execution.ownerId}:repeat`,
             multiplier: repeatPolicy.damageMultiplier
           }
         ).map((event) => event.at);
@@ -445,6 +451,7 @@ export function createPhantasmEffectController({
             {
               name: `${attackDisplayName || execution.skill.name} - ${repeatPolicy.label}`,
               ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
+              summonOwner: `${execution.ownerId}:repeat`,
               multiplier: repeatPolicy.damageMultiplier
             }
           ).map((event) => event.at);
@@ -469,7 +476,8 @@ export function createPhantasmEffectController({
       sourceId: execution.skill.id,
       skillId: execution.skill.id,
       actorType: 'summon' as const,
-      summonKind: 'phantasm' as const
+      summonKind: 'phantasm' as const,
+      summonOwner: execution.ownerId
     };
     const authoredDamageTicks = (label: string) =>
       execution.skill.effects?.find(
@@ -560,7 +568,7 @@ export function createPhantasmEffectController({
           },
           'Phantasm',
           `${execution.skill.name} - ${repeatPolicy.label}`,
-          conditionEventExtra
+          { ...conditionEventExtra, summonOwner: `${execution.ownerId}:repeat` }
         );
       } else {
         addCondition(
@@ -569,7 +577,7 @@ export function createPhantasmEffectController({
           condition,
           'Phantasm',
           `${execution.skill.name} - ${repeatPolicy.label}`,
-          conditionEventExtra
+          { ...conditionEventExtra, summonOwner: `${execution.ownerId}:repeat` }
         );
       }
     }

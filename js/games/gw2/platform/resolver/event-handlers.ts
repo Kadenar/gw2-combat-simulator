@@ -107,7 +107,8 @@ export function createGw2ResolverEventHandlers({
       }
 
       const resolved = handleConditionTick(ctx, event);
-      reactions.dispatch('condition-tick.resolved', ctx, event, { resolved });
+      // Stale, cancelled, and precombat wakes advance no combat reaction.
+      if (resolved) reactions.dispatch('condition-tick.resolved', ctx, event, { resolved });
     },
 
     control(ctx, event) {
