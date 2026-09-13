@@ -25,6 +25,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'combat_start',
   'damage',
   'condition',
+  'condition_buffer',
   'condition_tick',
   'control',
   'blind',

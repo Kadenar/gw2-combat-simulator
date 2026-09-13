@@ -19,7 +19,7 @@ interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: Gw2HitResolution;
   readonly conditions: Pick<
     Gw2ConditionResolution,
-    'activeConditionStackCount' | 'handleConditionTick' | 'handleEnvironmentConditionTick'
+    'activeConditionStackCount' | 'handleConditionTick' | 'handleConditionBuffer' | 'handleEnvironmentConditionTick'
   >;
   readonly reactions: Gw2ResolverReactionRegistry;
 }
@@ -98,6 +98,8 @@ export function createGw2ResolverEventHandlers({
       ctx.applyCondition(event);
     },
 
+    // Buffering observes combat state without changing health or dispatching damage reactions.
+    condition_buffer: conditions.handleConditionBuffer,
     condition_tick(ctx, event) {
       // Environment ticks reduce target health but cannot enter any player or
       // equipment reaction pipeline.

@@ -108,6 +108,8 @@ export function createGw2ConditionResolution({
         });
       }
     }
+
+    if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
   }
 
   /** Illusions and player effects share player condition packets; pets and mech remain independent owners. */
@@ -131,7 +133,8 @@ export function createGw2ConditionResolution({
   function pruneGroup(group: Gw2ResolverConditionGroup, at: number): void {
     group.applications = group.applications.filter(
       (application) =>
-        !isRemoved(application, at) && application.settledThrough < application.naturalExpiresAt - EPSILON
+        !isRemoved(application, at) &&
+        (application.bufferedSteps > 0 || application.settledThrough < application.naturalExpiresAt - EPSILON)
     );
   }
 
@@ -168,6 +171,78 @@ export function createGw2ConditionResolution({
     }
   }
 
+  /** Queue one target-wide 40ms sampler so mutable combat state is observed before it changes again. */
+  function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number): void {
+    const at = (Math.floor(after * 25 + EPSILON) + 1) / 25;
+    if (ctx.conditionBufferAt != null || at > ctx.horizon + EPSILON) return;
+    ctx.conditionBufferAt = at;
+    const causalOrder = ctx.queue.currentCausalOrder;
+    ctx.queue.currentCausalOrder = null;
+    try {
+      ctx.queue.enqueue({
+        type: 'condition_buffer',
+        at,
+        source: 'Condition',
+        sourceId: 'condition.buffer',
+        actorType: 'effect'
+      });
+    } finally {
+      ctx.queue.currentCausalOrder = causalOrder;
+    }
+  }
+
+  /** Sample every owner before any whole-second payout; never retroactively query earlier mutable state. */
+  function bufferConditions(ctx: Gw2ResolverRuntime, at: number): void {
+    if (ctx.conditionBufferedAt != null && at <= ctx.conditionBufferedAt + EPSILON) return;
+    ctx.conditionBufferedAt = at;
+    const step = Math.round(at * 25);
+    for (const state of ctx.conditionState.values()) {
+      for (const group of state.groups?.values() ?? []) {
+        for (const application of group.applications) {
+          if (isRemoved(application, at)) continue;
+          if (
+            step > Math.floor(application.settledThrough * 25 + EPSILON) &&
+            step <= Math.floor(application.naturalExpiresAt * 25 + EPSILON)
+          ) {
+            const stats = ctx.query.statsAt(at, application, ctx);
+            // Sum rates before dividing by 25 to avoid accumulating repeated 0.04 multiplication noise.
+            application.bufferedRate +=
+              conditionRate(ctx, group.condition, stats.conditionDamage) *
+              ctx.query.conditionMultiplier(group.condition, at, application, ctx);
+            application.bufferedSteps += 1;
+          }
+
+          application.settledThrough = Math.min(at, application.naturalExpiresAt);
+        }
+      }
+    }
+
+    for (const entry of ctx.environmentConditions.values()) {
+      const vulnerability = 1 + Number(ctx.query.vulnerabilityStacksAt(at, ctx) || 0) / 100;
+      entry.bufferedRate = (entry.bufferedRate ?? 0) + conditionTickDamage(entry.name, 0) * vulnerability;
+      // Environment payout events are combat-gated by the event loop; discard their precombat packets here.
+      if (step % 25 === 0 && ctx.combatStartTime != null && at < ctx.combatStartTime - EPSILON) entry.bufferedRate = 0;
+    }
+  }
+
+  function handleConditionBuffer(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+    ctx.conditionBufferAt = undefined;
+    bufferConditions(ctx, event.at);
+    const step = Math.round(event.at * 25);
+    // Natural expiry stops sampling, while the owner wake retains its buffered remainder until payout.
+    const active =
+      ctx.environmentConditions.size > 0 ||
+      [...ctx.conditionState.values()].some((state) =>
+        [...(state.groups?.values() ?? [])].some((group) =>
+          group.applications.some(
+            (application) =>
+              !isRemoved(application, event.at) && Math.floor(application.naturalExpiresAt * 25 + EPSILON) > step
+          )
+        )
+      );
+    if (active) scheduleBuffer(ctx, event.at);
+  }
+
   function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null {
     const name = ctx.helpers.conditionName(event.condition);
     const queryEvent = event as unknown as Gw2ResolverEvent;
@@ -191,6 +266,8 @@ export function createGw2ConditionResolution({
       expiresAt: Math.min(ctx.horizon, expiresAt),
       naturalExpiresAt: expiresAt,
       settledThrough: event.at,
+      bufferedRate: 0,
+      bufferedSteps: 0,
       damage: 0,
       damagingStackSeconds: 0,
       damageTicks: []
@@ -232,6 +309,7 @@ export function createGw2ConditionResolution({
     }
 
     group.applications.push(application);
+    scheduleBuffer(ctx, event.at);
     scheduleGroup(ctx, group);
 
     reactions.dispatch('condition.applied', ctx, application, {
@@ -241,30 +319,25 @@ export function createGw2ConditionResolution({
     return application;
   }
 
-  /** Resolve a shared packet against one pre-packet state, then allocate its rounded total for reporting. */
+  /** Commit already sampled damage as one rounded packet, then allocate integer shares for reporting. */
   function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null {
     const group = event.conditionGroup;
     if (!group || event.wakeToken !== group.wakeToken || group.wakeAt == null) return null;
     group.wakeAt = null;
+    bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
     group.pulseIndex += 1;
     const canDamage = ctx.combatStartTime == null || event.at >= ctx.combatStartTime - EPSILON;
     const contributions = [];
     for (const application of group.applications) {
-      const through = Math.min(event.at, application.naturalExpiresAt);
-      // Count completed global 40ms steps after application through expiry; stats are sampled only at payout.
-      // Integer step differences preserve the full rounded lifetime without rounding both split ends upward.
-      const fraction =
-        Math.max(0, Math.floor(through * 25 + EPSILON) - Math.floor(application.settledThrough * 25 + EPSILON)) / 25;
-      application.settledThrough = through;
-      // Precombat wakes advance settlement and cadence without accumulating a catch-up hit.
+      const fraction = application.bufferedSteps / 25;
+      const rawDamage = (application.bufferedRate * application.stacks) / 25;
+      application.bufferedRate = 0;
+      application.bufferedSteps = 0;
+      // Precombat packets are discarded; payout never resamples stats or invents a catch-up hit.
       if (!canDamage || fraction <= EPSILON) continue;
-      const stats = ctx.query.statsAt(event.at, application, ctx);
-      const perStack =
-        conditionRate(ctx, group.condition, stats.conditionDamage) *
-        ctx.query.conditionMultiplier(group.condition, event.at, application, ctx);
       const stackSeconds = application.stacks * fraction;
-      const rawDamage = perStack * stackSeconds;
+      const perStack = rawDamage / stackSeconds;
       contributions.push({ application, fraction, perStack, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
     }
 
@@ -302,10 +375,9 @@ export function createGw2ConditionResolution({
     const entry = ctx.environmentConditions.get(condition);
     if (!entry || !(stacks > 0)) return;
 
-    // Permanent training conditions have zero Condition Damage. Confusion is
-    // passive-only, while conditionTickDamage keeps Torment stationary here.
-    const vulnerabilityMultiplier = 1 + Number(ctx.query.vulnerabilityStacksAt(event.at, ctx) || 0) / 100;
-    const damage = roundHalfToEven(conditionTickDamage(condition, 0) * stacks * vulnerabilityMultiplier);
+    bufferConditions(ctx, event.at);
+    const damage = roundHalfToEven(((entry.bufferedRate ?? 0) * stacks) / 25);
+    entry.bufferedRate = 0;
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;
@@ -318,6 +390,7 @@ export function createGw2ConditionResolution({
     activeConditionStackCount,
     applyCondition,
     handleConditionTick,
+    handleConditionBuffer,
     initializeEnvironment,
     handleEnvironmentConditionTick
   });

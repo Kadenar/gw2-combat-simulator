@@ -124,8 +124,9 @@ unchanged.
 
 Each owner/condition packet commits all contributions before its tick reaction and the event loop's death check.
 Distinct groups remain separately ordered, including simultaneous packets at the lethal timestamp. Applications at a
-pulse boundary contribute zero buffered time to the preceding interval. Global 40ms steps buffer condition time; current
-stats and modifiers are sampled when the whole-second packet lands. Natural expiry between pulses settles on the next
+pulse boundary contribute zero buffered time to the preceding interval. Global 40ms steps sample current stats and
+modifiers and buffer unrounded damage; whole-second packets commit the stored contributions. All owners sample the
+boundary before any condition payout changes target health. Natural expiry between pulses settles on the next
 synchronized pulse, not at expiry or the observation cutoff. See [Shared condition ticks](SHARED-CONDITION-TICKS.md).
 
 Do not depend on incidental array order. Use:

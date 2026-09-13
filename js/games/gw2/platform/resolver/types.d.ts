@@ -100,6 +100,8 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly naturalExpiresAt: number;
   removedAt?: number;
   settledThrough: number;
+  bufferedRate: number;
+  bufferedSteps: number;
   damage: number;
   damagingStackSeconds: number;
   readonly damageTicks: Array<{
@@ -167,6 +169,7 @@ export interface Gw2EnvironmentConditionTick {
 
 export interface Gw2EnvironmentConditionBreakdownEntry extends Gw2ConditionBreakdownEntry {
   readonly stacks: number;
+  bufferedRate?: number;
   damageTicks: Gw2EnvironmentConditionTick[];
 }
 
@@ -210,6 +213,8 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   environmentDamage: number;
   environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
   conditionState: Map<string, Gw2ResolverConditionState>;
+  conditionBufferAt?: number;
+  conditionBufferedAt?: number;
   resolved: Gw2ResolverEvent[];
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;
@@ -302,6 +307,7 @@ export interface Gw2ConditionResolution {
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
+  handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;
   handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
 }

@@ -1,6 +1,6 @@
 # Shared condition ticks
 
-Status: implemented with the user-specified whole-second clock, 40ms buffering, and packet-time stat sampling.
+Status: implemented with the user-specified whole-second clock, 40ms buffering, and buffer-time stat sampling.
 
 ## Timing contract
 
@@ -8,11 +8,14 @@ All conditions and owners follow one global one-second cadence anchored at simul
 activates queued processing; it does not change that phase. Empty target windows stop unnecessary queued work, and later
 applications still join the same whole-second cadence. No configurable phase offset is currently exposed.
 
-Conditions buffer active time on the global 40ms grid. Each whole-second pulse counts completed steps since the previous
-settlement, capped by natural expiry, then samples current stats and source-specific modifiers to calculate damage.
-Because stats are sampled only when the packet lands, the resolver counts steps lazily at payout instead of scheduling
-25 buffer events per second. Existing natural durations still round upward to 40ms; split contributions use integer step
-differences so a lifetime is never rounded upward twice.
+Conditions sample current stats and source-specific modifiers on each global 40ms step after application, capped by
+natural expiry. A target-wide queued sampler accumulates unrounded contributions while mutable combat state is current;
+whole-second payouts consume those stored values without querying stats again. Existing natural durations still round
+upward to 40ms. Integer buffer-step counts preserve the full lifetime without rounding split contributions twice.
+
+A buff gained halfway through a second affects only subsequent samples. A modifier that expires before payout still
+contributes to the samples taken while it was active. Environment conditions sample target Vulnerability on the same
+40ms grid. All owners sample a whole-second boundary before any condition packet at that timestamp changes health.
 
 For a two-second burn applied at 0.960s with a constant rate of 100 damage per stack-second:
 
@@ -42,14 +45,15 @@ metadata and source-specific damage queries while sharing player rounding. Skill
 identities. Existing trait effects explicitly attributed to the player retain that ownership.
 
 Applications remain the canonical lifetime and reporting records. Owner groups reference them rather than duplicating
-mutable duration state. Each application has a settlement cursor. A group retains one effective queued wake, at an
-integer second on the global cadence. Settled and forcibly removed applications leave the working group, so repeated
-wake scans do not grow with encounter history. A wake token makes obsolete queued events inert.
+mutable duration state. Each application retains its sampling cursor, buffered step count, and sum of sampled damage
+rates. A group retains one effective queued wake, at an integer second on the global cadence. Settled and forcibly
+removed applications leave the working group, so repeated wake scans do not grow with encounter history. A wake token
+makes obsolete queued events inert.
 
-At a pulse, the resolver samples each contributor's current stats and source-specific modifiers against the same
-pre-packet combat state. It sums unrounded contributions and calls the existing half-even rounding function once.
-Integer reporting shares use floors followed by largest fractional remainders; stable application order breaks ties. Two
-equal 29.5 contributions therefore commit 59 damage, attributed as 30 and 29.
+At a pulse, the resolver sums each contributor's buffered unrounded damage and calls the existing half-even rounding
+function once. Stats and modifiers are not resampled during payout. Integer reporting shares use floors followed by
+largest fractional remainders; stable application order breaks ties. Two equal 29.5 contributions therefore commit 59
+damage, attributed as 30 and 29.
 
 All application shares, condition totals, skill breakdowns, and target damage are committed before dispatching one
 `condition-tick.resolved` reaction. The reaction result contains the packet total and its contributions. No production
@@ -59,9 +63,10 @@ feedback, with no second packet-history format or saved-preset migration.
 
 ## Ordering and boundaries
 
-Shared wakes use default priority and do not inherit an application's causal order. Normal causally tagged skill and
-state events at the same timestamp precede them. Explicit priorities retain their meaning; untagged ties follow stable
-insertion order. Distinct owner/condition packets are individually atomic and retain deterministic queue ordering.
+Shared buffer and payout wakes use default priority and do not inherit an application's causal order. Normal causally
+tagged skill and state events at the same timestamp precede them. Explicit priorities retain their meaning; untagged
+ties follow stable insertion order. Distinct owner/condition packets are individually atomic and retain deterministic
+queue ordering.
 
 A packet exactly at Combat Start is eligible. Earlier wakes advance settlement without damage or reactions, so there is
 no later catch-up hit. Stopping observation between pulses produces no endpoint packet, even if natural expiry has
@@ -78,9 +83,9 @@ approximation and condition damage formulas are unchanged.
 
 `tests/platform/gw2/shared-condition-ticks.test.js` covers combined rounding, attribution, owner isolation, the supplied
 cross-condition timeline, empty clock gaps, 40ms buffers, short durations, observation boundaries, permanent conditions,
-packet-time stats, illusion ownership, atomic packets, precombat settlement, causal/priority/insertion ordering, lethal
-packets, and cancellation/stale wakes. Existing condition formula/duration and Ranger removal tests cover their original
-contracts using synchronized pulses.
+buffer-time stats, transient modifiers, environment sampling, illusion ownership, atomic packets, precombat settlement,
+causal/priority/insertion ordering, lethal packets, and cancellation/stale wakes. Existing condition formula/duration
+and Ranger removal tests cover their original contracts using synchronized pulses.
 
 Run `npm run check` for repository validation and `npm run benchmarks:compare` for supported preset comparisons.
 Numerical preset regressions retain the maximum 1% relative DPS tolerance; expected values must not be silently rebased

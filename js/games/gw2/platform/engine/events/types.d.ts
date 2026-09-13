@@ -52,6 +52,7 @@ export type CommonSimulationEventType =
   | 'combo_field'
   | 'combo_finisher'
   | 'combat_start'
+  | 'condition_buffer'
   | 'condition_tick'
   | 'control'
   | 'blind'

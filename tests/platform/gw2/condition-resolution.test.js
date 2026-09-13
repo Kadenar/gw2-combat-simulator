@@ -595,7 +595,9 @@ test('environment scheduling preserves permanent status counts without duplicati
   assert.equal(resolution.activeConditionStackCount(context, 'Bleeding', 1), 2);
   assert.equal(context.conditionState.size, 0);
   assert.equal(context.environmentConditions.get('Bleeding').stacks, 2);
-  assert.equal(context.queue.length, 2);
+  // One shared sampler precedes the two whole-second environment payouts.
+  assert.equal(context.queue.length, 3);
+  assert.equal(context.queue.dequeue().type, 'condition_buffer');
 });
 
 test('non-damaging permanent target conditions do not schedule environment ticks', () => {

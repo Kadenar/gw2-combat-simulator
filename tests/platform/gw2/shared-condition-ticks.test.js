@@ -212,11 +212,11 @@ test('permanent conditions share whole-second pulses and keep environment totals
   }
 });
 
-test('current stats and source modifiers sample one pre-packet health state and reactions see the whole commit', () => {
+test('buffered source modifiers preserve atomic packet commits and reaction totals', () => {
   const observed = [];
   const result = resolve([condition(0, { duration: 2 }), condition(0, { duration: 2, sourceId: 'boosted' })], {
     query: {
-      statsAt: (at) => ({ conditionDamage: at === 1 ? 125 : 0 }),
+      statsAt: (at) => ({ conditionDamage: at <= 1 ? 125 : 0 }),
       conditionMultiplier: (_name, _at, application, ctx) =>
         (application.sourceId === 'boosted' ? 2 : 1) * (ctx.totals.condition < 50 ? 1 : 2)
     },
@@ -272,8 +272,9 @@ test('causally tagged state changes precede shared pulses and boundary applicati
       query: { conditionMultiplier: (_name, _at, _application, ctx) => (ctx.boons.has('might') ? 2 : 1) }
     }
   );
+  // Only the final 40ms sample at 1s sees the newly applied multiplier.
   assert.deepEqual(packetDamage(result), [
-    [1, 59],
+    [1, 31],
     [2, 118]
   ]);
   assert.deepEqual(
@@ -469,8 +470,120 @@ test('clone and phantasm conditions share player rounding while retaining source
       }
     }
   });
-  assert.deepEqual(sources, [
-    [1, 'player'],
-    [1, 'summon']
+  assert.deepEqual(
+    sources,
+    Array.from({ length: 25 }, (_, index) => [
+      [(index + 1) / 25, 'player'],
+      [(index + 1) / 25, 'summon']
+    ]).flat()
+  );
+});
+
+// Mutable state changes distinguish chronological sampling from replaying old timestamps at payout.
+test('40ms buffers retain sampled stats and modifiers after expiry until the whole-second payout', () => {
+  for (const output of ['detailed', 'score']) {
+    let conditionDamage = 0;
+    let multiplier = 1;
+    const samples = [];
+    const payouts = [];
+    const result = resolve(
+      [
+        condition(0, { condition: 'Burning', duration: 0.52, eventOrder: 0 }),
+        ...[0.2, 0.36, 0.8].map((at, index) => ({
+          type: 'buff',
+          at,
+          source: 'Player',
+          sourceId: `change-${index}`,
+          actorType: 'player',
+          kind: 'might',
+          stacks: 1,
+          duration: 1,
+          eventOrder: index + 1
+        }))
+      ],
+      {
+        output,
+        end: 1,
+        query: {
+          statsAt: () => ({ conditionDamage }),
+          conditionMultiplier: (_condition, at, _application, ctx) => {
+            samples.push([at, ctx.totals.condition]);
+            return multiplier;
+          }
+        },
+        reactions: {
+          'buff.applied': (_ctx, event) => {
+            if (event.at === 0.2) conditionDamage = 1000;
+            else if (event.at === 0.36) multiplier = 2;
+            else {
+              conditionDamage = 9999;
+              multiplier = 99;
+            }
+          },
+          'condition-tick.resolved': (_ctx, event) => payouts.push(event.at)
+        }
+      }
+    );
+    // Four samples at 131/s, four at 286/s, five at 572/s: 181.12, rounded only once.
+    assert.equal(result.conditionDamage, 181);
+    assert.deepEqual(
+      samples,
+      Array.from({ length: 13 }, (_, index) => [(index + 1) / 25, 0])
+    );
+    assert.deepEqual(payouts, [1]);
+    if (output === 'detailed')
+      assert.deepEqual(applications(result)[0].damageTicks, [{ at: 1, damage: 181, fraction: 0.52 }]);
+  }
+});
+
+test('all owners sample a whole-second boundary before any condition packet changes target health', () => {
+  const sampledTotals = [];
+  const payouts = [];
+  resolve([condition(0, { duration: 2 }), condition(0, { duration: 2, actorType: 'summon', summonOwner: 'pet' })], {
+    query: {
+      conditionMultiplier: (_condition, at, _application, ctx) => {
+        if (at === 1) sampledTotals.push(ctx.totals.condition);
+        return ctx.totals.condition === 0 ? 1 : 2;
+      }
+    },
+    reactions: { 'condition-tick.resolved': (_ctx, event, { resolved }) => payouts.push([event.at, resolved.damage]) }
+  });
+  assert.deepEqual(sampledTotals, [0, 0]);
+  assert.deepEqual(payouts, [
+    [1, 30],
+    [1, 30],
+    [2, 59],
+    [2, 59]
   ]);
+});
+
+test('environment conditions buffer target modifiers at 40ms steps without player attribution', () => {
+  let vulnerability = 0;
+  const result = resolve(
+    [0.2, 0.52].map((at, index) => ({
+      type: 'buff',
+      at,
+      source: 'Player',
+      sourceId: 'vulnerability-change',
+      actorType: 'player',
+      kind: 'might',
+      stacks: 1,
+      duration: 1,
+      eventOrder: index
+    })),
+    {
+      end: 1,
+      target: { conditions: { Bleeding: 1 } },
+      query: { vulnerabilityStacksAt: () => vulnerability },
+      reactions: {
+        'buff.applied': (_ctx, event) => {
+          vulnerability = event.at === 0.2 ? 25 : 0;
+        }
+      }
+    }
+  );
+  // Eight of 25 samples receive Vulnerability: 22 * (1 + 0.32 * 0.25) rounds to 24.
+  assert.equal(result.environmentDamage, 24);
+  assert.equal(result.conditionDamage, 0);
+  assert.deepEqual(result.environmentConditionBreakdown[0].damageTicks, [{ at: 1, damage: 24 }]);
 });

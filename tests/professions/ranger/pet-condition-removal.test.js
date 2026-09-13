@@ -57,6 +57,9 @@ for (const reporting of [true, false]) {
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.75), 5);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 2), 2);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 4), 0);
+      } else if (event.type === 'condition_buffer') {
+        // Advance chronological samples before checking cancellation at whole-second payout.
+        conditions.handleConditionBuffer(context, event);
       } else {
         // Group packets may contain several pet applications; every included share must survive removal.
         const tick = conditions.handleConditionTick(context, event);
