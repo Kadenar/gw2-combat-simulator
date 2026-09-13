@@ -1,6 +1,7 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/result-tables.js';
@@ -615,14 +616,15 @@ export function mountRotationResults(
             <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
           </div>
           ${group.conditions
-            .map(
-              (condition) => `<div class="res-row">
+            .map((condition) => {
+              const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
+              return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
           <span class="res-skill condi">${escapeHtml(condition.name)}</span>
           <span class="condi">${number(condition.damage)}</span>
           <span class="dps">${number(condition.dps)}</span>
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-        </div>`
-            )
+        </div>`;
+            })
             .join('')}
         </div>`
           )
@@ -824,6 +826,64 @@ export function mountRotationResults(
   }
 
   bindSkillSelection();
+  // A viewport-sized inspector keeps attribution readable independently of the narrow condition column.
+  let selectedCondition: string | null = null;
+  const conditionRows = container.querySelectorAll<HTMLElement>('[data-condition-name]');
+  const selectCondition = (row: HTMLElement): void => {
+    const name = row.dataset.conditionName!;
+    selectedCondition = selectedCondition === name ? null : name;
+    container.querySelector<HTMLDialogElement>('[data-role="condition-inspector"]')?.close();
+    for (const conditionRow of conditionRows) {
+      const active = conditionRow.dataset.conditionName === selectedCondition;
+      conditionRow.classList.toggle('res-row-selected', active);
+      conditionRow.setAttribute('aria-expanded', String(active));
+    }
+
+    if (!selectedCondition || !chartSeries) return;
+    const dialog = container.ownerDocument.createElement('dialog');
+    dialog.className = 'condition-inspector';
+    dialog.dataset.role = 'condition-inspector';
+    dialog.setAttribute('aria-label', `${name} damage inspector`);
+    dialog.innerHTML = `<div class="condition-inspector-heading"><div><h2>${escapeHtml(name)} damage</h2></div><button type="button" class="hit-detail-close" data-dialog-close aria-label="Close condition inspector" autofocus>Close</button></div>`;
+    const timeline = container.ownerDocument.createElement('div');
+    timeline.className = 'condition-inspector-body';
+    timeline.dataset.role = 'condition-timeline';
+    timeline.setAttribute('role', 'region');
+    timeline.setAttribute('aria-label', `${name} damage ticks`);
+    dialog.append(timeline);
+    container.append(dialog);
+    bindDialog(dialog);
+    dialog.addEventListener(
+      'close',
+      () => {
+        selectedCondition = null;
+        row.classList.remove('res-row-selected');
+        row.setAttribute('aria-expanded', 'false');
+        dialog.remove();
+        row.focus({ preventScroll: true });
+      },
+      { once: true }
+    );
+    showDialog(dialog);
+    mountHitTimeline(timeline, chartSeries.conditionDamage?.[name] || [], {
+      durationMs: chartSeries.durationMs,
+      color: options.chartOptions?.colors?.[name],
+      label: `${name} damage · fight time`,
+      timeLabel: 'fight time',
+      inspectAllTicks: true
+    });
+  };
+
+  for (const row of conditionRows) {
+    row.onclick = () => selectCondition(row);
+    row.onkeydown = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectCondition(row);
+      }
+    };
+  }
+
   const runRandomDistribution = container.querySelector<HTMLElement>('[data-role="rng-run"]');
   if (runRandomDistribution && typeof options.onRunRandomDistribution === 'function') {
     runRandomDistribution.onclick = () => {

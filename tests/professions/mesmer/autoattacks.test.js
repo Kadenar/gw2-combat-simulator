@@ -6,6 +6,50 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 
 // Autoattack chains preserve their progression, resource effects, and interruption rules.
+test('sword and spear autos apply their authored debuffs with or without Aristocracy', () => {
+  // Actual conditions must exist without a relic; equipping Aristocracy consumes those same applications.
+  for (const [weapon, rotation, expected] of [
+    [
+      'Sword',
+      ['Mind Slash', 'Mind Gash'],
+      [
+        ['Mind Slash', 'Vulnerability', 1, 5],
+        ['Mind Gash', 'Vulnerability', 1, 5]
+      ]
+    ],
+    ['Spear', ['Psycut', 'Psystrike', 'Mind Pierce'], [['Mind Pierce', 'Weakness', 1, 2]]]
+  ]) {
+    for (const relic of ['', 'Aristocracy']) {
+      const result = simulateMesmer(
+        rotation,
+        defaultSimulationConfig({
+          specialization: 'Core',
+          initialResource: 0,
+          primaryWeapon: weapon,
+          secondaryWeapon: '',
+          relic
+        })
+      );
+      assert.deepEqual(result.warnings, []);
+      const conditions = result.events.filter((event) => event.type === 'condition');
+      assert.deepEqual(
+        conditions.map((event) => [event.skillName, event.condition, event.stacks, event.duration]),
+        expected
+      );
+      for (const condition of conditions) {
+        assert.equal(condition.actorType, 'player');
+        assert.equal(
+          condition.at,
+          result.events.find((event) => event.type === 'damage' && event.skillId === condition.skillId).at
+        );
+      }
+
+      assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of Aristocracy').length, relic ? 1 : 0);
+      if (!relic) assert.ok(result.events.every((event) => event.type !== 'weakness_vulnerability'));
+    }
+  }
+});
+
 test('Ether Bolt and Ether Blast do not generate clones', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',

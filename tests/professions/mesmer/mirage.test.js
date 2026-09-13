@@ -165,6 +165,27 @@ test('ambush skills cannot be cast without an active ambush window', () => {
   assert.match(result.warnings[0], /no active Mirage Cloak ambush window/);
 });
 
+test('cancelling an ambush preserves the cloak window across a weapon swap', () => {
+  const result = simulateMesmer(
+    ['Dodge / Mirage Cloak', { name: 'Chaos Vortex', interruptMs: 40 }, 'Swap Weapons', 'Imaginary Axes'],
+    {
+      specialization: 'Mirage',
+      primaryWeapon: 'Staff',
+      secondaryWeapon: '',
+      weaponSet2Primary: 'Axe',
+      weaponSet2Secondary: 'Torch',
+      initialResource: 0
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
+  assert.equal(result.endState.profession.availableAmbush, null);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Chaos Vortex'),
+    false
+  );
+});
+
 test('all terrestrial Mirage weapons execute their correct ambush', () => {
   const pairs = [
     ['Axe', 'Imaginary Axes'],

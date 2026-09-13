@@ -9,7 +9,11 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
-import { eiMinionSpawns } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
+import {
+  eiMesmerPhaseRetreat,
+  eiMesmerShatters,
+  eiMinionSpawns
+} from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '../helpers/evtc-fixture.js';
 
 function context(profession, specialization, events, agents = log().agents) {
@@ -22,6 +26,67 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+test('Mesmer shatter loading rejects matching clone visuals using packed ground coordinates', () => {
+  const mapping = (skillId, guid) =>
+    event({
+      stateChange: 46,
+      skillId,
+      source: Buffer.from(guid, 'hex').readBigUInt64LE(0),
+      target: Buffer.from(guid, 'hex').readBigUInt64LE(8)
+    });
+  const mappings = [mapping(77, '52F65A4D9970954BA849CB57A46A65A8'), mapping(78, '5FA6527231BB8041AC783396142C6200')];
+  // The packed coordinates are valid even when orientation bytes happen to encode a float NaN.
+  const visual = event({ time: 100, stateChange: 60, skillId: 77, target: 0x00030002ffffn, value: 0x7fc00000 });
+  const find = (extra = [], overrides = {}) =>
+    eiMesmerShatters(context('mesmer', 'mirage', [...mappings, { ...visual, ...overrides }, ...extra]));
+  assert.equal(find()[0]?.rawSkillId, 10190);
+  assert.deepEqual(find([{ ...visual, skillId: 78 }]), []);
+  assert.equal(find([{ ...visual, skillId: 78, target: visual.target + (1n << 32n) }])[0]?.rawSkillId, 10190);
+  assert.equal(find([{ ...visual, skillId: 78, time: 110 }])[0]?.rawSkillId, 10190);
+  assert.deepEqual(find([], { source: 0x9999n }), []);
+  assert.deepEqual(eiMesmerShatters(context('mesmer', 'virtuoso', [...mappings, visual])), []);
+});
+
+test('Phase Retreat loading requires a matching teleport and newly owned staff clone', () => {
+  const guid = Buffer.from('C34E250B01FF534292EE6AB36D768337', 'hex');
+  const clone = { ...log().agents[0], address: 0x2000n, profession: 8111, elite: 0xffffffff };
+  const base = [
+    event({ time: 0, stateChange: 1 }),
+    event({ stateChange: 46, skillId: 77, source: guid.readBigUInt64LE(0), target: guid.readBigUInt64LE(8) }),
+    event({ time: 100, stateChange: 62, skillId: 77, source: 0n, target: PLAYER })
+  ];
+  const spawn = event({ time: 100, stateChange: 6, source: clone.address, sourceInstance: 2, sourceMasterInstance: 1 });
+  const find = (extra) =>
+    eiMesmerPhaseRetreat(context('mesmer', 'mirage', [...base, ...extra], [...log().agents, clone]));
+  assert.equal(find([spawn])[0]?.rawSkillId, 10310);
+  assert.deepEqual(find([]), []);
+  assert.deepEqual(find([{ ...spawn, time: 130 }]), []);
+  assert.deepEqual(find([{ ...spawn, sourceMasterInstance: 0 }]), []);
+  assert.deepEqual(find([spawn, event({ time: 100, stateChange: 71, skillId: 10353 })]), []);
+});
+
+test('Mirage cloak normalization preserves endurance by retaining the represented shatter or mirror source', () => {
+  const cloak = {
+    start: 100,
+    end: 100,
+    rawSkillId: -17,
+    rawName: 'Unknown -17',
+    eventIndex: 0,
+    status: 'instant',
+    evidence: 'buff-transition'
+  };
+  const c = context('mesmer', 'mirage', []);
+  c.recordedActions = [cloak];
+  assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, -1);
+  c.log.events = [event({ time: 100, skillId: 44677, value: 100 })];
+  assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, -2);
+  c.log.events = [];
+  c.recordedActions = [{ ...cloak, rawSkillId: 10190, rawName: 'Cry of Frustration' }, cloak];
+  const actions = reconstructProfessionActions(c);
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].rawSkillId, 10190);
+});
 
 for (const [name, effectGuid, combinedId, normalId, finalId] of [
   ['Solace', '8F0C77784AFD7F40B27446617DC05CDC', -20, 41475, 42960],
@@ -233,6 +298,64 @@ test('every profession imports incomplete evidence without inventing setup from 
       profile.specializationName
     );
     assert.equal(out.rotation.filter((c) => c.skillId != null).length, 1, profile.specializationName);
+  }
+});
+
+// A shared visual alone cannot identify Distortion; EI requires a nearby buff on that caster and an eligible spec.
+test('Distortion effect inference requires matching buff evidence and respects specialization build gates', () => {
+  const guid = Buffer.from('3D29ABD39CB5BD458C4D50A22FCC0E4B', 'hex');
+  const mapping = event({
+    stateChange: 46,
+    skillId: 77,
+    source: guid.readBigUInt64LE(0),
+    target: guid.readBigUInt64LE(8)
+  });
+  const effect = event({ time: 100, stateChange: 51, skillId: 77 });
+  for (const arcdpsBuild of ['20260430', '20260501']) {
+    const buff = event({
+      time: 109,
+      stateChange: arcdpsBuild === '20260430' ? 0 : 69,
+      buff: 1,
+      value: 1000,
+      skillId: 10243,
+      target: PLAYER
+    });
+    const find = (specialization, build, evidence = [effect, buff]) => {
+      const source = context('mesmer', specialization, [
+        event({ stateChange: 15, source: BigInt(build) }),
+        mapping,
+        ...evidence
+      ]);
+      source.log.header.arcdpsBuild = arcdpsBuild;
+      return eiInstantActions(source).filter((action) => action.rawSkillId === 10192);
+    };
+
+    for (const specialization of ['core', 'mirage', 'chronomancer']) {
+      const [cast] = find(specialization, 135242);
+      assert.equal(cast.start, effect.time);
+      assert.equal(cast.evidence, 'effect');
+      assert.equal(cast.castOrigin, 'skill');
+      assert.match(cast.eiRule, /MesmerHelper\.EffectCastFinder/);
+      assert.equal(find(specialization, 135241).length, specialization === 'chronomancer' ? 0 : 1);
+    }
+
+    for (const specialization of ['virtuoso', 'troubadour']) {
+      assert.deepEqual(find(specialization, 200000), []);
+    }
+
+    for (const evidence of [
+      [effect],
+      [buff],
+      [effect, { ...buff, time: 110 }],
+      [effect, { ...buff, target: 0x9999n }],
+      [{ ...effect, source: 0x9999n }, buff],
+      [effect, { ...buff, stateChange: 70 }]
+    ]) {
+      assert.deepEqual(find('chronomancer', 135242, evidence), []);
+    }
+
+    // HasGainedBuff accepts a snapshot only as corroboration of an actual effect, unlike a buff-gain finder.
+    assert.equal(find('chronomancer', 135242, [effect, { ...buff, stateChange: 18 }]).length, 1);
   }
 });
 

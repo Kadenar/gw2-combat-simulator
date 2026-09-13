@@ -214,7 +214,9 @@ export function createPhantasmEffectController({
       summonKind: 'phantasm',
       at: execution.summonAt,
       name: skill.name,
-      count
+      count,
+      // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
+      conversionTimes: executions.map((item) => (item.resourceAtOverride ?? item.conversionAt) + epsilon)
     });
     addEvent({
       type: 'mesmer.phantasm-attack',

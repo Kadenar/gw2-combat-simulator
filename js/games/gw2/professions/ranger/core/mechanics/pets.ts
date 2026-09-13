@@ -118,6 +118,7 @@ export function rangerPetCombatMetadata(
     weaponStrength: undefined,
     weaponStrengthProfileId: undefined,
     independentSummonStrike: true,
+    independentConditionOwner: true,
     summonUsesProfessionModifiers: true,
     summonBasePower: attributes.power,
     summonBasePrecision: attributes.precision,
@@ -141,12 +142,12 @@ export function prepareRangerPetEvent(
 ): SimulationEventInput {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
   // Launched pet effects retain their original owner and attributes after a swap.
-  if (event.summonOwner) return event;
+  if (event.summonOwner) return { ...event, independentConditionOwner: true };
   // Every pet-owned event needs concrete caster identity for audience resolution;
   // damaging packets additionally receive the pet's independent combat stats.
   return event.type === 'damage' || event.type === 'condition'
     ? { ...event, ...rangerPetCombatMetadata(context) }
-    : { ...event, summonOwner: rangerPetCompanionId(context) };
+    : { ...event, summonOwner: rangerPetCompanionId(context), independentConditionOwner: true };
 }
 
 interface PetAutoTaskPayload extends SchedulerRecord {

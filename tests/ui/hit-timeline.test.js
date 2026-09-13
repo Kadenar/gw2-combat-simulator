@@ -4,6 +4,89 @@ import test from 'node:test';
 import { drawHitTimeline, filterHitsToPhase, groupSkillHits } from '#ui/results/charts/hit-timeline.js';
 import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 
+// Payout inspection preserves partial and zero-rounded shares across sources and the observation boundary.
+test('condition payouts retain full and partial attribution independently of skill grouping', () => {
+  const series = buildChartSeries(
+    {
+      dpsStartTime: 0.36,
+      deathTime: 4.36,
+      resolvedEvents: [
+        {
+          type: 'condition',
+          condition: 'Torment',
+          name: 'Player application',
+          actorType: 'player',
+          at: 0.86,
+          stacks: 2,
+          damageTicks: [
+            { at: 0, damage: 999, fraction: 1 },
+            { at: 1.36, damage: 20, fraction: 0.5 },
+            { at: 2.36, damage: 40, fraction: 1 },
+            { at: 4.36, damage: 10, fraction: 0.25 },
+            { at: 5.36, damage: 999, fraction: 1 }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          name: 'Clone application',
+          actorType: 'summon',
+          summonKind: 'clone',
+          at: 2.32,
+          stacks: 1,
+          damageTicks: [
+            { at: 2.36, damage: 2, fraction: 0.04 },
+            { at: 3.36, damage: 50, fraction: 1 },
+            { at: 4.36, damage: 48, fraction: 0.96 }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          name: 'Rounded to zero',
+          at: 2.35,
+          stacks: 0.01,
+          damageTicks: [{ at: 2.36, damage: 0, fraction: 0.04 }]
+        },
+        { type: 'condition', condition: 'Burning', at: 1.36, stacks: 1, damageTicks: [{ at: 2.36, damage: 100 }] },
+        { type: 'damage', at: 2.36, damage: 500 }
+      ]
+    },
+    250,
+    { skillKey: () => null }
+  );
+  const ticks = series.conditionDamage.Torment;
+  assert.deepEqual(
+    ticks.map(({ t, v }) => [t, v]),
+    [
+      [1000, 20],
+      [2000, 42],
+      [3000, 50],
+      [4000, 58]
+    ]
+  );
+  for (const tick of ticks)
+    assert.equal(
+      tick.v,
+      tick.contributions.reduce((sum, entry) => sum + entry.damage, 0)
+    );
+  assert.deepEqual(
+    ticks[1].contributions.map(({ fraction, damage }) => [fraction, damage]),
+    [
+      [1, 40],
+      [0.04, 2],
+      [0.04, 0]
+    ]
+  );
+  assert.equal(ticks[1].contributions[1].actor, 'clone');
+  assert.equal(ticks[1].contributions[1].appliedAtMs, 1960);
+  assert.equal(ticks[0].contributions[0].appliedAtMs, 500);
+  assert.equal(series.durationMs, 4000);
+  assert.equal(ticks[0].contributions[0].stacks, 2);
+  assert.equal(series.conditionDamage.Burning[0].contributions[0].fraction, undefined);
+  assert.deepEqual(series.skillDamage, {});
+});
+
 // Burst grouping must preserve every hit and its activation through chart projection and phase filtering.
 test('chart projection preserves activation ownership across burst grouping and phase boundaries', () => {
   const series = buildChartSeries(

@@ -61,6 +61,9 @@ export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ],
     rechargeAnchor: 'castStart',
     cooldown: 38,
-    effects: []
+    // The shatter owns its control effect rather than relying on the core CC skill list.
+    effects: [
+      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ]
   }
 });

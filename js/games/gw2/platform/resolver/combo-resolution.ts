@@ -1,4 +1,4 @@
-import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
+import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import {
   normalizeComboFinisherType,
   registerComboField,
@@ -46,6 +46,8 @@ export function enqueueGw2OwnedComboFinisher(
   );
   const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
   context.queue.enqueue({
+    // Resolver-authored finishers retain the same caster scaling as scheduled finishers.
+    ...comboCombatMetadata(event),
     type: 'combo_finisher',
     at,
     effectAt: Number(options.effectAt ?? at),

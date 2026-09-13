@@ -348,6 +348,66 @@ test('owned canonical descriptors produce shared combo events without a professi
   assert.equal(combo.finisherType, 'Blast');
 });
 
+test('pet fields retain their caster while combo conditions retain the finisher owner', () => {
+  // A player's projectile through a pet field remains player-owned; the pet's projectile stays independent.
+  const pet = {
+    source: 'fixture-pet',
+    actorType: 'summon',
+    summonOwner: 'fixture-pet:1',
+    independentSummonStrike: true,
+    independentConditionOwner: true,
+    summonBasePower: 1000,
+    summonBaseConditionDamage: 500
+  };
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      ...pet,
+      type: 'action',
+      at: 0,
+      endsAt: 0,
+      sourceId: 'pet-field',
+      comboFields: [{ ownerId: 'combo-fixture', fieldType: 'Fire', duration: 5 }]
+    });
+    for (const [at, actor] of [
+      [1, pet],
+      [2, { source: 'Player', actorType: 'player' }]
+    ]) {
+      context.emit({
+        ...actor,
+        type: 'damage',
+        at,
+        sourceId: `projectile:${at}`,
+        coefficient: 1,
+        weaponStrength: 1000,
+        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }]
+      });
+    }
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: 'wait', durationMs: 5000 }],
+    config: { stats: { conditionDamage: 2000 }, target: { armor: 2597, conditions: {} } }
+  });
+  const field = result.events.find((event) => event.type === 'combo_field');
+  assert.equal(field.ownerActorType, 'summon');
+  assert.equal(field.summonOwner, pet.summonOwner);
+  assert.equal(field.independentConditionOwner, true);
+  for (const event of [
+    ...result.events.filter((event) => event.type === 'combo_finisher'),
+    ...result.resolvedEvents.filter((event) => event.type === 'combo' || event.type === 'condition')
+  ]) {
+    const isPet = event.sourceId === 'projectile:1';
+    assert.equal(event.actorType, isPet ? 'summon' : 'player');
+    assert.equal(event.summonOwner, isPet ? pet.summonOwner : undefined);
+    assert.equal(event.independentConditionOwner, isPet ? true : undefined);
+  }
+
+  const conditions = result.resolvedEvents.filter((event) => event.type === 'condition');
+  assert.equal(conditions.length, 2);
+  assert.ok(conditions[1].damage > conditions[0].damage, 'player condition stats must not replace pet stats');
+  assert.deepEqual(result.warnings, []);
+});
+
 test('a later-authored owned field rebinds an already scheduled finisher', () => {
   const profession = fixtureProfession((context) => {
     context.emit({

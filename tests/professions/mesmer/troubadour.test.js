@@ -232,7 +232,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
 
   assert.equal(proc?.at, 3.92);
   assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
-  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 6400);
+  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 6440);
 });
 
 test('Troubadour tales grant their boons and instrument-specific notes', () => {

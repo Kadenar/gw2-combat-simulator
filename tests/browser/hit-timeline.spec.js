@@ -1,5 +1,177 @@
 import { expect, test } from '@playwright/test';
 
+// Condition rows disclose actual payouts and application shares using the existing keyboard-accessible inspector.
+test('condition rows inspect full and partial payouts across sources', async ({ page }, testInfo) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(async () => {
+    const { mountRotationResults } = await import('/js/games/gw2/app/results/rotation-results.ts');
+    const { buildChartSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
+    const chartSeries = buildChartSeries({
+      dpsStartTime: 0.36,
+      duration: 6.36,
+      resolvedEvents: [
+        {
+          type: 'condition',
+          condition: 'Torment',
+          name: 'Player skill',
+          actorType: 'player',
+          at: 0.36,
+          stacks: 2,
+          damageTicks: [
+            { at: 1.36, damage: 200, fraction: 1 },
+            { at: 2.36, damage: 418, fraction: 0.56 },
+            { at: 6.36, damage: 50, fraction: 0.25 }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          name: 'Clone <Bolt>',
+          actorType: 'summon',
+          summonKind: 'clone',
+          at: 1.32,
+          stacks: 1,
+          damageTicks: [
+            { at: 1.36, damage: 4, fraction: 0.04 },
+            { at: 2.36, damage: 317, fraction: 0.28 }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          name: 'Other skill',
+          at: 0.36,
+          stacks: 1,
+          damageTicks: [
+            { at: 1.36, damage: 10, fraction: 1 },
+            { at: 2.36, damage: 10, fraction: 1 },
+            { at: 6.36, damage: 1, fraction: 0.04 }
+          ]
+        }
+      ]
+    });
+    document.body.innerHTML = '<div id="results"></div>';
+    mountRotationResults(document.querySelector('#results'), {
+      showSummary: false,
+      chartSeries,
+      conditions: [
+        { name: 'Torment', damage: 989, dps: 989 / 6, averageStacks: 1 },
+        { name: 'Bleeding', damage: 21, dps: 21 / 6, averageStacks: 1 },
+        { name: 'Crippled', damage: 0, dps: 0, averageStacks: 1 }
+      ]
+    });
+  });
+  const torment = page.getByRole('button', { name: 'Inspect Torment ticks', exact: true });
+  await torment.focus();
+  await torment.press('Enter');
+  await expect(torment).toHaveAttribute('aria-expanded', 'true');
+  const inspector = page.getByRole('dialog', { name: 'Torment damage inspector' });
+  await expect(inspector).toBeVisible();
+  expect((await inspector.boundingBox()).width).toBeGreaterThan(1000);
+  const timeline = page.getByRole('region', { name: 'Torment damage ticks' });
+  // The complete ledger opens by default and includes payouts beyond the first chart window.
+  await expect(timeline.getByRole('button', { name: 'All ticks', exact: true })).toHaveCount(0);
+  await expect(timeline.getByRole('button', { name: 'Clear time selection' })).toHaveCount(0);
+  // Totals combine simultaneous partial applications, retaining stack counts and their already-rounded damage.
+  const view = timeline.getByRole('combobox', { name: 'View', exact: true });
+  const totals = timeline.getByRole('table', { name: 'Combined condition payouts' });
+  await expect(totals.locator('tbody tr')).toHaveCount(3);
+  await expect(totals.locator('tbody tr').nth(0).locator('th, td')).toHaveText(['1.00s', '2', '200', '1', '4', '204']);
+  await expect(totals.locator('tbody tr').nth(1).locator('th, td')).toHaveText(['2.00s', '0', '0', '3', '735', '735']);
+  await expect(totals.locator('tbody tr').nth(2).locator('th, td')).toHaveText(['6.00s', '0', '0', '2', '50', '50']);
+  await expect(timeline.locator('.condition-payouts')).toHaveCount(0);
+  await inspector.screenshot({ path: testInfo.outputPath('condition-tick-totals.png') });
+  await view.selectOption('sources');
+  await expect(timeline.locator('.condition-payouts > details')).toHaveCount(3);
+  await expect(timeline.locator('.condition-payouts > details').last().locator('summary')).toContainText(
+    'Damage dealt at 6.00s · 50 damage'
+  );
+  await expect(timeline.locator('.hit-detail-header')).toContainText('All ticks · 3 ticks · 989 damage');
+  await inspector.screenshot({ path: testInfo.outputPath('condition-all-ticks.png') });
+  const window = timeline.getByRole('button', { name: '0.00s–5.00s · 2 ticks', exact: true });
+  await window.hover();
+  const tooltip = timeline.locator('[data-role="hit-timeline-tooltip"]').first();
+  await expect(tooltip).toContainText('Total damage: 939');
+  const tooltipBounds = await tooltip.boundingBox();
+  const bodyBounds = await inspector.locator('.condition-inspector-body').boundingBox();
+  expect(tooltipBounds.y + tooltipBounds.height).toBeLessThanOrEqual(bodyBounds.y + bodyBounds.height);
+  await inspector.screenshot({ path: testInfo.outputPath('condition-tooltip.png') });
+  await window.click();
+  const details = timeline.locator('[data-role="hit-detail"]');
+  const payoutRows = details.locator('.condition-payouts > details');
+  await expect(payoutRows).toHaveCount(2);
+  await expect(window).toHaveAttribute('aria-expanded', 'true');
+  await expect(payoutRows.first().locator('summary')).toContainText('Damage dealt at 1.00s · 204 damage');
+  const attribution = payoutRows.first();
+  await attribution.locator('summary').focus();
+  await attribution.locator('summary').press('Space');
+  await expect(attribution).toHaveAttribute('open', '');
+  await expect(attribution.locator('tbody tr').first().locator('td')).toHaveText([
+    'Player skill',
+    'player',
+    '0.00s',
+    '1.00s',
+    '2',
+    'Full · 1000ms',
+    '200'
+  ]);
+  await expect(attribution.locator('tbody tr').last().locator('td')).toHaveText([
+    'Clone <Bolt>',
+    'clone',
+    '0.96s',
+    '1.00s',
+    '1',
+    'Partial · 40ms',
+    '4'
+  ]);
+  const table = attribution.locator('.condition-attribution-table');
+  expect(await table.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
+  await inspector.screenshot({ path: testInfo.outputPath('condition-attribution.png') });
+  await resizeToMobile(page);
+  await expect(attribution).toHaveAttribute('open', '');
+  expect((await inspector.boundingBox()).width).toBeLessThanOrEqual(390);
+  const inspectorBody = inspector.locator('.condition-inspector-body');
+  expect(await inspectorBody.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
+  await inspector.screenshot({ path: testInfo.outputPath('condition-attribution-mobile.png') });
+  // Toggling the selected window restores all payouts without changing the selected view.
+  await window.focus();
+  await window.press('Enter');
+  await expect(window).toHaveAttribute('aria-expanded', 'false');
+  await expect(payoutRows).toHaveCount(3);
+  await expect(timeline.locator('.hit-detail-header')).toContainText('989 damage');
+  await view.selectOption('totals');
+  await expect(totals.locator('tbody tr')).toHaveCount(3);
+  await window.click();
+  await expect(totals.locator('tbody tr')).toHaveCount(2);
+  await timeline.getByRole('button', { name: 'Clear time selection' }).click();
+  await expect(totals.locator('tbody tr')).toHaveCount(3);
+  await expect(window).toBeFocused();
+  expect(await inspectorBody.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
+  await inspector.screenshot({ path: testInfo.outputPath('condition-tick-totals-mobile.png') });
+  await inspector.getByRole('button', { name: 'Close condition inspector', exact: true }).click();
+  await expect(torment).toBeFocused();
+  const bleeding = page.getByRole('button', { name: 'Inspect Bleeding ticks', exact: true });
+  await bleeding.click();
+  await expect(torment).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.getByRole('region', { name: 'Torment damage ticks' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Bleeding damage ticks' })).toBeVisible();
+  const bleedingInspector = page.getByRole('dialog', { name: 'Bleeding damage inspector' });
+  await bleedingInspector.getByRole('combobox', { name: 'View', exact: true }).selectOption('sources');
+  const single = bleedingInspector.getByRole('button', { name: '5.00s–6.00s · 1 tick', exact: true });
+  await single.click();
+  await expect(bleedingInspector.locator('.condition-payouts')).toContainText('0 full · 1 partial');
+  await bleedingInspector.getByRole('button', { name: 'Clear time selection', exact: true }).press('Escape');
+  await expect(bleedingInspector).toBeVisible();
+  await expect(bleedingInspector.locator('.condition-payouts > details')).toHaveCount(3);
+  await expect(single).toBeFocused();
+  await single.press('Escape');
+  await expect(bleeding).toBeFocused();
+  await expect(bleeding).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('[data-role="condition-timeline"]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Inspect Crippled ticks' })).toHaveCount(0);
+});
+
 // Sample the resize event before observers redraw controls so transient desktop geometry cannot escape the chart.
 async function resizeToMobile(page) {
   await page.evaluate(() => {

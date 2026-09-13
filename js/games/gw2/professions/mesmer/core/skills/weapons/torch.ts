@@ -9,6 +9,9 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     specialization: '',
     cooldown: 20,
     phantasm: true,
+    // The mage has already spawned before the aftercast ends, so a later cancellation retains its clone conversion.
+    interruptCommitMs: 560,
+    phantasmSummonProgress: 560 / 760,
     resource: {
       mode: 'phantasm',
       count: 1
@@ -66,9 +69,12 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     rechargeAnchor: 'castStart',
     cooldown: 20,
     effects: [
+      // Blind on activation; the later burning explosion performs the blast finisher.
+      { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },
       {
         type: 'strike',
         ticks: [{ atMs: 3000, coefficient: 1 }],
+        comboFinishers: [{ ownerId: 'mesmer', finisherType: 'Blast' }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Damage',

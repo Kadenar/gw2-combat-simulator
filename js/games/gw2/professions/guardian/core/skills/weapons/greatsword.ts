@@ -103,6 +103,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.SYMBOL_OF_RESOLUTION]: {
     castTimeMs: 320,
+    defaultInterruptMs: 280,
 
     // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings
     // between those bounds are safe interrupts and the committed symbol keeps pulsing afterward.

@@ -50,10 +50,11 @@ function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: S
   };
 }
 
-/** Shows the active Continuum Split and Danger Time windows at the inspected rotation point. */
+/** Shows active buff windows and each summoned phantasm's pending clone conversions at the inspected point. */
 function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
+  const result = context.result as Gw2SimulationResult | null | undefined;
   const items: RotationStateSnapshotItem[] = [];
   const continuumRemaining = Number(state.continuumRemaining || 0) / 1000;
   if (state.continuumActive && continuumRemaining > 0) {
@@ -65,13 +66,29 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
     });
   }
 
-  const dangerTime = timedBuffAt(context.result as Gw2SimulationResult | null | undefined, 'danger-time', at);
+  const dangerTime = timedBuffAt(result, 'danger-time', at);
   if (dangerTime) {
     items.push({
       id: 'chronomancer-danger-time',
       label: 'Danger Time',
       value: `${dangerTime.remaining.toFixed(1)}s`,
       title: 'Danger Time critical-damage window remaining'
+    });
+  }
+
+  // Read deadlines from the summon event so the display uses the scheduler's timing and ignores future casts.
+  const combatStart = Number(result?.events.find((event) => event.type === 'combat_start')?.at || 0);
+  for (const event of (result?.events || []) as readonly MesmerResolverEvent[]) {
+    if (event.type !== 'mesmer.phantasm-summoned' || event.at > at) continue;
+    const pending = (event.conversionTimes || []).filter((conversionAt) => conversionAt > at);
+    if (!pending.length) continue;
+    items.push({
+      id: `chronomancer-phantasm:${event.activationId ?? event.eventOrder}`,
+      label: `${event.name} → clone`,
+      value: pending.map((conversionAt) => `${(conversionAt - at).toFixed(3)}s`).join(', '),
+      title:
+        'Time until each phantasm becomes a clone, including any Chronophantasma repeat.\n' +
+        `Conversion time: ${pending.map((conversionAt) => `${(conversionAt - combatStart).toFixed(3)}s`).join(', ')}`
     });
   }
 

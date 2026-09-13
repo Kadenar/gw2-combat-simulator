@@ -166,6 +166,14 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
           (rule.kind !== 'effect-dst' || ![60, 79].includes(e.event.stateChange)) &&
           (rule.relatedHit == null || hasRelatedHit(rule.relatedHit, e.event.time)) &&
           (rule.absentRelatedHits ?? []).every((skillId) => !hasRelatedHit(skillId, e.event.time)) &&
+          // EI HasGainedBuff includes initial applications as corroboration; the effect still supplies the cast.
+          (rule.gainedBuff == null ||
+            (eventsBySkill.get(rule.gainedBuff) ?? []).some(
+              ({ event }) =>
+                isBuffApply(log, event, true) &&
+                event.target === caster(e.event) &&
+                Math.abs(event.time - e.event.time) < 10
+            )) &&
           (rule.secondary ?? []).every((guid) =>
             effects.some(
               (other) =>

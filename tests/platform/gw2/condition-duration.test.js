@@ -74,7 +74,15 @@ test('condition duration preserves phase context, fixed durations, and natural e
       assert.equal(runtime.conditionState.get('Bleeding').stacks[0].expiresAt, 4 + expectedDuration);
     }
 
-    const tick = resolution.handleConditionTick(resolver, { at: 5, application, fraction: 1 });
+    // Process real buffer events before inspecting the scheduled owner payout.
+    let eventTick = resolver.queue.dequeue();
+    while (eventTick.type === 'condition_buffer') {
+      resolution.handleConditionBuffer(resolver, eventTick);
+      eventTick = resolver.queue.dequeue();
+    }
+
+    assert.equal(eventTick.at, 5);
+    const tick = resolution.handleConditionTick(resolver, eventTick);
     assert.equal(tick.damage, 82); // Bleeding uses the tick's 1000 Condition Damage, not the application's zero.
     assert.equal(application.effectiveDuration, expectedDuration);
   }

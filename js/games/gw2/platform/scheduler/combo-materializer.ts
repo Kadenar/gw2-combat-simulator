@@ -255,6 +255,8 @@ function produceField<TProfessionState extends object>(
   }
 
   context.emitDerived(event, {
+    // Retain the concrete field caster when a pet creates the field.
+    ...comboCombatMetadata(event),
     type: 'combo_field',
     at,
     source: event.source,

@@ -19,6 +19,31 @@
   text-align: center;
 }
 
+/* Keep manual recovery consistent with app controls, with a roomy target and visible keyboard focus. */
+.btn.loader-reload {
+  min-height: 44px;
+  margin-top: 20px;
+  padding: 10px 24px;
+  border-color: color-mix(in srgb, var(--loader-gold) 60%, var(--border));
+  background: color-mix(in srgb, var(--loader-gold) 10%, var(--bg-panel));
+  color: var(--text-bright);
+  font: inherit;
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn.loader-reload:hover {
+  border-color: var(--loader-gold);
+  background: color-mix(in srgb, var(--loader-gold) 20%, var(--bg-panel));
+}
+
+.btn.loader-reload:focus-visible {
+  outline: 2px solid var(--loader-gold);
+  outline-offset: 3px;
+}
+
 /* Forged workspace: artwork and real startup copy sit above a quietly assembling interface. */
 .loader-workspace {
   position: relative;

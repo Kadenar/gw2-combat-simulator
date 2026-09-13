@@ -52,6 +52,7 @@ export type CommonSimulationEventType =
   | 'combo_field'
   | 'combo_finisher'
   | 'combat_start'
+  | 'condition_buffer'
   | 'condition_tick'
   | 'control'
   | 'blind'
@@ -79,6 +80,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
+  /** Pets and mech keep their own condition rounding; other summons share the player packet. */
+  readonly independentConditionOwner?: boolean;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;
@@ -159,6 +162,8 @@ export interface SimulationEventInput {
   readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
+  /** Pets and mech keep their own condition rounding; other summons share the player packet. */
+  readonly independentConditionOwner?: boolean;
   readonly name?: string;
   readonly skillName?: string;
   readonly parentSkillName?: string;

@@ -113,6 +113,22 @@ Events created during resolution must be added with `enqueueOrdered()`. If such 
 causal metadata, the stable queue places it with the event currently being handled. Stable insertion order then resolves
 any remaining tie.
 
+### Shared condition pulses
+
+All conditions follow a target-wide one-second clock anchored at zero, including across empty target windows.
+Condition/owner groups enqueue default-priority wakes without inheriting the applying event's causal order, so ordinary
+causally tagged skill events at that timestamp precede them. Explicit nondefault priorities still order before or after
+the wakes. Untagged events at equal timestamp and priority retain insertion order: a preloaded untagged state event
+precedes a subsequently queued wake, while a later inserted untagged event follows it. The queue's comparison policy is
+unchanged.
+
+Each owner/condition packet commits all contributions before its tick reaction and the event loop's death check.
+Distinct groups remain separately ordered, including simultaneous packets at the lethal timestamp. Applications at a
+pulse boundary contribute zero buffered time to the preceding interval. Global 40ms steps sample current stats and
+modifiers and buffer unrounded damage; whole-second packets commit the stored contributions. All owners sample the
+boundary before any condition payout changes target health. Natural expiry between pulses settles on the next
+synchronized pulse, not at expiry or the observation cutoff. See [Shared condition ticks](SHARED-CONDITION-TICKS.md).
+
 Do not depend on incidental array order. Use:
 
 - a different `at` value for a real time difference;

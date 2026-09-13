@@ -215,6 +215,8 @@ test('Ranger modules expose isolated balance-profile authoring', () => {
     }
   });
 
+  // Pet condition ownership stays independent even when it inherits player trait modifiers.
+  assert.equal(petMetadata.independentConditionOwner, true);
   assert.equal(petMetadata.summonBasePower, 1874);
 
   assert.equal(rangerCatalog.skillsById.get(ID.SUPERSONIC_ARROW).arrowCost, 3);

@@ -1,836 +1,1002 @@
 {
   "rotation": [
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 10175,
+      "interruptAfterMs": 440
     },
     {
-      "name": "__combat_start",
-      "offset": 500
+      "type": "combat-start",
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Illusionary Counter"
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 160
     },
     {
-      "name": "Counterspell"
+      "type": "cast",
+      "skillId": 10314,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Continuum Split",
-      "offset": 600
-    },
-    {
-      "name": "Mirror Images",
-      "offset": 100
-    },
-    {
-      "name": "Rewinder",
-      "offset": 100
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Chaos Armor",
-      "offset": 100
-    },
-    {
-      "name": "Chaos Storm"
-    },
-    {
-      "name": "Time Sink",
-      "offset": 100
-    },
-    {
-      "name": "Distortion",
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Signet of Midnight"
-    },
-    {
-      "name": "Phase Retreat",
-      "offset": 100
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Mirror Images",
-      "offset": 100
-    },
-    {
-      "name": "Rewinder",
-      "offset": 100
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Chaos Armor",
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Chaos Storm"
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Time Sink",
-      "skillId": 56873
-    },
-    {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 680
     },
     {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Distortion",
-      "skillId": 10192,
-      "offset": 800
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Magic Bullet",
-      "skillId": 10229
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Chaos Armor",
-      "skillId": 10331,
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Mirror Images",
-      "skillId": 10202,
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Chaos Storm",
-      "skillId": 10169
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Signet of the Ether",
-      "skillId": 21750
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Chaos Armor",
-      "skillId": 10331,
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Magic Bullet",
-      "skillId": 10229
-    },
-    {
-      "name": "Time Sink",
-      "skillId": 56873,
-      "offset": 100
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Distortion",
-      "skillId": 10192,
-      "offset": 100
-    },
-    {
-      "name": "Mirror Images",
-      "skillId": 10202,
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Chaos Armor",
-      "skillId": 10331,
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Chaos Storm",
-      "skillId": 10169
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Magic Bullet",
-      "skillId": 10229
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Ether Clone",
-      "skillId": 10291
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Continuum Split",
+      "type": "cast",
       "skillId": 29830,
-      "offset": 600
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Mirror Images",
+      "type": "cast",
       "skillId": 10202,
-      "offset": 100
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 100
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Chaos Armor",
-      "skillId": 10331,
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Time Sink",
+      "type": "cast",
       "skillId": 56873,
-      "offset": 100
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Chaos Storm",
-      "skillId": 10169
-    },
-    {
-      "name": "Distortion",
-      "skillId": 10192,
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 100
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Signet of Midnight",
-      "skillId": 10234,
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Continuum Shift",
-      "skillId": -4
-    },
-    {
-      "name": "Phantasmal Warlock",
+      "type": "cast",
       "skillId": 10216
     },
     {
-      "name": "Mirror Images",
-      "skillId": 10202,
-      "offset": 100
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Signet of the Ether",
-      "skillId": 21750
-    },
-    {
-      "name": "Phantasmal Warlock",
-      "skillId": 10216
-    },
-    {
-      "name": "Chaos Armor",
+      "type": "cast",
       "skillId": 10331,
-      "offset": 100
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Chaos Storm",
-      "skillId": 10169
-    },
-    {
-      "name": "Phase Retreat",
-      "skillId": 10310,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Winds of Chaos",
-      "skillId": 10273
-    },
-    {
-      "name": "Time Sink",
-      "skillId": 56873
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Phantasmal Duelist",
-      "skillId": 10175
-    },
-    {
-      "name": "Confusing Images",
-      "skillId": 10168
-    },
-    {
-      "name": "Rewinder",
-      "skillId": 56928,
-      "offset": 100
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
-    },
-    {
-      "name": "Counterspell",
-      "skillId": 10314
-    },
-    {
-      "name": "Magic Bullet",
-      "skillId": 10229
-    },
-    {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
-    },
-    {
-      "name": "Ether Bolt",
-      "skillId": 10289
-    },
-    {
-      "name": "Ether Blast",
-      "skillId": 10290
-    },
-    {
-      "name": "Distortion",
+      "type": "cast",
       "skillId": 10192
     },
     {
-      "name": "Ether Clone",
-      "skillId": 10291
+      "type": "cast",
+      "skillId": 10169
     },
     {
-      "name": "Ether Bolt",
-      "skillId": 10289
+      "type": "cast",
+      "skillId": 10234,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Ether Blast",
-      "skillId": 10290
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Illusionary Counter",
-      "interruptMs": 120,
-      "skillId": 10276
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 240
     },
     {
-      "name": "Counterspell",
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 10202,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 56928
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 56873,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10175
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 10289,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 10314
     },
     {
-      "name": "Split Second",
-      "skillId": 56930,
-      "offset": 100
+      "type": "cast",
+      "skillId": 10229
     },
     {
-      "name": "Ether Clone",
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
       "skillId": 10291
     },
     {
-      "name": "Ether Bolt",
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
       "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 10291,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10290,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10175,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56928
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10202,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 56930
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10175
+    },
+    {
+      "type": "cast",
+      "skillId": 10168,
+      "interruptAfterMs": 1880
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10229
+    },
+    {
+      "type": "cast",
+      "skillId": 56873,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 10291,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10202,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10290,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10175,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56928
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10175
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10229
+    },
+    {
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 10291,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10290,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 10175,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 29830,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10202,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 56873,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10234,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": 10202,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 56928,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10234,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 56873,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10175
+    },
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 10289,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10276,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10314
+    },
+    {
+      "type": "cast",
+      "skillId": 56928
+    },
+    {
+      "type": "cast",
+      "skillId": 10229
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10291
+    },
+    {
+      "type": "cast",
+      "skillId": 10289
+    },
+    {
+      "type": "cast",
+      "skillId": 56930,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10290
     }
   ]
 }

@@ -325,6 +325,24 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
   Aristocracy: defineRelic({
     createState: createAristocracyState,
+    // Real player debuffs feed the shared relic timeline without profession-specific skill lists.
+    materializeCondition(ctx, _state, event) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        (event.condition !== 'Weakness' && event.condition !== 'Vulnerability') ||
+        !(Number(event.stacks) > 0 && Number(event.duration) > 0)
+      )
+        return;
+      ctx.emitDerived(event, {
+        type: 'weakness_vulnerability',
+        at: event.at,
+        source: event.source,
+        sourceId: event.sourceId,
+        actorType: event.actorType,
+        skillId: event.skillId,
+        skillName: event.skillName
+      });
+    },
     weaknessVulnerability(ctx, state, event) {
       if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) {
         return;

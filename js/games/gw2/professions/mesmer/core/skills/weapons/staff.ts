@@ -2,12 +2,29 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// The opening strike is followed by five field pulses.
+const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
+
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHAOS_STORM]: {
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
     cooldown: 20,
+    // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
+    interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
+    mechanicTriggers: [
+      { type: 'mesmer.core.chaos-storm-poison', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ],
+    mesmerMechanic: {
+      // Each selected pulse applies one complete stack; the mechanic alternates two and three selections per cast.
+      chaosStormPoison: {
+        type: 'condition',
+        ticks: CHAOS_STORM_PULSES_MS.slice(1).map((atMs) => ({ atMs, condition: 'Poisoned', duration: 4, stacks: 1 })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    },
     comboFields: [
       {
         ownerId: 'mesmer',
@@ -19,24 +36,21 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 280, coefficient: 0.33 },
-          { atMs: 1280, coefficient: 0.33 },
-          { atMs: 2280, coefficient: 0.33 },
-          { atMs: 3280, coefficient: 0.33 },
-          { atMs: 4280, coefficient: 0.33 },
-          { atMs: 5280, coefficient: 0.33 }
-        ],
+        ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
         name: 'Six pulses',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
-        type: 'condition',
-        condition: 'Poisoned',
-        duration: 4,
-        stacks: 2
+        // Only the first impact dazes; subsequent field pulses do not repeat the CC.
+        type: 'control',
+        controlKind: 'daze',
+        source: 'Player',
+        actorType: 'player',
+        atMs: CHAOS_STORM_PULSES_MS[0],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ],
     castTimeMs: 480
@@ -51,9 +65,10 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'phantasm',
       count: 2
     },
-    // Shared interrupt consumers use the fixed cutoff while the custom lifecycle retains the launched phantasm.
+    // Committed interrupts retain the full cast lockout and the phantasm launched at the fixed summon point.
+    retainsCastLockoutAfterInterrupt: true,
     interruptCommitMs: 640,
-    phantasmSummonProgress: 640 / 840,
+    phantasmSummonProgress: 640 / 880,
     effects: [
       {
         type: 'strike',
@@ -76,7 +91,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         summonKind: 'phantasm'
       }
     ],
-    castTimeMs: 840
+    castTimeMs: 880
   },
   [ID.WINDS_OF_CHAOS]: {
     type: 'Weapon',
@@ -116,6 +131,9 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 760
   },
   [ID.PHASE_RETREAT]: {
+    // Shadowstep metadata drives movement relics and their measured projectile delay.
+    shadowstepSkill: true,
+    peithaProjectileDelay: 0.856,
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',
@@ -136,6 +154,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     rechargeAnchor: 'castStart',
     cooldown: 16,
     effects: [
+      // The activation blinds once for five seconds, independently of its Confusion.
+      { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },
       {
         type: 'condition',
         condition: 'confusion',

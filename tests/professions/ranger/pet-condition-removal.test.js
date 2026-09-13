@@ -40,6 +40,8 @@ for (const reporting of [true, false]) {
         at: 0,
         sourceId,
         source,
+        actorType: source === 'Player' ? 'player' : 'summon',
+        independentConditionOwner: source !== 'Player',
         summonOwner,
         duration,
         condition: 'Bleeding',
@@ -56,15 +58,22 @@ for (const reporting of [true, false]) {
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.75), 5);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 2), 2);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 4), 0);
+      } else if (event.type === 'condition_buffer') {
+        // Advance chronological samples before checking cancellation at whole-second payout.
+        conditions.handleConditionBuffer(context, event);
       } else {
-        const expected = cases.find(({ sourceId }) => sourceId === event.sourceId);
+        // Group packets may contain several pet applications; every included share must survive removal.
         const tick = conditions.handleConditionTick(context, event);
-        assert.equal(tick !== null, expected.removedAt === undefined || event.at < expected.removedAt, event.sourceId);
+        for (const { application } of tick?.contributions ?? []) {
+          assert.ok(application.removedAt == null || event.at < application.removedAt, application.sourceId);
+        }
       }
     }
 
     for (const [index, application] of applications.entries()) {
       assert.equal(application.removedAt, cases[index].removedAt, application.sourceId);
+      const expectedDuration = cases[index].removedAt == null ? Math.min(application.effectiveDuration, 3) : 1;
+      assert.equal(application.damagingStackSeconds, expectedDuration, application.sourceId);
       assert.ok(application.damage > 0, application.sourceId);
     }
   });

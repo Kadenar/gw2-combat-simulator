@@ -35,6 +35,9 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ]
   },
   [ID.AXES_OF_SYMMETRY]: {
+    // Both weapon variants are shadowsteps and use the same movement-relic projectile timing.
+    shadowstepSkill: true,
+    peithaProjectileDelay: 0.519,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
@@ -202,6 +205,8 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 920
   },
   [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: {
+    shadowstepSkill: true,
+    peithaProjectileDelay: 0.519,
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Troubadour',

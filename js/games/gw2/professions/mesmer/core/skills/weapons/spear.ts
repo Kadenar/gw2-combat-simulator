@@ -53,6 +53,9 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     }
   },
   [ID.MENTAL_COLLAPSE]: {
+    // Shadowstep metadata drives movement relics and their measured projectile delay.
+    shadowstepSkill: true,
+    peithaProjectileDelay: 0.8,
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
@@ -126,6 +129,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 560,
     cooldown: 0,
     nextChainId: null,
+    // The chain finisher applies weakness as a real target condition, independent of relic triggers.
     effects: [
       {
         type: 'strike',
@@ -134,7 +138,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'
-      }
+      },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 2 }
     ]
   },
   [ID.IMAGINARY_INVERSION]: {

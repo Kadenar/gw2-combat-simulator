@@ -119,7 +119,8 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     coefficient: 0.49,
     hits: 2,
     atMs: 0,
-    firstAttackDelay: 1.12,
+    // Delay the first impact to include clone startup and projectile travel observed in combat logs.
+    firstAttackDelay: 1.96,
     interval: 2.24,
     weaponStrength: 26,
     conditions: [
@@ -282,38 +283,4 @@ export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatter>> = Obj
     resolver: 'mesmer.core.clone-shatter',
     coefficients: [0, 0, 0, 0]
   }
-});
-export const MESMER_CORE_CONTROL_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.CHAOS_STORM,
-  ID.ILLUSIONARY_WAVE,
-  ID.MAGIC_BULLET,
-  ID.SIGNET_OF_DOMINATION,
-  ID.PHANTASMAL_DEFENDER,
-  ID.SIGNET_OF_HUMILITY,
-  ID.TIDES_OF_TIME,
-  ID.PHANTASMAL_SHARPSHOOTER,
-  ID.DIVERSION,
-  ID.INTO_THE_VOID,
-  ID.COUNTER_BLADE
-]);
-export const MESMER_CORE_BLIND_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.COUNTERSPELL,
-  ID.SIGNET_OF_MIDNIGHT,
-  ID.THE_PRESTIGE,
-  ID.CHAOS_ARMOR
-]);
-export const MESMER_CORE_ARISTOCRACY_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.MIND_SLASH,
-  ID.MIND_GASH,
-  ID.MIND_PIERCE
-]);
-export const MESMER_CORE_PEITHA_SKILLS: ReadonlySet<number> = new Set<number>([
-  ID.PHASE_RETREAT,
-  ID.AXES_OF_SYMMETRY,
-  ID.MENTAL_COLLAPSE
-]);
-export const MESMER_CORE_PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> = Object.freeze({
-  [ID.AXES_OF_SYMMETRY]: 0.519,
-  [ID.PHASE_RETREAT]: 0.856,
-  [ID.MENTAL_COLLAPSE]: 0.8
 });

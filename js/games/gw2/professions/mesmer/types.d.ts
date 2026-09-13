@@ -105,6 +105,7 @@ export type MesmerResolverContext = Gw2ResolverRuntime & {
 
 export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly count?: number;
+  readonly conversionTimes?: readonly number[];
 };
 
 export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;

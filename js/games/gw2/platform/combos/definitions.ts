@@ -7,6 +7,7 @@ const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   'summonKind',
   'summonOwner',
   'independentSummonStrike',
+  'independentConditionOwner',
   'summonInheritsAttributes',
   'summonInheritsCriticalAttributes',
   'summonIgnoresBoons',

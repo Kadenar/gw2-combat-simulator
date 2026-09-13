@@ -5,6 +5,8 @@ import { describe, test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
+import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
@@ -622,15 +624,16 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     ambidexterity.endState.cooldowns['Double Arc'].readyAt < daggerBaseline.endState.cooldowns['Double Arc'].readyAt
   );
 
-  const poisonBaseline = simulate('Core', ['Poison Volley', { type: 'wait', durationMs: 10000 }], {
-    primaryWeapon: 'Shortbow'
-  });
-  const strongerPoison = simulate('Core', ['Poison Volley', { type: 'wait', durationMs: 10000 }], {
-    primaryWeapon: 'Shortbow',
-    selectedTraitIds: [TRAIT.POISON_MASTER]
-  });
-
-  assert.ok(Math.abs(strongerPoison.conditionDamage / poisonBaseline.conditionDamage - 1.25) < 1e-9);
+  // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
+  for (const selected of [false, true]) {
+    const query = createGw2CombatQuery({
+      profession: resolveProfessionRuntime(rangerProfession, { specialization: 'Core' }),
+      config: {},
+      traits: new Set(selected ? [TRAIT.POISON_MASTER] : [])
+    });
+    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'player' }), selected ? 1.25 : 1);
+    assert.equal(query.conditionMultiplier('Poisoned', 0, { actorType: 'summon', independentConditionOwner: true }), 1);
+  }
 
   const skirmishing = simulate('Soulbeast', ['__combat_start', 'Swap Weapons', 'Whirling Defense'], {
     selectedPet: 'Pig',

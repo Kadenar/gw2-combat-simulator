@@ -13,6 +13,7 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
     autoattackChains: {},
     sharperImagesProgress: 0,
     masterFencerProgress: 0,
+    chaosStormCasts: 0,
     ineptitudeReadyAt: 0,
     clarityUntil: 0,
     hasExplicitCombatStart: false,

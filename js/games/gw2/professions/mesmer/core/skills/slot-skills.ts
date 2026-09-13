@@ -54,7 +54,10 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     specialization: '',
     castTimeMs: 166.666666667,
     cooldown: 25,
-    effects: []
+    // Signet activation applies its control when the cast completes.
+    effects: [
+      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ]
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
     type: 'Utility',
@@ -63,7 +66,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    effects: []
+    // Activating the signet applies one five-second blind.
+    effects: [{ type: 'blind', duration: 5, source: 'Player', actorType: 'player' }]
   },
   [ID.MASS_INVISIBILITY]: {
     type: 'Elite',
@@ -172,6 +176,15 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       count: 1
     },
     effects: [
+      // Keep the existing cast-completion control alongside the phantasm's effects.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         coefficient: 0.4,
@@ -199,7 +212,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     effects: [],
-    castTimeMs: 919
+    castTimeMs: 920
   },
   [ID.SIGNET_OF_HUMILITY]: {
     type: 'Elite',
@@ -207,7 +220,10 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     specialization: '',
     castTimeMs: 666.666666667,
     cooldown: 45,
-    effects: []
+    // Signet activation applies its control when the cast completes.
+    effects: [
+      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ]
   },
   [ID.MIMIC]: {
     type: 'Utility',

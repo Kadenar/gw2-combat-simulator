@@ -3,7 +3,7 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { agentOwners, effectEvidence } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { agentOwners, effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 const CLONES = new Set([
   8108, 8109, 18894, 8110, 8111, 9058, 6479, 25569, 10542, 26153, 8107, 15090, 15114, 15233, 15199, 15181, 8106, 15084,
   15131, 15117, 15003, 15032, 15044, 15156, 15196, 15240, 15249, 18922, 18939, 19134, 19257, 25576, 25570, 25573, 25575,
@@ -29,14 +29,139 @@ function float32(bits: number): number {
 }
 
 function samePosition(a: ParsedEvtcEvent, b: ParsedEvtcEvent): boolean {
-  // Agent-attached effects have the default zero position in EI.
-  const xy = (e: ParsedEvtcEvent): number[] =>
-    e.stateChange === 62 || ([45, 51].includes(e.stateChange) && e.target !== 0n)
-      ? [0, 0]
-      : [float32(e.value), float32(e.buffDamage)];
-  const [ax, ay] = xy(a),
-    [bx, by] = xy(b);
-  return (ax - bx) ** 2 + (ay - by) ** 2 < 1e-6;
+  // Split ground effects pack signed coordinates into dst_agent; value holds orientation, not position.
+  const position = (e: ParsedEvtcEvent): number[] => {
+    if ([60, 79].includes(e.stateChange))
+      return [0n, 16n, 32n].map((shift) => Number(BigInt.asIntN(16, e.target >> shift)) * 10);
+    if (e.stateChange === 62 || ([45, 51].includes(e.stateChange) && e.target !== 0n)) return [0, 0, 0];
+    return [float32(e.value), float32(e.buffDamage), float32(e.overstackValue)];
+  };
+
+  const left = position(a),
+    right = position(b);
+  return left.reduce((distance, value, index) => distance + (value - right[index]) ** 2, 0) < 1e-6;
+}
+
+/** EI MesmerHelper excludes clone shatter visuals and distinguishes Mind Wrack from Distortion and its ammo variant. */
+export function eiMesmerShatters(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const { log, profile, playerAddress } = context;
+  if (profile.professionId !== 'mesmer' || !['core', 'mirage'].includes(profile.specializationId)) return [];
+  const effects = effectEvidence(log).filter((e) => e.event.source === playerAddress);
+  const cloneEffects = effects.filter((e) => e.guid === '5FA6527231BB8041AC783396142C6200');
+  const owners = agentOwners(log);
+  const shatters = new Map([
+    ['3D29ABD39CB5BD458C4D50A22FCC0E4B', 10191],
+    ['52F65A4D9970954BA849CB57A46A65A8', 10190],
+    ['916D8385083F144EBAA5BEEDE21FD47A', 10287]
+  ]);
+  const previous = new Map<number, number>();
+  return effects
+    .sort((a, b) => a.event.time - b.event.time)
+    .flatMap(({ event, eventIndex, guid }) => {
+      let skillId = shatters.get(guid);
+      if (
+        skillId == null ||
+        cloneEffects.some((e) => Math.abs(e.event.time - event.time) < 10 && samePosition(e.event, event))
+      )
+        return [];
+      if (skillId === 10191) {
+        if (
+          log.events.some(
+            (e) =>
+              e.skillId === 10243 &&
+              e.target === playerAddress &&
+              isBuffApply(log, e, true) &&
+              Math.abs(e.time - event.time) < 10
+          )
+        )
+          return [];
+        const hasDamage = (id: number): boolean =>
+          log.events.some(
+            (e) =>
+              e.stateChange === 0 &&
+              e.buff === 0 &&
+              e.activation === 0 &&
+              e.skillId === id &&
+              (owners.get(e.source) ?? e.source) === playerAddress &&
+              Math.abs(e.time - event.time) < 2000
+          );
+        const normal = hasDamage(10191),
+          ammo = hasDamage(49068);
+        skillId = normal === ammo ? -63 : ammo ? 49068 : 10191;
+      }
+
+      const duplicate = event.time - (previous.get(skillId) ?? -Infinity) < 50;
+      previous.set(skillId, event.time);
+      return duplicate
+        ? []
+        : [
+            {
+              start: event.time,
+              end: event.time,
+              expectedDuration: 0,
+              rawSkillId: skillId,
+              rawName: log.skills.find((s) => s.id === skillId)?.name ?? 'Unknown ' + skillId,
+              eventIndex,
+              status: 'instant' as const,
+              evidence: 'effect' as const,
+              metadataAccurate: false,
+              castOrigin: 'skill' as const,
+              eiRule: 'MesmerHelper.EffectCastFinder(Shatter)'
+            }
+          ];
+    });
+}
+
+/** EI identifies Phase Retreat only when its teleport coincides with an owned staff clone's first awareness. */
+export function eiMesmerPhaseRetreat(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  const { log, profile, playerAddress } = context;
+  if (profile.professionId !== 'mesmer') return [];
+  const owners = agentOwners(log);
+  const spawns = log.agents
+    .filter(
+      (a) => a.elite === 0xffffffff && (a.profession & 0xffff) === 8111 && owners.get(a.address) === playerAddress
+    )
+    .map((a) => log.events.find((e) => e.source === a.address || e.target === a.address)?.time ?? Infinity);
+  let previous = -Infinity;
+  return effectEvidence(log)
+    .filter(
+      ({ event, guid }) =>
+        guid === 'C34E250B01FF534292EE6AB36D768337' &&
+        event.target === playerAddress &&
+        ![60, 79].includes(event.stateChange) &&
+        spawns.some((time) => Math.abs(time - event.time) < 30) &&
+        !log.events.some(
+          (e) =>
+            e.skillId === 10353 &&
+            e.source === playerAddress &&
+            Math.abs(e.time - event.time) < 30 &&
+            (Number(log.header.arcdpsBuild) >= 20260501
+              ? [71, 72].includes(e.stateChange)
+              : e.stateChange === 0 && e.buffRemove !== 0)
+        )
+    )
+    .sort((a, b) => a.event.time - b.event.time)
+    .flatMap(({ event, eventIndex }) => {
+      const duplicate = event.time - previous < 50;
+      previous = event.time;
+      return duplicate
+        ? []
+        : [
+            {
+              start: event.time,
+              end: event.time,
+              expectedDuration: 0,
+              rawSkillId: 10310,
+              rawName: 'Phase Retreat',
+              eventIndex,
+              status: 'instant' as const,
+              evidence: 'effect' as const,
+              metadataAccurate: false,
+              castOrigin: 'skill' as const,
+              eiRule: 'MesmerHelper.EffectCastFinderByDst(PhaseRetreat)'
+            }
+          ];
+    });
 }
 
 /** EI ChronomancerHelper.ComputeChronomancerShatters consumes clone deaths in reverse shatter order. */

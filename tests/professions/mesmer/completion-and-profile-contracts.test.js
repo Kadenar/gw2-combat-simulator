@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
@@ -9,6 +9,46 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
+
+// Committed Warlock interrupts reserve the remaining cast lane; early cancellations release it.
+test('Warlock retains its cast lockout only after commitment', () => {
+  const config = { specialization: 'Core', primaryWeapon: 'Staff', secondaryWeapon: '' };
+  const completed = simulateMesmer(['Phantasmal Warlock', 'Winds of Chaos'], config);
+
+  for (const interruptMs of [100, 700]) {
+    const result = simulateMesmer([{ name: 'Phantasmal Warlock', interruptMs }, 'Winds of Chaos'], config);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[1].start, interruptMs === 100 ? interruptMs : completed.steps[1].start);
+  }
+});
+
+// Once summoned, a Duelist survives a cancelled player animation and a weapon swap through its repeat and conversion.
+test('committed Duelist interruptions preserve the eventual clone while early cancellations do not', () => {
+  for (const interruptMs of [100, 400]) {
+    const result = simulateMesmer(
+      [
+        { name: 'Phantasmal Duelist', interruptMs },
+        'Swap Weapons',
+        'Winds of Chaos',
+        { type: 'wait', durationMs: 10000 }
+      ],
+      {
+        specialization: 'Chronomancer',
+        selectedTraitIds: [TRAIT.CHRONOPHANTASMA],
+        initialResource: 0,
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Pistol',
+        weaponSet2Primary: 'Staff',
+        weaponSet2Secondary: ''
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.resource, interruptMs === 100 ? 0 : 1);
+    const duelist = result.steps.find((step) => step.skill === 'Phantasmal Duelist');
+    const nextCast = result.steps.find((step) => step.skill === 'Winds of Chaos');
+    assert.equal(nextCast.start, interruptMs === 100 ? duelist.end : duelist.start + duelist.fullCastMs);
+  }
+});
 
 // Cancelled completions retain existing cooldowns instead of granting successful reset effects.
 test('cancelled Ether preserves an established phantasm cooldown', () => {
@@ -94,6 +134,55 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
   assert.deepEqual(catalog.balanceProfilesById.get(profileId).effects[0], before.effects[0]);
   assert.deepEqual(original, before);
   assert.equal(MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].ticks[5][0].coefficient, 0.7);
+});
+
+// Removing a skill's declared CC removes the event even when a shatter or phantasm handler owns its other effects.
+test('core control events are owned by skill definitions across ordinary and replacing handlers', () => {
+  for (const skillId of [ID.MAGIC_BULLET, ID.DIVERSION, ID.PHANTASMAL_DEFENDER]) {
+    const skill = mesmerCatalog.skillsById.get(skillId);
+    const config = {
+      ...createDefaultConfig(),
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0
+    };
+    const rotation = [skill.name, { type: 'wait', durationMs: 1000 }];
+    const base = simulateMesmer(rotation, config);
+    const profession = {
+      resolveRuntime(runtimeConfig) {
+        const runtime = mesmerProfession.resolveRuntime(runtimeConfig);
+        return {
+          ...runtime,
+          catalog: applySkillPatch(runtime.catalog, {
+            skills: { [skillId]: { removeEffects: [{ type: 'control' }] } }
+          })
+        };
+      }
+    };
+    const removed = simulateGw2({ profession, config, rotation });
+    const controls = (result) => result.events.filter((event) => event.type === 'control' && event.skillId === skillId);
+    assert.deepEqual(base.warnings, []);
+    assert.deepEqual(removed.warnings, []);
+    assert.equal(controls(base).length, 1, skill.name);
+    assert.equal(controls(removed).length, 0, skill.name);
+  }
+});
+
+// Skill-authored blinds keep their duration and emit once, including committed projectile cancellation.
+test('core blinds are five-second skill effects without duplicate completion events', () => {
+  for (const [rotation, primaryWeapon, secondaryWeapon, skillId] of [
+    [['Chaos Armor'], 'Staff', '', ID.CHAOS_ARMOR],
+    [['The Prestige'], 'Scepter', 'Torch', ID.THE_PRESTIGE],
+    [['Signet of Midnight'], 'Scepter', 'Pistol', ID.SIGNET_OF_MIDNIGHT],
+    [['Illusionary Counter', { name: 'Counterspell', interruptMs: 400 }], 'Scepter', 'Pistol', ID.COUNTERSPELL]
+  ]) {
+    const result = simulateMesmer(rotation, { specialization: 'Core', primaryWeapon, secondaryWeapon });
+    assert.deepEqual(result.warnings, []);
+    const blinds = result.events.filter((event) => event.type === 'blind' && event.skillId === skillId);
+    assert.equal(blinds.length, 1);
+    assert.equal(blinds[0].duration, 5);
+  }
 });
 
 // The personal Fury application must leave all four allied slots available to the separate allied effect.

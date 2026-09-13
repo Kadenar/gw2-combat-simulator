@@ -6,6 +6,27 @@ import { skillBreakdownRows } from '#gw2/app/results/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Weapon skills retain their Clarity, packet, and follow-up behavior across Mesmer specializations.
+test('The Prestige blasts the active field with its delayed burning explosion', () => {
+  const result = simulateMesmer(
+    ['Chaos Storm', 'Swap Weapons', 'The Prestige', { type: 'wait', durationMs: 5000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Staff',
+      secondaryWeapon: '',
+      weaponSet2Primary: 'Scepter',
+      weaponSet2Secondary: 'Torch'
+    })
+  );
+  assert.deepEqual(result.warnings, []);
+  const burning = result.events.find(
+    (event) => event.type === 'condition' && event.skillId === ID.THE_PRESTIGE && event.condition === 'Burning'
+  );
+  const blasts = result.events.filter((event) => event.type === 'combo_finisher' && event.skillId === ID.THE_PRESTIGE);
+  assert.equal(blasts.length, 1);
+  assert.equal(blasts[0].finisherType, 'Blast');
+  assert.equal(blasts[0].at, burning.at);
+});
+
 test('Mental Collapse resets Mind the Gap cooldown', () => {
   const result = simulateMesmer(
     ['Mind the Gap', 'Mental Collapse', 'Mind the Gap'],

@@ -204,6 +204,35 @@ test('requires an address when multiple players have equal action evidence', () 
   );
 });
 
+test('a recorded Mirage dodge restores the state required to replay an ambush', async () => {
+  const { mesmerCatalog } = await import('#gw2/professions/mesmer/catalog.js');
+  const { simulateMesmer } = await import('../helpers/mesmer-simulation.js');
+  const fixture = log({
+    agents: [{ ...log().agents[0], elite: 59 }],
+    // Synthetic EI dodge IDs have no entry in the raw EVTC skill table.
+    skills: [{ id: 44321, name: 'Imaginary Axes' }],
+    events: [
+      event({ stateChange: 1 }),
+      event({ stateChange: 69, target: 0x1000n, skillId: 40408, value: 1000 }),
+      event({ time: 1100, stateChange: 67, skillId: 44321, value: 1000 }),
+      event({ time: 2100, stateChange: 68, skillId: 44321, value: 1000, activation: 5 })
+    ]
+  });
+  const imported = reconstructEvtcRotation(fixture, mesmerCatalog);
+  const result = simulateMesmer(imported.rotation, {
+    specialization: 'Mirage',
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Torch',
+    initialResource: 0
+  });
+
+  assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.endState.profession.endurance < 100);
+  assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
+  assert.equal(result.endState.profession.availableAmbush, null);
+});
+
 test('the browser rotation importer previews compressed .zevtc files before applying them', async () => {
   assert.equal(isJsonRotationFile({ name: 'rotation.json', type: '' }), true);
   assert.equal(isJsonRotationFile({ name: 'fight.zevtc', type: '' }), false);

@@ -88,6 +88,23 @@ export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCat
   return values;
 }
 
+/** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
+function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | null {
+  if (event?.actorType !== 'summon' || event.independentConditionOwner) return event;
+  return {
+    ...event,
+    actorType: 'player',
+    ownerActorType: 'player',
+    summonKind: undefined,
+    summonOwner: undefined,
+    independentSummonStrike: false,
+    summonInheritsAttributes: true,
+    summonIgnoresBoons: false,
+    summonUsesEquipmentModifiers: true,
+    summonUsesProfessionModifiers: true
+  };
+}
+
 /**
  * Builds the timestamp-aware combat facts shared by scheduling and resolution.
  * A supplied runtime makes same-timestamp buffs, weapon sets, profession state,
@@ -365,6 +382,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     event: SimulationEvent | null = null,
     runtime: Gw2QueryRuntime | null = null
   ): Gw2ResolvedStats => {
+    if (event?.type === 'condition') event = conditionOwnerEvent(event);
     const activeWeaponSet = activeWeaponSetAt(time, runtime);
     const modifiedStats = activeProfession.modifyAttributes(
       hookContext(time, { event, runtime }),
@@ -554,6 +572,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null
     ) {
+      event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
@@ -579,6 +598,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null
     ) {
+      event = conditionOwnerEvent(event);
       const sigils = activeSigilSetAt(time, runtime);
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       const sigilBonus = usesEquipmentModifiers
@@ -604,6 +624,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null
     ) {
+      event = conditionOwnerEvent(event);
       return Math.max(
         0,
         Number(

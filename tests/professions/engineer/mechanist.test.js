@@ -395,6 +395,10 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
 
   assert.equal(cutterBleeds.length, 2);
   assert.ok(cutterBleeds.every((event) => event.stacks === 1 && event.duration === 3));
+  // Resolver-derived bleeds and scheduled commands must retain the same concrete mech owner.
+  assert.ok(
+    rollingBleeds.every((event) => event.summonOwner === 'engineer.mech' && event.independentConditionOwner === true)
+  );
   assert.ok(cutterBleeds[1].at - cutterBleeds[0].at >= 1);
 
   const highImpact = simulate('Mechanist', ['Explosive Knuckle', { type: 'wait', durationMs: 1500 }], {
@@ -652,6 +656,10 @@ describe('Mechanist grandmaster active effects', () => {
     assert.equal(new Set(buster.map((event) => event.activationId)).size, 1);
     assert.equal(busterBurns.length, 5);
     assert.ok(busterBurns.every((event) => event.stacks === 1 && event.duration === 6));
+    // Mech applications from every command share the concrete companion, independent of their skill ID.
+    assert.ok(
+      busterBurns.every((event) => event.summonOwner === 'engineer.mech' && event.independentConditionOwner === true)
+    );
     const stochasticBuster = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
       selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
       selectedTraitIds: [

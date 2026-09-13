@@ -1,5 +1,14 @@
 import { escapeHtml } from '#ui/shared/html.js';
 
+export interface ConditionTickContribution {
+  readonly source: string;
+  readonly actor: string;
+  readonly appliedAtMs: number;
+  readonly stacks: number;
+  readonly fraction?: number;
+  readonly damage: number;
+}
+
 // One resolved hit/tick: time (ms, relative to the DPS window), damage, and
 // whether it critically struck (null when deterministic runs use expected crits).
 export interface SkillHit {
@@ -9,6 +18,7 @@ export interface SkillHit {
   readonly activationId?: string;
   readonly damageType?: 'strike' | 'condition';
   readonly conditionType?: string;
+  readonly contributions?: readonly ConditionTickContribution[];
 }
 
 const CONDITION_WINDOW_MS = 5000;
@@ -46,6 +56,54 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
 }
 
 const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(2)}s`;
+
+/** Combine all sources into one payout row; tick counts represent stacks, not application rows. */
+function conditionTickTotalsHtml(hits: readonly SkillHit[], offsetMs: number): string {
+  const hasUnknown = hits.some((hit) => hit.contributions?.some((entry) => entry.fraction == null));
+  return `<div class="condition-attribution-table condition-tick-totals"><table>
+    <caption>Combined condition payouts</caption>
+    <thead><tr><th scope="col">Damage dealt at</th><th scope="col">Full ticks</th><th scope="col">Full damage</th><th scope="col">Partial ticks</th><th scope="col">Partial damage</th>${hasUnknown ? '<th scope="col">Unknown ticks</th><th scope="col">Unknown damage</th>' : ''}<th scope="col">Total damage</th></tr></thead>
+    <tbody>${hits
+      .map((hit) => {
+        const totals = {
+          full: { count: 0, damage: 0 },
+          partial: { count: 0, damage: 0 },
+          unknown: { count: 0, damage: 0 }
+        };
+        for (const entry of hit.contributions || []) {
+          const bucket = totals[entry.fraction == null ? 'unknown' : entry.fraction === 1 ? 'full' : 'partial'];
+          bucket.count += entry.stacks;
+          bucket.damage += entry.damage;
+        }
+        const values = [
+          totals.full.count,
+          totals.full.damage,
+          totals.partial.count,
+          totals.partial.damage,
+          ...(hasUnknown ? [totals.unknown.count, totals.unknown.damage] : []),
+          hit.v
+        ];
+        return `<tr><th scope="row">${hitTime(hit.t + offsetMs)}</th>${values.map((value) => `<td>${value.toLocaleString()}</td>`).join('')}</tr>`;
+      })
+      .join('')}</tbody></table></div>`;
+}
+
+/** Show the payout timestamp separately from application time, preserving each source's buffered share. */
+function tickAttributionHtml(
+  contributions: readonly ConditionTickContribution[],
+  dealtAtMs: number,
+  damage: number
+): string {
+  const full = contributions.filter((entry) => entry.fraction === 1).length;
+  const partial = contributions.filter((entry) => entry.fraction != null && entry.fraction < 1).length;
+  const unknown = contributions.length - full - partial;
+  return `<details class="condition-tick-attribution"><summary><strong>Damage dealt at ${hitTime(dealtAtMs)} · ${Math.round(damage).toLocaleString()} damage</strong><span>${full} full · ${partial} partial${unknown ? ` · ${unknown} unknown` : ''}</span></summary>
+    <div class="condition-attribution-table">
+    <table><thead><tr><th scope="col">Source</th><th scope="col">Actor</th><th scope="col">Applied at</th><th scope="col">Damage dealt at</th><th scope="col">Stacks</th><th scope="col">Buffered</th><th scope="col">Damage</th></tr></thead>
+    <tbody>${contributions.map((entry) => `<tr><td>${escapeHtml(entry.source)}</td><td>${escapeHtml(entry.actor)}</td><td>${hitTime(entry.appliedAtMs)}</td><td>${hitTime(dealtAtMs)}</td><td>${entry.stacks}</td><td>${entry.fraction == null ? 'Unknown' : `${entry.fraction === 1 ? 'Full' : 'Partial'} · ${Math.round(entry.fraction * 1000)}ms`}</td><td>${Math.round(entry.damage).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+    </div></details>`;
+}
+
 // Clip the displayed window at phase boundaries without moving its fight-time bucket.
 const conditionWindow = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): [number, number] => {
   const start = Math.floor((hits[0]!.t + offsetMs) / CONDITION_WINDOW_MS) * CONDITION_WINDOW_MS - offsetMs;
@@ -93,6 +151,8 @@ interface ActiveHitTimelineMount {
 
 export interface HitTimelineMountOptions extends HitTimelineOptions {
   readonly durationMs: number;
+  readonly timeLabel?: string;
+  readonly inspectAllTicks?: boolean;
 }
 
 // Shared horizontal padding keeps standalone and embedded hit strips aligned
@@ -289,14 +349,26 @@ export function mountHitTimeline(
 function mountHitTimelineLane(
   container: HTMLElement | null | undefined,
   hits: readonly SkillHit[],
-  { durationMs, color, label, height = 100, emptyText, showAxis = true, timeOffsetMs = 0 }: HitTimelineMountOptions
+  {
+    durationMs,
+    color,
+    label,
+    height = 100,
+    emptyText,
+    showAxis = true,
+    timeOffsetMs = 0,
+    timeLabel = 'fight time',
+    inspectAllTicks = false
+  }: HitTimelineMountOptions
 ): { redraw: () => void } | null {
   if (!container) return null;
   ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
   const activeMount: ActiveHitTimelineMount = { token: mountToken };
   ACTIVE_HIT_TIMELINE_MOUNTS.set(container, activeMount);
-  container.innerHTML = `<div class="chart-canvas-wrap">
+  const allTicks = hits.filter((hit) => hit.v > 0).sort((left, right) => left.t - right.t);
+  const isCondition = hits[0]?.damageType === 'condition';
+  container.innerHTML = `${inspectAllTicks && isCondition ? '<div class="condition-tick-toolbar"><label>View <select data-role="condition-tick-view"><option value="totals">Tick totals</option><option value="sources">Source attribution</option></select></label><span>Select a chart window to filter; select it again to show all ticks.</span></div>' : ''}<div class="chart-canvas-wrap">
       <canvas class="chart-canvas" data-role="hit-timeline-canvas" aria-hidden="true"></canvas>
       <div data-role="hit-groups"></div>
       <div class="chart-tooltip" data-role="hit-timeline-tooltip"></div>
@@ -306,17 +378,17 @@ function mountHitTimelineLane(
   const tooltip = container.querySelector<HTMLElement>('[data-role="hit-timeline-tooltip"]');
   const controls = container.querySelector<HTMLElement>('[data-role="hit-groups"]');
   const detail = container.querySelector<HTMLElement>('[data-role="hit-detail"]');
+  const tickView = container.querySelector<HTMLSelectElement>('[data-role="condition-tick-view"]');
   const resolvedDuration = Math.max(1, Number(durationMs) || 0);
-  const isCondition = hits[0]?.damageType === 'condition';
   const noun = isCondition ? 'tick' : 'hit';
-  const detailLabel = isCondition ? 'Ticks by time and condition · fight time' : 'Individual hits · fight time';
+  const detailLabel = `${isCondition ? 'Ticks by time and condition' : 'Individual hits'} · ${timeLabel}`;
   let layout: HitTimelineLayout | null = null;
   let selectedGroup: number | null = null;
   let detailHits: readonly SkillHit[] = [];
 
   const drawDetail = (): void => {
-    const group = selectedGroup == null ? null : layout?.groups[selectedGroup];
-    if (!group || !detail) return;
+    const group = selectedGroup == null ? (tickView ? allTicks : null) : layout?.groups[selectedGroup];
+    if (!group?.length || !detail) return;
     const start = group[0]!.t;
     const duration = Math.max(1, group.at(-1)!.t - start);
     drawHitTimeline(
@@ -332,7 +404,7 @@ function mountHitTimelineLane(
     );
   };
 
-  const selectGroup = (index: number | null): void => {
+  const selectGroup = (index: number | null, focus = true): void => {
     if (!detail || !controls) return;
     selectedGroup = index;
     if (tooltip) tooltip.style.display = 'none';
@@ -340,9 +412,11 @@ function mountHitTimelineLane(
       button.setAttribute('aria-expanded', String(Number(button.dataset.group) === index));
     }
 
-    const group = index == null ? null : layout?.groups[index];
+    // No selected window means the full fight in the condition inspector; skill timelines still collapse.
+    const group = index == null ? (tickView ? allTicks : null) : layout?.groups[index];
     detail.hidden = !group;
-    if (!group) {
+    if (!group?.length) {
+      detail.hidden = true;
       detail.innerHTML = '';
       return;
     }
@@ -353,7 +427,12 @@ function mountHitTimelineLane(
       const ticks = new Map<string, SkillHit>();
       for (const hit of group) {
         const key = JSON.stringify([hit.t, hit.conditionType || '']);
-        ticks.set(key, { ...hit, v: (ticks.get(key)?.v || 0) + hit.v });
+        const previous = ticks.get(key);
+        ticks.set(key, {
+          ...hit,
+          v: (previous?.v || 0) + hit.v,
+          contributions: [...(previous?.contributions || []), ...(hit.contributions || [])]
+        });
       }
 
       detailHits = [...ticks.values()];
@@ -361,12 +440,23 @@ function mountHitTimelineLane(
 
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
-    detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}</b>
-      <button type="button" class="hit-detail-close" data-role="close-hit-detail" aria-label="Close ${noun} details">Close</button></div>
+    const showAttribution = detailHits.some((hit) => hit.contributions?.length);
+    const heading =
+      index == null
+        ? `All ticks · ${detailHits.length} ${noun}${detailHits.length === 1 ? '' : 's'} · ${Math.round(detailHits.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()} damage`
+        : hitGroupLabel(group, timeOffsetMs, resolvedDuration);
+    detail.innerHTML = `<div class="hit-detail-header"><b>${escapeHtml(heading)}</b>
+      ${index != null ? `<button type="button" class="hit-detail-close" data-role="close-hit-detail" aria-label="${tickView ? 'Clear time selection' : `Close ${noun} details`}">${tickView ? 'Clear selection' : 'Close'}</button>` : ''}</div>
       <div><canvas class="chart-canvas" aria-hidden="true"></canvas></div>
-      <div class="hit-detail-table"><table>
-        <caption>${detailLabel}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}</tr></thead>
+      ${
+        showAttribution
+          ? tickView?.value === 'totals'
+            ? conditionTickTotalsHtml(detailHits, timeOffsetMs)
+            : `<p class="condition-tick-note">Buffered time is per stack. Damage includes all stacks and shared rounding.</p>
+        <div class="condition-payouts">${detailHits.map((hit) => tickAttributionHtml(hit.contributions || [], hit.t + timeOffsetMs, hit.v)).join('')}</div>`
+          : `<div class="hit-detail-table"><table>
+        <caption>${escapeHtml(detailLabel)}</caption>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
         <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
@@ -374,19 +464,25 @@ function mountHitTimelineLane(
           <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
-      </table></div>`;
+      </table></div>`
+      }`;
     const close = (): void => {
       selectGroup(null);
       controls.querySelector<HTMLButtonElement>(`[data-group="${index}"]`)?.focus();
     };
 
-    detail.querySelector<HTMLButtonElement>('[data-role="close-hit-detail"]')!.onclick = close;
+    const closeButton = detail.querySelector<HTMLButtonElement>('[data-role="close-hit-detail"]');
+    if (closeButton) closeButton.onclick = close;
     detail.onkeydown = (event) => {
-      if (event.key === 'Escape') close();
+      if (event.key === 'Escape' && selectedGroup != null) {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+      }
     };
 
     drawDetail();
-    detail.querySelector<HTMLButtonElement>('[data-role="close-hit-detail"]')!.focus({ preventScroll: true });
+    if (focus) closeButton?.focus({ preventScroll: true });
   };
 
   const redraw = (): void => {
@@ -400,13 +496,13 @@ function mountHitTimelineLane(
       timeOffsetMs
     });
     if (!layout || !controls) return;
-    // Single events keep focusable tooltips; only groups with multiple events need a drill-down button.
+    // A single condition payout still needs a drill-down when it carries application attribution.
     if (!controls.children.length) {
       controls.innerHTML = layout.groups
         .map((group, index) => {
           const attributes = `class="hit-group" data-group="${index}"
             aria-label="${escapeHtml(hitGroupLabel(group, timeOffsetMs, resolvedDuration))}"`;
-          return group.length > 1
+          return group.length > 1 || group.some((hit) => hit.contributions?.length)
             ? `<button type="button" ${attributes} aria-expanded="false"></button>`
             : `<span ${attributes} tabindex="0" role="img"></span>`;
         })
@@ -454,9 +550,15 @@ function mountHitTimelineLane(
       };
 
       button.onblur = hideTooltip;
-      if (group.length > 1) button.onclick = () => selectGroup(selectedGroup === index ? null : index);
+      if (group.length > 1 || group.some((hit) => hit.contributions?.length))
+        button.onclick = () => selectGroup(selectedGroup === index ? null : index);
       button.onkeydown = (event) => {
         if (event.key === 'Escape') {
+          if (selectedGroup != null) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
           selectGroup(null);
           hideTooltip();
         }
@@ -467,6 +569,11 @@ function mountHitTimelineLane(
   };
 
   redraw();
+  if (tickView) {
+    tickView.onchange = () => selectGroup(selectedGroup, false);
+    // Open the complete ledger without moving focus from the dialog's initial control.
+    selectGroup(null, false);
+  }
 
   const wrap = canvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;

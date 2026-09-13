@@ -68,6 +68,7 @@ test('shared buff handling records allied recipient scope before reactions run',
     conditions: {
       activeConditionStackCount: () => 0,
       handleConditionTick: () => ({}),
+      handleConditionBuffer: () => {},
       handleEnvironmentConditionTick: () => {}
     },
     reactions: createGw2ResolverReactionRegistry({

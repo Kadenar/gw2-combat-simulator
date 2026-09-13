@@ -23,14 +23,17 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Ambush packets register at cast start so overlapping actions observe them chronologically.
 const mesmerAmbushProfile = replaceSkill<MesmerHandlerContext>({
-  beforeEffects: (context, skill) =>
+  beforeEffects: (context, skill) => {
+    // An uncommitted ambush must leave its cloak window available for the next weapon's ambush.
+    if (context.action.cancelled) return;
     withMesmerCastEmission(context, skill as MesmerSkill, () =>
       mirageControllerFor(context.mesmerRuntime).executePlayerAmbush(
         skill as MesmerSkill,
         context.fullEnd,
         context.start
       )
-    )
+    );
+  }
 });
 
 export const mirageModule = defineNativeModule({

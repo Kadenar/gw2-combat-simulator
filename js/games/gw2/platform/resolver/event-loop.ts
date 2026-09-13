@@ -98,7 +98,14 @@ export function runGw2ResolverEventLoop(ctx: Gw2ResolverRuntime, handlerRegistry
     }
 
     if (missesTarget(event)) continue;
-    if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON && isCombatGatedEvent(event)) continue;
+    // Recurring condition wakes must advance their clock even when their damage is gated before combat.
+    if (
+      ctx.combatStartTime != null &&
+      event.at < ctx.combatStartTime - EPSILON &&
+      isCombatGatedEvent(event) &&
+      !event.conditionGroup
+    )
+      continue;
 
     if (handlerRegistry.has(event.type)) {
       handlerRegistry.dispatch(event, ctx);

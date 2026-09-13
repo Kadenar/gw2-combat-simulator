@@ -146,7 +146,7 @@ test('Sharpshooter derives bleeding damage from Power including Applied Force', 
   // Sharpshooter must use final Power after both ordinary Might and Applied Force bonuses.
   for (const might of [0, 10, 25]) {
     for (const appliedForce of [false, true]) {
-      const result = simulate('Scrapper', ['Puncturing Jab', { type: 'wait', durationMs: 1000 }], {
+      const result = simulate('Scrapper', ['Puncturing Jab', { type: 'wait', durationMs: 2000 }], {
         selectedTraitIds: [TRAIT.SHARPSHOOTER, ...(appliedForce ? [TRAIT.APPLIED_FORCE] : [])],
         boons: { might },
         target: { conditions: {} }
@@ -158,7 +158,8 @@ test('Sharpshooter derives bleeding damage from Power including Applied Force', 
 
       assert.deepEqual(result.warnings, []);
       assert.ok(bleed);
-      assert.ok(Math.abs(bleed.damage / bleed.damagingStackSeconds - (22 + 0.06 * power * (2 / 3))) < 1e-12);
+      // A full-second contribution checks the Power formula without partial-packet rounding error.
+      assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 22 + 0.06 * power * (2 / 3));
     }
   }
 });

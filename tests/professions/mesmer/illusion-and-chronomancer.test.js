@@ -536,6 +536,23 @@ test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays per
     [280, 1280, 2280, 3280, 4280, 5280]
   );
 
+  // The first storm selects two whole Poison pulses, while only the opening impact applies control.
+  const stormImpacts = damageEvents(chaosStorm, 'Chaos Storm').map((event) => event.at);
+  const poison = chaosStorm.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Chaos Storm' && event.condition === 'Poisoned'
+  );
+  assert.deepEqual(
+    poison.map((event) => event.at),
+    [stormImpacts[2], stormImpacts[4]]
+  );
+  assert.ok(poison.every((event) => event.duration === 4 && event.stacks === 1));
+  assert.deepEqual(
+    chaosStorm.events
+      .filter((event) => event.type === 'control' && event.skillName === 'Chaos Storm')
+      .map((event) => event.at),
+    [stormImpacts[0]]
+  );
+
   const lesserChaosStorm = simulateMesmer(
     ['Ether Feast', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
@@ -546,6 +563,39 @@ test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays per
   );
 
   assertSixPulses(damageEvents(lesserChaosStorm, 'Lesser Chaos Storm'));
+});
+
+// Cast-local selection keeps whole stacks and alternates 2/3 even when an earlier attempt was cancelled.
+test('Chaos Storm alternates whole Poison pulses across successful casts', () => {
+  const config = defaultSimulationConfig({
+    specialization: 'Core',
+    primaryWeapon: 'Staff',
+    secondaryWeapon: '',
+    initialResource: 0
+  });
+  const rotation = [
+    { name: 'Chaos Storm', interruptMs: 100 },
+    'Chaos Storm',
+    'Chaos Storm',
+    'Chaos Storm',
+    { type: 'wait', durationMs: 6000 }
+  ];
+  const result = simulateMesmer(rotation, config);
+  assert.deepEqual(result.warnings, []);
+  const casts = result.events.filter((event) => event.type === 'action' && event.skillId === ID.CHAOS_STORM);
+  const poison = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
+  );
+  assert.deepEqual(
+    casts.map((cast) => poison.filter((event) => event.activationId === cast.activationId).length),
+    [0, 2, 3, 2]
+  );
+  assert.ok(poison.every((event) => event.stacks === 1 && event.duration === 4));
+  const rerun = simulateMesmer(['Chaos Storm', { type: 'wait', durationMs: 6000 }], config);
+  assert.equal(
+    rerun.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Poisoned').length,
+    2
+  );
 });
 
 test('Confusing Images starts its cooldown after its channel ends', () => {
@@ -659,19 +709,19 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
   assert.deepEqual(
     normalConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 4.9201],
-      [1, 5.0201]
+      [1, 4.9601],
+      [1, 5.0601]
     ]
   );
   assert.deepEqual(
     chronoConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 9.2801],
-      [1, 9.3201]
+      [1, 9.3201],
+      [1, 9.3601]
     ]
   );
-  assert.ok(Math.abs(proc.at - 4.92) < 0.00001);
-  assert.ok(Math.abs(repeat.at - 6.4) < 0.00001);
+  assert.ok(Math.abs(proc.at - 4.96) < 0.00001);
+  assert.ok(Math.abs(repeat.at - 6.44) < 0.00001);
 
   const normalDamage = normal.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Warlock' && event.summonKind === 'phantasm'
@@ -818,7 +868,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
   assert.deepEqual(
     triggers.map((event) => Number(event.at.toFixed(4))),
-    [0.84, 4.92, 9.2801, 9.3201]
+    [0.88, 4.96, 9.3201, 9.3601]
   );
 });
 
