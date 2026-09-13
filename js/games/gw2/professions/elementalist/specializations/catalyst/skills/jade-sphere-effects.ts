@@ -1,5 +1,5 @@
 /**
- * Effect tables for the four Deploy Jade Sphere skills. A sphere pulses six times
+ * Static skill-catalog effects for the four Deploy Jade Sphere skills. A sphere pulses six times
  * over five seconds from cast start, each pulse striking for a small coefficient
  * and granting its attunement's boon to the party.
  */

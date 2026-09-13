@@ -2,7 +2,7 @@
  * Owns Catalyst Jade Sphere and augment skill catalog fragments only.
  * Energy, sphere, and empowerment state lives under `mechanics/`.
  */
-import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-effects.js';
+import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 

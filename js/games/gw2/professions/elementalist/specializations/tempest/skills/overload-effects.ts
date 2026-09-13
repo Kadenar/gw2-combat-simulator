@@ -1,5 +1,5 @@
 /**
- * Tick tables for the channeled overloads.
+ * Static skill-catalog tick tables for the channeled overloads.
  *
  * Each overload is expanded into per-pulse strike/condition/boon packets anchored to cast start and
  * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
