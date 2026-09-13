@@ -1,5 +1,5 @@
 /** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
-import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerCastContext,

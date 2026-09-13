@@ -1,4 +1,4 @@
-import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantras.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantra-definitions.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';

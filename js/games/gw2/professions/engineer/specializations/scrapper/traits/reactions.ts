@@ -11,7 +11,7 @@ import {
   procState,
   queueBuff,
   recordTrait
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';

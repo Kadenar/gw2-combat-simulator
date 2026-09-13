@@ -8,7 +8,7 @@ import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resol
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { queueBuff } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+import { queueBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import {
   holosmithEventMetadata,
   holosmithHeatSnapshotFromEvent,

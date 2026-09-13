@@ -21,7 +21,7 @@ export {
   queueDamage,
   recordTrait,
   resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 // event handlers fire when a specific event type is dequeued during resolution
 export const engineerCoreResolverEventHandlers = Object.freeze({

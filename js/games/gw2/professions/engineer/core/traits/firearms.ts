@@ -14,7 +14,7 @@ import {
   procState,
   queueBuff,
   recordTrait
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type {
   EngineerResolverContext,

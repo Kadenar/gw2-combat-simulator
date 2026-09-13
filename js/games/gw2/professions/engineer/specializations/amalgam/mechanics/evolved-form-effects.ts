@@ -13,7 +13,7 @@ import {
   queueDamage,
   recordTrait,
   resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 /** Identifies player-owned Amalgam hits and the Rapacious effect hit that may chain Carbolic Composition. */

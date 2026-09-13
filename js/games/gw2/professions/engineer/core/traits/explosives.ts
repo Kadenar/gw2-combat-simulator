@@ -17,7 +17,7 @@ import {
   queueDamage,
   recordTrait,
   resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,

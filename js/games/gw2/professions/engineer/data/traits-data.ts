@@ -1,6 +1,6 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
 import type { EngineerApiTrait } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
-import { createProfessionTraitData } from '#gw2/professions/lib/traits.js';
+import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
 
 export const {
   specializations: SPECIALIZATIONS,

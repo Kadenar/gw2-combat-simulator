@@ -1,8 +1,8 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import type { MesmerApiTrait } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
-import { createProfessionTraitData } from '#gw2/professions/lib/traits.js';
+import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
 
-export { DEFAULT_TRAITS } from '#gw2/professions/lib/traits.js';
+export { DEFAULT_TRAITS } from '#gw2/professions/lib/trait-data.js';
 
 const MINOR_TIERS = ['Minor Adept', 'Minor Master', 'Minor Grandmaster'];
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { engineerCoreAttributeRules } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 

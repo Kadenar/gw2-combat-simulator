@@ -1,9 +1,9 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
 import type { ElementalistApiTrait } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
 
-import { createProfessionTraitData } from '#gw2/professions/lib/traits.js';
+import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
 
-export { DEFAULT_TRAITS } from '#gw2/professions/lib/traits.js';
+export { DEFAULT_TRAITS } from '#gw2/professions/lib/trait-data.js';
 
 export const {
   specializations: SPECIALIZATIONS,

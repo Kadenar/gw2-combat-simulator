@@ -1,5 +1,8 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { applyEngineerDerivedCondition, queueDamage } from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+import {
+  applyEngineerDerivedCondition,
+  queueDamage
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives.js';
 import type {
   EngineerResolverContext,

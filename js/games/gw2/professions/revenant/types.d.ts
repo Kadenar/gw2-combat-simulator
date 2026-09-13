@@ -16,7 +16,7 @@ import type {
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
 
 export type RevenantSpecializationSelection = ProfessionTraitSelection;
 

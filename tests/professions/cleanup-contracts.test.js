@@ -9,7 +9,7 @@ import {
   initializeFirebrandBalanceState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantras.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantra-definitions.js';
 import { updateFirebrandCastState } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import {
   advanceRadiantForgeState,

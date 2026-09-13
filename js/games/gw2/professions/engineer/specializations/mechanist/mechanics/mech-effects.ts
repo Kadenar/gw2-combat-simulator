@@ -13,7 +13,7 @@ import {
   queueBuff,
   recordTrait,
   resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/state-helpers.js';
+} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import type {
   EngineerResolverContext,

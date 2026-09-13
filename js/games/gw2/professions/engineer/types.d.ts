@@ -19,7 +19,7 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/lib/traits.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
 
 export type EngineerSpecializationSelection = ProfessionTraitSelection;
 
