@@ -740,6 +740,8 @@ test('Mesmer replacement handlers are limited to dynamic mechanic families', () 
     'mesmer.continuum-shift',
     'mesmer.continuum-split',
     'mesmer.crescendo',
+    // Abstraction can cancel Inspiring Imagery's delayed boons, so emission depends on runtime state.
+    'mesmer.inspiring-imagery',
     'mesmer.instrument',
     'mesmer.mirage-dodge',
     'mesmer.phantasm',
@@ -752,10 +754,13 @@ test('Mesmer replacement handlers are limited to dynamic mechanic families', () 
     const replacements = runtime.catalog.skills.filter((skill) => runtime.skillHandlerFor(skill)?.mode === 'replace');
 
     assert.ok(replacements.length > 0, specialization);
-    assert.ok(
-      replacements.every((skill) => allowed.has(skill.handlerId)),
-      specialization
-    );
+    for (const skill of replacements) {
+      assert.ok(
+        allowed.has(skill.handlerId),
+        `${specialization}: ${skill.name} uses unexpected handler ${skill.handlerId}`
+      );
+    }
+    
     assert.ok(
       runtime.catalog.skills.some((skill) => skill.effects.length > 0 && !skill.handlerId),
       specialization
