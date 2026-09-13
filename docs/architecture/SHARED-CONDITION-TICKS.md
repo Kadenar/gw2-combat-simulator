@@ -34,15 +34,19 @@ gates damage without shifting the clock, including when combat starts between wh
 
 ## Packets, ownership, and attribution
 
-The global timer determines timestamps. Damage still resolves in separate packets for each canonical condition and
-actual damage owner. Player skills, explicitly player-owned effects, clones, and phantasms share a rounding group. Other
-summons use concrete `summonOwner` identities, regardless of inherited player modifiers. Unclassified actors remain
-isolated per application. Environment conditions retain separate totals and never enter player reactions.
+The global timer determines timestamps. Damage resolves in separate packets for each canonical condition and condition
+owner. Player skills, explicitly player-owned effects, and all summons share player rounding by default. Ranger pets and
+mech packets carry `independentConditionOwner: true` and instead group by their concrete `summonOwner`. An independent
+summon without an owner ID remains isolated per application. Unclassified actors also remain isolated. Environment
+conditions retain separate totals and never enter player reactions.
 
-Existing Ranger pets, Necromancer minions/spirits, and Elementalist elementals provide companion IDs. Mech emission and
-derived conditions retain the concrete `engineer.mech` identity. Clones and phantasms retain their original actor
-metadata and source-specific damage queries while sharing player rounding. Skill IDs and display labels are not owner
-identities. Existing trait effects explicitly attributed to the player retain that ownership.
+Pet preparation and derived pet conditions preserve their independent ownership. Mech emission and derived conditions
+retain the concrete `engineer.mech` identity and the independent marker. Other summons can retain companion IDs for boon
+audiences and lifetimes without creating separate condition rounding groups. This includes minions, spirits, elementals,
+Thieves Guild, clones, and phantasms.
+
+Grouping does not replace source-specific stat or modifier queries. Existing boon inheritance, equipment eligibility,
+and profession rules still apply to each sampled contribution. Skill IDs and display labels do not determine owners.
 
 Applications remain the canonical lifetime and reporting records. Owner groups reference them rather than duplicating
 mutable duration state. Each application retains its sampling cursor, buffered step count, and sum of sampled damage
@@ -83,7 +87,7 @@ approximation and condition damage formulas are unchanged.
 
 `tests/platform/gw2/shared-condition-ticks.test.js` covers combined rounding, attribution, owner isolation, the supplied
 cross-condition timeline, empty clock gaps, 40ms buffers, short durations, observation boundaries, permanent conditions,
-buffer-time stats, transient modifiers, environment sampling, illusion ownership, atomic packets, precombat settlement,
+buffer-time stats, transient modifiers, environment sampling, summon ownership, atomic packets, precombat settlement,
 causal/priority/insertion ordering, lethal packets, and cancellation/stale wakes. Existing condition formula/duration
 and Ranger removal tests cover their original contracts using synchronized pulses.
 

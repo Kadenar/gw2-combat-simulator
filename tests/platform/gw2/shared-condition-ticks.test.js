@@ -105,8 +105,9 @@ test('same-owner skills and player effects round once with stable integer attrib
 test('distinct owners and unclassified actors share cadence without sharing rounding', () => {
   const player = condition(0, { duration: 2 });
   for (const actor of [
-    { actorType: 'summon', summonOwner: 'pet:1', ownerActorType: 'player' },
-    { actorType: 'summon' },
+    { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1', ownerActorType: 'player' },
+    { actorType: 'summon', independentConditionOwner: true },
+    { actorType: 'summon', independentConditionOwner: true, summonOwner: 'engineer.mech' },
     { actorType: 'unknown', ownerActorType: 'player' }
   ]) {
     const result = resolve([player, condition(0, actor)], { end: 1.1 });
@@ -116,8 +117,8 @@ test('distinct owners and unclassified actors share cadence without sharing roun
   const result = resolve(
     [
       player,
-      condition(0.7, { actorType: 'summon', summonOwner: 'pet:1' }),
-      condition(0.7, { actorType: 'summon', summonOwner: 'pet:2' })
+      condition(0.7, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' }),
+      condition(0.7, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:2' })
     ],
     { end: 2.1 }
   );
@@ -131,8 +132,8 @@ test('distinct owners and unclassified actors share cadence without sharing roun
     ]
   );
   const samePet = resolve([
-    condition(0, { actorType: 'summon', summonOwner: 'pet:1' }),
-    condition(0, { actorType: 'summon', summonOwner: 'pet:1' })
+    condition(0, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' }),
+    condition(0, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' })
   ]);
   assert.equal(samePet.conditionDamage, 59);
 });
@@ -315,7 +316,7 @@ test('lethal packets finish atomically with simultaneous owner packets but rejec
       [
         condition(),
         condition(),
-        condition(0, { actorType: 'summon', summonOwner: 'pet' }),
+        condition(0, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet' }),
         {
           type: 'damage',
           at: 1,
@@ -445,11 +446,14 @@ test('a two-second burn at 960ms buffers 40ms, 1000ms, and 960ms for whole-secon
   }
 });
 
-test('clone and phantasm conditions share player rounding while retaining source-specific damage queries', () => {
-  for (const summonKind of ['clone', 'phantasm']) {
+test('summons share player rounding while retaining source-specific damage queries', () => {
+  for (const summonKind of ['clone', 'phantasm', 'minion', 'spirit', 'elemental', 'thieves-guild', undefined]) {
     for (const output of ['detailed', 'score']) {
       const result = resolve(
-        [condition(), condition(0, { actorType: 'summon', summonKind, summonOwner: 'illusion:1' })],
+        [
+          condition(),
+          condition(0, { actorType: 'summon', summonKind, ...(summonKind ? { summonOwner: `${summonKind}:1` } : {}) })
+        ],
         { output }
       );
       assert.equal(result.conditionDamage, 59);
@@ -539,15 +543,21 @@ test('40ms buffers retain sampled stats and modifiers after expiry until the who
 test('all owners sample a whole-second boundary before any condition packet changes target health', () => {
   const sampledTotals = [];
   const payouts = [];
-  resolve([condition(0, { duration: 2 }), condition(0, { duration: 2, actorType: 'summon', summonOwner: 'pet' })], {
-    query: {
-      conditionMultiplier: (_condition, at, _application, ctx) => {
-        if (at === 1) sampledTotals.push(ctx.totals.condition);
-        return ctx.totals.condition === 0 ? 1 : 2;
-      }
-    },
-    reactions: { 'condition-tick.resolved': (_ctx, event, { resolved }) => payouts.push([event.at, resolved.damage]) }
-  });
+  resolve(
+    [
+      condition(0, { duration: 2 }),
+      condition(0, { duration: 2, actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet' })
+    ],
+    {
+      query: {
+        conditionMultiplier: (_condition, at, _application, ctx) => {
+          if (at === 1) sampledTotals.push(ctx.totals.condition);
+          return ctx.totals.condition === 0 ? 1 : 2;
+        }
+      },
+      reactions: { 'condition-tick.resolved': (_ctx, event, { resolved }) => payouts.push([event.at, resolved.damage]) }
+    }
+  );
   assert.deepEqual(sampledTotals, [0, 0]);
   assert.deepEqual(payouts, [
     [1, 30],

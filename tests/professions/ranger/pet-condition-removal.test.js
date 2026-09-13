@@ -41,6 +41,7 @@ for (const reporting of [true, false]) {
         sourceId,
         source,
         actorType: source === 'Player' ? 'player' : 'summon',
+        independentConditionOwner: source !== 'Player',
         summonOwner,
         duration,
         condition: 'Bleeding',

@@ -199,6 +199,7 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
   const updates: Record<string, unknown> = {
     // All mech skills belong to the same concrete companion for shared condition rounding.
     summonOwner: 'engineer.mech',
+    independentConditionOwner: true,
     metadata: { ...event.metadata, engineerMech: true }
   };
   // Positive damage packets additionally need the native scaling metadata

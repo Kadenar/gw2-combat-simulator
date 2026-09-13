@@ -112,15 +112,18 @@ export function createGw2ConditionResolution({
     if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
   }
 
-  /** Illusions and player effects share player condition packets; pets and mech remain independent owners. */
+  /** Summons share player condition packets unless their producer marks an independent pet/mech owner. */
   function damageOwner(application: Gw2ResolvedConditionApplication): string | Gw2ResolvedConditionApplication {
+    if (application.actorType === 'summon') {
+      if (!application.independentConditionOwner) return 'player';
+      return application.summonOwner ? `summon:${application.summonOwner}` : application;
+    }
+
     if (
       application.actorType === 'player' ||
-      (application.actorType === 'summon' && ['clone', 'phantasm'].includes(String(application.summonKind))) ||
       (application.actorType === 'effect' && application.ownerActorType === 'player')
     )
       return 'player';
-    if (application.actorType === 'summon' && application.summonOwner) return `summon:${application.summonOwner}`;
     // Unclassified actors remain isolated until their producer supplies concrete ownership.
     return application;
   }

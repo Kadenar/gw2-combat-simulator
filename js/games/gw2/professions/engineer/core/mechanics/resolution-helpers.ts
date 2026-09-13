@@ -169,7 +169,9 @@ export function applyEngineerDerivedCondition(
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
     // Derived summon conditions retain the triggering companion's concrete identity.
-    ...(actorType === 'summon' && event.summonOwner ? { summonOwner: event.summonOwner } : {}),
+    ...(actorType === 'summon'
+      ? { summonOwner: event.summonOwner, independentConditionOwner: event.independentConditionOwner }
+      : {}),
     // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     triggeredBy: event.skillName,
