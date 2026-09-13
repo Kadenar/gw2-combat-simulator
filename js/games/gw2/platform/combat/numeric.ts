@@ -9,10 +9,12 @@ export function finiteNumber(value: unknown, fallback: number): number {
   return Number.isFinite(number) ? number : fallback;
 }
 
-/** Rounds resolved damage to the nearest integer, choosing the even integer on exact half ties. */
+/** Rounds resolved damage to even on half ties, allowing for accumulated floating-point noise. */
 export function roundHalfToEven(value: number): number {
   const lower = Math.floor(value);
-  return value - lower === 0.5 ? (lower % 2 === 0 ? lower : lower + 1) : Math.round(value);
+  // Cover 25 buffer additions plus payout arithmetic; cap tolerance so large values retain distinct fractions.
+  const tolerance = Math.min(1e-7, 32 * Number.EPSILON * Math.max(1, Math.abs(value)));
+  return Math.abs(value - lower - 0.5) <= tolerance ? (lower % 2 === 0 ? lower : lower + 1) : Math.round(value);
 }
 
 interface ExpectedCriticalProgressState {

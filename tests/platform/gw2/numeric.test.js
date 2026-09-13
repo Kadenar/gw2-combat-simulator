@@ -21,7 +21,7 @@ test('finiteNumber coerces numeric input and rejects non-finite results', () => 
   assert.equal(finiteNumber(Number.POSITIVE_INFINITY, -1), -1);
 });
 
-// Only exact half ties choose the even integer; neighboring values keep ordinary nearest rounding.
+// Half ties tolerate arithmetic noise while distinct neighboring fractions keep nearest rounding.
 test('damage rounding resolves half ties to even integers', () => {
   for (const [value, expected] of [
     [0, 0],
@@ -29,6 +29,14 @@ test('damage rounding resolves half ties to even integers', () => {
     [2.5, 2],
     [2.51, 3],
     [3.5, 4],
+    [258.50000000000017, 258],
+    [291.49999999999983, 292],
+    [-258.50000000000017, -258],
+    [-291.49999999999983, -292],
+    [258.5 + 1e-8, 259],
+    [291.5 - 1e-8, 291],
+    [2 ** 50 + 0.75, 2 ** 50 + 1],
+    [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
     [15.52, 16],
     [-2.5, -2],
     [-3.5, -4]

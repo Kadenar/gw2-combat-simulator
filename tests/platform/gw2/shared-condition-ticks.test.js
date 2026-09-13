@@ -201,6 +201,43 @@ test('same-owner skills and player effects round once with stable integer attrib
   }
 });
 
+// Sampling decimal rates must preserve half-even packet totals, attribution, and lethal boundaries in both modes.
+test('buffered decimal rates preserve half-even rounding across shared applications', () => {
+  for (const output of ['detailed', 'score']) {
+    for (const stacks of [[10], [5, 5]]) {
+      for (const [conditionDamage, damage, health, deathTime] of [
+        [25, 258, 259, null],
+        [75, 292, 292, 1]
+      ]) {
+        const result = resolve(
+          stacks.map((count) => condition(0, { stacks: count })),
+          {
+            output,
+            end: 1,
+            target: { health, conditions: {} },
+            query: {
+              statsAt: () => ({ conditionDamage }),
+              conditionMultiplier: () => 1.1
+            }
+          }
+        );
+        assert.equal(result.conditionDamage, damage);
+        assert.equal(result.deathTime, deathTime);
+        if (output === 'detailed') {
+          assert.equal(
+            applications(result).reduce((sum, application) => sum + application.damage, 0),
+            damage
+          );
+          assert.equal(
+            result.breakdown.reduce((sum, row) => sum + row.conditionDamage, 0),
+            damage
+          );
+        }
+      }
+    }
+  }
+});
+
 test('distinct owners and unclassified actors share cadence without sharing rounding', () => {
   const player = condition(0, { duration: 2 });
   for (const actor of [
