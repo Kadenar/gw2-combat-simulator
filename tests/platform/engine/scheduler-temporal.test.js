@@ -432,6 +432,43 @@ test('an intermediate task can make a waiting cast available', () => {
   assert.deepEqual(scheduled.warnings, []);
 });
 
+// Expiration hooks can enqueue due work during the final clock advance; drain it before retrying cast readiness.
+test('tasks created by final advancement drain before a cast waits through a new input lockout', () => {
+  const profession = defineProfession({
+    id: 'temporal-expiration-lockout',
+    name: 'Temporal Expiration Lockout',
+    catalog: temporalCatalog(),
+    resources: {
+      createProfessionState: () => ({ expired: false, processed: [] })
+    },
+    schedulerHooks: {
+      advance(context, target) {
+        if (context.state.profession.expired || target < 2) return;
+        context.state.profession.expired = true;
+        context.tasks.schedule({ type: 'fixture.expire', at: 2 });
+      },
+      taskHandlers: {
+        'fixture.expire': (context) => {
+          context.state.profession.processed.push('expiry');
+          context.tasks.schedule({ type: 'fixture.child', at: context.state.time });
+        },
+        'fixture.child': (context) => context.state.profession.processed.push('child')
+      }
+    }
+  });
+  const scheduler = createScheduler({
+    profession,
+    schedulerPolicy: {
+      inputReadyAt: (context) => (context.state.profession.expired ? 2.1 : 2.05)
+    }
+  });
+  const scheduled = scheduler.run(['Gated Cast']);
+  assert.equal(scheduled.steps[0].start, 2100);
+  assert.deepEqual(scheduled.state.profession.processed, ['expiry', 'child']);
+  assert.equal(scheduler.context.tasks.nextAt(), Infinity);
+  assert.deepEqual(scheduled.warnings, []);
+});
+
 test('a concurrent instant waits until its finite cooldown expires', () => {
   const profession = defineProfession({
     id: 'temporal-concurrent-wait',

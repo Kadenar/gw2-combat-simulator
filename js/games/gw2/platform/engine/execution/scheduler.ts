@@ -733,6 +733,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     schedulerPolicy.advance?.(context, target);
     activeProfession.advance(context, target);
     state.time = target;
+    // Expiration hooks can enqueue already-due work on this final advance; finish it before checking cast readiness.
+    taskQueue.drainThrough(target, context);
   }
 
   function engineAvailability(skill: Skill, at: number): { ammo: AmmoState | null; result: AvailabilityResult } {
