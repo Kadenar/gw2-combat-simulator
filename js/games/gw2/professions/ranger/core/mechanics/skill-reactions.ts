@@ -5,6 +5,9 @@ import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
+  eventSkill,
+  queueBleeding,
+  stalkersStrikeTargetImpaired,
   isPetStrike,
   isPlayerStrike,
   petDerivedConditionMetadata
@@ -99,4 +102,43 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
     },
     triggeredBy: event.skillName
   });
+}
+
+/** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
+export function triggerStalkersStrike(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const skill = eventSkill(context, event);
+  if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
+    // The base packet owns three stacks; movement impairment contributes the documented two more.
+    context.queue.enqueue({
+      type: 'condition',
+      at: event.at,
+      source: 'ranger',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} — Poisoned`,
+      condition: 'Poisoned',
+      duration: 8,
+      stacks: 2,
+      activationId: event.activationId
+    });
+  }
+}
+
+/** Consume one armed Blood Thirst charge per qualifying hit, excluding its arming skill. */
+export function triggerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const state = professionCoreState(context);
+  if (state.bloodThirstCharges > 0 && event.sourceId !== ID.CRIPPLING_SHOT) {
+    state.bloodThirstCharges -= 1;
+    const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
+    queueBleeding(
+      context,
+      event,
+      Number(bleeding?.duration ?? 12),
+      ID.CRIPPLING_SHOT,
+      'Blood Thirst',
+      Number(bleeding?.stacks ?? 1)
+    );
+  }
 }

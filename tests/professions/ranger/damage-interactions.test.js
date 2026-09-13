@@ -2,7 +2,10 @@
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { rangerCoreEventReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import {
   skillBreakdownRows,
   skillDamageKeyByIdentity,
@@ -21,6 +24,69 @@ const simulate = createProfessionSimulator(rangerProfession, {
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const hits = (result, skillId) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skillId);
+
+test('Core damage reactions preserve trait and skill ordering without spending charges on excluded hits', () => {
+  // One trap activation exercises interleaved procs and independent one-use versus per-hit state.
+  const config = { selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.TRAPPERS_EXPERTISE] };
+  const state = createRangerCoreState(config);
+  state.sharpeningStoneExpirations = [10, 10];
+  state.bloodThirstCharges = 2;
+  const queued = [];
+  const context = {
+    config,
+    profession: { core: state },
+    helpers: { skillsById: rangerCatalog.skillsById },
+    boons: new Map(),
+    queue: { enqueue: (event) => queued.push(event) }
+  };
+  const event = {
+    type: 'damage',
+    at: 1,
+    source: 'ranger',
+    actorType: 'player',
+    sourceId: ID.FROST_TRAP,
+    skillId: ID.FROST_TRAP,
+    skillName: 'Frost Trap',
+    coefficient: 1,
+    activationId: 'trap-1'
+  };
+  const react = rangerCoreEventReactions.damage.find(({ id }) => id === 'ranger.core-damage').handler;
+  const initialState = structuredClone(state);
+  for (const excluded of [
+    { coefficient: 0 },
+    { coefficient: -1 },
+    { coefficient: undefined },
+    { actorType: 'effect' }
+  ]) {
+    react(context, { ...event, ...excluded });
+    assert.deepEqual(queued, []);
+    assert.deepEqual(state, initialState);
+  }
+
+  react(context, event);
+  assert.deepEqual(
+    queued.map(({ sourceId }) => sourceId),
+    [TRAIT.OPENING_STRIKE, ID.SHARPENING_STONE, TRAIT.TRAPPERS_EXPERTISE, ID.CRIPPLING_SHOT]
+  );
+  assert.ok(queued.every(({ at }) => at === event.at));
+  assert.equal(state.bloodThirstCharges, 1);
+  assert.deepEqual(state.sharpeningStoneExpirations, [10]);
+
+  queued.length = 0;
+  react(context, event);
+  assert.deepEqual(
+    queued.map(({ sourceId }) => sourceId),
+    [ID.SHARPENING_STONE, ID.CRIPPLING_SHOT]
+  );
+  assert.equal(state.bloodThirstCharges, 0);
+  assert.deepEqual(state.sharpeningStoneExpirations, []);
+
+  state.bloodThirstCharges = 1;
+  queued.length = 0;
+  react(context, { ...event, sourceId: ID.CRIPPLING_SHOT });
+  assert.equal(state.bloodThirstCharges, 1);
+  assert.deepEqual(queued, []);
+});
 
 test('Ranger condition-count bonuses use canonical active conditions and query precedence', () => {
   // Both formulas must count condition variety at the observation time, not raw names or inactive stacks.

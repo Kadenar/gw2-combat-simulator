@@ -8,11 +8,7 @@ import {
   balanceProfileEffect
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import {
-  eventSkill,
-  queueBleeding,
-  stalkersStrikeTargetImpaired
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { eventSkill, queueBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type {
   RangerCastContext,
   RangerResolverContext,
@@ -28,23 +24,9 @@ import {
   rangerCoreCriticalReactions,
   rangerCoreProfiledCriticalReaction
 } from '#gw2/professions/ranger/core/traits/skirmishing.js';
-import {
-  emitChildOfEarth,
-  reactToRangerCoreControl,
-  triggerArachnophobia,
-  triggerPoisonMaster
-} from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
-import {
-  consumeOpeningStrike,
-  reactToRangerCoreBuff,
-  triggerHuntersGaze
-} from '#gw2/professions/ranger/core/traits/marksmanship.js';
-import { applyRangerCommandTraits, triggerGoForTheThroat } from '#gw2/professions/ranger/core/traits/beastmastery.js';
-import {
-  triggerPoisonousStrikes,
-  triggerSharpeningStone,
-  triggerStrengthOfThePack
-} from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { emitChildOfEarth, reactToRangerCoreControl } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
+import { reactToRangerCoreBuff } from '#gw2/professions/ranger/core/traits/marksmanship.js';
+import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/beastmastery.js';
 
 export {
   applyRangerDodgeTraits,
@@ -314,38 +296,10 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }
 }
 
-export function reactToRangerCoreDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
-  if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
+/** Apply Trapper's Expertise once per trap activation when its damage resolves. */
+export function triggerTrappersExpertise(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
-  consumeOpeningStrike(context, event);
-  // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so
-  // the triggering hit cannot benefit from the buff it creates.
-  triggerGoForTheThroat(context, event);
-  triggerHuntersGaze(context, event);
-  triggerPoisonMaster(context, event);
-  triggerPoisonousStrikes(context, event);
-  triggerSharpeningStone(context, event);
-  triggerArachnophobia(context, event);
-  triggerStrengthOfThePack(context, event);
-  if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
-    // The base packet owns three stacks; movement impairment contributes the documented two more.
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'ranger',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} — Poisoned`,
-      condition: 'Poisoned',
-      duration: 8,
-      stacks: 2,
-      activationId: event.activationId
-    });
-  }
-
   if (
     skill?.categories?.includes('Trap') &&
     event.activationId &&
@@ -370,20 +324,11 @@ export function reactToRangerCoreDamage(context: RangerResolverContext, event: R
       triggeredBy: event.skillName
     });
   }
+}
 
-  if (state.bloodThirstCharges > 0 && event.sourceId !== ID.CRIPPLING_SHOT) {
-    state.bloodThirstCharges -= 1;
-    const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
-    queueBleeding(
-      context,
-      event,
-      Number(bleeding?.duration ?? 12),
-      ID.CRIPPLING_SHOT,
-      'Blood Thirst',
-      Number(bleeding?.stacks ?? 1)
-    );
-  }
-
+/** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
+export function triggerLightOnYourFeet(context: RangerResolverContext, event: RangerResolverEvent): void {
+  const skill = eventSkill(context, event);
   if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config?.target?.defiant) {
     const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
     // Defiant Crossfire gains a second stack with the same extended base duration.
