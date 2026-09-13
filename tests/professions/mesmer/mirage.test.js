@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
@@ -591,12 +592,12 @@ test("Nomad's Endurance and Phantom Pain add together while excluding phantasm s
   assert.equal(damage(modified, 'Phantasm'), damage(baseline, 'Phantasm'));
 
   const conditionDamage = (result) =>
-    result.breakdown
-      .filter(
-        (entry) => entry.sourceSkill === 'Phantasmal Mage' && entry.source === 'Phantasm' && entry.conditionDamage > 0
+    result.resolvedEvents
+      .find(
+        (event) => event.type === 'condition' && event.skillName === 'Phantasmal Mage' && event.source === 'Phantasm'
       )
-      .reduce((sum, entry) => sum + entry.conditionDamage, 0);
-  assert.ok(Math.abs(conditionDamage(modified) / conditionDamage(baseline) - 1.25) < 1e-12);
+      .damageTicks.find((tick) => tick.fraction === 1).damage;
+  assertRoundedDamageMultiplier(conditionDamage(modified), conditionDamage(baseline), 1.25);
 });
 
 // Queueing through a cast lockout preserves a selected ambush; explicitly waiting afterward lets it expire.

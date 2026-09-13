@@ -9,6 +9,12 @@ export function finiteNumber(value: unknown, fallback: number): number {
   return Number.isFinite(number) ? number : fallback;
 }
 
+/** Rounds resolved damage to the nearest integer, choosing the even integer on exact half ties. */
+export function roundHalfToEven(value: number): number {
+  const lower = Math.floor(value);
+  return value - lower === 0.5 ? (lower % 2 === 0 ? lower : lower + 1) : Math.round(value);
+}
+
 interface ExpectedCriticalProgressState {
   criticalProgress: number;
 }

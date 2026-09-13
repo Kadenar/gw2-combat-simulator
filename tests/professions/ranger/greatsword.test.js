@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -70,7 +71,11 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
       result.resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.DEBILITATING_BLOWS);
     assert.equal(poison(enhanced).actorType, 'effect');
     assert.equal(poison(enhanced).ownerActorType, 'player');
-    close(poison(enhanced).damage / poison(baseline).damage, 1.25);
+    assertRoundedDamageMultiplier(
+      poison(enhanced).damageTicks.find((tick) => tick.fraction === 1).damage,
+      poison(baseline).damageTicks.find((tick) => tick.fraction === 1).damage,
+      1.25
+    );
   }
 });
 

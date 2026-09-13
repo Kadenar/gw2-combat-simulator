@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
@@ -748,13 +749,10 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
 
   assert.equal(sigilApplication.source, 'Phantasm');
   assert.ok(sigilApplication.effectiveDuration > plainApplication.effectiveDuration);
-  assert.ok(
-    Math.abs(
-      sigilApplication.damage /
-        sigilApplication.damagingStackSeconds /
-        (plainApplication.damage / plainApplication.damagingStackSeconds) -
-        1.05
-    ) < 0.000001
+  assertRoundedDamageMultiplier(
+    sigilApplication.damageTicks.find((tick) => tick.fraction === 1).damage,
+    plainApplication.damageTicks.find((tick) => tick.fraction === 1).damage,
+    1.05
   );
 });
 
@@ -932,14 +930,16 @@ test('Compounding Power gives player strikes two percent and conditions one perc
       (event) => event.type === 'damage' && event.skillName === 'Winds of Chaos' && event.actorType === 'player'
     ).damage;
   const playerCondition = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.type === 'condition' && event.skillName === 'Cry of Frustration' && event.source === 'Player'
-    ).damage;
+    result.resolvedEvents
+      .find(
+        (event) => event.type === 'condition' && event.skillName === 'Cry of Frustration' && event.source === 'Player'
+      )
+      .damageTicks.find((tick) => tick.fraction === 1).damage;
   const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
   const withoutTrait = simulate([]);
 
   assert.ok(Math.abs(playerStrike(withTrait) / playerStrike(withoutTrait) - 1.04) < 1e-12);
-  assert.ok(Math.abs(playerCondition(withTrait) / playerCondition(withoutTrait) - 1.02) < 1e-12);
+  assertRoundedDamageMultiplier(playerCondition(withTrait), playerCondition(withoutTrait), 1.02);
 });
 
 test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {

@@ -5,6 +5,7 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
@@ -414,7 +415,7 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   const thermalBurn = pistolBurn([TRAIT.THERMAL_VISION]);
 
   assert.equal(chemicalBurn.effectiveDuration, Math.ceil(((baseBurn.duration * 4) / 3) * 25) / 25);
-  assert.ok(Math.abs(thermalBurn.damageTicks[0].damage / baseBurn.damageTicks[0].damage - 1.05) < 1e-12);
+  assertRoundedDamageMultiplier(thermalBurn.damageTicks[0].damage, baseBurn.damageTicks[0].damage, 1.05);
 
   const ammunitionBase = simulate('Core', ['Puncturing Jab'], {
     target: {

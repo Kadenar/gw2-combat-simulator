@@ -9,6 +9,7 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
 function tormentDamageAtMight(might) {
@@ -44,8 +45,8 @@ function tormentDamageAtMight(might) {
 }
 
 test('Might increases condition damage as well as strike power', () => {
-  assert.equal(tormentDamageAtMight(0), 121.8);
-  assert.equal(tormentDamageAtMight(25), 189.3);
+  assert.equal(tormentDamageAtMight(0), 122);
+  assert.equal(tormentDamageAtMight(25), 189);
 });
 
 test('condition applications shorter than one second deal fractional damage', () => {
@@ -169,10 +170,20 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
     applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
     1.8
   );
-  assert.ok(Math.abs(result.conditionDamage - 82 * 1.8) < 1e-9);
+  assert.equal(result.conditionDamage, 82 + 23 + 43);
 });
 
-function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, startingHealthFraction = 1 } = {}) {
+function resolveBleedThrough(
+  rotationEndTime,
+  {
+    duration = 5,
+    targetHealth = 0,
+    startingHealthFraction = 1,
+    conditionDamage = 1000,
+    conditionMultiplier = 1,
+    output = 'detailed'
+  } = {}
+) {
   const stream = buildScheduledEventStream({
     events: [
       {
@@ -192,6 +203,7 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, 
   });
 
   return resolveTestGw2Stream({
+    output,
     stream,
     config: {
       target: targetHealth > 0 ? { health: targetHealth, startingHealthFraction } : {},
@@ -203,12 +215,12 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, 
         power: 1000,
         precision: 1000,
         ferocity: 0,
-        conditionDamage: 1000,
+        conditionDamage,
         expertise: 0
       }),
       critical: () => ({ chance: 0.05, damage: 1.5 }),
       strikeMultiplier: () => 1,
-      conditionMultiplier: () => 1,
+      conditionMultiplier: () => conditionMultiplier,
       conditionDurationMultiplier: () => 1,
       activeWeaponSetAt: () => 1
     },
@@ -222,23 +234,51 @@ function resolveBleedThrough(rotationEndTime, { duration = 5, targetHealth = 0, 
 
 // The rounded remainder occurs only at natural expiry, never at an earlier observation cutoff.
 test('partial condition ticks round up to 40ms without rounding full seconds or observation cutoffs', () => {
-  for (const [duration, expected] of [
-    [3 * 1.6719, 5.04],
-    [5.04, 5.04],
-    [5, 5],
-    [0.001, 0.04]
+  for (const [duration, expected, damage] of [
+    [3 * 1.6719, 5.04, 413],
+    [5.04, 5.04, 413],
+    [5, 5, 410],
+    [0.001, 0.04, 3]
   ]) {
     const result = resolveBleedThrough(6, { duration });
     const application = result.resolvedEvents.find((event) => event.type === 'condition');
     assert.equal(application.effectiveDuration, expected);
     assert.equal(application.damageTicks.at(-1).at, expected);
-    assert.ok(Math.abs(application.damage - 82 * expected) < 1e-9);
+    assert.equal(application.damage, damage);
   }
 
   const clipped = resolveBleedThrough(5.02, { duration: 3 * 1.6719 });
   const application = clipped.resolvedEvents.find((event) => event.type === 'condition');
   assert.equal(application.damageTicks.at(-1).at, 5);
   assert.equal(application.damage, 82 * 5);
+});
+
+// Rounding belongs to each damage packet and affects both score jobs and the target's death timestamp.
+test('condition damage uses half-even rounding before accumulation and target death', () => {
+  for (const output of ['detailed', 'score']) {
+    for (const [rate, damage] of [
+      [2.5, 2],
+      [3.5, 4]
+    ]) {
+      const result = resolveBleedThrough(2, {
+        duration: 2,
+        conditionDamage: 0,
+        conditionMultiplier: rate / 22,
+        output
+      });
+      assert.equal(result.conditionDamage, damage * 2);
+      if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks[0].damage, damage);
+    }
+
+    const partialTie = resolveBleedThrough(6, { duration: 5.04, conditionDamage: 675, output });
+    assert.equal(partialTie.conditionDamage, 5 * 62 + 2); // 62.5 per second, then a 2.5 partial tick: both round down.
+    if (output === 'detailed') assert.equal(partialTie.resolvedEvents[0].damageTicks.at(-1).damage, 2);
+
+    const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1956, output });
+    assert.equal(result.conditionDamage, 1956);
+    assert.equal(result.deathTime, 5.04);
+    if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 16);
+  }
 });
 
 test('observation horizons omit future condition ticks without creating endpoint damage', () => {
@@ -430,12 +470,12 @@ test('permanent damaging target conditions use environment formulas and diagnost
 
   assert.deepEqual(damageByCondition, {
     Burning: 131,
-    Poisoned: 33.5,
-    Torment: 31.8,
+    Poisoned: 34,
+    Torment: 32,
     Bleeding: 22,
-    Confusion: 18.25
+    Confusion: 18
   });
-  assert.ok(Math.abs(result.environmentDamage - 236.55) < 1e-12);
+  assert.equal(result.environmentDamage, 237);
   assert.equal(result.environmentDps, result.environmentDamage);
   assert.equal(result.totalDamage, 0);
   assert.equal(result.dps, 0);
@@ -470,7 +510,7 @@ test('environment condition damage applies target Vulnerability without player a
     rotationEndTime: 1
   });
 
-  assert.equal(result.environmentDamage, 27.5);
+  assert.equal(result.environmentDamage, 28);
 });
 
 test('environment conditions do not change player attribution over an equal observation window', () => {
@@ -706,7 +746,7 @@ test('stationary torment uses the current PvE formula', () => {
   );
   const torment = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment');
 
-  assert.ok(Math.abs(torment.damage - 121.8) < 1e-9);
+  assert.equal(torment.damage, 122);
 });
 
 test('static and condition-specific duration bonuses reach the resolver', () => {
@@ -764,14 +804,15 @@ test('target skill activations add the current PvE confusion activation damage',
     );
   const base = resultAt(0);
   const active = resultAt(1);
-  const confusionDamage = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.condition === 'Confusion')
-      .reduce((sum, event) => sum + event.damage, 0);
-  const stackSeconds = base.resolvedEvents
-    .filter((event) => event.type === 'condition' && event.condition === 'Confusion')
-    .reduce((sum, event) => sum + event.damagingStackSeconds, 0);
-  const activationDamage = confusionDamage(active) - confusionDamage(base);
-
-  assert.ok(Math.abs(activationDamage - stackSeconds * (16.24 + 0.0325 * 1000)) < 1e-9);
+  // Passive and activation damage combine before the condition tick is rounded.
+  for (const [result, rate] of [
+    [base, 68.25],
+    [active, 68.25 + 16.24 + 0.0325 * 1000]
+  ]) {
+    const application = result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.condition === 'Confusion'
+    );
+    const tick = application.damageTicks.find((tick) => tick.fraction === 1);
+    assert.equal(tick.damage, roundHalfToEven(rate * application.stacks));
+  }
 });

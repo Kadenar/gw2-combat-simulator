@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
+import { clamp, roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 
@@ -137,7 +137,8 @@ export function createGw2ConditionResolution({
       });
     }
 
-    const remainder = Math.max(0, naturalDuration - naturalFullTicks);
+    // Preserve the 40ms duration grid so subtracting whole seconds cannot nudge a half-even damage tie upward.
+    const remainder = Math.max(0, Math.round(naturalDuration * 25) - naturalFullTicks * 25) / 25;
     // A fractional packet is real only when the condition naturally expires
     // within the observation window.
     if (remainder > EPSILON && application.naturalExpiresAt <= ctx.horizon + EPSILON) {
@@ -219,7 +220,8 @@ export function createGw2ConditionResolution({
       conditionRate(ctx, condition, stats.conditionDamage) *
       ctx.query.conditionMultiplier(condition, event.at, application, ctx);
     const stackSeconds = application.stacks * fraction;
-    const damage = perStack * stackSeconds;
+    // Round each resolved tick after duration, stacks, and modifiers, before recording damage or target health loss.
+    const damage = roundHalfToEven(perStack * stackSeconds);
     application.damage += damage;
     application.damagingStackSeconds += stackSeconds;
     // damagingStackSeconds is the integral used by result tables to report
@@ -255,7 +257,7 @@ export function createGw2ConditionResolution({
     // Permanent training conditions have zero Condition Damage. Confusion is
     // passive-only, while conditionTickDamage keeps Torment stationary here.
     const vulnerabilityMultiplier = 1 + Number(ctx.query.vulnerabilityStacksAt(event.at, ctx) || 0) / 100;
-    const damage = conditionTickDamage(condition, 0) * stacks * vulnerabilityMultiplier;
+    const damage = roundHalfToEven(conditionTickDamage(condition, 0) * stacks * vulnerabilityMultiplier);
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;

@@ -169,6 +169,7 @@ export function createGw2HitResolution({
       outgoingMultiplier: strike.outgoingMultiplier,
       weaponStrength: strike.weaponStrength,
       baseDamage: strike.baseDamage,
+      // Strike damage may use Math.floor; retain fractional damage until that in-game rule is confirmed.
       damage: strike.baseDamage * strike.criticalMultiplier * strike.outgoingMultiplier
     };
   }

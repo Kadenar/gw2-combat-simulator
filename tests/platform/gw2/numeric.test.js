@@ -5,7 +5,8 @@ import {
   clamp,
   consumeExpectedCriticalProgress,
   EXPECTED_CRITICAL_PROGRESS_TOLERANCE,
-  finiteNumber
+  finiteNumber,
+  roundHalfToEven
 } from '#gw2/platform/combat/numeric.js';
 
 test('clamp restricts values to an inclusive range', () => {
@@ -18,6 +19,22 @@ test('finiteNumber coerces numeric input and rejects non-finite results', () => 
   assert.equal(finiteNumber('12.5', 0), 12.5);
   assert.equal(finiteNumber('invalid', 7), 7);
   assert.equal(finiteNumber(Number.POSITIVE_INFINITY, -1), -1);
+});
+
+// Only exact half ties choose the even integer; neighboring values keep ordinary nearest rounding.
+test('damage rounding resolves half ties to even integers', () => {
+  for (const [value, expected] of [
+    [0, 0],
+    [2.49, 2],
+    [2.5, 2],
+    [2.51, 3],
+    [3.5, 4],
+    [15.52, 16],
+    [-2.5, -2],
+    [-3.5, -4]
+  ]) {
+    assert.equal(roundHalfToEven(value), expected);
+  }
 });
 
 test('expected critical progress consumes floating-point thresholds consistently', () => {
