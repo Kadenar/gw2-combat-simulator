@@ -41,6 +41,13 @@ group the five rocks into one cast at the first creation timestamp. Reimport aff
 Firebrand's Flame Rush, Flame Surge, and combined ambiguous finder follow the pinned EI effect rules. The EI pin is
 unchanged.
 
+Distortion now follows the pinned
+[MesmerHelper](https://github.com/baaron4/GW2-Elite-Insights-Parser/blob/d7f186c8579a5cab4ed362f0703e49e4a81b9a2a/GW2EI.Library/GW2EI.Services/GW2EIEvtcParser/EIData/ProfHelpers/Mesmer/MesmerHelper.cs)
+effect rule and `HasGainedBuff` checker. Its shared visual requires a Distortion buff application on the same caster
+within 10 ms. Core and Mirage are eligible on all builds; Chronomancer requires build 135242 or later. This restores the
+five Distortions missing from the supplied July 2026 Chronomancer EVTC benchmark. The report JSON already contains those
+casts. The EI pin remains `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a`; other unported shatter finders remain excluded.
+
 Both import paths collapse recorded level-one Jurisdiction charge/release segments into the existing single activation,
 retaining their combined duration. The accompanying detonation is already represented by that activation. Unpaired
 releases remain unsupported rather than creating an absent charge. Tome entry/stow bundle-swap signals are removed from
