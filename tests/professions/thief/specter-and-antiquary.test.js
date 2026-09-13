@@ -9,7 +9,8 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { thiefCatalog, thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/weapon-matching.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,

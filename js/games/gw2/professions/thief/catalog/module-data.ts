@@ -7,22 +7,8 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/thief/data/traits-data.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
-import { thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
-import { deadeyeWeaponSkillMatchesSet } from '#gw2/professions/thief/specializations/deadeye/mechanics/weapon-state.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ThiefSkill, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
-
-export function thiefWeaponSkillMatchesSet(
-  skill: ThiefSkill,
-  pair: readonly (string | undefined)[] = [],
-  context: ThiefWeaponMatcherContext = {}
-): boolean {
-  const specialization = context.specialization || context.config?.specialization || 'Core';
-  if (specialization === 'Deadeye') return deadeyeWeaponSkillMatchesSet(skill, pair, context);
-  // Family dispatch excludes Deadeye-owned malicious replacements from every other runtime.
-  if (skill.stealthAttack && skill.malicious) return false;
-  return thiefCoreWeaponSkillMatchesSet(skill, pair, context);
-}
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
   13010: 59526,
