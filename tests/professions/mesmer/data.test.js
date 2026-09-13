@@ -760,7 +760,7 @@ test('Mesmer replacement handlers are limited to dynamic mechanic families', () 
         `${specialization}: ${skill.name} uses unexpected handler ${skill.handlerId}`
       );
     }
-    
+
     assert.ok(
       runtime.catalog.skills.some((skill) => skill.effects.length > 0 && !skill.handlerId),
       specialization
