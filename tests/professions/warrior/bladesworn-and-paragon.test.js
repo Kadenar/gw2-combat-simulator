@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -665,8 +666,8 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
 
   assert.ok(Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1) < 1e-9);
   assert.ok(Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1) < 1e-9);
-  assert.ok(Math.abs(strikeDamage(overcharged, 'explosion') / strikeDamage(base, 'explosion') - 1.15) < 1e-9);
-  assert.ok(Math.abs(strikeDamage(supercharged, 'explosion') / strikeDamage(base, 'explosion') - 1.2) < 1e-9);
+  assertFlooredDamageMultiplier(strikeDamage(overcharged, 'explosion'), strikeDamage(base, 'explosion'), 1.15);
+  assertFlooredDamageMultiplier(strikeDamage(supercharged, 'explosion'), strikeDamage(base, 'explosion'), 1.2);
   assert.deepEqual(
     overcharged.events.filter((event) => event.condition === 'Burning').map((event) => event.duration),
     [3, 3, 3]
@@ -701,7 +702,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
       .every((event) => event.damageKind === 'explosion' && event.weaponStrengthProfileId === 'weapon.pistol'),
     true
   );
-  assert.ok(Math.abs(roarDamage(roarSupercharged) / roarDamage(roarBase) - 1.2) < 1e-9);
+  assertFlooredDamageMultiplier(roarDamage(roarSupercharged), roarDamage(roarBase), 1.2);
 
   const locked = simulate(
     'Bladesworn',
@@ -976,10 +977,7 @@ test("Berserker's Power retains applications beyond its visible stack cap", () =
     ]
   );
   assert.equal(bolasHits.length, 2);
-  assert.deepEqual(
-    bolasHits.map((hit, index) => Number((hit.damage / baselineBolasHits[index].damage).toFixed(9))),
-    [1.15, 1.15]
-  );
+  bolasHits.forEach((hit, index) => assertFlooredDamageMultiplier(hit.damage, baselineBolasHits[index].damage, 1.15));
   const effectPresentations = warriorProfession.ui.effectPresentations({
     specialization: 'Core',
     catalog: warriorProfession.catalog

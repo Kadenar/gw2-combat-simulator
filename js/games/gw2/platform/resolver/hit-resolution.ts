@@ -1,6 +1,7 @@
 import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/damage/calculations.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 
 import type {
   Gw2HitResolution,
@@ -160,6 +161,7 @@ export function createGw2HitResolution({
     const strike = flatStrike
       ? resolveFlatStrike(ctx, event, stats.power)
       : resolveScalingStrike(ctx, event, stats.power, critical);
+    const damage = strike.baseDamage * strike.criticalMultiplier * strike.outgoingMultiplier;
 
     return {
       stats,
@@ -169,8 +171,8 @@ export function createGw2HitResolution({
       outgoingMultiplier: strike.outgoingMultiplier,
       weaponStrength: strike.weaponStrength,
       baseDamage: strike.baseDamage,
-      // Strike damage may use Math.floor; retain fractional damage until that in-game rule is confirmed.
-      damage: strike.baseDamage * strike.criticalMultiplier * strike.outgoingMultiplier
+      // Round the final packet before reactions and totals: strikes floor, condition packets use half-even.
+      damage: event.damageKind === 'condition' ? roundHalfToEven(damage) : Math.floor(damage)
     };
   }
 

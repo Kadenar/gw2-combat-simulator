@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/model.js';
@@ -128,7 +129,7 @@ test('Explosives traits use the requested packets, gates, and health modifiers',
   });
   const firstStrike = (result) => result.resolvedEvents.find((event) => event.type === 'damage');
 
-  assert.ok(Math.abs(firstStrike(modifiers).damage / firstStrike(noModifiers).damage - 1.07 * 1.05 * 1.15) < 1e-12);
+  assertFlooredDamageMultiplier(firstStrike(modifiers).damage, firstStrike(noModifiers).damage, 1.07 * 1.05 * 1.15);
 });
 
 test('each Shred slot emits projectile hits that trigger one Aim-Assisted Rocket', () => {
@@ -429,12 +430,10 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
     }
   });
 
-  assert.ok(
-    Math.abs(
-      ammunition.resolvedEvents.find((event) => event.type === 'damage').damage /
-        ammunitionBase.resolvedEvents.find((event) => event.type === 'damage').damage -
-        1.03
-    ) < 1e-12
+  assertFlooredDamageMultiplier(
+    ammunition.resolvedEvents.find((event) => event.type === 'damage').damage,
+    ammunitionBase.resolvedEvents.find((event) => event.type === 'damage').damage,
+    1.03
   );
 });
 
@@ -613,7 +612,7 @@ test('Takedown Round adds strike damage only after endurance is spent', () => {
   const full = simulate('Core', ['Positive Strike'], { selectedTraitIds: [TRAIT.TAKEDOWN_ROUND] });
   const spent = simulate('Core', ['Dodge', 'Positive Strike'], { selectedTraitIds: [TRAIT.TAKEDOWN_ROUND] });
 
-  assert.ok(Math.abs(spent.strikeDamage / full.strikeDamage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(spent.strikeDamage, full.strikeDamage, 1.1);
 });
 
 test('Energy Amplifier adds Power and Healing Power during regeneration', () => {

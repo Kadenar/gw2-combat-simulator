@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -73,9 +74,9 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
       assert.equal(procs(result).length, relic ? 2 : 1);
       assert.equal(procs(result)[0].expiresAt, 4000);
       const actual = hits(result);
-      assert.ok(Math.abs(actual[0].damage / baseline[0].damage - 1.1) < 1e-10);
+      assertFlooredDamageMultiplier(actual[0].damage, baseline[0].damage, 1.1);
       assert.equal(actual[1].damage, baseline[1].damage);
-      assert.ok(Math.abs(actual[2].damage / baseline[2].damage - (relic ? 1.1 : 1)) < 1e-10);
+      assertFlooredDamageMultiplier(actual[2].damage, baseline[2].damage, relic ? 1.1 : 1);
     }
 
     assert.equal(procs(run(rotation, 'Brawler', [])).length, 1);
@@ -256,7 +257,7 @@ for (const [relic, skill, delay, bonus] of [
     const hits = (simulation) => simulation.resolvedEvents.filter((event) => event.type === 'damage');
     const actual = hits(result);
     const expected = hits(baseline);
-    assert.ok(Math.abs(actual[0].damage / expected[0].damage - bonus) < 1e-10);
+    assertFlooredDamageMultiplier(actual[0].damage, expected[0].damage, bonus);
     assert.equal(actual.at(-1).damage, expected.at(-1).damage);
     const cast = result.events.find((event) => event.type === 'action' && event.skillName === skill);
     const proc = result.procSteps.find((step) => step.type === 'relic_proc');
@@ -292,6 +293,6 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
     false
   );
   assert.equal(offTarget.strikeDamage, baseline.strikeDamage);
-  assert.ok(Math.abs(onTarget.strikeDamage / baseline.strikeDamage - 1.08 * 1.1) < 1e-10);
+  assertFlooredDamageMultiplier(onTarget.strikeDamage, baseline.strikeDamage, 1.08 * 1.1);
   assert.equal(offTarget.procSteps.filter((step) => step.type === 'relic_proc').length, 1);
 });

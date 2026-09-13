@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
@@ -449,8 +450,8 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
   });
   const startingBelowHalfDamage = startingBelowHalf.resolvedEvents.find((event) => event.skillId === 930035)?.damage;
 
-  assert.ok(Math.abs(thresholdDamage / openingDamage - 2) < 1e-12);
-  assert.ok(Math.abs(startingBelowHalfDamage / openingDamage - 2) < 1e-12);
+  assertFlooredDamageMultiplier(thresholdDamage, openingDamage, 2);
+  assertFlooredDamageMultiplier(startingBelowHalfDamage, openingDamage, 2);
 });
 
 test('the handler strategy contract accepts canonical Mesmer skill data', () => {
@@ -754,9 +755,9 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
     strikes.map((event) => Math.round(event.at * 1000)),
     [1000, 4001, 8001, 8003]
   );
-  assert.ok(Math.abs(strikes[0].damage / strikes[1].damage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(strikes[0].damage, strikes[1].damage, 1.1);
   assert.equal(strikes[2].damage, strikes[1].damage);
-  assert.ok(Math.abs(strikes[3].damage / strikes[1].damage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(strikes[3].damage, strikes[1].damage, 1.1);
 });
 
 test('Relic of Mistburn grants one Might for eight seconds and applies its critical chance at ten stacks', () => {
@@ -966,7 +967,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
     false
   );
   assert.equal(fervor.length, 1);
-  assert.ok(Math.abs(strikes[1].damage / strikes[0].damage - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(strikes[1].damage, strikes[0].damage, 1.07);
   assert.equal(explosion.coefficient, 3);
   assert.equal(explosion.at, 0.683);
   assert.equal(bleeding.stacks, 6);

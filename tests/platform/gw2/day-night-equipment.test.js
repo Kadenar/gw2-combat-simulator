@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -54,8 +55,8 @@ test('Night sigil uses an additive 3% strike bonus and a night-only 7% multiplie
   assert.equal(nightSigil.strikeAdd, 0.03);
   assert.equal(nightSigil.strike, 1.03);
   assert.equal(nightSigil.nightStrikeMultiplier, 1.07);
-  assert.ok(Math.abs(dayDamage / unsigiledDamage - 1.03) < 1e-12);
-  assert.ok(Math.abs(nightDamage / dayDamage - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(dayDamage, unsigiledDamage, 1.03);
+  assertFlooredDamageMultiplier(nightDamage, dayDamage, 1.07);
 });
 
 function pepperRotation() {

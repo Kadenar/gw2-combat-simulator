@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -599,7 +600,7 @@ test('Delayed spear damage uses equipped-weapon trait stats while retaining spea
 
   assert.equal(Math.round(spear.at * 1000), 1120);
   assert.equal(greatsword.resolvedWeaponStrength, spear.resolvedWeaponStrength);
-  assert.ok(Math.abs(greatsword.damage / spear.damage - (2000 + 240) / (2000 + 120)) < 1e-9);
+  assertFlooredDamageMultiplier(greatsword.damage, spear.damage, (2000 + 240) / (2000 + 120));
 });
 
 test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () => {

@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
@@ -115,6 +116,6 @@ test('Call of the Wild activates Bird of Prey until its Swiftness expires', () =
     const trait = run([TRAIT.BIRD_OF_PREY], waitMs);
     assert.deepEqual(base.warnings, []);
     assert.deepEqual(trait.warnings, []);
-    assert.ok(Math.abs(strike(trait) / strike(base) - multiplier) < 1e-9);
+    assertFlooredDamageMultiplier(strike(trait), strike(base), multiplier);
   }
 });

@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
@@ -128,7 +129,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     })
   ).resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade');
 
-  assert.ok(Math.abs(modifiedPhantasmalBlade.damage / phantasmalBladeHit.damage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(modifiedPhantasmalBlade.damage, phantasmalBladeHit.damage, 1.1);
 
   const syncopate = simulateMesmer(
     ['Illusionary Wave'],
@@ -181,7 +182,7 @@ test("Egotism starts after the target falls below the Mesmer's health percentage
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === name).damage;
 
   assert.equal(strike(egotism, 'Mind Slash'), strike(base, 'Mind Slash'));
-  assert.ok(Math.abs(strike(egotism, 'Mind Gash') / strike(base, 'Mind Gash') - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(strike(egotism, 'Mind Gash'), strike(base, 'Mind Gash'), 1.1);
 });
 
 test('Master Fencer grants self and allied fury on critical hits with an eight-second ICD', () => {

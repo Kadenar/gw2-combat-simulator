@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
@@ -677,7 +678,7 @@ test('an explicit empty target condition map does not restore default conditions
   const unconditioned = run({});
   const vulnerable = run({ Vulnerability: 25 });
 
-  assert.ok(Math.abs(vulnerable / unconditioned - 1.25) < 1e-12);
+  assertFlooredDamageMultiplier(vulnerable, unconditioned, 1.25);
 });
 
 test('profession condition-duration hooks remain under the GW2 cap', () => {

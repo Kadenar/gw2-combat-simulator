@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
@@ -588,7 +589,7 @@ test("Nomad's Endurance and Phantom Pain add together while excluding phantasm s
       .filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Mage' && event.source === source)
       .reduce((sum, event) => sum + event.damage, 0);
 
-  assert.ok(Math.abs(damage(modified, 'Player') / damage(baseline, 'Player') - 1.35) < 1e-12);
+  assertFlooredDamageMultiplier(damage(modified, 'Player'), damage(baseline, 'Player'), 1.35);
   assert.equal(damage(modified, 'Phantasm'), damage(baseline, 'Phantasm'));
 
   const conditionDamage = (result) =>

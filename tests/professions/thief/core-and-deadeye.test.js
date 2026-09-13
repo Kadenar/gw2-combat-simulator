@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -1085,7 +1086,7 @@ test('Exposed Weakness multiplies separately from additive strike bonuses', () =
   });
   const damage = (result) => result.breakdown.find((entry) => entry.name === 'Double Strike').damage;
 
-  assert.ok(Math.abs(damage(exposed) / damage(baseline) - 1.04) < 1e-12);
+  assertFlooredDamageMultiplier(damage(exposed), damage(baseline), 1.04);
 });
 
 test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modifiers', () => {
@@ -1124,8 +1125,10 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.ASSASSINS_FURY]
   });
 
-  assert.ok(
-    Math.abs(flawlessHits(withAssassinsFury)[1].damage / flawlessHits(unrelenting)[1].damage - 2090 / 2000) < 1e-9
+  assertFlooredDamageMultiplier(
+    flawlessHits(withAssassinsFury)[1].damage,
+    flawlessHits(unrelenting)[1].damage,
+    2090 / 2000
   );
   assert.equal(
     withAssassinsFury.profession.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
@@ -1451,9 +1454,10 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
 
 test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied values', () => {
   const skillDamage = (result, name) =>
-    result.breakdown.find((entry) => entry.sourceSkill === name || entry.name === name)?.damage || 0;
-  const ratio = (withEffect, withoutEffect, skill) =>
-    skillDamage(withEffect, skill) / skillDamage(withoutEffect, skill);
+    result.resolvedEvents.find((event) => event.type === 'damage' && (event.skillName === name || event.name === name))
+      .damage;
+  const assertMultiplier = (withEffect, withoutEffect, skill, multiplier) =>
+    assertFlooredDamageMultiplier(skillDamage(withEffect, skill), skillDamage(withoutEffect, skill), multiplier);
   const fullCrit = { stats: { precision: 5000 } };
 
   const plainFlare = simulate('Deadeye', ['Shadow Flare'], {
@@ -1465,7 +1469,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedSkills: ['Shadow Flare']
   });
 
-  assert.ok(Math.abs(ratio(markedFlare, plainFlare, 'Shadow Flare') - 1.5) < 1e-9);
+  assertMultiplier(markedFlare, plainFlare, 'Shadow Flare', 1.5);
   assert.ok(markedFlare.endState.profession.availableFlips[ID.SHADOW_SWAP] > markedFlare.duration);
 
   const plainStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], fullCrit);
@@ -1480,7 +1484,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER]
   });
 
-  assert.ok(Math.abs(ratio(chamberStolen, plainStolen, 'Steal Time') - 1.25) < 1e-9);
+  assertMultiplier(chamberStolen, plainStolen, 'Steal Time', 1.25);
 
   const markedSword = simulate('Deadeye', ["Deadeye's Mark", 'Slice'], {
     ...fullCrit,
@@ -1494,7 +1498,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     selectedTraitIds: [TRAIT.IRON_SIGHT]
   });
 
-  assert.ok(Math.abs(ratio(ironSight, markedSword, 'Slice') - 1.1) < 1e-9);
+  assertMultiplier(ironSight, markedSword, 'Slice', 1.1);
 
   const plainCantrip = simulate('Deadeye', ['Mercy', 'Slice'], {
     ...fullCrit,
@@ -1510,7 +1514,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     relic: 'Deadeye'
   });
 
-  assert.ok(Math.abs(ratio(relicCantrip, plainCantrip, 'Slice') - 1.1) < 1e-9);
+  assertMultiplier(relicCantrip, plainCantrip, 'Slice', 1.1);
 
   const boonConfig = {
     ...fullCrit,
@@ -1523,17 +1527,13 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     ...boonConfig,
     selectedTraitIds: [TRAIT.PREMEDITATION]
   });
-  const premeditationRatio = ratio(premeditated, plainBoonStrike, 'Slice');
-
-  assert.ok(Math.abs(premeditationRatio - 1.03) < 1e-9, premeditationRatio);
+  assertMultiplier(premeditated, plainBoonStrike, 'Slice', 1.03);
 
   const quickKiller = simulate('Deadeye', ['Slice'], {
     ...boonConfig,
     selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
   });
-  const quickKillerRatio = ratio(quickKiller, plainBoonStrike, 'Slice');
-
-  assert.ok(Math.abs(quickKillerRatio - 2380 / 2180) < 1e-9, quickKillerRatio);
+  assertMultiplier(quickKiller, plainBoonStrike, 'Slice', 2380 / 2180);
   const markedKiller = simulate('Deadeye', ["Deadeye's Mark"], {
     selectedTraitIds: [TRAIT.BE_QUICK_OR_BE_KILLED]
   });

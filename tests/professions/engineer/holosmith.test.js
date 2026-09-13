@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
@@ -641,14 +642,14 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
 
   // The 200 ms hit sees the completed 100 ms tick but resolves before the same-time second tick.
   const laserEdgeFactor = 1 + 50.2 * 0.0015;
-  assert.ok(Math.abs(laser.strikeDamage / laserBase.strikeDamage - laserEdgeFactor) < 1e-12);
+  assertFlooredDamageMultiplier(laser.strikeDamage, laserBase.strikeDamage, laserEdgeFactor);
   const glassLaser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
     initialHeat: 50,
     stats: { precision: 1000, ferocity: 0 },
     selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.LASERS_EDGE]
   });
 
-  assert.ok(Math.abs(glassLaser.strikeDamage / laserBase.strikeDamage - 1.07 * laserEdgeFactor) < 1e-12);
+  assertFlooredDamageMultiplier(glassLaser.strikeDamage, laserBase.strikeDamage, 1.07 * laserEdgeFactor);
 
   const solar = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike', 'Bright Slash'], {
     stats: { precision: 1000, ferocity: 0 },
@@ -747,7 +748,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
 
   for (const name of swordChain) {
-    assert.ok(Math.abs(swordDamage(tiered, name) / swordDamage(tierBase, name) - 1.2) < 1e-12, name);
+    assertFlooredDamageMultiplier(swordDamage(tiered, name), swordDamage(tierBase, name), 1.2);
   }
 
   assert.ok(Math.abs(swordDamage(cappedSword, 'Sun Edge') / swordDamage(tiered, 'Sun Edge') - 1) < 1e-12);
@@ -965,41 +966,26 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
   };
 
   const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
-  const ratio = (variant, base) => variant.damage / base.damage;
 
   const baseBladeBurst = packetFor('Blade Burst', 0, [], utilitySkills);
   const baseParticleAccelerator = packetFor('Particle Accelerator', 0, [], utilitySkills);
 
-  assert.ok(Math.abs(ratio(packetFor('Blade Burst', 60, [], utilitySkills), baseBladeBurst) - 1.25) < 1e-12);
-  assert.ok(
-    Math.abs(
-      ratio(packetFor('Blade Burst', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills), baseBladeBurst) - 1.25
-    ) < 1e-12
-  );
-  assert.ok(
-    Math.abs(
-      ratio(packetFor('Blade Burst', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills), baseBladeBurst) - 1.35
-    ) < 1e-12
-  );
-  assert.ok(
-    Math.abs(ratio(packetFor('Particle Accelerator', 60, [], utilitySkills), baseParticleAccelerator) - 1.1) < 1e-12
-  );
-  assert.ok(
-    Math.abs(
-      ratio(
-        packetFor('Particle Accelerator', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills),
-        baseParticleAccelerator
-      ) - 1.1
-    ) < 1e-12
-  );
-  assert.ok(
-    Math.abs(
-      ratio(
-        packetFor('Particle Accelerator', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], utilitySkills),
-        baseParticleAccelerator
-      ) - 1.35
-    ) < 1e-12
-  );
+  for (const [heat, traits, bladeMultiplier, particleMultiplier] of [
+    [60, [], 1.25, 1.1],
+    [100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 1.25, 1.1],
+    [101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 1.35, 1.35]
+  ]) {
+    assertFlooredDamageMultiplier(
+      packetFor('Blade Burst', heat, traits, utilitySkills).damage,
+      baseBladeBurst.damage,
+      bladeMultiplier
+    );
+    assertFlooredDamageMultiplier(
+      packetFor('Particle Accelerator', heat, traits, utilitySkills).damage,
+      baseParticleAccelerator.damage,
+      particleMultiplier
+    );
+  }
 });
 
 test('Holosmith heat-profile patches tune tier effects without changing heat topology', () => {

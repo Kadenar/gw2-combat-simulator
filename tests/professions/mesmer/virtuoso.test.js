@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
@@ -189,10 +190,7 @@ test('Mental Anguish improves every damaging Virtuoso bladesong hit', () => {
       boosted.every((event) => event.shatterTraitEligible === true),
       skillName
     );
-    assert.ok(
-      boosted.every((event, index) => Math.abs(event.damage / baseline[index].damage - 1.25) < 1e-12),
-      skillName
-    );
+    boosted.forEach((event, index) => assertFlooredDamageMultiplier(event.damage, baseline[index].damage, 1.25));
   }
 });
 

@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
@@ -428,7 +429,7 @@ test('Twice as Vicious activates from a disable', () => {
   });
   const heavySmashDamage = (result) => result.breakdown.find((row) => row.name === 'Heavy Smash').damage;
 
-  assert.ok(Math.abs(heavySmashDamage(twiceAsVicious) / heavySmashDamage(baseline) - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(heavySmashDamage(twiceAsVicious), heavySmashDamage(baseline), 1.07);
 });
 
 test('Ranger Ice projectile finishers resolve per projectile without triggering Twice as Vicious', () => {

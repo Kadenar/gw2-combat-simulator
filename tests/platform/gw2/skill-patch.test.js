@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { describe, test } from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
@@ -527,7 +528,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
     config: { ...config, patchId: 'fixture-preview' }
   });
 
-  assert.equal(previewResult.totalDamage, currentResult.totalDamage * 2);
+  assertFlooredDamageMultiplier(previewResult.totalDamage, currentResult.totalDamage, 2);
 });
 
 test('specialization skill previews stay inert in other runtime catalogs', () => {

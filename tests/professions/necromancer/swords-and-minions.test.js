@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
@@ -192,9 +193,7 @@ test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {
   const plain = lifeSiphon(false);
   const bleeding = lifeSiphon(true);
   const siphonDamage = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON)
-      .reduce((sum, event) => sum + event.damage, 0);
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).damage;
 
   assert.deepEqual(
     plain.events
@@ -203,7 +202,7 @@ test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {
     [['Bleeding', 1, 8]]
   );
   assert.equal(plain.events.filter((event) => event.type === 'damage' && event.skillId === ID.LIFE_SIPHON).length, 9);
-  assert.ok(Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12);
+  assertFlooredDamageMultiplier(siphonDamage(bleeding), siphonDamage(plain), 1.5);
 });
 
 test('Overflowing Thirst grants the documented Taste for Blood stacks to five party members', () => {
@@ -974,7 +973,7 @@ test('Vampiric siphons on every direct player and minion hit with separate power
       (event) =>
         event.flatStrikeBase === 50 &&
         event.flatStrikePowerCoeff === 0.0213 &&
-        event.damage === 71.3 &&
+        event.damage === 71 &&
         event.triggeredBy === 'Bone Shard'
     ),
     true
@@ -1093,7 +1092,7 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
       (event) =>
         event.flatStrikeBase === 65 &&
         event.flatStrikePowerCoeff === 0.0333 &&
-        Math.abs(event.damage - 98.3) < 1e-12 &&
+        event.damage === 98 &&
         event.damageKind === 'life-steal' &&
         event.criticalChance === 0
     ),
@@ -1101,7 +1100,7 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
   );
   assert.equal(shroudSiphon.flatStrikeBase, 129);
   assert.equal(shroudSiphon.flatStrikePowerCoeff, 0.0666);
-  assert.ok(Math.abs(shroudSiphon.damage - 195.6) < 1e-12);
+  assert.equal(shroudSiphon.damage, 195);
 });
 
 test('Vampiric Presence supports four allied players and respects its five-target cap', () => {
@@ -1162,7 +1161,7 @@ test('Vampiric Presence supports four allied players and respects its five-targe
   }
 
   assert.equal(
-    alliedSiphons.every((event) => Math.abs(event.damage - 98.3) < 1e-12),
+    alliedSiphons.every((event) => event.damage === 98),
     true
   );
   assert.equal(minionSiphons(minion).length > 0, true);
@@ -1519,8 +1518,8 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
     selectedTraitIds: [TRAIT.SPIRITS_STRENGTH]
   });
 
-  assert.ok(Math.abs(totalMinionDamage(corruption) / totalMinionDamage(base) - 1.25) < 1e-12);
-  assert.ok(Math.abs(totalMinionDamage(strength) / totalMinionDamage(base) - 1.5) < 1e-12);
+  assertFlooredDamageMultiplier(totalMinionDamage(corruption), totalMinionDamage(base), 1.25);
+  assertFlooredDamageMultiplier(totalMinionDamage(strength), totalMinionDamage(base), 1.5);
 });
 
 test('independent minions inherit dynamically shared Fury', () => {

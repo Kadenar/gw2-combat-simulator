@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import {
@@ -1142,7 +1143,7 @@ test('Flame Jet gains ten percent strike damage against burning targets', () => 
   const firstPacket = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Flame Jet');
 
-  assert.ok(Math.abs(firstPacket(withBurning).damage / firstPacket(withoutBurning).damage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(firstPacket(withBurning).damage, firstPacket(withoutBurning).damage, 1.1);
 });
 
 test('Engineer spear focus selects one branch and Lightning Rod pulses eight times', () => {

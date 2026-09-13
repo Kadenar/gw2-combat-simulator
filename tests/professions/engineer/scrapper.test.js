@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -116,12 +117,10 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     target: { conditions: {} }
   });
 
-  assert.ok(
-    Math.abs(
-      moving.resolvedEvents.find((event) => event.type === 'damage').damage /
-        base.resolvedEvents.find((event) => event.type === 'damage').damage -
-        1.05 ** 3
-    ) < 1e-12
+  assertFlooredDamageMultiplier(
+    moving.resolvedEvents.find((event) => event.type === 'damage').damage,
+    base.resolvedEvents.find((event) => event.type === 'damage').damage,
+    1.05 ** 3
   );
 
   const appliedForce = simulate('Scrapper', ['Puncturing Jab'], {
@@ -136,12 +135,10 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     target: { conditions: {} }
   });
 
-  assert.ok(
-    Math.abs(
-      appliedForce.resolvedEvents.find((event) => event.type === 'damage').damage /
-        withoutAppliedForce.resolvedEvents.find((event) => event.type === 'damage').damage -
-        3500 / 2750
-    ) < 1e-12
+  assertFlooredDamageMultiplier(
+    appliedForce.resolvedEvents.find((event) => event.type === 'damage').damage,
+    withoutAppliedForce.resolvedEvents.find((event) => event.type === 'damage').damage,
+    3500 / 2750
   );
 });
 
@@ -218,7 +215,7 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
     (event) => event.type === 'damage' && event.name === 'Positive Strike'
   );
 
-  assert.ok(Math.abs(acceleratedHit.damage / baseHit.damage - 2090 / 2000) < 1e-12);
+  assertFlooredDamageMultiplier(acceleratedHit.damage, baseHit.damage, 2090 / 2000);
 });
 
 test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {

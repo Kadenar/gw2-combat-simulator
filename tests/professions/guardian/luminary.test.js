@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
@@ -730,8 +731,8 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
       1e-9
   );
   // Hammer gains its armament before the first impact; selecting staff removes it before any staff pulse.
-  assert.ok(Math.abs(dazzling.damage / damage(empowered, 'Dazzling Hammer').damage - 1.07) < 1e-9);
-  assert.ok(Math.abs(shining.damage / damage(empowered, 'Shining Spin').damage - 1.17 / 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(dazzling.damage, damage(empowered, 'Dazzling Hammer').damage, 1.07);
+  assertFlooredDamageMultiplier(shining.damage, damage(empowered, 'Shining Spin').damage, 1.17 / 1.1);
   const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
   const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
 
@@ -859,9 +860,9 @@ test('Guardian armaments share the additive sigil bucket', () => {
     burning: true
   });
 
-  assert.ok(Math.abs(shining(sigils) / shining(baseline) - 1.08) < 1e-9);
-  assert.ok(Math.abs(shining(armaments) / shining(baseline) - 1.25) < 1e-9);
-  assert.ok(Math.abs(shining(conditional) / shining(armaments) - 1.05) < 1e-9);
+  assertFlooredDamageMultiplier(shining(sigils), shining(baseline), 1.08);
+  assertFlooredDamageMultiplier(shining(armaments), shining(baseline), 1.25);
+  assertFlooredDamageMultiplier(shining(conditional), shining(armaments), 1.05);
 });
 
 test('Radiant virtues grant one-use hammer and sword empowerments', () => {
@@ -902,7 +903,7 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
 
   assert.equal(armedSword.endState.profession.radiantCourageSwordArmed, true);
   assert.equal(bladeHits.length, 2);
-  assert.ok(Math.abs(bladeHits[0].damage / bladeHits[1].damage - 1.5) < 1e-9);
+  assertFlooredDamageMultiplier(bladeHits[0].damage, bladeHits[1].damage, 1.5);
   assert.equal(sword.endState.profession.radiantCourageSwordArmed, false);
   assert.ok(
     sword.procSteps.some(
@@ -1003,7 +1004,7 @@ test('Guardian strike modifiers use their tested additive and mult buckets', () 
     GUARDIAN_TRAIT_IDS.RETRIBUTION
   ]);
 
-  assert.ok(Math.abs(pulse(conditional) / pulse(baseline) - (1.25 / 1.05) * 1.05 * 1.05) < 1e-9);
+  assertFlooredDamageMultiplier(pulse(conditional), pulse(baseline), (1.25 / 1.05) * 1.05 * 1.05);
 });
 
 test('Piercing Stance applies its bonus to its first strike without stacking damage on refresh', () => {
@@ -1021,7 +1022,7 @@ test('Piercing Stance applies its bonus to its first strike without stacking dam
     const unmodified =
       ((hit.coefficient * config.stats.power * hit.resolvedWeaponStrength) / config.target.armor) *
       (1 + hit.criticalChance * (hit.criticalDamage - 1));
-    assert.ok(Math.abs(hit.damage / unmodified - 1.1) < 1e-9);
+    assertFlooredDamageMultiplier(hit.damage, unmodified, 1.1);
   }
 
   assert.deepEqual(result.warnings, []);
@@ -1111,7 +1112,7 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
     daringImpact.damage
   );
   assert.equal(daringBuff.at, daringImpact.at);
-  assert.equal(daringImpact.damage, unmodifiedDaringDamage);
+  assert.equal(daringImpact.damage, Math.floor(unmodifiedDaringDamage));
   assert.ok(piercing.procSteps.some((step) => step.skill === 'Relic of the Claw'));
   assert.equal(
     daring.events.some((event) => event.type === 'control' && event.skillName === 'Daring Advance'),
@@ -1382,7 +1383,7 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
     },
     { actorType: 'effect', ownerActorType: 'player' }
   );
-  assert.ok(Math.abs(clawSovereign.damage / justiceSovereign.damage - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(clawSovereign.damage, justiceSovereign.damage, 1.07);
 });
 
 test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Advance', () => {
@@ -1402,10 +1403,10 @@ test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Adv
   const activePiercing = simulate(['Piercing Stance', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
   const unmodifiedDamage = ((1.5 * config.stats.power * 690.5) / config.target.armor) * (1 + 0.05 * (1.5 - 1));
 
-  assert.equal(sovereignDamage(freshDaring), unmodifiedDamage);
+  assert.equal(sovereignDamage(freshDaring), Math.floor(unmodifiedDamage));
   // Piercing's buff precedes its aura detonation; refreshing the stance must not multiply its bonus again.
-  assert.ok(Math.abs(sovereignDamage(freshPiercing) / unmodifiedDamage - 1.1) < 1e-12);
-  assert.ok(Math.abs(sovereignDamage(activePiercing) / unmodifiedDamage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(sovereignDamage(freshPiercing), unmodifiedDamage, 1.1);
+  assertFlooredDamageMultiplier(sovereignDamage(activePiercing), unmodifiedDamage, 1.1);
 });
 
 test('Sovereign of Light resolves overlapping aura grants and finishers chronologically', () => {

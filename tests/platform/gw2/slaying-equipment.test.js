@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
@@ -78,7 +79,14 @@ test('slaying selections survive build loading and potion removal comparisons re
   const contribution = mesmerAppAdapter
     .calculateModifierContributions(request)
     .find(({ id }) => id === 'Utility:Potion of Slaying');
-  assert.ok(Math.abs(contribution.pctIncrease - 10) < 1e-10);
+  // The displayed contribution compares sums of floored packets, so it need not be exactly 10%.
+  const without = mesmerAppAdapter.simulateBuild(request.rotation, comparison.config);
+  assertFlooredDamageMultiplier(
+    without.strikeDamage * (1 + contribution.pctIncrease / 100),
+    without.strikeDamage,
+    1.1,
+    without.resolvedEvents.filter((event) => event.type === 'damage').length
+  );
 });
 
 test('slaying equipment labels explain strike bonuses and the assumed matching enemy', () => {

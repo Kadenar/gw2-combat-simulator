@@ -155,7 +155,7 @@ test('Ferocious Aggression increases food life steal only while Fury is active',
     );
     const food = result.resolvedEvents.find((event) => event.skillName === 'Nourishment');
     assert.ok(food);
-    assert.ok(Math.abs(food.damage - (fury ? 357.5 : 325)) < 1e-9);
+    assert.equal(food.damage, fury ? 357 : 325);
   }
 });
 
@@ -515,7 +515,7 @@ test('Dark projectile life steal receives the live Kalla bonus exactly once', ()
     const siphon = result.resolvedEvents.find((event) => event.lifeSiphon && event.parentSkillName === 'Hammer Bolt');
     assert.ok(siphon);
     assert.equal(siphon.flatStrikeMultiplier, multiplier);
-    assert.ok(Math.abs(siphon.damage - (202 + 0.03 * 2000) * multiplier) < 1e-9);
+    assert.equal(siphon.damage, Math.floor((202 + 0.03 * 2000) * multiplier));
   }
 });
 
@@ -583,7 +583,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   // before that hit grants the second Kalla's Fervor stack. The direct modifier checks
   // below cover the fully stacked Lasting Legacy multiplier.
   assert.equal(nourishment.flatStrikeMultiplier, 1.03);
-  assert.ok(Math.abs(nourishment.damage - 334.75) < 1e-9);
+  assert.equal(nourishment.damage, 334);
 
   const modifierContext = (selectedTraitIds, condition = null) => ({
     config: { specialization: 'Renegade', selectedTraitIds, boons: {} },

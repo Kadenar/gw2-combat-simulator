@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -93,7 +94,7 @@ test('Bane Signet Power follows recharge and Perfect Inscriptions for raw and pr
       );
       // Identical attacks isolate the passive Power contribution from all other damage factors.
       assert.equal(before.damage, after.damage);
-      assert.ok(Math.abs(during.damage / before.damage - (traited ? 1 : 2000 / (2000 + bonus))) < 1e-9);
+      assertFlooredDamageMultiplier(during.damage, before.damage, traited ? 1 : 2000 / (2000 + bonus));
     }
   }
 });

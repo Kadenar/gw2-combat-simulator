@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
@@ -85,14 +86,18 @@ test('spear leap damage increases only below half target health', () => {
   for (const id of [ID.WARCLAWS_ENGAGE, ID.PREDATORS_AMBUSH]) {
     const rotation = id === ID.PREDATORS_AMBUSH ? [ID.PANTHERS_PROWL, id] : [id];
     const run = (healthFraction) => strike(simulate('Soulbeast', rotation, { target: { healthFraction } }), id).damage;
-    close(run(0.49) / run(0.5), 1.2);
+    assertFlooredDamageMultiplier(run(0.49), run(0.5), 1.2);
     close(run(0.75) / run(0.5), 1);
   }
 
   const target = { health: 1_000_000, startingHealthFraction: 0.500001 };
   const baseline = simulate('Soulbeast', [ID.WARCLAWS_ENGAGE], { target });
   const crossed = simulate('Soulbeast', [ID.DRAKES_SWIPE, ID.WARCLAWS_ENGAGE], { target });
-  close(strike(crossed, ID.WARCLAWS_ENGAGE).damage / strike(baseline, ID.WARCLAWS_ENGAGE).damage, 1.2);
+  assertFlooredDamageMultiplier(
+    strike(crossed, ID.WARCLAWS_ENGAGE).damage,
+    strike(baseline, ID.WARCLAWS_ENGAGE).damage,
+    1.2
+  );
 });
 
 test('ordinary stealth unlocks spear and outgoing strikes apply Revealed without consuming Prowess', () => {

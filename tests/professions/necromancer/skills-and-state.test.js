@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -356,8 +357,8 @@ test('Wanderlust Vulnerability affects only its final two field hits', () => {
   assert.equal(vulnerability.at, fieldHits[1].at);
   assert.ok(fieldHits[1].eventOrder < vulnerability.eventOrder);
   assert.ok(Math.abs(fieldHits[1].damage / fieldHits[0].damage - 1) < 1e-12);
-  assert.ok(Math.abs(fieldHits[2].damage / fieldHits[0].damage - 1.04) < 1e-12);
-  assert.ok(Math.abs(fieldHits[3].damage / fieldHits[0].damage - 1.04) < 1e-12);
+  assertFlooredDamageMultiplier(fieldHits[2].damage, fieldHits[0].damage, 1.04);
+  assertFlooredDamageMultiplier(fieldHits[3].damage, fieldHits[0].damage, 1.04);
 });
 
 test('Vital Draw grants nine percent life force for its three assumed hits', () => {
@@ -384,7 +385,7 @@ test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => 
   assert.equal(procs[0].detail, 'activated');
   assert.ok(procs.slice(1).every((proc) => proc.detail === 'refreshed'));
   assert.equal(hits.length, 12);
-  assert.ok(Math.abs(hits[1].damage / hits[0].damage - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(hits[1].damage, hits[0].damage, 1.07);
 });
 
 test('Necromancer single-hit skills use their configured offsets', () => {
@@ -1249,7 +1250,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
     const wickedStrike = skillDamage(wicked);
 
     assert.equal(wickedStrike.metadata.necromancerBlight, 20, skill);
-    assert.ok(Math.abs(wickedStrike.damage / skillDamage(baseline).damage - 1.2) < 1e-12, skill);
+    assertFlooredDamageMultiplier(wickedStrike.damage, skillDamage(baseline).damage, 1.2);
     assert.equal(
       wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-skill')?.state
         .blight,
@@ -1380,7 +1381,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
       .map((event) => event.damage)
   );
 
-  assert.ok(Math.abs(lowShardDamage / normalShardDamage - 1.5) < 1e-12);
+  assertFlooredDamageMultiplier(lowShardDamage, normalShardDamage, 1.5);
   const normalPerforateDamage = utility.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Perforate'
   )?.damage;
@@ -1390,7 +1391,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
       .map((event) => event.damage)
   );
 
-  assert.ok(Math.abs(lowPerforateDamage / normalPerforateDamage - 1.2) < 1e-12);
+  assertFlooredDamageMultiplier(lowPerforateDamage, normalPerforateDamage, 1.2);
 });
 
 test('Soul Shards expire after ten seconds and refresh together when another shard is gained', () => {

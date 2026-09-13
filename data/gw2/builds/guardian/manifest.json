@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 43151,
+        "benchmarkDps": 43147,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 41617,
+        "benchmarkDps": 41615,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -25,7 +25,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42179,
+        "benchmarkDps": 42177,
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true
@@ -35,7 +35,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
-        "benchmarkDps": 33255,
+        "benchmarkDps": 33251,
         "sourceBenchmarkDps": 33543,
         "dpsReportUrl": "https://dps.report/fcpL-20260723-040840_golem",
         "upToDate": true
@@ -45,7 +45,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
-        "benchmarkDps": 32899,
+        "benchmarkDps": 32895,
         "sourceBenchmarkDps": 32976,
         "dpsReportUrl": "https://dps.report/tH4i-20260726-111551_golem",
         "upToDate": true
@@ -60,7 +60,7 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41040,
+        "benchmarkDps": 41038,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -69,7 +69,7 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 34768,
+        "benchmarkDps": 34766,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true
@@ -84,7 +84,7 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
-        "benchmarkDps": 41735,
+        "benchmarkDps": 41732,
         "sourceBenchmarkDps": 41853,
         "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
         "upToDate": true
@@ -93,7 +93,7 @@
         "label": "Power (Longbow / Greatsword)",
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-longbow-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-longbow-greatsword-bench.json",
-        "benchmarkDps": 41950,
+        "benchmarkDps": 41947,
         "dpsReportUrl": "https://dps.report/7zCO-42179lbdh-_golem"
       }
     ]
@@ -106,13 +106,13 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 41363
+        "benchmarkDps": 41360
       },
       {
         "label": "Power (Greatsword / Spear) - Nagy Rotation",
         "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
-        "benchmarkDps": 42089,
+        "benchmarkDps": 42086,
         "sourceBenchmarkDps": 41568,
         "dpsReportUrl": "https://dps.report/0C3r-41568splumi_golem",
         "upToDate": true
@@ -122,7 +122,7 @@
         "build": "data/gw2/builds/guardian/b-power-luminary-greatsword-longbow.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
-        "benchmarkDps": 41429,
+        "benchmarkDps": 41426,
         "sourceBenchmarkDps": 40768,
         "dpsReportUrl": "https://dps.report/XvYK-20260418-135842_golem",
         "upToDate": true
@@ -132,7 +132,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
-        "benchmarkDps": 37139,
+        "benchmarkDps": 37137,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession } from '#gw2/app/profession/registry.js';
@@ -235,7 +236,7 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
     const tether = enhanced.events.find((event) => event.type === 'guardian.dragonhunter-tethered');
     assert.ok(boosted[0].at < tether.at);
     assert.equal(boosted[0].damage, normal[0].damage);
-    assert.ok(Math.abs(boosted[1].damage / normal[1].damage - 1.25) < 1e-9);
+    assertFlooredDamageMultiplier(boosted[1].damage, normal[1].damage, 1.25);
     const field = enhanced.events.find(
       (event) => event.type === 'combo_field' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES
     );
@@ -290,7 +291,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
 
   // The initial hit precedes its Resolution grant; only the follow-up inside that window receives the bonuses.
   assert.equal(first(retribution).damage, first(righteous).damage);
-  assert.ok(Math.abs(followup(retribution).damage / followup(righteous).damage - 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(followup(retribution).damage, followup(righteous).damage, 1.1);
   assert.ok(Math.abs(followup(retribution).criticalChance - first(retribution).criticalChance - 0.25) < 1e-9);
   assert.ok(
     Math.abs(
@@ -579,8 +580,8 @@ test('Dragonhunter relic boosts the triggering trap hit and expires for later at
     const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
     const original = hits(baseline);
     const actual = hits(boosted);
-    assert.ok(Math.abs(actual[0].damage / original[0].damage - 1.1) < 1e-9, trap);
-    assert.ok(Math.abs(actual.at(-2).damage / original.at(-2).damage - 1.1) < 1e-9, trap);
+    assertFlooredDamageMultiplier(actual[0].damage, original[0].damage, 1.1);
+    assertFlooredDamageMultiplier(actual.at(-2).damage, original.at(-2).damage, 1.1);
     assert.equal(actual.at(-1).damage, original.at(-1).damage, trap);
     assert.deepEqual(boosted.warnings, []);
   }

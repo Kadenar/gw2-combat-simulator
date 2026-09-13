@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -78,7 +79,7 @@ test('GW2 declarative policy enforces active weapons and skill weapon strength',
     config: { primaryWeapon: 'Sword' }
   });
 
-  assert.equal(greatsword.strikeDamage / sword.strikeDamage, 1.1);
+  assertFlooredDamageMultiplier(greatsword.strikeDamage, sword.strikeDamage, 1.1);
   assert.equal(unavailable.totalDamage, 0);
   assert.match(unavailable.warnings.join(' '), /unavailable/);
 });

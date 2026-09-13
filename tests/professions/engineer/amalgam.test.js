@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -161,7 +162,7 @@ test('Evolve raises attributes by ten percent for eight seconds', () => {
   const puncture = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
 
-  assert.ok(Math.abs(puncture(evolved).damage / puncture(baseline).damage - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.1);
   assert.equal(
     evolved.endState.profession.evolvedUntil,
     evolved.events.find((event) => event.type === 'engineer.state' && event.reason === 'evolve').at + 8
@@ -436,7 +437,7 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Offensive Protocol: Pierce')
       .damage;
 
-  assert.ok(Math.abs(pierceDamage(symbioticMorph) / pierceDamage(baselineMorph) - 1.33) < 1e-12);
+  assertFlooredDamageMultiplier(pierceDamage(symbioticMorph), pierceDamage(baselineMorph), 1.33);
 
   const baselineFollowup = simulate('Amalgam', [76815, 'Puncturing Jab'], {
     selectedMorphSkillIds,
@@ -450,7 +451,7 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
   const punctureDamage = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab').damage;
 
-  assert.ok(Math.abs(punctureDamage(willingFollowup) / punctureDamage(baselineFollowup) - 1.05) < 1e-12);
+  assertFlooredDamageMultiplier(punctureDamage(willingFollowup), punctureDamage(baselineFollowup), 1.05);
 
   const reset = simulate('Amalgam', [76815, 'Evolve', 76815], {
     selectedMorphSkillIds,
@@ -485,7 +486,7 @@ test('Double Helix gives Evolve two charges and doubles its attribute bonus', ()
   const puncture = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
 
-  assert.ok(Math.abs(puncture(evolved).damage / puncture(baseline).damage - 1.2) < 1e-12);
+  assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.2);
 });
 
 test('Evolve aliases use only the trait-selected identity and share its charges and recharge', () => {

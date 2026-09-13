@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
@@ -84,7 +85,7 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
 
   const hits = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Fragmentation Shot');
-  assert.ok(Math.abs(hits(active)[0].damage / hits(disabled)[0].damage - 1.15) < 1e-12);
+  assertFlooredDamageMultiplier(hits(active)[0].damage, hits(disabled)[0].damage, 1.15);
   assert.equal(hits(active)[1].damage, hits(disabled)[1].damage);
 });
 

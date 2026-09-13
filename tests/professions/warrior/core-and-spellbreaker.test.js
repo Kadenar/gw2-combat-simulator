@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
@@ -706,8 +707,10 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
       boons: { fury: false }
     }).strikeDamage;
 
-  assert.ok(
-    Math.abs(strikeDamage([TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR]) / strikeDamage([TRAIT.SMASH_BRAWLER]) - 1.1) < 1e-9
+  assertFlooredDamageMultiplier(
+    strikeDamage([TRAIT.SMASH_BRAWLER, TRAIT.BLOODY_ROAR]),
+    strikeDamage([TRAIT.SMASH_BRAWLER]),
+    1.1
   );
 });
 
@@ -1038,7 +1041,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
     target: { defiant: true }
   });
 
-  assert.ok(Math.abs(damage(defiantWastrel, "Wastrel's Ruin") / damage(normalWastrel, "Wastrel's Ruin") - 2) < 1e-9);
+  assertFlooredDamageMultiplier(damage(defiantWastrel, "Wastrel's Ruin"), damage(normalWastrel, "Wastrel's Ruin"), 2);
 
   const breachingDamage = (boonless) =>
     simulate('Spellbreaker', ['Breaching Strike'], {
@@ -1048,7 +1051,7 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
       target: { boonless }
     }).strikeDamage;
 
-  assert.ok(Math.abs(breachingDamage(true) / breachingDamage(false) - 1.5) < 1e-9);
+  assertFlooredDamageMultiplier(breachingDamage(true), breachingDamage(false), 1.5);
 
   const fixedBreaching = simulate('Spellbreaker', ['Breaching Strike'], {
     initialResource: 10,
@@ -1094,8 +1097,10 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   const slicingStep = boonlessSlicing.steps.find((step) => step.skill === 'Slicing Maelstrom');
 
   assert.equal(slicingStep.end - slicingStep.start, 400);
-  assert.ok(
-    Math.abs(damage(boonlessSlicing, 'Slicing Maelstrom') / damage(normalSlicing, 'Slicing Maelstrom') - 1.5) < 1e-9
+  assertFlooredDamageMultiplier(
+    damage(boonlessSlicing, 'Slicing Maelstrom'),
+    damage(normalSlicing, 'Slicing Maelstrom'),
+    1.5
   );
 });
 
@@ -1175,8 +1180,8 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
   const defiant = killShot('Core', 10, { target: { defiant: true, conditions: {} } });
   const belowHalf = killShot('Core', 10, { targetHealthFraction: 0.49 });
 
-  assert.ok(Math.abs(defiant.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
-  assert.ok(Math.abs(belowHalf.strikeDamage / normal.strikeDamage - 1.2) < 1e-9);
+  assertFlooredDamageMultiplier(defiant.strikeDamage, normal.strikeDamage, 1.2);
+  assertFlooredDamageMultiplier(belowHalf.strikeDamage, normal.strikeDamage, 1.2);
 });
 
 test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coefficients', () => {
@@ -1309,11 +1314,9 @@ test('Dagger autos use a 15% critical-damage factor', () => {
     return result.breakdown.find((entry) => entry.name === skillName)?.strikeDamage || 0;
   };
 
-  const normalized = (skillName, coefficient, precision) => damage(skillName, precision) / coefficient;
-
-  assert.ok(Math.abs(normalized('Precise Cut', 0.6, 0) / normalized('Keen Strike', 1.05, 0) - 1) < 1e-9);
-  assert.ok(Math.abs(normalized('Precise Cut', 0.6, 10000) / normalized('Keen Strike', 1.05, 10000) - 1.15) < 1e-9);
-  assert.ok(Math.abs(normalized('Focused Slash', 0.65, 10000) / normalized('Keen Strike', 1.05, 10000) - 1.15) < 1e-9);
+  assertFlooredDamageMultiplier(damage('Precise Cut', 0), damage('Keen Strike', 0), 0.6 / 1.05);
+  assertFlooredDamageMultiplier(damage('Precise Cut', 10000), damage('Keen Strike', 10000), (1.15 * 0.6) / 1.05);
+  assertFlooredDamageMultiplier(damage('Focused Slash', 10000), damage('Keen Strike', 10000), (1.15 * 0.65) / 1.05);
 });
 
 test('Peak Performance buffs Kick and Leg Specialist requires impairment', () => {
@@ -1326,7 +1329,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
   const baseKick = strikeDamage([]);
   const peakKick = strikeDamage([TRAIT.PEAK_PERFORMANCE]);
 
-  assert.ok(Math.abs(peakKick / baseKick - 1.15) < 1e-9);
+  assertFlooredDamageMultiplier(peakKick, baseKick, 1.15);
 
   const bullsChargeDamage = (selectedTraitIds) =>
     simulate('Spellbreaker', ["Bull's Charge"], {
@@ -1334,7 +1337,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
       stats: { precision: 0 }
     }).strikeDamage;
 
-  assert.ok(Math.abs(bullsChargeDamage([TRAIT.PEAK_PERFORMANCE]) / bullsChargeDamage([]) - 1.15) < 1e-9);
+  assertFlooredDamageMultiplier(bullsChargeDamage([TRAIT.PEAK_PERFORMANCE]), bullsChargeDamage([]), 1.15);
 
   const mending = warriorCatalog.skillsById.get(ID.MENDING);
 
@@ -1361,7 +1364,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
       target: { conditions }
     }).breakdown.find((entry) => entry.name === 'Keen Strike')?.strikeDamage || 0;
 
-  assert.ok(Math.abs(legDamage({ Chilled: true }) / legDamage({}) - 1.05) < 1e-9);
+  assertFlooredDamageMultiplier(legDamage({ Chilled: true }), legDamage({}), 1.05);
 });
 
 test('Warrior core damage traits use their correct modifier buckets', () => {
@@ -1380,7 +1383,7 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
   const baseline = configuredKickDamage([]);
   const empoweredSprintPeak = configuredKickDamage([TRAIT.EMPOWERED, TRAIT.WARRIORS_SPRINT, TRAIT.PEAK_PERFORMANCE]);
 
-  assert.ok(Math.abs(empoweredSprintPeak / baseline - 1.25 * 1.03) < 1e-9);
+  assertFlooredDamageMultiplier(empoweredSprintPeak, baseline, 1.25 * 1.03);
 
   const boonedTargetBaseline = configuredKickDamage([], {
     target: { boonless: false, boonCount: 4 }
@@ -1389,7 +1392,7 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
     target: { boonless: false, boonCount: 4 }
   });
 
-  assert.ok(Math.abs(destructionPeak / boonedTargetBaseline - 1.15 * 1.12) < 1e-9);
+  assertFlooredDamageMultiplier(destructionPeak, boonedTargetBaseline, 1.15 * 1.12);
 });
 
 test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
@@ -1401,7 +1404,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
       target: { defiant: true }
     }).strikeDamage;
 
-  assert.ok(Math.abs(maceDamage([TRAIT.MERCILESS_HAMMER]) / maceDamage([]) - 1.25) < 1e-9);
+  assertFlooredDamageMultiplier(maceDamage([TRAIT.MERCILESS_HAMMER]), maceDamage([]), 1.25);
 
   const baselineControl = simulate('Core', ['Kick'], { initialResource: 0 });
   const traitControl = simulate('Core', ['Kick'], {
@@ -1424,7 +1427,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
       stats: { precision: 0 }
     }).breakdown.find((entry) => entry.name === 'Mace Smash')?.strikeDamage || 0;
 
-  assert.ok(Math.abs(controlledStrikeDamage([TRAIT.STALWART_STRENGTH]) / controlledStrikeDamage([]) - 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(controlledStrikeDamage([TRAIT.STALWART_STRENGTH]), controlledStrikeDamage([]), 1.1);
 });
 
 test('Bloodlust handles deterministic progress and stochastic proc rolls', () => {
@@ -1539,9 +1542,9 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
   const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword');
   const offhandDaggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword', 'Dagger');
 
-  assert.ok(Math.abs(boonlessPure / boonlessBase - 1.1) < 1e-9);
-  assert.ok(Math.abs(boonedPure / boonedBase - 1.05) < 1e-9);
-  assert.ok(Math.abs(daggerStyle / boonlessBase - 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(boonlessPure, boonlessBase, 1.1);
+  assertFlooredDamageMultiplier(boonedPure, boonedBase, 1.05);
+  assertFlooredDamageMultiplier(daggerStyle, boonlessBase, 1.1);
   assert.ok(Math.abs(swordStyle / boonlessBase - 1) < 1e-9);
   assert.ok(Math.abs(offhandDaggerStyle / boonlessBase - 1) < 1e-9);
 
@@ -1558,7 +1561,7 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
   });
 
   assert.ok(Math.abs(damage(tethered, 'Breaching Strike') / damage(base, 'Breaching Strike') - 1) < 1e-9);
-  assert.ok(Math.abs(damage(tethered, 'Kick') / damage(base, 'Kick') - 1.15) < 1e-9);
+  assertFlooredDamageMultiplier(damage(tethered, 'Kick'), damage(base, 'Kick'), 1.15);
   assert.equal(tethered.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
 
   const internalCooldown = simulate(

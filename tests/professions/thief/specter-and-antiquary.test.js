@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -258,16 +259,18 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
   });
   const skillDamage = (result, name) => result.breakdown.find((entry) => entry.sourceSkill === name)?.damage || 0;
 
-  assert.ok(Math.abs(skillDamage(behind, 'Backstab') / skillDamage(front, 'Backstab') - 2) < 1e-9);
+  assertFlooredDamageMultiplier(skillDamage(behind, 'Backstab'), skillDamage(front, 'Backstab'), 2);
 
   const unmarked = simulate('Deadeye', ['Cloak and Dagger', 'Malicious Backstab'], { stats: { precision: 5000 } });
   const marked = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'], {
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT],
     stats: { precision: 5000 }
   });
-  const maliciousRatio = skillDamage(marked, 'Malicious Backstab') / skillDamage(unmarked, 'Malicious Backstab');
-
-  assert.ok(Math.abs(maliciousRatio - 1.5) < 1e-9, maliciousRatio);
+  assertFlooredDamageMultiplier(
+    skillDamage(marked, 'Malicious Backstab'),
+    skillDamage(unmarked, 'Malicious Backstab'),
+    1.5
+  );
   assert.equal(marked.endState.profession.malice, 2);
 
   const rifleConfig = {
@@ -289,10 +292,11 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
       selectedTraitIds: [TRAIT.MALICIOUS_INTENT]
     }
   );
-  const deathsJudgmentRatio =
-    skillDamage(markedRifle, "Malicious Death's Judgment") / skillDamage(unmarkedRifle, "Malicious Death's Judgment");
-
-  assert.ok(Math.abs(deathsJudgmentRatio - 1.4) < 1e-9, deathsJudgmentRatio);
+  assertFlooredDamageMultiplier(
+    skillDamage(markedRifle, "Malicious Death's Judgment"),
+    skillDamage(unmarkedRifle, "Malicious Death's Judgment"),
+    1.4
+  );
   assert.equal(markedRifle.endState.profession.malice, 2);
 });
 
@@ -309,8 +313,8 @@ test('Revealed Training does not empower the stealth attack that reveals the thi
   });
   const damage = (result, name) => result.breakdown.find((entry) => entry.sourceSkill === name)?.damage || 0;
 
-  assert.ok(Math.abs(damage(trained, 'Backstab') / damage(baseline, 'Backstab') - 1.04) < 1e-9);
-  assert.ok(Math.abs(damage(trained, 'Double Strike') / damage(baseline, 'Double Strike') - 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(damage(trained, 'Backstab'), damage(baseline, 'Backstab'), 1.04);
+  assertFlooredDamageMultiplier(damage(trained, 'Double Strike'), damage(baseline, 'Double Strike'), 1.1);
 });
 
 test('Specter conditions land with their associated strikes', () => {
@@ -1146,27 +1150,27 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
       selectedTraitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : []
     });
   const damage = (result, match) =>
-    result.breakdown.find((entry) => (typeof match === 'function' ? match(entry) : entry.name === match))?.damage || 0;
-  const ratio = (name, rowName = name) => {
+    result.breakdown.find((entry) => (typeof match === 'function' ? match(entry) : entry.name === match));
+  const assertMultiplier = (name, multiplier, rowName = name) => {
     const base = artifact(name);
     const meticulous = artifact(name, true);
-
-    return damage(meticulous, rowName) / damage(base, rowName);
+    const firstHit = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.name === damage(result, rowName).name)
+        .damage;
+    assertFlooredDamageMultiplier(firstHit(meticulous), firstHit(base), multiplier);
   };
 
-  assert.ok(
-    Math.abs(
-      ratio(
-        'Metal Legion Guitar',
-        (entry) => entry.sourceSkill === 'Metal Legion Guitar' && entry.name.endsWith('Packet 1')
-      ) - 1.5
-    ) < 1e-9
+  assertMultiplier(
+    'Metal Legion Guitar',
+    1.5,
+    (entry) => entry.sourceSkill === 'Metal Legion Guitar' && entry.name.endsWith('Packet 1')
   );
-  assert.ok(Math.abs(ratio('Metal Legion Guitar', 'Final Smash') - 1.2) < 1e-9);
-  assert.ok(Math.abs(ratio('Mistburn Mortar') - 1.2) < 1e-9);
-  assert.ok(Math.abs(ratio('Summon Kryptis Turret') - 3.84 / 2.8) < 1e-9);
-  assert.ok(Math.abs(ratio('Chak Shield') - 1.2) < 1e-9);
-  assert.ok(Math.abs(ratio('Holo-Dancer Decoy') - 1.5) < 1e-9);
+  assertMultiplier('Metal Legion Guitar', 1.2, 'Final Smash');
+  assertMultiplier('Mistburn Mortar', 1.2);
+  assertMultiplier('Summon Kryptis Turret', 3.84 / 2.8);
+  // Custodian adds a Chak Shield packet; each packet retains its original damage.
+  assertMultiplier('Chak Shield', 1);
+  assertMultiplier('Holo-Dancer Decoy', 1.5);
 
   const mortar = artifact('Mistburn Mortar', true);
   const turret = artifact('Summon Kryptis Turret', true);

@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -619,9 +620,9 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
 
   assert.ok(strikeDamage(dangerTime, 'player') > strikeDamage(base, 'player'));
   assert.ok(strikeDamage(dangerTime, 'summon', 'phantasm') > strikeDamage(base, 'summon', 'phantasm'));
-  assert.ok(Math.abs(strikeDamage(claw, 'player') / strikeDamage(base, 'player') - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(strikeDamage(claw, 'player'), strikeDamage(base, 'player'), 1.07);
   assert.equal(strikeDamage(claw, 'summon', 'phantasm'), strikeDamage(base, 'summon', 'phantasm'));
-  assert.ok(Math.abs(strikeDamage(timeBomb, 'player') / strikeDamage(base, 'player') - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(strikeDamage(timeBomb, 'player'), strikeDamage(base, 'player'), 1.1);
   assert.equal(strikeDamage(timeBomb, 'summon', 'phantasm'), strikeDamage(base, 'summon', 'phantasm'));
   const timeBombBuff = timeBomb.events.find((event) => event.type === 'buff' && event.kind === 'time-bomb');
   const explosion = timeBomb.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Time Bomb');
@@ -728,7 +729,7 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
       .filter((entry) => entry.sourceSkill === 'Winds of Chaos')
       .reduce((total, entry) => total + entry.strikeDamage, 0);
 
-  assert.ok(Math.abs(damage(equipped) / damage(base) - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(damage(equipped), damage(base), 1.1);
   assert.ok(
     equipped.breakdown.some((entry) => entry.name === 'Relic of Peitha — Torment' && entry.conditionDamage > 0)
   );

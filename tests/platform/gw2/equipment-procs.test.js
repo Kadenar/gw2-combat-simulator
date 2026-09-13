@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
@@ -406,7 +407,7 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
       .filter((entry) => entry.sourceSkill === name)
       .reduce((total, entry) => total + entry.strikeDamage, 0);
 
-  assert.ok(Math.abs(strike(equipped, 'Bladecall') / strike(base, 'Bladecall') - 1.05) < 1e-12);
+  assertFlooredDamageMultiplier(strike(equipped, 'Bladecall'), strike(base, 'Bladecall'), 1.05);
   assert.ok(Math.abs(strike(equipped, 'Psycut') / strike(base, 'Psycut') - 1) < 1e-12);
 });
 
@@ -460,7 +461,7 @@ test('Relic of the Claw buffs strikes after a control skill for eight seconds', 
       .reduce((total, entry) => total + entry.strikeDamage, 0);
 
   assert.equal(damage(equipped, 'Bladesong Dissonance'), damage(base, 'Bladesong Dissonance'));
-  assert.ok(Math.abs(damage(equipped, 'Bladecall') / damage(base, 'Bladecall') - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(damage(equipped, 'Bladecall'), damage(base, 'Bladecall'), 1.07);
   assert.ok(
     equipped.procSteps.some(
       (proc) =>
@@ -490,7 +491,7 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
   const activeDamage = strikeDamage(active);
   const expiredDamage = strikeDamage(expired);
 
-  assert.ok(Math.abs(activeDamage / expiredDamage - 1.07) < 1e-12);
+  assertFlooredDamageMultiplier(activeDamage, expiredDamage, 1.07);
 });
 
 test('Relic of the Claw records activation and refresh procs', () => {
@@ -633,7 +634,7 @@ test('Relic of the Eagle activates after runtime damage drops the target below 5
       .map((event) => event.damage);
 
   assert.equal(hits(eagle)[0], hits(base)[0]);
-  assert.ok(Math.abs(hits(eagle)[1] / hits(base)[1] - 1.1) < 1e-12);
+  assertFlooredDamageMultiplier(hits(eagle)[1], hits(base)[1], 1.1);
   assert.equal(eagle.deathTime, base.deathTime);
 });
 

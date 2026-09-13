@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
@@ -234,7 +235,7 @@ test("Spirit's Strength scales Ritualist minion strikes at the specialization bo
 
   assert.ok(baseline);
   assert.ok(strengthened);
-  assert.equal(strengthened.damage, baseline.damage * 1.5);
+  assertFlooredDamageMultiplier(strengthened.damage, baseline.damage, 1.5);
 });
 
 test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', () => {
@@ -1158,13 +1159,11 @@ test('the Power Harbinger trait set uses current critical and resource rules', (
   const wickedCorruption = runShroudStrike([TRAIT.WICKED_CORRUPTION]);
   const both = runShroudStrike([TRAIT.DEATH_PERCEPTION, TRAIT.WICKED_CORRUPTION]);
   const strikeDamage = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === ID.TAINTED_BOLTS)
-      .reduce((sum, event) => sum + event.damage, 0);
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.TAINTED_BOLTS).damage;
 
-  assert.ok(Math.abs(strikeDamage(deathPerception) / strikeDamage(base) - 1.1) < 1e-12);
-  assert.ok(Math.abs(strikeDamage(wickedCorruption) / strikeDamage(base) - 1.1) < 1e-12);
-  assert.ok(Math.abs(strikeDamage(both) / strikeDamage(base) - 1.21) < 1e-12);
+  assertFlooredDamageMultiplier(strikeDamage(deathPerception), strikeDamage(base), 1.1);
+  assertFlooredDamageMultiplier(strikeDamage(wickedCorruption), strikeDamage(base), 1.1);
+  assertFlooredDamageMultiplier(strikeDamage(both), strikeDamage(base), 1.21);
 
   const implacable = simulate('Harbinger', ['Harbinger Shroud'], {
     selectedTraitIds: [TRAIT.IMPLACABLE_FOE]

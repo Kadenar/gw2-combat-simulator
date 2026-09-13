@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
@@ -568,7 +569,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.ok(Math.abs(lightOnYourFeet.totalDamage / dodgeBaseline.totalDamage - 1.1) < 1e-9);
+  const rapidFireHit = (result) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Rapid Fire').damage;
+  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1.1);
 
   const cycloneRotation = ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', "Quarry's Peril", 'Pelt'];
   const cyclone = simulate('Galeshot', cycloneRotation);
@@ -588,7 +591,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER]
   });
 
-  assert.ok(Math.abs(bountiful.totalDamage / boonBaseline.totalDamage - 1.03) < 1e-9);
+  assertFlooredDamageMultiplier(rapidFireHit(bountiful), rapidFireHit(boonBaseline), 1.03);
 
   const survival = simulate('Core', ['Rapid Fire'], {
     primaryWeapon: 'Longbow',
@@ -603,9 +606,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     selectedTraitIds: [TRAIT.WOLFSONG]
   });
 
-  assert.ok(Math.abs(survival.totalDamage / baseline.totalDamage - 1.15) < 1e-9);
-  assert.ok(Math.abs(predator.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
-  assert.ok(Math.abs(wolfsong.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
+  assertFlooredDamageMultiplier(rapidFireHit(survival), rapidFireHit(baseline), 1.15);
+  assertFlooredDamageMultiplier(rapidFireHit(predator), rapidFireHit(baseline), 1.1);
+  assertFlooredDamageMultiplier(rapidFireHit(wolfsong), rapidFireHit(baseline), 1.1);
 
   const daggerBaseline = simulate('Core', ['Double Arc'], {
     primaryWeapon: 'Dagger'
@@ -733,7 +736,7 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
       assert.ok(fury.every((event) => event.resolvedAudience.alliedPlayerCount === allies));
     }
 
-    assert.ok(Math.abs(petHit(bountiful) / petHit(baseline) - expectedFactor) < 1e-9, `${skill}, ${allies} allies`);
+    assertFlooredDamageMultiplier(petHit(bountiful), petHit(baseline), expectedFactor);
   }
 });
 
@@ -848,7 +851,7 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   const firstOpeningHit = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.RAPID_FIRE).damage;
 
-  assert.ok(Math.abs(firstOpeningHit(opening) / firstOpeningHit(openingWithoutRemorseless) - 1.25) < 1e-9);
+  assertFlooredDamageMultiplier(firstOpeningHit(opening), firstOpeningHit(openingWithoutRemorseless), 1.25);
 
   const rearmed = simulate('Core', ['Rapid Fire', 'Swap Weapons', 'Call of the Wild', "Winter's Bite"], {
     primaryWeapon: 'Longbow',

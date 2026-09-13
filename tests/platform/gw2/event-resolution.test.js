@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
@@ -408,7 +409,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     }
   });
 
-  assert.equal(modified.strikeDamage / base.strikeDamage, 2);
+  assertFlooredDamageMultiplier(modified.strikeDamage, base.strikeDamage, 2);
   assert.deepEqual(observed, {
     actorType: 'player',
     hasRuntimeProfession: true,

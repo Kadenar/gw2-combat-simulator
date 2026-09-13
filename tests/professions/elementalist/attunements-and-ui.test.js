@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { runNative, resolvedAndScheduledEvents } from '../../helpers/elementalist-simulation.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
@@ -191,9 +192,11 @@ test('Tempest party boons affect the summoned elemental', () => {
   const sharedBarrage = firstBarrage(shared);
   const isolatedBarrage = firstBarrage(isolated);
 
-  const nonCriticalDamage = (event) => event.damage / (1 + event.criticalChance * 0.5);
-
-  assert.ok(Math.abs(nonCriticalDamage(sharedBarrage) - nonCriticalDamage(isolatedBarrage)) < 1e-9);
+  assertFlooredDamageMultiplier(
+    sharedBarrage.damage,
+    isolatedBarrage.damage,
+    (1 + sharedBarrage.criticalChance * 0.5) / (1 + isolatedBarrage.criticalChance * 0.5)
+  );
   assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
 });
 

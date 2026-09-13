@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
@@ -125,7 +126,7 @@ test('Maul grants the active pet 50% on its next strike without changing later s
     const baseline = petStrikes(simulate(specialization, [...prefix, ID.SLASH_ID_12474, wait(3000)]));
     const enhanced = petStrikes(simulate(specialization, [...prefix, ID.MAUL, wait(3000)]));
     assert.ok(enhanced.length >= 2);
-    close(enhanced[0].damage / baseline[0].damage, 1.5);
+    assertFlooredDamageMultiplier(enhanced[0].damage, baseline[0].damage, 1.5);
     close(enhanced[1].damage / baseline[1].damage, 1);
   }
 });
@@ -138,7 +139,7 @@ test('Maul targets a swapped pet even when it has no autonomous attack profile',
   const baseline = run(ID.SLASH_ID_12474);
   const enhanced = run(ID.MAUL);
   // Rending Pounce's two simultaneous packets must consume the replacement pet's bonus once.
-  close(enhanced[0].damage / baseline[0].damage, 1.5);
+  assertFlooredDamageMultiplier(enhanced[0].damage, baseline[0].damage, 1.5);
   close(enhanced[1].damage / baseline[1].damage, 1);
 });
 
@@ -153,8 +154,8 @@ test('Merged Maul grants 25% to the next player strike and expires after ten sec
       const maul = strike(result, maulId);
       const slash = strike(result, ID.SLASH_ID_12474);
       const slice = strike(result, ID.SLICE);
-      close(slash.damage / slash.coefficient / (slice.damage / slice.coefficient), multiplier);
-      close(maul.damage / maul.coefficient, slice.damage / slice.coefficient);
+      assertFlooredDamageMultiplier(slash.damage, slice.damage, (multiplier * slash.coefficient) / slice.coefficient);
+      assertFlooredDamageMultiplier(maul.damage, slice.damage, maul.coefficient / slice.coefficient);
     }
   }
 
@@ -163,7 +164,11 @@ test('Merged Maul grants 25% to the next player strike and expires after ten sec
     ID.SLASH_ID_12474,
     ID.SLICE
   ]);
-  close(strike(interrupted, ID.SLASH_ID_12474).damage / 0.88, strike(interrupted, ID.SLICE).damage / 1.1);
+  assertFlooredDamageMultiplier(
+    strike(interrupted, ID.SLASH_ID_12474).damage,
+    strike(interrupted, ID.SLICE).damage,
+    0.88 / 1.1
+  );
 });
 
 test('Attack of Opportunity ignores effect damage and consumes only its recipient at the same timestamp', () => {

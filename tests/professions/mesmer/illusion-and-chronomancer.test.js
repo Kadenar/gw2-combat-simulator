@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
@@ -853,13 +854,13 @@ test('Compounding Power excludes illusion strikes but applies to their condition
 
 test('Vicious Expression and Empowered Illusions respect illusion ownership', () => {
   const assertMultiplier = (withTrait, baseline, expected) => {
-    assert.ok(Math.abs(withTrait / baseline - expected) < 1e-12);
+    assertFlooredDamageMultiplier(withTrait, baseline, expected);
   };
 
   const damageBySource = (result, skillName, source) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === skillName && event.source === source)
-      .reduce((sum, event) => sum + event.damage, 0);
+    result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillName === skillName && event.source === source
+    ).damage;
   const simulateTroubadour = (selectedTraitIds) =>
     simulateMesmer(
       ['Phantasmal Swordsman', 'Lively Lute', { name: '__wait', waitMs: 4000 }],
@@ -904,9 +905,9 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
   const cloneEmpowered = simulateClone([TRAIT.EMPOWERED_ILLUSIONS]);
   const cloneBoth = simulateClone([TRAIT.VICIOUS_EXPRESSION, TRAIT.EMPOWERED_ILLUSIONS]);
   const cloneDamage = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone')
-      .reduce((sum, event) => sum + event.damage, 0);
+    result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone'
+    ).damage;
 
   assertMultiplier(cloneDamage(cloneVicious), cloneDamage(cloneBaseline), 1.15);
   assertMultiplier(cloneDamage(cloneEmpowered), cloneDamage(cloneBaseline), 1.15);
@@ -938,7 +939,7 @@ test('Compounding Power gives player strikes two percent and conditions one perc
   const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
   const withoutTrait = simulate([]);
 
-  assert.ok(Math.abs(playerStrike(withTrait) / playerStrike(withoutTrait) - 1.04) < 1e-12);
+  assertFlooredDamageMultiplier(playerStrike(withTrait), playerStrike(withoutTrait), 1.04);
   assertRoundedDamageMultiplier(playerCondition(withTrait), playerCondition(withoutTrait), 1.02);
 });
 
@@ -962,7 +963,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
       }
     }).resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Mind Stab').damage;
 
-  assert.ok(Math.abs(damageAt(25) / damageAt(0) - 1.5625) < 1e-12);
+  assertFlooredDamageMultiplier(damageAt(25), damageAt(0), 1.5625);
 });
 
 test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {

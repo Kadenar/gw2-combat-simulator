@@ -1,3 +1,4 @@
+import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/model.js';
@@ -710,8 +711,8 @@ describe('Mechanist grandmaster active effects', () => {
     const strike = (result) =>
       result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
 
-    assert.ok(Math.abs(strike(standardSigned).damage / strike(base).damage - 1.15) < 1e-12);
-    assert.ok(Math.abs(strike(signed).damage / strike(base).damage - 1.18) < 1e-12);
+    assertFlooredDamageMultiplier(strike(standardSigned).damage, strike(base).damage, 1.15);
+    assertFlooredDamageMultiplier(strike(signed).damage, strike(base).damage, 1.18);
 
     const mechWithoutShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {
       ...standardSignetConfig,
@@ -735,7 +736,7 @@ describe('Mechanist grandmaster active effects', () => {
     const mechStrike = (result) =>
       result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Core Reactor Shot');
 
-    assert.ok(Math.abs(mechStrike(mechWithShift).damage / mechStrike(mechWithoutShift).damage - 1.375) < 1e-12);
+    assertFlooredDamageMultiplier(mechStrike(mechWithShift).damage, mechStrike(mechWithoutShift).damage, 1.375);
     assert.equal(
       engineerProfession
         .resolveRuntime({
