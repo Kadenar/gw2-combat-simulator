@@ -31,14 +31,14 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41201
+        "benchmarkDps": 41266
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41309,
+        "benchmarkDps": 41360,
         "referenceDps": 40839,
         "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
@@ -62,7 +62,7 @@
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 32029
+        "benchmarkDps": 32091
       }
     ]
   },
@@ -93,7 +93,7 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 42400,
+        "benchmarkDps": 42401,
         "upToDate": true,
         "referenceDps": 42999
       },
@@ -102,7 +102,7 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39754,
+        "benchmarkDps": 39817,
         "upToDate": true
       }
     ]

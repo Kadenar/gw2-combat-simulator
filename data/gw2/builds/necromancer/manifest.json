@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/necromancer/b-condi-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-scourge-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-scourge-scepter-torch-pistol",
-        "benchmarkDps": 39541,
+        "benchmarkDps": 39592,
         "upToDate": true
       }
     ]
@@ -27,14 +27,14 @@
         "build": "data/gw2/builds/necromancer/b-condi-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-reaper-spear-dagger-sword",
-        "benchmarkDps": 43883,
+        "benchmarkDps": 43890,
         "upToDate": true
       },
       {
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 52129,
+        "benchmarkDps": 52156,
         "upToDate": true
       }
     ]
@@ -67,7 +67,7 @@
         "build": "data/gw2/builds/necromancer/b-condi-quick-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-quick-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-quickness-harbinger-pistol-dagger-scepter-torch",
-        "benchmarkDps": 36348,
+        "benchmarkDps": 36392,
         "upToDate": true
       },
       {
@@ -75,13 +75,13 @@
         "build": "data/gw2/builds/necromancer/b-condi-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
-        "benchmarkDps": 45090
+        "benchmarkDps": 45136
       },
       {
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 44791,
+        "benchmarkDps": 44838,
         "upToDate": true
       }
     ]

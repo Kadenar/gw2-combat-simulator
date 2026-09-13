@@ -25,7 +25,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
         "dpsReportUrl": "https://dps.report/Yt2F-20260805-122746_golem",
-        "benchmarkDps": 45677,
+        "benchmarkDps": 45702,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn"
       },
@@ -34,7 +34,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/yH46-20260729-145625_golem",
-        "benchmarkDps": 43803,
+        "benchmarkDps": 43825,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-dagger"
       },
@@ -43,7 +43,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
         "dpsReportUrl": "https://dps.report/qcqm-20260813-042826_golem",
-        "benchmarkDps": 42818,
+        "benchmarkDps": 42831,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn"
       }
@@ -57,7 +57,7 @@
         "build": "data/gw2/builds/elementalist/b-cele-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-cele-alac-tempest.json",
         "dpsReportUrl": "https://dps.report/3zgo-20260418-133338_golem",
-        "benchmarkDps": 20909,
+        "benchmarkDps": 20943,
         "upToDate": true
       },
       {
@@ -92,7 +92,7 @@
         "build": "data/gw2/builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-hammer.json",
         "dpsReportUrl": "https://dps.report/Etlc-20260716-205102_golem",
-        "benchmarkDps": 42647,
+        "benchmarkDps": 42652,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-hammer"
       },
@@ -116,7 +116,7 @@
         "label": "Power Alacrity (Hammer) - FA",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29906,
+        "benchmarkDps": 29911,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-hammer"
       },
@@ -125,7 +125,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/B38a-20260414-224425_golem",
-        "benchmarkDps": 42281,
+        "benchmarkDps": 42296,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn"
       },
@@ -133,7 +133,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40696,
+        "benchmarkDps": 40714,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn"
       },
@@ -142,7 +142,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
         "dpsReportUrl": "https://dps.report/4NjC-20260423-082345_golem",
-        "benchmarkDps": 33014,
+        "benchmarkDps": 33055,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn"
       },
@@ -150,7 +150,7 @@
         "label": "Condition Alacrity (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 34196,
+        "benchmarkDps": 34213,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-scepter-warhorn"
       },
@@ -159,7 +159,7 @@
         "build": "data/gw2/builds/elementalist/b-inferno-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-tempest.json",
         "dpsReportUrl": "https://dps.report/j7LY-20260414-172451_golem",
-        "benchmarkDps": 41081,
+        "benchmarkDps": 41118,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/inferno-tempest-scepter-dagger"
       },
@@ -167,7 +167,7 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34705,
+        "benchmarkDps": 34792,
         "upToDate": false
       }
     ]
@@ -233,7 +233,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-catalyst-pistol.json",
         "dpsReportUrl": "https://dps.report/Q2mp-20260416-234551_golem",
-        "benchmarkDps": 37608,
+        "benchmarkDps": 37622,
         "upToDate": true
       },
       {
@@ -241,7 +241,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-catalyst-pistol-warhorn.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-catalyst-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-catalyst-pistol-warhorn.json",
-        "benchmarkDps": 35121,
+        "benchmarkDps": 35143,
         "upToDate": false
       },
       {
@@ -250,14 +250,14 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/wJsO-20260416-231016_golem",
-        "benchmarkDps": 32853,
+        "benchmarkDps": 32872,
         "upToDate": true
       },
       {
         "label": "Inferno (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40667,
+        "benchmarkDps": 40683,
         "upToDate": false
       }
     ]
@@ -305,7 +305,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-dagger.json",
         "dpsReportUrl": "https://dps.report/3LQO-20260422-135335_golem",
-        "benchmarkDps": 42986,
+        "benchmarkDps": 42999,
         "upToDate": true
       },
       {
@@ -313,14 +313,14 @@
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/B1Ks-20260416-182454_golem",
-        "benchmarkDps": 42918,
+        "benchmarkDps": 42919,
         "upToDate": true
       },
       {
         "label": "Condition Fox - (Pistol/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-focus.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-focus.json",
-        "benchmarkDps": 43030,
+        "benchmarkDps": 43018,
         "upToDate": true
       },
       {
@@ -329,7 +329,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
         "dpsReportUrl": "https://dps.report/zPEa-20260421-193615_golem",
-        "benchmarkDps": 43776,
+        "benchmarkDps": 43807,
         "upToDate": true
       },
       {
@@ -338,7 +338,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
         "dpsReportUrl": "https://dps.report/2aDW-20260421-233936_golem",
-        "benchmarkDps": 39966,
+        "benchmarkDps": 40014,
         "upToDate": true
       },
       {
@@ -347,7 +347,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn.json",
         "dpsReportUrl": "https://dps.report/ZH7U-20260423-182755_golem",
-        "benchmarkDps": 38329,
+        "benchmarkDps": 38345,
         "upToDate": true
       },
       {
@@ -355,7 +355,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn-elemental-balance",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40517,
+        "benchmarkDps": 40542,
         "upToDate": true
       },
       {
