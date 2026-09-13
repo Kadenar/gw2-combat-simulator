@@ -12,7 +12,7 @@ import {
   activateCommand,
   updateParagonCast,
   handleParagonCommandEchoTask
-} from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import {
   advanceWarriorResources,
   warriorEnduranceReadyAt

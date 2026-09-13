@@ -33,7 +33,7 @@ import {
   activateChant,
   advanceParagon,
   observeParagonEvent
-} from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
 import { projectWarriorEndState, snapshotWarriorState } from '#gw2/professions/warrior/state.js';
 

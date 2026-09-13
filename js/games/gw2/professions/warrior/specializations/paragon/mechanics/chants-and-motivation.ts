@@ -19,7 +19,7 @@ import {
   handleParagonCommandEchoTask,
   observeParagonEvent,
   updateParagonCast
-} from '#gw2/professions/warrior/specializations/paragon/traits/index.js';
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 
 export const paragonSchedulerHooks = Object.freeze({
   // Paragon adds its specialization trait without owning the base swap.

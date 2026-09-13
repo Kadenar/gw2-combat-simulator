@@ -1,3 +1,7 @@
+/**
+ * Owns chant activation, Motivation, refrain pulses, and command echoes.
+ * Integrated trait additions stay beside these transitions so their timing and resource effects remain ordered.
+ */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
