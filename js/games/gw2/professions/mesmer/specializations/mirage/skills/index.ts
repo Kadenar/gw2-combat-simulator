@@ -32,6 +32,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     weapon: '',
     specialization: 'Mirage',
     castTimeMs: 371,
+    // The launched sand and its mirror survive cancellation of the remaining animation.
+    interruptCommitMs: 320,
     cooldown: 20,
     // The ground mirror appears when the sand projectiles converge, after their damage packets.
     mechanicTriggers: [
@@ -160,6 +162,8 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   },
   [ID.IMAGINARY_AXES]: {
     castTimeMs: 440,
+    // Cancelling the aftercast preserves axes already released at the player packet's impact frame.
+    interruptCommitMs: 360,
     cooldown: 1,
     ambush: true,
     effects: []

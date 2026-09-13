@@ -13,12 +13,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/state/index.js';
 import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import {
-  MESMER_CORE_ARISTOCRACY_SKILLS,
-  MESMER_CORE_BLIND_SKILLS,
   MESMER_CORE_CLONE_ATTACKS,
-  MESMER_CORE_CONTROL_SKILLS,
-  MESMER_CORE_PEITHA_PROJECTILE_DELAYS,
-  MESMER_CORE_PEITHA_SKILLS,
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
   MESMER_CORE_SHATTERS,
   MESMER_CORE_TRAIT_DAMAGE,
@@ -125,11 +120,12 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     skillCompletionHandlers: [],
     instruments: {},
     balanceProfile: (id: SkillId) => balanceProfileFromContext(context, id),
-    controlSkills: new Set(MESMER_CORE_CONTROL_SKILLS),
-    blindSkills: new Set(MESMER_CORE_BLIND_SKILLS),
-    aristocracySkills: new Set(MESMER_CORE_ARISTOCRACY_SKILLS),
-    peithaSkills: new Set(MESMER_CORE_PEITHA_SKILLS),
-    peithaProjectileDelays: { ...MESMER_CORE_PEITHA_PROJECTILE_DELAYS }
+    // Core CC is authored as skill effects; specialization manifests still contribute their procedural controls.
+    controlSkills: new Set<number>(),
+    blindSkills: new Set<number>(),
+    aristocracySkills: new Set<number>(),
+    peithaSkills: new Set<number>(),
+    peithaProjectileDelays: {}
   };
   const activePrimaryWeapon = () => {
     const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;

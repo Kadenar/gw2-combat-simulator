@@ -43,6 +43,7 @@ export interface MesmerCoreState {
   autoattackChains: Record<string, SkillId>;
   sharperImagesProgress: number;
   masterFencerProgress: number;
+  chaosStormCasts: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
   hasExplicitCombatStart: boolean;
@@ -79,6 +80,7 @@ export interface MesmerStateSnapshot {
   bloodsongProgress: number;
   sharperImagesProgress: number;
   masterFencerProgress: number;
+  chaosStormCasts: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
   ambushUntil: number;

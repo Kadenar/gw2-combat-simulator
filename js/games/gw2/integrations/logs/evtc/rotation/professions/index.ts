@@ -5,6 +5,37 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
+/** Replay an observed cloak through its represented source so shatters and mirrors do not spend dodge endurance. */
+function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  if (context.profile.specializationId !== 'mirage') return [...context.recordedActions];
+  return context.recordedActions.flatMap((action) => {
+    if (action.rawSkillId !== -17) return [action];
+    const source = context.recordedActions.some(
+      (other) =>
+        [10190, 10191, 49068, -63, 10192, 10287, 43064, 45046].includes(other.rawSkillId) &&
+        Math.abs(other.start - action.start) < 10
+    );
+    if (source) return [];
+    const mirror = context.log.events.some(
+      (e) =>
+        e.source === context.playerAddress &&
+        e.skillId === 44677 &&
+        e.stateChange === 0 &&
+        e.buff === 0 &&
+        e.value > 0 &&
+        Math.abs(e.time - action.start) < 10
+    );
+    // ponytail: unmatched cloak gains replay as dodges; add source rules when evidence identifies other cloak providers.
+    return [
+      {
+        ...action,
+        canonicalSkillId: mirror ? -2 : -1,
+        canonicalName: mirror ? 'Pick Up Mirage Mirror' : 'Dodge / Mirage Cloak'
+      }
+    ];
+  });
+}
+
 /** EI EngineerHelper.EngineerKitFinder requires a real kit swap followed by a bundle animation. */
 function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'engineer') return [...context.recordedActions];
@@ -41,8 +72,9 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
 export function reconstructProfessionActions(
   context: EvtcProfessionReconstructionContext
 ): readonly EvtcRecordedRotationAction[] {
+  const represented = { ...context, recordedActions: mesmerCloakActions(context) };
   // Packet spacing only selects the represented Path of Scars range variant; it never creates a cast.
-  const originals = engineerKitActions(context).map((action, index, actions) => {
+  const originals = engineerKitActions(represented).map((action, index, actions) => {
     if (context.profile.professionId !== 'ranger' || action.rawSkillId !== 12638) return action;
     const next = actions.slice(index + 1).find((a) => a.rawSkillId === 12638);
     const hits = context.log.events

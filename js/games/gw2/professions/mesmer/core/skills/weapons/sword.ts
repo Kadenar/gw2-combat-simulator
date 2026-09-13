@@ -9,6 +9,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     specialization: '',
     cooldown: 0,
     nextChainId: ID.MIND_GASH,
+    // Sword's opening hits apply their own vulnerability, independent of the equipped relic.
     effects: [
       {
         type: 'strike',
@@ -17,7 +18,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
-      }
+      },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }
     ],
     castTimeMs: 360
   },
@@ -36,7 +38,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
-      }
+      },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }
     ]
   },
   [ID.MIND_SPIKE]: {

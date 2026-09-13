@@ -68,7 +68,10 @@ const sources: readonly RotationProfileSource[] = [
       dodge: 'Dodge / Mirage Cloak'
     },
     skillIdAliasesBySpecialization: {
+      core: { [-63]: 10191, 49068: 10191 },
       chronomancer: { 56925: 56930 },
+      // EI's synthetic identities resolve to existing actions; EVTC cloak source selection runs before this lookup.
+      mirage: { [-17]: -1, [-63]: 10191, 49068: 10191 },
       virtuoso: { 62560: 69311, 62586: 62617 }
     }
   },

@@ -43,6 +43,16 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     },
     flipDuration: 2,
     effects: [
+      // Blind lands with the projectile, including when the remaining animation is cancelled after commitment.
+      {
+        type: 'blind',
+        duration: 5,
+        source: 'Player',
+        actorType: 'player',
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.1 }],
@@ -75,6 +85,15 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     flipDuration: 3,
     flipDelay: 0,
     effects: [
+      // Preserve the flip's existing control timing at cast completion.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.1 }],
@@ -92,7 +111,10 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 5,
     flipDelay: 1,
-    effects: []
+    // Activating the flip applies its pull immediately.
+    effects: [
+      { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
+    ]
   },
   [ID.DIMENSIONAL_APERTURE]: {
     castTimeMs: 0,

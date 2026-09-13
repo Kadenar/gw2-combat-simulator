@@ -10,6 +10,15 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 680,
     cooldown: 35,
     effects: [
+      // Preserve this skill's existing cast-completion CC timing in its own definition.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         coefficient: 1.5,

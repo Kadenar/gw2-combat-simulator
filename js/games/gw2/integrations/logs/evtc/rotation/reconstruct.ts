@@ -1,7 +1,12 @@
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
-import { eiChronomancerShatters, eiMinionSpawns } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
+import {
+  eiChronomancerShatters,
+  eiMesmerPhaseRetreat,
+  eiMesmerShatters,
+  eiMinionSpawns
+} from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
 import { usesModernAnimations, evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
 import { selectPlayerAgent, selectedPlayerEvent } from '#gw2/integrations/logs/evtc/rotation/players.js';
 import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
@@ -302,6 +307,8 @@ export function reconstructWithProfile(
     ...genericActions,
     ...eiInstantActions(professionContext),
     ...eiCustomAnimatedActions(professionContext),
+    ...eiMesmerPhaseRetreat(professionContext),
+    ...eiMesmerShatters(professionContext),
     ...eiChronomancerShatters(professionContext),
     ...eiMinionSpawns(professionContext)
   ].sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);

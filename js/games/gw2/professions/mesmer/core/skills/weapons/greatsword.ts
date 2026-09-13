@@ -51,6 +51,15 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 640,
     cooldown: 20,
     effects: [
+      // Preserve this skill's existing cast-completion CC timing in its own definition.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 0.3 }],

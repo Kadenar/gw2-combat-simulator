@@ -61,6 +61,7 @@ window.addEventListener('DOMContentLoaded', () => {
     message.textContent = 'Unable to start the simulator. Reload to try again.';
     const reload = document.createElement('button');
     reload.type = 'button';
+    reload.className = 'btn loader-reload';
     reload.textContent = 'Reload';
     reload.addEventListener('click', () => {
       clearRetry();

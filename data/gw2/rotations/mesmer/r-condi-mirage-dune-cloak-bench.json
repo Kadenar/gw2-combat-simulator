@@ -1,235 +1,1235 @@
 {
-  "metadata": {
-    "log": "condi mirage bench.zevtc",
-    "benchmarkDurationSeconds": 96.439,
-    "benchmarkDamage": 3947813,
-    "benchmarkDps": 40935.8558
-  },
   "rotation": [
-    { "name": "Phantasmal Warlock" },
-    { "name": "Phase Retreat" },
-    { "name": "Chaos Storm" },
-    { "name": "Dodge / Mirage Cloak", "offset": 0 },
-    { "name": "__combat_start", "offset": 40 },
-    { "name": "Chaos Armor", "offset": 40 },
-    { "name": "Jaunt", "offset": 160 },
-    { "name": "Swap Weapons" },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Jaunt", "offset": 170 },
-    { "name": "Cry of Frustration", "offset": 190 },
-    { "name": "Imaginary Axes" },
-    { "name": "The Prestige", "interruptMs": 80 },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 590 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 760 },
-    { "name": "Imaginary Axes" },
-    { "name": "Crystal Sands" },
-    { "name": "Signet of the Ether" },
-    { "name": "Pick Up Mirage Mirror", "offset": 500 },
-    { "name": "Imaginary Axes" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Distortion", "offset": 320 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Jaunt", "offset": 1360 },
-    { "name": "Dodge / Mirage Cloak", "offset": 280 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "Dodge / Mirage Cloak", "offset": 120 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Swap Weapons" },
-
-    { "name": "Phantasmal Warlock" },
-    { "name": "Chaos Armor", "offset": 40 },
-    { "name": "Dodge / Mirage Cloak", "offset": 400 },
-    { "name": "Chaos Vortex" },
-    { "name": "Phase Retreat", "offset": 120 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Jaunt", "offset": 80 },
-    { "name": "Winds of Chaos" },
-    { "name": "Cry of Frustration", "offset": 600 },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Vortex" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phase Retreat", "offset": 685 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Storm" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phantasmal Warlock", "interruptMs": 640 },
-    { "name": "Dodge / Mirage Cloak", "offset": 500 },
-    { "name": "Swap Weapons" },
-
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "The Prestige" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Diversion", "offset": 680 },
-    { "name": "Imaginary Axes" },
-    { "name": "__wait", "waitMs": 401 },
-    { "name": "Crystal Sands" },
-    { "name": "Signet of the Ether" },
-    { "name": "Pick Up Mirage Mirror", "offset": 500 },
-    { "name": "Imaginary Axes" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Cry of Frustration", "offset": 600 },
-    { "name": "Jaunt", "offset": 640 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "Dodge / Mirage Cloak", "offset": 120 },
-    { "name": "Imaginary Axes" },
-    { "name": "Mind Wrack" },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Swap Weapons" },
-
-    { "name": "Phantasmal Warlock", "interruptMs": 800 },
-    { "name": "Chaos Armor", "offset": 0 },
-    { "name": "Dodge / Mirage Cloak", "offset": 400 },
-    { "name": "Chaos Vortex" },
-    { "name": "Phase Retreat", "offset": 100 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Distortion", "skillId": 10192 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phase Retreat", "offset": 120 },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Storm" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phantasmal Warlock", "interruptMs": 640 },
-    { "name": "Dodge / Mirage Cloak", "offset": 500 },
-    { "name": "Swap Weapons" },
-
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Cry of Frustration", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "The Prestige" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "__wait", "waitMs": 401 },
-    { "name": "Crystal Sands" },
-    { "name": "Signet of the Ether" },
-    { "name": "Pick Up Mirage Mirror", "offset": 500 },
-    { "name": "Imaginary Axes" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Diversion" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Jaunt", "offset": 1250 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "Dodge / Mirage Cloak", "offset": 120 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Cry of Frustration", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Swap Weapons" },
-
-    { "name": "Phantasmal Warlock", "interruptMs": 800 },
-    { "name": "Chaos Armor", "offset": 0 },
-    { "name": "Dodge / Mirage Cloak", "offset": 400 },
-    { "name": "Chaos Vortex" },
-    { "name": "Phase Retreat", "offset": 100 },
-    { "name": "Jaunt", "offset": 360 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Mind Wrack", "offset": 100 },
-    { "name": "Chaos Vortex" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phase Retreat", "offset": 120 },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Storm" },
-    { "name": "Winds of Chaos" },
-    { "name": "Phantasmal Warlock", "interruptMs": 640 },
-    { "name": "Dodge / Mirage Cloak", "offset": 500 },
-    { "name": "Swap Weapons" },
-
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 160 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "The Prestige" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Cry of Frustration", "offset": 600 },
-    { "name": "Distortion", "skillId": 10192, "offset": 300 },
-    { "name": "Imaginary Axes" },
-    { "name": "__wait", "waitMs": 401 },
-    { "name": "Crystal Sands" },
-    { "name": "Signet of the Ether" },
-    { "name": "Pick Up Mirage Mirror", "offset": 500 },
-    { "name": "Imaginary Axes" },
-    { "name": "Phantasmal Mage" },
-    { "name": "Dodge / Mirage Cloak", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Mind Wrack", "offset": 600 },
-    { "name": "Jaunt", "offset": 640 },
-    { "name": "Imaginary Axes" },
-    { "name": "Axes of Symmetry" },
-    { "name": "Dodge / Mirage Cloak", "offset": 120 },
-    { "name": "Imaginary Axes" },
-    { "name": "Lingering Thoughts" },
-    { "name": "Diversion", "offset": 600 },
-    { "name": "Imaginary Axes" },
-    { "name": "Swap Weapons" },
-
-    { "name": "Phantasmal Warlock" },
-    { "name": "Chaos Armor", "offset": 0 },
-    { "name": "Dodge / Mirage Cloak", "offset": 400 },
-    { "name": "Chaos Vortex" },
-    { "name": "Phase Retreat", "offset": 120 },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Storm" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Cry of Frustration", "offset": 300 },
-    { "name": "Dodge / Mirage Cloak", "offset": 400 },
-    { "name": "Winds of Chaos" },
-    { "name": "Chaos Vortex" },
-    { "name": "Mind Wrack", "offset": 240 },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" },
-    { "name": "Winds of Chaos" }
+    {
+      "type": "cast",
+      "skillId": 10216
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": -1
+    },
+    {
+      "type": "cast",
+      "skillId": 10169,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 45449,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 45449,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10287,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10285
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 41065,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": -2,
+      "concurrentOffsetMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": 45449
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 44791,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 45449,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 40184,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10285
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10287,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 41065
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": -2,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": 45449
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 44791,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 40184,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10285
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 41065
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": -2,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10287,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": 45449,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 45449,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 40184,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10285
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10189,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 44321,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10192,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 41065,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": -2,
+      "concurrentOffsetMs": 800
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 10189
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": 45449
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 44791,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 43761
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "cast",
+      "skillId": 45243
+    },
+    {
+      "type": "cast",
+      "skillId": 10287,
+      "concurrentOffsetMs": 760
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10216,
+      "interruptAfterMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 10331,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10310,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10169
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10190,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 10273,
+      "interruptAfterMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": -1,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 40184
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10191,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    },
+    {
+      "type": "cast",
+      "skillId": 10273
+    }
   ]
 }

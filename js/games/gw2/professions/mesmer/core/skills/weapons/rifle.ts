@@ -68,6 +68,15 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
       count: 1
     },
     effects: [
+      // Keep the existing cast-completion control alongside the phantasm's effects.
+      {
+        type: 'control',
+        source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
       {
         type: 'strike',
         coefficient: 2.28,

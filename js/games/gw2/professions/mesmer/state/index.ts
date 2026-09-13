@@ -51,6 +51,7 @@ export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
     bloodsongProgress: Number(state.bloodsongProgress || 0),
     sharperImagesProgress: Number(state.sharperImagesProgress || 0),
     masterFencerProgress: Number(state.masterFencerProgress || 0),
+    chaosStormCasts: Number(state.chaosStormCasts || 0),
     ineptitudeReadyAt: Number(state.ineptitudeReadyAt || 0),
     clarityUntil: Number(state.clarityUntil || 0),
     ambushUntil: Number(state.ambushUntil || 0),

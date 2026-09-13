@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
@@ -134,6 +134,55 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
   assert.deepEqual(catalog.balanceProfilesById.get(profileId).effects[0], before.effects[0]);
   assert.deepEqual(original, before);
   assert.equal(MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].ticks[5][0].coefficient, 0.7);
+});
+
+// Removing a skill's declared CC removes the event even when a shatter or phantasm handler owns its other effects.
+test('core control events are owned by skill definitions across ordinary and replacing handlers', () => {
+  for (const skillId of [ID.MAGIC_BULLET, ID.DIVERSION, ID.PHANTASMAL_DEFENDER]) {
+    const skill = mesmerCatalog.skillsById.get(skillId);
+    const config = {
+      ...createDefaultConfig(),
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0
+    };
+    const rotation = [skill.name, { type: 'wait', durationMs: 1000 }];
+    const base = simulateMesmer(rotation, config);
+    const profession = {
+      resolveRuntime(runtimeConfig) {
+        const runtime = mesmerProfession.resolveRuntime(runtimeConfig);
+        return {
+          ...runtime,
+          catalog: applySkillPatch(runtime.catalog, {
+            skills: { [skillId]: { removeEffects: [{ type: 'control' }] } }
+          })
+        };
+      }
+    };
+    const removed = simulateGw2({ profession, config, rotation });
+    const controls = (result) => result.events.filter((event) => event.type === 'control' && event.skillId === skillId);
+    assert.deepEqual(base.warnings, []);
+    assert.deepEqual(removed.warnings, []);
+    assert.equal(controls(base).length, 1, skill.name);
+    assert.equal(controls(removed).length, 0, skill.name);
+  }
+});
+
+// Skill-authored blinds keep their duration and emit once, including committed projectile cancellation.
+test('core blinds are five-second skill effects without duplicate completion events', () => {
+  for (const [rotation, primaryWeapon, secondaryWeapon, skillId] of [
+    [['Chaos Armor'], 'Staff', '', ID.CHAOS_ARMOR],
+    [['The Prestige'], 'Scepter', 'Torch', ID.THE_PRESTIGE],
+    [['Signet of Midnight'], 'Scepter', 'Pistol', ID.SIGNET_OF_MIDNIGHT],
+    [['Illusionary Counter', { name: 'Counterspell', interruptMs: 400 }], 'Scepter', 'Pistol', ID.COUNTERSPELL]
+  ]) {
+    const result = simulateMesmer(rotation, { specialization: 'Core', primaryWeapon, secondaryWeapon });
+    assert.deepEqual(result.warnings, []);
+    const blinds = result.events.filter((event) => event.type === 'blind' && event.skillId === skillId);
+    assert.equal(blinds.length, 1);
+    assert.equal(blinds[0].duration, 5);
+  }
 });
 
 // The personal Fury application must leave all four allied slots available to the separate allied effect.

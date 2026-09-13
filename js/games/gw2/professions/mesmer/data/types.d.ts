@@ -23,6 +23,7 @@ export interface MesmerSkillResource {
 }
 
 export interface MesmerMechanic extends SchedulerRecord {
+  readonly chaosStormPoison?: ConditionEffect;
   readonly flipParentId?: number;
   readonly flipChildId?: number;
 }
@@ -81,6 +82,8 @@ export type MesmerTrackedHitDamage = MesmerDamageGroup & {
 };
 
 export interface MesmerSkill extends Skill {
+  readonly shadowstepSkill?: boolean;
+  readonly peithaProjectileDelay?: number;
   readonly id: number;
   readonly ambush?: boolean;
   readonly duration?: number;

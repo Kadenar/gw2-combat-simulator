@@ -271,13 +271,13 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
   if (skill.id === ID.ABSTRACTION && !context.action.cancelled) detonateInspiringImagery(context);
-  if (runtime.peithaSkills.has(skill.id)) {
+  if (skill.shadowstepSkill || runtime.peithaSkills.has(skill.id)) {
     // Movement relic triggers register on activation so overlapping casts observe the correct ICD state.
     runtime.addEvent({
       type: 'peitha',
       activationId: context.reservationId,
       at: context.start,
-      projectileDelay: runtime.peithaProjectileDelays[skill.id] ?? 0,
+      projectileDelay: skill.peithaProjectileDelay ?? runtime.peithaProjectileDelays[skill.id] ?? 0,
       skillName: skill.name
     });
   }
