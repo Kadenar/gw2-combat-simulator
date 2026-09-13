@@ -9,24 +9,15 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
-  advanceWarriorTraits,
-  applyWarriorWeaponSwapTraits,
-  beginWarriorSkill,
-  completeWarriorSkill,
-  handleWarriorArmsCriticalTask,
-  initializeWarriorTraits,
   modifyWarriorArmsAttributes,
   modifyWarriorStrengthAttributes,
   modifyWarriorTacticsAttributes,
-  observeWarriorEvent,
   warriorArmsModifierRules,
   warriorDefenseModifierRules,
   warriorDisciplineModifierRules,
   warriorStrengthModifierRules,
   warriorTacticsModifierRules
 } from '#gw2/professions/warrior/core/traits/index.js';
-import { advanceWarriorResources } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import { handleWarriorAdrenalineTask } from '#gw2/professions/warrior/resources.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -197,33 +188,4 @@ export const warriorCoreCastRules = Object.freeze({
   },
   modifyCastDuration,
   modifyRechargeDuration
-});
-
-export const warriorCoreSchedulerHooks = Object.freeze({
-  initialize: initializeWarriorTraits,
-  onCastStart: beginWarriorSkill,
-  // Core weapon-swap traits extend the shared transition through one hook.
-  onWeaponSwap: applyWarriorWeaponSwapTraits,
-  advance: {
-    id: 'warrior.core-resources-and-traits',
-    order: 10,
-    handler: (context: WarriorSchedulerContext, target: number) => {
-      advanceWarriorResources(context, target);
-      advanceWarriorTraits(context, target);
-    }
-  },
-  onEventScheduled: {
-    id: 'warrior.adrenaline',
-    order: 10,
-    handler: observeWarriorEvent
-  },
-  onCastComplete: {
-    id: 'warrior.core-skill-completion',
-    order: 10,
-    handler: completeWarriorSkill
-  },
-  taskHandlers: Object.freeze({
-    'warrior.adrenaline-hit': handleWarriorAdrenalineTask,
-    'warrior.arms-critical': handleWarriorArmsCriticalTask
-  })
 });

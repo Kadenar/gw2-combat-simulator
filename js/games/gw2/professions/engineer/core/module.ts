@@ -7,12 +7,7 @@ import {
 import { createEngineerModuleData } from '#gw2/professions/engineer/catalog/module-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreSkillHandlers } from '#gw2/professions/engineer/core/execution/index.js';
-import {
-  engineerCoreAttributeRules,
-  engineerCoreCastRules,
-  engineerCoreSchedulerHooks,
-  snapshotEngineerState
-} from '#gw2/professions/engineer/core/traits/modifiers.js';
+import { engineerCoreAttributeRules, engineerCoreCastRules } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import {
   engineerCoreResolverEventHandlers,
   engineerCoreResolverEventReactions
@@ -22,10 +17,51 @@ import {
   ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/professions/engineer/core/skills/index.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { projectEngineerEndState } from '#gw2/professions/engineer/state.js';
+import { projectEngineerEndState, snapshotEngineerState } from '#gw2/professions/engineer/state.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
+import { observeEngineerMineFieldEvent } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
+import { applyEngineerCastTraits, observeEngineerHghEvent } from '#gw2/professions/engineer/core/traits/index.js';
+import {
+  handleElectricArtilleryExpire,
+  handleElectricArtilleryReady,
+  handleLightningRodCharge
+} from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
+
+/** Registers Core Engineer resources, weapons, traits, and tasks in scheduler order. */
+export const engineerCoreSchedulerHooks = Object.freeze({
+  advance: {
+    id: 'engineer.resources',
+    order: 10,
+    handler: advanceEngineerResources
+  },
+  afterCast: Object.freeze([
+    {
+      id: 'engineer.core-traits',
+      order: 20,
+      handler: applyEngineerCastTraits
+    }
+  ]),
+  onEventScheduled: Object.freeze([
+    {
+      id: 'engineer.mine-field',
+      order: 10,
+      handler: observeEngineerMineFieldEvent
+    },
+    {
+      id: 'engineer.hgh-duration',
+      order: 20,
+      handler: observeEngineerHghEvent
+    }
+  ]),
+  taskHandlers: Object.freeze({
+    'engineer.lightning-rod-charge': handleLightningRodCharge,
+    'engineer.electric-artillery-ready': handleElectricArtilleryReady,
+    'engineer.electric-artillery-expire': handleElectricArtilleryExpire
+  })
+});
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',

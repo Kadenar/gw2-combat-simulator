@@ -5,7 +5,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
-import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/traits/modifiers.js';
+import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/module.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],

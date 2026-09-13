@@ -13,32 +13,10 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import {
-  advanceThiefCoreResources,
-  completeThiefCoreResources,
-  restartInfiltratorsSignetPassive,
-  pulseInfiltratorsSignet,
-  spendThiefCoreResources
-} from '#gw2/professions/thief/core/mechanics/resources.js';
-import { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
-import {
-  updateThiefTraitCastState,
-  observeThiefCriticalBoons,
-  materializeThiefCriticalBoons
-} from '#gw2/professions/thief/core/traits/index.js';
-import {
-  updateThiefWeaponState,
-  observeThiefAxe,
-  materializeThiefAxe
-} from '#gw2/professions/thief/core/mechanics/weapon-state.js';
-import { observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/task-handlers.js';
-import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
-import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
-import type { ThiefCoreState, ThiefPrecastContext, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState, ThiefPrecastContext } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
@@ -322,51 +300,4 @@ export const thiefCoreCastRules = Object.freeze({
     handler: thiefCoreCastAvailability
   },
   modifyRechargeDuration: modifyThiefCoreRechargeDuration
-});
-
-export const thiefCoreSchedulerHooks = Object.freeze({
-  initialize: { id: 'thief.infiltrators-signet', order: 10, handler: restartInfiltratorsSignetPassive },
-  onCooldownReset: { id: 'thief.infiltrators-signet', order: 10, handler: restartInfiltratorsSignetPassive },
-  advance: advanceThiefCoreResources,
-  onCastStart: spendThiefCoreResources,
-  onEventScheduled: Object.freeze([
-    { id: 'thief.spinning-axe', order: 40, handler: observeThiefAxe },
-    { id: 'thief.critical-boons', order: 30, handler: observeThiefCriticalBoons },
-    {
-      id: 'thief.stealth-breaking-strikes',
-      order: 10,
-      handler: observeStealthBreakingStrike
-    },
-    {
-      id: 'thief.thieves-guild-combat',
-      order: 20,
-      handler: observeThievesGuildCombatEvent
-    }
-  ]),
-  // Thief stance and trait effects run only after the shared swap is committed.
-  onWeaponSwap: applyThiefWeaponSwapEffects,
-  onCastComplete: {
-    id: 'thief.core-resources',
-    order: 10,
-    handler: completeThiefCoreResources
-  },
-  afterCast: Object.freeze([
-    {
-      id: 'thief.weapon-state',
-      order: 10,
-      handler: updateThiefWeaponState
-    },
-    {
-      id: 'thief.traits',
-      order: 20,
-      handler: updateThiefTraitCastState
-    }
-  ]),
-  taskHandlers: {
-    'thief.infiltrators-signet': pulseInfiltratorsSignet,
-    ...thiefCoreTaskHandlers,
-    'thief.critical-boons': materializeThiefCriticalBoons,
-    'thief.spinning-axe': materializeThiefAxe
-  },
-  snapshot: (context: ThiefSchedulerContext) => snapshotThiefState(context.state.profession)
 });

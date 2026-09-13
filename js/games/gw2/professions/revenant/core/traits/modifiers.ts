@@ -1,122 +1,6 @@
-import {
-  ASSASSINS_PRESENCE_TASK,
-  scheduleAssassinsPresence,
-  handleAssassinsPresencePulse
-} from '#gw2/professions/revenant/core/traits/devastation.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-/**
- * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
- * callbacks into the cast and scheduler contracts used by the shared engine.
- */
-
 import { revenantCastAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
-import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
-import { spendRevenantEnergy } from '#gw2/professions/revenant/energy.js';
-import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/event-handlers.js';
-import { handleRevenantUpkeepPulse } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
-import {
-  beginRevenantWeaponCast,
-  completeRevenantWeaponCast,
-  expireImperialGuard,
-  observeRevenantWeaponEvent,
-  resetCoalescenceOfRuin
-} from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
-import {
-  afterRevenantCast,
-  handleImpossibleOddsStrike,
-  modifyRevenantRechargeDuration,
-  observeRevenantEvent
-} from '#gw2/professions/revenant/core/traits/index.js';
-import {
-  advanceRevenantSpearState,
-  handleAbyssalRazeRechargeReduction,
-  handleCrushingAbyssGain,
-  observeRevenantSpearEvent
-} from '#gw2/professions/revenant/core/mechanics/crushing-abyss.js';
-import { handleCrushingAbyssWeaponSwap } from '#gw2/professions/revenant/core/execution/spear.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
-
-/**
- * Pays the skill's Energy cost and captures weapon state at cast start.
- */
-function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
-  spendRevenantEnergy(context, skill);
-  beginRevenantWeaponCast(context, skill);
-}
-
-/**
- * Commits completion-gated Core weapon mechanics.
- */
-function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): void {
-  completeRevenantFollowup(context, skill);
-  completeRevenantWeaponCast(context, skill);
-}
-
-function advance(context: RevenantSchedulerContext, time: number): void {
-  advanceRevenantEnergy(context, time);
-  advanceRevenantSpearState(context, time);
-}
-
-function onEventScheduled(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  observeRevenantWeaponEvent(context, event);
-  observeRevenantSpearEvent(context, event);
-  observeRevenantEvent(context, event);
-}
-
-/**
- * Revenant availability and recharge-duration rules; cast speed uses shared policy.
- */
-export const revenantCastRules = Object.freeze({
-  availability: {
-    id: 'revenant.availability',
-    order: 10,
-    handler: revenantCastAvailability
-  },
-  modifyRechargeDuration: modifyRevenantRechargeDuration
-});
-
-/**
- * Revenant scheduler lifecycle hooks and typed task dispatch table.
- */
-export const revenantSchedulerHooks = Object.freeze({
-  initialize: scheduleAssassinsPresence,
-  advance,
-  prepareEvent: {
-    id: 'revenant.hitbox',
-    order: 10,
-    handler: prepareRevenantHitboxEvent
-  },
-  onCastStart,
-  onCastComplete,
-  afterCast: afterRevenantCast,
-  /**
-   * Makes legend swap immediately available after a global cooldown reset.
-   */
-  onCooldownReset: (context: RevenantSchedulerContext): void => {
-    professionCoreState(context).legendSwapReadyAt = context.state.time;
-  },
-  onEventScheduled,
-  taskHandlers: Object.freeze({
-    [ASSASSINS_PRESENCE_TASK]: handleAssassinsPresencePulse,
-    'revenant.blossoming-aura': handleBlossomingAura,
-    'revenant.abyssal-raze-recharge': handleAbyssalRazeRechargeReduction,
-    'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
-    'revenant.crushing-abyss-weapon-swap': handleCrushingAbyssWeaponSwap,
-    'revenant.upkeep-pulse': handleRevenantUpkeepPulse,
-    'revenant.imperial-guard-expire': expireImperialGuard,
-    'revenant.impossible-odds-strike': handleImpossibleOddsStrike,
-    'revenant.drop-the-hammer-reset': resetCoalescenceOfRuin
-  })
-});
-
+import { modifyRevenantRechargeDuration } from '#gw2/professions/revenant/core/traits/index.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/state/boons.js';
@@ -141,8 +25,6 @@ import type {
   RevenantResolverContext,
   RevenantResolverEvent
 } from '#gw2/professions/revenant/types.js';
-
-export { snapshotRevenantState } from '#gw2/professions/revenant/state.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;
@@ -360,4 +242,16 @@ export const revenantCoreAttributeRules = Object.freeze({
   modifyConditionDuration: modifyCoreConditionDuration,
   modifierRules: revenantCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
+});
+
+/**
+ * Revenant availability and recharge-duration rules; cast speed uses shared policy.
+ */
+export const revenantCastRules = Object.freeze({
+  availability: {
+    id: 'revenant.availability',
+    order: 10,
+    handler: revenantCastAvailability
+  },
+  modifyRechargeDuration: modifyRevenantRechargeDuration
 });

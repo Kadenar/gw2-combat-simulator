@@ -6,18 +6,7 @@ import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
-import {
-  handleElectricArtilleryExpire,
-  handleElectricArtilleryReady,
-  handleLightningRodCharge
-} from '#gw2/professions/engineer/core/mechanics/spear.js';
-import {
-  applyEngineerCastTraits,
-  isEngineerToolbeltSkill,
-  observeEngineerHghEvent
-} from '#gw2/professions/engineer/core/traits/index.js';
-import { observeEngineerMineFieldEvent } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
+import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/index.js';
 import {
   activeBoonStacks,
   engineerEvent,
@@ -33,9 +22,6 @@ import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/e
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type { EngineerRechargeContext } from '#gw2/professions/engineer/types.js';
-
-/** Re-exports the Engineer family snapshot hook through the Core modifier surface. */
-export { snapshotEngineerState } from '#gw2/professions/engineer/state.js';
 
 // Chemical Rounds extends pistol-skill base durations before the normal capped condition-duration multiplier.
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
@@ -364,36 +350,4 @@ export const engineerCoreCastRules = Object.freeze({
     handler: engineerCoreCastAvailability
   },
   modifyRechargeDuration: modifyEngineerCoreRechargeDuration
-});
-
-export const engineerCoreSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'engineer.resources',
-    order: 10,
-    handler: advanceEngineerResources
-  },
-  afterCast: Object.freeze([
-    {
-      id: 'engineer.core-traits',
-      order: 20,
-      handler: applyEngineerCastTraits
-    }
-  ]),
-  onEventScheduled: Object.freeze([
-    {
-      id: 'engineer.mine-field',
-      order: 10,
-      handler: observeEngineerMineFieldEvent
-    },
-    {
-      id: 'engineer.hgh-duration',
-      order: 20,
-      handler: observeEngineerHghEvent
-    }
-  ]),
-  taskHandlers: Object.freeze({
-    'engineer.lightning-rod-charge': handleLightningRodCharge,
-    'engineer.electric-artillery-ready': handleElectricArtilleryReady,
-    'engineer.electric-artillery-expire': handleElectricArtilleryExpire
-  })
 });
