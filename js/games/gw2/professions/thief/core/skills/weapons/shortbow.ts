@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TRICK_SHOT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -27,7 +27,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CHOKING_GAS]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -66,7 +66,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.CLUSTER_BOMB]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -88,7 +88,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DETONATE_CLUSTER]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -110,7 +110,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DISABLING_SHOT]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -134,7 +134,7 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SURPRISE_SHOT]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
     effects: [

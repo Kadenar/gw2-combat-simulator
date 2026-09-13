@@ -272,8 +272,8 @@ test('patch authoring keeps skill timing in the runtime catalog', () => {
   const skill = {
     id: 1,
     name: 'Fixture',
-    castTimeMs: 900,
-    quicknessCastTimeMs: 600,
+
+    castTimeMs: 600,
     quicknessCastMultiplier: 0.75,
     initialDelay: 0.5,
     cooldown: 12,
@@ -290,7 +290,7 @@ test('patch authoring keeps skill timing in the runtime catalog', () => {
     summonAttack: { coefficient: 2 },
     effects: [{ type: 'strike', coefficient: 1.5 }]
   });
-  assert.equal(skill.castTimeMs, 900);
+  assert.equal(skill.castTimeMs, 600);
   assert.equal(skill.summonAttack.initialDelay, 1);
   // Sanitized references must remain immutable without freezing the runtime source.
   assert.equal(Object.isFrozen(reference), true);

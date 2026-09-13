@@ -312,9 +312,7 @@ test('Engineer catalog retains reviewed packet and profile mechanics', () => {
   assert.deepEqual(thermalReleaseValve.effects, [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]);
   const poisonGrenade = ENGINEER_CORE_SKILL_MECHANICS[5806];
 
-  assert.equal(poisonGrenade.castTimeMs, undefined);
-  assert.equal(poisonGrenade.quicknessCastTimeMs, 680);
-  assert.equal(engineerCatalog.skillsById.get(5806).castTimeMs, 1020);
+  assert.equal(poisonGrenade.castTimeMs, 680);
   assert.equal(
     poisonGrenade.effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
     2.25

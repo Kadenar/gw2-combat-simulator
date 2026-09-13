@@ -11,10 +11,10 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.WHIRLWIND]: {
     evades: true,
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.MISTRAL]: {
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     effects: [],
     arrowsRestored: 1,
     // Custom: Restores arrows and opens the Mistral buff window; see `galeshot/execution/index.ts`.
@@ -57,7 +57,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         controlKind: 'launch'
       }
     ],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     arrowsRestored: 2,
     // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.galeshot-arrows'
@@ -76,7 +76,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.DISMISS_CYCLONE_BOW]: {
     castTimeMs: 0,
@@ -104,7 +104,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     arrowsRestored: 1,
     // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.galeshot-arrows',
@@ -112,7 +112,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SOOTHING_BREEZE]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.KEEN_SHOT]: {
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
@@ -126,7 +126,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
       }
     ],
     arrowCost: 0,
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.HAWKEYE]: {
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
@@ -147,7 +147,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 0,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 880
+    castTimeMs: 880
   },
   [ID.BLUSTER]: {
     effects: [
@@ -164,7 +164,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 1,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     windForceGain: 1,
     windForceApplyMs: 480
   },
@@ -187,7 +187,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 1,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     windForceGain: 1,
     windForceApplyMs: 240
   },
@@ -210,7 +210,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 2,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
     windForceGain: 1,
@@ -230,7 +230,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 1,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     windForceGain: 1,
     windForceApplyMs: 280
   },
@@ -250,7 +250,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     arrowCost: 3,
     // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
     handlerId: 'ranger.cyclone-bow-skill',
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     windForceGain: 2,
     windForceApplyMs: 760
   }

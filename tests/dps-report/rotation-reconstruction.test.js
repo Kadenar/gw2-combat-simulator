@@ -77,7 +77,7 @@ function reportFixture() {
 function catalogFixture() {
   return {
     skills: [
-      skill(5822, 'Galvanic Bomb', { type: 'weapon', quicknessCastTimeMs: 600, kit: 'Bomb Kit' }),
+      skill(5822, 'Galvanic Bomb', { type: 'weapon', castTimeMs: 600, kit: 'Bomb Kit' }),
       skill(5812, 'Bomb Kit', {
         type: 'utility',
         castTimeMs: 0,
@@ -90,15 +90,15 @@ function catalogFixture() {
         handlerId: 'engineer.kit-stow',
         kit: 'Bomb Kit'
       }),
-      skill(6161, 'Throw Mine', { type: 'utility', quicknessCastTimeMs: 400 }),
+      skill(6161, 'Throw Mine', { type: 'utility', castTimeMs: 400 }),
       skill(6162, 'Detonate', { type: 'utility', castTimeMs: 0 }),
-      skill(5823, 'Fire Bomb', { type: 'weapon', quicknessCastTimeMs: 600, kit: 'Bomb Kit' }),
+      skill(5823, 'Fire Bomb', { type: 'weapon', castTimeMs: 600, kit: 'Bomb Kit' }),
       skill(77163, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
       skill(77104, 'Defensive Protocol: Thorns', { type: 'profession', castTimeMs: 0 }),
-      skill(76693, 'Offensive Protocol: Demolish', { type: 'profession', quicknessCastTimeMs: 1_560 }),
-      skill(77013, 'Offensive Protocol: Demolish', { type: 'profession', quicknessCastTimeMs: 560 }),
-      skill(76927, 'Offensive Protocol: Demolish', { type: 'profession', quicknessCastTimeMs: 1_560 }),
-      skill(6154, 'Overcharged Shot', { type: 'weapon', quicknessCastTimeMs: 400 }),
+      skill(76693, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
+      skill(77013, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 560 }),
+      skill(76927, 'Offensive Protocol: Demolish', { type: 'profession', castTimeMs: 1_560 }),
+      skill(6154, 'Overcharged Shot', { type: 'weapon', castTimeMs: 400 }),
       skill(-3, 'Swap Weapons', { type: 'action', castTimeMs: 0 })
     ]
   };
@@ -202,7 +202,7 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
     skillMap: { s1000: { name: 'Mind Stab' } }
   });
   const result = reconstructDpsReportRotation(report, {
-    skills: [skill(1_000, 'Mind Stab', { type: 'weapon', quicknessCastTimeMs: 400 })]
+    skills: [skill(1_000, 'Mind Stab', { type: 'weapon', castTimeMs: 400 })]
   });
 
   assert.deepEqual(
@@ -236,7 +236,7 @@ test('quantizes shortened per-packet cast durations from dps.report', () => {
     skills: [
       skill(9_081, 'Whirling Wrath', {
         type: 'weapon',
-        quicknessCastTimeMs: 1_480,
+        castTimeMs: 1_480,
         interruptMode: 'per-packet'
       })
     ]
@@ -264,7 +264,7 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
           type: 'Weapon',
           slot: 'Weapon_1',
           castTimeMs: 520,
-          unaffectedByQuickness: true,
+
           interruptCommitMs: metadata.interruptCommitMs,
           interruptMode: metadata.interruptMode,
           effects: [
@@ -280,7 +280,7 @@ test('shortened report inputs preserve elapsed time and obey scheduler cancellat
             }
           ]
         }),
-        skill(1_001, 'Follow-up', { castTimeMs: 520, unaffectedByQuickness: true })
+        skill(1_001, 'Follow-up', { castTimeMs: 520 })
       ]
     });
     const report = parseDpsReport({
@@ -338,7 +338,7 @@ test('preserves cancelled and shortened autoattack inputs at their observed dura
   catalog.skills.push(
     skill(5827, 'Fragmentation Shot', {
       type: 'weapon',
-      quicknessCastTimeMs: 520,
+      castTimeMs: 520,
       effects: [{ type: 'strike', atMs: 400, interruptCommitMs: 360 }]
     }),
     skill(5928, 'Flame Jet', {

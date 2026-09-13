@@ -17,7 +17,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 520
+    castTimeMs: 520
   },
   [ID.FALCONS_STOOP]: {
     interruptMode: 'per-packet',
@@ -41,7 +41,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 600
+    castTimeMs: 600
   },
   [ID.PANTHERS_PROWL]: {
     ammo: 2,
@@ -60,7 +60,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 400
+    castTimeMs: 400
   },
   [ID.WARCLAWS_ENGAGE]: {
     evades: true,
@@ -76,7 +76,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
       }
     ],
-    quicknessCastTimeMs: 960
+    castTimeMs: 960
   },
   [ID.CHEETAHS_STRIKE]: {
     flipSkillId: null,
@@ -100,7 +100,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 760
+    castTimeMs: 760
   },
   [ID.MONGOOSES_FRENZY]: {
     interruptMode: 'per-packet',
@@ -118,7 +118,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         duration: 8
       }
     ],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.WYVERNS_LASH]: {
     interruptMode: 'per-packet',
@@ -141,7 +141,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 440
+    castTimeMs: 440
   }
 });
 
@@ -156,7 +156,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: 'Spear',
     slot: 'Weapon_2',
     // Both EVTC animation segments are one attack; cancellation drops pending hits, not earlier contacts.
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     interruptMode: 'per-packet',
     recharge: 5,
     cooldown: 5,
@@ -190,7 +190,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_3',
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     interruptMode: 'per-packet',
     recharge: 7,
     cooldown: 7,
@@ -226,7 +226,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     interruptMode: 'per-packet',
     recharge: 12,
     cooldown: 12,
@@ -266,7 +266,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_5',
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     interruptMode: 'per-packet',
     recharge: 20,
     cooldown: 20,

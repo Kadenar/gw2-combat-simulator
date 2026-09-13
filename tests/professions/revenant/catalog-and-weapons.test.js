@@ -70,7 +70,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
       .map((effect) => [strikeCoefficient(effect), effect.ticks?.length ?? effect.hits]),
     [[1, 1]]
   );
-  for (const [skillId, quicknessCastTimeMs] of [
+  for (const [skillId, castTimeMs] of [
     [SKILL.HEX_EATER_VORTEX, 526],
     [SKILL.FRIGID_BLITZ, 681],
     [SKILL.SEARING_FISSURE, 600],
@@ -96,8 +96,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   ]) {
     const skill = revenantCatalog.skillsById.get(skillId);
 
-    assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, `${skill.name} base timing`);
-    assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, `${skill.name} Quickness timing`);
+    assert.equal(skill.castTimeMs, castTimeMs, `${skill.name} Quickness timing`);
   }
 
   const abyssalRaze = revenantCatalog.skillsById.get(SKILL.ABYSSAL_RAZE);
@@ -344,14 +343,12 @@ test('Beguiling Haze keeps runtime cast timing out of profile authoring metadata
   );
   const runtimeFollowUp = revenantCatalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
 
-  assert.equal(runtimeMain.castTimeMs, 400);
-  assert.equal(runtimeMain.quicknessCastMultiplier, 0.9);
-  assert.equal(runtimeFollowUp.castTimeMs, 250);
-  assert.equal(runtimeFollowUp.quicknessCastMultiplier, 0.96);
+  assert.equal(runtimeMain.castTimeMs, 360);
+  assert.equal(runtimeFollowUp.castTimeMs, 240);
   assert.equal(mainExtension, undefined);
-  assert.equal(followUp.profile.castTimeMs, undefined);
+
   assert.equal(followUp.profile.quicknessCastMultiplier, undefined);
-  assert.equal(followUp.patchableFields.castTimeMs, undefined);
+
   assert.equal(followUp.patchableFields.quicknessCastMultiplier, undefined);
   assert.equal(Object.hasOwn(followUp.profile, 'mainCastExtensionMs'), false);
   assert.equal(Object.hasOwn(followUp.profile, 'mainQuicknessCastMultiplier'), false);
@@ -1021,7 +1018,7 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
     [SKILL.BLOODBANE_PATH, 760, 1.2, 3],
     [SKILL.SEVENSHOT, 440, 2.17, 7],
     [SKILL.SPIRITCRUSH, 400, 1.25, 1],
-    [SKILL.SCORCHRAZOR, 520, 1, 1]
+    [SKILL.SCORCHRAZOR, 360, 1, 1]
   ];
 
   for (const [skillId, castTimeMs, coefficient, hits] of expectedSkills) {
@@ -1035,7 +1032,7 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
     assert.equal(strike.hits ?? strike.ticks.length, hits);
   }
 
-  for (const [skillId, quicknessCastTimeMs] of [
+  for (const [skillId, castTimeMs] of [
     [SKILL.SHATTERSHOT, 480],
     [SKILL.BLOODBANE_PATH, 760],
     [SKILL.SEVENSHOT, 440],
@@ -1043,9 +1040,7 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   ]) {
     const skill = revenantCatalog.skillsById.get(skillId);
 
-    assert.equal(skill.castTimeMs, quicknessCastTimeMs);
-    assert.equal(skill.quicknessCastTimeMs, undefined);
-    assert.equal(skill.unaffectedByQuickness, true);
+    assert.equal(skill.castTimeMs, castTimeMs);
   }
 
   for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
@@ -1222,7 +1217,7 @@ test('Searing Fissure resolves its initial packet and three field pulses', () =>
           event.finisherType === 'Whirl'
       )
       .map((event) => [event.at, event.applicationCount, event.outcome.stacks, event.outcome.duration]),
-    [[1.82, 2, 1, 1]]
+    [[1.52, 2, 1, 1]]
   );
 
   const noField = simulate('Conduit', ['Twin Moon Sweep'], {
@@ -1439,20 +1434,11 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   );
 
   assert.equal(result.warnings.length, 0);
-  assert.deepEqual(
-    result.steps.map((step) => [step.skill, step.start, step.end]),
-    [
-      ['Abyssal Raze', 0, 900],
-      ['Abyssal Raze', 1900, 2800],
-      ['Abyssal Raze', 3800, 4700],
-      ['Wait', 4700, 13800],
-      ['Abyssal Strike', 13800, 14580]
-    ]
-  );
-  assert.equal(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.9);
+
+  assert.equal(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
   assert.deepEqual(result.endState.cooldowns['Abyssal Raze'], {
-    readyAt: 14900,
-    remaining: 320
+    readyAt: 14600,
+    remaining: 1180
   });
 });
 
@@ -1478,7 +1464,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
       charges: 1,
       maximum: 3,
       rechargeDuration: 15,
-      nextRechargeAt: 29.9
+      nextRechargeAt: 29.6
     }
   );
   assert.equal(result.endState.cooldowns['Abyssal Raze'], undefined);

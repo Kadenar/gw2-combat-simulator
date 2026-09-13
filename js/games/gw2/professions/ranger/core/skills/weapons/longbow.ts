@@ -29,7 +29,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 1880
+    castTimeMs: 1880
   },
   [ID.RAPID_FIRE]: {
     interruptMode: 'per-packet',
@@ -60,7 +60,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 1800,
+    castTimeMs: 1800,
     missileHits: 10
   },
   [ID.LONG_RANGE_SHOT]: {
@@ -79,7 +79,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
         ]
       }
     ],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     missileHits: 1
   },
   [ID.POINT_BLANK_SHOT]: {
@@ -101,7 +101,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
         controlKind: 'knockback'
       }
     ],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     missileHits: 1
   },
   [ID.HUNTERS_SHOT]: {
@@ -118,7 +118,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     missileHits: 1
   }
 });

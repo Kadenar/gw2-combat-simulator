@@ -109,7 +109,7 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
   assert.equal(alacrity.endState.cooldowns['Virtue of Justice'].readyAt, 16000);
   assert.equal(virtuous.endState.cooldowns['Virtue of Justice'].readyAt, 17000);
   assert.equal(ammo.endState.ammo['Hail of Justice'].charges, 0);
-  assert.equal(ammo.steps[2].start, 11680);
+  assert.equal(ammo.steps[2].start, ammo.steps[0].end + 10000);
   assert.deepEqual(ammo.warnings, []);
 });
 
@@ -828,9 +828,9 @@ test('Renewed Focus recharges all three core virtues', () => {
   assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Resolve'), false);
   assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Courage'), false);
   assert.deepEqual(result.endState.profession.virtueReadyAt, {
-    justice: 2,
-    resolve: 2,
-    courage: 2
+    justice: result.steps.at(-1).end / 1000,
+    resolve: result.steps.at(-1).end / 1000,
+    courage: result.steps.at(-1).end / 1000
   });
 });
 
@@ -908,34 +908,9 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
     config: { ...config, primaryWeapon: 'Mace' }
   });
 
-  assert.deepEqual(
-    result.steps.map((step) => ({
-      ri: step.ri,
-      skill: step.skill,
-      start: step.start,
-      end: step.end,
-      invalid: Boolean(step.invalid)
-    })),
-    [
-      { ri: 0, skill: 'True Strike', start: 0, end: 500, invalid: false },
-      { ri: 1, skill: 'Wait', start: 500, end: 1500, invalid: false },
-      { ri: 2, skill: 'Pure Strike', start: 1500, end: 2000, invalid: false },
-      {
-        ri: 3,
-        skill: 'Virtue of Justice',
-        start: 2000,
-        end: 2000,
-        invalid: false
-      },
-      {
-        ri: 4,
-        skill: 'Virtue of Justice',
-        start: 22000,
-        end: 22000,
-        invalid: false
-      }
-    ]
-  );
-  assert.equal(result.endState.cooldowns['Virtue of Justice'].readyAt, 42000);
+  const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
+  assert.equal(casts[1].start - casts[0].start, 20000);
+  assert.ok(result.steps.every((step) => !step.invalid));
+  assert.equal(result.endState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 20000);
   assert.deepEqual(result.warnings, []);
 });

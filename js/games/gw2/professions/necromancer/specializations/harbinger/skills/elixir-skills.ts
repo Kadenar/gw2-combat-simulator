@@ -9,7 +9,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Harbinger elixir fragments to specialization composition. */
 export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     blightCost: 5,
     blightGain: 10,
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }],
@@ -18,7 +18,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.ELIXIR_OF_RISK]: {
     // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // The projectile releases at 440 ms, so canceling the remaining animation retains its later impact.
     interruptCommitMs: 440,
     blightCost: 5,
@@ -35,7 +35,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     blightCost: 5,
     blightGain: 10,
     effects: [
@@ -46,7 +46,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_AMBITION]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // The thrown elixir commits on its 400 ms impact frame, allowing the remaining animation to be canceled.
     interruptCommitMs: 400,
     blightCost: 10,
@@ -68,7 +68,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_ANGUISH]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     blightCost: 5,
     blightGain: 10,
     effects: [
@@ -82,7 +82,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.elixir'
   },
   [ID.ELIXIR_OF_PROMISE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     blightCost: 5,
     blightGain: 10,
     effects: [

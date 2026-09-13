@@ -125,7 +125,7 @@ test('Signet of Illusions restarts its ten-second cycle after recharge', () => {
 
   assert.deepEqual(
     passiveEvents.map((event) => event.at),
-    [71.68]
+    [result.steps[0].end / 1000 + 70]
   );
 });
 

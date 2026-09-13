@@ -17,7 +17,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         name: 'Wild Strikes - Final Slam Damage'
       }
     ],
-    quicknessCastTimeMs: 1167
+    castTimeMs: 1167
   },
   [ID.CULTIVATE]: {
     effects: [
@@ -39,7 +39,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 2
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.THISTLEGUARD]: {
     effects: [
@@ -55,7 +55,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.OAKEN_CUDGEL]: {
     effects: [
@@ -71,7 +71,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.FLOURISH]: {
     effects: [
@@ -94,7 +94,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.BURGEON]: {
     effects: [
@@ -104,7 +104,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.GERMINATE]: {
     effects: [
@@ -114,6 +114,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   }
 });

@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines Engineer pistol projectile timing, damage, condition, and combo behavior. */
 export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRAGMENTATION_SHOT]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 0,
     comboFinishers: [
       {
@@ -40,7 +40,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.POISON_DART_VOLLEY]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 8,
     // Poison Dart Volley is a channel: interruption retains landed darts and cancels only its future packets.
     interruptMode: 'per-packet',
@@ -70,7 +70,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.STATIC_SHOT]: {
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     cooldown: 12,
     effects: [
       {
@@ -95,7 +95,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.GLUE_SHOT]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 20,
     duration: 5,
     comboFinishers: [
@@ -136,7 +136,7 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.BLOWTORCH]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     interruptCommitMs: 360,
     // Committed flame casts keep their remaining lockout before the next player input.
     retainsCastLockoutAfterInterrupt: true,

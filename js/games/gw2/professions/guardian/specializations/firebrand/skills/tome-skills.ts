@@ -7,7 +7,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SCORCHED_AFTERMATH]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     // The Fire combo field lasts four seconds from the first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
@@ -39,7 +39,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.IGNITING_BURST]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -64,13 +64,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.RADIANT_RECOVERY]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.STALWART_STAND]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -106,7 +106,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SEARING_SPELL]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // A cancel after commitment retains the completed page use and its effects.
     interruptCommitMs: 480,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
@@ -152,13 +152,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: []
   },
   [ID.VALIANT_BULWARK]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.DARING_CHALLENGE]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -180,7 +180,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.SHINING_RIVER]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -238,7 +238,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: []
   },
   [ID.HEATED_REBUKE]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -254,7 +254,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.ASHES_OF_THE_JUST]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     // Commitment precedes the animation end; the Ashes grant keeps its separate application time.
     interruptCommitMs: 640,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
@@ -262,13 +262,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: []
   },
   [ID.ETERNAL_OASIS]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.UNFLINCHING_CHARGE]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -293,7 +293,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: []
   },
   [ID.UNBROKEN_LINES]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [
@@ -321,13 +321,13 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.DESERT_BLOOM]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.AZURE_SUN]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
     effects: [

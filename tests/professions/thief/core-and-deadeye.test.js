@@ -560,7 +560,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
 
   assert.equal(boundary.warnings.length, 0);
   assert.equal(boundary.steps[0].start, 1000);
-  assert.equal(boundary.endState.profession.initiative, 1.56);
+  assert.equal(boundary.endState.profession.initiative, (boundary.steps[0].end - boundary.steps[0].start) / 1000);
 
   for (const alacrity of [false, true]) {
     const result = simulate('Core', [{ type: 'wait', durationMs: 5000 }], {
@@ -578,7 +578,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   });
 
   assert.equal(kneeling.warnings.length, 0);
-  assert.ok(Math.abs(kneeling.endState.profession.initiative - 14 / 3) < 1e-9);
+  assert.ok(Math.abs(kneeling.endState.profession.initiative - ((kneeling.endState.time / 1000) * 4) / 3) < 1e-9);
 });
 
 test('Unload refunds 2 initiative on completion but not cancellation', () => {
@@ -612,7 +612,7 @@ test('weapon swap preserves shared initiative', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
-  assert.ok(Math.abs(result.endState.profession.initiative - 10.54) < 1e-9);
+  assert.ok(Math.abs(result.endState.profession.initiative - (7 + result.endState.time / 1000)) < 1e-9);
   assert.ok(result.events.some((event) => event.type === 'weapon_set'));
 
   const resetChain = simulate('Core', ['Double Strike', 'Swap Weapons', 'Double Strike'], {

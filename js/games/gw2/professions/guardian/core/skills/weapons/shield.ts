@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHIELD_OF_JUDGMENT]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -14,15 +14,15 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SHIELD_OF_ABSORPTION]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: []
   },
   [ID.SHIELD_OF_ABSORPTION_ID_9224]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: []
   },
   [ID.SHIELD_OF_JUDGMENT_ID_15834]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',

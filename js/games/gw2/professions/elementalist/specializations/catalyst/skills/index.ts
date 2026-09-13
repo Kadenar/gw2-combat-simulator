@@ -20,7 +20,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     attunement: 'Fire',
     mechanicSlot: 5,
     categories: ['Jade Sphere'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     comboFields: [
       {
@@ -41,7 +41,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     attunement: 'Water',
     mechanicSlot: 5,
     categories: ['Jade Sphere'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     comboFields: [
       {
@@ -62,7 +62,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     attunement: 'Air',
     mechanicSlot: 5,
     categories: ['Jade Sphere'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     comboFields: [
       {
@@ -83,7 +83,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     attunement: 'Earth',
     mechanicSlot: 5,
     categories: ['Jade Sphere'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     comboFields: [
       {
@@ -102,7 +102,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     slot: 'Utility',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
     // Relentless Fire opens its damage window when the augment completes.
@@ -120,7 +120,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     slot: 'Utility',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 20,
     skillFamily: 'Augment',
     // Shattering Ice opens its proc window when the augment completes.
@@ -139,7 +139,7 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     slot: 'Elite',
     specialization: 'Catalyst',
     categories: ['Augment'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 90,
     skillFamily: 'Augment',
     // Elemental Celerity refreshes the active attunement and grants sphere boons on completion.

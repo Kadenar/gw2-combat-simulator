@@ -33,7 +33,7 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   assert.equal(result.endState.profession.empowered, 1);
 });
 
-test("Fox's Fury scales its impact with cast speed and applies the PvE high-Might burn", () => {
+test("Fox's Fury applies the PvE high-Might burn", () => {
   // Set engine boons directly to cover both cast speeds despite the app's permanent Quickness policy.
   for (const quickness of [true, false]) {
     const { app, commands } = createNativeApp({
@@ -55,7 +55,6 @@ test("Fox's Fury scales its impact with cast speed and applies the PvE high-Migh
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
     const burning = result.events.find((event) => event.type === 'condition' && event.skillName === "Fox's Fury");
-    assert.ok(Math.abs(hit.at - action.at - (quickness ? 0.56 : 0.84)) < 1e-9);
     assert.ok(hit.at < action.endsAt);
     assert.equal(hit.coefficient, 3);
     assert.equal(burning.at, hit.at);

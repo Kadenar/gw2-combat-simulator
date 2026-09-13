@@ -4,7 +4,7 @@ import {
   mergedActionStatus,
   type CompositeAction
 } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
-import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 
@@ -39,9 +39,8 @@ export function normalizeConduitHazeActions<Action extends CompositeAction>(
           ...action,
           replayDurationMs:
             beguilingHazeCastDuration(
-              quicknessReferenceCastTimeMs(skill) / 1000,
+              referenceCastTimeMs(skill) / 1000,
               action.rawSkillId === 77047 && !mainCasts.has(action),
-              true,
               followUp,
               extension
             ) * 1000

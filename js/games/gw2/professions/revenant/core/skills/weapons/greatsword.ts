@@ -7,7 +7,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     castTimeMs: 600,
     // The strike survives a committed aftercast cancel without shortening the normal auto chain.
     interruptCommitMs: 520,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -29,7 +29,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.MIST_UNLEASHED]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // Commit the attack at 480 ms while reserving the remaining skill lockout.
     interruptCommitMs: 440,
     retainsCastLockoutAfterInterrupt: true,
@@ -57,7 +57,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     castTimeMs: 680,
     // A committed cancel retains the strike and conditions during the remaining aftercast.
     interruptCommitMs: 480,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -86,7 +86,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.TRUE_STRIKE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -101,8 +101,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
     // Keep the 40 ms dash and the 600/400 ms follow-up on 40 ms action frames.
-    castTimeMs: 640,
-    quicknessCastTimeMs: 440,
+
+    castTimeMs: 440,
     dashTimeMs: 40,
     hitDelayMs: 400,
     cooldown: 8,
@@ -137,7 +137,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     // Recorded 365 ms casts land their strike and advance to Mist Slash on the 360 ms action frame.
     interruptCommitMs: 360,
     castTimeMs: 400,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -153,14 +153,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.IMPERIAL_GUARD]: {
     castTimeMs: 2000,
-    unaffectedByQuickness: true,
+
     defaultInterruptMs: 80,
     cooldown: 12,
     energyCost: 10,
     effects: []
   },
   [ID.ETERNITYS_REQUIEM]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     // Preserve the impacts when the cast is interrupted after committing at 800 ms.
     interruptCommitMs: 800,
     cooldown: 15,

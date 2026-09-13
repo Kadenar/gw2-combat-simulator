@@ -23,7 +23,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     attunement: 'Fire',
     mechanicSlot: 1,
     categories: ['Attunement'],
-    quicknessCastTimeMs: 3320,
+    castTimeMs: 3320,
     cooldown: 20,
     comboFields: [
       {
@@ -48,7 +48,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     attunement: 'Water',
     mechanicSlot: 2,
     categories: ['Attunement'],
-    quicknessCastTimeMs: 2920,
+    castTimeMs: 2920,
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -63,7 +63,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     attunement: 'Air',
     mechanicSlot: 3,
     categories: ['Attunement'],
-    quicknessCastTimeMs: 3200,
+    castTimeMs: 3200,
     cooldown: 20,
     comboFields: [
       {
@@ -86,7 +86,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     attunement: 'Earth',
     mechanicSlot: 4,
     categories: ['Attunement'],
-    quicknessCastTimeMs: 2760,
+    castTimeMs: 2760,
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -99,7 +99,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     slot: 'Heal',
     specialization: 'Tempest',
     categories: ['Shout'],
-    quicknessCastTimeMs: 1040,
+    castTimeMs: 1040,
     cooldown: 20,
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
@@ -112,7 +112,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     slot: 'Utility',
     specialization: 'Tempest',
     categories: ['Shout'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 25,
     aura: 'Fire|4',
     skillFamily: 'Shout',
@@ -174,7 +174,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     slot: 'Utility',
     specialization: 'Tempest',
     categories: ['Shout'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 30,
     aura: 'Magnetic|4',
     skillFamily: 'Shout',

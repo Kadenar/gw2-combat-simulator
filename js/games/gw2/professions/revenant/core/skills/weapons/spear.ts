@@ -8,7 +8,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 10,
     energyCost: 10,
     rechargeReduction: 3,
@@ -72,7 +72,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
     // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
@@ -145,7 +145,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 6,
     energyCost: 4,
     rechargeReduction: 5,
@@ -181,7 +181,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ABYSSAL_STRIKE]: {
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     interruptCommitMs: 396,
     cooldown: 0,
     energyCost: 0,
@@ -218,7 +218,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ABYSSAL_RAZE]: {
     // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/execution/spear.ts`.
     handlerId: 'revenant.abyssal-raze',
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 1,
     recharge: 1,
     ammo: 3,

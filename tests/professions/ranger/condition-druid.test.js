@@ -60,7 +60,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
     [ID.CRIPPLING_TALON, 360],
     [ID.STALKERS_STRIKE, 760]
   ]) {
-    assert.equal(rangerCatalog.skillsById.get(id).quicknessCastTimeMs, castTime);
+    assert.equal(rangerCatalog.skillsById.get(id).castTimeMs, castTime);
   }
 
   const doubleArc = rangerCatalog.skillsById.get(ID.DOUBLE_ARC);
@@ -91,8 +91,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
 
   const naturalConvergence = rangerCatalog.skillsById.get(ID.NATURAL_CONVERGENCE);
 
-  assert.equal(naturalConvergence.castTimeMs, 3120);
-  assert.equal(naturalConvergence.quicknessCastTimeMs, 2080);
+  assert.equal(naturalConvergence.castTimeMs, 2080);
   assert.deepEqual(
     naturalConvergence.effects
       .find(({ type, ticks }) =>
@@ -113,7 +112,11 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
     ]
   );
 
-  const convergenceStrikes = simulate(['Celestial Avatar', 'Natural Convergence']).resolvedEvents.filter(
+  const convergenceStrikes = simulate([
+    'Celestial Avatar',
+    'Natural Convergence',
+    { type: 'wait', durationMs: 2000 }
+  ]).resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.NATURAL_CONVERGENCE && event.coefficient > 0
   );
 
@@ -145,7 +148,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
   const sunSpirit = rangerCatalog.skillsById.get(ID.SUN_SPIRIT);
 
   assert.equal(sunSpirit.recharge, 20);
-  assert.equal(sunSpirit.quicknessCastTimeMs, 360);
+  assert.equal(sunSpirit.castTimeMs, 360);
   assert.deepEqual(
     [
       ID.ENTANGLE,
@@ -157,7 +160,10 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
       ID.POISONOUS_CLOUD,
       ID.JACARANDAS_EMBRACE,
       ID.SPLITBLADE
-    ].map((id) => rangerCatalog.skillsById.get(id).quicknessCastTimeMs),
+    ].map((id) => {
+      const skill = rangerCatalog.skillsById.get(id);
+      return skill.quicknessCastTimeMs ?? skill.castTimeMs;
+    }),
     [680, 560, 440, 600, 920, 480, 1800, 1480, 560]
   );
   assert.deepEqual(
@@ -723,9 +729,9 @@ test('Ranger child damage rows resolve their dedicated icons', () => {
   const solarFlare = skillBreakdownRows(simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }])).find(
     ({ sourceSkill }) => sourceSkill === 'Solar Flare'
   );
-  const blackHole = skillBreakdownRows(simulate(['Celestial Avatar', 'Natural Convergence'])).find(
-    ({ sourceSkill }) => sourceSkill === 'Black Hole'
-  );
+  const blackHole = skillBreakdownRows(
+    simulate(['Celestial Avatar', 'Natural Convergence', { type: 'wait', durationMs: 2000 }])
+  ).find(({ sourceSkill }) => sourceSkill === 'Black Hole');
 
   assert.ok(solarFlare);
   assert.ok(blackHole);
@@ -813,7 +819,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedTraitIds: [TRAIT.ECLIPSE]
   });
 
-  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 900);
+  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 600);
 });
 
 test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () => {

@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MACE_SMASH]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -14,7 +14,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MACE_BASH]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -24,7 +24,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PULVERIZE]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -47,7 +47,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingAnchor: 'castEnd'
       }
     ],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     effects: [
       {
@@ -70,7 +70,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.POMMEL_BASH]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -85,7 +85,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.COUNTERBLOW]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
@@ -104,7 +104,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CRUSHING_BLOW]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     interruptCommitMs: 440,
     effects: [
@@ -132,7 +132,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TACTICAL_BLOW]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',

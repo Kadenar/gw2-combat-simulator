@@ -6,9 +6,9 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIELD_OF_THE_MISTS]: {
     interruptCommitMs: 0,
-    castTimeMs: 750,
+
     // Measured Quickness animations include recovery time beyond the tooltip cast.
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 12,
     energyCost: 10,
     comboFields: [
@@ -48,7 +48,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.PHASE_SMASH]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 8,
     energyCost: 5,
     effects: [
@@ -77,8 +77,8 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.DROP_THE_HAMMER]: {
     interruptCommitMs: 0,
-    castTimeMs: 500,
-    quicknessCastTimeMs: 480,
+
+    castTimeMs: 480,
     cooldown: 15,
     energyCost: 15,
     effects: [
@@ -113,8 +113,8 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.COALESCENCE_OF_RUIN]: {
     interruptCommitMs: 0,
-    castTimeMs: 750,
-    quicknessCastTimeMs: 720,
+
+    castTimeMs: 720,
     cooldown: 4,
     energyCost: 5,
     effects: [
@@ -143,8 +143,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_BOLT]: {
-    castTimeMs: 750,
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The projectile launches around 440 ms; cancelling recovery cannot recall it.
     interruptCommitMs: 440,
     cooldown: 0,

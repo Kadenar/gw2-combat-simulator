@@ -8,7 +8,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines supplemental Core fragments that do not belong to a regular weapon or slot-skill catalog. */
 export const ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JUMP_SHOT_ID_5817]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 18,
     effects: [
       {
@@ -110,7 +110,7 @@ export const ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.OVERFUELED_FLAME_JET]: {
-    castTimeMs: 2250,
+    castTimeMs: 1520,
     cooldown: 1,
     effects: []
   },

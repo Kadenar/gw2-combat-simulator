@@ -30,7 +30,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     missileHits: 1
   },
   [ID.SPLITBLADE]: {
@@ -67,7 +67,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       }
     ],
     // Match the observed median Quickness animation, rounded to the 40 ms action tick.
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     missileHits: 5
   },
   [ID.WINTERS_BITE]: {
@@ -92,7 +92,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // Custom: Arms the Winter's Bite follow-up state; see `core/execution/index.ts`.
     handlerId: 'ranger.winters-bite',
     missileHits: 1
@@ -133,7 +133,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         controlKind: 'pull'
       }
     ],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     missileHits: 2
   },
   [ID.WHIRLING_DEFENSE]: {
@@ -161,7 +161,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 2720
+    castTimeMs: 2720
   }
 });
 
@@ -177,7 +177,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_4',
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     rechargeAnchor: 'castStart',
     cooldown: 15,
     missileHits: 2,

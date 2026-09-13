@@ -15,7 +15,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
         count: 3
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -41,7 +41,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
     ammoRecharge: 5,
     cooldown: 5,
     ammoCastLockout: 1,
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // Custom: Consumes the ammo snapshot and emits one bullet packet per charge; see `core/execution/index.ts`.
     handlerId: 'warrior.dragons-roar',
     effects: []

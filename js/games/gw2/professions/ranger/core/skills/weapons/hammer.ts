@@ -13,7 +13,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
     interruptCommitMs: 520,
@@ -30,7 +30,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         damageKind: 'ranger-unleashed-disabled-condition-count'
       }
     ],
-    quicknessCastTimeMs: 560
+    castTimeMs: 560
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
     effects: [
@@ -55,7 +55,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         name: 'Unleashed Overbearing Smash - Follow-Up Damage'
       }
     ],
-    quicknessCastTimeMs: 960
+    castTimeMs: 960
   },
   [ID.UNLEASHED_THUMP]: {
     interruptCommitMs: 800,
@@ -85,7 +85,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 960
+    castTimeMs: 960
   },
   [ID.HAMMER_SLAM]: {
     interruptCommitMs: 320,
@@ -97,7 +97,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 640
+    castTimeMs: 640
   },
   [ID.UNLEASHED_WILD_SWING]: {
     interruptCommitMs: 400,
@@ -110,7 +110,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         damageKind: 'ranger-unleashed-disabled'
       }
     ],
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.HEAVY_SMASH]: {
     interruptCommitMs: 320,
@@ -122,7 +122,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 440
+    castTimeMs: 440
   },
   [ID.WILD_SWING]: {
     effects: [
@@ -139,7 +139,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.THUMP]: {
     effects: [
@@ -158,7 +158,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         duration: 2
       }
     ],
-    quicknessCastTimeMs: 960
+    castTimeMs: 960
   },
   [ID.OVERBEARING_SMASH]: {
     interruptCommitMs: 240,
@@ -192,7 +192,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         controlKind: 'daze'
       }
     ],
-    quicknessCastTimeMs: 960
+    castTimeMs: 960
   },
   [ID.SAVAGE_SHOCK_WAVE]: {
     effects: [
@@ -227,6 +227,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 560
+    castTimeMs: 560
   }
 });

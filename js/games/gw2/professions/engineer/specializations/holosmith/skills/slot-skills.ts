@@ -8,7 +8,7 @@ import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializ
 /** Supplies Holosmith slot-skill fragments to Holosmith module composition. */
 export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.COOLANT_BLAST]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 20,
     effects: [
       {
@@ -23,7 +23,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   [ID.LAUNCH_WALL]: {
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.consume-flip',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 0.5,
     flipParentName: 'Photon Wall',
     effects: [
@@ -41,7 +41,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PRIME_LIGHT_BEAM]: {
-    quicknessCastTimeMs: 1160,
+    castTimeMs: 1160,
     cooldown: 60,
     effects: [
       {
@@ -72,7 +72,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LASER_DISK]: {
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     interruptCommitMs: 920,
     cooldown: 30,
     effects: [
@@ -92,7 +92,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   [ID.PHOTON_WALL]: {
     // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 25,
     paletteFlipSkillId: ID.LAUNCH_WALL,
     effects: []

@@ -7,7 +7,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SPEAR_OF_JUSTICE]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The virtue commits at 520 ms, allowing the remaining animation to be cancelled.
     interruptCommitMs: 520,
     cooldown: 20,
@@ -34,7 +34,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.PURIFICATION]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -66,7 +66,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     effects: []
   },
   [ID.DRAGONS_MAW]: {
-    castTimeMs: 660,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -101,7 +101,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.PROCESSION_OF_BLADES]: {
-    castTimeMs: 660,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -116,7 +116,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.FRAGMENTS_OF_FAITH]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',

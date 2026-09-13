@@ -907,7 +907,7 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
 
   assert.equal(ammo.endState.profession.shades.length, 2);
   assert.equal(ammo.endState.profession.lifeForce, 100);
-  assert.equal(ammo.steps[3].start, 15720);
+  assert.equal(ammo.steps[3].start, ammo.steps[0].end + 15000);
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
@@ -1005,7 +1005,7 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     true
   );
   assert.equal(greaterShade.endState.profession.shades.length, 0);
-  assert.equal(greaterShade.steps[1].start, 19_470);
+  assert.equal(greaterShade.steps[1].start, greaterShade.steps[0].end + 18750);
   assert.equal(sandstormTorment?.duration, 5);
   assert.equal(sandstormTorment?.at, 3.5);
   assert.equal(
@@ -1202,8 +1202,8 @@ test('Harbinger shroud attacks use their Blight thresholds and coefficients', ()
     ),
     true
   );
-  // The 1.26-second Arc cast generates two new Blight before shroud exit.
-  assert.equal(empoweredArc.endState.profession.blight, 2);
+  // Exiting before the first one-second shroud tick prevents passive Blight gains.
+  assert.equal(empoweredArc.endState.profession.blight, 0);
   assert.equal(
     empoweredCut.resolvedEvents.some(
       (event) => event.condition === 'Torment' && event.stacks === 5 && event.duration === 5
@@ -1240,7 +1240,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
 
   for (const [skill, skillId, elixirConsumption] of [
     ['Devouring Cut', ID.DEVOURING_CUT, 15],
-    ['Voracious Arc', ID.VORACIOUS_ARC, 17]
+    ['Voracious Arc', ID.VORACIOUS_ARC, 15]
   ]) {
     const baseline = run(skill);
     const wicked = run(skill, [TRAIT.WICKED_CORRUPTION]);

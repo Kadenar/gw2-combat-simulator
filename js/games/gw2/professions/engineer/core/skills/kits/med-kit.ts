@@ -22,7 +22,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     kit: 'Med Kit'
   },
   [ID.BANDAGE_BLAST]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 8,
     effects: [
       {
@@ -35,20 +35,20 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     kit: 'Med Kit'
   },
   [ID.BANDAGE_SELF]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 17,
     effects: [],
     toolbeltParentName: 'Med Kit',
     mechanicSlot: 1
   },
   [ID.MED_BLASTER]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 0,
     effects: [],
     kit: 'Med Kit'
   },
   [ID.CLEANSING_FIELD]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     effects: [],
     kit: 'Med Kit'
@@ -60,7 +60,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     kit: 'Med Kit'
   },
   [ID.INFUSION_BOMB]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 20,
     effects: [
       {

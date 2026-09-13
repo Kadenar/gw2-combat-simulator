@@ -73,7 +73,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.LUMINOUS_STAFF]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
@@ -100,7 +100,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SHINING_SPIN]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
     interruptCommitMs: 440,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
@@ -115,7 +115,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.GLEAMING_BLADE]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
@@ -136,7 +136,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BRILLIANT_SLAM]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [
@@ -148,7 +148,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.GLARING_BURST]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Custom: Builds Glaring Burst packets from live Radiant Forge state; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.glaring-burst',
     // The replacement strike lands at 480 ms and remains committed when the
@@ -170,13 +170,13 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.RESTORATIVE_GLOW]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: []
   },
   [ID.RADIANT_BULWARK]: {
-    castTimeMs: 2000,
+    castTimeMs: 1360,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     // Shield activation protects nearby allies while the blocking channel runs.
@@ -193,7 +193,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DAZZLING_HAMMER]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     interruptCommitMs: 400,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
@@ -249,7 +249,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.LUCENT_THRUST]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
     effects: [

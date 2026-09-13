@@ -11,7 +11,7 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENERGY_MELD]: {
     // The completion hook restores endurance and applies Vindicator traits after cast-time regeneration.
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,
@@ -19,7 +19,7 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENERGY_MELD_ID_72058]: {
     // The completion hook restores endurance and applies Vindicator traits after cast-time regeneration.
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
     resourceGain: 25,

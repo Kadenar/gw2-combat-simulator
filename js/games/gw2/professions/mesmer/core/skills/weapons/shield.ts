@@ -7,7 +7,7 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Shield',
     specialization: 'Chronomancer',
-    castTimeMs: 1020,
+    castTimeMs: 680,
     cooldown: 35,
     effects: [
       {
@@ -41,6 +41,6 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Skil
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 2460
+    castTimeMs: 1640
   }
 });

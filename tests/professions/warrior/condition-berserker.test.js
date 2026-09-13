@@ -46,7 +46,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   };
 
   for (const [id, castTime] of Object.entries(quicknessCastTimes)) {
-    assert.equal(skill(Number(id)).quicknessCastTimeMs, castTime);
+    assert.equal(skill(Number(id)).castTimeMs, castTime);
     assert.equal(castTime % 40, 0);
   }
 

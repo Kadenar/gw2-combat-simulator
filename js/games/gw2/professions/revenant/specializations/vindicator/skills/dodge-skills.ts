@@ -20,7 +20,7 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
   castTimeMs: VINDICATOR_AIRBORNE_MS + VINDICATOR_LANDING_MS,
   paletteAction: true,
   hotkeyAction: 'dodge',
-  unaffectedByQuickness: true,
+
   resourceCost: 50,
   cooldown: 0,
   effects: []
@@ -30,7 +30,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.
   [ID.SAINTS_SHIELD]: {
     castTimeMs: VINDICATOR_LANDING_MS,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -48,7 +48,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.DEATH_DROP]: {
     castTimeMs: VINDICATOR_LANDING_MS,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -71,7 +71,7 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.IMPERIAL_IMPACT]: {
     castTimeMs: VINDICATOR_LANDING_MS,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     energyCost: 0,
     effects: [

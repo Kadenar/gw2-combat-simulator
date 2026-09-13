@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LIFE_BLAST]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
@@ -39,7 +39,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -58,7 +58,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     specialization: ''
   },
   [ID.LIFE_TRANSFER]: {
-    quicknessCastTimeMs: 2920,
+    castTimeMs: 2920,
     // Snap each original 222 ms pulse independently to 40 ms, keeping strikes and bleeding synchronized.
     effects: [
       {
@@ -130,7 +130,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     lifeForceGain: 9
   },
   [ID.DARK_PATH]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',
@@ -159,7 +159,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.flip'
   },
   [ID.GRIM_SPECTER]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     // Align delayed siphons to 40 ms while preserving their one-second cadence.
     effects: [
       {
@@ -220,7 +220,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     ]
   },
   [ID.RIPPLE_OF_HORROR]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -236,7 +236,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {
-    castTimeMs: 1100,
+    castTimeMs: 760,
     effects: [
       {
         type: 'strike',
@@ -269,7 +269,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     cooldown: 8
   },
   [ID.SUMMON_MADNESS]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     summons: 8,
     summonInterval: 1,
     effects: [
@@ -296,7 +296,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.summon-madness'
   },
   [ID.DHUUMFIRE_BLAST]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
@@ -319,7 +319,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     simulatorExcluded: true
   },
   [ID.TAINTED_SHACKLES]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Align the delayed torment and final strike to 40 ms without shifting the cast-scaled opening pulse.
     effects: [
       {

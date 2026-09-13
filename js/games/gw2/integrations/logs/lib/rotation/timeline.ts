@@ -2,7 +2,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
-import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
 
@@ -45,7 +45,7 @@ function identityMilliseconds(value: number): number {
 /** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
 function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number): number {
   if (!action.skill || String(action.skill.slot || '').toLowerCase() === 'weapon_1') return 0;
-  const excessMs = replayEnd - action.start - (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill));
+  const excessMs = replayEnd - action.start - (action.replayDurationMs ?? referenceCastTimeMs(action.skill));
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
@@ -248,7 +248,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
     // Concurrent actions advance the replay clock through an observed excess-cast interval, so only its remainder waits.
     if (pendingAftercast && concurrent) {
-      const runtimeEnd = at + (action.replayDurationMs ?? quicknessReferenceCastTimeMs(action.skill));
+      const runtimeEnd = at + (action.replayDurationMs ?? referenceCastTimeMs(action.skill));
       pendingAftercast.progressedTo = Math.min(
         pendingAftercast.until,
         Math.max(pendingAftercast.progressedTo, runtimeEnd)
@@ -261,7 +261,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       const runtimeMs =
         action.replayDurationMs ??
         (action.skill && policy.hasObservedCastTime?.(action) !== false
-          ? quicknessReferenceCastTimeMs(action.skill)
+          ? referenceCastTimeMs(action.skill)
           : actionReplayEnd - at);
       const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
       const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));

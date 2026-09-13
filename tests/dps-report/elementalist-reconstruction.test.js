@@ -57,7 +57,7 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
       skill(ID.GLYPH_OF_STORMS_AIR, 'Glyph of Storms (Air)', {
         type: 'Utility',
         attunement: 'Air',
-        quicknessCastTimeMs: 600
+        castTimeMs: 600
       }),
       skill(ID.PRIMORDIAL_STANCE_AIR, 'Primordial Stance (Air)', {
         type: 'Utility',
@@ -130,8 +130,8 @@ test('preserves report cast status and duration without inventing skill commit m
   );
   const catalog = {
     skills: [
-      skill(ID.FLAMESTRIKE, 'Flamestrike', { type: 'Weapon', quicknessCastTimeMs: 600 }),
-      skill(ID.ARC_LIGHTNING, 'Arc Lightning', { type: 'Weapon', quicknessCastTimeMs: 2_720 })
+      skill(ID.FLAMESTRIKE, 'Flamestrike', { type: 'Weapon', castTimeMs: 600 }),
+      skill(ID.ARC_LIGHTNING, 'Arc Lightning', { type: 'Weapon', castTimeMs: 2_720 })
     ]
   };
 

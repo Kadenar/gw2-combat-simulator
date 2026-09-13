@@ -19,8 +19,8 @@ const fixtureSkill = {
   name: 'Mind Stab',
   type: 'Weapon',
   slot: 'Weapon_2',
-  castTimeMs: 600,
-  quicknessCastTimeMs: 400,
+
+  castTimeMs: 400,
   effects: []
 };
 const catalog = { skills: [fixtureSkill] };
@@ -141,7 +141,7 @@ test('both importers preserve idle after cancelled and committed retained-lockou
   // An idle gap beyond boundary jitter follows the occupied lane, which ends early only below the commit cutoff.
   const attack = {
     ...fixtureSkill,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true
   };
@@ -332,7 +332,7 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
 });
 
 test('the shared timeline preserves unsupported durations, idle gaps, and concurrent offsets', () => {
-  const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
+  const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0 };
   const actions = [
     { start: 0, end: 400, eventIndex: 0, skill: fixtureSkill, name: 'Mind Stab', skillId: 1_000 },
     { start: 200, end: 200, eventIndex: 1, skill: instant, name: 'Instant', skillId: 2_000 },
@@ -353,7 +353,7 @@ test('weapon swaps retain their observed overlap with dodge through an interveni
   const swap = { id: -3, name: 'Swap Weapons', castTimeMs: 0 };
   // A non-dodge cast still serializes swaps; dodge keeps the swap cooldown anchored to its actual input.
   for (const name of ['Dodge', 'Channel']) {
-    const skill = { id: -5, name, castTimeMs: 800, unaffectedByQuickness: true };
+    const skill = { id: -5, name, castTimeMs: 800 };
     const actions = [
       { start: 0, end: 800, skill },
       { start: 100, end: 100, skill: instant },
@@ -440,7 +440,7 @@ test('the shared timeline preserves idle after an uninterrupted retained-lockout
 });
 
 test('the shared timeline subtracts accumulated simulator cast overruns from a later source gap', () => {
-  const longerRuntimeSkill = { ...fixtureSkill, quicknessCastTimeMs: 480 };
+  const longerRuntimeSkill = { ...fixtureSkill, castTimeMs: 480 };
   const rotation = buildReplayTimeline(
     [
       { start: 0, end: 440, eventIndex: 0, skill: longerRuntimeSkill, name: 'Mind Stab', skillId: 1_000 },
@@ -509,7 +509,7 @@ test('runtime alignment budgets resolved cast variants instead of counting their
 });
 
 test('the shared timeline subtracts concurrent progress from an observed instant-skill channel', () => {
-  const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0, quicknessCastTimeMs: 0 };
+  const instant = { ...fixtureSkill, id: 2_000, name: 'Instant', castTimeMs: 0 };
   const channel = { ...instant, id: 2_001, name: 'Channel' };
   const actions = [
     { start: 0, end: 1_200, eventIndex: 0, skill: channel, name: channel.name, skillId: channel.id },

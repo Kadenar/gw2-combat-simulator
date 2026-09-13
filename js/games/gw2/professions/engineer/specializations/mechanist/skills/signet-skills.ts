@@ -8,7 +8,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Mechanist signet fragments to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 30,
     effects: []
   },
@@ -25,7 +25,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     effects: []
   },
   [ID.SUPERCONDUCTING_SIGNET]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     interruptCommitMs: 560,
     cooldown: 30,
     effects: [
@@ -85,7 +85,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     ]
   },
   [ID.FORCE_SIGNET]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 30,
     effects: [
       {
@@ -104,7 +104,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     ]
   },
   [ID.BARRIER_SIGNET]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 30,
     effects: []
   }

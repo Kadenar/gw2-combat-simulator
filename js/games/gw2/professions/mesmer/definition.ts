@@ -38,7 +38,7 @@ export const mesmerProfession = defineNativeProfession({
         id: 'mesmer.long-nonweapon-casts-reset',
         when: ({ interruptingSkill }) =>
           interruptingSkill.type !== 'Weapon' &&
-          Number(interruptingSkill.quicknessCastTimeMs ?? interruptingSkill.castTimeMs ?? 0) > 400 &&
+          Number(interruptingSkill.castTimeMs ?? 0) > 400 &&
           interruptingSkill.rechargeAnchor !== 'castStart',
         decision: 'reset'
       }

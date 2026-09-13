@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_BLADES]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The symbol is placed before the animation ends and continues pulsing after a committed cancel.
     interruptCommitMs: 320,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
@@ -29,7 +29,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_OF_WRATH]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     // Sword chain hits land before their recovery animations, allowing committed cancels to advance the chain.
     interruptCommitMs: 200,
     effects: [
@@ -44,7 +44,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_ARC]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     interruptCommitMs: 280,
     effects: [
       {
@@ -58,7 +58,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ZEALOTS_DEFENSE]: {
-    quicknessCastTimeMs: 1400,
+    castTimeMs: 1400,
     // Cancelling the channel retains only projectiles that arrive within the observed cast window.
     interruptMode: 'per-packet',
     effects: [
@@ -71,7 +71,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SWORD_WAVE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     interruptCommitMs: 480,
     effects: [
       {
@@ -86,7 +86,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.EXECUTIONERS_CALLING]: {
     // The initial slash and dual strike occupy one cast, with damage on each segment's impact.
-    quicknessCastTimeMs: 1040,
+    castTimeMs: 1040,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -110,7 +110,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ADVANCING_STRIKE]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // The dash lands two strikes before its recovery ends.
     effects: [
       {

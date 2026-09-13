@@ -9,7 +9,7 @@ import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializ
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 12,
     comboFinishers: [
       {
@@ -44,7 +44,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.SUN_EDGE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     effects: [
       {
@@ -65,7 +65,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.REFRACTION_CUTTER]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // Preserve committed swing/blade damage and keep the parent cast's lockout before the next input.
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
@@ -150,7 +150,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.SUN_RIPPER]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
     interruptCommitMs: 440,
     cooldown: 0,
@@ -175,7 +175,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   [ID.GLEAM_SABER]: {
     // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
     handlerId: 'engineer.gleam-saber',
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     interruptCommitMs: 640,
     cooldown: 0,
     effects: [

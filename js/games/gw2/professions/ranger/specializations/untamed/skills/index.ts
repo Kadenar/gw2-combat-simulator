@@ -51,7 +51,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.NATURES_BINDING]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.UNLEASH_RANGER]: {
     castTimeMs: 0,
@@ -99,7 +99,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 2
       }
     ],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/execution/index.ts`.
     handlerId: 'ranger.exploding-spores'
   },
@@ -124,7 +124,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.VENOMOUS_OUTBURST]: {
     castTimeMs: 0,
@@ -177,7 +177,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.PERILOUS_GIFT]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.UNLEASH_PET]: {
     castTimeMs: 0,
@@ -247,7 +247,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         damageKind: 'life-steal'
       }
     ],
-    quicknessCastTimeMs: 1560,
+    castTimeMs: 1560,
     // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
     handlerId: 'ranger.unleashed-ambush'
   },
@@ -298,7 +298,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         damageKind: 'life-steal'
       }
     ],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
     handlerId: 'ranger.unleashed-ambush'
   }

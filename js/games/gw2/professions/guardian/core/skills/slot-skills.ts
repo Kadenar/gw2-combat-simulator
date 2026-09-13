@@ -4,11 +4,11 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RECEIVE_THE_LIGHT]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.BANE_SIGNET]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -22,11 +22,11 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SHELTER]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.HAMMER_OF_WISDOM]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -40,12 +40,12 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SANCTUARY]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: []
   },
   [ID.SIGNET_OF_WRATH]: {
     // The active commits before the Quickness cast finishes, allowing the remaining recovery to be canceled.
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     interruptCommitMs: 820,
     cooldown: 18,
     effects: [
@@ -69,17 +69,17 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.RENEWED_FOCUS]: {
-    castTimeMs: 2000,
+    castTimeMs: 1360,
     // Custom: Refreshes all virtue cooldowns and readiness state; see `core/mechanics/virtues.ts`.
     handlerId: 'guardian.renewed-focus',
     effects: []
   },
   [ID.SIGNET_OF_RESOLVE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.SWORD_OF_JUSTICE]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
@@ -111,7 +111,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PURGING_FLAMES]: {
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     cooldown: 20,
     comboFields: [
       {
@@ -141,7 +141,7 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.JUDGES_INTERVENTION]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -157,11 +157,11 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.LITANY_OF_WRATH]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.FEEL_MY_WRATH]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 30,
     effects: [
       { type: 'boon', boon: 'quickness', duration: 3, audience: { recipients: 'party' as const } },

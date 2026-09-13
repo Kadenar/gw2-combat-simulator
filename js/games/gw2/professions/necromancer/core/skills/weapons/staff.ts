@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NECROTIC_GRASP]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',
@@ -17,7 +17,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.corruption'
   },
   [ID.CHILLBLAINS]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -39,7 +39,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.REAPERS_MARK]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -53,7 +53,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PUTRID_MARK]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -65,7 +65,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.MARK_OF_BLOOD]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',

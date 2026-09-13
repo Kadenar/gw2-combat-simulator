@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HELIO_RUSH]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     // Consecutive charges lock for two seconds while each spent count recharges over eight seconds.
     cooldown: 2,
     ammo: 2,
@@ -31,7 +31,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.GLEAMING_DISC]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The disc commits at 520 ms, allowing a queued cancel to release the remaining animation.
     interruptCommitMs: 520,
     cooldown: 12,
@@ -49,7 +49,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DAYBREAKING_SLASH]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // Damage commits at 400 ms, allowing a queued cancel to release the action lane early.
     interruptCommitMs: 400,
     effects: [
@@ -63,7 +63,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SOLAR_STORM]: {
     castTimeMs: 560,
-    unaffectedByQuickness: true,
+
     // The volley commits before impact; cancelling the remaining animation preserves its delayed strikes.
     interruptCommitMs: 480,
     cooldown: 15,
@@ -97,7 +97,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SYMBOL_OF_LUMINANCE]: {
     castTimeMs: 440,
-    unaffectedByQuickness: true,
+
     cooldown: 20,
     // The Light field begins on the initial impact and lasts four seconds.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 360, startAnchor: 'castStart' }],

@@ -16,7 +16,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kitName: 'Grenade Kit'
   },
   [ID.POISON_GRENADE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
@@ -52,7 +52,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.SHRAPNEL_GRENADE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 5,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
@@ -87,7 +87,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.FLASH_GRENADE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 10,
     effects: [
       {
@@ -113,7 +113,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.FREEZE_GRENADE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
@@ -148,7 +148,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     kit: 'Grenade Kit'
   },
   [ID.GRENADE_BARRAGE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // The shortest successful EVTC cast is 642 ms; its six impacts finish before the shortened aftercast.
     interruptCommitMs: 640,
     cooldown: 25,
@@ -168,7 +168,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     toolbeltParentName: 'Grenade Kit'
   },
   [ID.GRENADE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 0,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,

@@ -11,7 +11,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -75,7 +75,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -314,7 +314,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -398,7 +398,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -451,7 +451,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1400,
+    castTimeMs: 1400,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -777,7 +777,7 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Sword',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [

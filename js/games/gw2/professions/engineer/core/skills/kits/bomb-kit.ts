@@ -14,7 +14,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.BIG_OL_BOMB]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 20,
     comboFinishers: [
       {
@@ -50,7 +50,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.GALVANIC_BOMB]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 16,
     comboFinishers: [
       {
@@ -92,7 +92,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.FIRE_BOMB]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     interruptCommitMs: 400,
     cooldown: 8,
     comboFields: [
@@ -152,7 +152,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.BOMB]: {
     interruptCommitMs: 0,
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     effects: [
       {
@@ -179,7 +179,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.MAGNETIC_BOMB]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 20,
     effects: [
       {

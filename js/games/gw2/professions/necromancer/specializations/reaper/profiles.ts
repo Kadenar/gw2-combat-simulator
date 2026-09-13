@@ -85,7 +85,6 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   }),
   trait(REAPER_BALANCE_PROFILE_IDS.reapersOnslaught, "Reaper's Onslaught", {
     attributeBonus: 300,
-    rechargeReduction: 1,
-    quicknessCastMultiplier: 1.5
+    rechargeReduction: 1
   })
 ]);

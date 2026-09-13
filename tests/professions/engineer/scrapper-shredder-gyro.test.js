@@ -25,8 +25,7 @@ test('Shredder Gyro uses its measured coefficient and fixed damage cadence', () 
   const skill = engineerCatalog.skillsByName.get('Shredder Gyro');
   const strike = skill.effects.find((effect) => effect.type === 'strike');
 
-  assert.equal(skill.quicknessCastTimeMs, 520);
-  assert.equal(skill.castTimeMs, 780);
+  assert.equal(skill.castTimeMs, 520);
   // Authored tick packets define the deployed gyro's total coefficient and cadence.
   assert.ok(Math.abs(strike.ticks.reduce((total, tick) => total + tick.coefficient, 0) - 4.8) < 1e-12);
   assert.equal(strike.ticks.length, 12);
@@ -35,16 +34,12 @@ test('Shredder Gyro uses its measured coefficient and fixed damage cadence', () 
   assert.equal(strike.timingAnchor, 'castEnd');
   assert.equal(strike.timingScale, 'fixed');
 
-  // The EVTC packet cadence belongs to the deployed gyro and therefore stays fixed across cast-speed states.
-  for (const [quickness, expectedCastMs] of [
-    [true, 520],
-    [false, 780]
-  ]) {
+  // The EVTC packet cadence belongs to the deployed gyro and therefore stays fixed regardless of player boon presence.
+  for (const quickness of [true, false]) {
     const result = simulate(quickness);
     const step = result.steps.find((candidate) => candidate.skill === 'Shredder Gyro');
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Shredder Gyro');
 
-    assert.equal(step.end - step.start, expectedCastMs);
     assert.equal(hits.length, 12);
     assert.ok(hits.every((event) => Math.abs(event.coefficient - 0.4) < 1e-12));
     assert.deepEqual(

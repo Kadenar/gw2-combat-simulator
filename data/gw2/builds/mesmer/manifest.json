@@ -6,7 +6,7 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43833,
+        "benchmarkDps": 43839,
         "referenceDps": 44179,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword"
       },
@@ -14,7 +14,7 @@
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 44247,
+        "benchmarkDps": 44251,
         "referenceDps": 44458,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword"
       },
@@ -22,7 +22,7 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46848,
+        "benchmarkDps": 46845,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-chronomancer-staff-scepter-pistol"
       }
     ]
@@ -34,13 +34,13 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 43473
+        "benchmarkDps": 43475
       },
       {
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 41036,
+        "benchmarkDps": 41033,
         "referenceDps": 40936,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch"
       }
@@ -61,7 +61,7 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39959,
+        "benchmarkDps": 40023,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol"
       }
     ]

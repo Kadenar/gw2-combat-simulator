@@ -137,10 +137,10 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
   });
   const zealotsResolution = simulateGw2({
     profession: guardianProfession,
-    rotation: ['True Strike', { type: 'wait', durationMs: 5000 }],
+    rotation: ['True Strike', { type: 'wait', durationMs: 6000 }],
     config: {
       ...config,
-      target: { ...config.target, health: 2500, startingHealthFraction: 0.7 },
+      target: { ...config.target, health: 1000000, startingHealthFraction: 0.2 },
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
     }
   });

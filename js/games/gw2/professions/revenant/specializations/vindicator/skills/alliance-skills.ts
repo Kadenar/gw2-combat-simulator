@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SELFISH_SPIRIT]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 10,
     // Override the imported ammo fact: Selfish Spirit is one channel with a normal cooldown.
     ammo: 0,
@@ -35,7 +35,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.NOMADS_ADVANCE]: {
     castTimeMs: 960,
-    unaffectedByQuickness: true,
+
     cooldown: 3,
     energyCost: 10,
     effects: [
@@ -57,7 +57,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     legendId: 'LegendaryAlliance'
   },
   [ID.REAVERS_RAGE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 10,
     energyCost: 15,
     effects: [
@@ -90,7 +90,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     legendId: 'LegendaryAlliance'
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     interruptCommitMs: 400,
     cooldown: 12,
     energyCost: 20,
@@ -116,7 +116,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     legendId: 'LegendaryAlliance'
   },
   [ID.SCAVENGER_BURST]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 3,
     energyCost: 15,
     effects: [

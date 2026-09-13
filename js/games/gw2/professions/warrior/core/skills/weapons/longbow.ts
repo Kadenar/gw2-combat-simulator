@@ -11,7 +11,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -38,7 +38,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -59,7 +59,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -92,7 +92,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 160,
+    castTimeMs: 160,
     effects: [
       {
         type: 'strike',
@@ -113,7 +113,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.FAN_OF_FIRE]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The arrows commit at 240 ms, but canceling after release retains the
     // remaining animation as aftercast for ordinary cast-time skills.
     interruptCommitMs: 240,

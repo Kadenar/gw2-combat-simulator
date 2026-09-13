@@ -15,7 +15,7 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RAY_OF_JUDGMENT]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Once launched, the ray keeps striking even when the remaining cast animation is cancelled.
     interruptCommitMs: 360,
     effects: [

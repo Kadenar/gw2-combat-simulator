@@ -7,7 +7,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ROILING_LIGHT]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -28,7 +28,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: []
   },
   [ID.CRASHING_COURAGE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: [
@@ -60,7 +60,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.HEEL_CRACK]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -74,7 +74,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.HEAVENS_PALM]: {
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 20,
     effects: [
       {
@@ -89,7 +89,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.WHIRLING_LIGHT]: {
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 15,
     effects: [
       {
@@ -136,14 +136,14 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.FLOWING_RESOLVE]: {
     castTimeMs: 520,
-    unaffectedByQuickness: true,
+
     ammoCastLockout: 0.5,
     // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
     effects: []
   },
   [ID.FLASH_COMBO]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     // Flash Combo exposes Repose for six seconds after the cast completes.
     mechanicTriggers: [
@@ -166,11 +166,11 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: []
   },
   [ID.REVERSAL_OF_FORTUNE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.RUSHING_JUSTICE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     rechargeAnchor: 'castStart',
     // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
@@ -192,11 +192,11 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ]
   },
   [ID.REPOSE]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: []
   },
   [ID.QUICK_RETRIBUTION]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',

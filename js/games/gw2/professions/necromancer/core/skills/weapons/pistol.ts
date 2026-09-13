@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VILE_BLAST]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -29,7 +29,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     lifeForceGain: 4
   },
   [ID.WEEPING_SHOTS]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     comboFinishers: [
       {
         ownerId: 'necromancer',
@@ -76,7 +76,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.VICIOUS_SHOT]: {
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     comboFinishers: [
       {
         ownerId: 'necromancer',

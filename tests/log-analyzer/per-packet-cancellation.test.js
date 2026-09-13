@@ -18,7 +18,7 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
             id: 1000,
             name: 'Mind Stab',
             castTimeMs: 520,
-            unaffectedByQuickness: true,
+
             interruptMode,
             effects: [200, 400].map((atMs) => ({
               type: 'strike',
@@ -31,8 +31,8 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
               ]
             }))
           },
-          { id: 2000, name: 'Time Sink', castTimeMs: 80, unaffectedByQuickness: true, independentCast: true },
-          { id: 3000, name: 'Blink', castTimeMs: 520, unaffectedByQuickness: true }
+          { id: 2000, name: 'Time Sink', castTimeMs: 80, independentCast: true },
+          { id: 3000, name: 'Blink', castTimeMs: 520 }
         ]
       });
       const profession = defineProfession({ id: 'quantization-contract', name: 'Quantization Contract', catalog });

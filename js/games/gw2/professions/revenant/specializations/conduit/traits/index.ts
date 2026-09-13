@@ -30,7 +30,6 @@ export const BEGUILING_HAZE_SKILL_IDS = new Set<SkillId>([ID.BEGUILING_HAZE, ID.
 
 export function modifyConduitCastDuration(context: RevenantPrecastContext, duration: number): number {
   if (context.skill?.handlerId !== 'revenant.beguiling-haze') return duration;
-  const quickness = context.hasBuff?.('quickness', context.start);
   const followUpProfile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
   const mainExtensionProfile = context.catalog.balanceProfilesById.get(
     CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
@@ -42,7 +41,6 @@ export function modifyConduitCastDuration(context: RevenantPrecastContext, durat
   return beguilingHazeCastDuration(
     duration,
     Number(conduitState.from(context).beguilingHazeCharges || 0) > 0,
-    Boolean(quickness),
     followUpProfile,
     mainExtensionProfile
   );

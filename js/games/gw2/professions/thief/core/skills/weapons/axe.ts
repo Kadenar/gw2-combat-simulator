@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENOMOUS_VOLLEY]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -30,7 +30,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.SPINNING_AXE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -52,7 +52,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.HARROWING_STORM]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -68,7 +68,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: 'Dagger'
   },
   [ID.RECALL_AXES]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -84,7 +84,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: false
   },
   [ID.ORCHESTRATED_ASSAULT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -100,7 +100,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: 'Pistol'
   },
   [ID.SPINNING_AXE_ID_71967]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -124,7 +124,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.CUNNING_SALVO]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
     effects: [

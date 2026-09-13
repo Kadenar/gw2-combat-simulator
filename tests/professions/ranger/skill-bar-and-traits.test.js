@@ -251,7 +251,15 @@ describe('Galeshot Cyclone Bow', () => {
 
     const result = simulate(
       'Galeshot',
-      ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', 'Pelt', 'Supersonic Arrow', 'Hawkeye'],
+      [
+        'Summon Cyclone Bow',
+        'Bluster',
+        'Fleeting Zephyr',
+        'Pelt',
+        'Supersonic Arrow',
+        'Hawkeye',
+        { type: 'wait', durationMs: 1000 }
+      ],
       {
         selectedTraitIds: [TRAIT.PERILOUS_SKIES]
       }
@@ -385,7 +393,15 @@ describe('Galeshot Cyclone Bow', () => {
   test('resolves Hawkeye, Shrike, and Mistral replacement packets', () => {
     const result = simulate(
       'Galeshot',
-      ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', 'Pelt', 'Supersonic Arrow', 'Hawkeye'],
+      [
+        'Summon Cyclone Bow',
+        'Bluster',
+        'Fleeting Zephyr',
+        'Pelt',
+        'Supersonic Arrow',
+        'Hawkeye',
+        { type: 'wait', durationMs: 1000 }
+      ],
       {
         selectedTraitIds: [TRAIT.PERILOUS_SKIES]
       }

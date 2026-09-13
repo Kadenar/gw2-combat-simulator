@@ -18,7 +18,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SHIELDING_HANDS]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 30,
     energyCost: 5,
     effects: [],

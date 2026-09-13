@@ -33,7 +33,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -87,7 +87,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -141,7 +141,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -195,7 +195,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -249,7 +249,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -303,7 +303,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Hammer',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [

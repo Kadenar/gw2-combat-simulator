@@ -5,15 +5,15 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GLYPH_OF_THE_TIDES]: {
     effects: [],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.GLYPH_OF_ALIGNMENT]: {
     effects: [],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.GLYPH_OF_REJUVENATION]: {
     effects: [],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.RELEASE_CELESTIAL_AVATAR]: {
     castTimeMs: 0,
@@ -23,7 +23,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.GLYPH_OF_THE_STARS]: {
     effects: [],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.CELESTIAL_AVATAR]: {
     castTimeMs: 0,
@@ -33,7 +33,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.COSMIC_RAY]: {
     effects: [],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
@@ -68,7 +68,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     recharge: 8,
     cooldown: 8,
     // Match the measured Quickness animation from the condition Druid EVTC.
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
@@ -87,7 +87,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   },
@@ -181,7 +181,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     ],
     recharge: 10,
     cooldown: 10,
-    quicknessCastTimeMs: 2080,
+    castTimeMs: 2080,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
     handlerId: 'ranger.celestial-avatar-skill'
   }

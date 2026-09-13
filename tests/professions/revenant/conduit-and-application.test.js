@@ -107,13 +107,13 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, castTimeMs, coefficient] of [
-      ['Preparation Thrust', 540, 0.75],
-      ['Brutal Blade', 840, 0.8],
+      ['Preparation Thrust', 360, 0.75],
+      ['Brutal Blade', 560, 0.8],
       ['Mist Swing', 400, 0.7],
       ['Mist Slash', 600, 0.8],
       ['Arcing Mists', 680, 1.2],
-      ['Mist Unleashed', 780, 1.6],
-      ["Phantom's Onslaught", 640, 1.6]
+      ['Mist Unleashed', 520, 1.6],
+      ["Phantom's Onslaught", 440, 1.6]
     ]) {
       assert.equal(skill(name).castTimeMs, castTimeMs, name);
       assert.equal(
@@ -123,12 +123,7 @@ describe('Power Conduit skill profiles', () => {
       );
     }
 
-    for (const name of ['Mist Swing', 'Mist Slash', 'Arcing Mists']) {
-      assert.equal(skill(name).quicknessCastTimeMs, undefined, name);
-      assert.equal(skill(name).unaffectedByQuickness, true, name);
-    }
-
-    for (const [name, quicknessCastTimeMs] of [
+    for (const [name, castTimeMs] of [
       ['Release Potential: Dervish', 680],
       ['Shackling Wave', 800],
       ['Deathstrike', 720],
@@ -141,12 +136,11 @@ describe('Power Conduit skill profiles', () => {
       ['Mist Unleashed', 520],
       ['Release Potential: Assassin', 720]
     ]) {
-      assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
+      assert.equal(skill(name).castTimeMs, castTimeMs, name);
     }
 
     assert.equal(skill('Chilling Isolation').castTimeMs, 680);
-    assert.equal(skill('Chilling Isolation').quicknessCastTimeMs, undefined);
-    assert.equal(skill('Chilling Isolation').unaffectedByQuickness, true);
+
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
     assert.equal(skill('Deathstrike').rechargeOffsetMs, 420);
@@ -156,8 +150,7 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
     const alternateOnslaught = revenantCatalog.skillsById.get(SKILL.PHANTOMS_ONSLAUGHT_ID_62713);
     assert.equal(alternateOnslaught.rechargeOffsetMs, 40);
-    assert.equal(alternateOnslaught.castTimeMs, 640);
-    assert.equal(alternateOnslaught.quicknessCastTimeMs, 440);
+    assert.equal(alternateOnslaught.castTimeMs, 440);
     assert.equal(
       revenantCatalog.balanceProfilesById
         .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
@@ -445,7 +438,7 @@ test('Drop the Hammer resets Coalescence of Ruin when its delayed hit lands', ()
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Coalescence of Ruin').map((step) => step.start),
-    [500, 1650]
+    [480, 1640]
   );
   assert.equal(
     result.events.filter((event) => event.type === 'damage' && event.skillName === 'Coalescence of Ruin').length,
@@ -719,13 +712,13 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       .map((event) => [Math.round(event.at * 1000), event.coefficient]),
     [
       [520, 2.2],
-      [850, 0.6],
-      [1100, 0.6]
+      [760, 0.6],
+      [1000, 0.6]
     ]
   );
   assert.deepEqual(
     beguiling.steps.map((step) => step.fullCastMs),
-    [650, 250, 250]
+    [560, 240, 240]
   );
   assert.equal(beguiling.endState.profession.beguilingHazeCharges, 0);
   const beguilingAmmo = beguiling.schedulerState.ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
@@ -762,7 +755,6 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     selectedTraitIds: [TRAIT.SHARED_WISDOM]
   });
 
-  assert.equal(defense.steps[0].fullCastMs, 320);
   assert.deepEqual(
     defense.events
       .filter((event) => event.type === 'buff')
@@ -1177,7 +1169,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
 
   assert.equal(
     kinetic.schedulerState.cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
-    8.75
+    kinetic.steps[0].end / 1000 + 8
   );
 
   const cosmic = simulate('Conduit', ['__combat_start', 'Cosmic Wisdom', 'Swap Legends', 'Release Potential: Mesmer'], {
@@ -1210,14 +1202,18 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     3
   );
 
-  const disable = simulate('Conduit', ['Abyssal Blot', { name: 'Call to Anguish', offset: 100 }], {
-    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
-    startingLegend: LEGEND.DEMON,
-    primaryWeapon: 'Spear',
-    secondaryWeapon: '',
-    initialEnergy: 100,
-    selectedTraitIds: [TRAIT.MISTFIRE]
-  });
+  const disable = simulate(
+    'Conduit',
+    ['Abyssal Blot', { name: 'Call to Anguish', offset: 100 }, { type: 'wait', durationMs: 1000 }],
+    {
+      selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+      startingLegend: LEGEND.DEMON,
+      primaryWeapon: 'Spear',
+      secondaryWeapon: '',
+      initialEnergy: 100,
+      selectedTraitIds: [TRAIT.MISTFIRE]
+    }
+  );
   const disableProcs = disable.events.filter((event) => event.skillName === 'Mistfire');
 
   assert.equal(

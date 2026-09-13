@@ -17,11 +17,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.TROLL_UNGUENT]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.HEALING_SPRING]: {
     effects: [
@@ -32,7 +32,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 6
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.SIGNET_OF_THE_WILD]: {
     interruptCommitMs: 0,
@@ -58,7 +58,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         persistsAfterInterrupt: true
       }))
     ],
-    quicknessCastTimeMs: 520
+    castTimeMs: 520
   },
   [ID.FROST_TRAP]: {
     interruptCommitMs: 440,
@@ -86,7 +86,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     comboFields: [
       {
         ownerId: 'ranger',
@@ -118,7 +118,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 4
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.STONE_SPIRIT]: {
     effects: [
@@ -141,7 +141,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 4
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.VIPERS_NEST]: {
     interruptCommitMs: 440,
@@ -170,7 +170,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ],
     // Match the measured Quickness animation from the benchmark EVTC.
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     comboFields: [
       {
         ownerId: 'ranger',
@@ -202,7 +202,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 4
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.SUN_SPIRIT]: {
     effects: [
@@ -226,7 +226,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     recharge: 20,
     cooldown: 20,
     // Use the measured Quickness animation so later casts begin at the logged time.
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     // Custom: Emits Solar Flare's Burning packet; see `core/execution/index.ts`.
     handlerId: 'ranger.sun-spirit'
   },
@@ -257,7 +257,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ],
     comboFields: [{ ownerId: 'ranger', fieldType: 'Fire', duration: 3, startMs: 520, startAnchor: 'castEnd' }],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.MUDDY_TERRAIN]: {
     effects: [
@@ -274,7 +274,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.STRENGTH_OF_THE_PACK]: {
     effects: [
@@ -306,7 +306,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         audience: { recipients: 'summons' as const, maximumRecipients: 2 }
       }
     ],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.SHARPENING_STONE]: {
     effects: [],
@@ -324,7 +324,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 4
       }
     ],
-    quicknessCastTimeMs: 1000
+    castTimeMs: 1000
   },
   [ID.ENTANGLE]: {
     interruptCommitMs: 0,
@@ -365,7 +365,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       }
     ],
     // Match the measured Quickness animation from the benchmark EVTC.
-    quicknessCastTimeMs: 680
+    castTimeMs: 680
   },
   [ID.SOLAR_FLARE]: {
     // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
@@ -378,7 +378,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.CALL_LIGHTNING]: {
     effects: [
@@ -388,7 +388,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.QUAKE]: {
     effects: [
@@ -405,15 +405,15 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.COLD_SNAP]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.NATURES_RENEWAL]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.PROTECT_ME]: {
     effects: [
@@ -424,7 +424,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.GUARD]: {
     effects: [
@@ -435,7 +435,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.SIC_EM]: {
     castTimeMs: 0,
@@ -458,15 +458,15 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         stacks: 4
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.AQUA_SURGE]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
     // Boons are copied from live recipients by the Core completion hook.
     effects: [],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   }
 });

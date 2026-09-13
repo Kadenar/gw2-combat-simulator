@@ -418,10 +418,12 @@ rotation migration.
 
 All native profession skill mechanics use one timing contract:
 
-- `castTimeMs` is the base action duration. A skill may instead provide only `quicknessCastTimeMs`; catalog assembly
-  derives the base duration with the 1.5 action-rate multiplier. When neither a measured Quickness duration nor
-  `unaffectedByQuickness` is present, the GW2 policy applies action-rate scaling and 40 ms quantization at runtime.
-- `unaffectedByQuickness` marks casts whose duration and cast-scaled effect timing do not change under Quickness.
+- Player `castTimeMs` is the effective action duration, calibrated with permanent Quickness. The scheduler does not
+  convert or quantize player cast durations based on boon presence. Runtime skill variants may still change their duration.
+- Independent summon casts retain base `castTimeMs`, optional measured `quicknessCastTimeMs`, and their existing
+  Quickness action-rate conversion and 40 ms rounding. Autonomous summons retain their profession-owned timing rules.
+- Player effect offsets use the same effective timeline as `castTimeMs`. Cast-relative effects scale with runtime
+  variants; fixed effects retain their authored offsets and pulse spacing.
 - `cooldown` is the canonical skill cooldown, `ammoRecharge` is the per-charge timer, and `ammoCastLockout` is the
   minimum delay between consecutive ammo casts. Imported API `recharge` values are normalized at profession catalog
   boundaries rather than retained on canonical Warrior skills.

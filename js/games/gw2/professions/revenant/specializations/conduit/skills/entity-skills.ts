@@ -142,7 +142,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.BEGUILING_HAZE_ID_76805]: {
     // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
     handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 10,
     recharge: 0,
     ammo: 1,
@@ -154,7 +154,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.TWIN_MOON_SWEEP]: {
     // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
     handlerId: 'revenant.twin-moon-sweep',
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 3,
     energyCost: 25,
     affinityOnHit: true,
@@ -173,7 +173,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
     // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
     handlerId: 'revenant.twin-moon-sweep',
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 3,
     energyCost: 25,
     affinityOnHit: true,
@@ -192,7 +192,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.BEGUILING_HAZE]: {
     // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
     handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 10,
     recharge: 0,
     ammo: 1,
@@ -204,7 +204,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.HEX_EATER_VORTEX]: {
     // Custom: Materializes affinity-dependent pulses and charge consumption; see `execution/entities.ts`.
     handlerId: 'revenant.hex-eater-vortex',
-    quicknessCastTimeMs: 526,
+    castTimeMs: 526,
     cooldown: 5,
     energyCost: 15,
     effects: HEX_EATER_VORTEX_EFFECTS,
@@ -214,7 +214,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     // Custom: Materializes affinity-dependent packets and defense state; see `execution/entities.ts`.
     handlerId: 'revenant.gladiators-defense',
     // The stunbreak commits before the remaining animation, which the default input cancels.
-    castTimeMs: 320,
+    castTimeMs: 240,
     interruptCommitMs: 40,
     defaultInterruptMs: 40,
     cooldown: 5,

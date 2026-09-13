@@ -7,8 +7,7 @@
  * both of those elements are currently attuned.
  *
  * Declarative data only - no handler logic lives here. Effect offsets are
- * authored against the quickened timeline given by `quicknessCastTimeMs` and
- * are scaled back out for slower casts by the cast-scaled scheduler policy.
+ * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -27,7 +26,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 650,
+    castTimeMs: 650,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -70,7 +69,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -100,7 +99,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 15,
     comboFields: [
       {
@@ -209,7 +208,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -295,7 +294,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -412,7 +411,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Staff',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1320,
+    castTimeMs: 1320,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [

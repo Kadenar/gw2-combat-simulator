@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DUSK_STRIKE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -16,8 +16,8 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.GRASPING_DARKNESS]: {
     interruptCommitMs: 0,
-    commitAtMs: 180,
-    quicknessCastTimeMs: 520,
+    commitAtMs: 120,
+    castTimeMs: 520,
     lifeForceOnHit: 10,
     effects: [
       {
@@ -51,7 +51,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.NIGHTFALL]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     lifeForcePerPulse: 7,
     effects: [
       {
@@ -91,7 +91,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     handlerId: 'necromancer.nightfall'
   },
   [ID.CHILLING_SCYTHE]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     // Once the strike lands, the next skill may safely cancel the remaining Chilling Scythe aftercast.
     interruptCommitMs: 720,
     effects: [
@@ -116,7 +116,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     handlerId: 'necromancer.chilling-scythe'
   },
   [ID.GRAVEDIGGER]: {
-    quicknessCastTimeMs: 1080,
+    castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
     retainsCastLockoutAfterInterrupt: true,
@@ -145,7 +145,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.FADING_TWILIGHT]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -157,7 +157,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     lifeForceGain: 2
   },
   [ID.DEATH_SPIRAL]: {
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     effects: [
       {
         type: 'strike',

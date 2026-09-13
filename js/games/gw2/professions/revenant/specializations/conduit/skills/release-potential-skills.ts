@@ -6,7 +6,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.RELEASE_POTENTIAL_MONK]: {
     // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
     handlerId: 'revenant.release-potential',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 10,
     energyCost: 0,
     effects: [
@@ -17,7 +17,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.RELEASE_POTENTIAL_MESMER]: {
     // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
     handlerId: 'revenant.release-potential',
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
     effects: [
@@ -61,7 +61,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.RELEASE_POTENTIAL_DERVISH]: {
     // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
     handlerId: 'revenant.release-potential',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // Dervish commits its impact before the remaining animation can be cancelled.
     interruptCommitMs: 560,
     cooldown: 10,
@@ -109,7 +109,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
     handlerId: 'revenant.release-potential',
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 10,
     energyCost: 0,
     effects: [
@@ -145,7 +145,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
     // Custom: Selects and materializes the affinity-specific release profile; see `execution/release-potential.ts`.
     handlerId: 'revenant.release-potential',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 10,
     energyCost: 0,
     effects: [

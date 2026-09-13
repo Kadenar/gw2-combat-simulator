@@ -90,7 +90,7 @@ export const galeshotSkillHandlers = Object.freeze({
         skill,
         skill.id === ID.HAWKEYE
           ? context.start
-          : context.start + Number(skill.windForceApplyMs ?? skill.quicknessCastTimeMs) / 1000
+          : context.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000
       );
     }
   },

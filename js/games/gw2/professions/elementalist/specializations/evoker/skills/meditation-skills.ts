@@ -13,7 +13,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     slot: 'Utility',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 18,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
@@ -26,7 +26,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     slot: 'Utility',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 20,
     resourceGain: 50,
     skillFamily: 'Meditation',
@@ -62,7 +62,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     slot: 'Utility',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 15,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
@@ -101,7 +101,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     slot: 'Elite',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 60,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
@@ -114,7 +114,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     slot: 'Heal',
     specialization: 'Evoker',
     categories: ['Meditation'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 18,
     skillFamily: 'Meditation',
     effects: []

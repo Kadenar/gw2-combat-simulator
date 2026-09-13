@@ -193,8 +193,8 @@ test('profession palette deduplicates actions and shows only active Conduit rele
 test('energy accumulates fractionally with elapsed time and skills pay their explicit costs', () => {
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 
-  // 50 - 30 + 2.5 during the half-second cast + 5 during the wait.
-  assert.equal(result.endState.profession.energy, 27.5);
+  // Energy accrues at five per second throughout the cast and the explicit wait.
+  assert.equal(result.endState.profession.energy, 20 + (result.endState.time / 1000) * 5);
   const denied = simulate('Core', ['Jade Winds'], { initialEnergy: 34 });
 
   assert.match(denied.warnings[0], /requires 35 energy/);
@@ -268,7 +268,7 @@ test('a cooldown-queued Revenant skill recovers Energy before its next cast', ()
     result.steps.map((step) => [step.skill, step.start]),
     [
       ['Phase Traversal', 0],
-      ['Phase Traversal', 5500]
+      ['Phase Traversal', result.steps[0].end + 5000]
     ]
   );
 });
@@ -1305,7 +1305,7 @@ test('Herald facets pulse their boons every three seconds', () => {
 test('Shared Empowerment grants one stack of eight-second Might on a strict one-second ICD', () => {
   const result = simulate(
     'Herald',
-    ['Pain Absorption', 'Pain Absorption', { type: 'wait', durationMs: 1 }, 'Pain Absorption'],
+    ['Pain Absorption', 'Pain Absorption', { type: 'wait', durationMs: 1001 }, 'Pain Absorption'],
     {
       selectedLegends: [LEGEND.DEMON, LEGEND.DRAGON],
       startingLegend: LEGEND.DEMON,

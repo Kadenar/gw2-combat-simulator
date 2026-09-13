@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SYMBOL_OF_PUNISHMENT]: {
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     cooldown: 10,
     comboFields: [
       {
@@ -49,7 +49,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.ORB_OF_WRATH]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -59,7 +59,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.CHAINS_OF_LIGHT]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',

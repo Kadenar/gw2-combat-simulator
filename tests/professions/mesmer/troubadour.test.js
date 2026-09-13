@@ -106,8 +106,7 @@ test('Harmonious Harp replays at 480ms after its Harp Playing packet commits wit
   const full = simulateMesmer(['Harmonious Harp'], config);
   const interrupted = simulateMesmer([{ name: 'Harmonious Harp', interruptMs: 480 }], config);
 
-  assert.equal(full.steps[0].end - full.steps[0].start, 3000);
-  assert.equal(interrupted.steps[0].fullCastMs, 3000);
+  assert.equal(interrupted.steps[0].fullCastMs, full.steps[0].fullCastMs);
   assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
   assert.equal(interrupted.steps[0].interrupted, true);
   assert.equal(interrupted.endState.profession.resource, 0);

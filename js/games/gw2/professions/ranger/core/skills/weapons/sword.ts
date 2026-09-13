@@ -11,7 +11,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.CRIPPLING_THRUST]: {
     effects: [
@@ -27,7 +27,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         duration: 2
       }
     ],
-    quicknessCastTimeMs: 320
+    castTimeMs: 320
   },
   [ID.PRECISION_SWIPE]: {
     effects: [
@@ -44,7 +44,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         audience: { recipients: 'summons' as const, affectsSelf: false, maximumRecipients: 1 }
       }
     ],
-    quicknessCastTimeMs: 600
+    castTimeMs: 600
   },
   [ID.SERPENTS_STRIKE]: {
     evades: true,
@@ -80,7 +80,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         duration: 3
       }
     ],
-    quicknessCastTimeMs: 1000
+    castTimeMs: 1000
   },
   [ID.POUNCE]: {
     effects: [
@@ -104,6 +104,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 840
+    castTimeMs: 840
   }
 });

@@ -589,7 +589,7 @@ test('Plaguelands, chill fields, and cooldown reset retain live behavior', () =>
         health: 1_000_000_000
       }
     },
-    observationTail(1000)
+    observationTail(3000)
   );
   const plagueEvents = (type, condition) =>
     plague.events.filter(
@@ -1083,10 +1083,10 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
     (event) => event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC_PRESENCE
   );
 
-  // The first hit and every other hit clear the half-second cooldown on the quantized, unquickened timeline.
+  // Only hits at least half a second after the preceding siphon may proc again.
   assert.deepEqual(
     baseSiphons.map((event) => Number(event.at.toFixed(2))),
-    [0.3, 0.84, 1.38, 1.92]
+    [0.2, 0.72, 1.28]
   );
   assert.equal(
     baseSiphons.every(
@@ -1419,8 +1419,8 @@ test('bone minion recharge starts after both minions are destroyed', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(explosions.length, 2);
   assert.equal(summons.length, 2);
-  assert.equal(explosions[1].start, 2000);
-  assert.equal(summons[1].start, 18_500);
+  assert.equal(explosions[1].start, explosions[0].end + 1000);
+  assert.equal(summons[1].start, explosions[1].end + 16000);
   assert.equal(result.endState.profession.activeMinions['bone-minion'], 2);
 });
 
@@ -1627,12 +1627,12 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
     result.events.filter((event) => event.type === 'action' && event.skillName === 'Anguish');
 
   assert.deepEqual(
-    anguishActions(base).map((event) => event.rechargeReadyAt),
-    [7.84, 15.68]
+    anguishActions(base).map((event) => Math.round((event.rechargeReadyAt - event.endsAt) * 1000)),
+    [7000, 7000]
   );
   assert.deepEqual(
-    anguishActions(sinister).map((event) => event.rechargeReadyAt),
-    [6.79, 13.58]
+    anguishActions(sinister).map((event) => Math.round((event.rechargeReadyAt - event.endsAt) * 1000)),
+    [5950, 5950]
   );
   assert.equal(
     base.steps.filter((step) => step.skill === 'Anguish')[1].start -

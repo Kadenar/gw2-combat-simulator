@@ -20,7 +20,6 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Berserk Mode',
     profileKind: 'mechanic',
     maximumStacks: 10,
-    quicknessCastMultiplier: 1.15,
     attributeBonus: 300,
     attributePerStack: 150,
     effects: [{ type: 'buff', kind: 'berserk', stacks: 1, duration: 20 }]

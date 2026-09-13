@@ -1,7 +1,7 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   firstStrikePacketOffsetMs,
-  quicknessRuntimeDurationMs,
+  referenceCastTimeMs,
   strikePacketOffsets
 } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
@@ -49,7 +49,7 @@ export function skillForAction(
   return recordedActionSkill(action, context);
 }
 
-export { firstStrikePacketOffsetMs, quicknessRuntimeDurationMs, strikePacketOffsets };
+export { firstStrikePacketOffsetMs, referenceCastTimeMs, strikePacketOffsets };
 
 export function createStrikePacketMatcher(
   context: EvtcProfessionReconstructionContext,
@@ -73,9 +73,7 @@ export function createStrikePacketMatcher(
     const cached = cache.get(action);
     if (cached) return cached;
     const skill = skillForAction(context, action);
-    const runtimeDurationMs = skill
-      ? (options.runtimeDurationMs?.(skill, action) ?? quicknessRuntimeDurationMs(skill))
-      : 0;
+    const runtimeDurationMs = skill ? (options.runtimeDurationMs?.(skill, action) ?? referenceCastTimeMs(skill)) : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {
           if (effect.type !== 'strike' || effect.actorType === 'summon') {

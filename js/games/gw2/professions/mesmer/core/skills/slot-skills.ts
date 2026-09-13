@@ -7,7 +7,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 666.666666667,
+    castTimeMs: 666.666666667,
     cooldown: 20,
     effects: []
   },
@@ -15,7 +15,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 833.333333333,
+    castTimeMs: 833.333333333,
     cooldown: 12,
     effects: []
   },
@@ -36,7 +36,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 1500,
+    castTimeMs: 1500,
     cooldown: 1,
     effects: []
   },
@@ -44,7 +44,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 1500,
+    castTimeMs: 1500,
     cooldown: 10,
     effects: []
   },
@@ -52,7 +52,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 166.666666667,
+    castTimeMs: 166.666666667,
     cooldown: 25,
     effects: []
   },
@@ -69,7 +69,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 833.333333333,
+    castTimeMs: 833.333333333,
     cooldown: 35,
     effects: []
   },
@@ -77,7 +77,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    castTimeMs: 1680,
+    castTimeMs: 1120,
     cooldown: 60,
     // Restart the passive clone interval only after the active cast completes.
     mechanicTriggers: [
@@ -109,7 +109,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 1140
+    castTimeMs: 760
   },
   [ID.FEEDBACK]: {
     type: 'Utility',
@@ -124,7 +124,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: '',
-    castTimeMs: 960,
+    castTimeMs: 640,
     cooldown: 120,
     effects: []
   },
@@ -149,7 +149,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         weapon: 'phantasm defender'
       }
     ],
-    quicknessCastTimeMs: 770
+    castTimeMs: 770
   },
   [ID.SIGNET_OF_THE_ETHER]: {
     type: 'Heal',
@@ -166,13 +166,13 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     effects: [],
-    quicknessCastTimeMs: 919
+    castTimeMs: 919
   },
   [ID.SIGNET_OF_HUMILITY]: {
     type: 'Elite',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 666.666666667,
+    castTimeMs: 666.666666667,
     cooldown: 45,
     effects: []
   },
@@ -180,7 +180,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: '',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 20,
     effects: []
   }

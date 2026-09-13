@@ -6,7 +6,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.BLOODBANE_PATH]: {
     interruptMode: 'per-packet',
     castTimeMs: 760,
-    unaffectedByQuickness: true,
+
     cooldown: 3,
     energyCost: 4,
     effects: [
@@ -33,7 +33,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SHATTERSHOT]: {
     castTimeMs: 480,
-    unaffectedByQuickness: true,
+
     interruptCommitMs: 400,
     cooldown: 0,
     energyCost: 0,
@@ -65,7 +65,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SCORCHRAZOR]: {
-    castTimeMs: 520,
+    castTimeMs: 360,
     cooldown: 12,
     energyCost: 16,
     effects: [
@@ -97,7 +97,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SEVENSHOT]: {
     castTimeMs: 440,
-    unaffectedByQuickness: true,
+
     cooldown: 7,
     energyCost: 7,
     comboFinishers: [
@@ -144,7 +144,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SPIRITCRUSH]: {
     castTimeMs: 400,
-    unaffectedByQuickness: true,
+
     cooldown: 9,
     energyCost: 12,
     comboFields: [

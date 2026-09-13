@@ -13,7 +13,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     weapon: '',
     specialization: 'Mirage',
     // Use the observed Quickness cast as the timing reference.
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 25,
     // The oasis starts pulsing during the cast; its mirror appears three seconds after that first pulse.
     mechanicTriggers: [
@@ -31,7 +31,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    quicknessCastTimeMs: 371,
+    castTimeMs: 371,
     cooldown: 20,
     // The ground mirror appears when the sand projectiles converge, after their damage packets.
     mechanicTriggers: [
@@ -67,7 +67,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     type: 'Utility',
     weapon: '',
     specialization: 'Mirage',
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     cooldown: 25,
     effects: [
       {
@@ -139,13 +139,13 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
 
 export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.CHAOS_VORTEX]: {
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 1,
     ambush: true,
     effects: []
   },
   [ID.ETHER_BARRAGE]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 1,
     ambush: true,
     effects: []
@@ -153,37 +153,37 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId
   [ID.SPLIT_SURGE]: {
     // Each beam and its statuses survive only if they land before the channel is interrupted.
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 0.5,
     ambush: true,
     effects: []
   },
   [ID.IMAGINARY_AXES]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 1,
     ambush: true,
     effects: []
   },
   [ID.MIRAGE_THRUST]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     cooldown: 1,
     ambush: true,
     effects: []
   },
   [ID.PHANTOM_RAZOR]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 1,
     ambush: true,
     effects: []
   },
   [ID.EFFERVESCENCE]: {
-    quicknessCastTimeMs: 166.666666667,
+    castTimeMs: 166.666666667,
     cooldown: 1,
     ambush: true,
     effects: []
   },
   [ID.FRACTURED_GLASS]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 1,
     ambush: true,
     effects: []

@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GHASTLY_CLAWS]: {
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 1440,
+    castTimeMs: 1440,
     effects: [
       {
         type: 'strike',
@@ -18,7 +18,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 12
   },
   [ID.RENDING_CLAWS]: {
-    quicknessCastTimeMs: 620,
+    castTimeMs: 620,
     effects: [
       {
         type: 'strike',
@@ -35,7 +35,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.UNHOLY_FEAST]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',

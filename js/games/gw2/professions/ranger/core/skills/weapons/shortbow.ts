@@ -18,7 +18,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 5
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.CROSSFIRE]: {
     effects: [
@@ -34,7 +34,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 3
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.CRIPPLING_SHOT]: {
     effects: [
@@ -62,7 +62,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 1.5
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     // Custom: Arms Blood Thirst charges after the shot; see `core/execution/index.ts`.
     handlerId: 'ranger.crippling-shot'
   },
@@ -85,7 +85,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
         controlKind: 'daze'
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.QUICK_SHOT]: {
     evades: true,
@@ -102,6 +102,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   }
 });

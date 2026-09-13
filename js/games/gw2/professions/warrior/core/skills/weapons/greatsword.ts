@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GREATSWORD_SWING]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     effects: [
       {
         type: 'strike',
@@ -20,7 +20,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.GREATSWORD_SLICE]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -36,7 +36,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.BRUTAL_STRIKE]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -46,7 +46,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.RUSH]: {
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -56,7 +56,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.WHIRLWIND_ATTACK]: {
-    quicknessCastTimeMs: 200,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -66,7 +66,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.BLADETRAIL]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -81,7 +81,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.HUNDRED_BLADES]: {
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 2440,
+    castTimeMs: 2440,
     effects: [
       {
         type: 'strike',

@@ -71,7 +71,7 @@ test('Artillery damage and conditions wait for impact without delaying the next 
 
   const lostFocus = simulate(
     'Core',
-    ['Conduit Surge', 'Lightning Rod', { type: 'wait', durationMs: 8240 }, 'Electric Artillery'],
+    ['Conduit Surge', 'Lightning Rod', { type: 'wait', durationMs: 8600 }, 'Electric Artillery'],
     {},
     { kind: 'tail', durationMs: 1000 }
   );

@@ -15,14 +15,14 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       { type: 'strike', coefficient: 2, hits: 1 },
       { type: 'condition', condition: 'Vulnerability', duration: 10, stacks: 6 }
     ]
   },
   [ID.CHILLED_TO_THE_BONE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
       { type: 'control', controlKind: 'control' },
@@ -30,7 +30,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.YOUR_SOUL_IS_MINE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [{ type: 'strike', coefficient: 0.5, hits: 1 }],
     lifeForceGain: 15
   },
@@ -44,7 +44,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.condition-transfer'
   },
   [ID.RISE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }]
   }
 });

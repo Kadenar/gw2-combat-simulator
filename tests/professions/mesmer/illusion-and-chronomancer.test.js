@@ -62,7 +62,7 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
 
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1630, 7380]
+    [0, 1170, 6920]
   );
   assert.equal(result.endState.ammo['Lingering Thoughts'].rechargeDuration, 6);
 });

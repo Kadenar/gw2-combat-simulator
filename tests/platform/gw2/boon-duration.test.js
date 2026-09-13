@@ -197,26 +197,14 @@ test('declarative generic buffs use shared timed state without boon-duration sca
   assert.equal(application?.duration, 10);
 });
 
-test('GW2 duration-stacks Quickness and Alacrity from repeated grants', () => {
+test('GW2 duration-stacks Alacrity from repeated grants', () => {
   const catalog = createCanonicalCatalog({
     generated: [
-      {
-        id: 930024,
-        name: 'Grant Quickness',
-        castTimeMs: 0,
-        effects: [{ type: 'boon', boon: 'Quickness', duration: 2, stacks: 1 }]
-      },
       {
         id: 930025,
         name: 'Grant Alacrity',
         castTimeMs: 0,
         effects: [{ type: 'boon', boon: 'Alacrity', duration: 2, stacks: 1 }]
-      },
-      {
-        id: 930026,
-        name: 'Stacked Quickness Cast',
-        castTimeMs: 600,
-        effects: []
       },
       {
         id: 930027,
@@ -235,21 +223,12 @@ test('GW2 duration-stacks Quickness and Alacrity from repeated grants', () => {
   const result = simulateGw2({
     profession,
     rotation: [
-      'Grant Quickness',
       'Grant Alacrity',
       { type: 'wait', durationMs: 1000 },
-      'Grant Quickness',
       'Grant Alacrity',
       { type: 'wait', durationMs: 2000 },
-      'Stacked Quickness Cast',
       'Stacked Alacrity Cooldown'
     ]
   });
-  const quicknessAction = result.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Stacked Quickness Cast'
-  );
-
-  assert.equal(quicknessAction.at, 3);
-  assert.equal(quicknessAction.endsAt, 3.4);
-  assert.equal(result.endState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 11400);
+  assert.equal(result.endState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 11000);
 });

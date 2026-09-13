@@ -9,7 +9,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Harbinger Shroud fragments to specialization composition. */
 export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VORACIOUS_ARC]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     blightCost: 5,
     effects: [{ type: 'strike', coefficient: 1.4, hits: 1 }],
     type: 'Profession',
@@ -30,7 +30,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.shroud'
   },
   [ID.VITAL_DRAW]: {
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     effects: [
       {
         type: 'strike',
@@ -74,7 +74,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.TAINTED_BOLTS]: {
     dhuumfireDuration: 1,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -102,7 +102,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     specialization: 'Harbinger'
   },
   [ID.DARK_BARRAGE]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
     interruptMode: 'per-packet',
     interruptCommitMs: 800,
@@ -143,7 +143,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'necromancer.dark-barrage'
   },
   [ID.DEVOURING_CUT]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // Devouring Cut lands at its 400 ms commit frame while retaining a 480 ms default cast.
     interruptCommitMs: 400,
     blightCost: 5,

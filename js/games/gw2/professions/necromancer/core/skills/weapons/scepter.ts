@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GRASPING_DEAD]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',
@@ -21,7 +21,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PUTRID_CURSE]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -44,7 +44,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BLOOD_CURSE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -61,7 +61,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.RENDING_CURSE]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -78,7 +78,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.FEAST_OF_CORRUPTION]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -96,7 +96,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [],
     lifeForceGain: 8,
     // Custom: Scales Torment stacks from the target's active condition count; see `core/mechanics/conditions.ts`.

@@ -6,7 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RIFLE_BURST]: {
     // Rifle Burst is a channel: interruption retains landed packets and cancels only its future packet.
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     interruptMode: 'per-packet',
     effects: [
@@ -41,7 +41,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.NET_SHOT]: {
-    quicknessCastTimeMs: 570,
+    castTimeMs: 570,
     cooldown: 9,
     effects: [
       {
@@ -71,7 +71,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.JUMP_SHOT]: {
     castTimeMs: 1000,
-    unaffectedByQuickness: true,
+
     cooldown: 18,
     effects: [
       {
@@ -100,7 +100,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BLUNDERBUSS]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 6,
     effects: [
       {
@@ -130,7 +130,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.OVERCHARGED_SHOT]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 14,
     effects: [
       {

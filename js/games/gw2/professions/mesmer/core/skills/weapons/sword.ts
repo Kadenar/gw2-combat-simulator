@@ -19,13 +19,13 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         weapon: 'sword'
       }
     ],
-    castTimeMs: 540
+    castTimeMs: 360
   },
   [ID.MIND_GASH]: {
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    castTimeMs: 780,
+    castTimeMs: 520,
     cooldown: 0,
     nextChainId: ID.MIND_SPIKE,
     effects: [
@@ -43,7 +43,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    castTimeMs: 1260,
+    castTimeMs: 840,
     cooldown: 0,
     boonlessCoefficient: 2,
     nextChainId: null,
@@ -62,7 +62,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    castTimeMs: 600,
+    castTimeMs: 400,
     cooldown: 12,
     resource: {
       mode: 'add',
@@ -130,13 +130,13 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         weapon: 'phantasm medium'
       }
     ],
-    castTimeMs: 1320
+    castTimeMs: 880
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    quicknessCastTimeMs: 1500,
+    castTimeMs: 1500,
     cooldown: 12,
     resource: {
       mode: 'add',
@@ -160,7 +160,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: '',
-    castTimeMs: 1440,
+    castTimeMs: 960,
     cooldown: 10,
     effects: [
       {
@@ -178,7 +178,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Sword',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     cooldown: 12,
     resource: {
       mode: 'add',

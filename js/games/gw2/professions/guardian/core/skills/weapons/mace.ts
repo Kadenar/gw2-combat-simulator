@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PROTECTORS_STRIKE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -14,7 +14,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.FAITHFUL_STRIKE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -24,7 +24,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.TRUE_STRIKE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -34,7 +34,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.PURE_STRIKE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -44,7 +44,7 @@ export const GUARDIAN_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SYMBOL_OF_FAITH]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 760, startAnchor: 'castStart' }],
     effects: [

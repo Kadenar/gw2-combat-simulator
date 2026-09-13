@@ -9,7 +9,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.CITADEL_BOMBARDMENT]: {
     // Quantize the pooled Hibernus/Seatek impact estimates to 40 ms after cast completion; exclude incomplete volleys.
     castTimeMs: 600,
-    unaffectedByQuickness: true,
+
     cooldown: 15,
     energyCost: 35,
     effects: [
@@ -38,7 +38,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.HEROIC_COMMAND]: {
     // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.heroic-command',
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 10,
     energyCost: 10,
     effects: [

@@ -12,7 +12,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingAnchor: 'castEnd'
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -34,7 +34,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 1667,
+    castTimeMs: 1667,
     effects: [
       {
         type: 'strike',
@@ -54,7 +54,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -70,7 +70,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.EXPLOSIVE_SHELL]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -101,7 +101,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',

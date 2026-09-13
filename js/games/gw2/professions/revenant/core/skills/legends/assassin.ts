@@ -6,7 +6,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.ENCHANTED_DAGGERS]: {
     // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `mechanics/enchanted-daggers.ts`.
     handlerId: 'revenant.enchanted-daggers',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 30,
     energyCost: 5,
     effects: [
@@ -58,7 +58,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     legendId: 'LegendaryAssassin'
   },
   [ID.PHASE_TRAVERSAL]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 5,
     energyCost: 30,
     effects: [
@@ -79,7 +79,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     legendId: 'LegendaryAssassin'
   },
   [ID.JADE_WINDS]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 10,
     energyCost: 35,
     effects: [
@@ -115,7 +115,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     legendId: 'LegendaryAssassin'
   },
   [ID.JADE_WINDS_ID_31294]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 10,
     energyCost: 35,
     effects: [

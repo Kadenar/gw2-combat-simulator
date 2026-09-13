@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -27,7 +27,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ENDLESS_NIGHT]: {
-    quicknessCastTimeMs: 1920,
+    castTimeMs: 1920,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -99,7 +99,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     requiredOffHand: 'Pistol'
   },
   [ID.TRIPLE_BOLT]: {
-    quicknessCastTimeMs: 1080,
+    castTimeMs: 1080,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -141,7 +141,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.TRIPLE_THREAT]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -172,7 +172,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     requiredOffHand: false
   },
   [ID.DOUBLE_BOLT]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -205,7 +205,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.TWILIGHT_COMBO]: {
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -251,7 +251,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     requiredOffHand: 'Dagger'
   },
   [ID.MEASURED_SHOT]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -279,7 +279,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.SHADOWSQUALL]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    quicknessCastTimeMs: 1960,
+    castTimeMs: 1960,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -312,7 +312,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     stealthAttack: true
   },
   [ID.SHADOW_SAP]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 4,
     effects: [

@@ -10,13 +10,11 @@ import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 export function beguilingHazeCastDuration(
   duration: number,
   followUp: boolean,
-  quickness: boolean,
   followUpProfile: BalanceProfile,
   mainExtensionProfile: BalanceProfile
 ): number {
   const profile = followUp ? followUpProfile : mainExtensionProfile;
-  const variantDuration =
-    (Number(profile.castTimeMs || 0) / 1000) * (quickness ? Number(profile.quicknessCastMultiplier ?? 1) : 1);
+  const variantDuration = Number(profile.castTimeMs || 0) / 1000;
   return followUp ? variantDuration : duration + variantDuration;
 }
 

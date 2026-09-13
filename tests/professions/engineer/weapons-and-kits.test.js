@@ -273,16 +273,16 @@ describe('Engineer packet profiles', () => {
 
   test('weapon kits retain their authored cadence and packets', () => {
     assert.deepEqual(
-      ['Shrapnel Grenade', 'Poison Grenade', 'Freeze Grenade'].map((name) => mechanic(name).quicknessCastTimeMs),
+      ['Shrapnel Grenade', 'Poison Grenade', 'Freeze Grenade'].map((name) => mechanic(name).castTimeMs),
       [680, 680, 680]
     );
-    assert.equal(mechanic('Flame Jet').castTimeMs, 2570);
+    assert.equal(mechanic('Flame Jet').castTimeMs, 1720);
     assert.equal(strikeEffectCoefficient(mechanic('Flame Jet').effects[0]), 2.5);
     assert.equal(
       mechanic('Napalm').effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
       5
     );
-    assert.equal(mechanic('Napalm').quicknessCastTimeMs, 1760);
+    assert.equal(mechanic('Napalm').castTimeMs, 1760);
     assert.equal(mechanic('Napalm').cooldown, 25);
     assert.equal(mechanic('Napalm').interruptMode, 'per-packet');
     assert.deepEqual(
@@ -293,7 +293,7 @@ describe('Engineer packet profiles', () => {
       mechanic('Napalm').effects[1].ticks.map((packet) => packet.atMs),
       mechanic('Napalm').effects[0].ticks.map((packet) => packet.atMs)
     );
-    assert.deepEqual([mechanic('Flame Blast').cooldown, mechanic('Flame Blast').quicknessCastTimeMs], [6, 800]);
+    assert.deepEqual([mechanic('Flame Blast').cooldown, mechanic('Flame Blast').castTimeMs], [6, 800]);
     assert.equal(mechanic('Flame Blast').effects[0].damageKind, 'explosion');
   });
 
@@ -308,7 +308,7 @@ describe('Engineer packet profiles', () => {
         'Prime Light Beam',
         'Corona Burst',
         'Photon Blitz'
-      ].map((name) => [name, mechanic(name).quicknessCastTimeMs]),
+      ].map((name) => [name, mechanic(name).castTimeMs]),
       [
         ['Fragmentation Shot', 520],
         ['Poison Dart Volley', 840],
@@ -353,7 +353,7 @@ describe('Engineer packet profiles', () => {
       ['Laser Disk', 'Photon Wall', 'Launch Wall', 'Prime Light Beam'].map((name) => [
         name,
         mechanic(name).cooldown,
-        mechanic(name).quicknessCastTimeMs
+        mechanic(name).castTimeMs
       ]),
       [
         ['Laser Disk', 30, 960],
@@ -382,29 +382,26 @@ describe('Engineer packet profiles', () => {
   test('Amalgam skills retain their authored cast timing', () => {
     assert.deepEqual(
       [
-        ['Air Blast', 'quicknessCastTimeMs'],
-        ['Puncturing Jab', 'quicknessCastTimeMs'],
-        ['Rending Strike', 'quicknessCastTimeMs'],
-        ['Amplifying Slice', 'quicknessCastTimeMs'],
+        ['Air Blast', 'castTimeMs'],
+        ['Puncturing Jab', 'castTimeMs'],
+        ['Rending Strike', 'castTimeMs'],
+        ['Amplifying Slice', 'castTimeMs'],
         ['Lightning Rod', 'castTimeMs'],
         ['Conduit Surge', 'castTimeMs'],
-        ['Electric Artillery', 'quicknessCastTimeMs'],
-        ['Stoke the Flames', 'quicknessCastTimeMs'],
-        ['Evolve (Base)', 'quicknessCastTimeMs'],
+        ['Electric Artillery', 'castTimeMs'],
+        ['Stoke the Flames', 'castTimeMs'],
+        ['Evolve (Base)', 'castTimeMs'],
         ['Devastator', 'castTimeMs']
       ].map(([name, field]) => mechanic(name)[field]),
       [360, 440, 520, 640, 400, 520, 520, 440, 640, 1000]
     );
-    for (const name of ['Lightning Rod', 'Conduit Surge', 'Devastator']) {
-      assert.equal(mechanic(name).unaffectedByQuickness, true, name);
-    }
   });
 
   test('Shred retains its packet and control profile', () => {
     const shredSkill = mechanic('Offensive Protocol: Shred');
     const shred = shredSkill.effects[0];
 
-    assert.equal(shredSkill.quicknessCastTimeMs, 760);
+    assert.equal(shredSkill.castTimeMs, 760);
     assert.deepEqual(
       shred.ticks.map((packet) => packet.coefficient),
       [0.96, 0.96, 0.96]
@@ -420,8 +417,7 @@ describe('Engineer packet profiles', () => {
   test('Demolish and Obliterate retain their packet profiles', () => {
     const demolish = mechanic('Offensive Protocol: Demolish');
 
-    assert.equal(demolish.castTimeMs, 2340);
-    assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
+    assert.equal(demolish.castTimeMs, 1000 + 560);
     assert.equal(demolish.rechargeAnchor, 'castStart');
     assert.equal(demolish.rechargeOffsetMs, 1000);
     assert.deepEqual(
@@ -440,7 +436,7 @@ describe('Engineer packet profiles', () => {
     );
     const obliterate = mechanic('Offensive Protocol: Obliterate');
 
-    assert.equal(obliterate.quicknessCastTimeMs, 800);
+    assert.equal(obliterate.castTimeMs, 800);
     assert.equal(strikeEffectCoefficient(obliterate.effects[0]), 2.88);
     assert.equal(effectFirstAtMs(obliterate.effects[0]), 640);
     assert.equal(obliterate.effects[0].timingAnchor, 'castStart');
@@ -453,7 +449,7 @@ describe('Engineer packet profiles', () => {
   test('Flux and Plasmatic State retain their multi-phase cadence', () => {
     const flux = mechanic('Flux State');
 
-    assert.equal(flux.quicknessCastTimeMs, 640);
+    assert.equal(flux.castTimeMs, 640);
     assert.equal(strikeEffectCoefficient(flux.effects[1]), 9);
     assert.equal(strikeEffectTicks(flux.effects[1]).length, 12);
     assert.deepEqual(
@@ -464,8 +460,7 @@ describe('Engineer packet profiles', () => {
 
     const plasmatic = mechanic('Plasmatic State');
 
-    assert.equal(plasmatic.castTimeMs, 1440);
-    assert.equal(plasmatic.quicknessCastTimeMs, 480 + 480);
+    assert.equal(plasmatic.castTimeMs, 480 + 480);
     assert.equal(plasmatic.rechargeAnchor, 'castStart');
     assert.equal(plasmatic.rechargeOffsetMs, 480);
     assert.equal(
@@ -692,8 +687,7 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
   const skill = (name) => engineerCatalog.skillsByName.get(name);
   const burst = skill('Rifle Burst');
 
-  assert.equal(burst.castTimeMs, 960);
-  assert.equal(burst.quicknessCastTimeMs, 640);
+  assert.equal(burst.castTimeMs, 640);
   assert.equal(burst.interruptMode, 'per-packet');
   assert.deepEqual(
     burst.effects.map((effect) => [strikeEffectCoefficient(effect), effectFirstAtMs(effect)]),
@@ -762,7 +756,7 @@ test('Mechanist rifle uses live close-range packets and measured cadence', () =>
 test('Engineer hammer skills use the requested packets and field cadence', () => {
   const skill = (name) => engineerCatalog.skillsByName.get(name);
 
-  assert.equal(skill('Positive Strike').quicknessCastTimeMs, 480);
+  assert.equal(skill('Positive Strike').castTimeMs, 480);
   assert.equal(strikeEffectCoefficient(skill('Positive Strike').effects[0]), 0.7);
   assert.deepEqual(skill('Positive Strike').effects[1], {
     type: 'boon',
@@ -773,10 +767,10 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
     timingAnchor: 'castStart',
     timingScale: 'fixed'
   });
-  assert.equal(skill('Negative Bash').quicknessCastTimeMs, 640);
+  assert.equal(skill('Negative Bash').castTimeMs, 640);
   assert.equal(strikeEffectCoefficient(skill('Negative Bash').effects[0]), 1);
   assert.equal(skill('Negative Bash').effects[1].ticks[0].duration, 8);
-  assert.equal(skill('Equalizing Blow').quicknessCastTimeMs, 440);
+  assert.equal(skill('Equalizing Blow').castTimeMs, 440);
   assert.equal(strikeEffectCoefficient(skill('Equalizing Blow').effects[0]), 1.4);
   assert.equal(skill('Equalizing Blow').effects[1].ticks[0].stacks, 3);
   assert.equal(skill('Equalizing Blow').effects[2].stacks, 3);
@@ -792,8 +786,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   const rocket = skill('Rocket Charge');
 
   assert.equal(rocket.castTimeMs, 1920);
-  assert.equal(rocket.quicknessCastTimeMs, undefined);
-  assert.equal(rocket.unaffectedByQuickness, true);
+
   assert.equal(rocket.cooldown, 12);
   assert.deepEqual(rocket.effects[0].ticks, [
     { atMs: 640, coefficient: 1.2 },
@@ -845,7 +838,7 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
 
   assert.deepEqual(
     thunderDamage.map((event) => event.at),
-    [1.75, 2.75, 3.75, 4.75, 5.75]
+    [1.52, 2.52, 3.52, 4.52, 5.52]
   );
   assert.ok(thunderDamage.every((event) => event.coefficient === 0.8));
   assert.equal(thunderVulnerability.length, 5);
@@ -897,19 +890,19 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
 
   assert.deepEqual(
     fireHits.map((event) => Number(event.at.toFixed(2))),
-    [1.66, 2.66, 3.66, 4.66]
+    [1.36, 2.36, 3.36, 4.36]
   );
   assert.ok(fireHits.every((event) => event.coefficient === 0.25));
   assert.deepEqual(
     fireBurns.map((event) => [Number(event.at.toFixed(2)), event.stacks, event.duration]),
     [
-      [1.66, 2, 5],
-      [2.66, 1, 2],
-      [3.66, 1, 2],
-      [4.66, 1, 2]
+      [1.36, 2, 5],
+      [2.36, 1, 2],
+      [3.36, 1, 2],
+      [4.36, 1, 2]
     ]
   );
-  assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').quicknessCastTimeMs, 600);
+  assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').castTimeMs, 600);
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].fieldType, 'Fire');
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].duration, 3);
 
@@ -917,7 +910,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
 
   assert.ok(
     galvanic.events.some(
-      (event) => event.type === 'damage' && Math.abs(event.at - 1.66) < 1e-12 && event.coefficient === 2.5
+      (event) => event.type === 'damage' && Math.abs(event.at - 1.36) < 1e-12 && event.coefficient === 2.5
     )
   );
   assert.ok(
@@ -930,13 +923,13 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
     galvanic.events.some((event) => event.type === 'control' && event.controlKind === 'daze' && event.duration === 1)
   );
   assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').comboFinishers[0].finisherType, 'Blast');
-  assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').quicknessCastTimeMs, 600);
+  assert.equal(engineerCatalog.skillsByName.get('Galvanic Bomb').castTimeMs, 600);
 
   const magnetic = engineerCatalog.skillsByName.get('Magnetic Bomb');
 
   assert.equal(strikeEffectCoefficient(magnetic.effects[0]), 1.5);
   assert.equal(magnetic.effects[1].controlKind, 'pull');
-  assert.equal(magnetic.quicknessCastTimeMs, 600);
+  assert.equal(magnetic.castTimeMs, 600);
   const magneticResult = simulate('Core', ['Bomb Kit', 'Magnetic Bomb', waitForBombPackets()], {
     selectedSkills,
     boons: { quickness: true }
@@ -956,28 +949,15 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   const big = simulate('Core', ['Bomb Kit', "Big Ol' Bomb", waitForBombPackets()], { selectedSkills });
 
   assert.ok(
-    big.events.some((event) => event.type === 'damage' && Math.abs(event.at - 3.66) < 1e-12 && event.coefficient === 3)
+    big.events.some((event) => event.type === 'damage' && Math.abs(event.at - 3.36) < 1e-12 && event.coefficient === 3)
   );
   assert.ok(
     big.events.some(
-      (event) => event.type === 'control' && Math.abs(event.at - 3.66) < 1e-12 && event.controlKind === 'knockdown'
+      (event) => event.type === 'control' && Math.abs(event.at - 3.36) < 1e-12 && event.controlKind === 'knockdown'
     )
   );
   assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").comboFinishers[0].successfulCombos, 2);
-  assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").quicknessCastTimeMs, 600);
-
-  const quickDamageTimes = (name) =>
-    simulate('Core', ['Bomb Kit', name, waitForBombPackets()], {
-      selectedSkills,
-      boons: { quickness: true }
-    })
-      .events.filter((event) => event.type === 'damage' && event.name === name)
-      .map((event) => Number(event.at.toFixed(2)));
-
-  assert.deepEqual(quickDamageTimes('Fire Bomb'), [1.36, 2.36, 3.36, 4.36]);
-  assert.deepEqual(quickDamageTimes('Galvanic Bomb'), [1.36]);
-  assert.deepEqual(quickDamageTimes('Magnetic Bomb'), [2.36]);
-  assert.deepEqual(quickDamageTimes("Big Ol' Bomb"), [3.36]);
+  assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").castTimeMs, 600);
 
   const doubleBlast = simulate(
     'Core',
@@ -1420,8 +1400,8 @@ test('Mine Field automatically detonates five mines with cripple', () => {
       .filter((event) => event.type === 'damage' && event.name === 'Damage per Mine')
       .map((event) => event.at);
 
-  assert.deepEqual(mineTimes(precast), Array(5).fill(2.38));
-  assert.deepEqual(mineTimes(active), Array(5).fill(1.38));
+  assert.deepEqual(mineTimes(precast), Array(5).fill(1.92));
+  assert.deepEqual(mineTimes(active), Array(5).fill(0.92));
 
   const staticPrecast = simulate('Core', ['Mine Field', { type: 'wait', durationMs: 1000 }, '__combat_start'], {
     selectedTraitIds: [TRAIT.STATIC_DISCHARGE]
@@ -1465,7 +1445,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
   const orbitalStrike = mechanic('Orbital Strike');
 
   assert.equal(orbitalStrike.cooldown, 40);
-  assert.equal(orbitalStrike.quicknessCastTimeMs, 880);
+  assert.equal(orbitalStrike.castTimeMs, 880);
   assert.equal(strikeEffectCoefficient(orbitalStrike.effects[0]), 1.33);
   assert.equal(effectFirstAtMs(orbitalStrike.effects[0]), 1720);
   assert.equal(orbitalStrike.effects[0].timingAnchor, 'castEnd');

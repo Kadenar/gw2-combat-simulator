@@ -473,7 +473,7 @@ test('per-packet channels cancel simultaneous hit pairs together', () => {
           id: 990050,
           name: 'Paired Channel',
           castTimeMs: 1000,
-          unaffectedByQuickness: true,
+
           interruptMode: 'per-packet',
           effects: [
             {

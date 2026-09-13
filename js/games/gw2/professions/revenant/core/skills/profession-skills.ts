@@ -54,7 +54,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
   [ID.ANCIENT_ECHO]: {
     // The replacing handler selects only the currently channeled legend's package and restores Energy.
     handlerId: 'revenant.ancient-echo',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 20,
     energyCost: 0,
     resourceGain: 25,

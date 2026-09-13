@@ -17,7 +17,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.PREPARE_THOUSAND_NEEDLES]: {
     // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.prepare-trap',
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Placement survives cancellation once the preparation commits.
     interruptCommitMs: 400,
     cooldown: 30,
@@ -27,7 +27,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.HIDE_IN_SHADOWS]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 25,
     initiativeCost: 0,
     effects: [
@@ -46,7 +46,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.CALTROPS]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     // Once placed, the field keeps pulsing after the cast is interrupted.
     interruptCommitMs: 800,
     cooldown: 24,
@@ -116,7 +116,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: []
   },
   [ID.SIGNET_OF_MALICE]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 12,
     initiativeCost: 0,
     effects: []
@@ -134,7 +134,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.PREPARE_PITFALL]: {
     // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
     handlerId: 'thief.prepare-trap',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 25,
     rechargeAnchor: 'castStart',
     initiativeCost: 0,
@@ -181,7 +181,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.THIEVES_GUILD]: {
     // Custom: Summons both thieves and schedules their autonomous attacks/expiry; see `core/skills/actions.ts`.
     handlerId: 'thief.thieves-guild',
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 120,
     initiativeCost: 0,
     effects: [],
@@ -285,7 +285,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     }
   },
   [ID.DAGGER_STORM]: {
-    castTimeMs: 2750,
+    castTimeMs: 1840,
     cooldown: 60,
     initiativeCost: 0,
     effects: [
@@ -324,13 +324,13 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.BASILISK_VENOM]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 40,
     initiativeCost: 0,
     effects: []
   },
   [ID.SKELK_VENOM]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 25,
     initiativeCost: 0,
     effects: []

@@ -8,60 +8,17 @@ import {
 } from '#gw2/platform/engine/skills/autoattack-chains.js';
 
 // Canonical catalogs normalize cast metadata and autoattack chains before execution.
-test('canonical skills derive missing base casts, preserve explicit durations, and can opt out of Quickness', () => {
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 930000,
-        name: 'Derived Base Cast',
-        quicknessCastTimeMs: 600,
-        effects: []
-      },
-      {
-        id: 930001,
-        name: 'Quickness Immune Cast',
-        castTimeMs: 700,
-        unaffectedByQuickness: true,
-        effects: []
-      },
-      {
-        id: 930003,
-        name: 'Explicit Base Cast',
-        castTimeMs: 640,
-        quicknessCastTimeMs: 440,
-        effects: []
-      }
-    ]
-  });
+test('canonical skills validate effective cast durations', () => {
+  // Invalid authored durations must fail at catalog loading before they reach the scheduler.
+  for (const castTimeMs of [-1, NaN, Infinity]) {
+    assert.throws(
+      () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', castTimeMs }] }),
+      /non-negative finite castTimeMs/
+    );
+  }
 
-  assert.deepEqual(
-    [catalog.skillsById.get(930000).castTimeMs, catalog.skillsById.get(930000).quicknessCastTimeMs],
-    [900, 600]
-  );
-  assert.deepEqual(
-    [catalog.skillsById.get(930001).castTimeMs, catalog.skillsById.get(930001).unaffectedByQuickness],
-    [700, true]
-  );
-  // A fixed movement segment prevents the full cast from following the standard Quickness ratio.
-  assert.deepEqual(
-    [catalog.skillsById.get(930003).castTimeMs, catalog.skillsById.get(930003).quicknessCastTimeMs],
-    [640, 440]
-  );
-  assert.throws(
-    () =>
-      createCanonicalCatalog({
-        generated: [
-          {
-            id: 930002,
-            name: 'Conflicting Quickness Cast',
-            castTimeMs: 700,
-            quicknessCastTimeMs: 500,
-            unaffectedByQuickness: true
-          }
-        ]
-      }),
-    /cannot specify quicknessCastTimeMs/
-  );
+  const catalog = createCanonicalCatalog({ generated: [{ id: 1, name: 'Instant', effects: [] }] });
+  assert.equal(catalog.skillsById.get(1).castTimeMs, 0);
 });
 
 test('shared autoattack helpers derive and index ID-based chains', () => {

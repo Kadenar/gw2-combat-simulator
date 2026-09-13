@@ -30,7 +30,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     ]
   },
   [ID.COUNTERSPELL]: {
-    castTimeMs: 900,
+    castTimeMs: 600,
     // The projectile and clone commit on the 360 ms Quickness frame, but weapon-swap cancellation retains the full cast lane.
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
@@ -70,7 +70,7 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     effects: []
   },
   [ID.COUNTER_BLADE]: {
-    castTimeMs: 1020,
+    castTimeMs: 680,
     cooldown: 0,
     flipDuration: 3,
     flipDelay: 0,

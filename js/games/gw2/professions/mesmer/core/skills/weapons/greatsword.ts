@@ -19,14 +19,14 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'fixed'
       }
     ],
-    castTimeMs: 480
+    castTimeMs: 320
   },
   [ID.SPATIAL_SURGE]: {
     interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 0,
     effects: [
       {
@@ -48,7 +48,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
-    castTimeMs: 960,
+    castTimeMs: 640,
     cooldown: 20,
     effects: [
       {
@@ -98,13 +98,13 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
         weapon: 'greatsword'
       }
     ],
-    castTimeMs: 840
+    castTimeMs: 560
   },
   [ID.MIRROR_BLADE]: {
     type: 'Weapon',
     weapon: 'Greatsword',
     specialization: '',
-    castTimeMs: 900,
+    castTimeMs: 600,
     cooldown: 5,
     // The projectile commits before the animation ends; its bounces and clone survive a later interrupt.
     interruptCommitMs: 560,

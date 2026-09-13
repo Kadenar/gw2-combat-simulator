@@ -10,12 +10,12 @@ export const PIERCING_STANCE_IMPACT_MS = 160;
 
 export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RESOLUTE_STANCE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.DARING_ADVANCE]: {
     castTimeMs: 1000,
-    unaffectedByQuickness: true,
+
     effects: [
       {
         type: 'strike',
@@ -42,7 +42,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     effects: []
   },
   [ID.PIERCING_STANCE]: {
-    quicknessCastTimeMs: 200,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -64,7 +64,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.
     simulatorExcluded: false,
     slotSelectable: false,
-    castTimeMs: 250,
+    castTimeMs: 200,
     // Activation grants the stance's defensive boons to nearby allies.
     effects: [
       { type: 'boon', boon: 'stability', stacks: 5, duration: 4, audience: { recipients: 'party' } },

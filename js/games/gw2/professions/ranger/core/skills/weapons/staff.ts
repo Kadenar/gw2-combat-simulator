@@ -12,7 +12,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.ANCESTRAL_GRACE]: {
     effects: [
@@ -23,7 +23,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 833
+    castTimeMs: 833
   },
   [ID.VINE_SURGE]: {
     effects: [
@@ -33,7 +33,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.SOLAR_BEAM]: {
     effects: [
@@ -43,10 +43,10 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 833
+    castTimeMs: 833
   },
   [ID.ASTRAL_WISP]: {
     effects: [],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   }
 });

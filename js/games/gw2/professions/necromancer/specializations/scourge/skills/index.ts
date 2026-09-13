@@ -18,7 +18,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.shade'
   },
   [ID.SERPENT_SIPHON]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'condition',
@@ -37,7 +37,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'necromancer.barrier'
   },
   [ID.GHASTLY_BREACH]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -60,7 +60,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ]
   },
   [ID.DESICCATE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -77,7 +77,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     lifeForceGain: 12
   },
   [ID.SAND_FLARE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [
       {
         type: 'condition',
@@ -115,7 +115,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     flipSkillId: null
   },
   [ID.MANIFEST_SAND_SHADE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [],
     cooldown: 15,
     ammo: 3,

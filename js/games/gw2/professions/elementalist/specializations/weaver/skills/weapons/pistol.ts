@@ -27,7 +27,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -118,7 +118,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -173,7 +173,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -228,7 +228,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -263,7 +263,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -328,7 +328,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Pistol',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [

@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHOP]: {
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     effects: [
       {
         type: 'strike',
@@ -15,7 +15,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DOUBLE_CHOP]: {
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     effects: [
       {
         type: 'strike',
@@ -32,7 +32,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.TRIPLE_CHOP]: {
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -53,7 +53,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ammoRecharge: 10,
     cooldown: 10,
     ammoCastLockout: 1,
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     dualWieldCastTimeMs: 240,
     effects: [
       {
@@ -72,7 +72,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.WHIRLING_AXE]: {
     interruptMode: 'per-packet',
     cooldown: 15,
-    quicknessCastTimeMs: 2500,
+    castTimeMs: 2500,
     dualWieldCastTimeMs: 2040,
     effects: [
       {
@@ -98,7 +98,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     cooldown: 12,
     castTimeMs: 500,
     dualWieldCastTimeMs: 400,
-    unaffectedByQuickness: true,
+
     effects: [
       {
         type: 'strike',
@@ -106,7 +106,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         hits: 2,
         atMs: 360,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -115,13 +115,13 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1,
         atMs: 360,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.CYCLONE_AXE]: {
     cooldown: 6,
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     dualWieldCastTimeMs: 280,
     effects: [
       {

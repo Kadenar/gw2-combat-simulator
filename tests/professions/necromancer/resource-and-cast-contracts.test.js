@@ -68,7 +68,7 @@ test('NEC-004 temporary horrors retain authored strike ticks and observation cli
     (event) => event.type === 'damage' && event.sourceId === 'unstable-horror.0'
   );
   assert.deepEqual(
-    packets.map((event) => [event.at - summon.end / 1000, event.coefficient]),
+    packets.map((event) => [Number((event.at - summon.end / 1000).toFixed(9)), event.coefficient]),
     [
       [1, 0.33],
       [6, 1.25]

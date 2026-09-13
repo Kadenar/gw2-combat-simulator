@@ -8,7 +8,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 20,
     effects: [
       {
@@ -20,7 +20,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SUPPLY_CRATE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 75,
     effects: [
       {
@@ -70,7 +70,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE,
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 12,
     rechargeAnchor: 'castStart'
   },
@@ -105,7 +105,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DEPLOY_MINE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     effects: [
       {
@@ -150,7 +150,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.A_E_D]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 24,
     effects: []
   },
@@ -173,7 +173,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.THROW_MINE_ID_30337]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 12,
     effects: [
       {
@@ -192,7 +192,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DEPLOY_MINE_ID_30893]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     effects: [
       {

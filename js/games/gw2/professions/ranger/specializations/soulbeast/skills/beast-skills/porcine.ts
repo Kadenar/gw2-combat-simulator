@@ -25,7 +25,7 @@ export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 560
+    castTimeMs: 560
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {
     castTimeMs: 0,

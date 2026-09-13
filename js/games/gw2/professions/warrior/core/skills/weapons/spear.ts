@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MAIMING_SPEAR]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -44,7 +44,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
   [ID.MIGHTY_THROW]: {
     // Custom: Suppresses secondary-target shards in single-target simulations; see `core/execution/index.ts`.
     handlerId: 'warrior.mighty-throw',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -65,7 +65,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.DISRUPTING_THROW]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -87,7 +87,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -106,7 +106,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SPEAR_SWIPE]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'control',

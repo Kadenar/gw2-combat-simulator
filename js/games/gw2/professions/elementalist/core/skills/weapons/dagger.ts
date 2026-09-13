@@ -27,7 +27,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -51,7 +51,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1360,
+    castTimeMs: 1360,
     cooldown: 5,
     skillFamily: 'Weapon skill',
     effects: [
@@ -87,7 +87,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 12,
     comboFields: [
       {
@@ -156,7 +156,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 15,
     comboFields: [
       {
@@ -202,7 +202,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     interruptCommitMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
@@ -229,7 +229,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -293,7 +293,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1360,
+    castTimeMs: 1360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -351,7 +351,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 12,
     comboFields: [
       {
@@ -407,7 +407,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_FROST,
     aura: 'Frost|10',
@@ -422,7 +422,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.FROST_AURA,
     skillFamily: 'Weapon skill',
@@ -458,7 +458,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: []
@@ -471,7 +471,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -507,7 +507,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 8,
     skillFamily: 'Weapon skill',
     effects: [
@@ -564,7 +564,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 10,
     nextChainId: ID.TRANSMUTE_LIGHTNING,
     aura: 'Shocking|10',
@@ -579,7 +579,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
@@ -613,7 +613,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 120,
+    castTimeMs: 120,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -637,7 +637,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -682,7 +682,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -722,7 +722,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -813,7 +813,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -859,7 +859,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     interruptCommitMs: 640,
     cooldown: 16,
     skillFamily: 'Weapon skill',
@@ -903,7 +903,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Dagger',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [

@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.THROW_BOLAS]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -14,7 +14,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.SIGNET_OF_RAGE]: {
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     dualWieldCastTimeMs: 160,
     effects: [
       {
@@ -38,7 +38,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.STOMP]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -58,7 +58,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.HEALING_SIGNET]: {
-    quicknessCastTimeMs: 833,
+    castTimeMs: 833,
     effects: [
       {
         type: 'boon',
@@ -70,13 +70,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.MENDING]: {
     cooldown: 12,
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     categories: ['Physical'],
     effects: []
   },
   [ID.TO_THE_LIMIT]: {
     cooldown: 24,
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
     mechanicTriggers: [
       {
@@ -92,7 +92,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.SIGNET_OF_MIGHT]: {
     cooldown: 20,
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'boon',
@@ -103,7 +103,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_STRENGTH]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'boon',
@@ -124,7 +124,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BANNER_OF_DISCIPLINE]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'boon',
@@ -153,7 +153,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.SIGNET_OF_FURY]: {
     cooldown: 16,
-    quicknessCastTimeMs: 350,
+    castTimeMs: 350,
     dualWieldCastTimeMs: 280,
     adrenalineGain: 30,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
@@ -171,7 +171,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BATTLE_STANDARD]: {
-    quicknessCastTimeMs: 1333,
+    castTimeMs: 1333,
     effects: [
       {
         type: 'strike',
@@ -199,7 +199,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.RAMPAGE]: {
-    quicknessCastTimeMs: 667,
+    castTimeMs: 667,
     effects: [
       {
         type: 'boon',
@@ -216,7 +216,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.KICK]: {
-    quicknessCastTimeMs: 842,
+    castTimeMs: 842,
     effects: [
       {
         type: 'strike',
@@ -237,7 +237,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
     // exclusion set below, by Dual Wielding.
     castTimeMs: 640,
-    unaffectedByQuickness: true,
+
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -259,7 +259,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DEFIANT_STANCE]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: []
   }
 });

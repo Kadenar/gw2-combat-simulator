@@ -15,7 +15,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     weapon: '',
     slot: 'Action',
     castTimeMs: 800,
-    unaffectedByQuickness: true,
+
     rechargeAnchor: 'castStart',
     cooldown: 0,
     // Custom: Spends endurance and applies Ranger dodge traits; see `execution/index.ts`.

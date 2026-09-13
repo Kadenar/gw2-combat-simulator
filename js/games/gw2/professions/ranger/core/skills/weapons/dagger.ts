@@ -23,7 +23,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         duration: 4
       }
     ],
-    quicknessCastTimeMs: 360
+    castTimeMs: 360
   },
   [ID.STALKERS_STRIKE]: {
     evades: true,
@@ -41,7 +41,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     // Movement impairment adds the remaining strike and Poison bonuses during resolution.
-    quicknessCastTimeMs: 760
+    castTimeMs: 760
   },
   [ID.LEADING_SWIPE]: {
     effects: [
@@ -57,7 +57,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 320
+    castTimeMs: 320
   },
   [ID.SERPENT_STAB]: {
     effects: [
@@ -73,7 +73,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 280
+    castTimeMs: 280
   },
   [ID.DOUBLE_ARC]: {
     effects: [
@@ -92,7 +92,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ],
     recharge: 6,
     cooldown: 6,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
     // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/execution/index.ts`.
     handlerId: 'ranger.poisonous-strikes'
@@ -123,7 +123,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 440
+    castTimeMs: 440
   },
   [ID.GROUNDWORK_GOUGE]: {
     effects: [
@@ -139,7 +139,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 280
+    castTimeMs: 280
   },
   [ID.INSTINCTIVE_ENGAGE]: {
     effects: [
@@ -176,6 +176,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ],
     recharge: 12,
     cooldown: 12,
-    quicknessCastTimeMs: 840
+    castTimeMs: 840
   }
 });

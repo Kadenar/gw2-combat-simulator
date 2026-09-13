@@ -160,10 +160,10 @@ export interface Skill extends CatalogSkill {
     readonly mainHand?: string;
     readonly offHand?: string | false;
   };
+  /** Effective player cast duration; independent summons retain their base duration. */
   readonly castTimeMs?: number;
+  /** Summon-only measured duration under Quickness. Player skills use castTimeMs. */
   readonly quicknessCastTimeMs?: number;
-  /** The cast duration and cast-bound effect timing ignore Quickness. */
-  readonly unaffectedByQuickness?: boolean;
   /**
    * Casts on a separate actor lane. Independent casts remain serial with one
    * another but do not reserve or delay the player's ordinary cast lane.

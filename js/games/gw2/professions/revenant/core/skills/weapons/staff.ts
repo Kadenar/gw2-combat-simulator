@@ -7,7 +7,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SURGE_OF_THE_MISTS]: {
     // Reviewed timings are Quickness durations; Surge's coefficient is the total across nine hits.
-    quicknessCastTimeMs: 1720,
+    castTimeMs: 1720,
     cooldown: 20,
     energyCost: 15,
     effects: [
@@ -31,7 +31,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.REJUVENATING_ASSAULT]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     comboFinishers: [{ ownerId: 'revenant', finisherType: 'Whirl', ambiguousFieldSelection: 'oldest' }],
     cooldown: 0,
     energyCost: 0,
@@ -50,7 +50,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.MENDERS_REBUKE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 5,
     energyCost: 5,
     effects: [
@@ -71,7 +71,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RAPID_SWIPE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -85,7 +85,7 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.WARDING_RIFT]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 12,
     energyCost: 10,
     effects: [
@@ -103,13 +103,13 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RENEWING_WAVE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 15,
     energyCost: 15,
     effects: []
   },
   [ID.FORCEFUL_BASH]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [

@@ -20,7 +20,7 @@ import {
   isEngineerMechCommand,
   observeEngineerMechEvent
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { engineerMechAttributes, mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type {
@@ -196,7 +196,7 @@ export const mechanistCastRules = Object.freeze({
     if (!isEngineerMechCommand(context.skill)) return duration;
     return (
       (engineerMechHasQuickness(context, context.start)
-        ? quicknessReferenceCastTimeMs(context.skill)
+        ? summonQuicknessCastTimeMs(context.skill)
         : Number(context.skill.castTimeMs || 0)) / 1000
     );
   },

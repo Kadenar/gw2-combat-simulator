@@ -84,18 +84,6 @@ test('score preserves relic activation and weapon-swap condition procs', async (
   assert.equal(swap.detailed.endState.activeWeaponSet, 2);
 });
 
-test('score reschedules gear-dependent self-generated Quickness instead of reusing cast times', async () => {
-  const rotation = ['"Feel My Wrath!"', { type: 'wait', durationMs: 7000 }, 'Sword of Wrath'];
-  const config = {
-    primaryWeapon: 'Sword',
-    boons: { quickness: false, alacrity: false },
-    stats: { power: 2000, precision: 1500, ferocity: 500, concentration: 0 }
-  };
-  const low = await parity('guardian', rotation, config);
-  const high = await parity('guardian', rotation, { ...config, stats: { ...config.stats, concentration: 1500 } });
-  assert.notEqual(low.detailed.duration, high.detailed.duration);
-});
-
 test('Necromancer retains ordinary feedback passes for Gravedigger and condition/environment health', () =>
   parity('necromancer', ['Nightfall', 'Gravedigger', 'Gravedigger'], {
     specialization: 'Reaper',

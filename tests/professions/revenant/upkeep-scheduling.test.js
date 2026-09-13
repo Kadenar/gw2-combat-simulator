@@ -88,7 +88,10 @@ test('allied Soulcleave cadence uses ally intervals across idle waits', () => {
     });
     assert.deepEqual(result.warnings, []);
     const start = result.steps[0].end / 1000;
-    assert.deepEqual(alliedProcTimes(result), [start + 2.5, start + 5]);
+    assert.deepEqual(
+      alliedProcTimes(result).map((at) => Number((at - start).toFixed(9))),
+      [2.5, 5]
+    );
   }
 });
 

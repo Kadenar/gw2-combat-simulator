@@ -5,7 +5,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
-const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
+const DEMOLISH_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
 // EVTC splits Demolish into a one-second spin and a 560 ms smash; fixed packet
 // timestamps preserve the observed animation hits under Quickness.
@@ -20,7 +20,7 @@ const DEMOLISH_SMASH_AT_MS = 1440;
 export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.OFFENSIVE_PROTOCOL_SHRED]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 20,
     comboFinishers: [
       {
@@ -74,7 +74,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    castTimeMs: DEMOLISH_CAST_TIME_MS,
     // Commit after the smash so its remaining aftercast can be interrupted.
     interruptCommitMs: 1520,
     cooldown: 20,
@@ -116,7 +116,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     effects: [
       {
@@ -167,7 +167,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     effects: [
       {
@@ -190,7 +190,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 20,
     effects: [
       {
@@ -218,7 +218,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 20,
     comboFinishers: [
       {
@@ -255,7 +255,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     effects: [
       {
@@ -278,7 +278,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    castTimeMs: DEMOLISH_CAST_TIME_MS,
     // Commit after the smash so its remaining aftercast can be interrupted.
     interruptCommitMs: 1520,
     cooldown: 20,
@@ -320,7 +320,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+    castTimeMs: DEMOLISH_CAST_TIME_MS,
     // Commit after the smash so its remaining aftercast can be interrupted.
     interruptCommitMs: 1520,
     cooldown: 20,
@@ -362,14 +362,14 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 20,
     effects: [],
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 20,
     effects: [
       {
@@ -397,7 +397,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 20,
     effects: [
       {
@@ -425,7 +425,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 20,
     comboFinishers: [
       {
@@ -496,7 +496,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 20,
     effects: [],
     mechanicSlot: 3
@@ -517,7 +517,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
     countsAsToolbeltSkill: true,
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 20,
     effects: [],
     mechanicSlot: 4

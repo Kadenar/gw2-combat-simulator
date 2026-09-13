@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 43149,
+        "benchmarkDps": 43151,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 41610,
+        "benchmarkDps": 41617,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -25,7 +25,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42172,
+        "benchmarkDps": 42179,
         "sourceBenchmarkDps": 41433,
         "dpsReportUrl": "https://dps.report/gkj1-20260501-134125_golem",
         "upToDate": true
@@ -35,7 +35,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
-        "benchmarkDps": 33256,
+        "benchmarkDps": 33255,
         "sourceBenchmarkDps": 33543,
         "dpsReportUrl": "https://dps.report/fcpL-20260723-040840_golem",
         "upToDate": true
@@ -45,7 +45,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
-        "benchmarkDps": 32900,
+        "benchmarkDps": 32899,
         "sourceBenchmarkDps": 32976,
         "dpsReportUrl": "https://dps.report/tH4i-20260726-111551_golem",
         "upToDate": true
@@ -60,7 +60,7 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41059,
+        "benchmarkDps": 41040,
         "sourceBenchmarkDps": 40916,
         "upToDate": true
       },
@@ -69,7 +69,7 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 34771,
+        "benchmarkDps": 34768,
         "sourceBenchmarkDps": 33198,
         "dpsReportUrl": "https://dps.report/qhoR-20260509-162737_golem",
         "upToDate": true

@@ -114,15 +114,6 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-// Berserk grants an inherent 15% attack speed bonus. The bonus is skipped when
-// quickness is active because quickness already provides superior haste and the
-// two are not additive in the game's speed model.
-function modifyCastDuration(context: WarriorCastContext, duration: number): number {
-  return berserkerState.from(context).berserkActive && !context.hasBuff('quickness', context.start)
-    ? duration / Number(balanceProfileFromContext(context, PROFILE.resources)?.quicknessCastMultiplier ?? 1.15)
-    : duration;
-}
-
 /** Enforces Berserker's primal-burst replacement and active-mode lifecycle. */
 function availability(context: WarriorCastContext, skill: WarriorSkill): AvailabilityResult {
   const state = berserkerState.from(context);
@@ -151,4 +142,4 @@ export const berserkerAttributeRules = Object.freeze({
   modifyAttributes,
   modifierRules
 });
-export const berserkerCastRules = Object.freeze({ modifyCastDuration, availability });
+export const berserkerCastRules = Object.freeze({ availability });

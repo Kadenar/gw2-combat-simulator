@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLA_SHOT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -66,7 +66,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Dagger'
   },
   [ID.UNLOAD]: {
-    quicknessCastTimeMs: 1320,
+    castTimeMs: 1320,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -108,7 +108,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.VITAL_SHOT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -130,7 +130,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.REPEATER]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -154,7 +154,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: false
   },
   [ID.BLACK_POWDER]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 6,
     effects: [
@@ -180,7 +180,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.SNEAK_ATTACK]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
@@ -204,7 +204,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     stealthAttack: true
   },
   [ID.REPEATER_ID_59526]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 0,
     initiativeCost: 2,
     effects: [

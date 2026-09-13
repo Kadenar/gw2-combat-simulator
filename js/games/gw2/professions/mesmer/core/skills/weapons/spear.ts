@@ -7,7 +7,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 12,
     effects: [
       {
@@ -56,7 +56,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 20,
     effects: [
       {
@@ -74,7 +74,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 0,
     nextChainId: ID.MIND_PIERCE,
     effects: [
@@ -92,7 +92,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
@@ -123,7 +123,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 0,
     nextChainId: null,
     effects: [
@@ -141,7 +141,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     interruptCommitMs: 600,
     cooldown: 10,
     effects: [
@@ -172,6 +172,6 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         weapon: 'spear'
       }
     ],
-    quicknessCastTimeMs: 400
+    castTimeMs: 400
   }
 });

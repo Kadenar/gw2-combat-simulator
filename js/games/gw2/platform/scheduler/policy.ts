@@ -8,19 +8,10 @@
  *
  * ## Cast and effect timing
  *
- * `skill.castTimeMs` is the canonical unquickened baseline. The catalog can
- * derive it from `quicknessCastTimeMs`. When Quickness is present at cast start,
- * the measured Quickness duration is used when supplied. Otherwise the baseline
- * is divided by the 1.5 action-rate multiplier and rounded up to the next 40 ms
- * action tick.
- *
- * Explicit cast-scaled effect offsets are authored against the Quickness timeline:
- *
- *     runtimeOffset = authoredOffset * runtimeCast / quicknessReferenceCastTimeMs
- *
- * A Quickness cast therefore uses the authored values 1:1, while an unquickened
- * cast expands them. This scaling only applies to effects marked
- * `timingScale: "cast"`.
+ * Player `skill.castTimeMs` is the effective action duration. Independent summons
+ * retain their base and Quickness durations. Cast-relative effect offsets follow
+ * runtime skill variants using runtimeCast / referenceCastTimeMs.
+ * This scaling only applies to effects marked `timingScale: "cast"`.
  * `timingScale: "fixed"` keeps its authored offsets unchanged. An interval on
  * a cast-scaled effect follows the same scale unless it explicitly declares
  * `intervalTimingScale: "fixed"`.
@@ -46,7 +37,7 @@ import {
   gw2SigilSet,
   gw2StatsForWeaponSet
 } from '#gw2/platform/combat/query/runtime-rules.js';
-import { projectCastRelativeEffectTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -81,14 +72,13 @@ function baseCastDurationMs(skill: Skill): number {
 }
 
 /**
- * Projects Quickness-relative effect timing onto the actual runtime cast.
- * Quickened casts use the stored packet values unchanged; slower casts scale
- * them upward while retaining their declared cast-start or cast-end anchor.
+ * Projects authored effect timing onto a runtime cast variant while retaining
+ * the declared cast-start or cast-end anchor.
  */
 function scaleCastBoundTiming(context: CastBoundTimingContext, skill: Skill, effect: SkillEffect): SkillEffect {
   if (effect.timingScale !== 'cast') return effect;
   const baseCastMs = baseCastDurationMs(skill);
-  if (!(baseCastMs > 0) || skill.unaffectedByQuickness) return effect;
+  if (!(baseCastMs > 0)) return effect;
   const adjustedCastMs = Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
   // Return a copy because skill metadata is shared by every simulation run.
@@ -370,18 +360,13 @@ export function createGw2SchedulerPolicy(
     },
 
     castDuration(context, skill, baseDuration) {
-      if (skill.unaffectedByQuickness) return baseDuration;
-      // Quickness is snapshotted at cast start for both the action and any
-      // cast-scaled effect offsets belonging to that action.
-      if (!context.hasBuff('quickness', context.start)) return baseDuration;
-      // Measured metadata wins and is not quantized again. The fallback models
-      // the standard action-rate conversion and action-tick boundary.
-      return quicknessReferenceCastTimeMs(skill, baseDuration * 1000) / 1000;
+      // Only independent summon casts still react to Quickness; players already store their effective duration.
+      if (!skill.independentCast || !context.hasBuff('quickness', context.start)) return baseDuration;
+      return summonQuicknessCastTimeMs(skill, baseDuration * 1000) / 1000;
     },
 
     effectTiming(context, skill, effect) {
-      // The helper leaves fixed effects untouched, preserves stored Quickness
-      // timing at a 1:1 scale, and expands cast-bound timing for slower casts.
+      // Fixed effects keep wall-clock timing; cast-relative effects follow runtime variants.
       return scaleCastBoundTiming(context, skill, effect);
     },
 

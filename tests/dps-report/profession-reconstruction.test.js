@@ -424,7 +424,7 @@ test('preserves shortened Blood Is Power inputs while the scheduler owns their r
     skills: [
       skill(10_544, 'Blood Is Power', {
         type: 'utility',
-        quicknessCastTimeMs: 880,
+        castTimeMs: 880,
         retainsCastLockoutAfterInterrupt: true
       })
     ]
@@ -455,7 +455,7 @@ test('collapses Rend animation rows into one Warrior cast', () => {
     2_000
   );
   const catalog = {
-    skills: [skill(80_247, 'Rend', { type: 'weapon', slot: 'weapon_3', quicknessCastTimeMs: 960 })]
+    skills: [skill(80_247, 'Rend', { type: 'weapon', slot: 'weapon_3', castTimeMs: 960 })]
   };
 
   const result = reconstructDpsReportRotation(report, catalog);
@@ -483,11 +483,11 @@ test('does not add waits for retained cast lockout already modeled by the skill'
     skills: [
       skill(14_519, 'Fan of Fire', {
         type: 'weapon',
-        quicknessCastTimeMs: 560,
+        castTimeMs: 560,
         interruptCommitMs: 240,
         retainsCastLockoutAfterInterrupt: true
       }),
-      skill(14_365, 'Gash', { type: 'weapon', quicknessCastTimeMs: 520 })
+      skill(14_365, 'Gash', { type: 'weapon', castTimeMs: 520 })
     ]
   };
 
@@ -519,11 +519,11 @@ test('rounds EI cast durations without extending cancellations to nearby commit 
     skills: [
       skill(14_519, 'Fan of Fire', {
         type: 'weapon',
-        quicknessCastTimeMs: 560,
+        castTimeMs: 560,
         interruptCommitMs: 240,
         retainsCastLockoutAfterInterrupt: true
       }),
-      skill(14_365, 'Gash', { type: 'weapon', quicknessCastTimeMs: 520 })
+      skill(14_365, 'Gash', { type: 'weapon', castTimeMs: 520 })
     ]
   };
 
@@ -880,19 +880,19 @@ test('normalizes Power Herald split weapon animations and automatic upkeep relea
   );
   const catalog = {
     skills: [
-      skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', quicknessCastTimeMs: 720 }),
+      skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 720 }),
       skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 0 }),
       skill(28382, 'Relinquish Power', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
       skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' }),
       skill(62895, "Phantom's Onslaught", {
         type: 'weapon',
         weapon: 'Greatsword',
-        quicknessCastTimeMs: 440
+        castTimeMs: 440
       }),
       skill(62713, "Phantom's Onslaught", {
         type: 'weapon',
         weapon: 'Greatsword',
-        quicknessCastTimeMs: 440
+        castTimeMs: 440
       })
     ]
   };
@@ -929,11 +929,11 @@ test('maps Conduit Cosmic Wisdom variants and split Mace animations to player in
   );
   const catalog = {
     skills: [
-      skill(28287, 'Embrace the Darkness', { type: 'elite', quicknessCastTimeMs: 440 }),
-      skill(27505, 'Banish Enchantment', { type: 'utility', quicknessCastTimeMs: 440 }),
-      skill(27917, 'Call to Anguish', { type: 'utility', quicknessCastTimeMs: 800 }),
-      skill(76503, 'Unyielding Impact', { type: 'utility', quicknessCastTimeMs: 920 }),
-      skill(28029, 'Frigid Blitz', { type: 'weapon', quicknessCastTimeMs: 960 })
+      skill(28287, 'Embrace the Darkness', { type: 'elite', castTimeMs: 440 }),
+      skill(27505, 'Banish Enchantment', { type: 'utility', castTimeMs: 440 }),
+      skill(27917, 'Call to Anguish', { type: 'utility', castTimeMs: 800 }),
+      skill(76503, 'Unyielding Impact', { type: 'utility', castTimeMs: 920 }),
+      skill(28029, 'Frigid Blitz', { type: 'weapon', castTimeMs: 960 })
     ]
   };
 

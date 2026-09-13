@@ -25,7 +25,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.TACTICAL_RELOAD]: {
     effects: [],
-    quicknessCastTimeMs: 552,
+    castTimeMs: 552,
     // Tactical Reload restores Bladesworn ammo and opens its reload window on completion.
     mechanicTriggers: [
       {
@@ -63,7 +63,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 641
+    castTimeMs: 641
   },
   [ID.FLOW_STABILIZER]: {
     castTimeMs: 0,
@@ -110,7 +110,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.OVERCHARGED_CARTRIDGES]: {
     ammo: 2,
@@ -118,7 +118,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 20,
     ammoCastLockout: 1,
     effects: [],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // Custom: Arms cartridge charges consumed by later explosions; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
     handlerId: 'warrior.overcharged-cartridges'
   },
@@ -138,7 +138,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 639,
+    castTimeMs: 639,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
@@ -157,7 +157,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 602,
+    castTimeMs: 602,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
@@ -177,7 +177,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         damageKind: 'explosion'
       }
     ],
-    quicknessCastTimeMs: 439,
+    castTimeMs: 439,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
@@ -202,7 +202,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         damageKind: 'explosion'
       }
     ],
-    quicknessCastTimeMs: 602,
+    castTimeMs: 602,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
@@ -212,7 +212,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     cooldown: 15,
     ammoCastLockout: 2,
     effects: [],
-    quicknessCastTimeMs: 681,
+    castTimeMs: 681,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     // Custom: Materializes Artillery Slash's charge-scaled projectile sequence; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
@@ -236,7 +236,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
@@ -260,13 +260,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },
   [ID.DRAGON_SLASH_FORCE]: {
     effects: [],
-    quicknessCastTimeMs: 1039,
+    castTimeMs: 1039,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
@@ -279,7 +279,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.DRAGON_SLASH_BOOST]: {
     movementSkill: true,
     effects: [],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
@@ -291,7 +291,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.DRAGON_SLASH_REACH]: {
     effects: [],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',

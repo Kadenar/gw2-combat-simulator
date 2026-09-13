@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JURISDICTION]: {
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     effects: [
       {
@@ -30,7 +30,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.HAIL_OF_JUSTICE]: {
     // EVTC impact offsets keep the five strikes and their conditions on the same timeline.
-    quicknessCastTimeMs: 1120,
+    castTimeMs: 1120,
     interruptCommitMs: 920,
     cooldown: 10,
     ammo: 2,
@@ -78,7 +78,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PEACEKEEPER]: {
     // EVTC impact offsets keep Burning aligned with each strike.
-    quicknessCastTimeMs: 1040,
+    castTimeMs: 1040,
     cooldown: 6,
     rechargeAnchor: 'castStart',
     effects: [
@@ -101,7 +101,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SYMBOL_OF_IGNITION]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     interruptCommitMs: 320,
     comboFields: [
       {
@@ -136,7 +136,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROUGH_THE_HEART]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     interruptCommitMs: 360,
     effects: [
       {

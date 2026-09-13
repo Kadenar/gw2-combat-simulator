@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIGID_BLITZ]: {
-    quicknessCastTimeMs: 681,
+    castTimeMs: 681,
     cooldown: 10,
     energyCost: 10,
     effects: [
@@ -39,7 +39,7 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TEMPORAL_RIFT]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 15,
     energyCost: 10,
     effects: [

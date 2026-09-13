@@ -26,7 +26,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Heal',
     slot: 'Heal',
     categories: ['Arcane'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Arcane',
     effects: [
@@ -56,7 +56,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Heal',
     slot: 'Heal',
     categories: ['Signet'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Signet',
     effects: []
@@ -66,7 +66,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Heal',
     slot: 'Heal',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     skillFamily: 'Glyph',
     effects: [
@@ -91,7 +91,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 1,
     ammo: 3,
     ammoRecharge: 20,
@@ -123,7 +123,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Arcane',
     effects: []
@@ -133,7 +133,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Arcane'],
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 2,
     ammo: 2,
     ammoRecharge: 25,
@@ -178,7 +178,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Conjure'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 60,
     skillFamily: 'Conjure',
     effects: []
@@ -188,7 +188,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Conjure'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 60,
     skillFamily: 'Conjure',
     effects: []
@@ -203,7 +203,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Fire',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
     effects: [
@@ -240,7 +240,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Water',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
     effects: []
@@ -251,7 +251,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Air',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
     effects: [
@@ -283,7 +283,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Earth',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
     effects: []
@@ -298,7 +298,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Fire',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 1120,
+    castTimeMs: 1120,
     cooldown: 25,
     skillFamily: 'Glyph',
     effects: [
@@ -333,7 +333,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       slot: 'Utility',
       attunement: 'Water',
       categories: ['Glyph'],
-      quicknessCastTimeMs: 1120,
+      castTimeMs: 1120,
       cooldown: 30,
       skillFamily: 'Glyph',
       effects: [
@@ -384,7 +384,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       slot: 'Utility',
       attunement: 'Air',
       categories: ['Glyph'],
-      quicknessCastTimeMs: 1120,
+      castTimeMs: 1120,
       interruptCommitMs: 880,
       cooldown: 60,
       skillFamily: 'Glyph',
@@ -460,7 +460,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Utility',
     attunement: 'Earth',
     categories: ['Glyph'],
-    quicknessCastTimeMs: 1120,
+    castTimeMs: 1120,
     cooldown: 40,
     skillFamily: 'Glyph',
     effects: [
@@ -506,7 +506,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Signet'],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 12,
     skillFamily: 'Signet',
     // Activating the signet disables its passive until recharge unless Written in Stone preserves it.
@@ -549,7 +549,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Signet'],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // The active commits at 480 ms; earlier interruptions cancel its effects.
     interruptCommitMs: 480,
     cooldown: 15,
@@ -603,7 +603,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Elite',
     slot: 'Elite',
     categories: ['Conjure'],
-    quicknessCastTimeMs: 1160,
+    castTimeMs: 1160,
     cooldown: 180,
     skillFamily: 'Conjure',
     effects: [
@@ -635,7 +635,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
-  // packets themselves. Their base cast time is quickness-scaled. The companion subsystem in
+  // packets themselves. Their player activation uses the effective cast duration. The companion subsystem in
   // core/mechanics/elementals/ owns the summon's lifetime, attack loop, and post-expiry recharge;
   // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
@@ -643,7 +643,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 190,
     skillFamily: 'Glyph',
     effects: []
@@ -653,7 +653,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Elite',
     slot: 'Elite',
     categories: ['Glyph'],
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 190,
     skillFamily: 'Glyph',
     effects: []
@@ -666,7 +666,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     type: 'Utility',
     slot: 'Utility',
     categories: ['Cantrip'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Cantrip',
     effects: [

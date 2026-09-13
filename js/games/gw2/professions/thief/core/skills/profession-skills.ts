@@ -41,7 +41,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.DETONATE_PLASMA]: {
     // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
     handlerId: 'thief.stolen-skill',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -118,7 +118,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.THROW_MAGNETIC_BOMB]: {
     // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
     handlerId: 'thief.stolen-skill',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [

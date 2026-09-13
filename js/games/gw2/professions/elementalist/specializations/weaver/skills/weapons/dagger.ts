@@ -7,8 +7,7 @@
  * both of those elements are currently attuned.
  *
  * Declarative data only - no handler logic lives here. Effect offsets are
- * authored against the quickened timeline given by `quicknessCastTimeMs` and
- * are scaled back out for slower casts by the cast-scaled scheduler policy.
+ * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -29,7 +28,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 18,
     comboFields: [
       {
@@ -64,7 +63,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -113,7 +112,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -175,7 +174,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -263,7 +262,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -300,7 +299,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     weapon: 'Dagger',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [

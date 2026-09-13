@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WAIL_OF_DOOM]: {
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'control',
@@ -13,7 +13,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.LOCUST_SWARM]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     // Round each original half-second pulse to 40 ms; keep whole-second pulses in place to avoid cumulative drift.
     effects: [
       {

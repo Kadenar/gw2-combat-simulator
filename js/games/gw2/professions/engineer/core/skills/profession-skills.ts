@@ -7,7 +7,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
   [ID.MINE_FIELD]: {
     // Custom: Defers precast mines to combat start and applies detonation traits; see `core/execution/index.ts`.
     handlerId: 'engineer.mine-field',
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 17,
     effects: [
       {
@@ -101,7 +101,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Radiation Field'
   },
   [ID.HIDDEN_PISTOLS]: {
-    castTimeMs: 1750,
+    castTimeMs: 1200,
     cooldown: 30,
     effects: [
       {
@@ -115,7 +115,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Hidden Pistol'
   },
   [ID.THROW_VINE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 45,
     effects: [
       {
@@ -135,7 +135,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Seed Turret'
   },
   [ID.STATIC_SHOCK]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: 480,
     effects: [
@@ -162,7 +162,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     mechanicSlot: 1
   },
   [ID.MED_PACK_DROP]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 50,
     effects: [],
     toolbeltParentName: 'Supply Crate',

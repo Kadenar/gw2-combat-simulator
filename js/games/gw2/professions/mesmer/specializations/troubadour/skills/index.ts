@@ -71,13 +71,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
         timingScale: 'fixed'
       }
     ],
-    castTimeMs: 660
+    castTimeMs: 440
   },
   [ID.LIVELY_LUTE]: {
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 12,
     effects: []
   },
@@ -98,7 +98,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Heal',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 666.666666667,
+    castTimeMs: 666.666666667,
     cooldown: 15,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
@@ -107,7 +107,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 20,
     effects: []
   },
@@ -125,7 +125,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     cooldown: 35,
     damageAtMs: 840,
     effects: []
@@ -135,7 +135,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     // Harp Playing commits by 480 ms, so an observed cast at or beyond that point can be reconstructed safely.
-    quicknessCastTimeMs: 2000,
+    castTimeMs: 2000,
     interruptCommitMs: 480,
     cooldown: 25,
     effects: []
@@ -144,7 +144,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Elite',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 666.666666667,
+    castTimeMs: 666.666666667,
     cooldown: 75,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
@@ -153,7 +153,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Utility',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 20,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: [
@@ -207,7 +207,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     // Keep the duplicate Harp profile aligned with the same packet-backed interrupt contract.
-    quicknessCastTimeMs: 2000,
+    castTimeMs: 2000,
     interruptCommitMs: 400,
     cooldown: 25,
     effects: []
@@ -216,7 +216,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 25,
     effects: []
   },
@@ -234,7 +234,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 12,
     effects: []
   }

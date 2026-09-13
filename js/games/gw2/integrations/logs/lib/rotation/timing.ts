@@ -2,7 +2,7 @@ import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import {
   castRelativeEffectTimingScale,
   retainsInterruptedCastLockout,
-  quicknessReferenceCastTimeMs,
+  referenceCastTimeMs,
   quantizeGw2ActionTimingMs
 } from '#gw2/platform/skills/timing.js';
 
@@ -10,7 +10,7 @@ import {
 export function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
   if (skill?.interruptMode === 'per-packet') return false;
   const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
-  if (elapsedMs >= quicknessReferenceCastTimeMs(skill)) return false;
+  if (elapsedMs >= referenceCastTimeMs(skill)) return false;
   const cutoffs = [skill?.interruptCommitMs, ...(skill?.effects || []).map((effect) => effect.interruptCommitMs)];
   return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
 }
@@ -20,14 +20,12 @@ export function retainsReplayCastLockout(skill: Skill | null, durationMs: number
   return retainsInterruptedCastLockout(skill, isUncommittedCast(skill, durationMs));
 }
 
-export function quicknessRuntimeDurationMs(skill: Skill | null): number {
-  return quicknessReferenceCastTimeMs(skill);
-}
+export { referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 export function strikePacketOffsets(
   skill: Skill,
   effect: StrikeEffect,
-  runtimeDurationMs = quicknessRuntimeDurationMs(skill)
+  runtimeDurationMs = referenceCastTimeMs(skill)
 ): number[] {
   const origin = effect.timingAnchor === 'castEnd' ? runtimeDurationMs : 0;
   const castScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, runtimeDurationMs) : 1;
@@ -43,7 +41,7 @@ export function strikePacketOffsets(
 /** Returns the earliest catalog-modeled strike packet used by either combat-log source to verify commitment. */
 export function firstStrikePacketOffsetMs(
   skill: Skill | null,
-  runtimeDurationMs = quicknessRuntimeDurationMs(skill),
+  runtimeDurationMs = referenceCastTimeMs(skill),
   options: { readonly explicitOnly?: boolean } = {}
 ): number | null {
   const offsets = (skill?.effects || []).flatMap((effect) => {

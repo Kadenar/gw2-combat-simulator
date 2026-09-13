@@ -55,7 +55,7 @@ const EFFECT_ACTOR_TYPES = new Set(['player', 'summon', 'effect', 'environment',
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);
-// Quickness increases action speed by 50 %, so unquickened cast time = quicknessCastTimeMs * 1.5.
+// Summons retain both timelines; player fragments supply their effective castTimeMs directly.
 const QUICKNESS_ACTION_RATE = 1.5;
 // Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
@@ -627,21 +627,12 @@ export function createCanonicalCatalog({
       throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
     }
 
-    // If only quicknessCastTimeMs is provided, derive the unquickened cast time by
-    // applying QUICKNESS_ACTION_RATE so both paths share a single source of truth.
+    // Only summon metadata supplies quicknessCastTimeMs and needs a derived base duration.
     const castTimeMs = Number(
       merged.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
     );
     if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
       throw new TypeError(`Skill ${id} requires a non-negative finite castTimeMs.`);
-    }
-
-    if (merged.unaffectedByQuickness != null && typeof merged.unaffectedByQuickness !== 'boolean') {
-      throw new TypeError(`Skill ${id} has an invalid unaffectedByQuickness.`);
-    }
-
-    if (merged.unaffectedByQuickness && quicknessCastTimeMs != null) {
-      throw new TypeError(`Skill ${id} cannot specify quicknessCastTimeMs when unaffectedByQuickness is true.`);
     }
 
     const interruptCommitMs = merged.interruptCommitMs == null ? null : Number(merged.interruptCommitMs);

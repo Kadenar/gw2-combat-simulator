@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     // Cancelling at or after 680 ms preserves the landing strike and blind.
     interruptCommitMs: 680,
     effects: [
@@ -40,8 +40,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.WHIRLING_WRATH]: {
     interruptMode: 'per-packet',
-    // The catalog derives the unquickened cast from this measured Quickness duration.
-    quicknessCastTimeMs: 1480,
+    // Store the measured effective action duration directly.
+    castTimeMs: 1480,
     // ponytail: land both hits at projectile arrival so cancellation uses one boundary per pair;
     // restore separate launch timing only if the 40 ms melee lead needs to be modeled.
     effects: [
@@ -58,7 +58,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_STRIKE]: {
-    castTimeMs: 600,
+    castTimeMs: 400,
     // A committed cancel advances the chain and preserves the pending hit at its normal impact time.
     interruptCommitMs: 320,
     effects: [
@@ -72,7 +72,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_VENGEFUL_STRIKE]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     // The packet commits at 400 ms, but cancelling there retains the full
     // 600 ms action lockout observed in the combat log.
     interruptCommitMs: 400,
@@ -87,7 +87,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.GREAT_SWORD_WRATHFUL_STRIKE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     // Damage lands at 440 ms; the 480 ms safe cancel still keeps the full
     // 680 ms Quickness action lane occupied.
     interruptCommitMs: 480,
@@ -103,7 +103,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.SYMBOL_OF_RESOLUTION]: {
     castTimeMs: 320,
-    unaffectedByQuickness: true,
+
     // The symbol commits at 240 ms but may occupy the action lane through 320 ms, so imported tick timings
     // between those bounds are safe interrupts and the committed symbol keeps pulsing afterward.
     interruptCommitMs: 240,
@@ -138,7 +138,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.BINDING_BLADE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -163,7 +163,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PULL]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     // Binding Blade only tethers; its armed Pull flip owns the control event that can trigger control relics.
     effects: [
       {

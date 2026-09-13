@@ -9,7 +9,7 @@ const maul: SkillFragment = {
     { type: 'strike', coefficient: 2.2, hits: 1 },
     { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
   ],
-  quicknessCastTimeMs: 333
+  castTimeMs: 333
 };
 
 export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -21,7 +21,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.HILT_BASH]: {
     cooldown: 20,
@@ -34,7 +34,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       { type: 'control', controlKind: 'Daze' }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.SLICE]: {
     effects: [
@@ -44,7 +44,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.ENDURING_SWING]: {
     resourceGain: 15,
@@ -55,7 +55,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.SWOOP]: {
     cooldown: 10,
@@ -68,11 +68,11 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         comboFinishers: [{ ownerId: 'ranger', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }]
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.COUNTERATTACK]: {
     effects: [],
-    quicknessCastTimeMs: 2000
+    castTimeMs: 2000
   },
   [ID.COUNTERATTACK_KICK]: {
     evades: true,
@@ -85,7 +85,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       { type: 'control', controlKind: 'Knockback' }
     ],
-    quicknessCastTimeMs: 333
+    castTimeMs: 333
   },
   [ID.MAUL]: maul,
   [ID.MAUL_ID_46629]: maul

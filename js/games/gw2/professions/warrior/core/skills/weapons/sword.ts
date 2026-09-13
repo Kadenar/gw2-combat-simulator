@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMSTRING]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     dualWieldCastTimeMs: 320,
     effects: [
       {
@@ -32,7 +32,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SEVER_ARTERY]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     dualWieldCastTimeMs: 280,
     effects: [
       {
@@ -50,7 +50,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.GASH]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     dualWieldCastTimeMs: 360,
     // Gash lands its strike at 280ms, but the activation is not safely
     // interruptible until 380ms and still retains its remaining cast lane.
@@ -79,7 +79,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     effects: [
       {
         type: 'strike',
@@ -102,11 +102,11 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.RIPOSTE]: {
-    quicknessCastTimeMs: 1500,
+    castTimeMs: 1500,
     effects: []
   },
   [ID.IMPALE]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     effects: [
       {
         type: 'strike',
@@ -132,7 +132,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.RIP]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -148,7 +148,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ADRENALINE_RUSH]: {
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineGain: 3,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
@@ -162,7 +162,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.REND]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     dualWieldCastTimeMs: 720,
     effects: [
       {

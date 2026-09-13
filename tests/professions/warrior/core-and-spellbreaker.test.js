@@ -799,18 +799,17 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
     [ID.GREATSWORD_SWING, 400]
   ];
 
-  for (const [skillId, quicknessCastTimeMs] of configuredCastTimes) {
+  for (const [skillId, castTimeMs] of configuredCastTimes) {
     const skill = warriorCatalog.skillsById.get(skillId);
 
-    assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs);
-    assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5);
-    assert.equal(skill.quicknessCastTimeMs % 40, 0);
+    assert.equal(skill.castTimeMs, castTimeMs);
+
+    assert.equal(skill.castTimeMs % 40, 0);
   }
 
   const bullsCharge = warriorCatalog.skillsById.get(ID.BULLS_CHARGE);
 
   assert.equal(bullsCharge.castTimeMs, 640);
-  assert.equal(bullsCharge.unaffectedByQuickness, true);
 
   assert.equal(arc.cooldown, 5);
   assert.equal(arc.skillWeapon, 'Greatsword');
@@ -981,7 +980,7 @@ test('Spellbreaker Winds and Kick use the supplied PvE mechanics', () => {
     [0.45, 0.45, 0.45, 0.45, 0.45]
   );
   assert.deepEqual(
-    pulses.slice(1).map((pulse, index) => pulse.at - pulses[index].at),
+    pulses.slice(1).map((pulse, index) => Number((pulse.at - pulses[index].at).toFixed(9))),
     [1, 1, 1, 1]
   );
   assert.equal(
@@ -1340,7 +1339,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
   const mending = warriorCatalog.skillsById.get(ID.MENDING);
 
   assert.equal(mending.cooldown, 12);
-  assert.equal(mending.quicknessCastTimeMs, 920);
+  assert.equal(mending.castTimeMs, 920);
   assert.equal(mending.categories.includes('Physical'), true);
   const mendingProc = simulate('Core', ['Mending'], {
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],

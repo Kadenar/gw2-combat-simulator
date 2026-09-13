@@ -39,7 +39,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         stacks: 2
       }
     ],
-    quicknessCastTimeMs: 480
+    castTimeMs: 480
   },
   [ID.PHANTASMAL_WARLOCK]: {
     type: 'Weapon',
@@ -76,7 +76,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         summonKind: 'phantasm'
       }
     ],
-    quicknessCastTimeMs: 840
+    castTimeMs: 840
   },
   [ID.WINDS_OF_CHAOS]: {
     type: 'Weapon',
@@ -113,7 +113,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 760
+    castTimeMs: 760
   },
   [ID.PHASE_RETREAT]: {
     type: 'Weapon',

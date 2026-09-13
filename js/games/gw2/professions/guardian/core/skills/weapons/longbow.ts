@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
 export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEFLECTING_SHOT]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -23,7 +23,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SYMBOL_OF_ENERGY]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     // The symbol creates its four-second Light field with the initial impact.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
@@ -49,7 +49,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.TRUE_SHOT]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
@@ -60,7 +60,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.PUNCTURE_SHOT]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
     interruptCommitMs: 560,
     effects: [
@@ -74,7 +74,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.HUNTERS_WARD]: {
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     effects: [
       {
         type: 'strike',

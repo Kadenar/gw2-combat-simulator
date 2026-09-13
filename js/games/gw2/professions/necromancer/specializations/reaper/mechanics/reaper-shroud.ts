@@ -1,6 +1,5 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -22,7 +21,6 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import type {
   NecromancerCastContext,
-  NecromancerCastModifierContext,
   NecromancerSchedulerContext,
   NecromancerSimulationEvent,
   NecromancerSkill
@@ -117,16 +115,6 @@ function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Schedul
   return result;
 }
 
-/** Applies Reaper's Onslaught attack speed without exceeding the shared Quickness cap. */
-function modifyReaperCastDuration(context: NecromancerCastModifierContext, duration: number): number {
-  // Reaper's Onslaught grants +50% attack speed in Reaper Shroud, but quickness already covers that cap so they don't stack.
-  return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
-    professionCoreState(context).activeShroud === 'reaper' &&
-    !context.hasBuff?.('quickness', context.start)
-    ? duration / Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.quicknessCastMultiplier ?? 1.5)
-    : duration;
-}
-
 export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     // Reaper Shouts deal double damage to nearby targets (the sole target is assumed nearby unless explicitly set false).
@@ -185,6 +173,4 @@ export const reaperAttributeRules = Object.freeze({
   modifierRules: reaperModifierRules
 });
 
-export const reaperCastRules = Object.freeze({
-  modifyCastDuration: modifyReaperCastDuration
-});
+export const reaperCastRules = Object.freeze({});

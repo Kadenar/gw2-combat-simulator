@@ -16,7 +16,7 @@ import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotat
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { quantizeGw2ActionTimingMs, quicknessReferenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
@@ -174,7 +174,7 @@ function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   const sourceDurationMs = action.end - action.start;
   // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
-  const runtimeDurationMs = quicknessReferenceCastTimeMs(action.skill);
+  const runtimeDurationMs = referenceCastTimeMs(action.skill);
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
@@ -198,7 +198,7 @@ function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCo
 function replayActionEnd(action: DpsReportResolvedAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
   if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
-    const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+    const runtimeDuration = referenceCastTimeMs(action.skill);
     return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
   }
 
@@ -206,7 +206,7 @@ function replayActionEnd(action: DpsReportResolvedAction, completeReportedAfterc
   const interruptMs = observedInterruptMs(action);
   if (interruptMs != null) return action.start + interruptMs;
   if (!completeReportedAftercast) return action.end;
-  const runtimeDuration = quicknessReferenceCastTimeMs(action.skill);
+  const runtimeDuration = referenceCastTimeMs(action.skill);
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
 

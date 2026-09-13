@@ -50,7 +50,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 1
       }
     ],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -59,7 +59,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.NATURAL_HEALING]: {
     effects: [],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.SKULL_CRACK_ID_41110]: {
     effects: [
@@ -74,7 +74,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -105,7 +105,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 1167,
+    castTimeMs: 1167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -152,7 +152,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 1
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -180,7 +180,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -202,7 +202,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         duration: 5
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -224,7 +224,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         }
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.FLEETING_STABILITY]: {
     castTimeMs: 0,
@@ -271,7 +271,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     // The counterattack only occurs after absorbing an incoming attack. The
     // benchmark target never attacks, so activation alone has no effects.
     effects: [],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -330,7 +330,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         }
       }
     ],
-    quicknessCastTimeMs: 1000
+    castTimeMs: 1000
   },
   [ID.MAGEHUNTER_STRIKE]: {
     castTimeMs: 0,
@@ -361,7 +361,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -382,7 +382,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

@@ -33,7 +33,7 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 833
+    castTimeMs: 833
   },
   [ID.WORLDLY_IMPACT]: {
     interruptCommitMs: 520,
@@ -45,7 +45,7 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 680
+    castTimeMs: 680
   },
   [ID.PRELUDE_LASH]: {
     effects: [
@@ -60,7 +60,7 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   },
   [ID.SPIRITUAL_REPRIEVE]: {
     effects: [
@@ -71,10 +71,10 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 667
+    castTimeMs: 667
   },
   [ID.UNFLINCHING_FORTITUDE]: {
     effects: [],
-    quicknessCastTimeMs: 167
+    castTimeMs: 167
   }
 });

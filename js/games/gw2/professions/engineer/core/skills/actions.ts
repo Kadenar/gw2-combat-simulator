@@ -18,7 +18,7 @@ const extraSkills: Skill[] = [
     // Custom: Spends endurance and emits the Engineer dodge state; see `dodge.ts`.
     handlerId: 'engineer.dodge',
     // Quickness does not shorten the fixed evade animation recorded for ordinary dodge rolls.
-    unaffectedByQuickness: true,
+
     castTimeMs: 800,
     cooldown: 0,
     effects: []

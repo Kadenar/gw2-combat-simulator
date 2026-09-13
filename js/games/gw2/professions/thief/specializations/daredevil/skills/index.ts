@@ -3,7 +3,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 25,
     initiativeCost: 0,
     effects: [
@@ -24,7 +24,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.FINISHING_BLOW]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -39,7 +39,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.UPPERCUT]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -60,7 +60,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.IMPAIRING_DAGGERS]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 15,
     initiativeCost: 0,
     effects: [
@@ -100,7 +100,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.CHANNELED_VIGOR]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     // The endurance grant commits at 440 ms, allowing the remaining cast to be interrupted.
     interruptCommitMs: 440,
     cooldown: 20,
@@ -109,7 +109,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     effects: []
   },
   [ID.REFLEXIVE_STRIKE]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -152,13 +152,13 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.BANDITS_DEFENSE]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 16,
     initiativeCost: 0,
     effects: []
   },
   [ID.PALM_STRIKE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -205,7 +205,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.FIST_FLURRY]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,
     effects: [
@@ -233,7 +233,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.BOUND]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -248,7 +248,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     ]
   },
   [ID.DASH_TRAIT_SKILL]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
     effects: [

@@ -23,37 +23,45 @@ export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION
 }
 
 /**
- * Returns the Quickness timeline used to author cast-scaled effect packets.
+ * Returns a summon's Quickness timeline used to author cast-scaled effect packets.
  * Explicit measurements win; otherwise the standard action-rate conversion is
  * rounded to the next action tick.
  */
-export function quicknessReferenceCastTimeMs(skill: Skill | null, fallbackBaseMs?: number): number {
+export function summonQuicknessCastTimeMs(skill: Skill | null, fallbackBaseMs?: number): number {
   const baseMs = Math.max(0, Number(fallbackBaseMs ?? skill?.castTimeMs ?? 0));
-  if (skill?.unaffectedByQuickness === true) return baseMs;
   const explicitMs = Math.max(0, Number(skill?.quicknessCastTimeMs ?? 0));
   if (explicitMs > 0) return explicitMs;
   return quantizeGw2ActionDurationUp(baseMs / GW2_QUICKNESS_ACTION_RATE);
 }
 
-/** Projects a Quickness-authored effect timeline onto the actual cast length. */
+/** Player durations are effective timings; independent summon casts retain their own action-rate model. */
+export function referenceCastTimeMs(skill: Skill | null): number {
+  return skill?.independentCast || skill?.quicknessCastTimeMs != null
+    ? summonQuicknessCastTimeMs(skill)
+    : Math.max(0, Number(skill?.castTimeMs ?? 0));
+}
+
+/** Projects an authored effect timeline onto a skill variant's actual cast length. */
 export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: number): number {
-  if (skill.unaffectedByQuickness === true) return 1;
-  const referenceMs = quicknessReferenceCastTimeMs(skill);
+  const referenceMs = referenceCastTimeMs(skill);
   if (!(referenceMs > 0)) return 1;
   const runtimeMs = Math.max(0, Number(runtimeCastMs));
-  // Keep the measured runtime ratio even at nominal 1:1 Quickness. Its tiny
+  // Keep the measured runtime ratio even at nominal 1:1 speed. Its tiny
   // clock-rounding residue preserves event ordering at exact packet boundaries.
   return runtimeMs / referenceMs;
 }
 
 /**
- * Projects one Quickness-authored timestamp while retaining the prior
+ * Projects player packets directly; summon packets retain their existing
  * base-timeline arithmetic order at exact event boundaries.
  */
 export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: number, authoredMs: number): number {
-  if (skill.unaffectedByQuickness === true) return Number(authoredMs);
+  if (!skill.independentCast && skill.quicknessCastTimeMs == null) {
+    return Number(authoredMs) * castRelativeEffectTimingScale(skill, runtimeCastMs);
+  }
+
   const baseMs = Math.max(0, Number(skill.castTimeMs || 0));
-  const referenceMs = quicknessReferenceCastTimeMs(skill);
+  const referenceMs = referenceCastTimeMs(skill);
   if (!(baseMs > 0) || !(referenceMs > 0)) return Number(authoredMs);
   const baseTimelineMs = (Number(authoredMs) * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, Number(runtimeCastMs)) / baseMs);

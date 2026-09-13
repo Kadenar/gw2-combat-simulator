@@ -269,7 +269,7 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
 
   const rifleProjectiles = simulate(
     'Core',
-    ['Overcharged Shot', { type: 'wait', durationMs: 2440 }, 'Rifle Burst', { type: 'wait', durationMs: 4000 }],
+    ['Overcharged Shot', { type: 'wait', durationMs: 2600 }, 'Rifle Burst', { type: 'wait', durationMs: 4000 }],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
       target: { conditions: {} }
@@ -554,14 +554,14 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     selectedTraitIds: [TRAIT.POWER_WRENCH]
   });
 
-  assert.equal(wrench.endState.cooldowns['Supply Crate'].readyAt, 73000);
+  assert.equal(wrench.endState.cooldowns['Supply Crate'].readyAt, wrench.steps[0].end + 72000);
 
   const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
     boons: { vigor: true }
   });
 
-  assert.equal(adrenal.endState.cooldowns['Grenade Barrage'].readyAt, 21270);
+  assert.equal(adrenal.endState.cooldowns['Grenade Barrage'].readyAt, adrenal.steps[0].end + 20250);
   assert.equal(adrenal.endState.profession.endurance, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {

@@ -12,7 +12,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    quicknessCastTimeMs: 333.333333333,
+    castTimeMs: 333.333333333,
     cooldown: 60,
     effects: []
   },
@@ -35,7 +35,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    castTimeMs: 1140,
+    castTimeMs: 760,
     cooldown: 20,
     effects: [
       {
@@ -53,7 +53,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Heal',
     weapon: '',
     specialization: 'Chronomancer',
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     cooldown: 30,
     effects: []
   },
@@ -61,7 +61,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Elite',
     weapon: '',
     specialization: 'Chronomancer',
-    quicknessCastTimeMs: 1080,
+    castTimeMs: 1080,
     cooldown: 60,
     effects: [
       {
@@ -116,7 +116,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     type: 'Utility',
     weapon: '',
     specialization: 'Chronomancer',
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     // The well is created on its first observed pulse, so later pulses survive an interrupted cast after that point.
     interruptCommitMs: 560,
@@ -185,7 +185,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     weapon: '',
     specialization: 'Chronomancer',
     // Store the measured Quickness duration so the catalog derives the corresponding base cast consistently.
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 20,
     // The first pulse commits the well before its animation can be shortened by a shatter or another instant action.
     interruptCommitMs: 520,

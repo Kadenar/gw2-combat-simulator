@@ -13,7 +13,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kitName: 'Elixir Gun'
   },
   [ID.TRANQUILIZER_DART]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     comboFinishers: [
       {
@@ -50,7 +50,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.GLOB_SHOT]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 8,
     effects: [
       {
@@ -84,7 +84,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.ACID_BOMB]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 12,
     comboFields: [
       {
@@ -121,7 +121,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.SUPER_ELIXIR]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 16,
     comboFields: [
       {
@@ -135,7 +135,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
     kit: 'Elixir Gun'
   },
   [ID.FUMIGATE]: {
-    castTimeMs: 2250,
+    castTimeMs: 1520,
     cooldown: 12,
     effects: [
       {

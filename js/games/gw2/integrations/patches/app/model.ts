@@ -204,7 +204,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = Object.freeze({
   hits: 'hits',
   initiativeCost: 'initiative cost',
   intervalMs: 'interval',
-  quicknessCastTimeMs: 'Quickness cast time',
+  quicknessCastTimeMs: 'Summon Quickness cast time',
   recharge: 'recharge',
   resourceCost: 'resource cost',
   stacks: 'stacks'

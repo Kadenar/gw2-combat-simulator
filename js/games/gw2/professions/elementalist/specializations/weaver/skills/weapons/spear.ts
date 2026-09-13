@@ -28,7 +28,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Fire+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     aura: 'Fire|3',
     skillFamily: 'Weapon skill',
@@ -56,7 +56,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Fire+Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
@@ -103,7 +103,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Fire+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -164,7 +164,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Air+Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -219,7 +219,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Water+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -252,7 +252,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     weapon: 'Spear',
     attunement: 'Air+Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [

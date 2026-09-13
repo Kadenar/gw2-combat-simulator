@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines Engineer shortbow essence and detonation skill effects. */
 export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ESSENCE_OF_LIQUID_WRATH]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 20,
     effects: [
       {
@@ -36,7 +36,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARC_DETONATOR]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     effects: [
       {
@@ -63,7 +63,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ESSENCE_OF_LIVING_SHADOWS]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 15,
     effects: [
       {
@@ -77,7 +77,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ESSENCE_OF_BORROWED_TIME]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 25,
     effects: [
       {
@@ -102,7 +102,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ESSENCE_OF_ANIMATED_SAND]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 8,
     effects: [
       {

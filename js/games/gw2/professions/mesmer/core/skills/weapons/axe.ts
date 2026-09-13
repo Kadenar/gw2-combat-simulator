@@ -7,7 +7,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    castTimeMs: 1080,
+    castTimeMs: 720,
     cooldown: 0,
     nextChainId: null,
     effects: [
@@ -59,7 +59,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         atMs: -80
       }
     ],
-    quicknessCastTimeMs: 1000
+    castTimeMs: 1000
   },
   [ID.LACERATING_CHOP]: {
     type: 'Weapon',
@@ -83,13 +83,13 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 430
+    castTimeMs: 430
   },
   [ID.ETHEREAL_CHOP]: {
     type: 'Weapon',
     weapon: 'Axe',
     specialization: 'Mirage',
-    quicknessCastTimeMs: 530,
+    castTimeMs: 530,
     cooldown: 0,
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
@@ -153,7 +153,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 3
       }
     ],
-    quicknessCastTimeMs: 920
+    castTimeMs: 920
   },
   // Virtuoso and Troubadour Axe variants retain separate IDs so their conditions and finishers resolve independently.
   [ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]: {
@@ -199,7 +199,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       }
     ],
     // The shared replacement keeps the same measured Axe cast timing as Mirage.
-    quicknessCastTimeMs: 920
+    castTimeMs: 920
   },
   [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: {
     type: 'Weapon',
@@ -235,6 +235,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 1000
+    castTimeMs: 1000
   }
 });

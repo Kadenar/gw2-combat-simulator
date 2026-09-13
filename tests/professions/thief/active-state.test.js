@@ -33,7 +33,7 @@ test('ground axes accumulate per emitted projectile, cap at six, and expire inde
     activeState(simulate('Core', ['Venomous Volley', 'Venomous Volley', 'Spinning Axe']))['thief-spinning-axes'],
     '6/6'
   );
-  const expired = simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 9500 }, 'Spinning Axe']);
+  const expired = simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 10000 }, 'Spinning Axe']);
   assert.equal(activeState(expired)['thief-spinning-axes'], '1/6');
   assert.equal(
     activeState(simulate('Core', ['Spinning Axe', { type: 'wait', durationMs: 10000 }]))['thief-spinning-axes'],

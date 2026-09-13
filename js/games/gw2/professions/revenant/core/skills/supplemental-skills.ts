@@ -11,7 +11,7 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: []
   },
   [ID.UNCHAINED_DESOLATION]: {
-    castTimeMs: 2000,
+    castTimeMs: 1360,
     cooldown: 5,
     energyCost: 0,
     effects: []
@@ -46,7 +46,7 @@ export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Skil
     effects: []
   },
   [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     energyCost: 10,
     effects: [

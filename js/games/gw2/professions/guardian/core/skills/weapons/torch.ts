@@ -5,8 +5,8 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CLEANSING_FLAME]: {
     interruptMode: 'per-packet',
-    // The catalog derives the unquickened cast from this measured Quickness duration.
-    quicknessCastTimeMs: 2600,
+    // Store the measured effective action duration directly.
+    castTimeMs: 2600,
     // Match the reference hit offsets, with Burning applied on the final strike.
     effects: [
       {
@@ -24,7 +24,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ZEALOTS_FIRE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     interruptCommitMs: 560,
     cooldown: 0,
     effects: [

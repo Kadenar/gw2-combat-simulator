@@ -8,7 +8,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
-    castTimeMs: 660,
+    castTimeMs: 440,
     interruptCommitMs: 380,
     cooldown: 0,
     blade: true,
@@ -53,7 +53,7 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     type: 'Weapon',
     weapon: 'Dagger',
     specialization: '',
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 12,
     blade: true,
     // The storm commits 200ms into a Quickness cast; its four pulse pairs then persist after interruption.
@@ -147,6 +147,6 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingScale: 'fixed'
       }
     ],
-    castTimeMs: 660
+    castTimeMs: 440
   }
 });

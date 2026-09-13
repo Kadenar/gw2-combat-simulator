@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMMER_SWING]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -16,7 +16,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.STAGGERING_BLOW]: {
     cooldown: 18,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -42,7 +42,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HAMMER_BASH]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     effects: [
       {
         type: 'strike',
@@ -54,7 +54,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.HAMMER_SMASH]: {
     interruptCommitMs: 320,
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -67,7 +67,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.FIERCE_BLOW]: {
     interruptCommitMs: 600,
     cooldown: 6,
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     // Custom: Upgrades the strike against controlled or defiant targets; see `core/execution/index.ts`.
     handlerId: 'warrior.fierce-blow',
     effects: [
@@ -87,7 +87,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.HAMMER_SHOCK]: {
     cooldown: 8,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -112,7 +112,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castEnd'
       }
     ],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',

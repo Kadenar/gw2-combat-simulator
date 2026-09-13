@@ -40,13 +40,13 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 1920
+    castTimeMs: 1920
   },
   [ID.ILLUSIONARY_COUNTER]: {
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    quicknessCastTimeMs: 1200,
+    castTimeMs: 1200,
     cooldown: 6,
     effects: [],
     defaultInterruptMs: 120,
@@ -75,13 +75,13 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
         stacks: 1
       }
     ],
-    castTimeMs: 660
+    castTimeMs: 440
   },
   [ID.ETHER_BLAST]: {
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    castTimeMs: 780,
+    castTimeMs: 520,
     cooldown: 0,
     nextChainId: ID.ETHER_CLONE,
     effects: [
@@ -107,7 +107,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Scepter',
     specialization: '',
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 0,
     // Ether Clone creates its clone with the projectile hit; interruptions before that packet grant no clone.
     resource: {

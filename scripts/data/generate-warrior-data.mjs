@@ -135,7 +135,7 @@ const CONTROL_TYPES = new Set([
   'Stun',
   'Taunt'
 ]);
-const QUICKNESS_UNAFFECTED_SKILL_IDS = new Set([14418, 45252, 46233]);
+const FIXED_ACTIVATION_SKILL_IDS = new Set([14418, 45252, 46233]);
 
 async function fetchJson(url) {
   const response = await fetch(url, {
@@ -633,13 +633,9 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
     const adrenalineGain = Math.max(0, Number(fact(raw, 'Adrenaline', 'Number')?.value || 0));
     const flowGain = Math.max(0, Number(fact(raw, 'Flow', 'Number')?.value || 0));
     const handler = handlerId(identity, raw);
-    const unaffectedByQuickness = QUICKNESS_UNAFFECTED_SKILL_IDS.has(identity.id);
     const mechanics = {
-      ...(unaffectedByQuickness
-        ? { castTimeMs, unaffectedByQuickness: true }
-        : castTimeMs > 0
-          ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
-          : { castTimeMs: 0 }),
+      // Store effective player durations once; fixed movement activations keep their measured duration.
+      castTimeMs: FIXED_ACTIVATION_SKILL_IDS.has(identity.id) ? castTimeMs : Math.round(castTimeMs / 1.5),
       effects: skillMechanicOverrides.get(identity.id)?.effects || effectsFor(raw),
       ...(cost > 0 ? { adrenalineCost: cost, burstTier: Math.max(1, Math.ceil(cost / 10)) } : {}),
       ...(adrenalineGain > 0 ? { adrenalineGain } : {}),

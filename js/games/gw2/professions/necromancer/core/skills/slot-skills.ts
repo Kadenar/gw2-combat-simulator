@@ -4,18 +4,18 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: []
   },
   [ID.SUMMON_BONE_FIEND]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true,
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.PUTRID_EXPLOSION]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     minionKey: 'bone-minion',
     consumes: 1,
     effects: [
@@ -32,14 +32,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.SUMMON_BONE_MINIONS]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true,
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.BLOOD_IS_POWER]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
     retainsCastLockoutAfterInterrupt: true,
     effects: [
@@ -61,7 +61,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -74,7 +74,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_SUFFERING]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -98,20 +98,20 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SUMMON_BLOOD_FIEND]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [],
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.CONSUME_CONDITIONS]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [],
     // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
   [ID.PLAGUELANDS]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
@@ -256,7 +256,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.LICH_FORM]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [],
     // Life force is granted once when the transform ends, by its manual or timed exit.
     cooldown: 120,
@@ -319,7 +319,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.TASTE_OF_DEATH]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     minionKey: 'blood-fiend',
     consumes: 1,
     effects: [],
@@ -327,7 +327,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.SUMMON_SHADOW_FIEND]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     effects: [],
     rechargeOnMinionDeath: true,
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
@@ -361,7 +361,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_DARKNESS]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -398,13 +398,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SIGNET_OF_UNDEATH]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     // Reviving allies is outside the simulation; casting still consumes time and starts recharge.
     effects: [],
     lifeForceGain: 0
   },
   [ID.SPECTRAL_GRASP]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'condition',
@@ -416,7 +416,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 15
   },
   [ID.SIGNET_OF_SPITE]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',
@@ -470,14 +470,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SUMMON_FLESH_GOLEM]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [],
     rechargeOnMinionDeath: true,
     // Custom: Summons/replaces the minion and starts its autonomous attack tasks; see `core/mechanics/minions.ts`.
     handlerId: 'necromancer.minion'
   },
   [ID.CHARGE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     minionKey: 'flesh-golem',
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1, actorType: 'summon' },
@@ -491,7 +491,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'condition',
@@ -504,7 +504,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',

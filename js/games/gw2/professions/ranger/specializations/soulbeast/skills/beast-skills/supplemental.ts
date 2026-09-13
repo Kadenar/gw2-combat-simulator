@@ -14,7 +14,7 @@ export const SOULBEAST_SUPPLEMENTAL_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.UNDEAD_PLAGUE]: {
     castTimeMs: 0,

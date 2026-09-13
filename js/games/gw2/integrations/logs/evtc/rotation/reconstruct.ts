@@ -25,7 +25,7 @@ import {
 } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
   missingInterruptCommitWarnings,
-  quicknessRuntimeDurationMs
+  referenceCastTimeMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { type EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import {
@@ -67,7 +67,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
 
   const sourceObservedMs = Math.max(0, action.replayInterruptMs ?? action.end - action.start);
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
-  const runtimeMs = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
+  const runtimeMs = action.replayDurationMs ?? referenceCastTimeMs(skill);
   // Snap every observed cancellation to the replay's 40 ms action grid, including per-packet channels.
   const observedMs = quantizeGw2ActionTimingMs(sourceObservedMs);
   return observedMs < runtimeMs ? observedMs : null;
@@ -87,7 +87,7 @@ function applyObservedInterruptTiming(
     }
 
     // Profession-resolved variants can be instant even when the base catalog skill has a cast time.
-    const runtimeDuration = action.replayDurationMs ?? quicknessRuntimeDurationMs(skill);
+    const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(skill);
     const observedDuration = Math.max(0, action.end - action.start);
     const needsDefaultRuntime =
       runtimeDuration > 0 &&
@@ -191,7 +191,7 @@ function actionCommand(action: ResolvedAction): ReconstructedCommand {
 
 /** Uses normalized replay timing while preserving EVTC boundaries needed to position overlapping actions. */
 function replayActionEnd(action: ResolvedAction): number {
-  const runtimeDuration = action.replayDurationMs ?? quicknessRuntimeDurationMs(action.skill);
+  const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(action.skill);
   const observedReplayEnd =
     action.replayCastEnd ??
     (action.replayInterruptMs != null

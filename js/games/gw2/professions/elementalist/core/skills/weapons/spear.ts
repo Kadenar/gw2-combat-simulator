@@ -26,7 +26,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     // EVTC damage lands 520ms after activation; once the projectile reaches that
@@ -54,7 +54,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -100,7 +100,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Seethe empowers the next qualifying spear hit after completion.
@@ -140,7 +140,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -166,7 +166,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 25,
     comboFields: [
       {
@@ -198,7 +198,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -278,7 +278,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -310,7 +310,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -335,7 +335,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -423,7 +423,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Ripple empowers the next qualifying spear recharge after completion.
@@ -442,7 +442,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -475,7 +475,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 25,
     comboFields: [
       {
@@ -495,7 +495,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -519,7 +519,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -543,7 +543,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     // EVTC damage lands 520ms after activation; once the projectile reaches that
@@ -588,7 +588,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -726,7 +726,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Energize guarantees the next qualifying spear critical hit after completion.
@@ -756,7 +756,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -811,7 +811,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 25,
     comboFields: [
       {
@@ -842,7 +842,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -875,7 +875,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -908,7 +908,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -946,7 +946,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -992,7 +992,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 200,
+    castTimeMs: 200,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Harden adds control to the next qualifying spear hit after completion.
@@ -1011,7 +1011,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -1064,7 +1064,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     cooldown: 25,
     comboFields: [
       {
@@ -1084,7 +1084,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -1131,7 +1131,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Spear',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [

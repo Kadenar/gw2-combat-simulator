@@ -21,7 +21,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.FLASH_CUTTER_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 0,
     heatGain: 3,
     comboFinishers: [
@@ -50,7 +50,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.BRIGHT_SLASH_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 0,
     heatGain: 3,
     interruptCommitMs: 280,
@@ -81,7 +81,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.HOLOGRAPHIC_SHOCKWAVE]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 15,
     heatGain: 25,
     // Shockwave always critically strikes and blasts the active combo field.
@@ -118,7 +118,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.HOLO_LEAP]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 2,
     heatGain: 7,
     effects: [
@@ -170,7 +170,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.LIGHT_STRIKE_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 0,
     heatGain: 3,
     comboFinishers: [
@@ -203,7 +203,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.CORONA_BURST]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     interruptCommitMs: 400,
     cooldown: 6,
     heatGain: 10,
@@ -303,7 +303,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.LIGHT_STRIKE]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     interruptCommitMs: 200,
     cooldown: 0,
     heatGain: 2,
@@ -334,7 +334,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.BRIGHT_SLASH]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     // The report's shortest successful cast is 441 ms (440 on the replay grid); hit timing alone is not a cutoff.
     interruptCommitMs: 440,
     cooldown: 0,
@@ -354,7 +354,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.PHOTON_BLITZ]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 1320,
+    castTimeMs: 1320,
     cooldown: 10,
     heatGain: 16,
     comboFinishers: [
@@ -407,7 +407,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.FLASH_CUTTER]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     interruptCommitMs: 480,
     cooldown: 0,
     heatGain: 2,

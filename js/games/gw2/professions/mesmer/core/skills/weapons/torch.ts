@@ -56,13 +56,13 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
         summonKind: 'phantasm'
       }
     ],
-    quicknessCastTimeMs: 760
+    castTimeMs: 760
   },
   [ID.THE_PRESTIGE]: {
     type: 'Weapon',
     weapon: 'Torch',
     specialization: '',
-    quicknessCastTimeMs: 40,
+    castTimeMs: 40,
     rechargeAnchor: 'castStart',
     cooldown: 20,
     effects: [

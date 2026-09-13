@@ -40,7 +40,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     adrenalineGain: 10,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
@@ -63,7 +63,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         controlKind: 'daze'
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -102,7 +102,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         duration: 8
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -120,7 +120,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingScale: 'cast'
       }
     ],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -178,7 +178,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         persistsAfterInterrupt: true
       }
     ],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -207,7 +207,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
@@ -236,7 +236,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
@@ -252,7 +252,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.BLOOD_RECKONING]: {
     effects: [],
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     dualWieldCastTimeMs: 240,
     adrenalineGain: 10,
     // Custom: Applies adrenaline gain and resets all primal-burst cooldowns; see `berserker/execution/index.ts`.
@@ -284,7 +284,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         duration: 3
       }
     ],
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     adrenalineGain: 30,
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
@@ -356,7 +356,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 1600,
+    castTimeMs: 1600,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -380,7 +380,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 5
       }
     ],
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     dualWieldCastTimeMs: 480,
     adrenalineCost: 10,
     burstTier: 1,
@@ -419,7 +419,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         duration: 1
       }
     ],
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -441,7 +441,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         duration: 10
       }
     ],
-    quicknessCastTimeMs: 1167,
+    castTimeMs: 1167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -467,7 +467,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         controlKind: 'pull'
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -484,7 +484,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         hits: 1
       }
     ],
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -506,7 +506,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         stacks: 1
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -551,7 +551,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         duration: 5
       }
     ],
-    quicknessCastTimeMs: 1280,
+    castTimeMs: 1280,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

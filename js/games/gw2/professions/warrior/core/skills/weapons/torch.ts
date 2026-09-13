@@ -15,7 +15,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
     waves: 5,
     totalCoefficient: 2,
     maximumHitsPerTarget: 1,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -48,7 +48,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
         startAnchor: 'castEnd'
       }
     ],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',

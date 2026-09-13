@@ -378,8 +378,7 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     assert.ok(MESMER_SKILL_MECHANICS[skill.id], `${skill.name} is missing authoritative simulation mechanics`);
   }
 
-  assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].quicknessCastTimeMs, 760);
-  assert.equal(mesmerCatalog.skillsById.get(ID.WINDS_OF_CHAOS).castTimeMs, 1140);
+  assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].castTimeMs, 760);
   assert.equal(MESMER_SKILL_MECHANICS['Winds of Chaos'], undefined);
   assert.deepEqual(
     MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].effects,
@@ -532,13 +531,11 @@ test('Mesmer instant-cast skills have zero cast time', () => {
     const skill = catalogSkill(name);
 
     assert.equal(skill.castTimeMs, 0, name);
-    assert.equal(skill.quicknessCastTimeMs ?? 0, 0, name);
   }
 
   const prestige = catalogSkill('The Prestige');
 
-  assert.equal(prestige.castTimeMs, 60);
-  assert.equal(prestige.quicknessCastTimeMs, 40);
+  assert.equal(prestige.castTimeMs, 40);
 });
 
 test('Mesmer shatters share only the shatter-family lockout', () => {

@@ -20,7 +20,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.MANTRA_OF_POTENCE]: {
-    castTimeMs: 2240,
+    castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 20,
     ammo: 0,
@@ -41,7 +41,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.MANTRA_OF_SOLACE]: {
-    castTimeMs: 2240,
+    castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 24,
     ammo: 0,
@@ -58,7 +58,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.ECHO_OF_TRUTH]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: [
       {
         type: 'strike',
@@ -81,7 +81,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.MANTRA_OF_LIBERATION]: {
-    castTimeMs: 2240,
+    castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 40,
     ammo: 0,
@@ -89,7 +89,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     effects: []
   },
   [ID.MANTRA_OF_TRUTH]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     effects: []
   },
   [ID.FLAME_RUSH]: {
@@ -115,7 +115,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     ]
   },
   [ID.MANTRA_OF_FLAME]: {
-    castTimeMs: 2240,
+    castTimeMs: 1520,
     canCastConcurrently: false,
     cooldown: 20,
     ammo: 0,

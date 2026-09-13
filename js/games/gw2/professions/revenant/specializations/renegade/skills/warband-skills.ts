@@ -60,7 +60,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'revenant.band-together',
     castTimeMs: 520,
     interruptCommitMs: 480,
-    unaffectedByQuickness: true,
+
     cooldown: 10,
     energyCost: 20,
     effects: [
@@ -113,7 +113,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'revenant.band-together',
     // The normal summon occupies 520 ms; Quickness does not shorten its animation.
     castTimeMs: 520,
-    unaffectedByQuickness: true,
+
     cooldown: 12,
     energyCost: 25,
     effects: [
@@ -162,7 +162,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.RAZORCLAWS_RAGE]: {
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     energyCost: 25,
     effects: BASE_RAZORCLAW_EFFECTS,
@@ -171,7 +171,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.BREAKRAZORS_BASTION]: {
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 30,
     energyCost: 5,
     effects: BASE_BREAKRAZOR_EFFECTS,
@@ -180,7 +180,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   [ID.SOULCLEAVES_SUMMIT]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 5,

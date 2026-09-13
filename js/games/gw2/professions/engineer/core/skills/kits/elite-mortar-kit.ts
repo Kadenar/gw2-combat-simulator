@@ -5,7 +5,7 @@ import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js'
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit. */
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.ELIXIR_SHELL]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 24,
     comboFields: [
       {
@@ -20,7 +20,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.FLASH_SHELL]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 20,
     effects: [
       {
@@ -38,7 +38,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.ENDOTHERMIC_SHELL]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     effects: [
       {
@@ -59,7 +59,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.MORTAR_SHOT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     effects: [
       {
@@ -73,7 +73,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kit: 'Elite Mortar Kit'
   },
   [ID.ORBITAL_STRIKE]: {
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 40,
     comboFinishers: [
       {
@@ -107,7 +107,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
   [ID.POISON_GAS_SHELL]: {
     interruptCommitMs: 0,
     // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 10,
     comboFields: [
       {

@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHIELD_BASH]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     effects: [
       {
         type: 'strike',
@@ -19,7 +19,7 @@ export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SHIELD_STANCE]: {
-    quicknessCastTimeMs: 2000,
+    castTimeMs: 2000,
     effects: []
   }
 });

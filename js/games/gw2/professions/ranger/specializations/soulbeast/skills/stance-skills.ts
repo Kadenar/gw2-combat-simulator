@@ -14,13 +14,13 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.BEAR_STANCE]: {
     effects: [],
-    quicknessCastTimeMs: 500
+    castTimeMs: 500
   },
   [ID.ONE_WOLF_PACK]: {
     // The stance commits before recovery ends, so cancelling after activation retains its proc window.
     interruptCommitMs: 280,
     effects: [],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     // Custom: Opens the One Wolf Pack proc window with stance-duration traits; see `soulbeast/execution/index.ts`.
     handlerId: 'ranger.one-wolf-pack'
   }

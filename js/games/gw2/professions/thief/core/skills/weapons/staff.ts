@@ -6,7 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WEAKENING_WHIRL]: {
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -39,7 +39,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.STAFF_BASH]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -56,7 +56,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
   [ID.HOOK_STRIKE]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 1,
     initiativeCost: 0,
     effects: [
@@ -80,7 +80,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.PUNISHING_STRIKES]: {
     interruptMode: 'per-packet',
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -112,7 +112,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DEBILITATING_ARC]: {
-    quicknessCastTimeMs: 200,
+    castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -134,7 +134,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.VAULT]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 5,
     effects: [
@@ -149,7 +149,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.STAFF_STRIKE]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -164,7 +164,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.DUST_STRIKE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -187,7 +187,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.HELMET_BREAKER]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,
     effects: [

@@ -296,31 +296,6 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
   assert.equal(result.casts.length, chain.length);
 });
 
-test('split autoattacks preserve each full-chain cadence', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Mirage',
-    initialResource: 0,
-    primaryWeapon: '',
-    secondaryWeapon: '',
-    weaponSet2Primary: '',
-    weaponSet2Secondary: '',
-    boons: {
-      ...defaultSimulationConfig().boons,
-      quickness: false
-    }
-  });
-  const chains = [
-    [['Mind Slash', 'Mind Gash', 'Mind Spike'], 2580],
-    [['Ether Bolt', 'Ether Blast', 'Ether Clone'], 2700],
-    [['Lacerating Chop', 'Ethereal Chop', 'Mirror Strikes'], 2520],
-    [['Psycut', 'Psystrike', 'Mind Pierce'], 2220]
-  ];
-
-  for (const [skills, expectedTime] of chains) {
-    assert.equal(simulateMesmer(skills, config).endState.time, expectedTime);
-  }
-});
-
 test('clone attack tasks rearm on dispatch and ignore destroyed clones', () => {
   // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
   const state = { clones: [] };

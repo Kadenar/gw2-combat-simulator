@@ -31,16 +31,14 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension,
     name: 'Beguiling Haze (Main Cast Extension)',
     profileKind: 'skill-variant',
-    castTimeMs: 400,
-    quicknessCastMultiplier: 0.9,
+    castTimeMs: 360,
     effects: []
   },
   {
     id: CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp,
     name: 'Beguiling Haze (Follow-Up)',
     profileKind: 'skill-variant',
-    castTimeMs: 250,
-    quicknessCastMultiplier: 0.96,
+    castTimeMs: 240,
     maximumStacks: 2,
     effects: [
       {

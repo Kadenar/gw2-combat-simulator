@@ -4,7 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EXTIRPATE]: {
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     effects: [
       {
         type: 'strike',
@@ -50,7 +50,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.extirpate'
   },
   [ID.DARK_SLASH]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -61,7 +61,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ADDLE]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -75,7 +75,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.addle'
   },
   [ID.DEADLY_SLICE]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -88,7 +88,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.deadly-slice'
   },
   [ID.SINISTER_STAB]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -113,7 +113,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.PERFORATE]: {
     interruptMode: 'per-packet',
     // The measured Quickness cast ends one 40 ms action tick after its final packet.
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     effects: [
       {
         type: 'strike',
@@ -162,7 +162,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.perforate'
   },
   [ID.ISOLATE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -187,7 +187,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     flipDuration: 3,
-    flipActivationAtMs: 660
+    flipActivationAtMs: 440
   },
   [ID.DISTRESS]: {
     castTimeMs: 0,

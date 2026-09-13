@@ -20,7 +20,7 @@ export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
   nextChainId: null,
   flipSkillId: null,
   castTimeMs: 80,
-  unaffectedByQuickness: true,
+
   interruptCommitMs: 0,
   simulatorExcluded: false,
   effects: []
@@ -42,7 +42,7 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   nextChainId: null,
   flipSkillId: null,
   castTimeMs: 800,
-  unaffectedByQuickness: true,
+
   rechargeAnchor: 'castStart',
   simulatorExcluded: false,
   // Custom: Spends endurance and applies Reckless Dodge; see `core/execution/index.ts`.

@@ -5,7 +5,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
-const PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS = 480 + 480;
+const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 
 /** Supplies Evolve and its state-dependent action identities to specialization composition. */
@@ -23,7 +23,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     // Commit before the animation ends so its remaining aftercast can be interrupted.
     interruptCommitMs: 560,
     cooldown: 40,
@@ -36,7 +36,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     countsAsToolbeltSkill: true,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     // Commit before the animation ends so its remaining aftercast can be interrupted.
     interruptCommitMs: 560,
     cooldown: 40,
@@ -48,7 +48,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     mechanicSlot: 5
   },
   [ID.MITOTIC_STATE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 20,
     effects: []
   },
@@ -58,7 +58,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: []
   },
   [ID.LIQUID_STATE]: {
-    castTimeMs: 1500,
+    castTimeMs: 1000,
     cooldown: 20,
     effects: [
       {
@@ -86,7 +86,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     ]
   },
   [ID.FLUX_STATE]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 50,
     effects: [
       {
@@ -135,7 +135,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     ]
   },
   [ID.SOLID_STATE]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 25,
     effects: [
       {
@@ -168,7 +168,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     interruptCommitMs: 0,
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.plasmatic-state',
-    quicknessCastTimeMs: PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS,
+    castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
     cooldown: 25,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: PLASMATIC_STATE_RECHARGE_OFFSET_MS,

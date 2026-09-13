@@ -24,7 +24,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.FORCED_ENGAGEMENT]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -61,7 +61,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.SOOTHING_STONE]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 30,
     energyCost: 5,
     effects: [
@@ -75,14 +75,14 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.RITE_OF_THE_GREAT_DWARF]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 0,
     energyCost: 40,
     effects: [],
     legendId: 'LegendaryDwarf'
   },
   [ID.INSPIRING_REINFORCEMENT]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 10,
     energyCost: 30,
     effects: [
@@ -121,7 +121,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.SOOTHING_STONE_ID_56661]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 30,
     energyCost: 5,
     effects: [
@@ -135,7 +135,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.FORCED_ENGAGEMENT_ID_56662]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -183,14 +183,14 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDwarf'
   },
   [ID.RITE_OF_THE_GREAT_DWARF_ID_56773]: {
-    castTimeMs: 1250,
+    castTimeMs: 840,
     cooldown: 0,
     energyCost: 40,
     effects: [],
     legendId: 'LegendaryDwarf'
   },
   [ID.INSPIRING_REINFORCEMENT_ID_56841]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 10,
     energyCost: 30,
     effects: [

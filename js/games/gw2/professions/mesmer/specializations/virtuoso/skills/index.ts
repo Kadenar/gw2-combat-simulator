@@ -70,7 +70,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    quicknessCastTimeMs: 333.333333333,
+    castTimeMs: 333.333333333,
     cooldown: 25,
     blade: true,
     effects: [
@@ -88,7 +88,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    quicknessCastTimeMs: 1333.333333333,
+    castTimeMs: 1333.333333333,
     cooldown: 35,
     resource: {
       mode: 'fill',
@@ -101,7 +101,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Utility',
     weapon: '',
     specialization: 'Virtuoso',
-    castTimeMs: 1020,
+    castTimeMs: 680,
     cooldown: 25,
     blade: true,
     effects: [
@@ -135,7 +135,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Heal',
     weapon: '',
     specialization: 'Virtuoso',
-    quicknessCastTimeMs: 666.666666667,
+    castTimeMs: 666.666666667,
     cooldown: 20,
     blade: true,
     effects: [
@@ -169,7 +169,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    castTimeMs: 720,
+    castTimeMs: 480,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -184,7 +184,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    castTimeMs: 720,
+    castTimeMs: 480,
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -199,7 +199,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     type: 'Profession',
     weapon: '',
     specialization: 'Virtuoso',
-    castTimeMs: 960,
+    castTimeMs: 640,
     lockouts: [
       {
         group: 'mesmer.shatter',

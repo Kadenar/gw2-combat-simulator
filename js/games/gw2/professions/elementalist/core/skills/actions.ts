@@ -13,7 +13,7 @@ export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Action',
     categories: ['Dodge'],
     castTimeMs: 800,
-    unaffectedByQuickness: true,
+
     cooldown: 0,
     skillFamily: 'Dodge',
     effects: []
@@ -70,7 +70,7 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     nextChainId: null,
     flipSkillId: null,
     castTimeMs: 300,
-    unaffectedByQuickness: true,
+
     simulatorExcluded: false,
     paletteAction: false,
     effects: []

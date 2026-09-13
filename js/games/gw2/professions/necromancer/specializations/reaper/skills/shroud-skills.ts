@@ -9,7 +9,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Supplies Reaper Shroud fragments to specialization composition. */
 export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LIFE_REND]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     effects: [{ type: 'strike', coefficient: 1.4, hits: 1 }],
     type: 'Profession',
     slot: 'Weapon_1',
@@ -18,7 +18,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Reaper'
   },
   [ID.LIFE_SLASH]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -34,7 +34,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Reaper'
   },
   [ID.TERRIFY]: {
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     effects: [{ type: 'control', controlKind: 'fear' }],
     type: 'Profession',
     slot: 'Weapon_3',
@@ -55,7 +55,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'necromancer.flip'
   },
   [ID.LIFE_REAP]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -73,7 +73,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.SOUL_SPIRAL]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 2160,
+    castTimeMs: 2160,
     effects: [
       {
         type: 'strike',
@@ -132,7 +132,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 1320,
+    castTimeMs: 1320,
     // EVTC places the strike and first Chill at 840 ms, followed by four fixed one-second field pulses.
     effects: [
       {
@@ -184,7 +184,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'necromancer.shroud'
   },
   [ID.DEATHS_CHARGE]: {
-    quicknessCastTimeMs: 1200,
+    castTimeMs: 1200,
     effects: [
       {
         type: 'strike',

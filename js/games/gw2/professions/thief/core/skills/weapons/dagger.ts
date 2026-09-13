@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOUBLE_STRIKE]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -25,7 +25,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.BACKSTAB]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
     handlerId: 'thief.stealth-attack',
-    quicknessCastTimeMs: 320,
+    castTimeMs: 320,
     interruptCommitMs: 200,
     cooldown: 1,
     initiativeCost: 0,
@@ -46,7 +46,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Its evasive attack can activate successful-evade effects such as Relic of the Mirage.
     evades: true,
     movementSkill: true,
-    quicknessCastTimeMs: 1040,
+    castTimeMs: 1040,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -85,7 +85,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Dagger'
   },
   [ID.DANCING_DAGGER]: {
-    quicknessCastTimeMs: 500,
+    castTimeMs: 500,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -138,7 +138,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Pistol'
   },
   [ID.WILD_STRIKE]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     // Wild Strike commits its strike and bleeding on the ~160 ms impact before the chain animation ends.
     interruptCommitMs: 160,
     cooldown: 0,
@@ -166,7 +166,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     movementSkill: true,
     // Resolve the leap at impact through the shared field-selection contract.
     comboFinishers: [{ ownerId: 'thief', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
@@ -193,7 +193,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.LOTUS_STRIKE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     interruptCommitMs: 280,
     cooldown: 0,
     initiativeCost: 0,
@@ -216,7 +216,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TWISTING_FANGS]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
     effects: [
@@ -240,7 +240,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: false
   },
   [ID.CLOAK_AND_DAGGER]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 5,
     effects: [

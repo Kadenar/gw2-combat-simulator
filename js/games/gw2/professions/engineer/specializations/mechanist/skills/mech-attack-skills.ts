@@ -5,7 +5,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
-/** Supplies non-command mech attack fragments to specialization composition. */
+/** Supplies mech attack fragments with both timing references so log replay retains the summon action-rate model. */
 export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.AERIAL_SUPPORT]: {
     castTimeMs: 0,
@@ -22,6 +22,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.ROCKET_PUNCH_MECH]: {
     castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 5,
     effects: [
       {
@@ -49,6 +50,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.HEAVY_SMASH_MECH]: {
     castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 0,
     effects: [
       {
@@ -67,6 +69,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.TWIN_STRIKE_MECH]: {
     castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 0,
     effects: [
       {
@@ -81,6 +84,7 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.HARD_STRIKE]: {
     castTimeMs: 250,
+    quicknessCastTimeMs: 200,
     cooldown: 0,
     effects: [
       {

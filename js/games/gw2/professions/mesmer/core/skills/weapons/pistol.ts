@@ -65,7 +65,7 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
         packetLabel: 'Illusion Damage'
       }
     ],
-    castTimeMs: 840
+    castTimeMs: 560
   },
   [ID.MAGIC_BULLET]: {
     type: 'Weapon',
@@ -89,6 +89,6 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
         stacks: 3
       }
     ],
-    castTimeMs: 660
+    castTimeMs: 440
   }
 });

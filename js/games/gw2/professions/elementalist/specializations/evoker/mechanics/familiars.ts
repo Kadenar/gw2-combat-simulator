@@ -53,7 +53,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
       const effect = rawEffect as SchedulerRecord;
       // Procession launches an independent familiar sequence rather than a
       // player cast, so its packets retain their unquickened runtime spacing.
-      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0));
+      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * 1.5);
       const timingScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
       const ticks = Array.isArray(effect.ticks) ? effect.ticks : [effect];
       for (const rawTick of ticks) {
@@ -247,7 +247,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     const effectName = `Tier ${tier + 1}`;
     const strike = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'strike', 0, effectName);
     const burning = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'condition', 0, effectName);
-    // The profile delay uses the quickness reference timeline, just like declarative skill packets.
+    // The profile delay uses the authored cast timeline, just like declarative skill packets.
     const at =
       context.start +
       balanceProfileValueFromContext(context, PROFILE.foxsFury, 'initialDelay', 0.56) *

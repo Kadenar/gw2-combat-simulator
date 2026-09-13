@@ -285,7 +285,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
           skill.id === 1_000
             ? {
                 ...skill,
-                quicknessCastTimeMs: 540,
+                castTimeMs: 540,
                 effects: [{ type: 'strike', atMs: 350, timingAnchor: 'castStart', timingScale: 'fixed' }]
               }
             : skill
@@ -320,7 +320,7 @@ test('the browser rotation importer previews compressed .zevtc files before appl
             ? {
                 ...skill,
                 interruptMode: 'per-packet',
-                quicknessCastTimeMs: 540,
+                castTimeMs: 540,
                 effects: [{ type: 'strike', atMs: 350, timingAnchor: 'castStart', timingScale: 'fixed' }]
               }
             : skill

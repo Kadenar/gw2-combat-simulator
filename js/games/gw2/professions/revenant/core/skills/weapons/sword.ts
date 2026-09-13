@@ -6,7 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.UNRELENTING_ASSAULT]: {
     // Represent both activation phases with their reviewed total Quickness duration.
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 12,
     energyCost: 15,
     effects: [
@@ -31,7 +31,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DEATHSTRIKE]: {
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 15,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
@@ -68,7 +68,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SHACKLING_WAVE]: {
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     // The follow-up wave keeps landing after a 720 ms aftercast cancellation.
     interruptCommitMs: 720,
     cooldown: 15,
@@ -130,7 +130,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.RIFT_SLASH]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     interruptCommitMs: 440,
     cooldown: 0,
     energyCost: 0,
@@ -159,7 +159,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.PREPARATION_THRUST]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     // A shortened opening thrust can land and advance the chain before its full animation ends.
     interruptCommitMs: 320,
     cooldown: 0,
@@ -184,7 +184,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.CHILLING_ISOLATION]: {
     castTimeMs: 680,
-    unaffectedByQuickness: true,
+
     interruptCommitMs: 360,
     cooldown: 5,
     energyCost: 5,
@@ -217,7 +217,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.BRUTAL_BLADE]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     // The measured 518 ms cancellation retains the strike on the 520 ms action frame.
     interruptCommitMs: 520,
     cooldown: 0,

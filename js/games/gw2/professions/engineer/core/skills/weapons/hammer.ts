@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines Engineer hammer skill timing, damage, control, conditions, boons, and combo behavior. */
 export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NEGATIVE_BASH]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     effects: [
       {
@@ -26,7 +26,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SHOCK_SHIELD]: {
-    castTimeMs: 1750,
+    castTimeMs: 1200,
     cooldown: 18,
     blockDuration: 2,
     effects: [
@@ -48,7 +48,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.ELECTRO_WHIRL]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     cooldown: 6,
     comboFinishers: [
       {
@@ -70,7 +70,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.EQUALIZING_BLOW]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     effects: [
       {
@@ -100,7 +100,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.POSITIVE_STRIKE]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 0,
     effects: [
       {
@@ -124,7 +124,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ROCKET_CHARGE]: {
     castTimeMs: 1920,
-    unaffectedByQuickness: true,
+
     cooldown: 12,
     effects: [
       {
@@ -142,7 +142,7 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THUNDERCLAP]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 20,
     comboFields: [
       {

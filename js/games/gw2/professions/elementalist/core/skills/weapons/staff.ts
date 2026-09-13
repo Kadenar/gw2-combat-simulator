@@ -52,7 +52,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -91,7 +91,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 6,
     comboFields: [
       {
@@ -171,7 +171,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -219,7 +219,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     cooldown: 18,
     comboFields: [
       {
@@ -349,7 +349,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       weapon: 'Staff',
       attunement: 'Fire',
       categories: ['Weapon skill'],
-      quicknessCastTimeMs: 2640,
+      castTimeMs: 2640,
       cooldown: 30,
       skillFamily: 'Weapon skill',
       effects: [
@@ -368,7 +368,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -393,7 +393,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -440,7 +440,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 20,
     comboFields: [
       {
@@ -461,7 +461,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 30,
     comboFields: [
       {
@@ -496,7 +496,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 35,
     comboFields: [
       {
@@ -527,7 +527,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -551,7 +551,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1000,
+    castTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -583,7 +583,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -604,7 +604,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -638,7 +638,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 30,
     comboFields: [
       {
@@ -699,7 +699,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -746,7 +746,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 840,
+    castTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -808,7 +808,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 30,
     nextChainId: ID.TRANSMUTE_EARTH,
     aura: 'Magnetic|4',
@@ -822,7 +822,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.MAGNETIC_AURA,
     skillFamily: 'Weapon skill',
@@ -855,7 +855,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 30,
     skillFamily: 'Weapon skill',
     effects: [
@@ -877,7 +877,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Staff',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [

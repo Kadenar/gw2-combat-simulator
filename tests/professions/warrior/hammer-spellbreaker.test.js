@@ -55,13 +55,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     const canonicalSkillId = canonicalGw2SkillId(skillId);
     const skill = warriorCatalog.skillsById.get(canonicalSkillId);
 
-    if (skillId === 69297) {
-      assert.equal(skill.castTimeMs, castMs, skill.name);
-      assert.equal(skill.unaffectedByQuickness, true, skill.name);
-      assert.equal(skill.quicknessCastTimeMs, undefined, skill.name);
-    } else {
-      assert.equal(skill.quicknessCastTimeMs, castMs, skill.name);
-    }
+    assert.equal(skill.castTimeMs, castMs, skill.name);
 
     const usesHammer = [
       ID.HAMMER_SWING,

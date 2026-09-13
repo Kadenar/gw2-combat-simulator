@@ -15,7 +15,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kitName: 'Flamethrower'
   },
   [ID.FLAME_JET]: {
-    castTimeMs: 2570,
+    castTimeMs: 1720,
     cooldown: 0,
     effects: [
       {
@@ -37,7 +37,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.NAPALM]: {
-    quicknessCastTimeMs: 1760,
+    castTimeMs: 1760,
     cooldown: 25,
     // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
     interruptMode: 'per-packet',
@@ -63,7 +63,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.AIR_BLAST]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 15,
     effects: [
       {
@@ -83,7 +83,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kit: 'Flamethrower'
   },
   [ID.FLAME_BLAST]: {
-    quicknessCastTimeMs: 800,
+    castTimeMs: 800,
     cooldown: 6,
     // Flame Blast launches its blast finisher around 480 ms, but a committed cancel keeps the serial lane locked through the full animation.
     retainsCastLockoutAfterInterrupt: true,
@@ -139,7 +139,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     toolbeltParentName: 'Flamethrower'
   },
   [ID.STOKE_THE_FLAMES]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 20,
     comboFields: [
       {

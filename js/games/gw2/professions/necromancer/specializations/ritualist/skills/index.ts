@@ -29,7 +29,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.PRESERVATION]: {
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_4',
@@ -47,7 +47,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.NIGHTMARE_WEAPON]: {
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     effects: [
       {
         type: 'buff',
@@ -62,7 +62,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.weapon-spell'
   },
   [ID.ANGUISH]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_2',
@@ -82,7 +82,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.WANDERLUST]: {
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_3',
@@ -93,7 +93,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.ritualist'
   },
   [ID.SPLINTER_WEAPON]: {
-    quicknessCastTimeMs: 240,
+    castTimeMs: 240,
     effects: [
       {
         type: 'buff',
@@ -119,7 +119,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.ESSENCE_BLAST]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -147,7 +147,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.shroud'
   },
   [ID.RESILIENT_WEAPON]: {
-    castTimeMs: 1000,
+    castTimeMs: 680,
     effects: [
       {
         type: 'buff',

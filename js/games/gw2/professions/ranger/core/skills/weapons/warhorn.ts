@@ -22,7 +22,7 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillF
         timingScale: 'fixed'
       }
     ],
-    quicknessCastTimeMs: 1240
+    castTimeMs: 1240
   },
   [ID.CALL_OF_THE_WILD]: {
     comboFinishers: [{ ownerId: 'ranger', finisherType: 'Blast', ambiguousFieldSelection: 'oldest' }],
@@ -61,6 +61,6 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillF
         breakbar: 200
       }
     ],
-    quicknessCastTimeMs: 600
+    castTimeMs: 600
   }
 });

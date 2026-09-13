@@ -208,7 +208,7 @@ resourceGain
 The available controls come from the actual live skill metadata. A field is only patchable when the skill exposes a
 supported numeric value.
 
-Cast calibration fields such as `castTimeMs`, `quicknessCastTimeMs`, `interruptCommitMs`, `ammoCastLockout`, and
+Cast calibration fields such as `castTimeMs`, summon-only `quicknessCastTimeMs`, `interruptCommitMs`, `ammoCastLockout`, and
 `rechargeOffsetMs` are runtime-only and cannot be edited through numeric preview fields. Existing packet offsets
 (`atMs`) are also hidden from authoring references. Change those in the owning runtime source. The allowlists in
 `js/games/gw2/integrations/patches/authoring/fields.ts` define the supported controls.

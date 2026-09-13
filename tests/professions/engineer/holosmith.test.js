@@ -390,8 +390,8 @@ test('Photon Blitz gains two heat for each completed projectile', () => {
 
   const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
 
-  // The full cast adds 16 projectile heat and 3.8 passive heat over its 1.98-second duration.
-  assert.equal(full.endState.profession.heat, 19.8);
+  // The full cast adds 16 projectile heat and 2.6 passive heat over its 1.32-second duration.
+  assert.equal(full.endState.profession.heat, 18.6);
 });
 
 test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
@@ -455,14 +455,14 @@ test('Photon Forge waits for its resource tick before ejecting at maximum heat',
   const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(barrage.start, 750);
-  assert.equal(overheat.at, 0.8);
+  assert.equal(barrage.start, 520);
+  assert.equal(overheat.at, 0.6);
   assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
 test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
-  // The second entry reaches maximum heat at 2.20s and ejects on that entry's
-  // next 100 ms resource tick at 2.25s instead of a simulation-global boundary.
+  // The second entry reaches maximum heat at 1.97s and ejects on that entry's
+  // next 100 ms resource tick at 2.05s instead of a simulation-global boundary.
   const result = simulate(
     'Holosmith',
     [
@@ -483,8 +483,8 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
   const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(barrage.start, 2200);
-  assert.equal(overheat.at, 2.25);
+  assert.equal(barrage.start, 1970);
+  assert.equal(overheat.at, 2.05);
   assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
@@ -527,15 +527,15 @@ test('Overheat exits Forge before weapon actions at the same resource boundary',
   // weapon cast at the Overheat boundary sees the normal weapon bar again.
   const result = simulate(
     'Holosmith',
-    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 50 }, 'Glue Shot'],
+    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 80 }, 'Glue Shot'],
     { initialHeat: 90 }
   );
   const glueShot = result.steps.find((step) => step.skill === 'Glue Shot');
   const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(overheat.at, 0.8);
-  assert.equal(glueShot.start, 800);
+  assert.equal(overheat.at, 0.6);
+  assert.equal(glueShot.start, 600);
   assert.equal(glueShot.invalid, undefined);
 });
 
@@ -624,7 +624,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
       { type: 'wait', durationMs: 5000 },
       'Grenade Barrage'
     ]),
-    [0, 26020]
+    [0, 25680]
   );
 });
 

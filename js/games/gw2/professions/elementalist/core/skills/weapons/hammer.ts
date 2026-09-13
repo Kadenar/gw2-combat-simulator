@@ -28,7 +28,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -66,7 +66,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 880,
+    castTimeMs: 880,
     cooldown: 8,
     skillFamily: 'Weapon skill',
     effects: [
@@ -107,7 +107,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -143,7 +143,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -232,7 +232,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -286,7 +286,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 0,
     nextChainId: ID.WATER_RUSH,
     skillFamily: 'Weapon skill',
@@ -311,7 +311,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     nextChainId: ID.CHILLING_CRACK,
     skillFamily: 'Weapon skill',
@@ -337,7 +337,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.STREAM_STRIKE,
     skillFamily: 'Weapon skill',
@@ -379,7 +379,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -451,7 +451,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -487,7 +487,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -520,7 +520,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -552,7 +552,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -579,7 +579,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 2080,
+    castTimeMs: 2080,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -606,7 +606,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -642,7 +642,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -686,7 +686,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -738,7 +738,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -764,7 +764,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1440,
+    castTimeMs: 1440,
     cooldown: 8,
     skillFamily: 'Weapon skill',
     effects: [
@@ -903,7 +903,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -939,7 +939,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1520,
+    castTimeMs: 1520,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: []
@@ -951,7 +951,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     weapon: 'Hammer',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -1015,7 +1015,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     slot: 'Weapon_3',
     weapon: 'Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [

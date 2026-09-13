@@ -8,7 +8,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.MAGNETIC_INVERSION,
-    castTimeMs: 3000,
+    castTimeMs: 2000,
     cooldown: 20,
     effects: []
   },
@@ -16,7 +16,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.THROW_SHIELD,
-    castTimeMs: 2500,
+    castTimeMs: 1680,
     cooldown: 24,
     effects: [
       {
@@ -31,7 +31,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Static Shield',
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 0,
     effects: [
       {

@@ -8,7 +8,7 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 25,
     comboFields: [
       {
@@ -37,7 +37,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     toolbeltParentName: 'Blast Gyro Tag'
   },
   [ID.SHREDDER_GYRO]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     cooldown: 20,
     effects: [
       {
@@ -51,7 +51,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     ]
   },
   [ID.MEDIC_GYRO]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 20,
     comboFields: [
       {
@@ -65,12 +65,12 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     effects: []
   },
   [ID.SNEAK_GYRO]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 45,
     effects: []
   },
   [ID.SPARE_CAPACITOR]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 24,
     effects: [
       {
@@ -85,7 +85,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     toolbeltParentName: 'Shredder Gyro'
   },
   [ID.BLAST_GYRO]: {
-    castTimeMs: 250,
+    castTimeMs: 200,
     cooldown: 15,
     effects: [
       {
@@ -113,7 +113,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   [ID.FUNCTION_GYRO]: {
     // Function Gyro occupies Scrapper's F5 but still triggers toolbelt traits.
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 25,
     effects: [
       {
@@ -128,7 +128,7 @@ export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   },
   [ID.FUNCTION_GYRO_TOOL_BELT_SKILL]: {
     countsAsToolbeltSkill: true,
-    quicknessCastTimeMs: 280,
+    castTimeMs: 280,
     cooldown: 25,
     effects: [
       {

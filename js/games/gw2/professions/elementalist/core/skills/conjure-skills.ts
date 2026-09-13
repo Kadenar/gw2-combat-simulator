@@ -23,7 +23,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_1',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -46,7 +46,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_2',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1600,
+    castTimeMs: 1600,
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
@@ -88,7 +88,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_3',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
@@ -161,7 +161,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       slot: 'Weapon_4',
       skillWeapon: 'Frost Bow',
       categories: ['Weapon skill'],
-      quicknessCastTimeMs: 2360,
+      castTimeMs: 2360,
       cooldown: 20,
       skillFamily: 'Weapon skill',
       effects: [
@@ -216,7 +216,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
     skillWeapon: 'Frost Bow',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1120,
+    castTimeMs: 1120,
     cooldown: 30,
     skillFamily: 'Weapon skill',
     effects: [
@@ -265,7 +265,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 480,
+    castTimeMs: 480,
     cooldown: 0,
     nextChainId: ID.STATIC_SWING,
     skillFamily: 'Weapon skill',
@@ -289,7 +289,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     cooldown: 0,
     nextChainId: ID.THUNDERCLAP,
     skillFamily: 'Weapon skill',
@@ -313,7 +313,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_1',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     nextChainId: ID.LIGHTNING_SWING,
     skillFamily: 'Weapon skill',
@@ -354,7 +354,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_2',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 8,
     skillFamily: 'Weapon skill',
     effects: [
@@ -395,7 +395,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_3',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 960,
+    castTimeMs: 960,
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
@@ -438,7 +438,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       slot: 'Weapon_4',
       skillWeapon: 'Lightning Hammer',
       categories: ['Weapon skill'],
-      quicknessCastTimeMs: 920,
+      castTimeMs: 920,
       cooldown: 20,
       skillFamily: 'Weapon skill',
       effects: [
@@ -479,7 +479,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
     skillWeapon: 'Lightning Hammer',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 25,
     comboFields: [
       {
@@ -522,7 +522,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_1',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 2160,
+    castTimeMs: 2160,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -580,7 +580,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_2',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 720,
+    castTimeMs: 720,
     cooldown: 5,
     skillFamily: 'Weapon skill',
     effects: [
@@ -637,7 +637,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       slot: 'Weapon_3',
       skillWeapon: 'Fiery Greatsword',
       categories: ['Weapon skill'],
-      quicknessCastTimeMs: 1320,
+      castTimeMs: 1320,
       cooldown: 5,
       skillFamily: 'Weapon skill',
       effects: [
@@ -683,7 +683,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_4',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 1280,
+    castTimeMs: 1280,
     cooldown: 10,
     skillFamily: 'Weapon skill',
     effects: [
@@ -707,7 +707,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_5',
     skillWeapon: 'Fiery Greatsword',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [

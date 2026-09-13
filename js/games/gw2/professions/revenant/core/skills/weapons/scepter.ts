@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLOSSOMING_AURA]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     interruptCommitMs: 480,
     handlerId: 'revenant.blossoming-aura',
     rechargeAnchor: 'castStart',
@@ -49,7 +49,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.ACERBIC_CUT]: {
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
@@ -73,7 +73,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SERENE_SLASH]: {
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
@@ -91,7 +91,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.MOTIVATING_WHIRL]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
@@ -109,7 +109,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 8,
     energyCost: 5,
     effects: [

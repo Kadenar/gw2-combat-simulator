@@ -7,7 +7,7 @@ const OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS = 3;
 
 export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PATH_OF_GLUTTONY]: {
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     comboFinishers: [
       {
         ownerId: 'necromancer',
@@ -25,7 +25,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.HUNGERING_MAELSTROM]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 640,
+    castTimeMs: 640,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
       {
@@ -45,7 +45,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ENERVATION_ECHO]: {
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -55,7 +55,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.DEATHLY_ENERVATION]: {
-    quicknessCastTimeMs: 600,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
@@ -71,7 +71,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.GORGE]: {
-    quicknessCastTimeMs: 760,
+    castTimeMs: 760,
     comboFinishers: [
       {
         ownerId: 'necromancer',
@@ -88,7 +88,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RAVENOUS_WAVE]: {
-    quicknessCastTimeMs: 400,
+    castTimeMs: 400,
     flipDuration: 3,
     effects: [
       {
@@ -100,7 +100,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 12
   },
   [ID.SATIATE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
@@ -118,7 +118,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.CONSUME]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 520,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
@@ -147,7 +147,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ENERVATION_BLADE]: {
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     effects: [
       {
         type: 'strike',
@@ -157,7 +157,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.DEVOURING_VISAGE]: {
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
       {
@@ -178,7 +178,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     lifeForceGain: 10
   },
   [ID.GORMANDIZE]: {
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',

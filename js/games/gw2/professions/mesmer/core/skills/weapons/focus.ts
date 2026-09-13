@@ -7,7 +7,7 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Focus',
     specialization: '',
-    quicknessCastTimeMs: 740,
+    castTimeMs: 740,
     cooldown: 25,
     effects: []
   },
@@ -44,6 +44,6 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
         weapon: 'phantasm medium'
       }
     ],
-    quicknessCastTimeMs: 460
+    castTimeMs: 460
   }
 });

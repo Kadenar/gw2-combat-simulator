@@ -14,7 +14,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.PAIN_ABSORPTION]: {
-    castTimeMs: 500,
+    castTimeMs: 360,
     cooldown: 0,
     energyCost: 30,
     effects: [
@@ -41,7 +41,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.BANISH_ENCHANTMENT]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
     effects: [
@@ -88,7 +88,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.CALL_TO_ANGUISH]: {
     interruptCommitMs: 0,
-    quicknessCastTimeMs: 820,
+    castTimeMs: 820,
     cooldown: 3,
     energyCost: 30,
     effects: [
@@ -125,7 +125,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.EMPOWERING_MISERY]: {
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 30,
     energyCost: 5,
     effects: [
@@ -141,7 +141,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.EMBRACE_THE_DARKNESS]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
@@ -183,7 +183,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryAssassin'
   },
   [ID.UNYIELDING_IMPACT]: {
-    quicknessCastTimeMs: 920,
+    castTimeMs: 920,
     cooldown: 0,
     energyCost: 5,
     effects: [

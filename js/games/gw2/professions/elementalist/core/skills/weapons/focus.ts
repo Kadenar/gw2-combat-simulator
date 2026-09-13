@@ -25,7 +25,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 20,
     comboFields: [
       {
@@ -70,7 +70,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 25,
     nextChainId: ID.TRANSMUTE_FIRE,
     aura: 'Fire|4',
@@ -85,7 +85,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 360,
+    castTimeMs: 360,
     cooldown: 10,
     nextChainId: ID.FIRE_SHIELD,
     skillFamily: 'Weapon skill',
@@ -134,7 +134,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 440,
+    castTimeMs: 440,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -173,7 +173,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Water',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -215,7 +215,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 680,
+    castTimeMs: 680,
     cooldown: 30,
     skillFamily: 'Weapon skill',
     effects: []
@@ -228,7 +228,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Air',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 560,
+    castTimeMs: 560,
     cooldown: 40,
     skillFamily: 'Weapon skill',
     effects: [
@@ -250,7 +250,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 0,
+    castTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Weapon skill',
     effects: [
@@ -297,7 +297,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     weapon: 'Focus',
     attunement: 'Earth',
     categories: ['Weapon skill'],
-    quicknessCastTimeMs: 3800,
+    castTimeMs: 3800,
     cooldown: 50,
     skillFamily: 'Weapon skill',
     effects: []

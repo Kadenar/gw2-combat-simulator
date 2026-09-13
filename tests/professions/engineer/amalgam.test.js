@@ -162,7 +162,10 @@ test('Evolve raises attributes by ten percent for eight seconds', () => {
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Puncturing Jab');
 
   assert.ok(Math.abs(puncture(evolved).damage / puncture(baseline).damage - 1.1) < 1e-12);
-  assert.equal(evolved.endState.profession.evolvedUntil, 8.78);
+  assert.equal(
+    evolved.endState.profession.evolvedUntil,
+    evolved.events.find((event) => event.type === 'engineer.state' && event.reason === 'evolve').at + 8
+  );
 });
 
 test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {

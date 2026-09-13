@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WE_WILL_NEVER_YIELD]: {
     effects: [],
-    quicknessCastTimeMs: 667,
+    castTimeMs: 667,
     categories: ['Command'],
     // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
@@ -13,14 +13,14 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   [ID.WE_SHALL_RETURN]: {
     cooldown: 20,
     effects: [],
-    quicknessCastTimeMs: 667,
+    castTimeMs: 667,
     categories: ['Command'],
     // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_RECUPERATION]: {
     effects: [],
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -49,7 +49,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 7
       }
     ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 333,
     categories: ['Command'],
     // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
@@ -75,14 +75,14 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         duration: 6
       }
     ],
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     categories: ['Command'],
     // Custom: Applies command trait/state behavior around the cast; see `paragon/traits/index.ts`.
     handlerId: 'warrior.command'
   },
   [ID.CHANT_OF_FREEDOM]: {
     effects: [],
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -92,7 +92,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.CHANT_OF_ACTION]: {
     effects: [],
-    quicknessCastTimeMs: 167,
+    castTimeMs: 167,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
