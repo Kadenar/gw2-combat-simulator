@@ -173,8 +173,8 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
     applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
     1.8
   );
-  // At 1s: 82 * 1.25 = 102.5 rounds to 102; at 2s: 82 * (0.28 + 0.27) rounds to 45.
-  assert.equal(result.conditionDamage, 102 + 45);
+  // Global 40ms steps buffer 1.28 stack-seconds at 1s and 0.52 at 2s, rounded once per packet.
+  assert.equal(result.conditionDamage, 105 + 43);
 });
 
 function resolveBleedThrough(

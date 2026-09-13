@@ -3,11 +3,7 @@ import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formu
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  CANONICAL_TARGET_CONDITIONS,
-  createPermanentTargetConditionStacks,
-  GW2_DAMAGING_CONDITIONS
-} from '#gw2/platform/combat/state/targets.js';
+import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
@@ -38,7 +34,6 @@ export function createGw2ConditionResolution({
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
-  const hasPermanentConditions = CANONICAL_TARGET_CONDITIONS.some((name) => permanentTargetConditionStacks(name) > 0);
   function activeStacks(ctx: Gw2ResolverRuntime, name: string, at: number): Gw2ResolverConditionStack[] {
     const state = ctx.conditionState.get(name);
     if (!state) return [];
@@ -88,8 +83,6 @@ export function createGw2ConditionResolution({
    */
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
     const startsAt = 0;
-    // Console conditions, including non-damaging ones, anchor and sustain the target's shared timer.
-    if (hasPermanentConditions) ctx.conditionClock = { anchor: startsAt, groups: new Set() };
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
       if (!(stacks > 0)) continue;
@@ -117,10 +110,11 @@ export function createGw2ConditionResolution({
     }
   }
 
-  /** Player effects share player damage; modifier inheritance never merges independent summons. */
+  /** Illusions and player effects share player condition packets; pets and mech remain independent owners. */
   function damageOwner(application: Gw2ResolvedConditionApplication): string | Gw2ResolvedConditionApplication {
     if (
       application.actorType === 'player' ||
+      (application.actorType === 'summon' && ['clone', 'phantasm'].includes(String(application.summonKind))) ||
       (application.actorType === 'effect' && application.ownerActorType === 'player')
     )
       return 'player';
@@ -145,14 +139,12 @@ export function createGw2ConditionResolution({
   function scheduleGroup(ctx: Gw2ResolverRuntime, group: Gw2ResolverConditionGroup): void {
     if (!group.applications.length) {
       ctx.conditionState.get(group.condition)?.groups?.delete(group.owner);
-      ctx.conditionClock?.groups.delete(group);
-      if (!hasPermanentConditions && ctx.conditionClock?.groups.size === 0) ctx.conditionClock = undefined;
       group.wakeToken += 1;
       group.wakeAt = null;
       return;
     }
 
-    const at = group.anchor + group.pulseIndex;
+    const at = group.pulseIndex;
     if (group.wakeAt != null && Math.abs(group.wakeAt - at) <= EPSILON) return;
     group.wakeAt = at;
     group.wakeToken += 1;
@@ -215,29 +207,28 @@ export function createGw2ConditionResolution({
       weight: stacks,
       application
     });
-    // A forced removal can empty another owner before its queued wake; do not inherit that dead clock.
-    for (const pending of ctx.conditionClock?.groups ?? []) {
-      pruneGroup(pending, event.at);
-      if (!pending.applications.length) scheduleGroup(ctx, pending);
-    }
-
     const groups = (state.groups ??= new Map());
     const owner = damageOwner(application);
     let group = groups.get(owner);
+    if (group) {
+      pruneGroup(group, event.at);
+      if (!group.applications.length) {
+        scheduleGroup(ctx, group);
+        group = undefined;
+      }
+    }
+
     if (!group) {
-      // An empty gap starts a fresh cadence, including gaps caused by forced removal.
-      const clock = (ctx.conditionClock ??= { anchor: event.at, groups: new Set() });
+      // Empty gaps stop queued work, but the global one-second phase remains anchored at zero.
       group = {
         owner,
         condition: name,
-        anchor: clock.anchor,
-        pulseIndex: Math.floor(Math.max(0, event.at - clock.anchor) + EPSILON) + 1,
+        pulseIndex: Math.floor(event.at + EPSILON) + 1,
         wakeToken: 0,
         wakeAt: null,
         applications: []
       };
       groups.set(owner, group);
-      clock.groups.add(group);
     }
 
     group.applications.push(application);
@@ -261,8 +252,10 @@ export function createGw2ConditionResolution({
     const contributions = [];
     for (const application of group.applications) {
       const through = Math.min(event.at, application.naturalExpiresAt);
-      // Remove subtraction noise without rounding split intervals to the 40ms duration grid.
-      const fraction = Math.max(0, Math.round((through - application.settledThrough) * 1e12) / 1e12);
+      // Count completed global 40ms steps after application through expiry; stats are sampled only at payout.
+      // Integer step differences preserve the full rounded lifetime without rounding both split ends upward.
+      const fraction =
+        Math.max(0, Math.floor(through * 25 + EPSILON) - Math.floor(application.settledThrough * 25 + EPSILON)) / 25;
       application.settledThrough = through;
       // Precombat wakes advance settlement and cadence without accumulating a catch-up hit.
       if (!canDamage || fraction <= EPSILON) continue;

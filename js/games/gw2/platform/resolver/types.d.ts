@@ -125,7 +125,6 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 export interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
-  readonly anchor: number;
   pulseIndex: number;
   wakeToken: number;
   wakeAt: number | null;
@@ -211,8 +210,6 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
   environmentDamage: number;
   environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
   conditionState: Map<string, Gw2ResolverConditionState>;
-  /** All condition/owner packets follow this target clock until its final unsettled group is drained. */
-  conditionClock?: { readonly anchor: number; readonly groups: Set<Gw2ResolverConditionGroup> };
   resolved: Gw2ResolverEvent[];
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;

@@ -103,13 +103,13 @@ test('same-owner skills and player effects round once with stable integer attrib
 });
 
 test('distinct owners and unclassified actors share cadence without sharing rounding', () => {
-  const player = condition(0.1, { duration: 2 });
+  const player = condition(0, { duration: 2 });
   for (const actor of [
     { actorType: 'summon', summonOwner: 'pet:1', ownerActorType: 'player' },
     { actorType: 'summon' },
     { actorType: 'unknown', ownerActorType: 'player' }
   ]) {
-    const result = resolve([player, condition(0.1, actor)], { end: 1.1 });
+    const result = resolve([player, condition(0, actor)], { end: 1.1 });
     assert.equal(result.conditionDamage, 60);
   }
 
@@ -126,8 +126,8 @@ test('distinct owners and unclassified actors share cadence without sharing roun
       .slice(1)
       .map(({ damageTicks }) => damageTicks.map(({ at }) => at)),
     [
-      [1.1, 2.1],
-      [1.1, 2.1]
+      [1, 2],
+      [1, 2]
     ]
   );
   const samePet = resolve([
@@ -137,7 +137,7 @@ test('distinct owners and unclassified actors share cadence without sharing roun
   assert.equal(samePet.conditionDamage, 59);
 });
 
-test('Vital Shot and Spider Venom share a target clock, settle expiry on the next pulse, and restart after draining', () => {
+test('different conditions share whole-second pulses and empty gaps never change the clock phase', () => {
   const result = resolve(
     [
       condition(0.1, { duration: 6 }),
@@ -149,28 +149,28 @@ test('Vital Shot and Spider Venom share a target clock, settle expiry on the nex
     { end: 12.6 }
   );
   assert.deepEqual(packetDamage(result), [
-    [1.1, 30],
-    [2.1, 30],
-    [3.1, 41],
-    [4.1, 59],
-    [5.1, 59],
-    [6.1, 59],
-    [7.1, 30],
-    [8.1, 30],
-    [9.1, 18],
-    [12.6, 30]
+    [1, 27],
+    [2, 30],
+    [3, 39],
+    [4, 59],
+    [5, 59],
+    [6, 59],
+    [7, 32],
+    [8, 30],
+    [9, 20],
+    [12, 12]
   ]);
   assert.deepEqual(
     applications(result)[2].damageTicks.map(({ at, fraction }) => [at, fraction]),
     [
-      [3.1, 0.4],
-      [4.1, 1],
-      [5.1, 1],
-      [6.1, 0.6]
+      [3, 0.32],
+      [4, 1],
+      [5, 1],
+      [6, 0.68]
     ]
   );
   for (const application of applications(result).slice(0, 3)) {
-    assert.equal(application.damagingStackSeconds, application.effectiveDuration);
+    assert.ok(Math.abs(application.damagingStackSeconds - application.effectiveDuration) < 1e-9);
   }
 });
 
@@ -184,8 +184,8 @@ test('short lifetimes settle once on the shared pulse without rounding both spli
   assert.deepEqual(
     split.damageTicks.map(({ at, fraction }) => [at, fraction]),
     [
-      [1, 0.27],
-      [2, 0.25]
+      [1, 0.28],
+      [2, 0.24]
     ]
   );
   assert.equal(split.damagingStackSeconds, 0.52);
@@ -197,7 +197,7 @@ test('short lifetimes settle once on the shared pulse without rounding both spli
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 1 }).conditionDamage, 15);
 });
 
-test('permanent conditions including non-damaging statuses anchor the timer and keep environment totals separate', () => {
+test('permanent conditions share whole-second pulses and keep environment totals separate', () => {
   for (const conditions of [{ Vulnerability: 1 }, { Bleeding: 1 }]) {
     const result = resolve([condition(0.6), condition(3.6)], { end: 5, target: { conditions } });
     assert.deepEqual(
@@ -366,17 +366,18 @@ test('forced cancellation discards unsettled damage and stale wakes cannot trigg
       }
     );
     assert.equal(original.damage, 0);
-    assert.equal(result.conditionDamage, 30);
-    assert.deepEqual(ticks, [1.5]);
+    // Replacement buffers 0.52s and 0.48s, yielding separately rounded packets of 15 and 14.
+    assert.equal(result.conditionDamage, 29);
+    assert.deepEqual(ticks, [1, 2]);
   }
 });
 
-// Non-damaging statuses establish the same clock, and configured statuses exist before explicit Combat Start.
+// Non-damaging statuses leave the global phase unchanged, including before explicit Combat Start.
 test('non-damaging timed and permanent conditions synchronize later damage across combat start', () => {
   const timed = resolve([condition(0.1, { condition: 'Vulnerability', duration: 2 }), condition(0.7)], { end: 2.1 });
   assert.deepEqual(
     applications(timed)[1].damageTicks.map(({ at }) => at),
-    [1.1, 2.1]
+    [1, 2]
   );
   const permanent = resolve([condition(0.2, { duration: 4 })], {
     end: 4,
@@ -420,4 +421,56 @@ test('health milestones and Necromancer feedback consume the committed shared-pa
   assert.equal(milestone.targetDamage, 162);
   const config = refineNecromancerSchedulerConfig({ target: { health: 200 } }, result);
   assert.equal(config._schedulerFeedback.targetBelowHalfAt, milestone.at);
+});
+
+// The first application joins the zero-anchored clock, including after a completely empty target window.
+test('a two-second burn at 960ms buffers 40ms, 1000ms, and 960ms for whole-second payouts', () => {
+  for (const output of ['detailed', 'score']) {
+    const result = resolve([condition(0.96, { condition: 'Burning', duration: 2 })], {
+      output,
+      end: 3,
+      query: { statsAt: () => ({ conditionDamage: 0 }), conditionMultiplier: () => 100 / 131 }
+    });
+    assert.equal(result.conditionDamage, 200);
+    if (output === 'detailed') {
+      const [burn] = applications(result);
+      assert.equal(burn.naturalExpiresAt, 2.96);
+      assert.deepEqual(burn.damageTicks, [
+        { at: 1, fraction: 0.04, damage: 4 },
+        { at: 2, fraction: 1, damage: 100 },
+        { at: 3, fraction: 0.96, damage: 96 }
+      ]);
+    }
+  }
+});
+
+test('clone and phantasm conditions share player rounding while retaining source-specific damage queries', () => {
+  for (const summonKind of ['clone', 'phantasm']) {
+    for (const output of ['detailed', 'score']) {
+      const result = resolve(
+        [condition(), condition(0, { actorType: 'summon', summonKind, summonOwner: 'illusion:1' })],
+        { output }
+      );
+      assert.equal(result.conditionDamage, 59);
+      if (output === 'detailed')
+        assert.deepEqual(
+          applications(result).map(({ damage }) => damage),
+          [30, 29]
+        );
+    }
+  }
+
+  const sources = [];
+  resolve([condition(), condition(0, { actorType: 'summon', summonKind: 'clone', summonOwner: 'illusion:1' })], {
+    query: {
+      conditionMultiplier: (_name, at, application) => {
+        sources.push([at, application.actorType]);
+        return 1;
+      }
+    }
+  });
+  assert.deepEqual(sources, [
+    [1, 'player'],
+    [1, 'summon']
+  ]);
 });

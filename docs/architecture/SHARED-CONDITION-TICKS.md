@@ -1,54 +1,50 @@
 # Shared condition ticks
 
-Status: implemented. The user-supplied timing example supersedes the original proposal's per-condition clocks and
-expiry-time settlement. No independent game-log verification was supplied with the example.
+Status: implemented with the user-specified whole-second clock, 40ms buffering, and packet-time stat sampling.
 
 ## Timing contract
 
-The first condition on the target starts one global one-second timer. Every condition and damage owner joins that
-cadence. An application contributes its elapsed, unsettled active duration at each synchronized pulse, capped by its
-natural expiry. A condition that expires between pulses settles its remainder on the next pulse; expiry itself does not
-create a damage event. Once the final pending contributions have settled and no conditions remain, the timer stops. The
-next application starts a fresh timer.
+All conditions and owners follow one global one-second cadence anchored at simulation time zero. The first condition
+activates queued processing; it does not change that phase. Empty target windows stop unnecessary queued work, and later
+applications still join the same whole-second cadence. No configurable phase offset is currently exposed.
 
-Configured golem conditions are present at simulation time zero, including non-damaging statuses. They anchor the timer
-at zero and prevent it from stopping. Explicit Combat Start gates damage, not the clock. This also keeps environment and
-player conditions synchronized when Combat Start is not on a whole second.
+Conditions buffer active time on the global 40ms grid. Each whole-second pulse counts completed steps since the previous
+settlement, capped by natural expiry, then samples current stats and source-specific modifiers to calculate damage.
+Because stats are sampled only when the packet lands, the resolver counts steps lazily at payout instead of scheduling
+25 buffer events per second. Existing natural durations still round upward to 40ms; split contributions use integer step
+differences so a lifetime is never rounded upward twice.
 
-The supplied example applies a six-second Vital Shot bleed at 0.100s, another at 2.700s, and a three-second Spider Venom
-poison at 2.700s. Bleeding starts the clock; Poisoned joins it. Both later applications contribute 0.4 seconds at
-3.100s. Poison settles its final 0.6 seconds at 6.100s, and the second bleed settles its final 0.6 seconds at 9.100s.
-The target then desynchronizes. Applications at 11.600s restart the clock, with the next pulse at 12.600s.
+For a two-second burn applied at 0.960s with a constant rate of 100 damage per stack-second:
 
-For 125 Condition Damage, Bleeding deals `22 + 0.06 * 125 = 29.5` per stack-second. The example's bleeding packets are:
+| Packet time | Buffered time | Damage |
+| ----------- | ------------- | ------ |
+| 1.000s      | 0.040s        | 4      |
+| 2.000s      | 1.000s        | 100    |
+| 3.000s      | 0.960s        | 96     |
 
-| Packet time            | Unrounded contribution | Rounded damage |
-| ---------------------- | ---------------------- | -------------- |
-| 1.100s, 2.100s         | 29.5 each              | 30 each        |
-| 3.100s                 | `29.5 * (1 + 0.4)`     | 41             |
-| 4.100s, 5.100s, 6.100s | `29.5 * 2`             | 59 each        |
-| 7.100s, 8.100s         | 29.5 each              | 30 each        |
-| 9.100s                 | `29.5 * 0.6`           | 18             |
+Natural expiry at 2.960s stops buffering, but the remaining damage waits until 3.000s. Expiry and observation cutoffs
+never create extra packets. An off-grid application at 0.730s with a rounded 0.520s duration buffers seven steps
+(0.280s) by 1.000s and six more (0.240s) before expiry, preserving the complete lifetime.
 
-Each bleed retains exactly six stack-seconds. Natural durations still round upward to the existing 40ms grid. Split
-intervals do not round upward individually; subtraction noise is removed at picosecond precision before multiplication.
+Configured golem conditions use the same whole-second cadence and separate environment totals. Explicit Combat Start
+gates damage without shifting the clock, including when combat starts between whole seconds.
 
 ## Packets, ownership, and attribution
 
 The global timer determines timestamps. Damage still resolves in separate packets for each canonical condition and
-actual damage owner. Player skills and explicitly player-owned effects share a rounding group. Summons use concrete
-`summonOwner` identities, regardless of inherited player modifiers. Unclassified actors remain isolated per application.
-Environment conditions retain separate totals and never enter player reactions.
+actual damage owner. Player skills, explicitly player-owned effects, clones, and phantasms share a rounding group. Other
+summons use concrete `summonOwner` identities, regardless of inherited player modifiers. Unclassified actors remain
+isolated per application. Environment conditions retain separate totals and never enter player reactions.
 
-Existing Ranger pets, Mesmer clones, Necromancer minions/spirits, and Elementalist elementals provide companion IDs.
-Phantasms now provide an ID per summoned entity, with a separate ID for a resummoned repeat. Mech emission and derived
-conditions retain the concrete `engineer.mech` identity. Skill IDs and display labels are not owner identities. Existing
-trait effects explicitly attributed to the player retain that ownership.
+Existing Ranger pets, Necromancer minions/spirits, and Elementalist elementals provide companion IDs. Mech emission and
+derived conditions retain the concrete `engineer.mech` identity. Clones and phantasms retain their original actor
+metadata and source-specific damage queries while sharing player rounding. Skill IDs and display labels are not owner
+identities. Existing trait effects explicitly attributed to the player retain that ownership.
 
 Applications remain the canonical lifetime and reporting records. Owner groups reference them rather than duplicating
-mutable duration state. Each application has a settlement cursor. A group retains one effective queued wake, derived
-from the global anchor plus an integer pulse index. Settled and forcibly removed applications leave the working group,
-so repeated wake scans do not grow with encounter history. A wake token makes obsolete queued events inert.
+mutable duration state. Each application has a settlement cursor. A group retains one effective queued wake, at an
+integer second on the global cadence. Settled and forcibly removed applications leave the working group, so repeated
+wake scans do not grow with encounter history. A wake token makes obsolete queued events inert.
 
 At a pulse, the resolver samples each contributor's current stats and source-specific modifiers against the same
 pre-packet combat state. It sums unrounded contributions and calls the existing half-even rounding function once.
@@ -81,9 +77,10 @@ approximation and condition damage formulas are unchanged.
 ## Validation
 
 `tests/platform/gw2/shared-condition-ticks.test.js` covers combined rounding, attribution, owner isolation, the supplied
-cross-condition timeline, clock restart, short durations, observation boundaries, permanent conditions, dynamic stats,
-atomic packets, precombat settlement, causal/priority/insertion ordering, lethal packets, and cancellation/stale wakes.
-Existing condition formula/duration and Ranger removal tests cover their original contracts using synchronized pulses.
+cross-condition timeline, empty clock gaps, 40ms buffers, short durations, observation boundaries, permanent conditions,
+packet-time stats, illusion ownership, atomic packets, precombat settlement, causal/priority/insertion ordering, lethal
+packets, and cancellation/stale wakes. Existing condition formula/duration and Ranger removal tests cover their original
+contracts using synchronized pulses.
 
 Run `npm run check` for repository validation and `npm run benchmarks:compare` for supported preset comparisons.
 Numerical preset regressions retain the maximum 1% relative DPS tolerance; expected values must not be silently rebased

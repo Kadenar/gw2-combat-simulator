@@ -186,7 +186,7 @@ test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
   };
   const result = simulate(
     'Amalgam',
-    ['Evolve', 'Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 1000 }],
+    ['Evolve', 'Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 2000 }],
     config
   );
   const bleed = result.resolvedEvents.find(
@@ -196,7 +196,8 @@ test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
   // Double Helix raises eligible Power from 2000 to 2400; Sharpshooter then
   // replaces bleeding's condition damage with two-thirds of that final Power.
   assert.ok(bleed);
-  assert.ok(Math.abs(bleed.damage / bleed.damagingStackSeconds - 118) < 1e-12);
+  // Select a complete interval because shared partial packets attribute rounded integer shares.
+  assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 118 * bleed.stacks);
 });
 
 test('Evolve cannot raise condition duration above the global cap', () => {

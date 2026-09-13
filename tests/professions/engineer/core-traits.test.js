@@ -380,8 +380,9 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
 
   // Duration bonuses apply before the natural lifetime rounds up to 40ms.
   assert.equal(serratedBleed.effectiveDuration, Math.ceil(baseBleed.effectiveDuration * 1.33 * 25) / 25);
-  assert.equal(baseBleed.damageTicks[0].damage, 82);
-  assert.ok(Math.abs(powerBleed.damageTicks[0].damage - 102) < 1e-12);
+  // Check a complete buffer interval so partial-packet rounding cannot distort the trait formula.
+  assert.equal(baseBleed.damageTicks.find((tick) => tick.fraction === 1).damage, 82);
+  assert.equal(powerBleed.damageTicks.find((tick) => tick.fraction === 1).damage, 102);
 
   const noScope = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 100 }], {
     selectedTraitIds: [TRAIT.NO_SCOPE],
