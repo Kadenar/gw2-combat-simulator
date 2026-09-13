@@ -6,7 +6,7 @@ import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/profes
 import {
   gainLethalTempo,
   lethalTempoParameters
-} from '#gw2/professions/guardian/specializations/willbender/mechanics/virtues.js';
+} from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
 function recordLethalTempo(context: GuardianResolverContext, at: number, sourceSkill: string | undefined): void {

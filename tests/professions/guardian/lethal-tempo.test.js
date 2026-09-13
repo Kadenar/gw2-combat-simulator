@@ -4,7 +4,7 @@ import {
   activeLethalTempo,
   gainLethalTempo,
   lethalTempoParameters
-} from '#gw2/professions/guardian/specializations/willbender/mechanics/virtues.js';
+} from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
