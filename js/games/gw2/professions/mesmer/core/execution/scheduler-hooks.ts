@@ -1,4 +1,4 @@
-/** Runs the large Core Mesmer illusion subsystem on the scheduler phase. */
+/** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +7,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
-import { createMesmerRuntime } from '#gw2/professions/mesmer/core/mechanics/illusions/controller.js';
+import { createMesmerRuntime } from '#gw2/professions/mesmer/core/mechanics/runtime-controller.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { restartSignetIllusionsPassive } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import {

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { handleExpectedProcTask } from '#gw2/professions/mesmer/core/mechanics/illusions/execution.js';
+import { handleExpectedProcTask } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 
 test('delayed Mesmer hit procs retain annotations and prefer canonical critical facts', () => {
   // Canonical replacement supplies sampled facts without dropping annotations on the original scheduled hit.

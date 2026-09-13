@@ -1,4 +1,4 @@
-/** Connects Core Mesmer illusion, resource, shatter, and effect controllers for one simulation. */
+/** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
 import {
   balanceProfileFromContext,
   balanceProfileValueFromContext

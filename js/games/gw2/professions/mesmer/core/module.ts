@@ -13,7 +13,7 @@ import {
   handleTrackedHitTask,
   initializeMesmerScheduler,
   observeMesmerEvent
-} from '#gw2/professions/mesmer/core/mechanics/illusions/execution.js';
+} from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerCastRules } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
