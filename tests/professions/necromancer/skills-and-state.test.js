@@ -107,7 +107,7 @@ test('Necromancer Chill producers retain duration scaling and chained trait attr
     assert.equal(chill.type, 'condition');
     assert.equal(chill.stacks, 1);
     assert.equal(chill.duration, duration);
-    const roundedDuration = Math.ceil(duration * 1.5 * 25) / 25;
+    const roundedDuration = duration * 1.5;
     assert.equal(chill.effectiveDuration, roundedDuration);
     assert.equal(chill.naturalExpiresAt, chill.at + roundedDuration);
     assert.equal(chill.sourceId, sourceId);
@@ -156,7 +156,7 @@ test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => 
       strike.damage,
       baseline.resolvedEvents.find((event) => event.type === 'damage' && event.sourceId === traitId).damage
     );
-    assert.equal(chill.effectiveDuration, traitId === TRAIT.CHILLING_NOVA ? 3 : 7.52);
+    assert.equal(chill.effectiveDuration, traitId === TRAIT.CHILLING_NOVA ? 3 : 7.5);
   }
 
   const nextStrike = (simulation) =>
@@ -1064,7 +1064,7 @@ test('Lingering Curse increases scepter base duration beyond the stat cap', () =
     )?.effectiveDuration;
 
   assert.equal(bleedingDuration(base), 9);
-  assert.equal(bleedingDuration(lingering), 13.52);
+  assert.equal(bleedingDuration(lingering), 13.5);
 });
 
 test('Harbinger Shroud generates and consumes expiring blight', () => {

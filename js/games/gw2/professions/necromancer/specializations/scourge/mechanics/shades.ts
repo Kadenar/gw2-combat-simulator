@@ -1,3 +1,4 @@
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -93,8 +94,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       new Set<string | number>([ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]).has(skill.id) &&
       hasTrait(context, TRAIT.PLAGUE_SENDING)
     ) {
-      const hasActiveSelfCondition = coreState.selfConditions.some(
-        (application) => application.appliedAt <= at && application.expiresAt > at
+      const hasActiveSelfCondition = coreState.selfConditions.some((application) =>
+        isTimeInWindow(at, application.appliedAt, application.expiresAt)
       );
       coreState.plagueSendingArmed = true;
       // Track which skill armed the proc so the resolver can attribute the transfer correctly;

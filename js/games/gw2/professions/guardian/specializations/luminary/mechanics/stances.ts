@@ -33,6 +33,8 @@ export function processLuminaryStances(context: GuardianCastContext, skill: Guar
       sourceId: skill.id,
       actorType: 'player',
       kind: 'guardian-piercing-stance',
+      // Open the stance before its impact and aura detonation; resolver queries no longer read pending buffs.
+      priority: -20,
       duration: state.piercingStanceUntil - at,
       stacks: 1
     });

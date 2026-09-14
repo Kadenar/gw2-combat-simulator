@@ -1,3 +1,4 @@
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 /**
  * Shared Guild Wars 2 scheduling rules used by `simulateGw2`.
  *
@@ -29,6 +30,7 @@ import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
+  normalizeBoonDuration,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/state/boons.js';
 import { relicWeaponSwapRechargeMultiplier } from '#gw2/platform/equipment/relics/catalog.js';
@@ -116,26 +118,27 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
   if (context.events.some((event) => event.type === 'boon_extension') && isStandardBoon(normalized)) {
-    const applications = boonApplicationsAt(context.events, normalized, at + context.epsilon).filter(
+    const applications = boonApplicationsAt(context.events, normalized, canonicalTime(at)).filter(
       (application) => application.resolvedAudience.includesSummons
     );
     return isDurationStackingBoon(normalized)
-      ? remainingDurationStackSeconds(applications, at + context.epsilon, {
+      ? remainingDurationStackSeconds(applications, canonicalTime(at), {
           maximum: durationStackingBoonCapSeconds(normalized)
-        }) > context.epsilon
-      : applications.some((application) => application.expiresAt > at + context.epsilon);
+        }) > 0
+      : applications.some((application) => canonicalTime(application.expiresAt) > canonicalTime(at));
   }
 
   if (isDurationStackingBoon(normalized)) {
     return (
-      remainingDurationStackSeconds(context.events, at + context.epsilon, {
+      remainingDurationStackSeconds(context.events, canonicalTime(at), {
+        duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
         includes: (event) =>
           event.type === 'buff' &&
           String(event.kind || '').toLowerCase() === normalized &&
           event.resolvedAudience?.includesSummons === true &&
           Number(event.stacks || 1) > 0,
         maximum: durationStackingBoonCapSeconds(normalized)
-      }) > context.epsilon
+      }) > 0
     );
   }
 
@@ -145,8 +148,8 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
       String(event.kind || '').toLowerCase() === normalized &&
       event.resolvedAudience?.includesSummons === true &&
       Number(event.stacks || 1) > 0 &&
-      event.at <= at + context.epsilon &&
-      event.at + Math.max(0, Number(event.duration || 0)) > at + context.epsilon
+      // Summon intensity boons use the same canonical, half-open lifetime as player and resolver queries.
+      isTimeInWindow(at, event.at, event.at + Math.max(0, Number(normalizeBoonDuration(event).duration || 0)))
   );
 }
 
@@ -333,13 +336,13 @@ export function createGw2SchedulerPolicy(
       // Configured duration presence is fixed even with extensions; intensity stacks still need replay.
       if (configuredStacks > 0 && isDurationStackingBoon(kind)) return 1;
       if (context.eventsOfType('boon_extension').length > 0 && isStandardBoon(kind)) {
-        const extended = boonApplicationsAt(context.events, kind, at + context.epsilon).filter(
+        const extended = boonApplicationsAt(context.events, kind, canonicalTime(at)).filter(
           (application) => application.resolvedAudience.includesSelf
         );
         if (isDurationStackingBoon(kind)) {
-          return remainingDurationStackSeconds(extended, at + context.epsilon, {
+          return remainingDurationStackSeconds(extended, canonicalTime(at), {
             maximum: durationStackingBoonCapSeconds(kind)
-          }) > context.epsilon
+          }) > 0
             ? 1
             : 0;
         }
@@ -347,15 +350,29 @@ export function createGw2SchedulerPolicy(
         return (
           configuredStacks +
           extended
-            .filter((application) => application.expiresAt > at + context.epsilon)
+            .filter((application) => canonicalTime(application.expiresAt) > canonicalTime(at))
             .reduce((sum, application) => sum + application.stacks, 0)
         );
       }
 
-      if (!isDurationStackingBoon(kind)) return defaultStacks;
-      return remainingDurationStackSeconds(applications, at + context.epsilon, {
+      // Keep scheduler events unrounded for later effect modifiers; availability reads their final rounded lifetimes.
+      if (!isDurationStackingBoon(kind)) {
+        if (!isStandardBoon(kind)) return defaultStacks;
+        return (
+          configuredStacks +
+          applications.reduce((total, input) => {
+            const event = normalizeBoonDuration(input);
+            return isTimeInWindow(at, event.at, event.at + Number(event.duration || 0))
+              ? total + Number(event.stacks || 1)
+              : total;
+          }, 0)
+        );
+      }
+
+      return remainingDurationStackSeconds(applications, canonicalTime(at), {
+        duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
         maximum: durationStackingBoonCapSeconds(kind)
-      }) > context.epsilon
+      }) > 0
         ? 1
         : 0;
     },

@@ -158,7 +158,8 @@ test('Luminary skill boons reach the effects chart with boon-duration scaling', 
         (event) => event.type === 'buff' && event.kind === name.toLowerCase()
       );
       assert.equal(boon.stacks, unscaled.stacks, name);
-      assert.equal(boon.duration, unscaled.duration * 1.5, name);
+      // Both runs round independently after scaling, allowing only their millisecond rounding difference.
+      assert.ok(Math.abs(boon.duration - unscaled.duration * 1.5) < 0.001, name);
       assert.equal(boon.resolvedAudience.includesSelf, true, name);
       assert.equal(series.effectTypes[name], 'boon', name);
       assert.ok(

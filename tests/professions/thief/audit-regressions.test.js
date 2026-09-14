@@ -388,7 +388,7 @@ test('THF-007: Sun Crystal enhances base Burning once and preserves already-enha
     );
     assert.ok(burns.some((event) => event.triggeredBy));
     assert.ok(burns.some((event) => !event.triggeredBy));
-    for (const burn of burns) near(burn.effectiveDuration, expertise ? 7.52 : 5);
+    for (const burn of burns) near(burn.effectiveDuration, expertise ? 7.5 : 5);
   }
 });
 

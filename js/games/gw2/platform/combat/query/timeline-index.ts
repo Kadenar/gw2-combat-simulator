@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
@@ -7,6 +7,7 @@ import {
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
+  normalizeBoonDuration,
   remainingDurationStackSeconds,
   sumActiveStacks
 } from '#gw2/platform/combat/state/boons.js';
@@ -22,6 +23,7 @@ import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/types.js';
 interface CreateGw2TimelineIndexOptions {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
+  readonly resolved?: boolean;
   readonly sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet;
 }
 
@@ -47,16 +49,20 @@ interface CachedBuffStacks {
 export function createGw2TimelineIndex({
   config = {},
   events = [],
+  resolved = false,
   sigilSet = gw2SigilSet
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
   // Timestamp ties follow scheduler causal order so derived events are queried
   // in the same order the resolver consumes them.
 
   const compareEvents = (left: SimulationEvent, right: SimulationEvent): number =>
-    left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
+    canonicalTime(left.at) - canonicalTime(right.at) || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0);
   // Late-derived events use neutral stable insertion without changing the GW2-specific comparator.
-  const insertOrdered = (target: SimulationEvent[], event: SimulationEvent): void =>
-    insertSorted(target, event, compareEvents);
+  const insertOrdered = (target: SimulationEvent[], event: SimulationEvent): void => {
+    // Resolved history already follows phase, priority, and causal order; preserve that actual execution order.
+    if (resolved) target.push(event);
+    else insertSorted(target, event, compareEvents);
+  };
 
   const indexed: IndexedEvents = {
     weaponSet: [],
@@ -84,6 +90,7 @@ export function createGw2TimelineIndex({
   };
 
   const indexBuff = (event: SimulationEvent): void => {
+    event = normalizeBoonDuration(event);
     const kind = String(event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
     if (!bucket) {
@@ -147,23 +154,24 @@ export function createGw2TimelineIndex({
     audience: Gw2BuffAudience = 'all',
     companionId?: string | null
   ): number => {
+    time = canonicalTime(time);
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
-      const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time + EPSILON, duration);
+      const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time, duration);
       const includes = (application: (typeof applications)[number]) =>
         buffMatchesAudience(application, audience, companionId);
       if (isDurationStackingBoon(kind)) {
-        return remainingDurationStackSeconds(applications, time + EPSILON, {
+        return remainingDurationStackSeconds(applications, time, {
           includes,
           maximum: durationStackingBoonCapSeconds(kind)
-        }) > EPSILON
+        }) > 0
           ? Math.min(1, Math.max(0, maximum))
           : 0;
       }
 
       return sumActiveStacks(
         applications,
-        (application) => includes(application) && application.expiresAt > time,
+        (application) => includes(application) && isTimeInWindow(time, application.at, application.expiresAt),
         (application) => application.stacks,
         maximum
       );
@@ -173,22 +181,23 @@ export function createGw2TimelineIndex({
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
     if (isDurationStackingBoon(kind)) {
-      const remaining = remainingDurationStackSeconds(applications || [], time + EPSILON, {
+      const remaining = remainingDurationStackSeconds(applications || [], time, {
         includes: (event) => buffMatchesAudience(event, audience, companionId),
-        duration: (event) => Number(event.duration || duration),
+        duration: (event) => Number(event.duration ?? duration),
         maximum: durationStackingBoonCapSeconds(kind)
       });
-      return remaining > EPSILON ? Math.min(1, Math.max(0, maximum)) : 0;
+      return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }
 
     return sumActiveStacks(
       applications || [],
-      // Event duration wins; duration is a fallback for compact buff records.
+      // Explicit zero durations stay empty, including grants rounded down to zero milliseconds.
       (event) =>
-        buffMatchesAudience(event, audience, companionId) && event.at + Number(event.duration || duration) > time,
+        buffMatchesAudience(event, audience, companionId) &&
+        isTimeInWindow(time, event.at, event.at + Number(event.duration ?? duration)),
       (event) => Number(event.stacks || 1),
       maximum,
-      (event) => event.at > time + EPSILON
+      (event) => canonicalTime(event.at) > time
     );
   };
 
@@ -200,6 +209,7 @@ export function createGw2TimelineIndex({
     audience: Gw2BuffAudience = 'all',
     companionId?: string | null
   ): number => {
+    time = canonicalTime(time);
     refreshQueryCache(time);
     const cached = buffCache.get(kind);
     if (
@@ -227,10 +237,11 @@ export function createGw2TimelineIndex({
   const vigorActiveAt = (time: number): boolean => Boolean(config.boons?.vigor) || timedActive('vigor', time);
 
   const activeWeaponSetAt = (time: number): number => {
+    time = canonicalTime(time);
     refreshIndex();
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
     for (const event of indexed.weaponSet) {
-      if (event.at > time + EPSILON) break;
+      if (canonicalTime(event.at) > time) break;
       // Same-timestamp swaps are visible to effects emitted after the swap.
       activeSet = Number(event.weaponSet);
     }
@@ -241,16 +252,16 @@ export function createGw2TimelineIndex({
   const activeSigilSetAt = (time: number): Gw2SigilSet => sigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
+    time = canonicalTime(time);
     refreshQueryCache(time);
     const cached = cooldownCache.get(skillId);
     if (cached !== undefined) return cached;
     let readyAt = 0;
     for (const event of indexed.cooldown) {
-      if (event.at > time + EPSILON) break;
+      if (canonicalTime(event.at) > time) break;
       if (event.type === 'action' && event.skillId === skillId) {
-        // Query the state before an action at this exact timestamp; otherwise
-        // the action would see the cooldown it is about to create.
-        if (event.at >= time - EPSILON) continue;
+        // Predictions must not see their own action's cooldown; resolved history contains only completed events.
+        if (!resolved && canonicalTime(event.at) === time) continue;
         readyAt = Number(event.rechargeReadyAt || 0);
       } else if (event.type === 'cooldown_snapshot') {
         // A snapshot replaces prior knowledge for the requested skill.
@@ -262,7 +273,7 @@ export function createGw2TimelineIndex({
       }
     }
 
-    const value = readyAt > time + EPSILON;
+    const value = readyAt === Infinity || canonicalTime(readyAt) > time;
     cooldownCache.set(skillId, value);
     return value;
   };

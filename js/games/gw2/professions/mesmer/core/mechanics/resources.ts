@@ -77,7 +77,8 @@ export function createResourceController({
 
         const clone = {
           id: ++cloneSequence,
-          createdAt: at + index * epsilon,
+          // Clone IDs provide stable identity; simultaneous gains share the resource task's timestamp.
+          createdAt: at,
           weapon: weapon || activePrimaryWeapon()
         };
         const initialized = cloneAttackScheduler.initializeClone(clone);

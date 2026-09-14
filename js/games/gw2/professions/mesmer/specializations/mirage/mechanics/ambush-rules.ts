@@ -57,7 +57,7 @@ export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMec
     const runtime = mesmerRuntimeFor(context);
     mirageControllerFor(runtime).grantMirageCloak(at, skill.name);
     if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
-      runtime.resources.queueResources(at + EPSILON, 1, runtime.activePrimaryWeapon(), 'Deceptive Evasion', {
+      runtime.resources.queueResources(at, 1, runtime.activePrimaryWeapon(), 'Deceptive Evasion', {
         traitId: TRAIT.DECEPTIVE_EVASION,
         traitName: 'Deceptive Evasion'
       });
@@ -74,7 +74,7 @@ function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     runtime.actions.currentResource() > 0
   ) {
     runtime.resources.queueResources(
-      context.fullEnd + EPSILON,
+      context.fullEnd,
       balanceProfileValueFromContext(context, TRAIT.SELF_DECEPTION, 'resourceGain', 1),
       runtime.activePrimaryWeapon(),
       `Self-Deception: ${skill.name}`,

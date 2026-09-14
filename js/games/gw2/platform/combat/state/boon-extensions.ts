@@ -4,9 +4,11 @@ import {
   remainingDurationStackSeconds,
   isDurationStackingBoon,
   isStandardBoon,
-  recordBuffApplication
+  recordBuffApplication,
+  normalizeBoonDuration
 } from '#gw2/platform/combat/state/boons.js';
-import { eventCausalOrder } from '#kernel/events/queue.js';
+import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
@@ -57,6 +59,7 @@ export function* selfBoonIntervals(
 
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
 export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>, event: SimulationEvent): void {
+  event = normalizeBoonDuration(canonicalEvent(event));
   const duration = Number(event.duration || 0);
   if (!(duration > 0)) return;
   for (const [kind, applications] of boons) {
@@ -79,7 +82,7 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
       );
       applications.push({
         at: event.at,
-        expiresAt: event.at + duration,
+        expiresAt: canonicalTime(event.at + duration),
         stacks: 1,
         extension: true,
         source: event.source,
@@ -102,8 +105,7 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
       applications
         .flatMap((application) => {
           if (
-            application.at > event.at ||
-            application.expiresAt <= event.at ||
+            !isTimeInWindow(event.at, application.at, application.expiresAt) ||
             (!all && !application.resolvedAudience.includesSelf)
           )
             return [application];
@@ -118,7 +120,7 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
             {
               ...application,
               at: event.at,
-              expiresAt: application.expiresAt + duration,
+              expiresAt: canonicalTime(application.expiresAt + duration),
               resolvedAudience: all ? application.resolvedAudience : SELF
             }
           ];
@@ -138,15 +140,16 @@ export function boonApplicationsAt(
   // ponytail: replay one boon history; cache by event generation if extension-heavy runs make this costly.
   const boons = new Map<string, Gw2TimedBuffApplication[]>();
   const relevant = events
+    .map(canonicalEvent)
     .filter(
       (event) =>
-        event.at <= time &&
+        event.at <= (time === Infinity ? Infinity : canonicalTime(time)) &&
         ((event.type === 'buff' && String(event.kind).toLowerCase() === kind) ||
           (event.type === 'boon_extension' && (!event.kind || event.kind === kind) && event.excludedKind !== kind))
     )
     .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
   for (const event of relevant) {
-    if (event.type === 'buff') recordBuffApplication(boons, { ...event, duration: event.duration || fallbackDuration });
+    if (event.type === 'buff') recordBuffApplication(boons, { ...event, duration: event.duration ?? fallbackDuration });
     else applyBoonExtension(boons, event);
   }
 

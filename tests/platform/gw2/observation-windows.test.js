@@ -7,6 +7,43 @@ import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '../../fixtures/profession.js';
 
+// Direct callers may bypass the stream builder; ingress must canonicalize copies before query construction.
+test('resolver cutoff includes the canonical instant and excludes the following microsecond', () => {
+  const events = Object.freeze(
+    [0.56 + 0.04, 0.600001].map((at) =>
+      Object.freeze({
+        type: 'damage',
+        at,
+        source: 'Player',
+        sourceId: 'probe',
+        actorType: 'player',
+        flatDamage: 1
+      })
+    )
+  );
+  const stream = Object.freeze({ ...buildScheduledEventStream({ events: [], rotationEndTime: 0.6 }), events });
+  for (const output of ['detailed', 'score']) {
+    const seen = [];
+    const result = resolveTestGw2Stream({
+      output,
+      stream,
+      config: { target: {}, sigilSets: [{ names: [] }] },
+      query: {
+        statsAt: (at) => {
+          seen.push(at);
+          return { power: 1000 };
+        }
+      }
+    });
+    assert.equal(result.totalDamage, 1);
+    assert.equal(result.firstHitTime, 0.6);
+    assert.deepEqual(seen, [0.6]);
+    if (output === 'detailed') assert.equal(result.events[0].at, 0.6);
+  }
+
+  assert.equal(events[0].at, 0.56 + 0.04);
+});
+
 // Opening hits must start the same sigil cooldown in both simulation phases.
 test('scheduler sigil predictions include the combat boundary and exclude earlier hits', () => {
   for (const offset of [1000, 1100]) {

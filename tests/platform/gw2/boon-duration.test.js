@@ -5,8 +5,147 @@ import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js
 import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
+import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+
+// Final applications round after bonuses, while fixed boons still round and generic positive buffs do not.
+test('boon grants round final durations half-even to milliseconds without moving application times', () => {
+  const profession = defineProfession({
+    id: 'boon-rounding',
+    name: 'Boon rounding',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 990001,
+          name: 'Grant',
+          castTimeMs: 0,
+          effects: [
+            { type: 'boon', boon: 'Might', duration: 0.3335, stacks: 1 },
+            { type: 'buff', kind: 'custom', duration: 1.01, stacks: 1 }
+          ]
+        }
+      ]
+    })
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: 'wait', durationMs: 375 }, 'Grant'],
+    config: { stats: { concentration: 1500 } }
+  });
+  assert.deepEqual(
+    result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.at, event.duration]),
+    [
+      ['might', 0.375, 0.667],
+      ['custom', 0.375, 1.01]
+    ]
+  );
+  for (const kind of GW2_STANDARD_BOONS) {
+    for (const [duration, expected] of [
+      [1, 1],
+      [1.01, 1.01],
+      [1.0005, 1],
+      [1.0015, 1.002],
+      [1.000499, 1],
+      [1.000501, 1.001],
+      [0.0005, 0],
+      [0.0015, 0.002],
+      [1.04, 1.04],
+      [0.56 + 0.04, 0.6],
+      [0, 0]
+    ]) {
+      const input = Object.freeze({
+        type: 'buff',
+        at: 0.375,
+        source: 'Player',
+        sourceId: 'boon',
+        actorType: 'player',
+        kind,
+        duration,
+        fixedDuration: true
+      });
+      const event = buildScheduledEventStream({ events: [input], rotationEndTime: 0.375 }).events[0];
+      assert.equal(event.duration, expected);
+      assert.equal(event.at, 0.375);
+      assert.equal(input.duration, duration);
+      assert.deepEqual(buildScheduledEventStream({ events: [event], rotationEndTime: 0.375 }).events[0], event);
+    }
+  }
+
+  // Later modifiers still receive unrounded inputs, while scheduler availability already observes rounded lifetimes.
+  const { context } = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
+  for (const kind of ['might', 'fury']) {
+    const event = context.emit({
+      type: 'buff',
+      at: 0.375,
+      source: 'Player',
+      sourceId: kind,
+      actorType: 'player',
+      kind,
+      duration: 0.75,
+      stacks: 1
+    });
+    context.replaceEvent(event, { duration: event.duration * 4 });
+    assert.equal(context.hasBuff(kind, 3.374999), true);
+    assert.equal(context.hasBuff(kind, 3.375), false);
+    context.replaceEvent(event, { duration: 1.0015 });
+    assert.equal(context.hasBuff(kind, 1.376999), true);
+    assert.equal(context.hasBuff(kind, 1.377), false);
+    context.replaceEvent(event, { duration: 0.0005 });
+    assert.equal(context.hasBuff(kind, 0.375), false);
+  }
+});
+
+// Raw streams and derived reactions must agree with scheduler rounding and never re-round a draining lifetime.
+test('resolver boon grants and extensions retain rounded expiry in detailed and score output', () => {
+  for (const output of ['detailed', 'score']) {
+    const seen = [];
+    const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };
+    const events = [
+      Object.freeze({ ...owner, type: 'buff', at: 0.375, kind: 'might', duration: 1.01, stacks: 1 }),
+      ...[0.375, 1.384999, 1.385, 1.394999, 1.395].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
+    ];
+    const result = resolveTestGw2Stream({
+      output,
+      stream: { ...buildScheduledEventStream({ events: [], rotationEndTime: 1.5 }), events },
+      config: {},
+      professionReactions: {
+        'damage.resolved': (ctx, event) => {
+          if (event.at === 0.375) {
+            ctx.queue.enqueue({ ...owner, type: 'buff', at: event.at, kind: 'fury', duration: 1.01, stacks: 1 });
+            ctx.queue.enqueue({
+              ...owner,
+              type: 'boon_extension',
+              at: 0.875,
+              duration: 0.0105,
+              extensionAudience: 'self'
+            });
+          } else {
+            seen.push([event.at, ctx.query.mightStacksAt(event.at, ctx), ctx.query.furyActiveAt(event.at, ctx)]);
+          }
+        }
+      }
+    });
+    assert.deepEqual(seen, [
+      [1.384999, 1, true],
+      [1.385, 1, true],
+      [1.394999, 1, true],
+      [1.395, 0, false]
+    ]);
+    assert.equal(events[0].duration, 1.01);
+    if (output === 'detailed') {
+      assert.deepEqual(
+        result.resolvedEvents
+          .filter((event) => ['buff', 'boon_extension'].includes(event.type))
+          .map((event) => event.duration),
+        [1.01, 1.01, 0.01]
+      );
+    }
+  }
+});
 
 test('the shared boon multiplier combines concentration, global, named, and sigil bonuses', () => {
   const stats = {

@@ -54,7 +54,7 @@ export function handleVirtuosoExpectedProcTask(
     while (threshold > 0 && state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
       state.bloodsongProgress -= threshold;
       runtime.resources.queueResources(
-        task.payload.at + context.epsilon,
+        task.at,
         Number(profile?.resourceGain ?? 1),
         runtime.activePrimaryWeapon(),
         'Bloodsong',

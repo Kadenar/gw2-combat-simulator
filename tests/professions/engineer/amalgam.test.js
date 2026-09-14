@@ -301,7 +301,7 @@ test('Carbolic Composition poisons only Amalgam skill hits', () => {
   assert.ok(
     poison.every(
       (event) =>
-        event.triggeredBy === 'Offensive Protocol: Shred' && Math.abs(event.naturalExpiresAt - event.at - 4) < 1e-12
+        event.triggeredBy === 'Offensive Protocol: Shred' && Math.abs(event.naturalExpiresAt - event.at - 3.99) < 1e-12
     )
   );
   assert.equal(

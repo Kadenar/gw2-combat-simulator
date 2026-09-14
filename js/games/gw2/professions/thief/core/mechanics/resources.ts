@@ -1,4 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -105,7 +106,8 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   }
 
   for (const [skillId, expiresAt] of Object.entries(state.availableFlips)) {
-    if (Number(expiresAt || 0) <= target) delete state.availableFlips[skillId];
+    // Permanent preparation flips retain their sentinel; finite weapon flips expire at their canonical boundary.
+    if (expiresAt !== Infinity && canonicalTime(Number(expiresAt || 0)) <= target) delete state.availableFlips[skillId];
   }
 
   const initiativeFrom = Number(state.initiativeUpdatedAt || 0);

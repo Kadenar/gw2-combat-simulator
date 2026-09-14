@@ -461,7 +461,7 @@ test('Continuum Shift restores Signet of Midnight passive expertise', () => {
     (event) => event.type === 'condition' && event.skillName === 'Confusing Images'
   );
 
-  assert.equal(application.effectiveDuration, 9.6);
+  assert.equal(application.effectiveDuration, 9.59);
 });
 
 test('Ineptitude treats control as an interrupt only for an activating target', () => {

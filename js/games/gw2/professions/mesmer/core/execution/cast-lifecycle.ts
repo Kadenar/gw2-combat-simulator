@@ -263,7 +263,7 @@ export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill):
     shatter?.consumesResources !== false && Number.isFinite(spendProgress) && context.fullEnd > context.start + EPSILON;
   const earlyResourceAt =
     skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
-      ? context.start + Number(skill.resource.atMs || 0) / 1000 + EPSILON
+      ? context.start + Number(skill.resource.atMs || 0) / 1000
       : null;
   const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < context.fullEnd - EPSILON;
   const earlyResourceOwnerId = `${context.reservationId}:mesmer.resource`;

@@ -935,7 +935,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
   assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.2));
   assert.equal(burning.length, 10);
   assert.ok(
-    burning.every((event) => event.condition === 'Burning' && event.duration === 3 && event.effectiveDuration === 4.52)
+    burning.every((event) => event.condition === 'Burning' && event.duration === 3 && event.effectiveDuration === 4.5)
   );
 
   const cappedBeam = simulate('Holosmith', ['Prime Light Beam', { type: 'wait', durationMs: 11000 }], {

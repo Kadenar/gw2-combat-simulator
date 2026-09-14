@@ -858,10 +858,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     [440, 560, 680, 800, 920, 1040].map((at) => [at, 0.2])
   );
   assert.ok(
-    vortex.events.some(
-      (event) =>
-        event.type === 'buff' && event.kind === 'resolution' && Math.abs(event.duration - 3 * (1 + 75 / 1500)) < 1e-9
-    )
+    vortex.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 3.15)
   );
 });
 

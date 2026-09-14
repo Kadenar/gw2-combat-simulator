@@ -1330,7 +1330,7 @@ test('Shared Empowerment grants one stack of eight-second Might on a strict one-
   assert.ok(applications.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
 });
 
-test('Elevated Compassion grants 1.25 seconds of Quickness once per second at six upkeep', () => {
+test('Elevated Compassion grants 1.25 seconds of Quickness at six upkeep', () => {
   const belowThreshold = simulate('Herald', ['Facet of Chaos', { type: 'wait', durationMs: 1100 }], {
     selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
     startingLegend: LEGEND.DRAGON,

@@ -76,7 +76,7 @@ test('Mesmer zero Illusionary Membrane duration remains zero after the shatter',
       [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]: { effects: [{ type: 'buff', duration: 0 }] }
     },
     'Core',
-    ['Cry of Frustration'],
+    ['Cry of Frustration', { type: 'wait', durationMs: 1 }],
     {
       initialResource: 1,
       selectedTraitIds: [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]

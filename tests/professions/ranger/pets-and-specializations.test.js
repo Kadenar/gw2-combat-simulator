@@ -1007,6 +1007,54 @@ test("Soulbeast applies Sic 'Em to the merged ranger and to the pet while unmerg
   );
 });
 
+for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
+  ['Soulbeast', ID.WORLDLY_IMPACT, 'Pig', 'sic-em', 1.25],
+  ['Core', ID.FURIOUS_POUNCE, 'Tiger', 'sic-em-pet', 1.4]
+]) {
+  test(`${specialization} Sic 'Em buffs simultaneous damage without affecting earlier hits`, () => {
+    const config = { selectedPet, selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT] };
+    const attack = { type: 'cast', skillId };
+    const strike = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
+    const baseline = simulate(specialization, [attack, { type: 'wait', durationMs: 2000 }], config);
+    const baselineHit = strike(baseline);
+    const step = baseline.steps.find((step) => step.skillId === skillId);
+    // Derive the tie from the impact so this tests buff ordering independently of authored cast durations.
+    const impactOffsetMs = Math.round(baselineHit.at * 1000 - step.start);
+
+    for (const offsetMs of [-1, 0, 1]) {
+      const result = simulate(
+        specialization,
+        [
+          attack,
+          { type: 'cast', skillId: ID.SIC_EM, concurrentOffsetMs: impactOffsetMs + offsetMs },
+          { type: 'wait', durationMs: 100 }
+        ],
+        config
+      );
+      const hit = strike(result);
+      const buff = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === buffKind);
+
+      assert.deepEqual(result.warnings, []);
+      assert.equal(hit.at, baselineHit.at);
+      assert.ok(buff);
+      assert.equal(Math.round((buff.at - hit.at) * 1000), offsetMs);
+      if (offsetMs <= 0) {
+        assertFlooredDamageMultiplier(hit.damage, baselineHit.damage, multiplier);
+        assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
+      } else {
+        assert.equal(hit.damage, baselineHit.damage);
+      }
+
+      if (specialization === 'Soulbeast') {
+        const lesser = result.resolvedEvents.find((event) => event.kind === 'lesser-sic-em');
+        assert.ok(lesser);
+        assert.ok(result.resolvedEvents.indexOf(lesser) > result.resolvedEvents.indexOf(hit));
+      }
+    }
+  });
+}
+
 test('Poisonous Strikes follows Soulbeast pet ownership', () => {
   const daggerChain = ['Groundwork Gouge', 'Leading Swipe', 'Serpent Stab', 'Deadly Delivery'];
   const merged = simulate('Soulbeast', ['Double Arc', ...daggerChain], { primaryWeapon: 'Dagger' });

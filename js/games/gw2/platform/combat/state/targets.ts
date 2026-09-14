@@ -1,5 +1,6 @@
 /** Normalizes configured and runtime target conditions behind canonical stack queries. */
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
@@ -147,7 +148,7 @@ function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): 
   const appliedAt = Number(stack?.appliedAt ?? -Infinity);
   const expiresAt = Number(stack?.expiresAt ?? Infinity);
   const removedAt = Number(stack?.removedAt ?? Infinity);
-  return appliedAt <= at && expiresAt > at && removedAt > at
+  return isTimeInWindow(at, appliedAt, Math.min(expiresAt, removedAt))
     ? Math.max(0, Number(stack?.weight ?? stack?.stacks ?? 0))
     : 0;
 }

@@ -135,7 +135,7 @@ test('all accepted Staff and Spear burst variants spend resources and grant firs
       ['Spellbreaker', 11],
       ['Paragon', 1]
     ]) {
-      const result = simulate(specialization, [skillId], {
+      const result = simulate(specialization, [skillId, { type: 'wait', durationMs: 1 }], {
         primaryWeapon,
         initialResource: 30,
         selectedTraitIds: [TRAIT.BERSERKERS_POWER]

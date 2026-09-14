@@ -295,6 +295,8 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
       skillId: skill.id,
       skillName: skill.name,
       kind: 'sic-em',
+      // Apply the instant command before simultaneous merged strikes query its modifier.
+      priority: -20,
       duration: balanceProfileValueFromContext(context, CORE_PROFILE.sicEm, 'durationMultiplier', 10),
       stacks: 1
     });

@@ -1,5 +1,5 @@
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
-import { EPSILON } from '#kernel/core/clock.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
@@ -73,8 +73,8 @@ export function queueElementalistBuff(
 
 /** Returns active resolver-side applications of one boon kind at a timestamp. */
 export function activeElementalistBuffs(context: Gw2ResolverRuntime, kind: string, at: number) {
-  return (context.boons.get(kind.toLowerCase()) || []).filter(
-    (application) => application.at <= at + EPSILON && application.expiresAt > at + EPSILON
+  return (context.boons.get(kind.toLowerCase()) || []).filter((application) =>
+    isTimeInWindow(at, application.at, application.expiresAt)
   );
 }
 

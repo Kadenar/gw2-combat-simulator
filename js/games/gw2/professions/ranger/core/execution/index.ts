@@ -210,6 +210,8 @@ export const rangerCoreSkillHandlers = Object.freeze({
         skillId: skill.id,
         skillName: skill.name,
         kind: 'sic-em-pet',
+        // Apply the instant command before simultaneous pet damage queries its modifier.
+        priority: -20,
         duration: balanceProfileValueFromContext(context, PROFILE.sicEm, 'durationMultiplier', 10),
         stacks: 1
       });

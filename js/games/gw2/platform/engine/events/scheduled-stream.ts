@@ -5,6 +5,9 @@
  */
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from '#gw2/platform/engine/events/events.js';
 import { createEventStream } from '#kernel/events/stream.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalEvent } from '#kernel/events/queue.js';
+import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
 
 import type { Gw2ResolverHandoff, ScheduledEventStream, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
@@ -42,7 +45,18 @@ export function buildScheduledEventStream(options: BuildScheduledEventStreamOpti
     resolutionEndTime,
     resolverHandoff
   });
-  return Object.freeze({ ...stream, resolverHandoff: Object.freeze({ ...stream.resolverHandoff }) });
+  return Object.freeze({
+    ...stream,
+    events: Object.freeze(stream.events.map((event) => normalizeBoonDuration(canonicalEvent(event)))),
+    rotationEndTime: canonicalTime(rotationEndTime),
+    resolutionEndTime: canonicalTime(resolutionEndTime),
+    resolverHandoff: Object.freeze({
+      ...stream.resolverHandoff,
+      ...(stream.resolverHandoff.combatStartTime == null
+        ? {}
+        : { combatStartTime: canonicalTime(stream.resolverHandoff.combatStartTime) })
+    })
+  });
 }
 
 /**
@@ -71,5 +85,8 @@ export function assertScheduledEventStream(stream: unknown): ScheduledEventStrea
   }
 
   for (const event of candidate.events) assertSimulationEvent(event);
+  timeKey(Number(candidate.rotationEndTime));
+  if (candidate.resolutionEndTime !== undefined) timeKey(candidate.resolutionEndTime);
+  if (candidate.resolverHandoff.combatStartTime != null) timeKey(candidate.resolverHandoff.combatStartTime);
   return candidate as ScheduledEventStream;
 }

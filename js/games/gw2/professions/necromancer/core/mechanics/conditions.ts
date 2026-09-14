@@ -1,3 +1,4 @@
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -96,8 +97,8 @@ function conditionDurationMultiplier(
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
 export function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
-  state.selfConditions = (state.selfConditions || []).filter(
-    (application) => application.appliedAt <= at && application.expiresAt > at
+  state.selfConditions = (state.selfConditions || []).filter((application) =>
+    isTimeInWindow(at, application.appliedAt, application.expiresAt)
   );
   return state.selfConditions;
 }

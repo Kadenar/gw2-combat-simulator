@@ -1,4 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
 import type {
@@ -217,7 +218,7 @@ export function createPhantasmEffectController({
       name: skill.name,
       count,
       // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
-      conversionTimes: executions.map((item) => (item.resourceAtOverride ?? item.conversionAt) + epsilon)
+      conversionTimes: executions.map((item) => canonicalTime((item.resourceAtOverride ?? item.conversionAt) + epsilon))
     });
     addEvent({
       type: 'mesmer.phantasm-attack',

@@ -61,7 +61,7 @@ export function resolveIllusionaryReversion(context: MesmerCastContext, resoluti
   }
 
   runtime.resources.queueResources(
-    resolution.at + context.epsilon,
+    resolution.at,
     balanceProfileValueFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     'Illusionary Reversion',

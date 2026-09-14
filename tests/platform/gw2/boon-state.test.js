@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import { gw2BuffActiveForAudience } from '#gw2/platform/scheduler/policy.js';
 
 import {
   durationStackingBoonCapSeconds,
@@ -8,6 +11,57 @@ import {
   remainingDurationStackSeconds,
   standardBoonPresentation
 } from '#gw2/platform/combat/state/boons.js';
+
+// Floating-point sums cannot keep summon boons active at their exact canonical expiry.
+test('summon intensity boons exclude canonical expiry and preserve the preceding microsecond', () => {
+  const context = {
+    events: [
+      {
+        type: 'buff',
+        at: 0.56,
+        duration: 0.04,
+        kind: 'might',
+        stacks: 1,
+        resolvedAudience: { includesSummons: true }
+      }
+    ]
+  };
+  for (const [at, active] of [
+    [0.559999, false],
+    [0.56, true],
+    [0.599999, true],
+    [0.6, false],
+    [0.600001, false]
+  ]) {
+    assert.equal(gw2BuffActiveForAudience(context, 'might', at, 'summon'), active);
+  }
+});
+
+// Presence uses the same microsecond half-open boundary for duration pools, intensity boons, and conditions.
+test('status queries retain the last microsecond and exclude canonical expiry', () => {
+  const resolvedAudience = { includesSelf: true, includesSummons: false, companionIds: [] };
+  const runtime = {
+    boons: new Map(
+      ['might', 'fury'].map((kind) => [kind, [{ at: 0.2, expiresAt: 0.56 + 0.04, stacks: 1, resolvedAudience }]])
+    ),
+    conditionState: new Map([['Bleeding', { stacks: [{ appliedAt: 0.2, expiresAt: 0.56 + 0.04, weight: 1 }] }]])
+  };
+  for (const [time, active] of [
+    [0.199999, 0],
+    [0.2, 1],
+    [0.599999, 1],
+    [0.6, 0],
+    [0.600001, 0]
+  ]) {
+    for (const kind of ['might', 'fury']) {
+      const context = { time, runtime, config: {} };
+      assert.equal(boonActive(context, kind), Boolean(active));
+      assert.equal(activeBoonStacks(context, kind), active);
+    }
+
+    assert.equal(runtimeTargetConditionStacks(runtime, 'Bleeding', time), active);
+  }
+});
 
 // Prepared applications retain their audience and expired history for timestamp queries in either phase.
 test('buff recording requires an audience and retains normalized application history', () => {

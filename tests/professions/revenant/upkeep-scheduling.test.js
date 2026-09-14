@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { test } from 'node:test';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
@@ -218,5 +219,8 @@ test('Soulcleave dismissal and legend swap cancel allied tasks, and recasting re
   const activations = result.steps
     .filter((step) => step.skill === "Soulcleave's Summit")
     .map((step) => step.end / 1000);
-  assert.deepEqual(alliedProcTimes(result), [activations[0] + 1, activations[1] + 1, activations[1] + 2]);
+  assert.deepEqual(
+    alliedProcTimes(result),
+    [activations[0] + 1, activations[1] + 1, activations[1] + 2].map(canonicalTime)
+  );
 });

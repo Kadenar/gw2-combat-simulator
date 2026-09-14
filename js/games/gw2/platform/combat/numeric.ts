@@ -9,10 +9,16 @@ export function finiteNumber(value: unknown, fallback: number): number {
   return Number.isFinite(number) ? number : fallback;
 }
 
-/** Rounds resolved damage to even on half ties, allowing for accumulated floating-point noise. */
+/** Final effect durations use half-even whole milliseconds; expiration stays relative to the application time. */
+export function roundEffectDuration(duration: number): number {
+  if (!Number.isFinite(duration)) throw new RangeError('Effect duration must be finite.');
+  return roundHalfToEven(Math.max(0, duration) * 1000) / 1000;
+}
+
+/** Rounds to even on half ties, allowing for accumulated floating-point noise in damage and duration arithmetic. */
 export function roundHalfToEven(value: number): number {
   const lower = Math.floor(value);
-  // Cover 25 buffer additions plus payout arithmetic; cap tolerance so large values retain distinct fractions.
+  // Cover accumulated formula arithmetic; cap tolerance so large values retain distinct fractions.
   const tolerance = Math.min(1e-7, 32 * Number.EPSILON * Math.max(1, Math.abs(value)));
   return Math.abs(value - lower - 0.5) <= tolerance ? (lower % 2 === 0 ? lower : lower + 1) : Math.round(value);
 }

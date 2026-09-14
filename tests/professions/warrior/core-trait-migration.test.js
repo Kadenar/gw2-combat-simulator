@@ -73,7 +73,7 @@ const traitCases = [
   {
     name: "Berserker's Power",
     trait: TRAIT.BERSERKERS_POWER,
-    rotation: ['Eviscerate'],
+    rotation: ['Eviscerate', { type: 'wait', durationMs: 1 }],
     config: { initialResource: 30 },
     verify: (result) => assert.equal(result.events.find((event) => event.kind === 'berserkers-power')?.stacks, 4)
   },
@@ -164,7 +164,7 @@ const traitCases = [
   {
     name: 'Signet Mastery',
     trait: TRAIT.SIGNET_MASTERY,
-    rotation: ['Signet of Might'],
+    rotation: ['Signet of Might', { type: 'wait', durationMs: 1 }],
     verify: (result) => {
       const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Signet of Might');
       const mastery = result.events.find((event) => event.kind === 'signet-mastery');
@@ -208,7 +208,7 @@ const traitCases = [
   {
     name: 'Burst Mastery',
     trait: TRAIT.BURST_MASTERY,
-    rotation: ['Eviscerate'],
+    rotation: ['Eviscerate', { type: 'wait', durationMs: 1 }],
     config: { initialResource: 30 },
     verify: (result) => assert.ok(result.events.some((event) => event.sourceId === TRAIT.BURST_MASTERY))
   }

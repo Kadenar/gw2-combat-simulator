@@ -441,7 +441,7 @@ test('weapon swaps activate only the equipped set duration sigils', () => {
   );
 
   assert.equal(applications.length, 14);
-  assert.ok(applications.slice(0, 7).every((application) => Math.abs(application.effectiveDuration - 7.72) < 1e-12));
+  assert.ok(applications.slice(0, 7).every((application) => Math.abs(application.effectiveDuration - 7.7) < 1e-12));
   assert.ok(applications.slice(7).every((application) => Math.abs(application.effectiveDuration - 7) < 1e-12));
 });
 

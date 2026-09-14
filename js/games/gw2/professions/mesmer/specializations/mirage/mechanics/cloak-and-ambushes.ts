@@ -381,7 +381,7 @@ export function createMirageActionController({
     }
 
     if (ambush.createsClone) {
-      queueResources(impactAt + epsilon, 1, weapon, ambush.name, {
+      queueResources(impactAt, 1, weapon, ambush.name, {
         sourceSkillId: skill.id
       });
     }

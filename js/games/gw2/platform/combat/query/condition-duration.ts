@@ -1,5 +1,6 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2CombatQuery, Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
+import { roundEffectDuration } from '#gw2/platform/combat/numeric.js';
 
 /** Snapshots natural condition duration at application time; each phase owns its stacks and observation window. */
 export function conditionApplicationDuration(
@@ -16,7 +17,5 @@ export function conditionApplicationDuration(
     ? 1
     : (query.conditionBaseDurationMultiplier?.(name, event.at, event, runtime) ?? 1);
   const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
-  // Round natural lifetimes up to 40ms in both phases, ignoring floating-point noise at exact boundaries.
-  const ticks = duration * 25;
-  return Math.ceil(ticks - Number.EPSILON * ticks) / 25;
+  return roundEffectDuration(duration);
 }

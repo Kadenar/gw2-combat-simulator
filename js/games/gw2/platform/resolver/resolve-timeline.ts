@@ -1,9 +1,14 @@
-import { EPSILON } from '#kernel/core/clock.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { assertScheduledEventStream as assertPlatformStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import { createGw2ResolverHandlerRegistry, runGw2ResolverEventLoop } from '#gw2/platform/resolver/event-loop.js';
+import {
+  createGw2ResolverHandlerRegistry,
+  gw2ResolverPhase,
+  runGw2ResolverEventLoop
+} from '#gw2/platform/resolver/event-loop.js';
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
@@ -96,7 +101,7 @@ function buildResolverResult(
   // Stop before filtering, sorting, casts, and table projections when only numerical output was requested.
   if (!ctx.reporting) return score;
   const { output, ...numeric } = score;
-  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd + EPSILON) as Gw2ResolverEvent[];
+  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd) as Gw2ResolverEvent[];
   const casts = addCastsToBreakdown(ctx, effectiveEvents);
   return {
     ...numeric,
@@ -157,19 +162,34 @@ export function resolveGw2Timeline({
   // Scheduler boon predictions guide later casts/resources; surviving resolver hits own their actual effects.
   const scheduled = {
     ...validated,
-    events: validated.events.filter((event) => event.schedulerBoonPrediction !== true)
+    rotationEndTime: canonicalTime(validated.rotationEndTime),
+    resolutionEndTime: canonicalTime(validated.resolutionEndTime ?? validated.rotationEndTime),
+    resolverHandoff: {
+      ...validated.resolverHandoff,
+      ...(validated.resolverHandoff.combatStartTime == null
+        ? {}
+        : {
+            combatStartTime: canonicalTime(validated.resolverHandoff.combatStartTime)
+          })
+    },
+    // Queries and handlers share canonical copies; caller-owned frozen events remain untouched.
+    events: validated.events
+      .filter((event) => event.schedulerBoonPrediction !== true)
+      .map((event) => normalizeBoonDuration(canonicalEvent({ ...event })))
   };
   if (!profession?.id) throw new TypeError('GW2 timeline resolver requires a profession.');
   // Assemble common mechanics once so queries, handlers, and runtime callbacks share the same reactions.
   const extensions = createGw2ResolverExtensions({
     professionReactions: profession.eventReactions
   });
+  const resolvedTimelineEvents: Gw2ResolverEvent[] = [];
   const query =
     queryOverride ??
     createGw2CombatQuery({
       profession,
       config,
       events: scheduled.events,
+      resolvedTimelineEvents,
       traits
     });
   const hits = createGw2HitResolution({ strikeMultiplier: extensions.strikeMultiplier });
@@ -180,7 +200,7 @@ export function resolveGw2Timeline({
     reactions: extensions.reactions
   });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
-  const queue = new StableEventQueue(scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent));
+  const queue = new StableEventQueue(scheduled.events as Gw2ResolverEvent[], { phaseFor: gw2ResolverPhase });
   const handoff = scheduled.resolverHandoff;
   const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',
@@ -202,7 +222,6 @@ export function resolveGw2Timeline({
         : profession.createProfessionState(config),
     warnings: [...(handoff.warnings || [])],
     applyCondition: conditions.applyCondition,
-    anchorConditionClock: conditions.anchorClock,
     reactions: extensions.reactions
   });
   if (handoff.hasExplicitCombatStart) {
@@ -234,7 +253,7 @@ export function resolveGw2Timeline({
     commonHandlers,
     professionHandlers: profession.eventHandlers
   });
-  runGw2ResolverEventLoop(ctx, registry);
+  runGw2ResolverEventLoop(ctx, registry, resolvedTimelineEvents);
 
   const resolvedAt = onPhase ? performance.now() : 0;
   onPhase?.('resolution', resolvedAt - started);

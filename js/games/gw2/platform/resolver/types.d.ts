@@ -100,8 +100,8 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly naturalExpiresAt: number;
   removedAt?: number;
   settledThrough: number;
-  bufferedRate: number;
-  bufferedSteps: number;
+  bufferedRawDamage: number;
+  bufferedDurationUs: number;
   damage: number;
   damagingStackSeconds: number;
   readonly damageTicks: Array<{
@@ -127,7 +127,7 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 export interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
-  nextPulseAt: number;
+  nextPulseIndex: number;
   wakeToken: number;
   wakeAt: number | null;
   applications: Gw2ResolvedConditionApplication[];
@@ -262,7 +262,7 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
     source?: Gw2ResolverEvent | null,
     critical?: Gw2CriticalResult | null
   ): void;
-  markDamageTime(at: number, conditionPulse?: boolean): void;
+  markDamageTime(at: number): void;
 }
 
 export interface Gw2HitResolutionContext {
@@ -296,7 +296,7 @@ export interface Gw2ConditionTickContribution {
   readonly stackSeconds: number;
 }
 
-/** A single rounded packet with integer shares retained only for application attribution. */
+/** An atomic owner packet rounds once and retains each application's raw contribution and allocated integer share. */
 export interface Gw2ConditionTickResult {
   readonly condition: string;
   readonly damage: number;
@@ -304,7 +304,6 @@ export interface Gw2ConditionTickResult {
 }
 
 export interface Gw2ConditionResolution {
-  anchorClock(context: Gw2ResolverRuntime, at: number): void;
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
   applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
@@ -433,6 +432,5 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly applyCondition: Gw2ConditionResolution['applyCondition'];
-  readonly anchorConditionClock?: Gw2ConditionResolution['anchorClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

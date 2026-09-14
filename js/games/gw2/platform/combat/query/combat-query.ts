@@ -31,6 +31,7 @@ import {
 } from '#gw2/platform/combat/state/targets.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
@@ -54,6 +55,7 @@ interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly profession?: NormalizedProfessionContract<TProfessionState>;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
+  readonly resolvedTimelineEvents?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
   readonly conditionDurationBonus?: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
 }
@@ -117,6 +119,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   profession,
   config = {},
   events = [],
+  resolvedTimelineEvents,
   traits = selectedGw2TraitValues(config, profession?.catalog),
   conditionDurationBonus
 }: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
@@ -126,7 +129,11 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
 
   const activeProfession = profession;
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
-  const timeline = createGw2TimelineIndex({ config, events });
+  const timeline = createGw2TimelineIndex({
+    config,
+    events: resolvedTimelineEvents ?? events,
+    resolved: resolvedTimelineEvents != null
+  });
   const historicalRelicContext = Object.freeze({
     config,
     relic: createRelicTimelineRuntime(config.relic, events)
@@ -229,11 +236,10 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       applications,
       (application) =>
         buffMatchesAudience(application, audience, companionId) &&
-        application.at <= time &&
-        application.expiresAt > time,
+        isTimeInWindow(time, application.at, application.expiresAt),
       (application) => Number(application.stacks || 1),
       maximum,
-      (application) => application.at > time
+      (application) => canonicalTime(application.at) > canonicalTime(time)
     );
   };
 

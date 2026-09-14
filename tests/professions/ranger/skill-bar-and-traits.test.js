@@ -906,8 +906,8 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   });
 
   for (const [result, duration, effectiveDuration] of [
-    [spider, 3, 3.76],
-    [devourer, 1.5, 1.88]
+    [spider, 3, 3.75],
+    [devourer, 1.5, 1.875]
   ]) {
     assert.deepEqual(result.warnings, []);
     assert.equal(

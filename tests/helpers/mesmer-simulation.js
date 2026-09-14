@@ -72,12 +72,14 @@ export function createDefaultConfig() {
   };
 }
 
-export function simulateMesmer(rotation, userConfig = {}) {
+// Tests of delayed completion effects can explicitly observe beyond the rotation's strict endpoint.
+export function simulateMesmer(rotation, userConfig = {}, observationPolicy = undefined) {
   const config = prepareSimulationConfig(createDefaultConfig(), userConfig, { duration: 600 });
 
   return simulateGw2({
     profession: mesmerProfession,
     rotation,
-    config
+    config,
+    observationPolicy
   });
 }

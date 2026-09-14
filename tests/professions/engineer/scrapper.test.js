@@ -201,7 +201,8 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   assert.equal(quickness.audience.recipients, 'party');
   assert.equal(quickness.duration, 3.52);
   assert.equal(might.audience.recipients, 'party');
-  assert.equal(might.duration, 10 * (1 + 260 / 1500));
+  // Concentration scales the base duration before rounding to a whole millisecond.
+  assert.equal(might.duration, 11.733);
   assert.equal(might.stacks, 3);
   const chart = buildChartSeries(result, 40);
 

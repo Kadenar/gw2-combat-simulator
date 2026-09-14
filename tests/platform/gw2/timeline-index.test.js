@@ -7,6 +7,28 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 
+// Adjacent microseconds remain distinct for swaps, actions, snapshots, resets, and recharge deadlines.
+test('timeline state uses canonical instants without admitting future events', () => {
+  const events = [
+    weaponSetEvent(0.56 + 0.04, 0, 2),
+    weaponSetEvent(0.600001, 1, 1),
+    { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 0.600001 },
+    { type: 'action', at: 0.56 + 0.04, skillId: 2, rechargeReadyAt: 2 },
+    { type: 'cooldown_snapshot', at: 0.600002, cooldowns: { 1: 3 } },
+    { type: 'marker', action: 'cooldown-reset', at: 0.600003 }
+  ];
+  const timeline = createGw2TimelineIndex({ events });
+  assert.equal(timeline.activeWeaponSetAt(0.599999), 1);
+  assert.equal(timeline.activeWeaponSetAt(0.6), 2);
+  assert.equal(timeline.activeWeaponSetAt(0.600001), 1);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.56 + 0.04), true);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600001), false);
+  assert.equal(timeline.skillOnCooldownAt(2, 0.6), false);
+  assert.equal(timeline.skillOnCooldownAt(2, 0.600001), true);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600002), true);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600003), false);
+});
+
 test('new Compounding Power stacks do not refresh earlier stacks', () => {
   // Each application expires on its own deadline, even when a later stack is still active.
   const timeline = createGw2TimelineIndex({
@@ -184,7 +206,7 @@ test('same-time appends, replacements, resets, and truncation invalidate timelin
 
 test('buff query arguments and timeline instances cannot share another audience or duration answer', () => {
   const events = [
-    buffEvent({ duration: 0 }),
+    buffEvent({ duration: undefined }),
     buffEvent({
       source: 'Player',
       stacks: 6,

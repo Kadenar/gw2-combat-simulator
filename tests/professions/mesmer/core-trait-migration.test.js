@@ -8,7 +8,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 
 // Catalog identity must let player ambush hits reach traits without counting clone ambushes as player hits.
 test("Mirage Thrust retains player and clone skill identity and grants one Fencer's Finesse stack", () => {
-  const result = simulateMesmer(['Dodge / Mirage Cloak', 'Mirage Thrust'], {
+  const result = simulateMesmer(['Dodge / Mirage Cloak', 'Mirage Thrust', { type: 'wait', durationMs: 1 }], {
     specialization: 'Mirage',
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Focus',
@@ -159,7 +159,7 @@ test('Cry of Pain overrides Confusion before Blinding Dissipation', () => {
 
 test('Maim the Disillusioned resolves before Illusionary Membrane', () => {
   const result = simulateMesmer(
-    ['Cry of Frustration'],
+    ['Cry of Frustration', { type: 'wait', durationMs: 1 }],
     defaultSimulationConfig({
       specialization: 'Core',
       initialResource: 1,

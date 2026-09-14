@@ -1,5 +1,6 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
@@ -170,7 +171,8 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
       {
         initialResource: 100,
         selectedTraitIds: [TRAIT.BERSERKERS_POWER, TRAIT.BURST_PRECISION]
-      }
+      },
+      { kind: 'tail', durationMs: 1 }
     );
 
     assert.deepEqual(result.warnings, []);
@@ -193,11 +195,16 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
 
 test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
   const rotation = ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }];
-  const baseline = simulate('Bladesworn', rotation, { initialResource: 100 });
-  const mastered = simulate('Bladesworn', rotation, {
-    initialResource: 100,
-    selectedTraitIds: [TRAIT.BURST_MASTERY]
-  });
+  const baseline = simulate('Bladesworn', rotation, { initialResource: 100 }, { kind: 'tail', durationMs: 1 });
+  const mastered = simulate(
+    'Bladesworn',
+    rotation,
+    {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.BURST_MASTERY]
+    },
+    { kind: 'tail', durationMs: 1 }
+  );
 
   assert.equal(mastered.endState.profession.flow - baseline.endState.profession.flow, 4);
   assert.equal(
@@ -721,7 +728,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
   assert.equal(locked.endState.ammo['Overcharged Cartridges'].charges, 0);
   assert.equal(
     locked.endState.profession.overchargedCartridgeWindows.find((window) => window.supercharged).expiresAt,
-    lockedBuffs[1].at + 8
+    canonicalTime(lockedBuffs[1].at + 8)
   );
 });
 

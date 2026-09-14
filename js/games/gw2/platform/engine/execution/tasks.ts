@@ -4,7 +4,7 @@
  * stream. Payloads must be serializable, and runaway zero-time loops are guarded
  * by the shared safety limit.
  */
-import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
+import { ACTION_SAFETY_LIMIT, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import type {
   ScheduledTask,
@@ -27,11 +27,9 @@ function cloneSerializable<T>(value: T, label: string): T {
  */
 export function createTaskQueue<TContext, TPayload>({
   handlers = {},
-  epsilon = EPSILON,
   safetyLimit = ACTION_SAFETY_LIMIT
 }: {
   readonly handlers?: Readonly<Record<string, ScheduledTaskHandler<TContext, TPayload>>>;
-  readonly epsilon?: number;
   readonly safetyLimit?: number;
 } = {}): Readonly<TaskQueue<TContext, TPayload>> {
   const registered = new Map<string, ScheduledTaskHandler<TContext, TPayload>>(Object.entries(handlers));
@@ -40,20 +38,15 @@ export function createTaskQueue<TContext, TPayload>({
   let sequence = 0;
   let processed = 0;
 
-  // Timestamps inside the scheduler tolerance are simultaneous, so priority
-  // still controls causal ordering when floating-point arithmetic differs.
+  // Canonical equality is transitive and never admits work beyond the requested drain target.
   const compareTasks = (left: ScheduledTask<TPayload>, right: ScheduledTask<TPayload>): number => {
-    const timeDifference = left.at - right.at;
-    return (
-      (Math.abs(timeDifference) > epsilon ? timeDifference : 0) ||
-      left.priority - right.priority ||
-      left.order - right.order
-    );
+    const timeDifference = timeKey(left.at) - timeKey(right.at);
+    return timeDifference || left.priority - right.priority || left.order - right.order;
   };
 
   const schedule = (input: ScheduledTaskInput<TPayload>): string => {
     const { id, type, at, priority = 0, ownerId = null, payload = null, required = true } = input;
-    const normalizedAt = Number(at);
+    const normalizedAt = canonicalTime(Number(at));
     if (!Number.isFinite(normalizedAt)) {
       throw new TypeError('Scheduled task timestamps must be finite.');
     }
@@ -103,18 +96,18 @@ export function createTaskQueue<TContext, TPayload>({
   };
 
   const drainThrough = (target: number, context: TContext): void => {
-    const normalizedTarget = Number(target);
+    const normalizedTarget = canonicalTime(Number(target));
     if (!Number.isFinite(normalizedTarget)) {
       throw new TypeError('Task drain target must be finite.');
     }
 
     let lastAt: number | null = null;
     let sameTimeCount = 0;
-    while (nextAt() <= normalizedTarget + epsilon) {
+    while (nextAt() <= normalizedTarget) {
       const task = queue.shift();
       if (!task) continue;
       if (isCancelled(task)) continue;
-      if (lastAt != null && Math.abs(task.at - lastAt) <= epsilon) {
+      if (lastAt === task.at) {
         sameTimeCount += 1;
       } else {
         lastAt = task.at;

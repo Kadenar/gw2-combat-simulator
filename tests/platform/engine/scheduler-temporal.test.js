@@ -864,6 +864,21 @@ test('typed tasks order deterministically and reject zero-time loops', () => {
   assert.throws(() => queue.drainThrough(2, {}), /task safety limit|Zero-time scheduled task loop/);
 });
 
+// Cutoffs include their canonical instant only; cancellation and priority still apply at that instant.
+test('task drains distinguish adjacent microseconds and normalize arithmetic ties', () => {
+  const seen = [];
+  const queue = createTaskQueue({ handlers: { probe: (_context, task) => seen.push(task.at) } });
+  queue.schedule({ type: 'probe', at: 0.56 + 0.04 });
+  queue.schedule({ type: 'probe', at: 0.600001 });
+  queue.cancel(queue.schedule({ type: 'probe', at: 0.6 }));
+  queue.drainThrough(0.6, {});
+  assert.deepEqual(seen, [0.6]);
+  assert.equal(queue.nextAt(), 0.600001);
+  queue.drainThrough(0.600001, {});
+  assert.deepEqual(seen, [0.6, 0.600001]);
+  assert.throws(() => queue.schedule({ type: 'probe', at: Number.MAX_SAFE_INTEGER }), /microseconds/);
+});
+
 test('typed tasks require registered handlers and serializable payloads', () => {
   const seen = [];
   const queue = createTaskQueue({

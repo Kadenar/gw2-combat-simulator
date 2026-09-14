@@ -4,6 +4,7 @@
  * still satisfy this base shape.
  */
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
@@ -63,6 +64,8 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   if (!isFiniteNumber(event.at) || event.at < 0) {
     throw new Error('Event at must be a non-negative finite number.');
   }
+
+  timeKey(event.at);
 
   // Extension commands carry finite seconds and one supported recipient scope across the phase boundary.
   if (
@@ -155,7 +158,8 @@ export function createEvent(event: unknown): Readonly<SimulationEvent> {
   const normalized = Object.fromEntries(
     Object.entries({
       schemaVersion: EVENT_SCHEMA_VERSION,
-      ...assertSimulationEvent(event)
+      ...assertSimulationEvent(event),
+      at: canonicalTime((event as SimulationEvent).at)
     }).filter(([, value]) => value !== undefined)
   );
   return Object.freeze(normalized as unknown as SimulationEvent);

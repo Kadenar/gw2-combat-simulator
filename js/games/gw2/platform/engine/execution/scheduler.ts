@@ -16,6 +16,7 @@ import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { compareQueuedEvents } from '#kernel/events/queue.js';
+import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
@@ -447,7 +448,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       const bucket = buffIndex.get(normalized);
       let stacks = base;
       for (const event of bucket || []) {
-        if (event.at <= at + epsilon && event.at + Number(event.duration || 0) > at + epsilon) {
+        if (isTimeInWindow(at, event.at, event.at + Number(event.duration || 0))) {
           stacks += Number(event.stacks || 1);
         }
       }
@@ -689,12 +690,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   // policy task type while the core completion task remains the default.
   taskQueue = createTaskQueue({
     handlers: activationAwareTaskHandlers,
-    epsilon,
     safetyLimit: ACTION_SAFETY_LIMIT
   });
   context.tasks = Object.freeze({
     schedule(task: ScheduledTaskInput<SchedulerRecord>) {
-      if (Number(task?.at) < state.time - epsilon) {
+      if (canonicalTime(Number(task?.at)) < canonicalTime(state.time)) {
         throw new RangeError('Scheduled tasks cannot be placed before the clock.');
       }
 
@@ -713,12 +713,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   }
 
   function advanceTo(time: number): void {
-    const target = Math.max(state.time, Number(time));
+    const target = canonicalTime(Math.max(state.time, Number(time)));
     if (!Number.isFinite(target)) {
       throw new TypeError('Scheduler time must be finite.');
     }
 
-    while (taskQueue.nextAt() <= target + epsilon) {
+    while (taskQueue.nextAt() <= target) {
       const next = Math.max(state.time, taskQueue.nextAt());
       // Advance continuous state before executing discrete work at that same
       // timestamp. Tasks created by a handler are drained before moving on.
@@ -909,6 +909,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     }
 
     advanceTo(start);
+    start = state.time;
 
     let checked = castAvailability(skill, command, commandIndex, start);
     let guard = 0;
@@ -919,7 +920,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         throw new Error('Cast availability wait safety limit exceeded.');
       }
 
-      const retryAt = Math.max(state.time, Number(checked.result.retryAt));
+      // Continuous resource estimates can fall between microseconds; wait until the first representable ready instant.
+      const requestedRetry = Number(checked.result.retryAt);
+      const retryAt = Math.max(
+        (timeKey(state.time) + 1) / 1_000_000,
+        Math.ceil(requestedRetry * 1_000_000) / 1_000_000
+      );
       const nextTaskAt = taskQueue.nextAt();
       const next = Math.min(retryAt, nextTaskAt);
       if (!Number.isFinite(next) || next <= state.time) {
@@ -944,10 +950,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       );
     }
 
-    const fullEnd = start + castDurationFor(castContext, skill);
+    const fullEnd = canonicalTime(start + castDurationFor(castContext, skill));
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
-      interruptAfterMs == null ? fullEnd : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
+      interruptAfterMs == null ? fullEnd : Math.min(fullEnd, canonicalTime(start + Number(interruptAfterMs) / 1000));
     const interrupted = effectiveEnd < fullEnd - epsilon;
     // Some skills commit and begin recharge at their interrupt point but retain
     // the remainder of their ordinary cast as aftercast. Keep completion and
@@ -1234,7 +1240,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
       }
     }
 
-    const normalizedRotationEnd = Math.max(rotationEnd, 0);
+    const normalizedRotationEnd = canonicalTime(Math.max(rotationEnd, 0));
     const resolutionEnd = observationEndTime(normalizedObservationPolicy, normalizedRotationEnd);
     context.observationEndTime = resolutionEnd;
     // Profession tasks are materialized only through the finite caller-owned

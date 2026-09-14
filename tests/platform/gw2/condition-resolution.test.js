@@ -11,6 +11,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
+import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
 function tormentDamageAtMight(might) {
@@ -104,7 +105,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   assert.ok(result.conditionDamage > 0);
   assert.equal(result.firstHitTime, 1);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
-  assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.52);
+  assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
   assert.deepEqual(result.warnings, ['resolver handoff warning']);
 });
 
@@ -168,13 +169,13 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
 
   const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
 
-  // Each natural duration rounds up to 40ms independently: 1.25 + 0.5 becomes 1.28 + 0.52.
+  // Whole-millisecond durations retain exactly 1.25 + 0.5 stack-seconds.
   assert.equal(
     applications.reduce((total, application) => total + application.damagingStackSeconds, 0),
-    1.8
+    1.75
   );
-  // Global 40ms steps buffer 1.28 stack-seconds at 1s and 0.52 at 2s, rounded once per packet.
-  assert.equal(result.conditionDamage, 105 + 43);
+  // At 1s: roundEven(82 + 20.5); at 2s: roundEven(20.5 + 20.5) from both expiry remainders.
+  assert.equal(result.conditionDamage, 102 + 41);
 });
 
 function resolveBleedThrough(
@@ -237,12 +238,14 @@ function resolveBleedThrough(
 }
 
 // Natural expiry caps elapsed duration; the next shared pulse settles its remainder, never an observation cutoff.
-test('condition lifetimes round up to 40ms and settle on shared pulses without endpoint damage', () => {
+test('condition lifetimes round half-even to milliseconds and settle without endpoint damage', () => {
   for (const [duration, expected, damage] of [
-    [3 * 1.6719, 5.04, 413],
+    [3 * 1.6719, 5.016, 411],
     [5.04, 5.04, 413],
     [5, 5, 410],
-    [0.001, 0.04, 3]
+    [0.001, 0.001, 0],
+    [1.0005, 1, 82],
+    [1.0015, 1.002, 82]
   ]) {
     const result = resolveBleedThrough(6, { duration });
     const application = result.resolvedEvents.find((event) => event.type === 'condition');
@@ -278,10 +281,10 @@ test('condition damage uses half-even rounding before accumulation and target de
     assert.equal(partialTie.conditionDamage, 5 * 62 + 2); // 62.5 per second, then a 2.5 partial tick: both round down.
     if (output === 'detailed') assert.equal(partialTie.resolvedEvents[0].damageTicks.at(-1).damage, 2);
 
-    const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1956, output });
-    assert.equal(result.conditionDamage, 1956);
+    const result = resolveBleedThrough(6, { duration: 3 * 1.6719, conditionDamage: 6100, targetHealth: 1946, output });
+    assert.equal(result.conditionDamage, 1946);
     assert.equal(result.deathTime, 6);
-    if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 16);
+    if (output === 'detailed') assert.equal(result.resolvedEvents[0].damageTicks.at(-1).damage, 6);
   }
 });
 
@@ -324,7 +327,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
     remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
     [
       { at: 1, fraction: 1 },
-      { at: 2, fraction: 0.52 }
+      { at: 2, fraction: 0.5 }
     ]
   );
 });
@@ -552,7 +555,7 @@ test('environment conditions do not change player attribution over an equal obse
 });
 
 test('environment damage can end a player sequence early without entering player totals', () => {
-  // The opener anchors environment payouts at 1.5s and 2.5s, before the final attack.
+  // Environment payouts remain at 1s and 2s regardless of the off-grid opener.
   const events = [0.5, 1.5, 2.6].map((at, index) => ({
     type: 'damage',
     at,
@@ -573,7 +576,7 @@ test('environment damage can end a player sequence early without entering player
 
   assert.equal(baseline.deathTime, null);
   assert.equal(baseline.totalDamage, 60);
-  assert.equal(ambient.deathTime, 2.5);
+  assert.equal(ambient.deathTime, 2);
   assert.equal(ambient.totalDamage, 40);
   assert.equal(ambient.environmentDamage, 44);
   assert.ok(ambient.totalDamage + ambient.environmentDamage >= 75);
@@ -586,7 +589,7 @@ test('environment scheduling preserves permanent status counts without duplicati
   });
   const context = {
     horizon: 2,
-    queue: new StableEventQueue(),
+    queue: new StableEventQueue([], { phaseFor: gw2ResolverPhase }),
     conditionState: new Map(),
     environmentConditions: new Map()
   };

@@ -1,4 +1,5 @@
-import { clamp } from '#gw2/platform/combat/numeric.js';
+import { clamp, roundEffectDuration } from '#gw2/platform/combat/numeric.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -54,17 +55,31 @@ export interface StandardBoonPresentation {
   readonly maximumDuration?: number;
 }
 
+/** Round final boon grants and extension amounts after bonuses, preserving application times and generic buffs. */
+export function normalizeBoonDuration<
+  T extends { readonly type: string; readonly kind?: unknown; readonly duration?: unknown }
+>(event: T): T {
+  if (
+    event.duration == null ||
+    !(event.type === 'boon_extension' || (event.type === 'buff' && isStandardBoon(event.kind)))
+  )
+    return event;
+  const duration = roundEffectDuration(Number(event.duration));
+  return duration === event.duration ? event : { ...event, duration };
+}
+
 /** Records prepared buffs without pruning history so both phases can query earlier timestamps. */
 export function recordBuffApplication(
   boons: Map<string, Gw2TimedBuffApplication[]>,
   event: SimulationEvent
 ): Gw2TimedBuffApplication[] {
+  event = normalizeBoonDuration(event);
   if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
   const kind = String(event.kind || '').toLowerCase();
   const applications = boons.get(kind) || [];
   applications.push({
-    at: event.at,
-    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    at: canonicalTime(event.at),
+    expiresAt: canonicalTime(event.at + Math.max(0, Number(event.duration || 0))),
     stacks: Math.max(1, Number(event.stacks || 1)),
     source: event.source,
     resolvedAudience: event.resolvedAudience
@@ -110,13 +125,16 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
   time: number,
   { includes = () => true, duration, maximum = Infinity }: DurationStackOptions<T> = {}
 ): number {
+  // Pool depletion uses the same precision as availability, so an expired pool cannot be revived by numeric noise.
+  const normalize = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
+  time = normalize(time);
   const matching = [...applications].filter(includes).sort((left, right) => Number(left.at) - Number(right.at));
   let remaining = 0;
   let previousTime = Number(matching[0]?.at ?? time);
   for (const application of matching) {
-    const appliedAt = Number(application.at);
+    const appliedAt = canonicalTime(Number(application.at));
     if (appliedAt > time) break;
-    remaining = Math.max(0, remaining - Math.max(0, appliedAt - previousTime));
+    remaining = normalize(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
     // Extensions add seconds only to an existing pool, without resurrecting an expired boon.
     if (application.extension && remaining <= 0) {
       previousTime = appliedAt;
@@ -129,11 +147,13 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
         ? Number(application.expiresAt) - appliedAt
         : Number(application.duration);
     const stacks = application.stacks == null ? 1 : Math.max(0, Number(application.stacks));
-    remaining = Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks);
+    remaining = normalize(
+      Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks)
+    );
     previousTime = appliedAt;
   }
 
-  return Math.max(0, remaining - Math.max(0, time - previousTime));
+  return normalize(Math.max(0, remaining - Math.max(0, time - previousTime)));
 }
 
 /** Returns whether a buff application belongs to the requested actor scope. */

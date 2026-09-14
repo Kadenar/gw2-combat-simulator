@@ -1,4 +1,5 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -77,7 +78,7 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
 
   return applications.some(
     (application) =>
-      buffMatchesAudience(application, 'all') && application.at <= context.time && application.expiresAt > context.time
+      buffMatchesAudience(application, 'all') && isTimeInWindow(context.time, application.at, application.expiresAt)
   );
 }
 
@@ -101,9 +102,7 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
   const dynamic = applications
     .filter(
       (application) =>
-        buffMatchesAudience(application, 'all') &&
-        application.at <= context.time &&
-        application.expiresAt > context.time
+        buffMatchesAudience(application, 'all') && isTimeInWindow(context.time, application.at, application.expiresAt)
     )
     .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
   return clamp(base + dynamic, 0, maximum);

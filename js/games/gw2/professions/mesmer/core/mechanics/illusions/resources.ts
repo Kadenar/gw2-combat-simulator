@@ -24,7 +24,6 @@ interface IllusionResourceControllerOptions {
 // single scheduler-facing controller.
 export function createIllusionResourceController({
   resourceDefinition,
-  epsilon,
   activePrimaryWeapon,
   queueResources,
   phantasms
@@ -38,7 +37,8 @@ export function createIllusionResourceController({
     phantasmExecutions: readonly MesmerPhantasmExecution[]
   ): void => {
     if (skill.resource?.mode === 'fill') {
-      queueResources(at + epsilon, resourceDefinition.maximum, skill.weapon || activePrimaryWeapon(), skill.name, {
+      // Resource tasks run after the completion task; a synthetic delay would hide the gain from the next cast.
+      queueResources(at, resourceDefinition.maximum, skill.weapon || activePrimaryWeapon(), skill.name, {
         kind: 'skill',
         sourceSkillId: skill.id
       });
@@ -50,13 +50,10 @@ export function createIllusionResourceController({
         skill.resource.timingAnchor === 'castStart'
           ? castStart + Number(skill.resource.atMs || 0) / 1000
           : at + Number(skill.resource.atMs || 0) / 1000;
-      queueResources(
-        resourceAt + epsilon,
-        Number(skill.resource.count || 0),
-        skill.weapon || activePrimaryWeapon(),
-        skill.name,
-        { kind: 'skill', sourceSkillId: skill.id }
-      );
+      queueResources(resourceAt, Number(skill.resource.count || 0), skill.weapon || activePrimaryWeapon(), skill.name, {
+        kind: 'skill',
+        sourceSkillId: skill.id
+      });
       return;
     }
 

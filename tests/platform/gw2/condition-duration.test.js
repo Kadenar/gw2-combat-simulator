@@ -12,8 +12,10 @@ test('condition duration preserves phase context, fixed durations, and natural e
     [false, 2, 6],
     [true, 2, 2],
     [false, undefined, 3],
-    [false, 1.6719, 5.04],
-    [false, 1.68, 5.04]
+    [false, 1.6719, 5.016],
+    [false, 1.68, 5.04],
+    [false, 1.0005 / 3, 1],
+    [false, 1.0015 / 3, 1.002]
   ]) {
     const event = {
       type: 'condition',
@@ -68,7 +70,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
     createGw2CombatObserver(scheduler).observe({ hasExplicitCombatStart: false }, event);
     const application = resolver.applyCondition(event);
     assert.equal(application.effectiveDuration, expectedDuration);
-    assert.equal(application.expiresAt, 5.5);
+    assert.equal(application.expiresAt, Math.min(5.5, 4 + expectedDuration));
     assert.equal(application.naturalExpiresAt, 4 + expectedDuration);
     for (const runtime of [scheduler, resolver]) {
       assert.equal(runtime.conditionState.get('Bleeding').stacks[0].expiresAt, 4 + expectedDuration);

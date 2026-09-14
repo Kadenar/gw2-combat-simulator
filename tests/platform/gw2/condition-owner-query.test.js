@@ -52,7 +52,7 @@ test('summon conditions use player Might, condition equipment, traits, and durat
     });
     assert.equal(combat.statsAt(0, application, runtime).conditionDamage, 1300);
     assert.equal(combat.conditionMultiplier('Poisoned', 0, application, runtime), 1.1 * 1.33);
-    assert.equal(conditionApplicationDuration(combat, 'Poisoned', application, runtime), 1.64);
+    assert.equal(conditionApplicationDuration(combat, 'Poisoned', application, runtime), 1.63);
     assert.equal(
       conditionApplicationDuration(combat, 'Poisoned', application, runtime),
       conditionApplicationDuration(combat, 'Poisoned', player, runtime)

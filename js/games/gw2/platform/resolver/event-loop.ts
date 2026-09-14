@@ -1,7 +1,8 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
 
 import type {
   Gw2ResolverEvent,
@@ -13,6 +14,22 @@ import type {
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;
   readonly professionHandlers?: Gw2ResolverEventHandlers;
+}
+
+export const GW2_RESOLVER_PHASE = Object.freeze({ Sample: 0, Settle: 1, Ordinary: 2 });
+
+/** Settlement reactions expose state before strikes, while direct attacks and future work retain their own phase. */
+export function gw2ResolverPhase(
+  event: Gw2ResolverEvent,
+  current: Readonly<{ at: number; phase: number }> | null
+): number {
+  if (event.type === 'condition_buffer') return GW2_RESOLVER_PHASE.Sample;
+  if (event.type === 'condition_tick') return GW2_RESOLVER_PHASE.Settle;
+  if (event.type !== 'damage' && current?.at === event.at && current.phase === GW2_RESOLVER_PHASE.Settle) {
+    return GW2_RESOLVER_PHASE.Settle;
+  }
+
+  return GW2_RESOLVER_PHASE.Ordinary;
 }
 
 export function createGw2ResolverHandlerRegistry({
@@ -70,23 +87,32 @@ function combatActivationKey(event: Gw2ResolverEvent): string | null {
  * Drains a GW2 resolver queue with shared time ordering, target eligibility,
  * encounter bounds, combat start, target death, and handler dispatch.
  */
-export function runGw2ResolverEventLoop(ctx: Gw2ResolverRuntime, handlerRegistry: Gw2ResolverHandlerRegistry): void {
+export function runGw2ResolverEventLoop(
+  ctx: Gw2ResolverRuntime,
+  handlerRegistry: Gw2ResolverHandlerRegistry,
+  resolvedTimelineEvents?: Gw2ResolverEvent[]
+): void {
   if (!handlerRegistry) {
     throw new TypeError('GW2 resolver event loop requires a handler registry.');
   }
 
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
+  // Infinity is the internal unbounded-horizon sentinel, never an authored timestamp.
+  const horizon = ctx.horizon === Infinity ? Infinity : canonicalTime(ctx.horizon);
+  const combatStart = ctx.combatStartTime == null ? null : canonicalTime(ctx.combatStartTime);
   let lethalActivationKey: string | null = null;
   // A zero-health start is already lethal and must not grant a free opening hit.
   if (targetHealthLoss(ctx.config, ctx) >= hp) ctx.deathTime = 0;
   // The runtime queue maintains chronological and causal placement as handlers enqueue derived events.
   while (queue.length > 0) {
-    const event = queue.dequeue();
-    if (!event) break;
-    if (event.at > ctx.horizon + EPSILON) break;
+    const queuedEvent = queue.dequeue();
+    if (!queuedEvent) break;
+    // Derived resolver grants bypass scheduler emission; apply the same final-duration contract before handlers run.
+    const event = normalizeBoonDuration(queuedEvent);
+    if (event.at > horizon) break;
     if (ctx.deathTime != null) {
-      if (event.at > ctx.deathTime + EPSILON) break;
+      if (event.at > ctx.deathTime) break;
       // Finish the lethal activation and simultaneous condition-tick batch,
       // but reject a distinct attack ordered after the target already died.
       if (
@@ -99,18 +125,17 @@ export function runGw2ResolverEventLoop(ctx: Gw2ResolverRuntime, handlerRegistry
 
     if (missesTarget(event)) continue;
     // Recurring condition wakes must advance their clock even when their damage is gated before combat.
-    if (
-      ctx.combatStartTime != null &&
-      event.at < ctx.combatStartTime - EPSILON &&
-      isCombatGatedEvent(event) &&
-      !event.conditionGroup
-    )
-      continue;
+    if (combatStart != null && event.at < combatStart && isCombatGatedEvent(event) && !event.conditionGroup) continue;
 
     if (handlerRegistry.has(event.type)) {
       handlerRegistry.dispatch(event, ctx);
     } else if (String(event.type).includes('.')) {
       throw new Error(`No event handler registered for required type: ${event.type}`);
+    }
+
+    // Publish queryable state only after execution, so samples and earlier strikes cannot see pending ordinary work.
+    if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type)) {
+      resolvedTimelineEvents?.push(event);
     }
 
     if (ctx.deathTime == null && targetHealthLoss(ctx.config, ctx) >= hp) {

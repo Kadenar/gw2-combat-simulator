@@ -246,6 +246,6 @@ test('resolver duration queries use live relic state while historical queries re
       }
     }
   });
-  assert.deepEqual(durations, [1, 1, 1.04]);
+  assert.deepEqual(durations, [1, 1, 1.03]);
   assert.deepEqual(liveBonuses, [1, 1.03, 1.03]);
 });

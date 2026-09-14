@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
@@ -104,7 +105,10 @@ test('Harmonious Harp replays at 480ms after its Harp Playing packet commits wit
     boons: { quickness: false }
   });
   const full = simulateMesmer(['Harmonious Harp'], config);
-  const interrupted = simulateMesmer([{ name: 'Harmonious Harp', interruptMs: 480 }], config);
+  const interrupted = simulateMesmer([{ name: 'Harmonious Harp', interruptMs: 480 }], config, {
+    kind: 'tail',
+    durationMs: 1
+  });
 
   assert.equal(interrupted.steps[0].fullCastMs, full.steps[0].fullCastMs);
   assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
@@ -684,10 +688,10 @@ test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', 
     ]
   );
   assert.equal(shackles.length, 1);
-  assert.equal(shackles[0].at, lancerConditions[1].at + 5);
+  assert.equal(shackles[0].at, canonicalTime(lancerConditions[1].at + 5));
   assert.deepEqual(
     shacklesStuns.map((event) => [event.at, event.controlKind]),
-    [[lancerConditions[1].at + 5, 'stun']]
+    [[canonicalTime(lancerConditions[1].at + 5), 'stun']]
   );
   assert.equal(syncopate.length, 1);
   assert.equal(syncopate[0].at, shacklesStuns[0].at);

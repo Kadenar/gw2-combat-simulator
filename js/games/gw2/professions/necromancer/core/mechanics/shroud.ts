@@ -1,3 +1,4 @@
+import { isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
@@ -42,8 +43,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   }
 
   if (hasTrait(context, TRAIT.SHROUDED_REMOVAL)) {
-    const activeCondition = (state.selfConditions || []).find(
-      (application) => application.appliedAt <= at && application.expiresAt > at
+    const activeCondition = (state.selfConditions || []).find((application) =>
+      isTimeInWindow(at, application.appliedAt, application.expiresAt)
     );
     if (activeCondition) {
       state.selfConditions = state.selfConditions.filter((application) => application !== activeCondition);
@@ -63,7 +64,9 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   state.pendingShroudEntryId = skill.id;
   state.plagueSendingArmed =
     hasTrait(context, TRAIT.PLAGUE_SENDING) &&
-    (state.selfConditions || []).some((application) => application.appliedAt <= at && application.expiresAt > at);
+    (state.selfConditions || []).some((application) =>
+      isTimeInWindow(at, application.appliedAt, application.expiresAt)
+    );
   state.plagueSendingEntrySkillId = null;
   runNecromancerShroudEnter(context, skill, at);
   emitTransitionLockout(context, 'shroudEntryMs', at, skill);

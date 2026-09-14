@@ -1,6 +1,65 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { compareQueuedEvents, StableEventQueue } from '#kernel/events/queue.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+
+// Resolver owners supply phases without putting game event names or author-controlled phase fields in the kernel.
+test('private phases outrank priority and prevent backward time, phase rewinds and unbounded chains', () => {
+  const phaseFor = (event) => (event.type === 'early' ? 0 : 1);
+  const queue = new StableEventQueue(
+    [
+      { at: 1, type: 'late', priority: -100, phase: -999 },
+      { at: 0.96 + 0.04, type: 'early' }
+    ],
+    { phaseFor, safetyLimit: 3 }
+  );
+  assert.equal(queue.dequeue().type, 'early');
+  assert.equal(queue.currentPhase, 0);
+  assert.equal(queue.dequeue().type, 'late');
+  assert.throws(() => queue.enqueue({ at: 1, type: 'early', sourceId: 'rewind' }), /past time or phase.*rewind/);
+  assert.throws(() => queue.enqueue({ at: 0.999999, type: 'late', sourceId: 'past' }), /past time or phase.*past/);
+  queue.enqueue({ at: 1, type: 'late' });
+  queue.dequeue();
+  queue.enqueue({ at: 1, type: 'late', sourceId: 'loop' });
+  assert.throws(() => queue.dequeue(), /safety limit.*1s.*loop/);
+  const future = new StableEventQueue([{ at: 1, type: 'late' }], { phaseFor });
+  future.dequeue();
+  future.enqueue({ at: 1.000001, type: 'early' });
+  assert.equal(future.dequeue().type, 'early');
+});
+
+// Floating arithmetic must share one instant without merging adjacent microseconds or mutating frozen events.
+test('canonical queue time is transitive in bulk, incremental and derived ordering', () => {
+  const events = Object.freeze([
+    Object.freeze({ at: 0.56 + 0.04, name: 'first', priority: -1 }),
+    Object.freeze({ at: 0.6, name: 'second' }),
+    Object.freeze({ at: 0.600001, name: 'third', priority: -10 })
+  ]);
+  for (const queue of [new StableEventQueue(events), new StableEventQueue()]) {
+    if (!queue.length) events.forEach((event) => queue.enqueue(event));
+    assert.deepEqual(queue.dequeue(), { at: 0.6, name: 'first', priority: -1 });
+    const derived = queue.enqueue({ at: 0.56 + 0.04, name: 'derived', priority: -1 });
+    assert.equal(derived.at, 0.6);
+    assert.equal(queue.dequeue(), derived);
+    assert.equal(queue.dequeue().name, 'second');
+    assert.equal(queue.dequeue().name, 'third');
+  }
+
+  assert.equal(events[0].at, 0.56 + 0.04);
+  assert.deepEqual(
+    [...events]
+      .reverse()
+      .sort(compareQueuedEvents)
+      .map((event) => event.name),
+    ['first', 'second', 'third']
+  );
+  assert.equal(timeKey(0.56 + 0.04), 600000);
+  assert.equal(canonicalTime(-0.0000001), 0);
+  for (const at of [Infinity, -Infinity, NaN, Number.MAX_SAFE_INTEGER]) {
+    assert.throws(() => new StableEventQueue([{ at }]), /microseconds/);
+    assert.throws(() => new StableEventQueue().enqueue({ at }), /microseconds/);
+  }
+});
 
 // A distinct module URL reproduces queues crossing independently loaded class copies.
 test('queues from independently loaded modules retain their enqueue and dequeue contract', async () => {

@@ -279,7 +279,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
     crossfireBleeding.reduce((total, event) => total + event.stacks, 0),
     2
   );
-  assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.52));
+  assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.5));
 
   const evade = simulate(["Stalker's Strike"], {
     stats: { expertise: 0 },
@@ -344,7 +344,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   assert.equal(
     defiant.resolvedEvents.find((event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized')
       .effectiveDuration,
-    2.52
+    2.5
   );
 });
 
