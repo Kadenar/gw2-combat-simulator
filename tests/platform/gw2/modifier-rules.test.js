@@ -21,6 +21,74 @@ function context({
   };
 }
 
+// Shared facts expire with the sampling pass; event-specific rules and strike calculations must still run separately.
+test('condition sample reuse is opt-in and preserves inactive, event-specific, and strike modifiers', () => {
+  let sharedCalls = 0;
+  let predicateCalls = 0;
+  const hooks = createModifierHooks({
+    rules: [
+      {
+        id: 'shared',
+        target: [MODIFIER_TARGET.CONDITION_DAMAGE, MODIFIER_TARGET.STRIKE_DAMAGE],
+        operation: 'damage-additive',
+        conditionSampleInvariant: true,
+        when: (current) => {
+          predicateCalls++;
+          return current.active;
+        },
+        amount: (current) => {
+          sharedCalls++;
+          return current.bonus;
+        }
+      },
+      {
+        id: 'event',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'multiply',
+        factor: (current) => current.event.factor
+      }
+    ]
+  });
+  const current = {
+    ...context({ sigils: { strike: 1, condition: 1 } }),
+    bonus: 0.25,
+    conditionSample: { vulnerabilityStacks: 0, modifierValues: new Map() },
+    event: { factor: 2 }
+  };
+  assert.equal(hooks.modifyConditionDamage(current, 1), 2.5);
+  assert.equal(hooks.modifyConditionDamage({ ...current, event: { factor: 3 } }, 1), 3.75);
+  assert.equal(sharedCalls, 1);
+  assert.equal(predicateCalls, 1);
+  assert.equal(hooks.modifyStrikeDamage({ ...current, bonus: 0.5 }, 1), 1.5);
+  assert.equal(sharedCalls, 2);
+  const next = { ...current, active: false, conditionSample: { vulnerabilityStacks: 0, modifierValues: new Map() } };
+  assert.equal(hooks.modifyConditionDamage(next, 1), 2);
+  assert.equal(hooks.modifyConditionDamage(next, 1), 2);
+  assert.equal(predicateCalls, 3);
+  assert.equal(sharedCalls, 2);
+  const fresh = { ...current, bonus: 0, conditionSample: { vulnerabilityStacks: 0, modifierValues: new Map() } };
+  assert.equal(hooks.modifyConditionDamage(fresh, 1), 2);
+  assert.equal(hooks.modifyConditionDamage(fresh, 1), 2);
+  assert.equal(sharedCalls, 3);
+  assert.equal(hooks.modifyConditionDamage({ ...current, conditionSample: undefined }, 1), 2.5);
+  assert.equal(sharedCalls, 4);
+});
+
+test('condition sample declarations require a boolean and a condition-damage target', () => {
+  const rule = { id: 'bad-sample', target: MODIFIER_TARGET.CONDITION_DAMAGE, operation: 'multiply', factor: 1 };
+  assert.throws(
+    () => createModifierHooks({ rules: [{ ...rule, conditionSampleInvariant: 'yes' }] }),
+    /must be a boolean/
+  );
+  assert.throws(
+    () =>
+      createModifierHooks({
+        rules: [{ ...rule, target: MODIFIER_TARGET.STRIKE_DAMAGE, conditionSampleInvariant: true }]
+      }),
+    /requires a condition-damage target/
+  );
+});
+
 test('modifier rules apply scalar operations in stable order', () => {
   const hooks = createModifierHooks({
     rules: [

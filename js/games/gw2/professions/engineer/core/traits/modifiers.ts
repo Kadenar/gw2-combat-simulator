@@ -186,6 +186,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   {
     // thermalVisionUntil is extended by each Burning application; rule active while window is open
     id: 'engineer.thermal-vision-damage',
+    conditionSampleInvariant: true,
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     amount: 0.05,

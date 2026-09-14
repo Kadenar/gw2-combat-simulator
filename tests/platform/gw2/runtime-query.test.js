@@ -25,6 +25,18 @@ function context(overrides = {}) {
   };
 }
 
+// A sampled zero must bypass a fresh lookup without changing the independent Vulnerability reporting query.
+test('condition damage consumes supplied Vulnerability while standalone queries retain their own state', () => {
+  const query = createGw2CombatQuery({
+    profession: { id: 'sample-test', modifyConditionDamage: (_context, multiplier) => multiplier },
+    config: { target: { conditions: { Vulnerability: 25 } } }
+  });
+  const sample = { vulnerabilityStacks: 0, modifierValues: new Map() };
+  assert.equal(query.conditionMultiplier('Bleeding', 0, null, null, sample), 1);
+  assert.equal(query.conditionMultiplier('Bleeding', 0), 1.25);
+  assert.equal(query.vulnerabilityStacksAt(0), 25);
+});
+
 test('configured duration stacks bypass history and retain output caps without changing additive buffs', () => {
   // Fixed duration presence needs no live or scheduler history, but additive buffs still include active stacks.
   const boons = new Proxy(new Map(), { get: () => assert.fail('Configured duration boons must not read history') });

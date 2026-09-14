@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import { refineNecromancerSchedulerConfig } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
@@ -62,6 +65,124 @@ function packetDamage(result, name = 'Bleeding') {
 
   return [...packets];
 }
+
+// Zero-damage applications retain duration snapshots and live target effects, but never rebuild damage attributes.
+test('non-damaging conditions preserve other skills modifiers, expiry, and reporting without damage sampling', () => {
+  const statuses = ['Vulnerability', 'Chilled', 'Weakness', 'Crippled'];
+  for (const output of ['detailed', 'score']) {
+    const durationQueries = [];
+    const strikes = [];
+    const bleeding = new Map();
+    const applied = [];
+    const profession = defineProfession({
+      id: 'condition-state-probe',
+      name: 'Condition state probe',
+      attributeRules: {
+        modifyStrikeDamage: (context, base) =>
+          base * (1 + targetConditionCount(context)) * (targetConditionActive(context, 'Chilled') ? 2 : 1),
+        modifyConditionDamage: (context, base) =>
+          base *
+          (targetConditionActive(context, 'Weakness') ? 2 : 1) *
+          (targetConditionActive(context, 'Crippled') ? 2 : 1)
+      }
+    });
+    const combat = createGw2CombatQuery({
+      profession,
+      config: { target: { conditions: {} }, stats: { power: 1000, conditionDamage: 0, expertise: 1500 } }
+    });
+    const result = resolve(
+      [
+        { type: 'damage', at: 0, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
+        condition(0, { duration: 1, fixedDuration: true }),
+        ...statuses.map((name) =>
+          condition(0.04, { sourceId: name, condition: name, duration: 0.12, stacks: name === 'Vulnerability' ? 5 : 1 })
+        ),
+        ...[0.02, 0.12, 0.28].map((at) => ({
+          type: 'damage',
+          at,
+          source: 'Player',
+          sourceId: 'probe',
+          actorType: 'player',
+          coefficient: 1,
+          weaponStrength: 1000,
+          noCrit: true
+        }))
+      ],
+      {
+        output,
+        query: {
+          ...combat,
+          statsAt: (at, event, runtime) => {
+            if (statuses.includes(event?.condition)) {
+              assert.equal(at, event.at, 'Non-damaging conditions only need application-time duration attributes');
+              durationQueries.push(event.condition);
+            }
+
+            return combat.statsAt(at, event, runtime);
+          },
+          strikeMultiplier: (event, at, runtime) => {
+            const multiplier = combat.strikeMultiplier(event, at, runtime);
+            strikes.push(multiplier);
+            return multiplier;
+          },
+          conditionMultiplier: (name, at, event, runtime, sample) => {
+            assert.equal(name, 'Bleeding', 'Only damaging conditions may calculate a damage multiplier');
+            const multiplier = combat.conditionMultiplier(name, at, event, runtime, sample);
+            bleeding.set(Math.round(at * 1000), multiplier);
+            return multiplier;
+          }
+        },
+        reactions: { 'condition.applied': (_runtime, event) => applied.push(event.condition) }
+      }
+    );
+    assert.deepEqual(durationQueries, statuses);
+    assert.deepEqual(applied, ['Bleeding', ...statuses]);
+    assert.deepEqual(strikes, [2, 1.05 * 6 * 2, 2]);
+    assert.equal(bleeding.get(120), 1.05 * 2 * 2);
+    assert.equal(bleeding.get(280), 1);
+    assert.ok(result.conditionDamage > 0);
+    if (output === 'detailed') {
+      for (const name of statuses) {
+        const application = applications(result).find((event) => event.condition === name);
+        assert.equal(application.effectiveDuration, 0.24);
+        assert.equal(application.damage, 0);
+        assert.equal(result.conditionBreakdown.find((entry) => entry.name === name).averageStacks > 0, true);
+      }
+
+      const probeHits = result.resolvedEvents.filter((event) => event.sourceId === 'probe');
+      assert.equal(probeHits[0].damage, probeHits[2].damage);
+      assert.ok(probeHits[1].damage > probeHits[0].damage);
+    }
+  }
+});
+
+// One target query serves all owners/conditions at that instant, but a subsequent pass gets a fresh snapshot.
+test('condition buffering shares Vulnerability once per pass and refreshes it on the next pass', () => {
+  const reads = new Map();
+  const samples = new Map();
+  resolve([condition(0, { duration: 0.08 }), condition(0, { duration: 0.08, condition: 'Burning' })], {
+    end: 0.12,
+    target: { conditions: { Bleeding: 1 } },
+    query: {
+      vulnerabilityStacksAt: (at) => {
+        reads.set(at, (reads.get(at) || 0) + 1);
+        return at < 0.08 ? 5 : 10;
+      },
+      conditionMultiplier: (_name, at, _application, _runtime, sample) => {
+        if (samples.has(at)) assert.equal(samples.get(at), sample);
+        samples.set(at, sample);
+        return 1 + sample.vulnerabilityStacks / 100;
+      }
+    }
+  });
+  assert.ok(samples.size >= 2);
+  for (const count of reads.values()) assert.equal(count, 1);
+  const first = samples.get(0.04);
+  const second = samples.get(0.08);
+  assert.equal(first.vulnerabilityStacks, 5);
+  assert.equal(second.vulnerabilityStacks, 10);
+  assert.notEqual(first.modifierValues, second.modifierValues);
+});
 
 // Offset the whole encounter, including off-grid starts, to verify that first damage owns both sampling and payout.
 test('first damage anchors every owner and permanent condition through later empty gaps', () => {

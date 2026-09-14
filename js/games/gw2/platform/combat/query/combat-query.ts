@@ -39,6 +39,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
 import type {
   Gw2CombatQuery,
+  Gw2ConditionSample,
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime,
   Gw2ResolvedStats
@@ -63,6 +64,7 @@ interface HookContextOptions {
   readonly runtime?: Gw2QueryRuntime | null;
   readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
+  readonly conditionSample?: Gw2ConditionSample;
 }
 
 /**
@@ -358,6 +360,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       condition = null,
       runtime = null,
       damageAdditiveBonus = 0,
+      conditionSample,
       criticalChanceContributors
     }: HookContextOptions = {}
   ): SchedulerRecord => ({
@@ -375,6 +378,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     events,
     runtime,
     damageAdditiveBonus,
+    conditionSample,
     criticalChanceContributors
   });
 
@@ -571,7 +575,8 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       name: string,
       time: number,
       event: SimulationEvent | null = null,
-      runtime: Gw2QueryRuntime | null = null
+      runtime: Gw2QueryRuntime | null = null,
+      sample?: Gw2ConditionSample
     ) {
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
@@ -579,7 +584,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
       const sigils = activeSigilSetAt(time, runtime);
       const base =
-        (1 + vulnerabilityStacksAt(time, runtime) / 100) *
+        (1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100) *
         (usesEquipmentModifiers ? Number(sigils.condition || 1) + relicBonus : 1) *
         Number(config.modifiers?.condition || 1);
       return activeProfession.modifyConditionDamage(
@@ -587,6 +592,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
           event,
           condition: name,
           runtime,
+          conditionSample: sample,
           damageAdditiveBonus: relicBonus
         }),
         base

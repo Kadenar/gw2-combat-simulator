@@ -3,7 +3,11 @@ import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formu
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
-import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import {
+  createPermanentTargetConditionStacks,
+  GW2_DAMAGING_CONDITIONS,
+  isDamagingCondition
+} from '#gw2/platform/combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
@@ -201,19 +205,29 @@ export function createGw2ConditionResolution({
     ctx.conditionBufferedAt = at;
     const origin = ctx.firstHitTime ?? 0;
     const step = Math.round((at - origin) * 25);
+    // Each pass observes one target state; discard these facts before processing another event or timestamp.
+    const sample = {
+      vulnerabilityStacks: ctx.query.vulnerabilityStacksAt?.(at, ctx) ?? 0,
+      modifierValues: new Map<object, number | null>()
+    };
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
+        const dealsDamage = isDamagingCondition(group.condition);
         for (const application of group.applications) {
           if (isRemoved(application, at)) continue;
           if (
             step > Math.floor((application.settledThrough - origin) * 25 + EPSILON) &&
             step <= Math.floor((application.naturalExpiresAt - origin) * 25 + EPSILON)
           ) {
-            const stats = ctx.query.statsAt(at, application, ctx);
-            // Sum rates before dividing by 25 to avoid accumulating repeated 0.04 multiplication noise.
-            application.bufferedRate +=
-              conditionRate(ctx, group.condition, stats.conditionDamage) *
-              ctx.query.conditionMultiplier(group.condition, at, application, ctx);
+            // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
+            if (dealsDamage) {
+              const stats = ctx.query.statsAt(at, application, ctx);
+              // Sum rates before dividing by 25 to avoid accumulating repeated 0.04 multiplication noise.
+              application.bufferedRate +=
+                conditionRate(ctx, group.condition, stats.conditionDamage) *
+                ctx.query.conditionMultiplier(group.condition, at, application, ctx, sample);
+            }
+
             application.bufferedSteps += 1;
           }
 
@@ -223,7 +237,7 @@ export function createGw2ConditionResolution({
     }
 
     for (const entry of ctx.environmentConditions.values()) {
-      const vulnerability = 1 + Number(ctx.query.vulnerabilityStacksAt(at, ctx) || 0) / 100;
+      const vulnerability = 1 + Number(sample.vulnerabilityStacks || 0) / 100;
       entry.bufferedRate = (entry.bufferedRate ?? 0) + conditionTickDamage(entry.name, 0) * vulnerability;
       // Environment payout events are combat-gated by the event loop; discard their precombat packets here.
       if (step % 25 === 0 && ctx.combatStartTime != null && at < ctx.combatStartTime - EPSILON) entry.bufferedRate = 0;

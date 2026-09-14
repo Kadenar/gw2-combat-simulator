@@ -32,6 +32,12 @@ export interface Gw2CriticalResult {
   readonly contributors?: readonly Gw2CriticalChanceContributor[];
 }
 
+/** Facts shared only while one condition-buffer pass observes an unchanged target/runtime state. */
+export interface Gw2ConditionSample {
+  readonly vulnerabilityStacks: number;
+  readonly modifierValues: Map<object, number | null>;
+}
+
 export interface Gw2CombatQuery {
   statsAt(time: number, event?: SimulationEvent | null, runtime?: Gw2QueryRuntime | null): Gw2ResolvedStats;
   mightStacksAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): number;
@@ -43,7 +49,8 @@ export interface Gw2CombatQuery {
     name: string,
     time: number,
     event?: SimulationEvent | null,
-    runtime?: Gw2QueryRuntime | null
+    runtime?: Gw2QueryRuntime | null,
+    sample?: Gw2ConditionSample
   ): number;
   conditionDurationMultiplier(
     name: string,

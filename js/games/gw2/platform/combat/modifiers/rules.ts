@@ -206,6 +206,14 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   }
 
   const targets = normalizeTargets({ ...rule, id });
+  if (rule.conditionSampleInvariant != null && typeof rule.conditionSampleInvariant !== 'boolean') {
+    throw ruleError(id, 'conditionSampleInvariant must be a boolean.');
+  }
+
+  if (rule.conditionSampleInvariant && !targets.includes(MODIFIER_TARGET.CONDITION_DAMAGE)) {
+    throw ruleError(id, 'conditionSampleInvariant requires a condition-damage target.');
+  }
+
   if (Object.hasOwn(rule, 'when') && typeof rule.when !== 'function') {
     throw ruleError(id, 'when must be a function.');
   }
@@ -236,7 +244,8 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     parameters: normalizeParameters({ ...rule, id }),
     when: rule.when || null,
     order,
-    declarationIndex
+    declarationIndex,
+    conditionSampleInvariant: rule.conditionSampleInvariant === true
   };
   const field = operation === 'multiply' ? 'factor' : 'amount';
   const resolver = normalizeResolver({ ...rule, id }, field, field === 'factor' ? { positive: true } : undefined);
@@ -429,12 +438,23 @@ function createDamageHook(
     let multiplicativeFactor = 1;
     // All damage-additive rules share one GW2 bucket; true multipliers are
     // combined separately and applied after that bucket.
+    const sampledValues = target === MODIFIER_TARGET.CONDITION_DAMAGE ? context.conditionSample?.modifierValues : null;
     for (const rule of rules) {
-      if (rule.when && !rule.when(context)) continue;
+      // Only explicitly application-independent rules may share a result, including an inactive predicate.
+      let value = rule.conditionSampleInvariant ? sampledValues?.get(rule) : undefined;
+      if (value === undefined) {
+        value =
+          rule.when && !rule.when(context)
+            ? null
+            : resolveNumeric(rule, rule.operation === 'damage-additive' ? 'amount' : 'factor', context, target);
+        if (rule.conditionSampleInvariant) sampledValues?.set(rule, value);
+      }
+
+      if (value === null) continue;
       if (rule.operation === 'damage-additive') {
-        additiveBonus += resolveNumeric(rule, 'amount', context, target);
+        additiveBonus += value;
       } else {
-        multiplicativeFactor *= resolveNumeric(rule, 'factor', context, target);
+        multiplicativeFactor *= value;
       }
     }
 
@@ -471,6 +491,7 @@ function createDamageHook(
  * - `parameters`: optional finite named inputs passed to a resolver as its third
  *   argument so preview overlays can patch dynamic formulas safely.
  * - `when`: optional `(context) => boolean` predicate.
+ * - `conditionSampleInvariant`: condition-damage predicate/value are independent of application and condition type.
  * - `order`: optional finite number; defaults to zero.
  *
  * `damageBuckets` accepts `strikeDamage` and `conditionDamage` entries. Their

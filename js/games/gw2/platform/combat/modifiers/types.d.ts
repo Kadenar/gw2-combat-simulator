@@ -3,6 +3,7 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
   Gw2CombatQuery,
+  Gw2ConditionSample,
   Gw2CriticalChanceContributor,
   Gw2QueryRuntime,
   Gw2ResolvedStats,
@@ -39,6 +40,7 @@ export interface Gw2ModifierContext extends SchedulerRecord {
   readonly runtime?: Gw2QueryRuntime | null;
   readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
+  readonly conditionSample?: Gw2ConditionSample;
 }
 
 export type Gw2ModifierNumericResolver = (
@@ -57,6 +59,8 @@ export interface Gw2ModifierRule {
   /** Named patchable inputs for resolver-backed amounts or factors. */
   readonly parameters?: Readonly<Record<string, number>>;
   readonly when?: (context: Gw2ModifierContext) => boolean;
+  /** Condition-damage predicate/value depend only on shared runtime state, never the application or condition type. */
+  readonly conditionSampleInvariant?: boolean;
   readonly order?: number;
 }
 
@@ -71,6 +75,7 @@ export interface Gw2NormalizedModifierRule {
   readonly when: ((context: Gw2ModifierContext) => boolean) | null;
   readonly order: number;
   readonly declarationIndex: number;
+  readonly conditionSampleInvariant: boolean;
 }
 
 export type Gw2IncludeSigilPolicy = boolean | ((context: Gw2ModifierContext) => boolean);

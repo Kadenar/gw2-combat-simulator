@@ -24,38 +24,51 @@ export function timedActive(context: Gw2ModifierContext, kind: string): boolean 
   return Boolean(context.timeline?.timedActive(kind, context.time));
 }
 
-// Reconcile build-time Mesmer bonuses with timed trait stacks and signet
-// cooldowns so panel-visible attributes are neither lost nor doubled.
-export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+/** Resolve immutable loadout and patched profile values once for each combat query. */
+function prepareCoreAttributeFacts(context: Gw2ModifierContext) {
   const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
-  const midnightSelected = selectedSkills.has('Signet of Midnight');
-  const midnightBonus = balanceProfileValueFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180);
+  const chaoticPersistence = hasTrait(context, PROFILE.chaoticPersistence);
+  return {
+    midnightSelected: selectedSkills.has('Signet of Midnight'),
+    dominationSelected: selectedSkills.has('Signet of Domination'),
+    midnightBonus: balanceProfileValueFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180),
+    dominationBonus: balanceProfileValueFromContext(context, PROFILE.signetOfDomination, 'conditionDamageBonus', 180),
+    chaoticExpertiseDelta: chaoticPersistence
+      ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
+      : 0,
+    chaoticConcentrationDelta: chaoticPersistence
+      ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
+      : 0,
+    fencerDuration: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
+    fencerMaximum: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10),
+    fencerPerStack: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'attributePerStack', 15)
+  };
+}
+
+const coreAttributeFacts = new WeakMap<
+  NonNullable<Gw2ModifierContext['query']>,
+  ReturnType<typeof prepareCoreAttributeFacts>
+>();
+
+// Reconcile build-time bonuses with live stacks and cooldowns; detached editor queries remain uncached.
+export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  let facts = context.query ? coreAttributeFacts.get(context.query) : undefined;
+  if (!facts) {
+    facts = prepareCoreAttributeFacts(context);
+    if (context.query) coreAttributeFacts.set(context.query, facts);
+  }
+
+  const { midnightSelected, midnightBonus, dominationSelected, dominationBonus, chaoticExpertiseDelta } = facts;
   const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
-  const dominationSelected = selectedSkills.has('Signet of Domination');
-  const dominationBonus = balanceProfileValueFromContext(
-    context,
-    PROFILE.signetOfDomination,
-    'conditionDamageBonus',
-    180
-  );
   const domination =
     dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
-  const chaoticExpertiseDelta = hasTrait(context, PROFILE.chaoticPersistence)
-    ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
-    : 0;
   return {
     ...attributes,
     power: Number(attributes.power || 0),
     precision: Number(attributes.precision || 0),
     ferocity:
       Number(attributes.ferocity || 0) +
-      timedStacks(
-        context,
-        'fencer',
-        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
-        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
-      ) *
-        balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'attributePerStack', 15),
+      timedStacks(context, 'fencer', facts.fencerDuration, facts.fencerMaximum) * facts.fencerPerStack,
     conditionDamage:
       Number(attributes.conditionDamage || 0) + (dominationSelected ? dominationBonus - 180 : 0) - domination,
     expertise:
@@ -63,11 +76,7 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
       chaoticExpertiseDelta +
       (midnightSelected ? midnightBonus - 180 : 0) -
       midnight,
-    concentration:
-      Number(attributes.concentration || 0) +
-      (hasTrait(context, PROFILE.chaoticPersistence)
-        ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
-        : 0)
+    concentration: Number(attributes.concentration || 0) + facts.chaoticConcentrationDelta
   };
 }
 
@@ -130,6 +139,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
   },
   {
     id: 'mesmer.compounding-power',
+    conditionSampleInvariant: true,
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     parameters: modifierParameters({
@@ -150,6 +160,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
   },
   {
     id: 'mesmer.illusionary-membrane',
+    conditionSampleInvariant: true,
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     amount: 0.07,

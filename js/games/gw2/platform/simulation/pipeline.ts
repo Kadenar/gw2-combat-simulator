@@ -5,6 +5,7 @@ import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
 import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { isSchedulerComboPrediction } from '#gw2/platform/combos/events.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
@@ -81,6 +82,11 @@ function simulateDeclarativeGw2Pass({
   observationPolicy
 }: Gw2DeclarativeSimulationOptions & { output?: 'detailed' | 'score' }): Gw2SimulationResult | Gw2SimulationScore {
   const started = onPhase ? performance.now() : 0;
+  // All professions share immutable membership facts within this pass, including scheduler refinement passes.
+  if (config.selectedSkills != null) {
+    config = { ...config, selectedSkills: prepareSelectedSkillLoadout(config.selectedSkills) };
+  }
+
   const runtimeProfession = resolveProfessionRuntime(profession, config);
   // Resolve traits once and share the exact selection between both phases.
   const traits = selectedGw2TraitValues(config, runtimeProfession.catalog);

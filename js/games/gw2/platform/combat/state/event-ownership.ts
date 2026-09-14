@@ -12,10 +12,13 @@ export const GW2_EVENT_ACTOR_TYPES = Object.freeze({
   UNKNOWN: 'unknown'
 });
 
+// Validate ownership without allocating a new list for every damage/modifier query.
+const ACTOR_TYPES: ReadonlySet<string> = new Set(Object.values(GW2_EVENT_ACTOR_TYPES));
+
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
 export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
   const explicit = String(event?.actorType || '');
-  if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
+  if (ACTOR_TYPES.has(explicit)) {
     return explicit as Gw2EventActorType;
   }
 
@@ -34,7 +37,7 @@ export function isGw2PlayerActorEvent(event: Partial<SimulationEventInput> | nul
  */
 export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
   const explicit = String(event?.ownerActorType || '');
-  if (Object.values(GW2_EVENT_ACTOR_TYPES).includes(explicit as Gw2EventActorType)) {
+  if (ACTOR_TYPES.has(explicit)) {
     return explicit as Gw2EventActorType;
   }
 
