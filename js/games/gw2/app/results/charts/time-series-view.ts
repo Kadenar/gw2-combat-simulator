@@ -398,7 +398,7 @@ function drawLineChart(
   };
 }
 
-/** Prioritizes useful boons and relics, keeping supplementary boons collapsed and absent support boons hidden. */
+/** Leads with projected ally support while retaining personal boon results as secondary context. */
 function effectSummaryHtml(series: ChartSeries): string {
   const priority = ['Might', 'Fury', 'Protection', 'Quickness', 'Alacrity'];
   const summaries = series.effectSummaries || {};
@@ -414,8 +414,9 @@ function effectSummaryHtml(series: ChartSeries): string {
   const supplementary = names.filter((name) => generation[name] && !priority.includes(name)).sort();
   const duration = series.durationMs / 1000;
   const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
+  // Normalize intensity supply against its cap so excess generation is not mistaken for obtainable stacks.
   const coverage = (average: number, intensity: boolean, maximum?: number): string =>
-    intensity ? `${average.toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} stacks` : percent(average);
+    intensity && maximum != null ? `${percent(average / maximum)} of cap` : percent(average);
   const rows = (effects: readonly string[]): string =>
     effects
       .map((name) => {
@@ -426,40 +427,46 @@ function effectSummaryHtml(series: ChartSeries): string {
         );
         const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === 'Might' ? 25 : undefined);
         const own = boon?.self;
+        const alliedGenerated = boon?.allies.generatedStackSeconds || 0;
+        const alliedPerPlayer = alliedGenerated / PRESENTATION_ALLIED_PLAYER_COUNT;
         const generatedAverage = duration > 0 ? (own?.generatedStackSeconds || 0) / duration : 0;
-        const alliedAverage =
-          duration > 0 ? (boon?.allies.generatedStackSeconds || 0) / (duration * PRESENTATION_ALLIED_PLAYER_COUNT) : 0;
+        const alliedAverage = duration > 0 ? alliedGenerated / (duration * PRESENTATION_ALLIED_PLAYER_COUNT) : 0;
         const mixed = boon && boon.selfOnly.generatedStackSeconds > 0 && boon.sharedWithSelf.generatedStackSeconds > 0;
         const target = intensity ? maximum : 1;
         const isBoon = Boolean(boon) || priority.includes(name);
-        const value = intensity
-          ? `${(summary?.averageStacks || 0).toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} stacks`
-          : percent(summary?.uptime || 0);
-        const stackDetails = intensity
-          ? `<small>Uptime: ${percent(summary?.uptime || 0)}${summary?.maximumStackUptime == null ? '' : ` · At ${maximum} stacks: ${percent(summary.maximumStackUptime)}`}</small>`
-          : '';
+        const selfState = intensity
+          ? `Self: ${(summary?.averageStacks || 0).toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} avg stacks · ${percent(summary?.uptime || 0)} uptime${summary?.maximumStackUptime == null ? '' : ` · ${percent(summary.maximumStackUptime)} at cap`}`
+          : `Self uptime: ${percent(summary?.uptime || 0)}`;
         const overTarget =
-          isBoon && target != null && generatedAverage > target
-            ? `<small>+${coverage(generatedAverage - target, intensity)} over target</small>`
+          isBoon && target != null && alliedAverage > target
+            ? `<small>+${percent(alliedAverage / target - 1)} over ${intensity ? 'cap' : 'target'}</small>`
             : '';
-        // Mixed sources and partial recipient caps reveal the ally difference without adding another table.
-        const alliedCoverage =
-          alliedAverage > 0 && Math.abs(alliedAverage - generatedAverage) > 1e-9
-            ? `<small>Allies: ${coverage(alliedAverage, intensity, maximum)}</small>`
+        const selfGeneration = own?.generatedStackSeconds || 0;
+        // Identical per-player values add no self-specific information, so only differences stay visible.
+        const selfDiffersFromAllies = Math.abs(selfGeneration - alliedPerPlayer) > 1e-9;
+        const selfGenerationDetails =
+          selfGeneration && selfDiffersFromAllies
+            ? `<small>Self: ${selfGeneration.toFixed(2)}${mixed ? ` · ${boon.selfOnly.generatedStackSeconds.toFixed(2)} self-only` : boon?.selfOnly.generatedStackSeconds ? ' · self-only' : ''}</small>`
             : '';
+        const selfCoverage =
+          selfGeneration && selfDiffersFromAllies
+            ? `<small>Self: ${coverage(generatedAverage, intensity, maximum)}</small>`
+            : '';
+        const coverageDetails = isBoon
+          ? `${coverage(alliedAverage, intensity, maximum)}${overTarget}${selfCoverage}<small>${selfState}</small>`
+          : selfState;
         return `<tr>
       <th scope="row">${escapeHtml(name)}</th>
-      <td>${value}${stackDetails}</td>
-      <td>${isBoon ? (own?.generatedStackSeconds || 0).toFixed(2) : '—'}${mixed ? `<small>Self-only: ${boon.selfOnly.generatedStackSeconds.toFixed(2)} · Shared: ${boon.sharedWithSelf.generatedStackSeconds.toFixed(2)}</small>` : ''}</td>
-      <td>${isBoon ? coverage(generatedAverage, intensity, maximum) : '—'}${overTarget}${alliedCoverage}</td>
+      <td>${isBoon ? alliedGenerated.toFixed(2) : '—'}${isBoon ? `<small>${alliedPerPlayer.toFixed(2)} per ally</small>` : ''}${selfGenerationDetails}</td>
+      <td>${coverageDetails}</td>
     </tr>`;
       })
       .join('');
   const table = (effects: readonly string[], label: string, showCaption = true): string => `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
       <table>
-        ${showCaption ? `<caption>${label} · full benchmark (${duration.toFixed(2)}s)</caption>` : ''}
-        <thead><tr><th scope="col">Effect</th><th scope="col">Uptime / avg stacks</th><th scope="col">Generated stack-seconds</th><th scope="col">Generation coverage</th></tr></thead>
+        ${showCaption ? `<caption>${label} · ${PRESENTATION_ALLIED_PLAYER_COUNT} allies · full benchmark (${duration.toFixed(2)}s)</caption>` : ''}
+        <thead><tr><th scope="col">Effect</th><th scope="col">Allied stack-seconds</th><th scope="col">Coverage</th></tr></thead>
         <tbody>${rows(effects)}</tbody>
       </table>
     </div>`;
