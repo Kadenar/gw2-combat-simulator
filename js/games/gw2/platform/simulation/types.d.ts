@@ -64,6 +64,8 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2DeclarativeSimulationOptions {
+  /** Capture formula facts only in the final detailed pass; never persisted as build configuration. */
+  readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */
   readonly onPhase?: (phase: 'scheduling' | 'resolution' | 'reporting' | 'refinement', durationMs: number) => void;
   readonly profession: Gw2ProfessionSource;

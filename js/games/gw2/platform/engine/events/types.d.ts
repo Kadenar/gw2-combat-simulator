@@ -70,6 +70,22 @@ export type CommonSimulationEventType =
 
 export type CustomSimulationEventType = `${string}.${string}`;
 
+/** Detached formula facts captured only for requested detailed damage diagnostics. */
+export interface Gw2DamageCalculation {
+  readonly phase: 'Sample' | 'Settle' | 'Ordinary';
+  readonly targetHealthBefore: number | null;
+  readonly targetHealthFractionBefore: number | null;
+  readonly power: number;
+  readonly precision?: number;
+  readonly ferocity?: number;
+  readonly coefficientMultiplier: number;
+  readonly baseDamage: number;
+  readonly criticalMultiplier: number;
+  readonly outgoingMultiplier: number;
+  readonly unroundedDamage: number;
+  readonly rounding: 'floor' | 'half-even';
+}
+
 export interface SimulationEventBase<TType extends string = string> {
   readonly schemaVersion?: 1;
   readonly type: TType;
@@ -108,6 +124,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;
+  readonly damageCalculation?: Gw2DamageCalculation;
   readonly [field: string]: unknown;
 }
 

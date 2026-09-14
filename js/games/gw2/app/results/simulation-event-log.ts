@@ -12,6 +12,28 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 type OrderedEventLogRow = EventLogRow & { readonly order: number; readonly activationOrder: number };
 
+/** Show recorded formula inputs at full clock precision; the log's activation grouping is not an execution trace. */
+function damageCalculationDetails(event: SimulationEvent): string[] {
+  const calculation = event.damageCalculation!;
+  return [
+    `Simulation time: ${event.at.toFixed(6)}s; phase: ${calculation.phase}`,
+    `Target health before: ${calculation.targetHealthBefore ?? 'unbounded'}; fraction: ${calculation.targetHealthFractionBefore ?? 'unbounded'}`,
+    `Power: ${calculation.power}`,
+    ...(calculation.precision == null ? [] : [`Precision: ${calculation.precision}`]),
+    ...(calculation.ferocity == null ? [] : [`Ferocity: ${calculation.ferocity}`]),
+    ...(event.coefficient == null ? [] : [`Authored coefficient: ${event.coefficient}`]),
+    `Coefficient multiplier: ${calculation.coefficientMultiplier}`,
+    ...(event.resolvedWeaponStrength == null
+      ? []
+      : [`Weapon strength: ${event.resolvedWeaponStrength} (${event.weaponStrengthProfileId})`]),
+    ...(event.activationId == null ? [] : [`Activation: ${event.activationId}`]),
+    `Base damage: ${calculation.baseDamage}`,
+    `Critical chance: ${event.criticalChance}; critical multiplier: ${calculation.criticalMultiplier}`,
+    `Outgoing multiplier: ${calculation.outgoingMultiplier}`,
+    `Unrounded damage: ${calculation.unroundedDamage}; rounding: ${calculation.rounding}; damage: ${event.damage}`
+  ];
+}
+
 /** Converts stable minion ownership ids into readable per-minion log labels. */
 function minionAttackerLabel(event: SimulationEvent): string {
   const match = /^minion:([^:]+):(\d+)$/.exec(String(event.summonOwner || ''));
@@ -84,6 +106,7 @@ export function simulationEventLogRows(
       at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
       type,
       description,
+      ...(type === 'damage' && event.damageCalculation ? { details: damageCalculationDetails(event) } : {}),
       className,
       phantasmClone,
       activationOrder: activationOrder(event),

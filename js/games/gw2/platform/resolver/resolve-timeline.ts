@@ -148,6 +148,7 @@ export function resolveGw2Timeline(options: ResolveGw2TimelineOptions & { output
 export function resolveGw2Timeline(options: ResolveGw2TimelineOptions): Gw2ResolverResult | Gw2SimulationScore;
 export function resolveGw2Timeline({
   onPhase,
+  damageDiagnostics = false,
   output = 'detailed',
   stream,
   config,
@@ -204,6 +205,7 @@ export function resolveGw2Timeline({
   const handoff = scheduled.resolverHandoff;
   const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',
+    damageDiagnostics,
     config,
     traits,
     horizon: resolutionEndTime,

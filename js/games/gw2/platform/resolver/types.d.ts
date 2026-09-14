@@ -201,6 +201,7 @@ export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends Record<string, unknown> {
   readonly reporting: boolean;
+  readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
   horizon: number;
@@ -266,6 +267,8 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
 }
 
 export interface Gw2HitResolutionContext {
+  readonly coefficientMultiplier: number;
+  readonly unroundedDamage: number;
   readonly stats: Gw2ResolvedStats;
   readonly critical: Gw2CriticalResult;
   // Whether this strike can crit at all (scaling strike, not flagged noCrit /
@@ -410,6 +413,7 @@ export interface Gw2ResolverResult extends Record<string, unknown> {
 }
 
 export interface ResolveGw2TimelineOptions {
+  readonly damageDiagnostics?: boolean;
   readonly onPhase?: (phase: 'resolution' | 'reporting', durationMs: number) => void;
   readonly output?: 'detailed' | 'score';
   readonly stream: ScheduledEventStream;
@@ -422,6 +426,7 @@ export interface ResolveGw2TimelineOptions {
 }
 
 export interface CreateGw2ResolverRuntimeStateOptions {
+  readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;
   readonly traits?: ReadonlySet<string | number>;

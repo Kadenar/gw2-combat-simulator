@@ -913,7 +913,7 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
   mountEventLog(
     container,
     [
-      { at: 0, type: 'one', description: 'Keep <safe>', keep: true },
+      { at: 0, type: 'one', description: 'Keep <safe>', details: ['Power <1000>'], keep: true },
       { at: 1, type: 'two', description: 'Drop me', keep: false }
     ],
     {
@@ -929,9 +929,45 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
   );
 
   assert.match(html, /Keep &lt;safe&gt;/);
+  assert.match(html, /<details class="log-desc"><summary>Keep &lt;safe&gt;<\/summary>/);
+  assert.match(html, /<li>Power &lt;1000&gt;<\/li>/);
   assert.doesNotMatch(html, /Drop me/);
   assert.match(html, /data-filename="custom&quot;name\.csv"/);
   assert.match(html, /log-filter-kept/);
+});
+
+// Calculation details retain microseconds and actual factors without changing rows from older results.
+test('event log exposes optional damage calculations at full simulation precision', () => {
+  const event = {
+    type: 'damage',
+    at: 0.600001,
+    source: 'Player',
+    sourceId: 'hit',
+    actorType: 'player',
+    name: 'Hit',
+    flatDamage: 10,
+    damage: 10,
+    criticalChance: 0
+  };
+  const result = { events: [], resolvedEvents: [event] };
+  assert.equal(simulationEventLogRows(result)[0].details, undefined);
+  const damageCalculation = {
+    phase: 'Ordinary',
+    targetHealthBefore: null,
+    targetHealthFractionBefore: null,
+    power: 1000,
+    coefficientMultiplier: 1,
+    baseDamage: 10,
+    criticalMultiplier: 1,
+    outgoingMultiplier: 1,
+    unroundedDamage: 10,
+    rounding: 'floor'
+  };
+  const row = simulationEventLogRows({ ...result, resolvedEvents: [{ ...event, damageCalculation }] })[0];
+  assert.ok(row.details.includes('Simulation time: 0.600001s; phase: Ordinary'));
+  assert.ok(row.details.includes('Target health before: unbounded; fraction: unbounded'));
+  assert.ok(row.details.includes('Unrounded damage: 10; rounding: floor; damage: 10'));
+  assert.ok(!row.details.some((detail) => detail.startsWith('Weapon strength:')));
 });
 
 test('event log distinguishes phantasm summon, attack, and clone conversion', () => {

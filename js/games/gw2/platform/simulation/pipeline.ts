@@ -76,6 +76,7 @@ function simulateDeclarativeGw2Pass(options: Gw2DeclarativeSimulationOptions & {
 function simulateDeclarativeGw2Pass(options: Gw2DeclarativeSimulationOptions): Gw2SimulationResult;
 function simulateDeclarativeGw2Pass({
   onPhase,
+  damageDiagnostics = false,
   output = 'detailed',
   profession,
   rotation,
@@ -112,6 +113,7 @@ function simulateDeclarativeGw2Pass({
   };
   const resolved = resolveGw2Timeline({
     onPhase,
+    damageDiagnostics,
     output,
     stream: resolverStream,
     profession: runtimeProfession,
@@ -201,9 +203,10 @@ export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOpt
  */
 export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions): Gw2SimulationResult {
   let config = options.config || {};
-  let result = simulateDeclarativeGw2Pass({ ...options, config });
   const refineConfig = options.profession?.simulation?.refineSchedulerConfig;
-  if (typeof refineConfig !== 'function') return result;
+  if (typeof refineConfig !== 'function') return simulateDeclarativeGw2Pass({ ...options, config });
+  // Feedback discovers its final configuration after resolution. Capture only by replaying that configuration and seed.
+  let result = simulateDeclarativeGw2Pass({ ...options, config, damageDiagnostics: false });
 
   for (let pass = 0; pass < MAX_SCHEDULER_REFINEMENT_PASSES; pass += 1) {
     const started = options.onPhase ? performance.now() : 0;
@@ -211,8 +214,8 @@ export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions)
     options.onPhase?.('refinement', performance.now() - started);
     if (!refined) break;
     config = refined;
-    result = simulateDeclarativeGw2Pass({ ...options, config });
+    result = simulateDeclarativeGw2Pass({ ...options, config, damageDiagnostics: false });
   }
 
-  return result;
+  return options.damageDiagnostics ? simulateDeclarativeGw2Pass({ ...options, config }) : result;
 }

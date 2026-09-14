@@ -4,6 +4,7 @@ import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
 export interface EventLogDescriptor {
   readonly type: string;
   readonly description: string;
+  readonly details?: readonly string[];
   readonly className?: string;
   readonly order?: number;
   readonly flags?: string[];
@@ -93,9 +94,13 @@ function eventLogLinesHtml(rows: readonly EventLogRow[]): string {
     .map((row) => {
       const rowClasses = safeClassNames(row.rowClassName);
       const descriptionClasses = safeClassNames(row.className);
+      // Native disclosures keep optional calculations keyboard accessible and leave ordinary rows unchanged.
+      const description = row.details?.length
+        ? `<details class="log-desc${descriptionClasses ? ` ${descriptionClasses}` : ''}"><summary>${escapeHtml(row.description)}</summary><ul>${row.details.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></details>`
+        : `<span class="log-desc${descriptionClasses ? ` ${descriptionClasses}` : ''}">${escapeHtml(row.description)}</span>`;
       return `<div class="log-line${rowClasses ? ` ${rowClasses}` : ''}">
       <span class="log-time">${Number(row.at || 0).toFixed(3)}s</span>
-      <span class="log-desc${descriptionClasses ? ` ${descriptionClasses}` : ''}">${escapeHtml(row.description)}</span>
+      ${description}
     </div>`;
     })
     .join('');

@@ -11,10 +11,12 @@ import type {
   Gw2ResolverRuntime
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2DamageCalculation } from '#gw2/platform/engine/events/types.js';
 
 const STANDARD_TARGET_ARMOR = 2597;
 
 interface ResolvedStrikeParts {
+  readonly coefficientMultiplier: number;
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
@@ -90,6 +92,7 @@ export function createGw2HitResolution({
       Number(event.flatDamage ?? event.flatStrikeBase ?? 0) + Number(event.flatStrikePowerCoeff || 0) * power;
     return {
       baseDamage,
+      coefficientMultiplier: 1,
       criticalMultiplier: 1,
       outgoingMultiplier,
       weaponStrength: null
@@ -129,6 +132,7 @@ export function createGw2HitResolution({
         targetArmor;
       return {
         baseDamage,
+        coefficientMultiplier: 1,
         criticalMultiplier,
         outgoingMultiplier,
         weaponStrength: null
@@ -136,14 +140,16 @@ export function createGw2HitResolution({
     }
 
     const weaponStrength = resolvedWeaponStrength(ctx, event);
+    const effectiveCoefficientMultiplier = coefficientMultiplier(ctx, event);
     const baseDamage = strikeDamage(
-      Number(event.coefficient || 0) * coefficientMultiplier(ctx, event),
+      Number(event.coefficient || 0) * effectiveCoefficientMultiplier,
       weaponStrength.value,
       power,
       targetArmor
     );
     return {
       baseDamage,
+      coefficientMultiplier: effectiveCoefficientMultiplier,
       criticalMultiplier,
       outgoingMultiplier,
       weaponStrength
@@ -165,6 +171,8 @@ export function createGw2HitResolution({
 
     return {
       stats,
+      coefficientMultiplier: strike.coefficientMultiplier,
+      unroundedDamage: damage,
       critical,
       critEligible,
       criticalMultiplier: strike.criticalMultiplier,
@@ -182,6 +190,27 @@ export function createGw2HitResolution({
     hitContext: Gw2HitResolutionContext
   ): Gw2ResolverEvent {
     const damage = hitContext.damage;
+    // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
+    let damageCalculation: Gw2DamageCalculation | undefined;
+    if (ctx.damageDiagnostics) {
+      const maximum = Number(ctx.config.target?.health);
+      const healthFraction = Number.isFinite(maximum) ? currentHealthFraction(ctx) : null;
+      damageCalculation = {
+        phase: (['Sample', 'Settle', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
+        targetHealthBefore: healthFraction == null ? null : maximum * healthFraction,
+        targetHealthFractionBefore: healthFraction,
+        power: hitContext.stats.power,
+        ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
+        ...(Number.isFinite(hitContext.stats.ferocity) ? { ferocity: hitContext.stats.ferocity } : {}),
+        coefficientMultiplier: hitContext.coefficientMultiplier,
+        baseDamage: hitContext.baseDamage,
+        criticalMultiplier: hitContext.criticalMultiplier,
+        outgoingMultiplier: hitContext.outgoingMultiplier,
+        unroundedDamage: hitContext.unroundedDamage,
+        rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
+      };
+    }
+
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
     if (damageType === 'conditionDamage') ctx.totals.condition += damage;
     else ctx.totals.strike += damage;
@@ -197,6 +226,7 @@ export function createGw2HitResolution({
 
     const resolved = {
       ...event,
+      ...(damageCalculation ? { damageCalculation } : {}),
       ...(hitContext.weaponStrength
         ? {
             activationId: hitContext.weaponStrength.activationId ?? event.activationId,

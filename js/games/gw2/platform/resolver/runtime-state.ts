@@ -18,6 +18,7 @@ import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
  */
 export function createGw2ResolverRuntimeState({
   reporting = true,
+  damageDiagnostics = false,
   config,
   traits = new Set(),
   horizon,
@@ -31,6 +32,7 @@ export function createGw2ResolverRuntimeState({
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const runtime: Gw2ResolverRuntime = {
     reporting,
+    damageDiagnostics: reporting && damageDiagnostics,
     config,
     traits,
     horizon,

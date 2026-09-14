@@ -1,5 +1,32 @@
 import { expect, test } from '@playwright/test';
 
+// Native disclosure must open from the keyboard and render diagnostic text safely.
+test('damage calculation details open with the keyboard', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async () => {
+    const { mountEventLog } = await import('/js/games/gw2/app/results/event-log-view.ts');
+    document.body.innerHTML = '<div id="log"></div>';
+    mountEventLog(
+      document.getElementById('log'),
+      [
+        {
+          at: 0.600001,
+          type: 'damage',
+          description: 'HIT Example',
+          details: ['Simulation time: 0.600001s; phase: Ordinary', 'Power: <1000>']
+        }
+      ],
+      { initiallyOpen: true }
+    );
+  });
+  const calculation = page.locator('.log-desc');
+  await expect(calculation.locator('li').first()).toBeHidden();
+  await calculation.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(calculation.locator('li').first()).toBeVisible();
+  await expect(calculation.locator('li').last()).toHaveText('Power: <1000>');
+});
+
 // Real layout verifies that rebuilding log rows retains scrolling and navigation works at both edges.
 test('event log preserves reading position and follows the end across updates', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
