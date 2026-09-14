@@ -615,11 +615,6 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   opacity: 0.85;
 }
 
-.rot-gapfill {
-  border-style: dotted;
-  opacity: 0.9;
-}
-
 .rot-skill.rot-injected {
   border-style: dashed;
   cursor: default;

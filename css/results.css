@@ -918,10 +918,6 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--text);
 }
 
-.log-line .log-desc.err {
-  color: var(--condi);
-}
-
 .log-line .log-desc.sigil {
   color: #aa88ff;
 }

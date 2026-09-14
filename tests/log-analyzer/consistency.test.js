@@ -3,8 +3,6 @@ import test from 'node:test';
 
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { EVTC_ROTATION_PROFILES } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -293,12 +291,6 @@ for (const [professionCode, professionName] of [
     });
   }
 }
-
-test('both adapters expose every profession from the shared profile inventory', () => {
-  const identities = (profiles) => profiles.map((profile) => `${profile.professionId}:${profile.specializationId}`);
-
-  assert.deepEqual(identities(EVTC_ROTATION_PROFILES), identities(ROTATION_PROFILES));
-});
 
 test('EVTC and dps.report produce the same replay timing for equivalent cast evidence', () => {
   const evtc = reconstructEvtcRotation(

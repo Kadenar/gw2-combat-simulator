@@ -1,5 +1,6 @@
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -72,17 +73,12 @@ export function engineerMechAttributes(
   const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
   const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
-  // Balance profiles may omit fields, so inheritance always retains a native fallback.
-  const profileNumber = (field: string, fallback: number): number => {
-    const value = profile?.[field];
-    return Number.isFinite(Number(value)) ? Number(value) : fallback;
-  };
 
-  const baseAttribute = profileNumber('baseAttribute', 1000);
-  const inheritanceRatio = profileNumber('inheritanceRatio', 0.5);
-  const secondaryCap = profileNumber('secondaryAttributeCap', 750);
-  const improvedSecondaryCap = profileNumber('improvedSecondaryAttributeCap', 1500);
-  const improvedInheritanceRatio = profileNumber('improvedInheritanceRatio', 1);
+  const baseAttribute = balanceProfileValue(profile, 'baseAttribute', 1000);
+  const inheritanceRatio = balanceProfileValue(profile, 'inheritanceRatio', 0.5);
+  const secondaryCap = balanceProfileValue(profile, 'secondaryAttributeCap', 750);
+  const improvedSecondaryCap = balanceProfileValue(profile, 'improvedSecondaryAttributeCap', 1500);
+  const improvedInheritanceRatio = balanceProfileValue(profile, 'improvedInheritanceRatio', 1);
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
@@ -94,15 +90,15 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      profileNumber('powerCap', 2250),
+      balanceProfileValue(profile, 'powerCap', 2250),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable
       ? Math.min(
-          profileNumber('precisionCap', 2500),
-          profileNumber('basePrecision', 1) + playerAttribute(playerStats, 'precision', 1000)
+          balanceProfileValue(profile, 'precisionCap', 2500),
+          balanceProfileValue(profile, 'basePrecision', 1) + playerAttribute(playerStats, 'precision', 1000)
         )
-      : profileNumber('basePrecision', 1),
+      : balanceProfileValue(profile, 'basePrecision', 1),
     toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
     vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
     ferocity: secondary('ferocity'),

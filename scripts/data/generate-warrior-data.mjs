@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { constantName as baseConstantName, mapConcurrent } from './lib/generator-utils.mjs';
+import { constantName as baseConstantName, declaration, mapConcurrent } from './lib/generator-utils.mjs';
 
 const API_ROOT = 'https://api.guildwars2.com/v2';
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
@@ -652,15 +652,6 @@ export async function generateWarriorData({ skills: apiSkills, specializations: 
       key: keyById.get(identity.id),
       mechanics
     });
-  }
-
-  function declaration(name, values, prefix = []) {
-    return [
-      `export const ${name} = Object.freeze({`,
-      ...prefix.map((line) => `  ${line}`),
-      ...values.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
-      '});'
-    ].join('\n');
   }
 
   const traits = stableEntries(

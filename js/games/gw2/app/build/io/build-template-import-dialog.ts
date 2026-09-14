@@ -4,7 +4,7 @@ import {
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from '#gw2/app/build/io/build-template-import.js';
-import { errorMessage } from '#ui/shared/dom.js';
+import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 
 import type { BuildTemplateImportPreview } from '#gw2/app/build/io/build-template-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -25,11 +25,7 @@ interface BuildTemplateDialogElements {
   readonly warnings: HTMLElement;
 }
 
-function ensureStyles(document: Document): void {
-  if (document.getElementById('build-template-import-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'build-template-import-styles';
-  style.textContent = `
+const BUILD_TEMPLATE_IMPORT_STYLES = `
     .build-template-import { margin-left:auto; letter-spacing:normal; text-transform:none; }
     .build-template-import-dialog { --dialog-width:760px; --dialog-gap:28px;
       border-radius:12px; box-shadow:0 22px 80px rgba(0,0,0,.72); }
@@ -88,8 +84,6 @@ function ensureStyles(document: Document): void {
       .build-template-preview-card + .build-template-preview-card { border-top:1px solid var(--border); border-left:0; }
       .build-template-preview-weapons { text-align:left; } }
   `;
-  document.head.append(style);
-}
 
 function required<T extends Element>(dialog: HTMLDialogElement, selector: string): T {
   const element = dialog.querySelector<T>(selector);
@@ -98,7 +92,7 @@ function required<T extends Element>(dialog: HTMLDialogElement, selector: string
 }
 
 function createDialog(document: Document): BuildTemplateDialogElements {
-  ensureStyles(document);
+  ensureDocumentStyles(document, 'build-template-import-styles', BUILD_TEMPLATE_IMPORT_STYLES);
   const dialog = document.createElement('dialog');
   dialog.className = 'build-template-import-dialog';
   dialog.setAttribute('aria-labelledby', 'build-template-import-title');

@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { constantName } from './lib/generator-utils.mjs';
+import { declaration, stableEntries } from './lib/generator-utils.mjs';
 
 const SUPPLEMENTAL_SKILLS = [
   ['Twin Darts', 12676],
@@ -51,32 +51,6 @@ async function rangerPetSkills() {
   }
 
   return skills;
-}
-
-function stableEntries(entries) {
-  const result = [];
-  const keys = new Set();
-
-  for (const [name, id] of entries) {
-    const base = constantName(name);
-
-    if (!base) continue;
-    const key = keys.has(base) ? `${base}_ID_${id}` : base;
-
-    keys.add(base);
-    result.push({ key, id: Number(id), name: String(name) });
-  }
-
-  return result;
-}
-
-function declaration(name, entries, prefix = []) {
-  return [
-    `export const ${name} = Object.freeze({`,
-    ...prefix.map((line) => `  ${line}`),
-    ...entries.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
-    '});'
-  ].join('\n');
 }
 
 // Generates only consumed skill and trait IDs from the freshly fetched snapshot so the update

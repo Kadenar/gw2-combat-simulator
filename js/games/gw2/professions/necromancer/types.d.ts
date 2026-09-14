@@ -189,17 +189,6 @@ export type NecromancerPrecastContext = CastContext<NecromancerRuntimeState> & {
   readonly config: NecromancerConfig;
 };
 
-export type NecromancerCastModifierContext = Omit<
-  CastContext<NecromancerRuntimeState>,
-  'config' | 'skill' | 'state'
-> & {
-  readonly config: NecromancerConfig;
-  readonly skill?: NecromancerSkill;
-  readonly state: SchedulerState<NecromancerRuntimeState>;
-  readonly start: number;
-  readonly hasBuff?: (name: string, at: number) => boolean;
-};
-
 export type NecromancerRechargeModifierContext = Omit<SchedulerContext<NecromancerRuntimeState>, 'config'> & {
   readonly config: NecromancerConfig;
   readonly skill?: NecromancerSkill;

@@ -1,6 +1,6 @@
 import { bindDialog, showDialog } from '#app/dialog.js';
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
-import { shouldIgnoreHotkey } from '#ui/shared/dom.js';
+import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';
@@ -420,12 +420,7 @@ function hotkeyFieldsHtml(): string {
     .join('');
 }
 
-function ensureStyles(document: Document): void {
-  if (document.getElementById('rotation-hotkey-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'rotation-hotkey-styles';
-  // Reuse the shared control surface so injected styles resolve the same theme tokens.
-  style.textContent = `
+const ROTATION_HOTKEY_STYLES = `
     .pal-hotkey { position:absolute; z-index:4; top:-13px; right:1px; box-sizing:border-box;
       min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
@@ -453,8 +448,6 @@ function ensureStyles(document: Document): void {
     .rotation-hotkey-error { margin:12px 0 0; color:var(--condi); font-size:11px; }
     @media (max-width:700px) { .rotation-hotkey-groups { grid-template-columns:1fr; } }
   `;
-  document.head.append(style);
-}
 
 function refreshHotkeyBadges(controller: RotationHotkeyController): void {
   for (const skill of controller.root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')) {
@@ -765,7 +758,7 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
     controller.keybindImport = keybindImport;
   }
 
-  ensureStyles(document);
+  ensureDocumentStyles(document, 'rotation-hotkey-styles', ROTATION_HOTKEY_STYLES);
   ensureControls(controller);
   setRotationHotkeysActive(controller, controller.active);
   refreshHotkeyBadges(controller);

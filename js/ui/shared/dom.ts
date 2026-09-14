@@ -1,5 +1,14 @@
 // Shared DOM lookup and interaction guards.
 
+/** Installs one lazily loaded feature stylesheet once per document. */
+export function ensureDocumentStyles(document: Document, id: string, textContent: string): void {
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = textContent;
+  document.head.append(style);
+}
+
 /** Leaves keyboard input to editable controls and dialogs instead of activating surrounding shortcuts. */
 export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
   const target = event.target;

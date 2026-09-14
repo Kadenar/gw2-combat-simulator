@@ -93,7 +93,7 @@
   color: var(--text-bright);
 }
 
-.rotation-panel[data-timing-display='timings'] :is(.rot-concurrent, .rot-gapfill) {
+.rotation-panel[data-timing-display='timings'] .rot-concurrent {
   opacity: 1;
 }
 

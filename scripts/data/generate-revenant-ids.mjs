@@ -3,35 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
-import { constantName } from './lib/generator-utils.mjs';
-
-function stableEntries(entries) {
-  const result = [];
-  const keys = new Set();
-
-  for (const [name, id] of entries) {
-    const base = constantName(name);
-
-    if (!base) continue;
-    const key = keys.has(base) ? `${base}_ID_${id}` : base;
-
-    keys.add(key);
-    result.push({ key, id: Number(id), name: String(name) });
-  }
-
-  return result;
-}
-
-function declaration(name, entries, prefix = []) {
-  const lines = [
-    `export const ${name} = Object.freeze({`,
-    ...prefix.map((line) => `  ${line}`),
-    ...entries.map((entry) => `  ${entry.key}: ${entry.id}, // ${entry.name}`),
-    '});'
-  ];
-
-  return lines.join('\n');
-}
+import { declaration, stableEntries } from './lib/generator-utils.mjs';
 
 const skills = stableEntries([
   ...SKILLS.map((skill) => [skill.name, skill.id]),

@@ -4,7 +4,7 @@ import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc
 import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import { errorMessage } from '#ui/shared/dom.js';
+import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
 
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
@@ -144,11 +144,7 @@ export function applyRotationImportPreview(app: ProfessionAppState, preview: Rot
   app.changed(false);
 }
 
-function ensureStyles(document: Document): void {
-  if (document.getElementById('rotation-import-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'rotation-import-styles';
-  style.textContent = `
+const ROTATION_IMPORT_STYLES = `
     .rotation-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
     .rotation-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
     .rotation-import-experimental { margin:0 0 14px; padding:8px 10px; border:1px solid #a67c22;
@@ -182,11 +178,9 @@ function ensureStyles(document: Document): void {
     .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }
     .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
   `;
-  document.head.append(style);
-}
 
 function createDialog(document: Document, destination: RotationImportDestination): RotationImportDialogElements {
-  ensureStyles(document);
+  ensureDocumentStyles(document, 'rotation-import-styles', ROTATION_IMPORT_STYLES);
   const reference = destination === 'reference';
   const titleId = `rotation-import-title-${destination}`;
   const dialog = document.createElement('dialog');
