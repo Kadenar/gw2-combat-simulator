@@ -377,8 +377,14 @@ export function timelineRowsView(
       // Trait-selected variants can differ from saved commands; display the skill that actually ran.
       const skill = resolveEntrySkill(app, step?.skillId != null ? { name: step.skillId } : item.command);
       const invalid = Boolean(step?.invalid);
+      // A committed buff can deal no direct damage; only failed/unknown commits qualify as cancelled casts.
       const cancelledWithoutDamage =
-        !invalid && step?.interrupted === true && !!step.activationId && !damagingActivations.has(step.activationId);
+        !invalid &&
+        skill?.interruptMode !== 'per-packet' &&
+        step?.interrupted === true &&
+        (step.cancelledBeforeCommit === true || skill?.interruptCommitMs == null) &&
+        !!step.activationId &&
+        !damagingActivations.has(step.activationId);
       const display =
         item.type === 'wait'
           ? 'Wait'

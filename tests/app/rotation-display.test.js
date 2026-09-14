@@ -26,12 +26,20 @@ import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 
-// Cancellation styling follows each activation's damage, even when the same skill is cast again.
-test('timeline gives only interrupted zero-damage casts a red border', () => {
+// Cancellation styling respects committed non-damaging effects and excludes per-packet interruptions.
+test('timeline marks failed zero-damage casts without marking committed buffs as cancelled', () => {
   const skill = { id: 1, name: 'Example Skill' };
+  const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
+  const buffSkill = { id: 3, name: 'Committed Buff', interruptCommitMs: 1 };
+  const instantCommitSkill = { id: 4, name: 'Instant Commit', interruptCommitMs: 0 };
   const app = {
-    skills: [skill],
-    skillById: new Map([[1, skill]]),
+    skills: [skill, packetSkill, buffSkill, instantCommitSkill],
+    skillById: new Map([
+      [1, skill],
+      [2, packetSkill],
+      [3, buffSkill],
+      [4, instantCommitSkill]
+    ]),
     adapter: { eliteSpecialization: () => '' },
     profession: { ui: { timelineWeaponLineTransition: () => null } }
   };
@@ -39,7 +47,11 @@ test('timeline gives only interrupted zero-damage casts a red border', () => {
     { interrupted: true },
     { interrupted: true },
     { interrupted: false },
-    { interrupted: true, invalid: true }
+    { interrupted: true, invalid: true },
+    { interrupted: true, skillId: packetSkill.id },
+    { interrupted: true, skillId: buffSkill.id },
+    { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true },
+    { interrupted: true, skillId: instantCommitSkill.id }
   ].map((state, ri) => ({
     ...state,
     ri,
@@ -49,7 +61,7 @@ test('timeline gives only interrupted zero-damage casts a red border', () => {
     end: ri * 100 + 100
   }));
   const build = {
-    rotation: steps.map(() => ({ type: 'cast', skillId: 1 })),
+    rotation: steps.map((step) => ({ type: 'cast', skillId: step.skillId ?? skill.id })),
     startingWeaponSet: 1,
     weapons: [],
     alternateWeapons: []
@@ -70,9 +82,13 @@ test('timeline gives only interrupted zero-damage casts a red border', () => {
       html,
       /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled without dealing damage[^>]*--att-border:#ff3b45/
     );
-    for (const index of [1, 2, 3]) {
+    for (const index of [1, 2, 3, 4, 5, 7]) {
       assert.match(html, new RegExp(`data-idx="${index}"[^>]*--att-border:#9d7bd0`));
     }
+
+    assert.match(html, /class="rot-skill rot-cancelled"[^>]*data-idx="6"/);
+
+    assert.doesNotMatch(html, /class="[^"]*rot-cancelled[^"]*"[^>]*data-idx="4"/);
 
     const pending = timelineRowsView(app, build, null, readOnly, new Set(), false)
       .rows.map((row) => row.html)
