@@ -181,6 +181,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.DEATHS_CHARGE]: {
@@ -229,6 +230,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Reaper',
     shroudExit: 'reaper',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   }
 });

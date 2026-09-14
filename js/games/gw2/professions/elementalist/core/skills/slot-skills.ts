@@ -174,6 +174,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
   // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Frost Bow',
     type: 'Utility',
     slot: 'Utility',
@@ -184,6 +185,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     effects: []
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Lightning Hammer',
     type: 'Utility',
     slot: 'Utility',
@@ -599,6 +601,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // --- Elites --------------------------------------------------------------------
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
   [ID.CONJURE_FIERY_GREATSWORD]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Conjure Fiery Greatsword',
     type: 'Elite',
     slot: 'Elite',

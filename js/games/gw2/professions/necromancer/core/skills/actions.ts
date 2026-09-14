@@ -17,11 +17,13 @@ const extraSkills: Skill[] = [
     rechargeAnchor: 'castStart',
     cooldown: 10,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
+    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.weapon-swap',
     effects: []
   },
   {
     id: ID.EXIT_LICH_FORM,
+    inputCategory: 'bar-swap', // Manual form exit replaces the active skill bar.
     name: 'Exit Lich Form',
     description: 'Leave Lich Form and return to your normal skill bar.',
     icon: 'https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png',

@@ -17,6 +17,7 @@ export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
     name: 'Initial Light Aura',
+    initialStateOnly: true, // Imported state is not an activation the player performs.
     description: 'Replays an initial Light Aura state recorded before the EVTC timeline.',
     icon: '',
     type: 'Action',
@@ -37,6 +38,7 @@ export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   ].map(([id, name]) => ({
     id: Number(id),
     name: String(name),
+    initialStateOnly: true,
     description: 'Replays an exact-duration initial state observed in an EVTC log.',
     icon: '',
     type: 'Action',
@@ -69,6 +71,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.EXIT_RADIANT_FORGE]: {
     castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'guardian.radiant-forge',
     effects: []
   },
@@ -148,6 +151,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.GLARING_BURST]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // Custom: Builds Glaring Burst packets from live Radiant Forge state; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.glaring-burst',
@@ -159,6 +163,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.ENTER_RADIANT_FORGE]: {
     castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'guardian.radiant-forge',
     // Entry stays reusable while the forge is active; its final recharge starts on exit.
     mechanicTriggers: [

@@ -30,6 +30,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     ]
   },
   [ID.SPINNING_AXE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
@@ -100,6 +101,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     requiredOffHand: 'Pistol'
   },
   [ID.SPINNING_AXE_ID_71967]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,

@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLT_OF_WRATH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [
       {
@@ -45,6 +46,7 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: []
   },
   [ID.SEEKING_JUDGMENT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [
       {
@@ -55,6 +57,7 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.SEARING_LIGHT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     effects: [
       {

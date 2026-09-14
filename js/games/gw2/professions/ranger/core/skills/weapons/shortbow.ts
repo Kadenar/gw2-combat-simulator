@@ -21,6 +21,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 167
   },
   [ID.CROSSFIRE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [
       {
         type: 'strike',

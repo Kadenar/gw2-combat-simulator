@@ -6,6 +6,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.MED_KIT]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -14,6 +15,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
   },
   [ID.STOW_MED_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,
     castTimeMs: 0,
@@ -42,6 +44,7 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     mechanicSlot: 1
   },
   [ID.MED_BLASTER]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 840,
     cooldown: 0,
     effects: [],

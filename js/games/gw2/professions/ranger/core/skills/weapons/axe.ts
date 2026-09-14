@@ -4,6 +4,7 @@ import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js'
 
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptCommitMs: 320,
     effects: [
       {

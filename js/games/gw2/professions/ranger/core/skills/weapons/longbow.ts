@@ -64,6 +64,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
     missileHits: 10
   },
   [ID.LONG_RANGE_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [
       {
         type: 'strike',

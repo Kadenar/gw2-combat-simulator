@@ -49,6 +49,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.DAYBREAKING_SLASH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 560,
     // Damage commits at 400 ms, allowing a queued cancel to release the action lane early.
     interruptCommitMs: 400,

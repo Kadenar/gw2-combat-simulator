@@ -9,6 +9,7 @@ const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.GRENADE_KIT]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -168,6 +169,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     toolbeltParentName: 'Grenade Kit'
   },
   [ID.GRENADE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 680,
     cooldown: 0,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
@@ -201,6 +203,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
   },
   [ID.STOW_GRENADE_KIT]: {
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,
     castTimeMs: 0,

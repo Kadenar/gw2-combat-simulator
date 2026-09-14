@@ -75,6 +75,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     lifeForceGain: 9
   },
   [ID.VICIOUS_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptMode: 'per-packet',
     castTimeMs: 600,
     comboFinishers: [

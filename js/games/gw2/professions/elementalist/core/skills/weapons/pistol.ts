@@ -16,6 +16,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  */
 export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SCORCHING_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Scorching Shot',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -272,6 +273,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.SOOTHING_SPLASH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Soothing Splash',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -493,6 +495,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.ELECTRIC_EXPOSURE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Electric Exposure',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -587,6 +590,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later
   // links can never stock one.
   [ID.AERIAL_AGILITY]: {
+    autoattack: false, // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
     name: 'Aerial Agility',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -620,6 +624,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.AERIAL_AGILITY_CHAIN]: {
+    autoattack: false,
     name: 'Aerial Agility (chain)',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -659,6 +664,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.AERIAL_AGILITY_DASH]: {
+    autoattack: false,
     name: 'Aerial Agility (dash)',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -702,6 +708,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.PIERCING_PEBBLE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Piercing Pebble',
     type: 'Weapon',
     slot: 'Weapon_1',

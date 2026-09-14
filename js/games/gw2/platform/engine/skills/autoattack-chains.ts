@@ -4,7 +4,12 @@
  * sequences, then index each skill's position within its chain using the same
  * lookup shape.
  */
-import type { AutoattackChainPosition, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AutoattackChainPosition, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+
+/** Classifies ordinary attacks without treating manually activated slot-one replacements as autos. */
+export function isAutoattackSkill(catalog: CanonicalCatalog, skill: Skill): boolean {
+  return skill.autoattack ?? catalog.autoattackChainPositions.has(Number(skill.id));
+}
 
 export interface AutoattackChainState {
   readonly [root: number]: SkillId | undefined;

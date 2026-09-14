@@ -21,6 +21,7 @@ const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
 export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Two-stage autoattack: each strike packet carries its own Burning application.
   [ID.FLAMESTRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flamestrike',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -218,6 +219,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ICE_SHARDS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Ice Shards',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -332,6 +334,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARC_LIGHTNING]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Arc Lightning',
     interruptMode: 'per-packet',
     type: 'Weapon',
@@ -442,6 +445,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
   // Three-shard autoattack; each shard is an independent 20%-chance projectile finisher and
   // applies its own Bleeding stack.
   [ID.STONE_SHARDS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stone Shards',
     interruptMode: 'per-packet',
     type: 'Weapon',

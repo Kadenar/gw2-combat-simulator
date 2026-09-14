@@ -20,6 +20,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.KNEEL]: {
     // Custom: Enters Kneel and exposes kneeling rifle skills; see `core/skills/actions.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'thief.kneel',
     castTimeMs: 360,
     cooldown: 0.5,
@@ -27,6 +28,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: []
   },
   [ID.DEADLY_AIM]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
@@ -58,6 +60,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.FREE_ACTION]: {
     // Custom: Leaves Kneel and restores standing rifle skills; see `core/skills/actions.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'thief.free-action',
     castTimeMs: 0,
     cooldown: 0,
@@ -73,6 +76,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     kneelSkill: true
   },
   [ID.BRUTAL_AIM]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,

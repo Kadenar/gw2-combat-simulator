@@ -256,6 +256,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.LICH_FORM]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     castTimeMs: 680,
     effects: [],
     // Life force is granted once when the transform ends, by its manual or timed exit.

@@ -8,6 +8,7 @@ const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 
 export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.FLAMETHROWER]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-equip',
     castTimeMs: 0,
     cooldown: 0,
@@ -15,6 +16,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     kitName: 'Flamethrower'
   },
   [ID.FLAME_JET]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 1720,
     cooldown: 0,
     effects: [
@@ -119,6 +121,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.STOW_FLAMETHROWER]: {
     // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-stow',
     paletteFlip: false,
     castTimeMs: 0,

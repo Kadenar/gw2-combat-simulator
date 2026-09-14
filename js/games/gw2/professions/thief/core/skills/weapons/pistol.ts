@@ -108,6 +108,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.VITAL_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,

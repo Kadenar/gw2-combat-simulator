@@ -26,6 +26,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     paletteTileOrder: 1,
     effects: [],
     // Custom: Equips Cyclone Bow, resets chains, and emits weapon-swap/state events; see `galeshot/execution/index.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.cyclone-bow-enter'
   },
   [ID.PERFECT_STORM]: {
@@ -84,6 +85,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     paletteTileOrder: 2,
     effects: [],
     // Custom: Stows Cyclone Bow, clears Wind Force, and emits weapon-swap/state events; see `galeshot/execution/index.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.cyclone-bow-exit'
   },
   [ID.PIERCING_GALES]: {
@@ -115,6 +117,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 500
   },
   [ID.KEEN_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [

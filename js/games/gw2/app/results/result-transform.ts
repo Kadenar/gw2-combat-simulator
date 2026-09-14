@@ -2,6 +2,7 @@ import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface ResultSummaryMetric {
+  readonly title?: string;
   readonly label: string;
   readonly value: string;
   readonly className: string;

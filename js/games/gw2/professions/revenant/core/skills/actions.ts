@@ -9,6 +9,7 @@ const actions: readonly Skill[] = [
   {
     id: ID.SWAP_WEAPONS,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
+    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'revenant.weapon-swap',
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
@@ -23,6 +24,7 @@ const actions: readonly Skill[] = [
   {
     id: ID.SWAP_LEGENDS,
     // Custom: Switches legends and resets energy through `core/mechanics/legend-swap.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'revenant.legend-swap',
     name: 'Swap Legends',
     description: 'Invoke the other selected legend and reset energy.',

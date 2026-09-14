@@ -35,6 +35,7 @@ export const ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.WITHERING_PLAGUE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 0,
     cooldown: 1,
     effects: [

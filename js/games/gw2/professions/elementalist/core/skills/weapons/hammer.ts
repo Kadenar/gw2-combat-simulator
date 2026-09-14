@@ -22,6 +22,7 @@ const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (i
  */
 export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Singeing Strike',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -546,6 +547,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.WIND_SLAM]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Wind Slam',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -732,6 +734,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.STONESTRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stonestrike',
     type: 'Weapon',
     slot: 'Weapon_1',

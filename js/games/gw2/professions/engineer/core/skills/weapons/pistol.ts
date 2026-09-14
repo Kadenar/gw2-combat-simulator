@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines Engineer pistol projectile timing, damage, condition, and combo behavior. */
 export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRAGMENTATION_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 520,
     cooldown: 0,
     comboFinishers: [

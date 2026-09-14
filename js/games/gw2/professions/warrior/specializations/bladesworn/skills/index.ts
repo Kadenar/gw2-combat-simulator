@@ -7,6 +7,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 0,
     effects: [],
     // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'warrior.gunsaber-enter'
   },
   [ID.DRAGON_TRIGGER]: {
@@ -14,6 +15,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 0,
     canCastConcurrently: false,
     // Custom: Enters Dragon Trigger and starts charge/flow state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'warrior.dragon-trigger'
   },
   [ID.SHEATHE_GUNSABER]: {
@@ -21,6 +23,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 0,
     effects: [],
     // Custom: Stows Gunsaber and restores weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'warrior.gunsaber-exit'
   },
   [ID.TACTICAL_RELOAD]: {

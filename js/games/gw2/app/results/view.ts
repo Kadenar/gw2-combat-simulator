@@ -45,6 +45,8 @@ function effectColors(presentations: readonly ProfessionEffectPresentation[]): R
 
 const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Duration', value: '—', className: '' },
+  // Reserve the same compact APM position while the rotation is empty or awaiting simulation.
+  { label: 'Actions / min', value: '—', className: '' },
   { label: 'Total Idle Time', value: '—', className: '' },
   { label: 'Player Damage', value: '—', className: '' },
   { label: 'Player DPS', value: '—', className: 'dps' },

@@ -15,6 +15,7 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     paletteTileOrder: 1,
     effects: [],
     // Custom: Enters Beastmode, disables the pet actor, and applies toggle traits; see `soulbeast/execution/index.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.beastmode-enter'
   },
   [ID.LEAVE_BEASTMODE]: {
@@ -23,6 +24,7 @@ export const SOULBEAST_BEASTMODE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     paletteTileOrder: 2,
     effects: [],
     // Custom: Leaves Beastmode, restores the pet actor, and applies toggle traits; see `soulbeast/execution/index.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.beastmode-exit'
   },
   [ID.ETERNAL_BOND]: {

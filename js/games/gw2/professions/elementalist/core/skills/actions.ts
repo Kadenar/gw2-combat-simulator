@@ -30,6 +30,7 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     id: ID.DROP_BUNDLE,
+    inputCategory: 'bar-swap', // Dropping a conjure is an explicit return to the equipped weapon bar.
     name: '__drop_bundle',
     displayName: 'Drop Bundle',
     description: 'Drop the currently equipped conjured weapon.',
@@ -55,6 +56,7 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
   ].map(([weapon, id]): Skill => ({
     id: Number(id),
+    inputCategory: 'bar-swap',
     name: `__pickup_${weapon}`,
     displayName: `Pick up ${weapon}`,
     description: `Pick up the available ${weapon}.`,

@@ -30,6 +30,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.DUAL_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     comboFinishers: [
       {
         ownerId: 'warrior',

@@ -94,6 +94,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 880
   },
   [ID.WINDS_OF_CHAOS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     weapon: 'Staff',
     specialization: '',

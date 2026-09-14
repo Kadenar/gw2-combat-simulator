@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIENDLY_FIRE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     weapon: 'Rifle',
     specialization: '',

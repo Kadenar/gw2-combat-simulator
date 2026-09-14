@@ -17,6 +17,7 @@ import type {
   Gw2ResolverResult
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { RotationApm } from '#gw2/platform/simulation/rotation-apm.js';
 
 export interface Gw2ProfessionContract<
   TProfessionState extends object = SchedulerRecord
@@ -54,6 +55,7 @@ export interface Gw2SimulationEndState {
 }
 
 export interface Gw2SimulationResult extends Gw2ResolverResult {
+  readonly rotationApm: RotationApm;
   readonly steps: readonly SchedulerStep[];
   readonly endState: Gw2SimulationEndState;
   readonly schedulerState: SchedulerState;

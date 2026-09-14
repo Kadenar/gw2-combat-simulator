@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NECROTIC_GRASP]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 880,
     effects: [
       {

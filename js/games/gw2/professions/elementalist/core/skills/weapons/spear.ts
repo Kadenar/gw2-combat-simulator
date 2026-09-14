@@ -20,6 +20,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  */
 export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLAME_SPEAR]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flame Spear',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -304,6 +305,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.RESTORATIVE_SPEAR]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Restorative Spear',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -537,6 +539,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.LIGHTNING_JAVELIN]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Javelin',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -902,6 +905,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.STONE_STRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stone Strike',
     type: 'Weapon',
     slot: 'Weapon_1',

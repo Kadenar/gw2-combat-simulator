@@ -9,6 +9,7 @@ import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializ
 export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.DEACTIVATE_PHOTON_FORGE]: {
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
     cooldown: 6,
@@ -105,6 +106,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.photon-forge-enter',
     castTimeMs: 0,
     cooldown: 1,
@@ -321,6 +323,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
     cooldown: 6,

@@ -290,6 +290,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ]
   },
   [ID.BARBED_SPEAR]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
     handlerId: 'thief.spear-chain',
     castTimeMs: 520,

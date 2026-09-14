@@ -140,10 +140,12 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'guardian.stow-tome',
     effects: []
   },
   [ID.TOME_OF_RESOLVE]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
     castTimeMs: 0,
@@ -223,6 +225,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TOME_OF_COURAGE]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
@@ -230,6 +233,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     effects: []
   },
   [ID.TOME_OF_COURAGE_ID_42371]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
@@ -284,6 +288,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.TOME_OF_JUSTICE]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
     castTimeMs: 0,

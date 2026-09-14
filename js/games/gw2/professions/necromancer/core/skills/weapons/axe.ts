@@ -18,6 +18,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 12
   },
   [ID.RENDING_CLAWS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 620,
     effects: [
       {

@@ -27,6 +27,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     specialization: 'Harbinger',
     shroudExit: 'harbinger',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.VITAL_DRAW]: {
@@ -69,9 +70,11 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 0,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.TAINTED_BOLTS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     dhuumfireDuration: 1,
     castTimeMs: 600,
     effects: [

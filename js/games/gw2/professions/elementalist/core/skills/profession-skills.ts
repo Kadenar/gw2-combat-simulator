@@ -11,6 +11,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  */
 export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIRE_ATTUNEMENT]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Fire Attunement',
     type: 'Profession',
     slot: 'Profession_1',
@@ -23,6 +24,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     effects: []
   },
   [ID.WATER_ATTUNEMENT]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Water Attunement',
     type: 'Profession',
     slot: 'Profession_2',
@@ -35,6 +37,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     effects: []
   },
   [ID.AIR_ATTUNEMENT]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Air Attunement',
     type: 'Profession',
     slot: 'Profession_3',
@@ -47,6 +50,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
     effects: []
   },
   [ID.EARTH_ATTUNEMENT]: {
+    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Earth Attunement',
     type: 'Profession',
     slot: 'Profession_4',

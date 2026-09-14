@@ -11,6 +11,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 0,
     effects: [],
     // Custom: Leaves Celestial Avatar and updates its state; see `druid/module.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.celestial-avatar-exit'
   },
   [ID.GLYPH_OF_THE_STARS]: {
@@ -21,9 +22,11 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 0,
     effects: [],
     // Custom: Enters Celestial Avatar and initializes its astral-force state; see `druid/module.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.celestial-avatar-enter'
   },
   [ID.COSMIC_RAY]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [],
     castTimeMs: 333,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.

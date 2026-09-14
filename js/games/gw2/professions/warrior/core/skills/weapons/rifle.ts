@@ -45,6 +45,7 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.FIERCE_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     // Rifle projectile finishers stay declarative so each emitted shot uses the shared combo scheduler.
     comboFinishers: [
       {

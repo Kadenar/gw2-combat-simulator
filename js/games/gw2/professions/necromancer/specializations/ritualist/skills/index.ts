@@ -79,6 +79,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     specialization: 'Ritualist',
     shroudExit: 'ritualist',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.WANDERLUST]: {
@@ -119,6 +120,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     handlerId: 'necromancer.innervate'
   },
   [ID.ESSENCE_BLAST]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     effects: [
       {
@@ -144,6 +146,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.RESILIENT_WEAPON]: {

@@ -5,6 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LIFE_BLAST]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 920,
     effects: [
       {
@@ -28,6 +29,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroudProfileId: PROFILE.shroud,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.END_DEATH_SHROUD]: {
@@ -36,6 +38,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     cooldown: 0,
     shroudExit: 'death',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'necromancer.shroud'
   },
   [ID.DOOM]: {
@@ -236,6 +239,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 760,
     effects: [
       {

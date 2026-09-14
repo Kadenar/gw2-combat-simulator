@@ -41,6 +41,46 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   const metrics = transformResultSummaryMetrics(normalizedResult);
 
   metrics.splice(1, 0, timelineIdleTimeMetric(result));
+  // Keep input effort next to duration, using execution time rather than the resolver's DPS clock.
+  const apm = result.rotationApm;
+  if (apm) {
+    const share = (value: number, total: number): string =>
+      total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '—';
+    const time = (seconds: number): string =>
+      `${seconds.toFixed(1)}s — ${share(seconds, apm.durationSeconds)} of rotation`;
+    const details = [
+      { label: 'Non-autoattack actions', value: apm.actionCount.toLocaleString() },
+      { label: 'Execution window', value: `${apm.durationSeconds.toFixed(1)}s` },
+      {
+        label: 'Autoattacks used',
+        value: `${apm.autoattackCount} of ${apm.autoattackCount + apm.actionCount} total activations`
+      },
+      { label: 'Time autoattacking', value: time(apm.autoattackTimeSeconds) },
+      { label: 'Time casting, including autoattacks', value: time(apm.castingTimeSeconds) },
+      { label: 'Instant non-autoattack actions', value: String(apm.instantActionCount) },
+      { label: 'Weapon swap inputs', value: String(apm.weaponSwapCount) },
+      { label: 'Other bar swap inputs', value: String(apm.barSwapCount) },
+      ...(
+        [
+          ['5s', apm.peak5s],
+          ['10s', apm.peak10s]
+        ] as const
+      ).map(([window, peak]) => ({
+        label: `Peak APM over ${window}`,
+        value: peak
+          ? `${Math.round(peak.apm)} APM (${peak.startSeconds.toFixed(1)} to ${peak.endSeconds.toFixed(1)}s)`
+          : '—'
+      }))
+    ];
+    metrics.splice(1, 0, {
+      label: 'Actions / min',
+      value: apm.apm == null ? '\u2014' : `${Math.round(apm.apm).toLocaleString()} APM`,
+      className: 'apm',
+      title: `${apm.actionCount.toLocaleString()} non-autoattack actions over ${apm.durationSeconds.toFixed(1)} seconds.\n${details.map((detail) => `${detail.label}: ${detail.value}`).join('\n')}`,
+      details
+    });
+  }
+
   return metrics;
 }
 

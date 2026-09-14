@@ -48,6 +48,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: 'castStart',
     cooldown: 10,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
+    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'ranger.weapon-swap',
     effects: []
   }

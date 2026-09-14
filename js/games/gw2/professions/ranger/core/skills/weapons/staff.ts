@@ -36,6 +36,7 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 500
   },
   [ID.SOLAR_BEAM]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [
       {
         type: 'strike',

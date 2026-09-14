@@ -1,4 +1,5 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { rotationApm } from '#gw2/platform/simulation/rotation-apm.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
@@ -131,6 +132,8 @@ function simulateDeclarativeGw2Pass({
     ...detailed,
     profession: structuredClone(flattenProfessionState(detailed.profession)),
     steps: scheduled.steps,
+    // Detailed results preserve the full rotation's input rate even when damage reporting uses another window.
+    rotationApm: rotationApm(scheduled, rotation, runtimeProfession.catalog),
     endState: endState(runtimeProfession, config, scheduled, detailed),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,

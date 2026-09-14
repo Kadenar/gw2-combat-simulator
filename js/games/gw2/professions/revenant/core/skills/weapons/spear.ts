@@ -178,6 +178,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ABYSSAL_STRIKE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     castTimeMs: 520,

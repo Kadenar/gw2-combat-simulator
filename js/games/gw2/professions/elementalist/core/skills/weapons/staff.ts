@@ -46,6 +46,7 @@ const METEOR_SHOWER_STRIKE_TICKS = [
  */
 export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIREBALL]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Fireball',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -362,6 +363,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     12
   ),
   [ID.WATER_BLAST]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Water Blast',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -521,6 +523,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.CHAIN_LIGHTNING]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Chain Lightning',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -693,6 +696,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.STONING]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stoning',
     type: 'Weapon',
     slot: 'Weapon_1',

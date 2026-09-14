@@ -26,6 +26,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.ENTER_SHADOW_SHROUD]: {
     // Custom: Enters Shadow Shroud and starts shadow-force drain; see `specter/mechanics/shadow-shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'thief.shadow-shroud-enter',
     castTimeMs: 0,
     cooldown: 8,
@@ -206,6 +207,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   },
   [ID.EXIT_SHADOW_SHROUD]: {
     // Custom: Leaves Shadow Shroud and stops its drain; see `specter/mechanics/shadow-shroud.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'thief.shadow-shroud-exit',
     castTimeMs: 0,
     cooldown: 0,
@@ -367,6 +369,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.HAUNT_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/execution/index.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     castTimeMs: 640,

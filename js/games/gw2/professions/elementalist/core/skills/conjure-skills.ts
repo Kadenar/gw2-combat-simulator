@@ -18,6 +18,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
   // `skillWeapon` is the bundle gate: availability blocks these unless the matching conjure is
   // equipped, and blocks normal weapon skills while it is (see core/mechanics/availability.ts).
   [ID.WATER_ARROW]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Water Arrow',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -516,6 +517,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
   // --- Fiery Greatsword (conjure elite) ---------------------------------------
   // Weapon_1 is a single skill that fires four evenly spaced waves rather than a chain.
   [ID.FLAME_WAVE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flame Wave',
     type: 'Weapon',
     slot: 'Weapon_1',

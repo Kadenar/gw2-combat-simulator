@@ -49,6 +49,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.ORB_OF_WRATH]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     effects: [
       {

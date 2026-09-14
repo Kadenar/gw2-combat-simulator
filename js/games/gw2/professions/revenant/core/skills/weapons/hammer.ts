@@ -142,6 +142,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_BOLT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 560,
     // The projectile launches around 440 ms; cancelling recovery cannot recall it.
     interruptCommitMs: 440,

@@ -60,6 +60,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.PUNCTURE_SHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 680,
     // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
     interruptCommitMs: 560,

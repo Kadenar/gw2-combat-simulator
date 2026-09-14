@@ -38,6 +38,7 @@ export interface ResultSortState {
 }
 
 export interface ResultMetric {
+  readonly title?: string;
   readonly label: string;
   readonly value: unknown;
   readonly className?: string;
@@ -514,7 +515,7 @@ export function mountRotationResults(
         const startsTargetGroup = metric.group === 'target' && metrics[index - 1]?.group !== 'target';
         return `<div class="res-stat${metric.group === 'target' ? ' res-stat-target' : ''}${startsTargetGroup ? ' res-stat-target-start' : ''}">
       ${breakpoints.length && metric.className === 'dps' ? resultDpsSnapshotsHtml(metric, breakpoints) : `<div class="res-label-row"><span class="res-label">${escapeHtml(metric.label)}</span>${resultMetricDetailsHtml(metric)}</div>`}
-      <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}">${escapeHtml(metric.value)}</span>
+      <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ''}"${metric.title ? ` title="${escapeHtml(metric.title)}" tabindex="0" aria-label="${escapeHtml(`${metric.value}: ${metric.title}`)}"` : ''}>${escapeHtml(metric.value)}</span>
     </div>`;
       })
       .join('')}

@@ -139,6 +139,12 @@ export interface CustomEffect extends SkillEffectBase {
 export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | BlindEffect | StatusEffect | CustomEffect;
 
 export interface Skill extends CatalogSkill {
+  /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */
+  readonly autoattack?: boolean;
+  /** Imported state reconstruction executes for playback but never represents a player input. */
+  readonly initialStateOnly?: boolean;
+  /** Explicit input that replaces a weapon or profession bar, for rotation effort summaries. */
+  readonly inputCategory?: 'weapon-swap' | 'bar-swap';
   readonly description?: string;
   readonly icon?: string;
   readonly variantBadge?: string;

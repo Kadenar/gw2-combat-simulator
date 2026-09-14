@@ -116,6 +116,11 @@
   font-size: 12px;
 }
 
+/* APM details fit their contents on normal-height screens; only short viewports need internal scrolling. */
+.res-stat:has(.res-val.apm) .res-metric-info-panel {
+  max-height: calc(100dvh - 160px);
+}
+
 .res-metric-info-panel dl {
   display: grid;
   gap: 6px;

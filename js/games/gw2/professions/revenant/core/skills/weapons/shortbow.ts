@@ -32,6 +32,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.SHATTERSHOT]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 480,
 
     interruptCommitMs: 400,

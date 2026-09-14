@@ -21,6 +21,7 @@ const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as con
 export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: "Dragon's Claw",
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -223,6 +224,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
   },
   // The blade strikes outbound and again on its return a second later, each pass applying Vulnerability.
   [ID.VAPOR_BLADE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Vapor Blade',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -465,6 +467,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
   },
   // Two-hit auto-attack landing inside a single cast.
   [ID.LIGHTNING_WHIP]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Whip',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -676,6 +679,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   [ID.IMPALE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Impale',
     type: 'Weapon',
     slot: 'Weapon_1',

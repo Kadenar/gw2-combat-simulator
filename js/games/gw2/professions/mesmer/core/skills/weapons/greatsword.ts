@@ -22,6 +22,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 320
   },
   [ID.SPATIAL_SURGE]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptMode: 'per-packet',
     type: 'Weapon',
     weapon: 'Greatsword',

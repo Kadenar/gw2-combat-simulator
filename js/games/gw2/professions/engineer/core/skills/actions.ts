@@ -31,6 +31,7 @@ const extraSkills: Skill[] = [
     type: 'Action',
     slot: 'Action',
     // Custom: Stows the active kit and restores weapon state; see `../mechanics/kits.ts`.
+    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     handlerId: 'engineer.kit-stow',
     castTimeMs: 0,
     cooldown: 0,

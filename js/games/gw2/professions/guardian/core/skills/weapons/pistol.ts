@@ -136,6 +136,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROUGH_THE_HEART]: {
+    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 360,
     effects: [
