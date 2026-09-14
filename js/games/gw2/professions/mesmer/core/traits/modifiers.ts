@@ -135,7 +135,8 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     parameters: modifierParameters({
       duration: 8,
       maximumStacks: 5,
-      strikePerStack: 0.02,
+      // Match the supplied PvE logs' embedded buff formulas: 1% outgoing strike damage per active stack.
+      strikePerStack: 0.01,
       conditionPerStack: 0.01
     }),
     amount: (context, target, parameters) => {

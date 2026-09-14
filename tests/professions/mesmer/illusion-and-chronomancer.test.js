@@ -964,7 +964,7 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
   assertMultiplier(cloneDamage(cloneBoth), cloneDamage(cloneBaseline), 1.15 * 1.15);
 });
 
-test('Compounding Power gives player strikes two percent and conditions one percent per stack', () => {
+test('Compounding Power gives player strikes and conditions one percent per stack', () => {
   const simulate = (selectedTraitIds) =>
     simulateMesmer(
       ['Mirror Images', 'Winds of Chaos', 'Cry of Frustration', { name: '__wait', waitMs: 5000 }],
@@ -989,7 +989,7 @@ test('Compounding Power gives player strikes two percent and conditions one perc
   const withTrait = simulate([TRAIT.COMPOUNDING_POWER]);
   const withoutTrait = simulate([]);
 
-  assertFlooredDamageMultiplier(playerStrike(withTrait), playerStrike(withoutTrait), 1.04);
+  assertFlooredDamageMultiplier(playerStrike(withTrait), playerStrike(withoutTrait), 1.02);
   assertRoundedDamageMultiplier(playerCondition(withTrait), playerCondition(withoutTrait), 1.02);
 });
 

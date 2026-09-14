@@ -33,6 +33,14 @@ interface IndexedBuffEvents {
   readonly summonTrait: SimulationEvent[];
 }
 
+interface CachedBuffStacks {
+  readonly duration: number;
+  readonly maximum: number;
+  readonly audience: Gw2BuffAudience;
+  readonly companionId: string | null | undefined;
+  readonly value: number;
+}
+
 /**
  * Common timestamp queries over scheduled GW2 events.
  */
@@ -55,9 +63,20 @@ export function createGw2TimelineIndex({
     cooldown: []
   };
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
+  // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
+  const buffCache = new Map<string, CachedBuffStacks>();
+  const cooldownCache = new Map<SkillId, boolean>();
+  let cachedTime: number | undefined;
+  // Sampling repeatedly asks for the same facts; retain only the current time's answers within this timeline.
+  const clearQueryCache = (): void => {
+    buffCache.clear();
+    cooldownCache.clear();
+  };
+
   let indexedLength = 0;
   let hasExtensions = false;
   const resetIndex = (): void => {
+    clearQueryCache();
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
     indexedLength = 0;
@@ -89,6 +108,7 @@ export function createGw2TimelineIndex({
     // Appends are indexed incrementally; source replacements must call onEventReplaced.
     if (events.length < indexedLength) resetIndex();
     if (events.length === indexedLength) return;
+    clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
       if (event.type === 'boon_extension') hasExtensions = true;
@@ -110,7 +130,16 @@ export function createGw2TimelineIndex({
     }
   };
 
-  const buffStacksAt = (
+  const refreshQueryCache = (time: number): void => {
+    // Refresh before reuse so same-time appends, replacements, and backwards queries never see stale history.
+    refreshIndex();
+    if (cachedTime !== time) {
+      clearQueryCache();
+      cachedTime = time;
+    }
+  };
+
+  const calculateBuffStacks = (
     kind: string,
     time: number,
     duration: number,
@@ -118,7 +147,6 @@ export function createGw2TimelineIndex({
     audience: Gw2BuffAudience = 'all',
     companionId?: string | null
   ): number => {
-    refreshIndex();
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
       const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time + EPSILON, duration);
@@ -164,6 +192,31 @@ export function createGw2TimelineIndex({
     );
   };
 
+  const buffStacksAt = (
+    kind: string,
+    time: number,
+    duration: number,
+    maximum: number,
+    audience: Gw2BuffAudience = 'all',
+    companionId?: string | null
+  ): number => {
+    refreshQueryCache(time);
+    const cached = buffCache.get(kind);
+    if (
+      cached &&
+      cached.duration === duration &&
+      cached.maximum === maximum &&
+      cached.audience === audience &&
+      cached.companionId === companionId
+    ) {
+      return cached.value;
+    }
+
+    const value = calculateBuffStacks(kind, time, duration, maximum, audience, companionId);
+    buffCache.set(kind, { duration, maximum, audience, companionId, value });
+    return value;
+  };
+
   const timedStacks = (kind: string, time: number, duration: number, maximum: number): number =>
     buffStacksAt(kind, time, duration, maximum);
 
@@ -188,7 +241,9 @@ export function createGw2TimelineIndex({
   const activeSigilSetAt = (time: number): Gw2SigilSet => sigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
-    refreshIndex();
+    refreshQueryCache(time);
+    const cached = cooldownCache.get(skillId);
+    if (cached !== undefined) return cached;
     let readyAt = 0;
     for (const event of indexed.cooldown) {
       if (event.at > time + EPSILON) break;
@@ -207,7 +262,9 @@ export function createGw2TimelineIndex({
       }
     }
 
-    return readyAt > time + EPSILON;
+    const value = readyAt > time + EPSILON;
+    cooldownCache.set(skillId, value);
+    return value;
   };
 
   return Object.freeze({

@@ -323,12 +323,13 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   /**
    * Reads Vulnerability only from target-condition state so it follows condition stacking and expiry rules.
    */
-  const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
-    clamp(
-      configuredTargetConditionStacks('Vulnerability') + runtimeTargetConditionStacks(runtime, 'Vulnerability', time),
-      0,
-      25
-    );
+  const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
+    const configured = configuredTargetConditionStacks('Vulnerability');
+    // Runtime stacks are nonnegative, so an already-capped permanent assumption needs no history scan.
+    return configured >= 25
+      ? 25
+      : clamp(configured + runtimeTargetConditionStacks(runtime, 'Vulnerability', time), 0, 25);
+  };
 
   const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number => {
     const name = canonicalTargetConditionName(condition);

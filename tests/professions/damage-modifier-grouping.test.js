@@ -225,7 +225,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
 
   const core = modifierContext(shared);
 
-  assertClose(mesmerRules('Core').modifyStrikeDamage(core, 1.08), 1.18);
+  assertClose(mesmerRules('Core').modifyStrikeDamage(core, 1.08), 1.13);
   assertClose(mesmerRules('Core').modifyConditionDamage({ ...core, condition: 'Torment' }, 1.05), 1.17);
 
   const mirage = modifierContext({
@@ -234,7 +234,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     config: { ...shared.config, specialization: 'Mirage' }
   });
 
-  assertClose(mesmerRules('Mirage').modifyStrikeDamage(mirage, 1.08), 1.405);
+  assertClose(mesmerRules('Mirage').modifyStrikeDamage(mirage, 1.08), 1.355);
   assertClose(mesmerRules('Mirage').modifyConditionDamage({ ...mirage, condition: 'Torment' }, 1.05), 1.32);
 
   const troubadour = modifierContext({
@@ -244,7 +244,7 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     active: [...shared.active, 'altered-chord']
   });
 
-  assertClose(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1.08), 1.68);
+  assertClose(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1.08), 1.63);
   assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1.05), 1.42);
 });
 

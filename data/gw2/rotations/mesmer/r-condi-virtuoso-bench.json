@@ -1,678 +1,1025 @@
 {
   "rotation": [
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Bladeturn Requiem"
+      "type": "cast",
+      "skillId": 62597
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 10174,
+      "interruptAfterMs": 840
     },
     {
-      "name": "__combat_start",
-      "offset": 100
+      "type": "combat-start",
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Thousand Cuts"
+      "type": "cast",
+      "skillId": 24755
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Signet of the Ether"
+      "type": "cast",
+      "skillId": 62617,
+      "interruptAfterMs": 560
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 21750
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Signet of Illusions"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10247
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311,
+      "interruptAfterMs": 280
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Bladeturn Requiem"
+      "type": "cast",
+      "skillId": 10174
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Dissonance"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62602
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174,
+      "interruptAfterMs": 800
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Signet of the Ether"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 21750
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Bladeturn Requiem"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Dissonance"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62602
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174,
+      "interruptAfterMs": 720
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Thousand Cuts",
-      "offset": 100
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 24755,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Signet of the Ether"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "__wait",
-      "waitMs": 20
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Bladeturn Requiem",
-      "offset": 420
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Signet of Illusions"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 69311,
+      "interruptAfterMs": 320
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 21750
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10247
     },
     {
-      "name": "Bladeturn Requiem"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174,
+      "interruptAfterMs": 800
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Bladesong Dissonance"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10175
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62602
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladeturn Requiem",
-      "offset": 1
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 10174
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Swordsman"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Signet of the Ether"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Phantasmal Duelist"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62607
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Unstable Bladestorm"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Distortion"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 69311
     },
     {
-      "name": "Bladecall"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Bladesong Dissonance"
+      "type": "cast",
+      "skillId": 62510
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Thousand Cuts"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10174,
+      "interruptAfterMs": 840
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Flying Cutter"
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 10175,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Flying Cutter"
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10175
+    },
+    {
+      "type": "cast",
+      "skillId": 69311
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 68273,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 69311
+    },
+    {
+      "type": "cast",
+      "skillId": 62602
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 24755,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
     }
   ]
 }

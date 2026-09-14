@@ -12,7 +12,10 @@ import {
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import {
+  canonicalTargetConditionName,
+  createCanonicalTargetConditionStateMap
+} from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
@@ -370,6 +373,33 @@ test('effective boon and Vulnerability queries use their canonical runtime state
   assert.equal(query.mightStacksAt(1, runtime, event), 7);
   assert.equal(query.furyActiveAt(1, runtime, event), true);
   assert.equal(query.vulnerabilityStacksAt(1, runtime), 4);
+});
+
+test('permanent Vulnerability at the cap skips history while uncapped queries observe live stacks', () => {
+  // Capped assumptions need no runtime read; lower assumptions still observe application, expiry, and same-time removal.
+  for (const configured of [0, 20, 25, 40]) {
+    const query = createGw2CombatQuery({
+      profession: queryProfession,
+      config: { target: { conditions: { vulnerability: configured } } }
+    });
+    const conditionState = createCanonicalTargetConditionStateMap();
+    const stack = { appliedAt: 1, expiresAt: 3, weight: 10 };
+    conditionState.set('Vulnerability', { stacks: [stack] });
+    let reads = 0;
+    const runtime = {
+      get conditionState() {
+        reads++;
+        return conditionState;
+      }
+    };
+    assert.equal(query.vulnerabilityStacksAt(0, runtime), Math.min(25, configured));
+    assert.equal(query.vulnerabilityStacksAt(1, runtime), Math.min(25, configured + 10));
+    assert.equal(query.vulnerabilityStacksAt(3, runtime), Math.min(25, configured));
+    stack.removedAt = 1;
+    assert.equal(query.targetConditionStacks('vulnerability', 1, runtime), Math.min(25, configured));
+    if (configured >= 25) assert.equal(reads, 0);
+    else assert.ok(reads > 0);
+  }
 });
 
 test('player boon sharing can exclude non-mech summons', () => {
