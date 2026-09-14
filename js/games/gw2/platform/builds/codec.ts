@@ -433,10 +433,15 @@ function normalizeSpecializations(
       }
 
       const candidate = plainObject(entry);
+      const disabledMinorTraits = candidate.disabledMinorTraits;
       return {
         name: String(candidate.name || ''),
-        // Invalid or missing trait selection resets to tier-1 across all columns.
-        traits: /^[1-3]-[1-3]-[1-3]$/.test(String(candidate.traits || '')) ? String(candidate.traits) : '1-1-1'
+        // Zero keeps a deliberately empty tier through saving and loading; malformed choices still reset.
+        traits: /^[0-3]-[0-3]-[0-3]$/.test(String(candidate.traits || '')) ? String(candidate.traits) : '1-1-1',
+        // Persist only valid minor-tier opt-outs, leaving older builds fully enabled by default.
+        ...(Array.isArray(disabledMinorTraits)
+          ? { disabledMinorTraits: [0, 1, 2].filter((tier) => disabledMinorTraits.includes(tier)) }
+          : {})
       };
     })
     .filter((entry) => known.has(entry.name))
@@ -654,9 +659,20 @@ function validateSpecializations(
   }
 
   if (
-    build.specializations.some((specialization) => !/^[1-3]-[1-3]-[1-3]$/.test(String(specialization?.traits || '')))
+    build.specializations.some((specialization) => !/^[0-3]-[0-3]-[0-3]$/.test(String(specialization?.traits || '')))
   ) {
-    errors.push('specialization traits must use the 1-1-1 selection format.');
+    errors.push('specialization traits must use three hyphen-separated choices from 0 to 3 (0 disables a tier).');
+  }
+
+  if (
+    build.specializations.some(
+      (specialization) =>
+        specialization?.disabledMinorTraits !== undefined &&
+        (!Array.isArray(specialization.disabledMinorTraits) ||
+          specialization.disabledMinorTraits.some((tier) => !Number.isInteger(tier) || tier < 0 || tier > 2))
+    )
+  ) {
+    errors.push('disabledMinorTraits must be an array of minor tier indexes from 0 to 2.');
   }
 
   if (build.specializations.length !== 3) {

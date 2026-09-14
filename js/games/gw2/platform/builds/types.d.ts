@@ -139,6 +139,8 @@ export interface Gw2Build extends SchedulerRecord {
 export interface Gw2BuildSpecialization {
   name: string;
   traits: string;
+  /** Zero-based minor tiers omitted from trait effects; absent means all are active. */
+  disabledMinorTraits?: number[];
 }
 
 export interface Gw2BuildInfusion {

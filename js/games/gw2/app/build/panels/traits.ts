@@ -116,13 +116,17 @@ export function renderTraits(app: ProfessionAppState): void {
                             const minor = spec.minorTraits[tier];
                             return `${tier ? `<span class="spec-line pick-${picks[tier - 1]}"></span>` : ''}
                                 <div class="spec-tier pick-${picks[tier]}">
-                                    <div class="spec-trait-minor" title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></div>
+                                    <button type="button" class="spec-trait-minor ${selection.disabledMinorTraits?.includes(tier) ? 'dim' : 'sel'}"
+                                      data-line="${lineIndex}" data-tier="${tier}" data-pick="0"
+                                      aria-pressed="${!selection.disabledMinorTraits?.includes(tier)}" aria-label="${esc(minor.name)}"
+                                      title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></button>
                                     <div class="spec-trait-majors">${spec.majorTraits[tier]
                                       .map(
                                         (trait, position) =>
-                                          `<div class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
+                                          `<button type="button" class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                             data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
-                                            title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></div>`
+                                            aria-pressed="${picks[tier] === position + 1}" aria-label="${esc(trait.name)}"
+                                            title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></button>`
                                       )
                                       .join('')}</div>
                                 </div>`;
@@ -138,7 +142,7 @@ export function renderTraits(app: ProfessionAppState): void {
       selectSpecialization(app, Number(button.dataset.line), button.dataset.specialization || '');
     });
   });
-  container.querySelectorAll('.spec-trait-major').forEach((trait) => {
+  container.querySelectorAll('.spec-trait-major, .spec-trait-minor').forEach((trait) => {
     if (!(trait instanceof HTMLElement)) return;
     trait.addEventListener('click', () => {
       const line = Number(trait.dataset.line);
@@ -150,12 +154,25 @@ export function renderTraits(app: ProfessionAppState): void {
 
       const spec = app.build.specializations[line];
       if (!spec) return;
-      const picks = spec.traits.split('-');
-      // Re-selecting the active trait leaves the build unchanged and must not schedule another simulation.
-      if (picks[tier] === pick) return;
-      picks[tier] = pick;
-      spec.traits = picks.join('-');
+      // Minor traits toggle independently; clicking a selected major clears only its tier.
+      if (pick === '0') {
+        const disabled = spec.disabledMinorTraits || [];
+        spec.disabledMinorTraits = disabled.includes(tier)
+          ? disabled.filter((value) => value !== tier)
+          : [...disabled, tier];
+      } else {
+        const picks = spec.traits.split('-');
+        picks[tier] = picks[tier] === pick ? '0' : pick;
+        spec.traits = picks.join('-');
+      }
+
+      const restoreFocus = document.activeElement === trait;
       app.changed();
+      if (restoreFocus) {
+        container
+          .querySelector<HTMLElement>(`[data-line="${line}"][data-tier="${tier}"][data-pick="${pick}"]`)
+          ?.focus();
+      }
     });
   });
 }

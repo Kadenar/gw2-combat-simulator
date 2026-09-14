@@ -3,6 +3,7 @@ export const DEFAULT_TRAITS = '1-1-1';
 export interface ProfessionTraitSelection {
   readonly name?: string;
   readonly traits?: string;
+  readonly disabledMinorTraits?: readonly number[];
 }
 
 export interface ProfessionSpecialization<TTrait> {
@@ -130,7 +131,8 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
 
       if (!specialization) continue;
 
-      active.push(...specialization.minorTraits);
+      // Minor traits default to active, but explicit opt-outs must also remove their simulation effects.
+      active.push(...specialization.minorTraits.filter((_, tier) => !selection.disabledMinorTraits?.includes(tier)));
       const picks = parseTraitChoices(selection.traits);
 
       for (let tier = 0; tier < specialization.majorTraits.length; tier += 1) {
