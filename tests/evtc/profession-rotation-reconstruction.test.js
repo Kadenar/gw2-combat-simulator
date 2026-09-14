@@ -3,6 +3,7 @@ import test from 'node:test';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
@@ -203,6 +204,52 @@ test('Hurl missile inference uses a sliding 900 ms window for every Elementalist
       assert.equal(action.castOrigin, 'skill');
       assert.equal(action.eiRule, 'ElementalistHelper.MissileCastFinder(Hurl)');
     }
+  }
+});
+
+test('both importers retain the Forge exit but exclude the generated Overheat input', () => {
+  // Resource consequences must not become unknown skill IDs or displace the recorded bar exit.
+  const evtc = reconstructEvtcRotation(
+    log({
+      agents: [{ ...log().agents[0], profession: 3, elite: 57 }],
+      events: [
+        event({ time: 100, stateChange: 69, target: PLAYER, skillId: 43708, value: 1000, buff: 1 }),
+        event({ time: 500, stateChange: 69, target: PLAYER, skillId: 41037, value: 1000, buff: 1 }),
+        event({ time: 500, stateChange: 72, source: PLAYER, skillId: 43708, buff: 1 })
+      ]
+    }),
+    engineerCatalog,
+    { includeCombatStart: false }
+  );
+  const report = reconstructDpsReportRotation(
+    {
+      players: [
+        {
+          name: 'Fixture',
+          profession: 'Holosmith',
+          rotation: [
+            { id: 42938, skills: [{ castTime: 100, duration: 0 }] },
+            { id: 43937, skills: [{ castTime: 500, duration: 0 }] },
+            { id: 41123, skills: [{ castTime: 500, duration: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ name: 'Full Fight', start: 100, end: 1000 }],
+      skillMap: {
+        s42938: { name: 'Engage Photon Forge' },
+        s43937: { name: 'Overheat' },
+        s41123: { name: 'Deactivate Photon Forge' }
+      }
+    },
+    engineerCatalog
+  );
+  for (const imported of [evtc, report]) {
+    assert.ok(imported.rotation.some((command) => command.name === 'Deactivate Photon Forge'));
+    assert.equal(
+      imported.rotation.some((command) => command.skillId === 43937),
+      false
+    );
+    assert.ok(imported.actions.every((action) => action.supportedByCatalog));
   }
 });
 

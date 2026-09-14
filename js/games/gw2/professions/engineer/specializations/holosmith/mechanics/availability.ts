@@ -40,14 +40,12 @@ export function holosmithCastAvailability(context: EngineerPrecastContext, skill
   }
 
   if (skill.forgeSkill) {
-    // Allow the auto-attack chain to complete at the exact overheat timestamp.
-    // The chain skill is already queued before the overheat fires, so the forge
-    // is technically inactive but the animation was committed.
-    const queuedChainAfterOverheat =
-      skill.slot === 'Weapon_1' &&
-      state.overheated &&
-      Math.abs(context.start - Number(state.forgeExitedAt || 0)) <= Number(context.epsilon || 0.0001);
-    if (!state.photonForgeActive && !queuedChainAfterOverheat) {
+    // Exhaustion blocks new attacks, including autoattack chains, while the explicit exit remains available.
+    if (state.overheated) {
+      return denyEngineerCast(skill, 'engineer.overheated', 'exit Photon Forge and let heat reach zero.');
+    }
+
+    if (!state.photonForgeActive) {
       return denyEngineerCast(skill, 'engineer.forge-inactive', 'enter Photon Forge first.');
     }
   } else if (skill.type === 'Weapon' && state.photonForgeActive) {

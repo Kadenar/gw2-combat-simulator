@@ -118,8 +118,7 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): void {
 }
 
 /**
- * Pays a completed tome skill's page cost, applies page-use bonuses, closes
- * an exhausted tome, and emits the resulting resource snapshot.
+ * Pays a completed tome skill's page cost and applies bonuses; only an explicit stow closes the tome.
  */
 export function completeTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
   // Page costs and bonuses follow the scheduler's commitment decision, including committed aftercast cancels.
@@ -168,21 +167,6 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
         duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0))
       });
     }
-  }
-
-  // Auto-stow when the last page is consumed so the scheduler doesn't need to
-  // inject a separate Stow Tome cast; automatic: true marks it as involuntary
-  // for the timeline display.
-  if (state.tomePages === 0 && state.activeTome) {
-    state.activeTome = '';
-    state.swiftScholarTome = '';
-    state.swiftScholarCount = 0;
-    emitGuardianEvent(context, skill, 'weapon_set', {
-      weaponSet: context.state.activeWeaponSet,
-      mechanicSwap: true,
-      weaponLine: null,
-      automatic: true
-    });
   }
 
   emitGuardianEvent(context, skill, 'guardian.tome-page-used', {
@@ -314,8 +298,7 @@ function handleTomeStowed(context: GuardianResolverContext): void {
  */
 function handleTomePageUsed(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   firebrandState.from(context).tomePages = Number(event.pagesRemaining || 0);
-  // A resource snapshot cannot reopen a tome explicitly stowed during this page's animation.
-  if (Number(event.pagesRemaining) === 0) firebrandState.from(context).activeTome = '';
+  // Resource snapshots neither close an exhausted tome nor reopen one explicitly stowed during the animation.
   firebrandState.from(context).nextTomePageAt = Number(
     event.nextTomePageAt ?? firebrandState.from(context).nextTomePageAt
   );

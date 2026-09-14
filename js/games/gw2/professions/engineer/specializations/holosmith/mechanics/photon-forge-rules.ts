@@ -89,7 +89,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       return (
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.LASERS_EDGE) &&
-        (Boolean(state.photonForgeActive) ||
+        ((Boolean(state.photonForgeActive) && !state.overheated) ||
           (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
             Boolean(state.overheated) &&
             Number(state.heat || 0) > 0))

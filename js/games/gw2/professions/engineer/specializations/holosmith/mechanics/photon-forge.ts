@@ -67,7 +67,7 @@ function passiveHeatPerTick(context: EngineerSchedulerContext): number {
 /** Returns the cooling due on one cadence tick after accounting for Forge state, delay, and PBM. */
 function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): number {
   const state = holosmithState.from(context);
-  if (state.photonForgeActive || state.forgeExitedAt == null) return 0;
+  if ((state.photonForgeActive && !state.overheated) || state.forgeExitedAt == null) return 0;
   if (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
 
   const elapsedSinceExit = at - state.forgeExitedAt;
@@ -154,7 +154,7 @@ function applyToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: num
 }
 
 // Schedules the tool-belt penalty with Overheat's delayed damage so skills stay
-// usable during the measured 1.56-second window after automatic forge ejection.
+// usable during the measured 1.56-second window after Overheat begins.
 function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: number, seconds: number): void {
   context.tasks.schedule({
     type: PHOTON_FORGE_OVERHEAT_PENALTY_TASK,
@@ -203,9 +203,8 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
   });
 }
 
-/** Ejects Photon Forge at maximum heat and schedules the delayed Overheat or PBM consequences. */
+/** Locks Forge attacks at maximum heat; the rotation owns exit while Overheat consequences remain automatic. */
 function forceOverheat(context: EngineerSchedulerContext, at: number): void {
-  emitTransitionLockout(context, 'forgeExitMs', at);
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
   const effectDelay = photonicBlastingModule
@@ -218,11 +217,10 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
     : HOLOSMITH_HEAT.overheatEffectDelay;
   const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
-  state.photonForgeActive = false;
-  state.forgeExitedAt = at;
   state.overheated = true;
+  // Cooling follows the physical Overheat timestamp even while the rotation still owes its bar exit.
+  state.forgeExitedAt = at;
   startPassiveHeatCadence(context, at);
-  professionCoreState(context).activeKit = '';
   scheduleToolbeltOverheatPenalty(
     context,
     effectAt,
@@ -309,8 +307,8 @@ export function handlePhotonForgePassiveHeat(
   if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;
 
   const previousHeat = state.heat;
-  if (state.photonForgeActive) {
-    // The Forge-relative tick ejects only when heat was already capped at tick
+  if (state.photonForgeActive && !state.overheated) {
+    // The Forge-relative tick overheats only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
     if (state.heat >= state.maximumHeat - context.epsilon) {
       forceOverheat(context, task.at);
@@ -323,7 +321,8 @@ export function handlePhotonForgePassiveHeat(
     state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, task.at)) * 1e9) / 1e9);
     if (state.heat <= context.epsilon) {
       state.heat = 0;
-      state.overheated = false;
+      // Reaching zero cannot re-enable the exhausted Forge bar before its explicit exit.
+      if (!state.photonForgeActive) state.overheated = false;
     }
   }
 
@@ -335,7 +334,7 @@ export function handlePhotonForgePassiveHeat(
     !state.photonForgeActive &&
     state.forgeExitedAt != null &&
     task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + context.epsilon;
-  if (state.photonForgeActive || state.heat > context.epsilon || coolingGraceActive) {
+  if ((state.photonForgeActive && !state.overheated) || state.heat > context.epsilon || coolingGraceActive) {
     startPassiveHeatCadence(context, task.at);
   } else {
     state.passiveHeatAt = null;
@@ -379,13 +378,18 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
   const state = holosmithState.from(context);
   const at = context.effectiveEnd;
   state.photonForgeActive = false;
-  state.forgeExitedAt = at;
-  startPassiveHeatCadence(context, at);
-  grantSolarFocusingLens(
-    context,
-    at,
-    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
-  );
+  // Overheat already owns its Lens grant; acknowledging its exit must not replace those charges.
+  if (!state.overheated) {
+    state.forgeExitedAt = at;
+    startPassiveHeatCadence(context, at);
+    grantSolarFocusingLens(
+      context,
+      at,
+      balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+    );
+  }
+
+  if (state.heat === 0) state.overheated = false;
   emitEngineerBarSwap(context, skill, at);
   emitEngineerStateSnapshot(context, at, 'exit-forge');
 }
@@ -416,7 +420,7 @@ function scheduleHeatPulse(
  */
 function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   const state = holosmithState.from(context);
-  if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
+  if (!state.photonForgeActive || state.overheated || !(Number(skill.heatGain) > 0)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   if (skill.id === ID.CORONA_BURST) {
     const offsets = CORONA_QUICKNESS_PULSE_OFFSETS_MS;
@@ -453,7 +457,7 @@ export function handlePhotonForgeHeat(
   task: EngineerScheduledTask<PhotonForgeHeatPayload>
 ): void {
   const state = holosmithState.from(context);
-  if (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true) return;
+  if (state.overheated || (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true)) return;
   const previousHeat = state.heat;
   state.heat = Math.min(state.maximumHeat, state.heat + Math.max(0, Number(task.payload?.amount || 0)));
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
@@ -501,7 +505,7 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
   const state = holosmithState.from(context);
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
   state.heatUpdatedAt = at;
-  if (state.heat === 0) state.overheated = false;
+  if (state.heat === 0 && !state.photonForgeActive) state.overheated = false;
   emitEngineerStateSnapshot(context, at, 'vent-exhaust');
 }
 
@@ -536,17 +540,23 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
  * the player swapped a kit, not pressed the deactivate button.
  */
 export function handleHolosmithKitEquip(context: EngineerCastContext, skill: EngineerSkill): void {
-  if (skill.handlerId !== 'engineer.kit-equip' || !holosmithState.from(context).photonForgeActive) return;
+  const state = holosmithState.from(context);
+  if (skill.handlerId !== 'engineer.kit-equip' || !state.photonForgeActive) return;
   const at = context.effectiveEnd;
   emitTransitionLockout(context, 'forgeExitMs', at, skill);
-  holosmithState.from(context).photonForgeActive = false;
-  holosmithState.from(context).forgeExitedAt = at;
-  startPassiveHeatCadence(context, at);
-  grantSolarFocusingLens(
-    context,
-    at,
-    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
-  );
+  state.photonForgeActive = false;
+  // A kit can acknowledge the exit too, without replacing Overheat's pending Lens grant.
+  if (!state.overheated) {
+    state.forgeExitedAt = at;
+    startPassiveHeatCadence(context, at);
+    grantSolarFocusingLens(
+      context,
+      at,
+      balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+    );
+  }
+
+  if (state.heat === 0) state.overheated = false;
 }
 
 /** Routes Photon Forge handler IDs to entry, exit, and skill-heat logic. */

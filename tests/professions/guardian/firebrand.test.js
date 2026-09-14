@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { automaticTomeStowTimelineMarkers, timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
@@ -242,15 +242,10 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   assert.equal(result.endState.profession.ashesCharges, 0);
 });
 
-test('Firebrand page exhaustion stows the tome and pages regenerate', () => {
+test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
   const exhausted = simulateGw2({
     profession: guardianProfession,
-    rotation: [
-      'Tome of Resolve',
-      'Epilogue: Eternal Oasis',
-      'Chapter 1: Desert Bloom',
-      { type: 'wait', durationMs: 8000 }
-    ],
+    rotation: ['Tome of Resolve', 'Epilogue: Eternal Oasis', { type: 'wait', durationMs: 8000 }],
     config: {
       ...config,
       specialization: 'Firebrand',
@@ -267,9 +262,9 @@ test('Firebrand page exhaustion stows the tome and pages regenerate', () => {
     }
   });
 
-  assert.match(exhausted.warnings.join(' '), /Chapter 1: Desert Bloom is unavailable/);
-  assert.equal(exhausted.endState.profession.activeTome, '');
-  assert.equal(exhausted.endState.profession.swiftScholarCount, 0);
+  assert.deepEqual(exhausted.warnings, []);
+  assert.equal(exhausted.endState.profession.activeTome, 'resolve');
+  assert.equal(exhausted.events.find((event) => event.type === 'guardian.tome-page-used').pagesRemaining, 0);
   assert.equal(exhausted.endState.profession.tomePages, 1);
   assert.equal(traited.endState.profession.maximumTomePages, 8);
   assert.equal(traited.endState.profession.tomePages, 8);
@@ -301,8 +296,8 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
   }
 });
 
-test('Firebrand page exhaustion injects a timeline stow and closes its lane', () => {
-  const rotation = ['Tome of Resolve', 'Epilogue: Eternal Oasis', 'True Strike'];
+test('Firebrand page exhaustion requires an explicit stow before weapon inputs', () => {
+  const rotation = ['Tome of Resolve', 'Epilogue: Eternal Oasis', 'True Strike', 'Stow Tome', 'True Strike'];
   const firebrandConfig = {
     ...config,
     specialization: 'Firebrand',
@@ -315,19 +310,14 @@ test('Firebrand page exhaustion injects a timeline stow and closes its lane', ()
     config: firebrandConfig
   });
 
-  assert.deepEqual(automaticTomeStowTimelineMarkers(result, rotation.length), [
-    {
-      insertionIndex: 2,
-      skill: 'Stow Tome',
-      start: result.steps.find((step) => step.skill === 'Epilogue: Eternal Oasis').end,
-      detail: 'page exhaustion'
-    }
-  ]);
+  const [blocked, ready] = result.steps.filter((step) => step.skill === 'True Strike');
+  assert.ok(blocked.invalid);
+  assert.equal(ready.invalid, undefined);
+  assert.equal(result.steps.find((step) => step.skill === 'Stow Tome').invalid, undefined);
+  assert.equal(result.endState.profession.activeTome, '');
+  assert.equal(result.endState.profession.swiftScholarCount, 0);
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
   const rows = timelineWeaponRows(rotation, {
-    weaponLineEndIndexes: new Set(
-      automaticTomeStowTimelineMarkers(result, rotation.length).map((marker) => marker.insertionIndex)
-    ),
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
 
@@ -368,7 +358,7 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
   assert.ok(epilogue && !epilogue.invalid);
   // A missing page delays the cast until the resource's next regeneration tick.
   assert.equal(epilogue.start, result.endState.profession.tomePageInterval * 1000);
-  assert.equal(result.endState.profession.activeTome, '');
+  assert.equal(result.endState.profession.activeTome, 'resolve');
 });
 
 test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', () => {

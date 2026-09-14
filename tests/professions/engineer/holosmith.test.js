@@ -1,11 +1,7 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  automaticPhotonForgeExitTimelineMarkers,
-  timelineWeaponLineExitMarkerRowIndex,
-  timelineWeaponRows
-} from '#gw2/app/rotation/timeline/model.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
@@ -380,7 +376,7 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
 
   assert.equal(inside.endState.profession.heat, 150);
   assert.equal(inside.endState.profession.overheated, true);
-  assert.equal(inside.endState.profession.photonForgeActive, false);
+  assert.equal(inside.endState.profession.photonForgeActive, true);
 });
 
 test('Photon Blitz gains two heat for each completed projectile', () => {
@@ -419,7 +415,7 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
 
   assert.equal(core.endState.profession.heat, 100);
   assert.equal(core.endState.profession.overheated, true);
-  assert.equal(core.endState.profession.photonForgeActive, false);
+  assert.equal(core.endState.profession.photonForgeActive, true);
 
   const enhanced = simulate('Holosmith', [], {
     initialHeat: 149,
@@ -431,7 +427,12 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
 
   const fullyCooled = simulate(
     'Holosmith',
-    ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }, { type: 'wait', durationMs: 15520 }],
+    [
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 6000 },
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 15520 }
+    ],
     {
       initialHeat: 90
     }
@@ -441,7 +442,33 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
   assert.equal(fullyCooled.endState.profession.overheated, false);
 });
 
-test('Photon Forge waits for its resource tick before ejecting at maximum heat', () => {
+test('explicit Overheat exits preserve cooling cadence and the pending Lens grant', () => {
+  // Both exits acknowledge the existing resource transition without restarting cooling or granting Lens twice.
+  const config = { initialHeat: 90, selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE, TRAIT.SOLAR_FOCUSING_LENS] };
+  const opener = ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }];
+  const locked = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 4000 }], config);
+  for (const exit of ['Deactivate Photon Forge', 'Grenade Kit']) {
+    const exited = simulate('Holosmith', [...opener, exit, { type: 'wait', durationMs: 4000 }], config);
+    assert.deepEqual(exited.warnings, []);
+    assert.equal(exited.endState.profession.photonForgeActive, false);
+    assert.equal(exited.endState.profession.forgeExitedAt, locked.endState.profession.forgeExitedAt);
+    assert.equal(exited.endState.profession.heat, locked.endState.profession.heat);
+    assert.deepEqual(
+      exited.events
+        .filter((event) => event.type === 'engineer.solar-focusing-lens')
+        .map((event) => [event.at, event.stacks]),
+      locked.events
+        .filter((event) => event.type === 'engineer.solar-focusing-lens')
+        .map((event) => [event.at, event.stacks])
+    );
+  }
+
+  const cooled = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 20000 }, 'Photon Blitz'], config);
+  assert.equal(cooled.endState.profession.heat, 0);
+  assert.ok(cooled.steps.find((step) => step.skill === 'Photon Blitz').invalid);
+});
+
+test('Photon Forge waits for its resource tick before overheating at maximum heat', () => {
   // A skill can fill the heat bar between resource ticks, leaving a short window
   // for an already-authored tool-belt action before Overheat applies its cooldown.
   const result = simulate(
@@ -458,11 +485,11 @@ test('Photon Forge waits for its resource tick before ejecting at maximum heat',
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 520);
   assert.equal(overheat.at, 0.6);
-  assert.equal(result.endState.profession.photonForgeActive, false);
+  assert.equal(result.endState.profession.photonForgeActive, true);
 });
 
 test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
-  // The second entry reaches maximum heat at 1.97s and ejects on that entry's
+  // The second entry reaches maximum heat at 1.97s and overheats on that entry's
   // next 100 ms resource tick at 2.05s instead of a simulation-global boundary.
   const result = simulate(
     'Holosmith',
@@ -486,11 +513,11 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 1970);
   assert.equal(overheat.at, 2.05);
-  assert.equal(result.endState.profession.photonForgeActive, false);
+  assert.equal(result.endState.profession.photonForgeActive, true);
 });
 
 test('Photon Forge waits one more resource tick when passive heat fills the bar', () => {
-  // Ten ticks raise heat from 98 to 100; the following 100 ms tick observes the cap and ejects.
+  // Ten ticks raise heat from 98 to 100; the following 100 ms tick observes the cap and overheats.
   const result = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 2000 }], {
     initialHeat: 98
   });
@@ -502,7 +529,7 @@ test('Photon Forge waits one more resource tick when passive heat fills the bar'
   assert.equal(passiveHeat.at, 1);
   assert.equal(passiveHeat.state.heat, 100);
   assert.equal(overheat.at, 1.1);
-  assert.equal(result.endState.profession.photonForgeActive, false);
+  assert.equal(result.endState.profession.photonForgeActive, true);
 });
 
 test('Photon Forge passive heat restarts its cadence on each entry', () => {
@@ -523,34 +550,50 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
   assert.deepEqual(passiveHeatTimes, [0.35, 1.35]);
 });
 
-test('Overheat exits Forge before weapon actions at the same resource boundary', () => {
-  // Scheduled resource work resolves before the next authored action, so a
-  // weapon cast at the Overheat boundary sees the normal weapon bar again.
+test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
+  // Exhaustion is a resource transition; the explicit exit restores weapons without restarting cooling.
   const result = simulate(
     'Holosmith',
-    ['Engage Photon Forge', 'Holographic Shockwave', { type: 'wait', durationMs: 80 }, 'Glue Shot'],
+    [
+      'Engage Photon Forge',
+      'Holographic Shockwave',
+      { type: 'wait', durationMs: 120 },
+      'Photon Blitz',
+      'Light Strike',
+      'Glue Shot',
+      'Deactivate Photon Forge',
+      'Glue Shot'
+    ],
     { initialHeat: 90 }
   );
-  const glueShot = result.steps.find((step) => step.skill === 'Glue Shot');
-  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  assert.equal(
+    result.events.filter((event) => event.type === 'engineer.state' && event.reason === 'overheat').length,
+    1
+  );
+  for (const name of ['Photon Blitz', 'Light Strike']) {
+    assert.ok(result.steps.find((step) => step.skill === name).invalid);
+  }
 
-  assert.equal(result.warnings.length, 0);
-  assert.equal(overheat.at, 0.6);
-  assert.equal(glueShot.start, 600);
-  assert.equal(glueShot.invalid, undefined);
+  const [blocked, ready] = result.steps.filter((step) => step.skill === 'Glue Shot');
+  assert.ok(blocked.invalid);
+  assert.equal(ready.invalid, undefined);
+  assert.equal(result.steps.find((step) => step.skill === 'Deactivate Photon Forge').invalid, undefined);
+  assert.equal(result.endState.profession.photonForgeActive, false);
 });
 
-test('Overheat injects an automatic Photon Forge timeline exit and closes its lane', () => {
-  const rotation = ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }, 'Blunderbuss'];
+test('an overheated Forge lane stays open until its authored exit', () => {
+  const rotation = [
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 6000 },
+    'Deactivate Photon Forge',
+    'Blunderbuss'
+  ];
   const result = simulate('Holosmith', rotation, { initialHeat: 90 });
-  const exits = automaticPhotonForgeExitTimelineMarkers(result, rotation.length);
   const transition = engineerProfession.ui.timelineWeaponLineTransition;
   const rows = timelineWeaponRows(rotation, {
     weaponSwapChangesSet: false,
-    weaponLineEndIndexes: new Set(exits.map((marker) => marker.insertionIndex)),
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
-
       return transition({
         entry: { name },
         skill: engineerCatalog.skillsByName.get(name),
@@ -559,24 +602,11 @@ test('Overheat injects an automatic Photon Forge timeline exit and closes its la
       });
     }
   });
-
-  assert.deepEqual(exits, [
-    {
-      insertionIndex: 2,
-      skill: 'Overheat',
-      start: 5100,
-      detail: 'automatic forge exit'
-    }
-  ]);
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     rows.map((row) => row.weaponLine),
     [null, 'Photon Forge', null]
   );
-  assert.equal(timelineWeaponLineExitMarkerRowIndex(rows, exits[0].insertionIndex, 'Photon Forge'), 1);
-
-  const manual = simulate('Holosmith', ['Engage Photon Forge', 'Deactivate Photon Forge']);
-
-  assert.deepEqual(automaticPhotonForgeExitTimelineMarkers(manual, 2), []);
 });
 
 test('Overheat delays its tool-belt minimum cooldown until the damage effect', () => {
