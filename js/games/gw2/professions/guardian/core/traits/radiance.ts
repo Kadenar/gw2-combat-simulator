@@ -69,7 +69,7 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   const state = guardianResolverState(context);
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
-    event.at > Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context) ||
+    event.at >= Number(state.resolutionUntil || 0) - guardianResolverEpsilon(context) ||
     Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > guardianResolverEpsilon(context)
   ) {
     return;
@@ -78,9 +78,10 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   queueRighteousMight(context, event.at, 'Resolution interval');
   state.righteousNextMightAt =
     event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
+  // Queue one candidate tick ahead so future Resolution applications can extend the active window before it fires.
   if (
     state.righteousNextMightAt > event.at &&
-    state.righteousNextMightAt <= Number(state.resolutionUntil || 0) + guardianResolverEpsilon(context)
+    state.righteousNextMightAt <= context.horizon + guardianResolverEpsilon(context)
   ) {
     context.queue.enqueue({
       ...event,

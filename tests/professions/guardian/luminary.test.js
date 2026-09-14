@@ -204,7 +204,7 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
   );
 });
 
-test('Righteous Instincts Might reaches the chart without duplicating scheduled Resolution', () => {
+test('Righteous Instincts Might continues across Resolution pulses without duplicating boundary ticks', () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 2000 }],
@@ -216,6 +216,13 @@ test('Righteous Instincts Might reaches the chart without duplicating scheduled 
     }
   });
   const series = buildChartSeries(result, 500);
+  const righteousMight = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.skillName === 'Righteous Instincts'
+  );
+  assert.deepEqual(
+    righteousMight.map((event) => event.at),
+    [0.2, 1.2, 2.2]
+  );
   assert.equal(series.effectTypes.Might, 'boon');
   assert.equal(series.effects.Might[0].v, 1);
   assert.equal(series.effects.Might[1].v, 1);
