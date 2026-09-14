@@ -200,3 +200,32 @@ test('Brutal Charge activates Claw on delayed contact rather than its queued act
   assert.equal(swipe.damage, hits(baseline, ID.DRAKES_SWIPE)[0].damage);
   assert.equal(proc.start, Math.round(charge.at * 1000));
 });
+
+test('Path of Scars activates Claw on the returning contact after a weapon swap', () => {
+  // Both range variants retain their projectile and pull after swapping, without granting Claw on the outgoing hit.
+  const returnDelays = [];
+  for (const skillId of [ID.PATH_OF_SCARS, ID.PATH_OF_SCARS_MAX_RANGE]) {
+    const result = simulate('Soulbeast', [skillId, 'Swap Weapons', wait(3000)], {
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Axe',
+      weaponSet2Primary: 'Hammer',
+      relic: 'Claw'
+    });
+    const contacts = hits(result, skillId);
+    const outgoing = contacts.find((event) => event.hitIndex === 1);
+    const returning = contacts.find((event) => event.hitIndex === 2);
+    const pull = result.events.find((event) => event.type === 'control' && event.skillId === skillId);
+    const proc = result.procSteps.find((event) => event.skill === 'Relic of the Claw');
+    const swap = result.steps.find((step) => step.skill === 'Swap Weapons');
+    const cast = result.steps.find((step) => step.skillId === skillId);
+
+    assert.deepEqual(result.warnings, []);
+    assert.ok(returning.at > outgoing.at);
+    assert.ok(returning.at * 1000 > swap.start);
+    assert.equal(pull.at, returning.at);
+    assert.equal(proc.start, Math.round(returning.at * 1000));
+    returnDelays.push(returning.at * 1000 - cast.start);
+  }
+
+  assert.ok(returnDelays[1] > returnDelays[0], 'maximum range delays the return and pull more than normal range');
+});

@@ -7,7 +7,8 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
+        // The live PvE skill fact is 0.9; 0.8 understates the opening chain strike.
+        coefficient: 0.9,
         hits: 1
       }
     ],
@@ -17,7 +18,8 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
+        // Match the live PvE chain coefficient without changing the impact timing.
+        coefficient: 0.9,
         hits: 1
       },
       {

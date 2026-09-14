@@ -112,7 +112,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'strike',
         ticks: [
           { atMs: 400, coefficient: 1.2 },
-          { atMs: 880, coefficient: 1.2 }
+          // Use the short return window for normal, close-range throws.
+          { atMs: 480, coefficient: 1.2 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -127,7 +128,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'control',
-        atMs: 880,
+        // Pull and Claw activation belong to the returning contact.
+        atMs: 480,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
@@ -196,7 +198,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         damageBreakdownName: 'Path of Scars',
         ticks: [
           { atMs: 400, coefficient: 1.2 },
-          { atMs: 1640, coefficient: 1.2 }
+          // Maximum range uses the long return window; the pull waits for this contact.
+          { atMs: 1920, coefficient: 1.2 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -211,7 +214,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'control',
-        atMs: 1640,
+        // Keep the pull on the return contact, including when the player has already swapped weapons.
+        atMs: 1920,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
