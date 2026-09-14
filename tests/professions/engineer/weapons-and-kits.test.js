@@ -346,7 +346,8 @@ describe('Engineer packet profiles', () => {
       mechanic('Photon Blitz').effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
       5.12
     );
-    assert.equal(mechanic('Photon Blitz').effects[0].ticks[0].atMs, 280);
+    // The first projectile uses the corrected launch offset shared with its heat pulse.
+    assert.equal(mechanic('Photon Blitz').effects[0].ticks[0].atMs, 240);
   });
 
   test('profession mechanics retain cooldown, timing, and classification facts', () => {

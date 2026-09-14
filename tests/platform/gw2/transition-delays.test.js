@@ -186,7 +186,6 @@ test('automatic shroud depletion and forge expiry apply exit recovery at the tra
   for (const [profession, specialization, entry, waitMs, resource] of [
     [thiefProfession, 'Specter', 'Enter Shadow Shroud', 500, { initialShadowForce: 1 }],
     [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}],
-    [engineerProfession, 'Holosmith', 'Engage Photon Forge', 1000, { initialHeat: 99 }],
     [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }]
   ]) {
     const result = simulateGw2({
@@ -201,6 +200,26 @@ test('automatic shroud depletion and forge expiry apply exit recovery at the tra
     assert.ok(exit, specialization);
     assert.ok(result.schedulerState.time >= exit.at + exit.duration - 1e-9);
   }
+});
+
+test('overheated Photon Forge applies exit recovery only at the explicit exit', () => {
+  // Overheat locks Forge attacks; the later rotation command owns the bar exit and its recovery.
+  const result = simulateGw2({
+    profession: engineerProfession,
+    rotation: ['Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Deactivate Photon Forge'],
+    config: { specialization: 'Holosmith', transitionDelays: transitions, initialHeat: 99 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const exitStep = result.steps.find((step) => step.skill === 'Deactivate Photon Forge');
+  assert.ok(overheat.at < exitStep.start / 1000);
+  const exits = result.events.filter(
+    (event) => event.type === 'gw2.transition-lockout' && event.kind === 'forgeExitMs'
+  );
+  assert.equal(exits.length, 1);
+  assert.equal(exits[0].at, exitStep.end / 1000);
+  assert.equal(Math.round(exits[0].duration * 1000), transitions.forgeExitMs);
+  assert.ok(result.schedulerState.time >= exits[0].at + exits[0].duration - 1e-9);
 });
 
 test('transition recovery is occupied timeline time without an injected Wait shape', () => {
