@@ -232,6 +232,8 @@ export interface MesmerInstrument {
   readonly coefficient?: number;
   readonly hits?: number;
   readonly damageAtMs?: number;
+  /** Launched performance packets can outlive an interruption after the skill's commit point. */
+  readonly persistsAfterInterrupt?: boolean;
   readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly MesmerAttackStatus[];
 }

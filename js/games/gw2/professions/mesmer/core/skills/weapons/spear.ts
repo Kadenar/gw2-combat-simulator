@@ -63,8 +63,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         source: 'Player',
         controlKind: 'stun',
         actorType: 'player',
-        atMs: 0,
-        timingAnchor: 'castEnd',
+        atMs: 560,
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
@@ -72,13 +72,20 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Spear',
     specialization: '',
     castTimeMs: 640,
+    // Preserve the impact when interruption only skips the remaining recovery.
+    interruptCommitMs: 600,
     cooldown: 20,
     effects: [
       {
         type: 'strike',
-        coefficient: 3,
-        hits: 3,
-        atMs: 0,
+        // The initial impact precedes recovery; the two follow-up hits resolve afterward.
+        ticks: [
+          { atMs: 560, coefficient: 1 },
+          { atMs: 840, coefficient: 1 },
+          { atMs: 1120, coefficient: 1 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'
@@ -147,11 +154,23 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
+        // The finisher lands before its cast recovery ends.
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'
       },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 2 }
+      {
+        type: 'condition',
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 2,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
     ]
   },
   [ID.IMAGINARY_INVERSION]: {
@@ -177,6 +196,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Spear',
     specialization: '',
+    // The attack commits before its full cast animation finishes.
+    interruptCommitMs: 360,
     cooldown: 0,
     nextChainId: ID.PSYSTRIKE,
     effects: [
@@ -184,6 +205,10 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        // Resolve the hit before the remaining cast recovery.
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'

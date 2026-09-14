@@ -1,3 +1,4 @@
+import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -149,42 +150,6 @@ function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration
   return Number(context.skill.cooldown || 0) / (flutePlaying ? 1.25 : 1);
 }
 
-/** Resolves Syncopate from Troubadour control and Method of Madness proc events. */
-function observeTroubadourEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
-  const runtime = mesmerRuntimeFor(context);
-  if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
-  const damage = runtime.traitDamage.Syncopate;
-  if (!damage) return;
-
-  if (event.type === 'control') {
-    const skillName = String(event.skillName || event.name || 'Control effect');
-    runtime.addDamage(
-      { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
-      event.at,
-      {
-        coefficient: damage.coefficient,
-        hits: damage.hits,
-        source: 'Trait',
-        actorType: 'player',
-        weapon: 'utility',
-        weaponStrengthProfileId: 'nonweapon.unequipped'
-      },
-      { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
-    );
-    runtime.addTraitProc('Syncopate', event.at, skillName);
-    return;
-  }
-
-  if (event.type !== 'proc' || event.sourceId !== 'Method of Madness') return;
-  runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, event.at, {
-    coefficient: damage.coefficient,
-    hits: damage.hits,
-    source: 'Player',
-    weapon: 'utility'
-  });
-  runtime.addTraitProc('Syncopate', event.at, 'Lesser Chaos Storm');
-}
-
 export const troubadourCastRules = Object.freeze({
   modifyRechargeDuration: modifyTroubadourRecharge
 });
@@ -212,7 +177,7 @@ export const troubadourSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'mesmer.troubadour.syncopate',
     order: 20,
-    handler: observeTroubadourEvent
+    handler: observeSyncopateEvent
   }
 });
 

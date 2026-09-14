@@ -9,6 +9,79 @@ import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+
+// A launched Drum wave keeps its damage and disable proc, with distinct breakdown attribution.
+test('committed Drum interruptions preserve separate Syncopate and delayed-wave rows', () => {
+  const config = { specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [TRAIT.SYNCOPATE] };
+  const cast = { type: 'cast', skillId: ID.DEAFENING_DRUM };
+  const wait = { type: 'wait', durationMs: 4000 };
+  for (const command of [
+    cast,
+    { ...cast, interruptAfterMs: mesmerCatalog.skillsById.get(ID.DEAFENING_DRUM).interruptCommitMs }
+  ]) {
+    const result = simulateMesmer([command, wait], config);
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      skillBreakdownRows(result)
+        .filter((row) => row.name.startsWith('Syncopate'))
+        .map((row) => [row.name, row.hits])
+        .sort(),
+      [
+        ['Syncopate', 2],
+        ['Syncopate (Delay Wave)', 1]
+      ].sort()
+    );
+    const wave = result.events.find((event) => event.damageBreakdownName === 'Syncopate (Delay Wave)');
+    assert.ok(wave.at * 1000 > result.steps[0].end);
+    assert.ok(
+      result.events.some((event) => event.type === 'damage' && event.name === 'Syncopate' && event.at === wave.at)
+    );
+  }
+
+  const cancelled = simulateMesmer([{ ...cast, interruptAfterMs: 20 }, wait], config);
+  assert.equal(
+    skillBreakdownRows(cancelled).some((row) => row.name.startsWith('Syncopate')),
+    false
+  );
+});
+
+// Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
+test('Syncopate reads patched damage from its trait profile', () => {
+  const result = simulateGw2({
+    profession: withPatchPreview(mesmerProfession, {
+      id: 'syncopate-test',
+      label: 'Syncopate test',
+      professions: {
+        mesmer: {
+          balanceProfiles: {
+            [TRAIT.SYNCOPATE]: {
+              effects: [
+                { effectIndex: 0, coefficient: 0.25 },
+                { effectIndex: 1, coefficient: 0.5 }
+              ]
+            }
+          }
+        }
+      }
+    }),
+    rotation: ['Deafening Drum', { type: 'wait', durationMs: 4000 }],
+    config: defaultSimulationConfig({
+      patchId: 'syncopate-test',
+      specialization: 'Troubadour',
+      selectedTraitIds: [TRAIT.SYNCOPATE],
+      initialResource: 0
+    })
+  });
+  assert.deepEqual(result.warnings, []);
+  const drum = result.events.find((event) => event.type === 'damage' && event.skillName === 'Deafening Drum');
+  const procs = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');
+  assert.deepEqual(procs.map((event) => event.coefficient).sort(), [0.25, 0.25, 0.5]);
+  assert.ok(procs.some((event) => event.at === drum.at));
+  assert.ok(procs.some((event) => event.at > drum.at));
+});
 
 // Troubadour instruments, tales, and traits preserve note costs and scheduled effects.
 test('Troubadour instruments use configured packets and normalized strength', () => {
@@ -75,6 +148,30 @@ test('Troubadour instruments use configured packets and normalized strength', ()
         event.activationId !== stochasticDrumHit.activationId
     )
   );
+});
+
+// A committed performance retains its launched notes, including Shredding's extra packet, beyond the cast end.
+test('committed Lute interruptions preserve pending performance packets', () => {
+  for (const skillId of [ID.LIVELY_LUTE, ID.LIVELY_LUTE_ALTERNATE]) {
+    for (const selectedTraitIds of [[], [TRAIT.SHREDDING]]) {
+      const config = { specialization: 'Troubadour', initialResource: 0, selectedTraitIds };
+      const cast = { type: 'cast', skillId };
+      const wait = { type: 'wait', durationMs: 1500 };
+      const full = simulateMesmer([cast, wait], config);
+      const interrupted = simulateMesmer(
+        [{ ...cast, interruptAfterMs: mesmerCatalog.skillsById.get(skillId).interruptCommitMs }, wait],
+        config
+      );
+      const packets = (result) => result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
+      assert.deepEqual(interrupted.warnings, []);
+      assert.ok(interrupted.steps[0].interrupted);
+      assert.ok(packets(full).some((event) => event.at * 1000 > interrupted.steps[0].end));
+      assert.deepEqual(
+        packets(interrupted).map(({ at, coefficient }) => [at, coefficient]),
+        packets(full).map(({ at, coefficient }) => [at, coefficient])
+      );
+    }
+  }
 });
 
 test('Troubadour performance packets register before later overlapping actions', () => {

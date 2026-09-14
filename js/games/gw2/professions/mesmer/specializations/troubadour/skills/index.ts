@@ -6,6 +6,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 // Tales share one lifecycle trigger; their specialization resolver owns each Tale's distinct outcome.
 const TROUBADOUR_TALE_TRIGGERS = Object.freeze([
@@ -15,7 +16,9 @@ const TROUBADOUR_TALE_TRIGGERS = Object.freeze([
   }
 ]);
 
-export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
+  Record<SkillId, SkillFragment & { readonly instrument?: MesmerInstrument }>
+> = Object.freeze({
   [ID.TROUBADOUR_BLADECALL]: {
     type: 'Weapon',
     weapon: 'Dagger',
@@ -78,7 +81,22 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     castTimeMs: 560,
+    // Preserve the performance when interruption only skips the remaining recovery.
+    interruptCommitMs: 520,
     cooldown: 12,
+    instrument: {
+      slot: 1,
+      instrument: 'Lute',
+      damageAtMs: 440,
+      // All launched notes survive an interruption after the performance commits.
+      persistsAfterInterrupt: true,
+      // Player and afterimage performances share these three note packets.
+      ticks: [
+        { atMs: 0, coefficient: 1 },
+        { atMs: 200, coefficient: 1 },
+        { atMs: 400, coefficient: 1 }
+      ]
+    },
     effects: []
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
@@ -109,6 +127,14 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     specialization: 'Troubadour',
     castTimeMs: 560,
     cooldown: 20,
+    instrument: {
+      slot: 2,
+      instrument: 'Flute',
+      coefficient: 1,
+      hits: 1,
+      damageAtMs: 360,
+      conditions: [{ name: 'Confusion', duration: 4, stacks: 3 }]
+    },
     effects: [
       // Performance and afterimage impacts materialize the same authored control.
       {
@@ -145,10 +171,11 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    // Harp Playing commits by 480 ms, so an observed cast at or beyond that point can be reconstructed safely.
+    // Harp packets remain valid independently when the channel is interrupted.
     castTimeMs: 2000,
-    interruptCommitMs: 480,
+    interruptMode: 'per-packet',
     cooldown: 25,
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
@@ -217,10 +244,11 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     type: 'Profession',
     weapon: '',
     specialization: 'Troubadour',
-    // Keep the duplicate Harp profile aligned with the same packet-backed interrupt contract.
+    // Both Harp variants preserve packets independently when interrupted.
     castTimeMs: 2000,
-    interruptCommitMs: 400,
+    interruptMode: 'per-packet',
     cooldown: 25,
+    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
   },
   [ID.DEAFENING_DRUM]: {
@@ -228,7 +256,16 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     castTimeMs: 680,
+    // The report's 600 ms Drum still lands its impact and delayed wave; preserve that committed performance.
+    interruptCommitMs: 600,
     cooldown: 25,
+    instrument: {
+      slot: 3,
+      instrument: 'Drum',
+      coefficient: 2,
+      hits: 1,
+      damageAtMs: 520
+    },
     effects: [
       // Performance and afterimage impacts materialize the same authored control.
       {
@@ -257,10 +294,33 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFr
     weapon: '',
     specialization: 'Troubadour',
     castTimeMs: 560,
+    // Both Lute variants share the same performance commit point.
+    interruptCommitMs: 520,
     cooldown: 12,
+    instrument: {
+      slot: 1,
+      instrument: 'Lute',
+      damageAtMs: 440,
+      // The alternate performance preserves the same launched note sequence.
+      persistsAfterInterrupt: true,
+      ticks: [
+        { atMs: 0, coefficient: 1 },
+        { atMs: 200, coefficient: 1 },
+        { atMs: 400, coefficient: 1 }
+      ]
+    },
     effects: []
   }
 });
+
+// Derive runtime and balance-profile inputs from the skill records so instrument behavior has one authoring site.
+export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(MESMER_TROUBADOUR_SKILL_MECHANICS).flatMap(([skillId, skill]) =>
+      skill.instrument ? [[Number(skillId), skill.instrument]] : []
+    )
+  )
+);
 
 export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze(
   {}

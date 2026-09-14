@@ -1,3 +1,4 @@
+import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -47,6 +48,7 @@ function instrumentAttack(
           : { coefficient: Number(data.coefficient), hits: Number(data.hits) }),
         source,
         actorType,
+        persistsAfterInterrupt: data.persistsAfterInterrupt,
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
       { source, sourceId: skill.id, skillId: skill.id, actorType }
@@ -97,44 +99,7 @@ function instrumentAttack(
     actorType === 'summon' ? damageAt : Math.min(damageAt, context.effectiveEnd)
   );
 
-  if (data.instrument === 'Drum' && runtime.traits.has(TRAIT.SYNCOPATE)) {
-    const delayedAt = damageAt + profileValue(runtime, TRAIT.SYNCOPATE, 'initialDelay', 3);
-    const delayedWave = runtime.traitDamage.SyncopateDelayedWave;
-    runtime.addDamage(
-      {
-        id: 'Syncopate delayed wave',
-        name: 'Syncopate',
-        weapon: 'Utility',
-        blade: false
-      },
-      delayedAt,
-      {
-        coefficient: delayedWave.coefficient,
-        hits: delayedWave.hits,
-        source: 'Trait',
-        actorType,
-        weaponStrengthProfileId: 'nonweapon.unequipped'
-      },
-      {
-        source: 'Trait',
-        sourceId: TRAIT.SYNCOPATE,
-        skillId: skill.id,
-        actorType,
-        name: 'Syncopate — delayed wave'
-      }
-    );
-    runtime.addEvent({
-      type: 'control',
-      at: delayedAt,
-      skillId: skill.id,
-      skillName: 'Syncopate — delayed wave',
-      controlKind: 'daze',
-      source,
-      sourceId: TRAIT.SYNCOPATE,
-      actorType
-    });
-    runtime.addTraitProc('Syncopate', delayedAt, skill.name, 'delayed drum wave');
-  }
+  if (data.instrument === 'Drum') scheduleSyncopateDrumWave(context, skill, damageAt, source, actorType);
 
   if (runtime.traits.has(TRAIT.LIFE_OF_THE_PARTY) && data.instrument === 'Lute') {
     const quickness = profileEffect(runtime, TRAIT.LIFE_OF_THE_PARTY, 'boon', 0);

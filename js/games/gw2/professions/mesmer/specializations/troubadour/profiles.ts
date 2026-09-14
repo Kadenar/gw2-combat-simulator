@@ -5,11 +5,8 @@ import {
   defineTraitProfile as trait
 } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
-import {
-  MESMER_TROUBADOUR_INSTRUMENTS,
-  MESMER_TROUBADOUR_TRAIT_DAMAGE
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+import { SYNCOPATE_PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
@@ -196,28 +193,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.raconteur, 'Raconteur', {
     effects: [{ type: 'boon', boon: 'protection', duration: 3, stacks: 1 }]
   }),
-  {
-    ...mesmerTraitDamageProfile(
-      TROUBADOUR_BALANCE_PROFILE_IDS.syncopate,
-      'Syncopate',
-      MESMER_TROUBADOUR_TRAIT_DAMAGE.Syncopate
-    ),
-    initialDelay: 3,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Immediate wave',
-        coefficient: MESMER_TROUBADOUR_TRAIT_DAMAGE.Syncopate.coefficient,
-        hits: MESMER_TROUBADOUR_TRAIT_DAMAGE.Syncopate.hits
-      },
-      {
-        type: 'strike',
-        name: 'Delayed wave',
-        coefficient: MESMER_TROUBADOUR_TRAIT_DAMAGE.SyncopateDelayedWave.coefficient,
-        hits: MESMER_TROUBADOUR_TRAIT_DAMAGE.SyncopateDelayedWave.hits
-      }
-    ]
-  },
+  SYNCOPATE_PROFILE,
   {
     id: TROUBADOUR_BALANCE_PROFILE_IDS.crescendo,
     parentId: ID.CRESCENDO,

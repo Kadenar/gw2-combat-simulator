@@ -67,7 +67,7 @@ import {
   TROUBADOUR_INSTRUMENT_PROFILE_IDS,
   mesmerProfiledInstrument
 } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/definitions.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS as INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
   MESMER_TROUBADOUR_SKILL_MECHANICS,
