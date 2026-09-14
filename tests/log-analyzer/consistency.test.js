@@ -25,6 +25,36 @@ const fixtureSkill = {
 };
 const catalog = { skills: [fixtureSkill] };
 
+test('the shared timeline orders simultaneous instant stunbreaks before blocked casts', () => {
+  // Only tied inputs are reordered; a later stunbreak must retain its recorded overlap.
+  const stunbreak = { ...fixtureSkill, id: 2000, name: 'Stunbreak', castTimeMs: 0, stunbreak: true };
+  for (const offset of [0, 1]) {
+    for (const reverse of [false, true]) {
+      const actions = [
+        { start: 0, end: 400, skill: fixtureSkill },
+        { start: offset, end: offset, skill: stunbreak }
+      ];
+      if (reverse) actions.reverse();
+      const rotation = buildReplayTimeline(
+        actions.map((action, eventIndex) => ({
+          ...action,
+          eventIndex,
+          name: action.skill.name,
+          skillId: action.skill.id
+        })),
+        0,
+        null,
+        { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+      );
+      assert.deepEqual(
+        rotation.map(({ name }) => name),
+        offset === 0 ? ['Stunbreak', 'Mind Stab'] : ['Mind Stab', 'Stunbreak']
+      );
+      assert.equal(rotation.find(({ name }) => name === 'Stunbreak').offset, offset || undefined);
+    }
+  }
+});
+
 test('both importers place tied weapon casts on the correct side of an attunement transition', () => {
   // Source order cannot put a Fire cast in Earth, but a distinct earlier swap must retain that invalid input.
   for (const skillId of [5508, 5695]) {
@@ -472,6 +502,50 @@ test('the shared timeline subtracts accumulated simulator cast overruns from a l
     { name: '__wait', waitMs: 40 },
     { name: 'Mind Stab', skillId: 1_000 }
   ]);
+});
+
+test('skipped aftercast jitter does not shift subsequent source timing targets', () => {
+  const retained = {
+    ...fixtureSkill,
+    castTimeMs: 600,
+    interruptCommitMs: 400,
+    retainsCastLockoutAfterInterrupt: true
+  };
+  const swap = { id: -3, name: 'Swap Weapons', castTimeMs: 0 };
+  const origin = 137;
+  const targets = [];
+  // Skip the local 40 ms gap, then recover it at the next wait instead of moving the source clock.
+  const rotation = buildReplayTimeline(
+    [
+      { start: 0, end: 600, skill: retained },
+      { start: 400, end: 400, skill: swap },
+      { start: 640, end: 1040, skill: fixtureSkill },
+      { start: 1120, end: 1520, skill: fixtureSkill }
+    ].map((action, eventIndex) => ({
+      ...action,
+      start: action.start + origin,
+      end: action.end + origin,
+      eventIndex,
+      name: action.skill.name,
+      skillId: action.skill.id
+    })),
+    origin,
+    null,
+    {
+      alignWaitsToSimulatorTiming: true,
+      onReplayWait: (_, targetMs) => targets.push(targetMs),
+      commandFor: ({ name, skillId, eventIndex }) => ({
+        name,
+        skillId,
+        ...(eventIndex === 0 ? { interruptMs: 400 } : {})
+      })
+    }
+  );
+  assert.deepEqual(targets, [1120]);
+  assert.deepEqual(
+    rotation.filter(({ name }) => name === '__wait').map(({ waitMs }) => waitMs),
+    [120]
+  );
 });
 
 test('runtime alignment preserves mechanic-owned occupied intervals without adding waits', () => {

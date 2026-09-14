@@ -21,6 +21,8 @@ export interface ReplayTimelineAction {
 }
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
+  /** Reports projected wait ends relative to the replay origin without attaching metadata to commands. */
+  readonly onReplayWait?: (commandIndex: number, targetMs: number) => void;
   readonly timingToleranceMs?: number;
   /** Positive source gaps at or below this threshold are timing jitter, not intentional simulator idle time. */
   readonly minimumWaitMs?: number;
@@ -78,6 +80,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     // Source-specific replay semantics may need a deterministic priority for
     // simultaneous actions while retaining the original event order otherwise.
     if (left.type === 'action' && right.type === 'action') {
+      // A simultaneous instant stunbreak must release the cast lane before a cast-time skill tries to use it.
+      const stunbreakOrder =
+        Number(right.action.skill?.stunbreak === true && referenceCastTimeMs(right.action.skill) === 0) -
+        Number(left.action.skill?.stunbreak === true && referenceCastTimeMs(left.action.skill) === 0);
+      if (stunbreakOrder !== 0) return stunbreakOrder;
       const actionOrder = policy.compareSimultaneousActions?.(left.action, right.action) ?? 0;
       if (actionOrder !== 0) return actionOrder;
     }
@@ -148,10 +155,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   let projectedInstantReadyAt = origin;
   let projectedIndependentReadyAt = origin;
   let projectedPreviousCastStart: number | null = null;
-  let ignoredSourceIdleMs = 0;
 
   const appendWait = (waitMs: number): void => {
     if (!(waitMs > 0)) return;
+    if (alignWaitsToSimulatorTiming) {
+      policy.onReplayWait?.(rotation.length, Math.max(projectedTime, projectedReservedEnd) + waitMs - origin);
+    }
+
     rotation.push({ name: '__wait', waitMs });
     if (alignWaitsToSimulatorTiming) {
       projectedTime = Math.max(projectedTime, projectedReservedEnd) + waitMs;
@@ -161,7 +171,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const appendPendingAftercastWait = (): void => {
     if (!pendingAftercast) return;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeWaitMs(pendingAftercast.until - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+      ? quantizeWaitMs(pendingAftercast.until - Math.max(projectedTime, projectedReservedEnd))
       : quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo);
     appendWait(waitMs);
     pendingAftercast = null;
@@ -173,7 +183,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeWaitMs(nextActionAt - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+      ? quantizeWaitMs(nextActionAt - Math.max(projectedTime, projectedReservedEnd))
       : quantizeWaitMs(observedGapMs);
     const aftercastWaitMs = pendingAftercast
       ? quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo)
@@ -182,8 +192,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
     if (alignWaitsToSimulatorTiming) {
+      // Skip local jitter without shifting later source timestamps; the next eligible wait absorbs the difference.
       if (!retainedTimingJitter && waitMs > minimumWaitMs) appendWait(waitMs);
-      else ignoredSourceIdleMs += waitMs;
     } else {
       appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0));
     }
@@ -220,7 +230,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       else appendObservedIdle(at);
       appendWait(
         alignWaitsToSimulatorTiming
-          ? quantizeWaitMs(actionReplayEnd - ignoredSourceIdleMs - Math.max(projectedTime, projectedReservedEnd))
+          ? quantizeWaitMs(actionReplayEnd - Math.max(projectedTime, projectedReservedEnd))
           : quantizeWaitMs(actionReplayEnd - at)
       );
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);

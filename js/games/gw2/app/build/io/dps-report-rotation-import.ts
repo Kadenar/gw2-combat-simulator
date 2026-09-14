@@ -4,7 +4,11 @@ import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
+import {
+  alignImportedRotationWaits,
+  appLogReconstructionOptions,
+  selectActiveBuildLogPlayer
+} from '#gw2/app/build/io/log-rotation-import.js';
 
 export interface ImportedDpsReportRotation {
   readonly rotation: readonly RotationCommand[];
@@ -27,15 +31,24 @@ export async function readDpsReportRotationData(
   const rotationModule = await import('#gw2/integrations/logs/dps-report/rotation/index.js');
   const players = rotationModule.detectDpsReportRotationPlayers(report);
   const selected = selectActiveBuildLogPlayer(players, app, 'report', 'Select a single-player report.');
+  const reconstructionOptions = appLogReconstructionOptions(app);
+  const waitTargets = new Map<number, number>();
   const result = rotationModule.reconstructDpsReportRotation(report, app.activeCatalog, {
     playerIndex: selected.index,
-    ...appLogReconstructionOptions(app)
+    ...reconstructionOptions,
+    onReplayWait: (index, targetMs) => waitTargets.set(index, targetMs)
   });
+  // Normalize before replay so correction uses exactly the commands the application will simulate.
+  const aligned = alignImportedRotationWaits(
+    normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
+    waitTargets,
+    app,
+    reconstructionOptions.professionConfig
+  );
   return {
-    // Reconstruction still emits the interchange shape; normalize before it reaches application state.
-    rotation: normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
+    rotation: aligned.rotation,
     actionCount: result.actions.length,
-    warnings: result.warnings,
+    warnings: [...new Set([...result.warnings, ...aligned.warnings])],
     playerLabel: `${selected.character} (${selected.account || `player ${selected.index}`})`,
     phaseLabel: result.phase.name
   };

@@ -292,6 +292,9 @@ export interface SchedulerRunResult<TProfessionState extends object = SchedulerR
   readonly stream: ScheduledEventStream;
 }
 
+/** Import-time adjustment of ordinary waits after the scheduler has reached their serial start. */
+export type SchedulerWaitDuration = (commandIndex: number, startMs: number, durationMs: number) => number;
+
 export interface Scheduler<TProfessionState extends object = SchedulerRecord> {
   readonly state: SchedulerState<TProfessionState>;
   readonly events: SimulationEvent[];
@@ -299,7 +302,7 @@ export interface Scheduler<TProfessionState extends object = SchedulerRecord> {
   readonly context: SchedulerContext<TProfessionState>;
   cast(command: CastCommand, commandIndex?: number): boolean;
   advanceTo(at: number): void;
-  run(rotation: readonly unknown[]): SchedulerRunResult<TProfessionState>;
+  run(rotation: readonly unknown[], adjustWaitDuration?: SchedulerWaitDuration): SchedulerRunResult<TProfessionState>;
 }
 
 export interface CastCommand {

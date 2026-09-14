@@ -45,6 +45,8 @@ import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 const TIMING_TOLERANCE_MS = 50;
 
 export interface EvtcRotationOptions {
+  /** Import-only wait targets; never serialized into reconstructed rotations. */
+  readonly onReplayWait?: (commandIndex: number, targetMs: number) => void;
   readonly playerAddress?: bigint | string;
   readonly includeCombatStart?: boolean;
   readonly selectedSkillNames?: readonly string[];
@@ -214,9 +216,11 @@ function replayActionEnd(action: ResolvedAction): number {
 function buildRotation(
   actions: readonly ResolvedAction[],
   origin: number,
-  combatStart: number | null
+  combatStart: number | null,
+  onReplayWait?: EvtcRotationOptions['onReplayWait']
 ): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
+    onReplayWait,
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeGw2ActionTimingMs,
     // Serial replay can finish overlapping casts late; later waits must subtract time already spent in those casts.
@@ -364,7 +368,7 @@ export function reconstructWithProfile(
     timelineOriginMs: origin,
     combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
     actions,
-    rotation: buildRotation(resolved, origin, combatStart),
+    rotation: buildRotation(resolved, origin, combatStart, options.onReplayWait),
     warnings: [...warningList(actions), ...missingInterruptCommitWarnings(professionContext, resolved)]
   };
 }
