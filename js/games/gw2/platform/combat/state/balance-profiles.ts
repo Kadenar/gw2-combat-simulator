@@ -100,3 +100,15 @@ export function balanceProfileValue(
 export function balanceProfileValueFromContext(context: unknown, id: SkillId, field: string, fallback: number): number {
   return balanceProfileValue(balanceProfileFromContext(context, id), field, fallback);
 }
+
+/** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */
+export function procChanceFromContext(
+  context: { readonly config?: { readonly procRateOverrides?: Readonly<Record<string, number>> } },
+  id: SkillId,
+  fallback = 0.33
+): number {
+  const profile = balanceProfileFromContext(context, id);
+  const declaration = profile?.procRate;
+  const override = declaration && context.config?.procRateOverrides?.[declaration.id];
+  return override ?? balanceProfileValue(profile, declaration?.field ?? 'procChance', fallback);
+}

@@ -251,6 +251,13 @@ export interface Skill extends CatalogSkill {
  */
 export interface BalanceProfile extends CatalogSkill {
   readonly profileKind: 'trait' | 'mechanic' | 'skill-variant';
+  /** Opts this profession-owned proc into shared build overrides without changing its trigger or effects. */
+  readonly procRate?: {
+    readonly id: string;
+    readonly traitId: SkillId;
+    readonly field: string;
+    readonly opportunity: string;
+  };
   /** Summon inheritance baselines, fractions, and attribute caps. */
   readonly baseAttribute?: number;
   readonly inheritanceRatio?: number;

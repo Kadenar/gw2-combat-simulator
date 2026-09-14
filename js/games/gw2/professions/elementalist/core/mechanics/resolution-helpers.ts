@@ -18,13 +18,15 @@ export function applyElementalistDerivedCondition(
     sourceId = event.skillId ?? event.sourceId,
     condition,
     stacks,
-    duration
+    duration,
+    procCount
   }: {
     readonly source: string;
     readonly sourceId?: Gw2EventDraft['sourceId'];
     readonly condition: string;
     readonly stacks: number;
     readonly duration: number;
+    readonly procCount?: number;
   }
 ): void {
   const application: Gw2EventDraft = {
@@ -38,7 +40,8 @@ export function applyElementalistDerivedCondition(
     condition,
     stacks,
     duration,
-    triggeredBy: elementalistSourceSkill(event)
+    triggeredBy: elementalistSourceSkill(event),
+    ...(procCount == null ? {} : { metadata: { procCount } })
   };
   context.applyCondition(application);
 }

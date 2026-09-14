@@ -87,6 +87,12 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [{ type: 'buff', kind: 'explosive-temper', stacks: 1, duration: 10 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.shrapnel, 'Shrapnel', {
+    procRate: {
+      id: 'engineer.shrapnel',
+      traitId: TRAIT.SHRAPNEL,
+      field: 'procChance',
+      opportunity: 'eligible explosion hit'
+    },
     procChance: 0.33,
     effects: [
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6 },
@@ -94,6 +100,12 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     ]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.serratedSteel, 'Serrated Steel', {
+    procRate: {
+      id: 'engineer.serrated-steel',
+      traitId: TRAIT.SERRATED_STEEL,
+      field: 'procChance',
+      opportunity: 'eligible critical hit'
+    },
     procChance: 0.33,
     durationMultiplier: 0.33,
     effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]

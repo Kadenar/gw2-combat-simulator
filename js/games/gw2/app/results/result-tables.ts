@@ -16,6 +16,7 @@ export interface SkillBreakdownRow {
   readonly strike: number;
   readonly condition: number;
   readonly hits: number;
+  readonly procCount: number;
   readonly casts: number;
   readonly total: number;
   readonly dps: number;
@@ -213,11 +214,16 @@ export function skillDamageKeyByIdentity(result: Gw2ResolverResult): Map<string,
 export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow[] {
   // Attribute resolved proc damage to its trigger, retaining actual tick damage and the report's DPS window.
   const damageByTrigger = new Map<string, Map<string, number>>();
+  const procCounts = new Map<string, number>();
   const keyByIdentity = skillDamageKeyByIdentity(result);
   for (const event of result.resolvedEvents || []) {
-    if (!event.triggeredBy || (event.type !== 'damage' && event.type !== 'condition')) continue;
+    if (event.type !== 'damage' && event.type !== 'condition') continue;
     const key = keyByIdentity.get(skillDamageIdentityKey({ ...event, parentSkill: event.parentSkillName }));
     if (!key) continue;
+    // Producers mark one primary effect per activation, so ticks and multi-effect procs cannot inflate Hits.
+    const count = Number(event.metadata?.procCount || 0);
+    if (count > 0) procCounts.set(key, (procCounts.get(key) || 0) + count);
+    if (!event.triggeredBy) continue;
     const sources = damageByTrigger.get(key) || new Map<string, number>();
     sources.set(event.triggeredBy, (sources.get(event.triggeredBy) || 0) + Number(event.damage || 0));
     damageByTrigger.set(key, sources);
@@ -304,7 +310,8 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
         group: entry.group,
         strike: entry.strike,
         condition: entry.condition,
-        hits: entry.hits,
+        hits: entry.hits || procCounts.get(skillBreakdownKey(entry.group, entry.name)) || 0,
+        procCount: procCounts.get(skillBreakdownKey(entry.group, entry.name)) || 0,
         total,
         dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
         procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name)) || [])].map(

@@ -8,6 +8,7 @@ import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';
 import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2Config extends SchedulerRecord {
+  readonly procRateOverrides?: Readonly<Record<string, number>>;
   readonly transitionDelays?: Partial<TransitionDelays>;
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];

@@ -152,6 +152,12 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     ]
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.barbedPrecision, 'Barbed Precision', {
+    procRate: {
+      id: 'necromancer.barbed-precision',
+      traitId: TRAIT.BARBED_PRECISION,
+      field: 'criticalChance',
+      opportunity: 'eligible critical hit'
+    },
     criticalChance: 0.33,
     effects: [
       {

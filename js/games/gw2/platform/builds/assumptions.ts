@@ -1,3 +1,4 @@
+import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type {
   ProfessionAssumptionControl,
   ProfessionAssumptionControlInput,
@@ -158,6 +159,11 @@ export function normalizeCommonAssumptions(
   defaults: Record<string, unknown> = {}
 ): Record<string, unknown> {
   const result = { ...assumptions };
+  // Clone saved overrides so independently loaded builds never share mutable proc settings.
+  if (Object.hasOwn(assumptions, 'procRateOverrides')) {
+    result.procRateOverrides = normalizeProcRateOverrides(assumptions.procRateOverrides);
+  }
+
   for (const [key, fallback] of Object.entries(COMMON_BOOLEAN_ASSUMPTION_DEFAULTS)) {
     const hasSavedValue = Object.hasOwn(assumptions, key);
     if (!hasSavedValue && !Object.hasOwn(defaults, key)) continue;
@@ -175,6 +181,12 @@ export function validateCommonAssumptions(assumptions: unknown): string[] {
   }
 
   const errors: string[] = [];
+  try {
+    normalizeProcRateOverrides((assumptions as Record<string, unknown>).procRateOverrides);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+
   for (const key of Object.keys(COMMON_BOOLEAN_ASSUMPTION_DEFAULTS)) {
     if (Object.hasOwn(assumptions, key) && typeof (assumptions as Record<string, unknown>)[key] !== 'boolean') {
       errors.push(`assumptions.${key} must be boolean.`);

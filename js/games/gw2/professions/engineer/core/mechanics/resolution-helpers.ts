@@ -35,6 +35,7 @@ interface QueueBuffOptions {
 }
 
 interface ApplyConditionOptions {
+  readonly procCount?: number;
   readonly name: string;
   readonly condition: string;
   readonly stacks: number;
@@ -154,7 +155,8 @@ export function applyEngineerDerivedCondition(
     sourceId = event.skillId,
     actorType = 'player',
     ownerActorType,
-    metadata = {}
+    metadata = {},
+    procCount
   }: ApplyConditionOptions
 ): void {
   const application: Gw2EventDraft = {
@@ -175,7 +177,9 @@ export function applyEngineerDerivedCondition(
     // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     triggeredBy: event.skillName,
-    ...metadata
+    ...metadata,
+    // The primary condition records activations separately from its stack count and optional sibling effects.
+    ...(procCount == null ? {} : { metadata: { procCount } })
   };
   // Apply resolver-derived conditions immediately so downstream reactions at
   // this timestamp observe the newly inserted condition state.

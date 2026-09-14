@@ -1,5 +1,6 @@
 /** Owns imperative Core Engineer Firearms critical-hit and condition reactions. */
 import {
+  procChanceFromContext,
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
@@ -34,8 +35,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     id: 'engineer.core.serrated-steel',
     actorTypes: ['player', 'effect', 'unknown'],
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
-    chanceOnCriticalHit: (context) =>
-      balanceProfileValueFromContext(context, PROFILE.serratedSteel, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.serratedSteel),
     expectedProgress: {
       get: (context) => Number(procState(context).serratedSteelProgress || 0),
       set: (context, progress) => {
@@ -47,6 +47,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     handler(context, event, _details, application) {
       applyEngineerDerivedCondition(context, event, {
         name: 'Serrated Steel',
+        procCount: application.quantity,
         condition: 'Bleeding',
         stacks:
           balanceProfileValue(

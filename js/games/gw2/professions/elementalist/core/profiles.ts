@@ -268,6 +268,12 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   ),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.empoweringFlame, 'Empowering Flame', { attributeBonus: 150 }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.burningPrecision, 'Burning Precision', {
+    procRate: {
+      id: 'elementalist.burning-precision',
+      traitId: TRAIT.BURNING_PRECISION,
+      field: 'procChance',
+      opportunity: 'eligible critical hit'
+    },
     procChance: 0.33,
     internalCooldown: 5,
     durationMultiplier: 20,

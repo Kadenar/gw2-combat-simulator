@@ -4,6 +4,7 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);
 const AUDIENCE_FIELDS = new Set(['recipients', 'affectsSelf', 'maximumRecipients', 'eligibleCompanionIds']);
 const METADATA_VALUE_KINDS = Object.freeze({
+  procCount: 'number',
   activeSpirits: 'number',
   affinityOnHit: 'boolean',
   anguishConditionalDamage: 'boolean',

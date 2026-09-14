@@ -1,5 +1,9 @@
 /** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  procChanceFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -23,8 +27,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   order: 0,
   materialization: 'threshold',
   actorTypes: ['player', 'summon', 'unknown'],
-  chanceOnCriticalHit: (context) =>
-    Number(balanceProfileFromContext(context, PROFILE.barbedPrecision)?.criticalChance ?? 0.33),
+  chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.barbedPrecision),
   randomStream: 'necromancer.barbed-precision',
   when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
   expectedProgress: {
@@ -40,6 +43,7 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
       const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.barbedPrecision), 'condition');
       applyTraitCondition(context, event, {
         name: 'Barbed Precision',
+        procCount: 1,
         traitId: TRAIT.BARBED_PRECISION,
         condition: String(effect?.condition || 'Bleeding'),
         stacks: Number(effect?.stacks ?? 1),

@@ -5,6 +5,7 @@ import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 interface TraitConditionDefinition {
+  readonly procCount?: number;
   readonly name: string;
   readonly traitId: SkillId;
   readonly condition: string;
@@ -32,7 +33,7 @@ interface TraitVulnerabilityDefinition {
 export function applyTraitCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  { name, traitId, condition, stacks = 1, duration }: TraitConditionDefinition
+  { name, traitId, condition, stacks = 1, duration, procCount }: TraitConditionDefinition
 ): void {
   const application: Gw2EventDraft = {
     type: 'condition',
@@ -45,7 +46,8 @@ export function applyTraitCondition(
     source: 'Trait',
     sourceId: traitId,
     actorType: 'effect',
-    triggeredBy: event.skillName
+    triggeredBy: event.skillName,
+    ...(procCount == null ? {} : { metadata: { procCount } })
   };
   // Resolver-derived trait conditions enter canonical state immediately so
   // chained condition reactions preserve their causal timestamp ordering.

@@ -1,5 +1,9 @@
 /** Owns imperative Arms trait effects while the public dispatcher preserves base-effect ordering. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  procChanceFromContext
+} from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -183,7 +187,7 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
     event,
     {
       id: 'warrior.core.bloodlust',
-      chanceOnCriticalHit: Number(profile?.procChance ?? 0.33),
+      chanceOnCriticalHit: procChanceFromContext(context, PROFILE.bloodlust),
       randomStream: 'warrior.bloodlust'
     },
     tracker,
@@ -200,8 +204,11 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
     sourceId: TRAIT.BLOODLUST,
     actorType: 'effect',
     skillId: event.skillId,
-    skillName: event.skillName,
+    // Give the proc its own analysis row while retaining the attack that triggered it.
+    skillName: 'Bloodlust',
+    triggeredBy: event.skillName,
     name: 'Bloodlust — Bleeding',
+    metadata: { procCount: bleeding },
     condition: 'Bleeding',
     stacks: bleeding * Number(effect?.stacks ?? 1),
     duration: Number(effect?.duration ?? 3)

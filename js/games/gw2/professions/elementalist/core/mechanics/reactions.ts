@@ -1,5 +1,6 @@
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
 import {
+  procChanceFromContext,
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -185,8 +186,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.burning-precision',
-    chanceOnCriticalHit: (context) =>
-      balanceProfileValueFromContext(context, PROFILE.burningPrecision, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.burningPrecision),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
     expectedProgress: {
       get: (context) => professionCoreState(context).burningPrecisionProgress,

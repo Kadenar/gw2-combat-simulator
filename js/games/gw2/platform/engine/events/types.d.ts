@@ -24,6 +24,8 @@ export interface ResolvedEffectAudience {
 
 /** Closed vocabulary of subsystem-owned annotations preserved as one nested object. */
 export interface EffectMetadata {
+  /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
+  readonly procCount?: number;
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
   readonly anguishConditionalDamage?: boolean;

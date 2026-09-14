@@ -13,6 +13,7 @@ import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
+import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 
 /** Keep baseline and modifier comparisons stable while preserving all other simulation settings. */
 export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {
@@ -116,6 +117,8 @@ export function createGw2SimulationConfig({
 
   return {
     patchId: app.patchId || 'current',
+    // Carry build-local rates into workers and every comparison/optimization request.
+    procRateOverrides: normalizeProcRateOverrides(assumptions.procRateOverrides),
     // Snapshot browser-level timing preferences for workers, comparisons, and optimizer candidates.
     transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
     specialization,

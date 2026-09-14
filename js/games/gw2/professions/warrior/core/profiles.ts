@@ -150,6 +150,12 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodlust, 'Bloodlust', {
+    procRate: {
+      id: 'warrior.bloodlust',
+      traitId: TRAIT.BLOODLUST,
+      field: 'procChance',
+      opportunity: 'eligible critical hit'
+    },
     procChance: 0.33,
     effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
   }),

@@ -258,6 +258,7 @@ export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2Res
   );
   applyElementalistDerivedCondition(context, event, {
     source: 'Burning Precision',
+    procCount: 1,
     sourceId: TRAIT.BURNING_PRECISION,
     condition: String(burning?.condition || 'Burning'),
     stacks: Number(burning?.stacks ?? 1),

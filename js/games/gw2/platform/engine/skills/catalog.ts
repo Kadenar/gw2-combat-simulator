@@ -707,13 +707,14 @@ export function createCanonicalCatalog({
     }
   }
 
-  const profiles = balanceProfiles.map((profile) =>
+  const profiles: readonly BalanceProfile[] = balanceProfiles.map((profile) =>
     Object.freeze({
       ...profile,
       effects: Object.freeze((profile.effects || []).map(normalizeEffect))
     })
   );
   const profileIds = new Set<SkillId>();
+  const procRateIds = new Set<string>();
   for (const profile of profiles) {
     if (profileIds.has(profile.id)) {
       throw new TypeError(`Duplicate balance profile id: ${String(profile.id)}`);
@@ -726,6 +727,26 @@ export function createCanonicalCatalog({
 
     if (!profile.profileKind) {
       throw new TypeError(`Balance profile ${String(profile.id)} has no profileKind.`);
+    }
+
+    // Proc declarations compose with Core/elite catalogs and must not silently share an override key.
+    if (profile.procRate) {
+      const { id, traitId, field, opportunity } = profile.procRate;
+      const chance = profile[field];
+      if (
+        !/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/.test(id) ||
+        procRateIds.has(id) ||
+        !traits.some((trait) => trait.id === traitId) ||
+        !opportunity ||
+        typeof chance !== 'number' ||
+        !Number.isFinite(chance) ||
+        chance < 0 ||
+        chance > 1
+      ) {
+        throw new TypeError(`Balance profile ${String(profile.id)} has an invalid or duplicate procRate declaration.`);
+      }
+
+      procRateIds.add(id);
     }
   }
 

@@ -1,5 +1,6 @@
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 import {
+  procChanceFromContext,
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
@@ -196,16 +197,12 @@ export function applyShrapnel(
   if (!explosion || !hasTrait(context, TRAIT.SHRAPNEL)) return;
   const state = procState(context);
   let triggered = false;
+  const chance = procChanceFromContext(context, PROFILE.shrapnel);
   if (context.random?.stochastic === true) {
-    triggered = context.random.roll(
-      balanceProfileValueFromContext(context, PROFILE.shrapnel, 'procChance', 0.33),
-      'engineer.shrapnel'
-    );
+    triggered = context.random.roll(chance, 'engineer.shrapnel');
   } else {
     // Deterministic mode accumulates proc chance and spends one full proc at the threshold.
-    state.shrapnelProgress =
-      Number(state.shrapnelProgress || 0) +
-      balanceProfileValueFromContext(context, PROFILE.shrapnel, 'procChance', 0.33);
+    state.shrapnelProgress = Number(state.shrapnelProgress || 0) + chance;
     triggered = state.shrapnelProgress >= 1;
   }
 
@@ -217,6 +214,8 @@ export function applyShrapnel(
   applyEngineerDerivedCondition(context, event, {
     name: 'Shrapnel',
     condition: 'Bleeding',
+    // Count the activation on its primary effect only; the Crippled effect is part of the same proc.
+    procCount: 1,
     stacks: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'), 'stacks', 1),
     duration: balanceProfileValue(
       balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'),

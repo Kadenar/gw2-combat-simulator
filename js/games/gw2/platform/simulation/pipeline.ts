@@ -1,4 +1,5 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { rotationApm } from '#gw2/platform/simulation/rotation-apm.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
@@ -84,6 +85,11 @@ function simulateDeclarativeGw2Pass({
   observationPolicy
 }: Gw2DeclarativeSimulationOptions & { output?: 'detailed' | 'score' }): Gw2SimulationResult | Gw2SimulationScore {
   const started = onPhase ? performance.now() : 0;
+  // Validate the headless entry path too, before any scheduler or resolver consumes custom probabilities.
+  if (config.procRateOverrides !== undefined) {
+    config = { ...config, procRateOverrides: normalizeProcRateOverrides(config.procRateOverrides) };
+  }
+
   // All professions share immutable membership facts within this pass, including scheduler refinement passes.
   if (config.selectedSkills != null) {
     config = { ...config, selectedSkills: prepareSelectedSkillLoadout(config.selectedSkills) };

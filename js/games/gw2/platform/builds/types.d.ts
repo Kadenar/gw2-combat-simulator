@@ -9,6 +9,7 @@ export type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
 /** Build assumptions shared by profession definitions and application adapters. */
 export interface ProfessionBuildAssumptions extends SchedulerRecord {
+  procRateOverrides?: Record<string, number>;
   might?: number;
   fury?: boolean;
   quickness?: boolean;

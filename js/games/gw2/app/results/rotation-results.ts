@@ -156,7 +156,15 @@ export const SKILL_COLS: readonly ResultColumn[] = [
   { key: 'average', label: 'Avg/Cast', numeric: true },
   { key: 'dct', label: 'DCT', numeric: true },
   { key: 'casts', label: 'Casts', numeric: true },
-  { key: 'hits', label: 'Hits', numeric: true },
+  {
+    key: 'hits',
+    label: 'Hits',
+    numeric: true,
+    title: (_value, row) =>
+      Number(row.procCount) > 0 && !Number(row.strike)
+        ? 'Proc activations, excluding condition ticks and stack counts.'
+        : 'Strike hits.'
+  },
   {
     key: 'critChance',
     label: 'Exp. Crit %',
