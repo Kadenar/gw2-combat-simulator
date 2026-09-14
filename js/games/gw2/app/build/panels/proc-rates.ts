@@ -27,7 +27,7 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
   summary.className = 'perma-group-label';
   summary.textContent = 'Proc rate overrides';
   const controls = document.createElement('div');
-  controls.className = 'perma-group-content';
+  controls.className = 'perma-group-content proc-rate-controls';
   const description = document.createElement('p');
   description.textContent = 'Custom chance per eligible trigger. Leave blank to use the default.';
   controls.append(description);
@@ -53,6 +53,9 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
     reset.textContent = 'Reset';
     reset.setAttribute('aria-label', `Reset ${profile.name} proc rate`);
     reset.disabled = overrides[declaration.id] === undefined;
+    // Keep each trait's input and reset action together on its own row.
+    const row = document.createElement('div');
+    row.className = 'proc-rate-control';
     const update = (): void => {
       if (!input.checkValidity()) {
         input.reportValidity();
@@ -74,7 +77,8 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
       update();
     });
     label.append(input);
-    controls.append(label, reset);
+    row.append(label, reset);
+    controls.append(row);
   }
 
   section.append(summary, controls);
