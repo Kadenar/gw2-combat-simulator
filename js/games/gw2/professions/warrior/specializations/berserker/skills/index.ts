@@ -282,6 +282,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
       }
     ],
     castTimeMs: 800,
+    interruptCommitMs: 760,
     adrenalineGain: 30,
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.

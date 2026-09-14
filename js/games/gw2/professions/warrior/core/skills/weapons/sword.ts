@@ -50,11 +50,10 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.GASH]: {
-    castTimeMs: 520,
+    // Gash occupies the default cast lane for 560 ms, including retained aftercast.
+    castTimeMs: 560,
     dualWieldCastTimeMs: 360,
-    // Gash lands its strike at 280ms, but the activation is not safely
-    // interruptible until 380ms and still retains its remaining cast lane.
-    interruptCommitMs: 380,
+    interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
       {

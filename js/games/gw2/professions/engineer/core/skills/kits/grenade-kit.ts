@@ -150,8 +150,8 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
   },
   [ID.GRENADE_BARRAGE]: {
     castTimeMs: 680,
-    // The shortest successful EVTC cast is 642 ms; its six impacts finish before the shortened aftercast.
-    interruptCommitMs: 640,
+    // The supplied condi Holosmith EVTC lands all six impacts during a 560 ms cast.
+    interruptCommitMs: 560,
     cooldown: 25,
     effects: [
       {

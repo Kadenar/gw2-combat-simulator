@@ -41,6 +41,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.BLOOD_IS_POWER]: {
     castTimeMs: 880,
     // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
+    interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
       {

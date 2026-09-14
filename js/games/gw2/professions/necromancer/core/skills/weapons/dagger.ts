@@ -76,8 +76,9 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.ENFEEBLING_BLOOD]: {
     castTimeMs: 840,
-    // The ground packet launches by 638 ms and must survive a weapon-swap cancel until its delayed impact.
-    interruptCommitMs: 638,
+    // The ground packet commits before its delayed impact; cancelling retains the full cast lockout.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',

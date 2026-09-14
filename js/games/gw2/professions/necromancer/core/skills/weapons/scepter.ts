@@ -5,6 +5,9 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GRASPING_DEAD]: {
     castTimeMs: 880,
+    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+    interruptCommitMs: 680,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',

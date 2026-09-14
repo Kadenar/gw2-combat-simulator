@@ -341,6 +341,41 @@ test('Necromancer multi-hit skills use their configured packet timings', () => {
   assert.deepEqual(offsets(wanderlust, 'Wanderlust', ID.WANDERLUST, 'condition'), [2760, 3760, 4760, 5760]);
 });
 
+// Committed projectiles remain scheduled and resolve even after an interrupted cast releases the shroud bar.
+test('Tainted Bolts retains committed strike and Torment packets after interruption and shroud exit', () => {
+  const skill = necromancerCatalog.skillsById.get(ID.TAINTED_BOLTS);
+  const run = (cast) =>
+    simulate(
+      'Harbinger',
+      ['Harbinger Shroud', cast, 'Exit Harbinger Shroud'],
+      {
+        initialResource: 100
+      },
+      observationTail(1000)
+    );
+  const full = run('Tainted Bolts');
+  const interrupted = run({
+    type: 'cast',
+    skillId: ID.TAINTED_BOLTS,
+    interruptAfterMs: skill.interruptCommitMs
+  });
+  const packets = (result) =>
+    result.resolvedEvents
+      .filter((event) => event.skillId === ID.TAINTED_BOLTS && ['damage', 'condition'].includes(event.type))
+      .map(({ at, type, coefficient, condition, stacks }) => ({ at, type, coefficient, condition, stacks }));
+  assert.deepEqual(interrupted.warnings, []);
+  assert.deepEqual(packets(interrupted), packets(full));
+  const exit = interrupted.events.find(
+    (event) => event.type === 'action' && event.skillId === ID.EXIT_HARBINGER_SHROUD
+  );
+  for (const type of ['damage', 'condition']) {
+    assert.ok(
+      packets(interrupted).some((event) => event.type === type && event.at > exit.at),
+      type
+    );
+  }
+});
+
 test('Wanderlust Vulnerability affects only its final two field hits', () => {
   const result = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
     initialResource: 100,

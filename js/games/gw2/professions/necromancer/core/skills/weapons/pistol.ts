@@ -30,6 +30,8 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.WEEPING_SHOTS]: {
     castTimeMs: 840,
+    // Interruption preserves landed packets and cancels the remaining shots.
+    interruptMode: 'per-packet',
     comboFinishers: [
       {
         ownerId: 'necromancer',

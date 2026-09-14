@@ -77,6 +77,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     dhuumfireDuration: 1,
     castTimeMs: 600,
+    // Committed bolts retain their strike and Torment packets even if the remaining cast is interrupted.
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
@@ -85,7 +87,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           { atMs: 600, coefficient: 0.6 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -94,7 +97,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           { atMs: 600, condition: 'Torment', stacks: 1, duration: 3 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ],
     type: 'Profession',
@@ -146,8 +150,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.DEVOURING_CUT]: {
     castTimeMs: 480,
-    // Devouring Cut lands at its 400 ms commit frame while retaining a 480 ms default cast.
-    interruptCommitMs: 400,
+    // Devouring Cut commits at its impact frame before the default cast finishes.
+    interruptCommitMs: 280,
     blightCost: 5,
     effects: [{ type: 'strike', coefficient: 1, hits: 1 }],
     type: 'Profession',
