@@ -127,6 +127,24 @@ export function applyWillbenderVirtueActivationTraits(
     });
   }
 
+  // Holy Reckoning grants Fury only for Rushing Justice's activation; its Might belongs to later virtue triggers.
+  if (context.skill.id === ID.RUSHING_JUSTICE && hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
+    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon', 1);
+    emitSkillBuff(context, {
+      at,
+      source: 'guardian',
+      sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+      actorType: 'player',
+      skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+      skillName: 'Holy Reckoning',
+      name: 'Holy Reckoning — Fury',
+      kind: 'fury',
+      stacks: Number(fury?.stacks ?? 1),
+      duration: gw2SchedulerBoonDuration(context, context.skill, 'fury', Number(fury?.duration ?? 3)),
+      audience: { recipients: 'self' as const }
+    });
+  }
+
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
     const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon');
     emitSkillBuff(context, {
@@ -342,6 +360,25 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
   const triggerVirtue = (virtue: GuardianVirtue, burningDuration?: number, justiceActive?: boolean): void => {
     state.triggeredVirtueEffects += 1;
     emitLethalTempo(context, at, sourceSkill);
+
+    // Grant one party Might packet for the completed virtue trigger, never for the activation that opened its window.
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
+      const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon');
+      emitSkillBuff(context, {
+        at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+        actorType: 'player',
+        skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+        skillName: 'Holy Reckoning',
+        name: 'Holy Reckoning — Might',
+        kind: 'might',
+        stacks: Number(might?.stacks ?? 1),
+        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'might', Number(might?.duration ?? 15)),
+        audience: { recipients: 'party' as const },
+        triggeredBy: sourceSkill
+      });
+    }
 
     let cooldownReduction = 0;
     if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {

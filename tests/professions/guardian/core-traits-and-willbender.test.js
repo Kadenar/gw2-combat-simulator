@@ -585,6 +585,39 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   );
 });
 
+test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on virtue triggers', () => {
+  // One run covers the activation/trigger boundary and the party audience without depending on a saved rotation.
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Rushing Justice', 'Whirling Wrath'],
+    config: {
+      ...config,
+      specialization: 'Willbender',
+      primaryWeapon: 'Greatsword',
+      allies: { count: 4 },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HOLY_RECKONING]
+    }
+  });
+  const activation = result.events.find((event) => event.type === 'guardian.willbender-virtue-activated');
+  const triggers = result.events.filter((event) => event.type === 'guardian.willbender-virtue-triggered');
+  const fury = result.events.filter((event) => event.type === 'buff' && event.name === 'Holy Reckoning — Fury');
+  const might = result.events.filter((event) => event.type === 'buff' && event.name === 'Holy Reckoning — Might');
+
+  assert.deepEqual(
+    fury.map((event) => [event.at, event.kind, event.stacks, event.duration, event.audience?.recipients]),
+    [[activation.at, 'fury', 1, 3, 'self']]
+  );
+  assert.equal(might.length, triggers.length);
+  assert.deepEqual(
+    might.map((event) => [event.at, event.kind, event.stacks, event.duration, event.audience?.recipients]),
+    triggers.map((event) => [event.at, 'might', 1, 15, 'party'])
+  );
+  assert.equal(
+    might.every((event) => event.resolvedAudience.alliedPlayerCount === 4),
+    true
+  );
+});
+
 test('Willbender Flames use a separate stochastic weapon-strength activation from their virtue', () => {
   const result = simulateGw2({
     profession: guardianProfession,

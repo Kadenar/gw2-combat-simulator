@@ -9,6 +9,7 @@ export const WILLBENDER_BALANCE_PROFILE_IDS = Object.freeze({
   lethalTempo: TRAIT.LETHAL_TEMPO,
   tyrantsMomentum: TRAIT.TYRANTS_MOMENTUM,
   restorativeVirtues: TRAIT.RESTORATIVE_VIRTUES,
+  holyReckoning: TRAIT.HOLY_RECKONING,
   phoenixProtocol: TRAIT.PHOENIX_PROTOCOL,
   searingPact: TRAIT.SEARING_PACT
 });
@@ -65,6 +66,12 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(WILLBENDER_BALANCE_PROFILE_IDS.restorativeVirtues, 'Restorative Virtues', {
     rechargeReduction: 0.25,
     effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
+  }),
+  trait(WILLBENDER_BALANCE_PROFILE_IDS.holyReckoning, 'Holy Reckoning', {
+    effects: [
+      { type: 'boon', boon: 'might', stacks: 1, duration: 15, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'fury', stacks: 1, duration: 3, audience: { recipients: 'self' } }
+    ]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.phoenixProtocol, 'Phoenix Protocol', {
     effects: [
