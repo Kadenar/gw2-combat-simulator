@@ -18,7 +18,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_SWING]: {
-    castTimeMs: 360,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -28,7 +28,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.HAMMER_BASH]: {
-    castTimeMs: 360,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
@@ -38,7 +38,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.SYMBOL_OF_PROTECTION]: {
-    castTimeMs: 360,
+    castTimeMs: 520,
     comboFields: [
       {
         ownerId: 'guardian',
