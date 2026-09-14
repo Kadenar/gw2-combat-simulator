@@ -1,106 +1,92 @@
 # Shared condition ticks
 
-Status: implemented with the user-specified whole-second clock, 40ms buffering, and buffer-time stat sampling.
+Status: implemented with half-even millisecond durations and stat sampling at whole-second pulses and exact expiry.
 
 ## Timing contract
 
-All conditions and owners follow one global one-second cadence anchored at simulation time zero. The first condition
-activates queued processing; it does not change that phase. Empty target windows stop unnecessary queued work, and later
-applications still join the same whole-second cadence. No configurable phase offset is currently exposed.
+Boon and condition durations round half-even to whole milliseconds after duration bonuses. Fixed-duration grants still
+round; generic profession buffs retain authored durations. Natural expiration is application time plus rounded duration,
+with no 40ms ceiling or further snapping. Application timestamps retain canonical microsecond precision.
 
-Each application samples its condition owner's current stats and modifiers on each global 40ms step, capped by natural
-expiry. A target-wide queued sampler accumulates unrounded contributions while mutable combat state is current;
-whole-second payouts consume those stored values without querying stats again. Existing natural durations still round
-upward to 40ms. Integer buffer-step counts preserve the full lifetime without rounding split contributions twice.
+All condition owners use encounter-second pulses at 1s, 2s, 3s, and so on. First positive player damage sets the DPS
+reporting window without shifting these pulses. Empty target windows stop unnecessary queued work; subsequent
+applications resume on the same encounter clock.
 
-A buff gained halfway through a second affects only subsequent samples. A modifier that expires before payout still
-contributes to the samples taken while it was active. Environment conditions sample target Vulnerability on the same
-40ms grid. All owners sample a whole-second boundary before any condition packet at that timestamp changes health.
+Each condition application samples its owner's current stats and modifiers at a pulse for the elapsed interval since its
+last sample. If it expires between pulses, it samples the final partial interval at that exact expiration time. That
+remainder stays buffered until the next whole-second payout. Changes after expiry cannot alter stored damage. There are
+no intermediate 40ms samples or 1ms simulation steps. Expiry sampling affects only applications expiring at that
+timestamp, so one application's expiry cannot change another application's sampling schedule.
 
 For a two-second burn applied at 0.960s with a constant rate of 100 damage per stack-second:
 
-| Packet time | Buffered time | Damage |
-| ----------- | ------------- | ------ |
-| 1.000s      | 0.040s        | 4      |
-| 2.000s      | 1.000s        | 100    |
-| 3.000s      | 0.960s        | 96     |
+| Packet time | Sample time | Elapsed time | Damage |
+| ----------- | ----------- | ------------ | ------ |
+| 1.000s      | 1.000s      | 0.040s       | 4      |
+| 2.000s      | 2.000s      | 1.000s       | 100    |
+| 3.000s      | 2.960s      | 0.960s       | 96     |
 
-Natural expiry at 2.960s stops buffering, but the remaining damage waits until 3.000s. Expiry and observation cutoffs
-never create extra packets. An off-grid application at 0.730s with a rounded 0.520s duration buffers seven steps
-(0.280s) by 1.000s and six more (0.240s) before expiry, preserving the complete lifetime.
+A duration of 1.01s applied at 0.375s expires at 1.385s. Its first sample covers 0.625s at 1s, and its expiry sample
+covers the remaining 0.385s, payable at 2s. Stopping observation at 1.5s omits that future payout; no endpoint packet is
+invented.
 
-Configured golem conditions use the same whole-second cadence and separate environment totals. Explicit Combat Start
-gates damage without shifting the clock, including when combat starts between whole seconds.
+## Rounding, ownership, and attribution
 
-## Packets, ownership, and attribution
+Each application buffers `rate * elapsedSeconds * stacks` without rounding, including partial expiry damage. At each
+global pulse, all contributions for the same condition and owner are summed, regardless of source skill, and half-even
+rounding runs once. One stack at 29.5 damage per second deals 30; two stacks deal 59 whether applied together or by
+different skills. Distinct conditions and independent owners retain separate packets.
 
-The global timer determines timestamps. Damage resolves in separate packets for each canonical condition and condition
-owner. Player skills, explicitly player-owned effects, and all summons share player rounding by default. Ranger pets and
-mech packets carry `independentConditionOwner: true` and instead group by their concrete `summonOwner`. An independent
-summon without an owner ID remains isolated per application. Unclassified actors also remain isolated. Environment
-conditions retain separate totals and never enter player reactions.
+Application damage, elapsed stack-seconds, and reporting attribution stay together. Owner/condition groups retain
+application references and allocate the rounded packet total using floors plus the largest fractional remainders; stable
+application order breaks ties. Those integer reporting shares do not add a second damage rounding. Groups commit
+atomically before dispatching one `condition-tick.resolved` reaction. Detailed and score modes use identical arithmetic.
+Cancelled and fully settled applications leave the working group; stale queued wakes are inert.
 
-Pet preparation and derived pet conditions preserve their independent ownership. Mech emission and derived conditions
-retain the concrete `engineer.mech` identity and the independent marker. Other summons can retain companion IDs for boon
-audiences and lifetimes without creating separate condition rounding groups. This includes minions, spirits, elementals,
-Thieves Guild, clones, and phantasms.
-
-Each application retains its own lifetime and buffer. Condition queries resolve the owner independently of the strike
-actor: non-pet/non-mech summons use player attributes, Might, equipment condition bonuses, trait modifiers, and duration
-bonuses. This includes Thieves Guild conditions, clones, and minions. Pet and mech conditions retain independent
-scaling. The scheduler and resolver use the same duration query. Each 40ms sample reads current owner stats; payout only
-rounds and attributes accumulated contributions. Original summon metadata remains on the application for reporting and
-lifetime tracking. Strike queries retain the summon actor and its independent strike profile. Skill IDs and display
-labels do not determine condition owners.
-
-Applications remain the canonical lifetime and reporting records. Owner groups reference them rather than duplicating
-mutable duration state. Each application retains its sampling cursor, buffered step count, and sum of sampled damage
-rates. A group retains one effective queued wake, at an integer second on the global cadence. Settled and forcibly
-removed applications leave the working group, so repeated wake scans do not grow with encounter history. A wake token
-makes obsolete queued events inert.
-
-At a pulse, the resolver sums each contributor's buffered unrounded damage and calls the existing half-even rounding
-function once. Stats and modifiers are not resampled during payout. Integer reporting shares use floors followed by
-largest fractional remainders; stable application order breaks ties. Two equal 29.5 contributions therefore commit 59
-damage, attributed as 30 and 29.
-
-All application shares, condition totals, skill breakdowns, and target damage are committed before dispatching one
-`condition-tick.resolved` reaction. The reaction result contains the packet total and its contributions. No production
-profession currently subscribes to this stage. Detailed and score modes use identical arithmetic; only reporting arrays
-and rows are optional. Existing application damage ticks continue to drive health milestones and Necromancer scheduler
-feedback, with no second packet-history format or saved-preset migration.
+Player skills, player-owned effects, and ordinary summons use player condition attributes, equipment, traits, and Might.
+Ranger pets and mechs marked `independentConditionOwner` retain their own condition profiles and owner groups. Original
+source metadata remains available for attribution. Configured permanent target conditions use the same pulse clock,
+sample target Vulnerability at each pulse, and retain separate environment totals without player reactions.
 
 ## Ordering and boundaries
 
-Shared buffer and payout wakes use default priority and do not inherit an application's causal order. Normal causally
-tagged skill and state events at the same timestamp precede them. Explicit priorities retain their meaning; untagged
-ties follow stable insertion order. Distinct owner/condition packets are individually atomic and retain deterministic
-queue ordering.
+At a canonical timestamp the resolver runs Sample, Settle, then Ordinary. All owners sample before any condition payout
+changes health. Settlement commits condition damage before same-time strikes and buffs, regardless of ordinary priority.
+A same-time ordinary buff affects the next eligible sample. An application created on a pulse owes no preceding time.
 
-A packet exactly at Combat Start is eligible. Earlier wakes advance settlement without damage or reactions, so there is
-no later catch-up hit. Stopping observation between pulses produces no endpoint packet, even if natural expiry has
-already passed. The last contribution is visible only if its synchronized pulse is observed.
+Non-damage reactions emitted during settlement inherit Settle at that timestamp. Direct damage remains Ordinary; future
+events receive their normal phase. Priority, causal order, and insertion order break ties within a phase. Resolved
+queries expose only events whose handlers have already executed.
 
-The event loop checks death after a complete packet. Other condition packets at the lethal timestamp may finish, while
-subsequent independent attacks are rejected. Applications with `removedAt <= packetTime` contribute nothing and receive
-no invented final partial damage. Ranger pet-swap cancellation continues to work in detailed and score modes.
+Status windows remain half-open: active at application, inactive at expiry. This is independent of final accrual and its
+later payout. Forced removal discards pending damage; natural expiry retains its sampled remainder. Explicit Combat
+Start gates payouts, and expiry remainders sampled before Combat Start are discarded. Precombat whole-second wakes
+advance without creating catch-up damage. Environment samples ending at Combat Start are excluded.
 
-Direct damage events marked `damageKind: condition` remain direct packets. Confusion's configured activation-rate
-approximation and condition damage formulas are unchanged.
+The loop checks death after a complete packet. Other condition packets at the lethal timestamp may finish, while
+subsequent independent attacks are rejected. Application records continue to drive health milestones and Necromancer
+scheduler feedback. Direct damage events marked `damageKind: condition` retain direct packet semantics.
+
+## Reference and deliberate differences
+
+Duration rounding follows
+[gw2combat's effect duration calculation](https://github.com/Mk-Chan/gw2combat/blob/master/src/utils/effect_utils.hpp).
+Pulse/expiry sampling follows
+[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). The
+encounter-second clock matches its default zero condition-tick offset.
+
+The user explicitly requires one rounding for the complete owner/condition stack and conditions-before-strikes ordering.
+The inspected reference rounds each application group separately, and its public loop calls strike/effect application
+before condition settlement and cleans up expired effects afterward. This project retains its existing
+Sample/Settle/Ordinary phases and half-open status queries. These differences, authored skill timing, and
+profession/balance data mean this is not a claim of complete simulator parity.
 
 ## Validation
 
-`tests/platform/gw2/shared-condition-ticks.test.js` covers combined rounding, attribution, owner isolation, the supplied
-cross-condition timeline, empty clock gaps, 40ms buffers, short durations, observation boundaries, permanent conditions,
-buffer-time stats, transient modifiers, environment sampling, summon ownership, atomic packets, precombat settlement,
-causal/priority/insertion ordering, lethal packets, and cancellation/stale wakes. Existing condition formula/duration
-and Ranger removal tests cover their original contracts using synchronized pulses.
+Focused tests cover millisecond half ties, post-bonus rounding, fixed durations, off-grid expiry, partial intervals,
+combined stack rounding across skills and expiry remainders, pulse and expiry stat changes, owner profiles, stale wakes,
+precombat gating, observations, health thresholds, and condition settlement before same-time strikes. Boon tests cover
+scheduler/resolver agreement, stacking, extensions, caps, immutable input, and zero-duration grants.
 
-Run `npm run check` for repository validation and `npm run benchmarks:compare` for supported preset comparisons.
-Numerical preset regressions retain the maximum 1% relative DPS tolerance; expected values must not be silently rebased
-to accommodate changes or warnings.
-
-The player-condition inheritance correction updates two stored Mesmer simulation baselines: Chronomancer Condition
-(Staff-Scepter/Pistol), 46,841 to 47,422 DPS; and Mirage Condition (Staff-Axe/Torch) - Dune Cloak, 41,030 to 41,889 DPS.
-These changes record the corrected owner-stat behavior, not new in-game measurements. Other preset baselines and the 1%
-regression tolerance are unchanged.
+Run `npm run build:modules`, the Node test suite, and `npm run benchmarks:compare`. Saved-preset comparisons retain the
+maximum 1% relative DPS tolerance without rebasing manifests or suppressing warnings.

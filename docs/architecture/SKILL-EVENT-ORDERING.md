@@ -35,14 +35,21 @@ between simultaneous effects.
 
 The resolver processes canonical events in this order:
 
-1. `at`, ascending;
-2. `priority`, ascending;
-3. finite `causalOrder`, falling back to `eventOrder` when `causalOrder` is absent, ascending (untagged/nonfinite
+1. canonical integer microsecond timestamp, ascending;
+2. internal phase: Sample, Settle, then Ordinary;
+3. `priority`, ascending;
+4. finite `causalOrder`, falling back to `eventOrder` when `causalOrder` is absent, ascending (untagged/nonfinite
    ordering metadata sorts after finite values); and
-4. stable insertion order when the preceding fields tie.
+5. stable insertion order when the preceding fields tie.
 
 A missing priority is treated as `0`. Lower numbers run first, so `-10` runs before `0`, and `0` runs before `10`.
-Priority only changes the order of events with the same timestamp.
+Priority only changes the order of events with the same timestamp and phase. Authors cannot override phases.
+
+Public events retain seconds, rounded to the nearest microsecond before emission and resolver ingress. Integer keys make
+arithmetic aliases such as `0.56 + 0.04` and `0.6` equal without merging adjacent microseconds. Nonfinite or unsafe
+timestamps are rejected. This is numerical normalization, not a change to authored strike grids or projectile delays.
+Observation cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation
+tail.
 
 ```text
 at=1.000, priority=-10
@@ -115,19 +122,32 @@ any remaining tie.
 
 ### Shared condition pulses
 
-All conditions follow a target-wide one-second clock anchored at zero, including across empty target windows.
-Condition/owner groups enqueue default-priority wakes without inheriting the applying event's causal order, so ordinary
-causally tagged skill events at that timestamp precede them. Explicit nondefault priorities still order before or after
-the wakes. Untagged events at equal timestamp and priority retain insertion order: a preloaded untagged state event
-precedes a subsequently queued wake, while a later inserted untagged event follows it. The queue's comparison policy is
-unchanged.
+All conditions follow encounter-second pulses at 1s, 2s, and so on, independently of first damage. Sample reads all
+owners at whole-second pulses and exact natural expirations. Settle commits condition payouts and their same-time
+derived state. Ordinary then runs strikes, direct condition-kind damage, and ordinary state events. A negative ordinary
+priority cannot precede settlement. An eligible condition payout takes precedence over a first strike at the same
+timestamp and establishes first damage.
+
+Non-damage events emitted during settlement inherit Settle only at that timestamp; future work receives its normal
+phase. Direct damage remains Ordinary. Enqueueing work in the past or in an earlier phase at the current timestamp
+throws with the source and time. A bounded same-time chain prevents runaway reactions. Within each phase, existing
+priority and causal ordering remain unchanged.
 
 Each owner/condition packet commits all contributions before its tick reaction and the event loop's death check.
 Distinct groups remain separately ordered, including simultaneous packets at the lethal timestamp. Applications at a
-pulse boundary contribute zero buffered time to the preceding interval. Global 40ms steps sample current stats and
-modifiers and buffer unrounded damage; whole-second packets commit the stored contributions. All owners sample the
-boundary before any condition payout changes target health. Natural expiry between pulses settles on the next
-synchronized pulse, not at expiry or the observation cutoff. See [Shared condition ticks](SHARED-CONDITION-TICKS.md).
+pulse boundary contribute zero buffered time to the preceding interval. Each application samples current stats and
+modifiers for its elapsed interval without rounding; whole-second packets sum all contributions for the same condition
+and owner, round half-even once, and commit those contributions. All owners sample the boundary before any condition
+payout changes target health. Natural expiry between pulses settles on the next synchronized pulse, not at expiry or the
+observation cutoff. See [Shared condition ticks](SHARED-CONDITION-TICKS.md).
+
+Status queries use canonical half-open windows: active at application, inactive at expiry. Accrual ending at expiry may
+still enter a later payout; forced removal discards pending damage separately from natural expiration.
+
+Standard boon and condition durations round half-even to whole milliseconds after duration bonuses, including
+fixed-duration grants. Boon extension amounts use the same rounding. Expiration is application time plus the final
+duration, without further snapping. Duration-stacking grants add to the remaining pool before its cap is applied;
+draining remaining time is not rounded again. Generic profession buffs retain their authored durations.
 
 Do not depend on incidental array order. Use:
 
@@ -143,9 +163,13 @@ resolver event queue.
 
 Tasks are ordered by:
 
-1. timestamp, treating values within the scheduler epsilon as simultaneous;
+1. canonical timestamp, with distinct microseconds remaining distinct;
 2. ascending priority; and
 3. insertion order.
+
+Task draining never executes beyond its canonical target. Continuous resource retry estimates round upward to the next
+representable ready instant. Mesmer direct clone grants, shatter refunds, and Bloodsong resource tasks use their actual
+completion timestamp; task ordering replaces the synthetic delays previously consumed early by epsilon draining.
 
 Current platform examples include core cast completion at `-100`, shared trigger materialization at `-60`, combo
 materialization at approximately `-59`, and a default of `0`. These are existing relative placements, not a public set

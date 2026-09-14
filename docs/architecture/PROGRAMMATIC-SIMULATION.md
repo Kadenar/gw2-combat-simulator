@@ -14,10 +14,28 @@ simulateGw2({ profession, rotation, config, observationPolicy });
 - `rotation` is an ordered array of skill casts and simulator commands.
 - `config` contains final attributes and combat assumptions.
 - `observationPolicy` is an optional caller-owned resolution boundary. It defaults to the entered rotation timeline.
+- `damageDiagnostics: true` optionally attaches `damageCalculation` to resolved damage events in detailed output. It
+  defaults to false and is an execution option, never a saved build setting.
 
 The call is synchronous and returns the complete simulation result by default. Optional `output: 'score'` returns only
 aggregate metrics and warnings for callers such as the optimizer; `onPhase` optionally reports phase timings. It does
 not read browser state, local storage, form controls, or equipment selections.
+
+Damage diagnostics retain pre-hit target health, owner stats, the effective coefficient multiplier, base damage,
+critical/outgoing factors, and unrounded damage with its rounding rule. Existing event fields retain activation,
+authored coefficient, critical chance, and resolved weapon strength. Flat and independent-summon formulas retain their
+actual inputs. Capture makes no additional modifier queries or random draws. The event log expands these facts when
+present, including the six-decimal simulation timestamp and effective phase; its usual activation grouping is not a
+complete execution trace.
+
+Score output suppresses diagnostics, including its detailed fallback. Scheduler feedback passes also omit capture. When
+a diagnostic run needs feedback (such as Necromancer), the final configuration and seed are replayed once to capture
+only the final detailed result. This adds one simulation pass for that diagnostic run; ordinary runs retain their
+existing pass count.
+
+Timeline seconds are canonicalized to the nearest microsecond. At a shared timestamp, condition sampling and payouts
+finish before ordinary strikes. Observation cutoffs include eligible work exactly at the cutoff and exclude later
+microseconds; use an explicit observation tail to include effects delayed beyond the final cast.
 
 ## Run a standalone script
 
