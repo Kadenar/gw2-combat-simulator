@@ -71,10 +71,12 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.SAVAGE_LEAP]: {
+    // Retain a field crossed during the leap even when it expires before landing.
     comboFinishers: [
       {
         ownerId: 'warrior',
         finisherType: 'Leap',
+        fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }
     ],

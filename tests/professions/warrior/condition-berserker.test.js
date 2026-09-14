@@ -16,6 +16,28 @@ function skill(id) {
   return warriorCatalog.skillsById.get(id);
 }
 
+test('Warrior leaps retain fire fields that expire during travel', async () => {
+  const raw = JSON.parse(await readFile(buildUrl, 'utf8'));
+  // Start inside the field and land after expiration; the aura still belongs to this leap.
+  for (const leap of ['Savage Leap', 'Sundering Leap']) {
+    const build = migrateWarriorBuild({
+      ...raw,
+      startingWeaponSet: 2,
+      rotation: ['Flames of War', { type: 'wait', durationMs: 4600 }, leap]
+    });
+    const app = { build, skillByName: warriorCatalog.skillsByName, attributeWeaponSet: 1 };
+    warriorAppAdapter.recalculate(app);
+    const result = warriorAppAdapter.runSimulation(app);
+    const aura = result.resolvedEvents.find((event) => event.type === 'aura' && event.skillName === leap);
+    assert.deepEqual(result.warnings, []);
+    assert.ok(aura);
+    assert.ok(aura.at > 5.52);
+    if (leap === 'Sundering Leap') {
+      assert.ok(result.procSteps.some((proc) => proc.skill === 'King of Fires' && proc.sourceSkill === leap));
+    }
+  }
+});
+
 test('default Condition Berserker uses the full training-golem health pool', async () => {
   const build = JSON.parse(await readFile(buildUrl, 'utf8'));
 

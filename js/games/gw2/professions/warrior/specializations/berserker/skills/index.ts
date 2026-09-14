@@ -4,10 +4,12 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     movementSkill: true,
+    // Retain a field crossed during the leap even when it expires before landing.
     comboFinishers: [
       {
         ownerId: 'warrior',
         finisherType: 'Leap',
+        fieldSelectionAnchor: 'castStart',
         ambiguousFieldSelection: 'oldest'
       }
     ],
