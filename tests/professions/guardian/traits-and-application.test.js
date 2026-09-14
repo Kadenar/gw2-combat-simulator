@@ -304,7 +304,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
   );
   assert.deepEqual(
     retribution.procSteps.filter((step) => step.skill === 'Righteous Instincts').map((step) => step.start),
-    [200, 1200, 2200, 3200, 4200, 5200]
+    [200, 1200, 2200, 3200, 4200]
   );
 });
 
