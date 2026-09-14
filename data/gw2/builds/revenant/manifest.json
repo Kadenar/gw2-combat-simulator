@@ -53,7 +53,7 @@
         "build": "data/gw2/builds/revenant/b-power-quick-herald-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-herald-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
-        "benchmarkDps": 31926,
+        "benchmarkDps": 31935,
         "referenceDps": 32073,
         "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem"
       },

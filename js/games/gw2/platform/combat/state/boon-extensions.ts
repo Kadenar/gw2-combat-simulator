@@ -7,6 +7,7 @@ import {
   recordBuffApplication,
   normalizeBoonDuration
 } from '#gw2/platform/combat/state/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
@@ -82,7 +83,8 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
       );
       applications.push({
         at: event.at,
-        expiresAt: canonicalTime(event.at + duration),
+        duration,
+        expiresAt: gw2EffectExpiresAt(event.at, duration),
         stacks: 1,
         extension: true,
         source: event.source,
@@ -120,7 +122,7 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
             {
               ...application,
               at: event.at,
-              expiresAt: canonicalTime(application.expiresAt + duration),
+              expiresAt: gw2EffectExpiresAt(application.expiresAt, duration),
               resolvedAudience: all ? application.resolvedAudience : SELF
             }
           ];

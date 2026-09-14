@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import { castRelativeEffectTimingScale, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
@@ -288,12 +288,12 @@ function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): v
         event.type === 'buff' &&
         event.kind === "familiar's-prowess" &&
         event.at <= at &&
-        event.at + Number(event.duration || 0) > at
+        gw2EffectExpiresAt(event.at, Number(event.duration || 0)) > at
     )
     .at(-1);
   // extend existing buff expiry rather than stacking a new one; hard cap is maximumDuration from now
   if (current) {
-    const expiry = current.at + Number(current.duration || 0);
+    const expiry = gw2EffectExpiresAt(current.at, Number(current.duration || 0));
     context.replaceEvent(current, {
       duration: Math.min(expiry + extension, at + maximumDuration) - current.at
     });

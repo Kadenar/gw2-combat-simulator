@@ -20,7 +20,7 @@
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
         "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
-        "benchmarkDps": 41752,
+        "benchmarkDps": 41771,
         "upToDate": true
       },
       {
@@ -123,7 +123,7 @@
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
-        "benchmarkDps": 33235,
+        "benchmarkDps": 33238,
         "upToDate": true
       },
       {

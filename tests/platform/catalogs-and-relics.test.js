@@ -604,7 +604,8 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   for (const at of [1.001, 2.002, 3.003, 4.004, 5.005]) trigger(at);
   assert.equal(relic.state.stacks, 5);
   assert.equal(relicConditionDurationBonus(context, 5.006), 0.15);
-  assert.equal(relicConditionDurationBonus(context, 13.005), 0);
+  assert.equal(relicConditionDurationBonus(context, 13.039999), 0.15);
+  assert.equal(relicConditionDurationBonus(context, 13.04), 0);
 });
 
 test('Aristocracy historical queries preserve combat and timestamp boundaries', () => {

@@ -15,6 +15,7 @@ import type {
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.
@@ -30,7 +31,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
 
   for (const event of context.events) {
     const kind = String(event.kind || '').toLowerCase();
-    const remaining = Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
+    const remaining = gw2EffectExpiresAt(Number(event.at), Number(event.duration || 0)) - context.effectiveEnd;
     if (
       event.type !== 'buff' ||
       !event.resolvedAudience?.includesSelf ||

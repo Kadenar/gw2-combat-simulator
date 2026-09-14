@@ -1,6 +1,7 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 /**
  * Finds the player strike whose resolved critical chance best represents a
@@ -55,7 +56,7 @@ export function timedBuffAt(
   }
 
   if (!latest) return null;
-  const remaining = Number(latest.at || 0) + Number(latest.duration || 0) - at;
+  const remaining = gw2EffectExpiresAt(Number(latest.at || 0), Number(latest.duration || 0)) - at;
   return remaining > 0 ? { remaining, event: latest } : null;
 }
 
@@ -70,7 +71,7 @@ export function timedBuffStacksAt(
   for (const event of result?.events || []) {
     if (Number(event.at || 0) > at) break;
     if (event.type !== 'buff' || event.kind !== kind) continue;
-    const expiresAt = Number(event.at || 0) + Number(event.duration || 0);
+    const expiresAt = gw2EffectExpiresAt(Number(event.at || 0), Number(event.duration || 0));
     if (expiresAt > at) stacks += Math.max(1, Number(event.stacks || 1));
   }
 

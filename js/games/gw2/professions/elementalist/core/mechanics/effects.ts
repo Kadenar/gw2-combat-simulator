@@ -13,6 +13,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
@@ -57,7 +58,7 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
       event.type === 'buff' &&
       String(event.kind || '').toLowerCase() === normalized &&
       event.at <= at &&
-      event.at + Number(event.duration || 0) > at
+      gw2EffectExpiresAt(event.at, Number(event.duration || 0)) > at
   );
 }
 

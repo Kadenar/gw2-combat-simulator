@@ -11,9 +11,10 @@ import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
-// Final applications round after bonuses, while fixed boons still round and generic positive buffs do not.
-test('boon grants round final durations half-even to milliseconds without moving application times', () => {
+// Final applications keep their rounded duration but expire on the next absolute 40 ms action tick.
+test('boon grants round durations to milliseconds and expirations up to action ticks', () => {
   const profession = defineProfession({
     id: 'boon-rounding',
     name: 'Boon rounding',
@@ -75,6 +76,8 @@ test('boon grants round final durations half-even to milliseconds without moving
     }
   }
 
+  assert.equal(gw2EffectExpiresAt(0.36, 1.002), 1.4);
+
   // Later modifiers still receive unrounded inputs, while scheduler availability already observes rounded lifetimes.
   const { context } = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
   for (const kind of ['might', 'fury']) {
@@ -89,14 +92,27 @@ test('boon grants round final durations half-even to milliseconds without moving
       stacks: 1
     });
     context.replaceEvent(event, { duration: event.duration * 4 });
-    assert.equal(context.hasBuff(kind, 3.374999), true);
-    assert.equal(context.hasBuff(kind, 3.375), false);
+    assert.equal(context.hasBuff(kind, 3.399999), true);
+    assert.equal(context.hasBuff(kind, 3.4), false);
     context.replaceEvent(event, { duration: 1.0015 });
-    assert.equal(context.hasBuff(kind, 1.376999), true);
-    assert.equal(context.hasBuff(kind, 1.377), false);
+    assert.equal(context.hasBuff(kind, 1.399999), true);
+    assert.equal(context.hasBuff(kind, 1.4), false);
     context.replaceEvent(event, { duration: 0.0005 });
     assert.equal(context.hasBuff(kind, 0.375), false);
   }
+
+  context.emit({
+    type: 'buff',
+    at: 0.36,
+    source: 'Player',
+    sourceId: 'modifier',
+    actorType: 'player',
+    kind: 'modifier-buff',
+    duration: 1.002,
+    stacks: 1
+  });
+  assert.equal(context.hasBuff('modifier-buff', 1.399999), true);
+  assert.equal(context.hasBuff('modifier-buff', 1.4), false);
 });
 
 // Raw streams and derived reactions must agree with scheduler rounding and never re-round a draining lifetime.
@@ -106,7 +122,7 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
     const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };
     const events = [
       Object.freeze({ ...owner, type: 'buff', at: 0.375, kind: 'might', duration: 1.01, stacks: 1 }),
-      ...[0.375, 1.384999, 1.385, 1.394999, 1.395].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
+      ...[0.375, 1.399999, 1.4, 1.439999, 1.44].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
     ];
     const result = resolveTestGw2Stream({
       output,
@@ -130,10 +146,10 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       }
     });
     assert.deepEqual(seen, [
-      [1.384999, 1, true],
-      [1.385, 1, true],
-      [1.394999, 1, true],
-      [1.395, 0, false]
+      [1.399999, 1, true],
+      [1.4, 1, true],
+      [1.439999, 1, true],
+      [1.44, 0, false]
     ]);
     assert.equal(events[0].duration, 1.01);
     if (output === 'detailed') {

@@ -39,7 +39,11 @@ import {
   gw2SigilSet,
   gw2StatsForWeaponSet
 } from '#gw2/platform/combat/query/runtime-rules.js';
-import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import {
+  gw2EffectExpiresAt,
+  projectCastRelativeEffectTimingMs,
+  summonQuicknessCastTimeMs
+} from '#gw2/platform/skills/timing.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -149,7 +153,11 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
       event.resolvedAudience?.includesSummons === true &&
       Number(event.stacks || 1) > 0 &&
       // Summon intensity boons use the same canonical, half-open lifetime as player and resolver queries.
-      isTimeInWindow(at, event.at, event.at + Math.max(0, Number(normalizeBoonDuration(event).duration || 0)))
+      isTimeInWindow(
+        at,
+        event.at,
+        gw2EffectExpiresAt(event.at, Math.max(0, Number(normalizeBoonDuration(event).duration || 0)))
+      )
   );
 }
 
@@ -332,7 +340,7 @@ export function createGw2SchedulerPolicy(
       return boonDuration(_context, _skill.id, String(boon), baseDuration);
     },
 
-    buffStacks(context, kind, at, configuredStacks, applications, defaultStacks) {
+    buffStacks(context, kind, at, configuredStacks, applications, _defaultStacks) {
       // Configured duration presence is fixed even with extensions; intensity stacks still need replay.
       if (configuredStacks > 0 && isDurationStackingBoon(kind)) return 1;
       if (context.eventsOfType('boon_extension').length > 0 && isStandardBoon(kind)) {
@@ -357,12 +365,11 @@ export function createGw2SchedulerPolicy(
 
       // Keep scheduler events unrounded for later effect modifiers; availability reads their final rounded lifetimes.
       if (!isDurationStackingBoon(kind)) {
-        if (!isStandardBoon(kind)) return defaultStacks;
         return (
           configuredStacks +
           applications.reduce((total, input) => {
             const event = normalizeBoonDuration(input);
-            return isTimeInWindow(at, event.at, event.at + Number(event.duration || 0))
+            return isTimeInWindow(at, event.at, gw2EffectExpiresAt(event.at, Number(event.duration || 0)))
               ? total + Number(event.stacks || 1)
               : total;
           }, 0)

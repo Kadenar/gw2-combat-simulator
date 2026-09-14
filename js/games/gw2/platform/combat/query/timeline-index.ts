@@ -11,6 +11,7 @@ import {
   remainingDurationStackSeconds,
   sumActiveStacks
 } from '#gw2/platform/combat/state/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -194,7 +195,7 @@ export function createGw2TimelineIndex({
       // Explicit zero durations stay empty, including grants rounded down to zero milliseconds.
       (event) =>
         buffMatchesAudience(event, audience, companionId) &&
-        isTimeInWindow(time, event.at, event.at + Number(event.duration ?? duration)),
+        isTimeInWindow(time, event.at, gw2EffectExpiresAt(event.at, Number(event.duration ?? duration))),
       (event) => Number(event.stacks || 1),
       maximum,
       (event) => canonicalTime(event.at) > time

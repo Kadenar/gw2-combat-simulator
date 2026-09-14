@@ -262,7 +262,8 @@ for (const [relic, skill, delay, bonus] of [
     const cast = result.events.find((event) => event.type === 'action' && event.skillName === skill);
     const proc = result.procSteps.find((step) => step.type === 'relic_proc');
     assert.equal(proc.start, Math.round((cast.endsAt + delay) * 1000));
-    assert.equal(proc.expiresAt, proc.start + 6000);
+    assert.equal(proc.expiresAt % 40, 0);
+    assert.ok(proc.expiresAt - proc.start >= 6000 && proc.expiresAt - proc.start < 6040);
     assert.ok(proc.start < result.combatStartTime * 1000);
     assert.equal(result.dpsStartTime, baseline.dpsStartTime);
   });

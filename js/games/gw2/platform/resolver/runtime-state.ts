@@ -2,6 +2,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
@@ -96,7 +97,7 @@ export function createGw2ResolverRuntimeState({
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
       const reducedBy = Number(cooldownReduction);
-      const expiry = Math.round(Number(expiresAt) * 1000);
+      const expiry = Math.round(gw2EffectExpiresAt(at, Number(expiresAt) - at) * 1000);
       this.procSteps.push({
         ri: -1,
         type: `${type}_proc`,

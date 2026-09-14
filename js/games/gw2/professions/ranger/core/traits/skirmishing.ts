@@ -22,6 +22,7 @@ import type {
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   RangerResolverContext,
@@ -38,7 +39,7 @@ export function applyRangerDodgeTraits(context: RangerCastContext, at = context.
   // instead of replacing it with another six-second overlapping window.
   const activeUntil = context.events
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
-    .reduce((maximum, event) => Math.max(maximum, event.at + Number(event.duration || 0)), at);
+    .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, Number(event.duration || 0))), at);
   emitSkillBuff(context, {
     at,
     source: 'Trait',

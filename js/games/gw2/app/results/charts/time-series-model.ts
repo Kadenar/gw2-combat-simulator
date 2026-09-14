@@ -3,6 +3,7 @@ import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/com
 import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
   buildBoonGeneration,
   type BoonGeneration,
@@ -238,7 +239,7 @@ export function buildChartSeries(
       name: effectName(event.kind, event),
       type: effectType(event.kind, event),
       start,
-      end: start + Number(event.duration) * 1000,
+      end: gw2EffectExpiresAt(Number(event.at || 0), Number(event.duration)) * 1000 - dpsStartMs,
       stacks: Number(event.stacks || 1),
       replacementGroup: replacementGroup(event.kind, event)
     });

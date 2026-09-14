@@ -4,7 +4,7 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady, isTimeInWindow } from '#kernel/core/clock.js';
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
@@ -14,6 +14,7 @@ import {
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type {
@@ -110,9 +111,9 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
     return null;
   }
 
-  if (event.at >= state.expiresAt - EPSILON) state.stacks = 0;
+  if (event.at >= state.expiresAt) state.stacks = 0;
   state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
-  state.expiresAt = event.at + ARISTOCRACY_DURATION;
+  state.expiresAt = gw2EffectExpiresAt(event.at, ARISTOCRACY_DURATION);
   state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
   const activation = {
     at: event.at,
@@ -179,7 +180,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
     const activation = state.activations[index];
     // A triggering application cannot benefit from its own same-time stack.
     if (activation.at >= at - EPSILON) continue;
-    return at < activation.expiresAt - EPSILON ? activation : null;
+    return isTimeInWindow(at, activation.at, activation.expiresAt) ? activation : null;
   }
 
   return null;
@@ -196,7 +197,7 @@ function recordTimedBuffProc(
   { duration, name, detail = null }: TimedBuffProcOptions
 ): void {
   const wasActive = Number(state.buffUntil || 0) > event.at;
-  state.buffUntil = Math.max(Number(state.buffUntil || 0), event.at + duration);
+  state.buffUntil = Math.max(Number(state.buffUntil || 0), gw2EffectExpiresAt(event.at, duration));
   // Preserve the authoritative effect deadline so the timeline can distinguish
   // a true expiry from a refresh that keeps the same relic window active.
   ctx.recordProc(
@@ -435,7 +436,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       const currentStacks = Number(state.stacks || 0);
       if (currentStacks < 3) {
         state.stacks = currentStacks + 1;
-        state.expiresAt = event.at + 10;
+        state.expiresAt = gw2EffectExpiresAt(event.at, 10);
         ctx.recordProc('relic', 'Bloodstone Volatility', event.at, event.skillName, `${state.stacks}/3 stacks`);
         return;
       }
@@ -443,7 +444,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       // The fourth qualifying blast consumes three Volatility stacks and activates Fervor.
       state.stacks = 0;
       state.expiresAt = 0;
-      state.buffUntil = event.at + 8;
+      state.buffUntil = gw2EffectExpiresAt(event.at, 8);
       ctx.recordProc(
         'relic',
         'Relic of Bloodstone',
@@ -518,7 +519,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       }
 
       state.readyAt = event.at + 8;
-      state.buffUntil = event.at + 4;
+      state.buffUntil = gw2EffectExpiresAt(event.at, 4);
       ctx.recordProc(
         'relic',
         'Relic of the Brawler',
@@ -817,7 +818,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
               )
             );
       state.buffFrom = impactAt;
-      state.buffUntil = impactAt + 4;
+      state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
       ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));
       applyCondition(ctx, {
         type: 'condition',
@@ -947,7 +948,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
 
       if (Number(state.expiresAt || 0) <= event.at) state.stacks = 0;
       state.stacks = Math.min(5, Number(state.stacks || 0) + 1);
-      state.expiresAt = event.at + 6;
+      state.expiresAt = gw2EffectExpiresAt(event.at, 6);
       ctx.recordProc(
         'relic',
         'Relic of the Thief',

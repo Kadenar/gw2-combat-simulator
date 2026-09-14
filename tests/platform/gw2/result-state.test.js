@@ -33,4 +33,8 @@ test('timed buff queries use the latest active application and sum live stacks',
   assert.equal(timedBuffStacksAt(result, 'tracked', 3), 5);
   assert.equal(timedBuffStacksAt(result, 'tracked', 4), 3);
   assert.equal(timedBuffAt(result, 'tracked', 7), null);
+
+  const rounded = { events: [{ type: 'buff', kind: 'tracked', at: 0.36, duration: 1.002, stacks: 1 }] };
+  assert.equal(timedBuffStacksAt(rounded, 'tracked', 1.399999), 1);
+  assert.equal(timedBuffStacksAt(rounded, 'tracked', 1.4), 0);
 });

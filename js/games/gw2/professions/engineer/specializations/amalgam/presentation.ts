@@ -15,6 +15,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
@@ -144,7 +145,7 @@ function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: n
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
     if (Number(event.at || 0) > at) break;
     if (event.type !== 'buff' || event.sourceId !== sourceId) continue;
-    remaining = Math.max(remaining, Number(event.at || 0) + Number(event.duration || 0) - at);
+    remaining = Math.max(remaining, gw2EffectExpiresAt(Number(event.at || 0), Number(event.duration || 0)) - at);
   }
 
   return Math.max(0, remaining);

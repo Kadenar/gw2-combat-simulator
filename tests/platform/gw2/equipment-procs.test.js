@@ -504,20 +504,20 @@ test('Relic of the Claw records activation and refresh procs', () => {
     })
   );
 
+  const procs = claw.procSteps.filter((proc) => proc.skill === 'Relic of the Claw');
   assert.deepEqual(
-    claw.procSteps
-      .filter((proc) => proc.skill === 'Relic of the Claw')
-      .map((proc) => ({
-        sourceSkill: proc.sourceSkill,
-        detail: proc.detail,
-        durationMs: proc.expiresAt - proc.start
-      })),
+    procs.map((proc) => ({ sourceSkill: proc.sourceSkill, detail: proc.detail })),
     [
-      { sourceSkill: 'Signet of Domination', detail: 'activated', durationMs: 8000 },
-      { sourceSkill: 'Diversion', detail: 'refreshed', durationMs: 8000 },
-      { sourceSkill: 'Signet of Domination', detail: 'activated', durationMs: 8000 }
+      { sourceSkill: 'Signet of Domination', detail: 'activated' },
+      { sourceSkill: 'Diversion', detail: 'refreshed' },
+      { sourceSkill: 'Signet of Domination', detail: 'activated' }
     ]
   );
+  // Timed modifier rows retain at least their authored duration and end on the absolute action grid.
+  for (const proc of procs) {
+    assert.equal(proc.expiresAt % 40, 0);
+    assert.ok(proc.expiresAt - proc.start >= 8000 && proc.expiresAt - proc.start < 8040);
+  }
 });
 
 test('Relic of Fireworks records activation and refresh procs', () => {

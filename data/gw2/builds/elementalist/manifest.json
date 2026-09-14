@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
         "dpsReportUrl": "https://dps.report/WFtY-20260414-233745_golem",
-        "benchmarkDps": 40480,
+        "benchmarkDps": 40492,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear"
       },
@@ -43,7 +43,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
         "dpsReportUrl": "https://dps.report/qcqm-20260813-042826_golem",
-        "benchmarkDps": 43057,
+        "benchmarkDps": 43058,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn"
       }
@@ -65,7 +65,7 @@
         "build": "data/gw2/builds/elementalist/b-power-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/mtOO-20260716-004900_golem",
-        "benchmarkDps": 42193,
+        "benchmarkDps": 42194,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-sword-dagger"
       },
@@ -83,7 +83,7 @@
         "build": "data/gw2/builds/elementalist/b-power-tempest-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-spear.json",
         "dpsReportUrl": "https://dps.report/Xrj5-20260415-121634_golem",
-        "benchmarkDps": 41922,
+        "benchmarkDps": 41951,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-spear"
       },
@@ -109,7 +109,7 @@
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-sword.json",
         "dpsReportUrl": "https://dps.report/4oEj-20260420-081807_golem",
-        "benchmarkDps": 32842,
+        "benchmarkDps": 32849,
         "upToDate": true
       },
       {
@@ -133,7 +133,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40771,
+        "benchmarkDps": 40773,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn"
       },
@@ -159,7 +159,7 @@
         "build": "data/gw2/builds/elementalist/b-inferno-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-tempest.json",
         "dpsReportUrl": "https://dps.report/j7LY-20260414-172451_golem",
-        "benchmarkDps": 41120,
+        "benchmarkDps": 41144,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/inferno-tempest-scepter-dagger"
       },
@@ -167,7 +167,7 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34693,
+        "benchmarkDps": 34700,
         "upToDate": false
       }
     ]
@@ -189,7 +189,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-fa.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/lvrB-20260416-105919_golem",
-        "benchmarkDps": 39355,
+        "benchmarkDps": 39140,
         "upToDate": true
       },
       {
@@ -224,7 +224,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 35458,
+        "benchmarkDps": 35461,
         "upToDate": true
       },
       {

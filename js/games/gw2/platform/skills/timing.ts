@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;
@@ -20,6 +21,13 @@ export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION
   if (!(value > 0)) return 0;
   // The epsilon keeps an exact boundary from rounding into the next action tick.
   return Math.ceil(value / interval - 1e-9) * interval;
+}
+
+/** Expires temporary effects on the next absolute action tick without changing their stored duration. */
+export function gw2EffectExpiresAt(at: number, duration: number): number {
+  const appliedAt = canonicalTime(at);
+  if (!(duration > 0)) return appliedAt;
+  return canonicalTime(quantizeGw2ActionDurationUp((appliedAt + duration) * 1000) / 1000);
 }
 
 /**

@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
   guardianTargetDisabled,
@@ -62,7 +63,7 @@ function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId
       event.type === 'buff' &&
       event.kind === kind &&
       event.at < context.time &&
-      event.at + Number(event.duration || 0) > context.time
+      gw2EffectExpiresAt(event.at, Number(event.duration || 0)) > context.time
   );
 }
 

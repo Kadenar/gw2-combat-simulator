@@ -20,7 +20,7 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
-        "benchmarkDps": 43114,
+        "benchmarkDps": 43141,
         "upToDate": true
       },
       {
@@ -50,7 +50,7 @@
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
-        "benchmarkDps": 44170,
+        "benchmarkDps": 44094,
         "upToDate": true
       }
     ]

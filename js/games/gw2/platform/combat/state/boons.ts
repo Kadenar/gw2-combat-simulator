@@ -1,4 +1,5 @@
 import { clamp, roundEffectDuration } from '#gw2/platform/combat/numeric.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
@@ -81,9 +82,12 @@ export function recordBuffApplication(
   if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
   const kind = String(event.kind || '').toLowerCase();
   const applications = boons.get(kind) || [];
+  const at = canonicalTime(event.at);
+  const duration = Math.max(0, Number(event.duration || 0));
   applications.push({
-    at: canonicalTime(event.at),
-    expiresAt: canonicalTime(event.at + Math.max(0, Number(event.duration || 0))),
+    at,
+    expiresAt: gw2EffectExpiresAt(at, duration),
+    ...(isDurationStackingBoon(kind) ? { duration } : {}),
     stacks: Math.max(1, Number(event.stacks || 1)),
     source: event.source,
     resolvedAudience: event.resolvedAudience
@@ -154,6 +158,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     remaining = normalize(
       Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks)
     );
+    if (remaining > 0) remaining = normalize(gw2EffectExpiresAt(appliedAt, remaining) - appliedAt);
     previousTime = appliedAt;
   }
 
