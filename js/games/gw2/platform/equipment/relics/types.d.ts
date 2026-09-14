@@ -3,7 +3,7 @@ import type { StableEventQueue } from '#kernel/events/queue.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
+import type { Gw2ProcStep, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 export interface Gw2RelicConfig extends SchedulerRecord {
@@ -50,7 +50,8 @@ export interface Gw2RelicContext extends SchedulerRecord {
     detail?: string,
     icon?: string,
     cooldownReduction?: number | null,
-    expiresAt?: number | null
+    expiresAt?: number | null,
+    effectState?: Gw2ProcStep['effectState']
   ): unknown;
   addBreakdown(name: string, amount: number, kind: string, hits?: unknown): unknown;
 }

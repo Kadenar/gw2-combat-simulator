@@ -1,4 +1,5 @@
 import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/app/results/charts/boon-generation.js';
 import {
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
@@ -397,6 +398,77 @@ function drawLineChart(
   };
 }
 
+/** Prioritizes useful boons and relics, keeping supplementary boons collapsed and absent support boons hidden. */
+function effectSummaryHtml(series: ChartSeries): string {
+  const priority = ['Might', 'Fury', 'Protection', 'Quickness', 'Alacrity'];
+  const summaries = series.effectSummaries || {};
+  const generation = series.boonGeneration || {};
+  const primaryBoons = priority.filter((name) => {
+    if (name !== 'Quickness' && name !== 'Alacrity') return true;
+    const boon = generation[name];
+    return boon && boon.self.generatedStackSeconds + boon.allies.generatedStackSeconds > 0;
+  });
+  const names = [...new Set([...Object.keys(summaries), ...Object.keys(generation)])];
+  const relics = names.filter((name) => summaries[name]?.relic).sort();
+  if (!Object.keys(generation).length && !relics.length) return '';
+  const supplementary = names.filter((name) => generation[name] && !priority.includes(name)).sort();
+  const duration = series.durationMs / 1000;
+  const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
+  const coverage = (average: number, intensity: boolean, maximum?: number): string =>
+    intensity ? `${average.toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} stacks` : percent(average);
+  const rows = (effects: readonly string[]): string =>
+    effects
+      .map((name) => {
+        const summary = summaries[name];
+        const boon = generation[name];
+        const intensity = Boolean(
+          boon?.intensityStacking || (summary?.relic && summary.maximumStacks != null) || name === 'Might'
+        );
+        const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === 'Might' ? 25 : undefined);
+        const own = boon?.self;
+        const generatedAverage = duration > 0 ? (own?.generatedStackSeconds || 0) / duration : 0;
+        const alliedAverage =
+          duration > 0 ? (boon?.allies.generatedStackSeconds || 0) / (duration * PRESENTATION_ALLIED_PLAYER_COUNT) : 0;
+        const mixed = boon && boon.selfOnly.generatedStackSeconds > 0 && boon.sharedWithSelf.generatedStackSeconds > 0;
+        const target = intensity ? maximum : 1;
+        const isBoon = Boolean(boon) || priority.includes(name);
+        const value = intensity
+          ? `${(summary?.averageStacks || 0).toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} stacks`
+          : percent(summary?.uptime || 0);
+        const stackDetails = intensity
+          ? `<small>Uptime: ${percent(summary?.uptime || 0)}${summary?.maximumStackUptime == null ? '' : ` · At ${maximum} stacks: ${percent(summary.maximumStackUptime)}`}</small>`
+          : '';
+        const overTarget =
+          isBoon && target != null && generatedAverage > target
+            ? `<small>+${coverage(generatedAverage - target, intensity)} over target</small>`
+            : '';
+        // Mixed sources and partial recipient caps reveal the ally difference without adding another table.
+        const alliedCoverage =
+          alliedAverage > 0 && Math.abs(alliedAverage - generatedAverage) > 1e-9
+            ? `<small>Allies: ${coverage(alliedAverage, intensity, maximum)}</small>`
+            : '';
+        return `<tr>
+      <th scope="row">${escapeHtml(name)}</th>
+      <td>${value}${stackDetails}</td>
+      <td>${isBoon ? (own?.generatedStackSeconds || 0).toFixed(2) : '—'}${mixed ? `<small>Self-only: ${boon.selfOnly.generatedStackSeconds.toFixed(2)} · Shared: ${boon.sharedWithSelf.generatedStackSeconds.toFixed(2)}</small>` : ''}</td>
+      <td>${isBoon ? coverage(generatedAverage, intensity, maximum) : '—'}${overTarget}${alliedCoverage}</td>
+    </tr>`;
+      })
+      .join('');
+  const table = (effects: readonly string[], label: string, showCaption = true): string => `
+    <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
+      <table>
+        ${showCaption ? `<caption>${label} · full benchmark (${duration.toFixed(2)}s)</caption>` : ''}
+        <thead><tr><th scope="col">Effect</th><th scope="col">Uptime / avg stacks</th><th scope="col">Generated stack-seconds</th><th scope="col">Generation coverage</th></tr></thead>
+        <tbody>${rows(effects)}</tbody>
+      </table>
+    </div>`;
+  return `<div class="effect-summary" data-role="effect-summary">
+    ${table([...primaryBoons, ...relics], 'Boons & relics')}
+    ${supplementary.length ? `<details data-role="supplementary-boons"><summary>Other boons (${supplementary.length})</summary>${table(supplementary, 'Other boons', false)}</details>` : ''}
+  </div>`;
+}
+
 function chartHtml(
   series: ChartSeries,
   options: ChartOptions,
@@ -481,6 +553,7 @@ function chartHtml(
           <canvas class="chart-canvas" data-role="effects-canvas"></canvas>
           <div class="chart-tooltip" data-role="effects-tooltip"></div>
         </div>
+        ${effectSummaryHtml(series)}
       </div>
     </div>
   </div>`;
@@ -512,6 +585,9 @@ export function mountTimeSeriesCharts(
     effects: series?.effects || {},
     effectTypes: series?.effectTypes || {},
     effectUnits: series?.effectUnits || {},
+    effectSummaries: series?.effectSummaries || {},
+    boonGeneration: series?.boonGeneration || {},
+    alliedPlayerCount: series?.alliedPlayerCount || 0,
     cumulativeDamage:
       series?.cumulativeDamage ||
       resolvedDps.map((point) => ({

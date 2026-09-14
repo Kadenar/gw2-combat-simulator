@@ -152,7 +152,9 @@ export function buildChartSeries(
     // Relic activation records are the authoritative source for temporary
     // relic state, including refreshes that extend the active window.
     timedProcEffect: (proc) =>
-      proc.type === 'relic_proc' && proc.expiresAt != null ? { name: proc.skill, type: 'buff' } : null,
+      proc.type === 'relic_proc' && (proc.expiresAt != null || proc.effectState != null)
+        ? { name: proc.skill, type: 'buff' }
+        : null,
     stackCaps: effectStackCaps(result, presentations),
     durationStackCaps: STANDARD_DURATION_CAPS,
     skillKey: (event) =>

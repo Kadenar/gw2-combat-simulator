@@ -6,6 +6,7 @@ import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type {
   CreateGw2ResolverRuntimeStateOptions,
   Gw2DamageBreakdownEntry,
+  Gw2ProcStep,
   Gw2ResolverEvent,
   Gw2ResolverRuntime
 } from '#gw2/platform/resolver/types.js';
@@ -85,7 +86,8 @@ export function createGw2ResolverRuntimeState({
       detail = '',
       icon = '',
       cooldownReduction: number | null = null,
-      expiresAt: number | null = null
+      expiresAt: number | null = null,
+      effectState?: Gw2ProcStep['effectState']
     ): void {
       // Proc rows are presentation only; combat effects have already been applied by the caller.
       if (!reporting) return;
@@ -104,6 +106,8 @@ export function createGw2ResolverRuntimeState({
         icon,
         ...(Number.isFinite(reducedBy) && reducedBy > 0 ? { cooldownReduction: reducedBy } : {}),
         ...(Number.isFinite(expiry) && expiry > start ? { expiresAt: expiry } : {}),
+        // Copy the numeric state so summaries never need to parse display text or inspect mutable relic state.
+        ...(effectState ? { effectState: { ...effectState } } : {}),
         start,
         end: start
       });

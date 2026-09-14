@@ -1095,6 +1095,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .chart-panels {
   display: grid;
+  /* Scroll wide statistics inside their panel instead of expanding the grid's minimum width. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -1117,6 +1119,53 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   position: relative;
   /* Contain stale hit-control positions during resize while allowing tooltips to extend below the chart. */
   overflow-x: clip;
+}
+
+/* Keep exact effect statistics readable on narrow screens without widening the graph. */
+.effect-summary {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.effect-summary-scroll {
+  overflow-x: auto;
+}
+
+.effect-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.effect-summary caption {
+  text-align: left;
+  padding: 8px;
+  font-weight: 600;
+}
+
+.effect-summary th,
+.effect-summary td {
+  padding: 8px;
+  text-align: right;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.effect-summary th:first-child {
+  text-align: left;
+}
+
+.effect-summary small {
+  display: block;
+  color: var(--text-dim);
+}
+
+.effect-summary details {
+  margin: 10px 8px 0;
+  color: var(--text-dim);
+}
+
+.effect-summary summary {
+  cursor: pointer;
 }
 
 [data-role='dps-canvas'],

@@ -358,7 +358,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
           `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
           '',
           null,
-          activation.expiresAt
+          activation.expiresAt,
+          { stacks: activation.stacks, maximumStacks: ARISTOCRACY_MAX_STACKS }
         );
       }
     },
@@ -955,7 +956,8 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         `${state.stacks}/5 stacks`,
         '',
         null,
-        Number(state.expiresAt)
+        Number(state.expiresAt),
+        { stacks: Number(state.stacks), maximumStacks: 5 }
       );
     },
     // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
@@ -970,7 +972,21 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     timeline(ctx, _state, _events, rotationEndTime) {
       const initialStacks = thornsStacksAt(0, ctx.config.initialThornsStacks);
       if (initialStacks > 0) {
-        ctx.recordProc('relic', 'Relic of Thorns', 0, 'Initial state', `${initialStacks}/${THORNS_MAX_STACKS} stacks`);
+        // Thorns stacks persist; numeric proc state lets charts and summaries retain the opening ramp.
+        ctx.recordProc(
+          'relic',
+          'Relic of Thorns',
+          0,
+          'Initial state',
+          `${initialStacks}/${THORNS_MAX_STACKS} stacks`,
+          '',
+          null,
+          null,
+          {
+            stacks: initialStacks,
+            maximumStacks: THORNS_MAX_STACKS
+          }
+        );
       }
 
       for (
@@ -978,7 +994,20 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         at <= rotationEndTime + EPSILON && stacks <= THORNS_MAX_STACKS;
         at += THORNS_STACK_INTERVAL, stacks += 1
       ) {
-        ctx.recordProc('relic', 'Relic of Thorns', at, 'Incoming enemy hit', `${stacks}/${THORNS_MAX_STACKS} stacks`);
+        ctx.recordProc(
+          'relic',
+          'Relic of Thorns',
+          at,
+          'Incoming enemy hit',
+          `${stacks}/${THORNS_MAX_STACKS} stacks`,
+          '',
+          null,
+          null,
+          {
+            stacks,
+            maximumStacks: THORNS_MAX_STACKS
+          }
+        );
       }
     },
     // Flat +30 Condition Damage per stack, sampled at tick time so ramping

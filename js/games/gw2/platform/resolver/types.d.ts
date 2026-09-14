@@ -185,6 +185,8 @@ export interface Gw2ProcStep {
   cooldownReduction?: number;
   /** Absolute effect-expiry time in milliseconds when the proc starts a timed state. */
   expiresAt?: number;
+  /** Stack state after activation; a missing expiry keeps it until the next state or the result horizon. */
+  effectState?: { readonly stacks: number; readonly maximumStacks: number };
 }
 
 export interface Gw2ResolverHelpers extends Record<string, unknown> {
@@ -253,7 +255,8 @@ export interface Gw2ResolverRuntime extends Record<string, unknown> {
     detail?: string,
     icon?: string,
     cooldownReduction?: number | null,
-    expiresAt?: number | null
+    expiresAt?: number | null,
+    effectState?: Gw2ProcStep['effectState']
   ): void;
   addBreakdown(
     name: string,

@@ -2,6 +2,12 @@ import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/plat
 import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline.js';
+import { eventCausalOrder } from '#kernel/events/queue.js';
+import {
+  buildBoonGeneration,
+  type BoonGeneration,
+  type BoonGenerationByAudience
+} from '#gw2/app/results/charts/boon-generation.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
 export interface ChartPoint {
@@ -11,12 +17,33 @@ export interface ChartPoint {
 
 export type ChartEffectType = 'boon' | 'condition' | 'buff';
 
+export interface ChartEffectSummary {
+  readonly relic?: boolean;
+  readonly uptime: number;
+  readonly averageStacks: number;
+  readonly maximumStacks?: number;
+  readonly maximumStackUptime?: number;
+  readonly generation?: BoonGeneration;
+  readonly durationStacking: boolean;
+}
+
 export interface ChartSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
   readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
+  // Exact full-DPS-window summaries are independent of graph sampling and chart zoom.
+  readonly effectSummaries?: Readonly<Record<string, ChartEffectSummary>>;
+  readonly boonGeneration?: Readonly<
+    Record<
+      string,
+      BoonGenerationByAudience & {
+        readonly maximumStacks?: number;
+      }
+    >
+  >;
+  readonly alliedPlayerCount?: number;
   readonly cumulativeDamage?: readonly ChartPoint[];
   // Individual hits/ticks per skill breakdown row key (`group|name`), each
   // timestamped relative to the DPS window. Backs the per-skill damage-events
@@ -153,7 +180,30 @@ export function buildChartSeries(
   }
 
   // Resolved buffs include trait procs and final audiences; scheduled-only results remain supported.
-  const buffs = resolved.some((event) => event.type === 'buff') ? resolved : result.events || [];
+  const combatMarker = [...(result.events || []), ...resolved].find((event) => event.type === 'combat_start');
+  const combatStart = Number(result.combatStartTime ?? combatMarker?.at ?? dpsStartMs / 1000);
+  const markerOrder = combatMarker ? eventCausalOrder(combatMarker) : null;
+  // Combat strips prepared boons. Discard their history before computing graphs, uptime, or generation;
+  // an explicit marker can precede the first hit, and its causal order separates same-time preparation.
+  const buffs = (resolved.some((event) => event.type === 'buff') ? resolved : result.events || []).filter((event) => {
+    if (event.cancelled || event.actorType === 'environment') return false;
+    if (event.type !== 'boon_extension' && !(event.type === 'buff' && isStandardBoon(event.kind))) return true;
+    const order = eventCausalOrder(event);
+    return (
+      event.at >= combatStart &&
+      !(event.at === combatStart && markerOrder != null && order != null && order < markerOrder)
+    );
+  });
+  const boonGeneration = buildBoonGeneration(buffs, combatStart, endMs / 1000);
+  const generation = new Map(
+    [...boonGeneration.boons].map(([kind, value]) => [
+      effectName(
+        kind,
+        buffs.find((event) => event.type === 'buff' && String(event.kind).toLowerCase() === kind)!
+      ),
+      value
+    ])
+  );
   const hasExtensions = buffs.some((event) => event.type === 'boon_extension');
   const extendedKinds = new Set<string>();
   for (const event of buffs) {
@@ -195,27 +245,31 @@ export function buildChartSeries(
   }
 
   // Timed proc records describe state windows that do not necessarily emit a
-  // buff event. Treat refreshes as replacements so the chart reports binary
-  // uptime instead of counting overlapping activation records as stacks.
+  // buff event. A refresh replaces the previous stack state instead of adding to it.
+  const procStackCaps: Record<string, number> = {};
+  const relicEffects = new Set<string>();
   if (timedProcEffect) {
     for (const proc of result.procSteps || []) {
       const effect = timedProcEffect(proc);
       const start = Number(proc.start) - dpsStartMs;
-      const end = Number(proc.expiresAt) - dpsStartMs;
+      const end = Number(proc.expiresAt ?? (proc.effectState ? endMs : NaN)) - dpsStartMs;
       if (!effect?.name || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) continue;
       applications.push({
         name: effect.name,
         type: effect.type || 'buff',
         start,
         end,
-        stacks: 1,
+        stacks: proc.effectState?.stacks ?? 1,
         replacementGroup: `timed-proc:${effect.name}`
       });
+      if (proc.effectState) procStackCaps[effect.name] = proc.effectState.maximumStacks;
+      if (proc.type === 'relic_proc') relicEffects.add(effect.name);
     }
   }
 
   const effects: Record<string, ChartPoint[]> = {};
   const effectTypes: Record<string, ChartEffectType> = {};
+  const effectSummaries: Record<string, ChartEffectSummary> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
     const matching = applications
       .filter((entry) => entry.name === name)
@@ -227,14 +281,12 @@ export function buildChartSeries(
       duration: (entry.end - entry.start) / 1000,
       stacks: entry.stacks
     }));
-    effects[name] = times.map((time) => {
+    const maximumStacks = procStackCaps[name] ?? stackCaps[name];
+    const valueAt = (time: number): number => {
       if (durationStackCaps[name] != null) {
-        return {
-          t: time,
-          v: remainingDurationStackSeconds(durationApplications, time / 1000, {
-            maximum: durationStackCaps[name]
-          })
-        };
+        return remainingDurationStackSeconds(durationApplications, time / 1000, {
+          maximum: durationStackCaps[name]
+        });
       }
 
       const activeReplacements = new Map<string, (typeof applications)[number]>();
@@ -246,23 +298,61 @@ export function buildChartSeries(
         }
       }
 
-      return {
-        t: time,
-        v: Math.min(
-          stackCaps[name] ?? Infinity,
-          matching.reduce(
-            (sum, entry) =>
-              sum +
-              (entry.start <= time &&
-              entry.end > time &&
-              (!entry.replacementGroup || activeReplacements.get(entry.replacementGroup) === entry)
-                ? entry.stacks
-                : 0),
-            0
-          )
+      return Math.min(
+        maximumStacks ?? Infinity,
+        matching.reduce(
+          (sum, entry) =>
+            sum +
+            (entry.start <= time &&
+            entry.end > time &&
+            (!entry.replacementGroup || activeReplacements.get(entry.replacementGroup) === entry)
+              ? entry.stacks
+              : 0),
+          0
         )
-      };
-    });
+      );
+    };
+
+    effects[name] = times.map((time) => ({ t: time, v: valueAt(time) }));
+    if (effectTypes[name] === 'condition') continue;
+
+    // Integrate at actual transitions, including other effects that replace this one. Duration pools drain
+    // between grants, so their contribution is active time, never the area under the remaining-seconds graph.
+    const groups = new Set(matching.map((entry) => entry.replacementGroup).filter(Boolean));
+    const boundaries = [
+      0,
+      ...new Set(
+        applications
+          .filter((entry) => entry.name === name || groups.has(entry.replacementGroup))
+          .flatMap((entry) => [entry.start, entry.end])
+          .filter((time) => time > 0 && time < endMs - dpsStartMs)
+      ),
+      endMs - dpsStartMs
+    ].sort((left, right) => left - right);
+    let activeMs = 0;
+    let stackMs = 0;
+    let maximumMs = 0;
+    const durationStacking = durationStackCaps[name] != null;
+    for (let index = 1; index < boundaries.length; index++) {
+      const start = boundaries[index - 1]!;
+      const elapsed = boundaries[index]! - start;
+      const value = valueAt(start);
+      const active = durationStacking ? Math.min(elapsed, value * 1000) : value > 0 ? elapsed : 0;
+      activeMs += active;
+      stackMs += durationStacking ? active : value * elapsed;
+      if (maximumStacks != null && value >= maximumStacks) maximumMs += elapsed;
+    }
+
+    effectSummaries[name] = {
+      ...(relicEffects.has(name) ? { relic: true } : {}),
+      uptime: activeMs / durationMs,
+      averageStacks: stackMs / durationMs,
+      ...(maximumStacks == null || durationStacking
+        ? {}
+        : { maximumStacks, maximumStackUptime: maximumMs / durationMs }),
+      ...(generation.has(name) ? { generation: generation.get(name)!.self } : {}),
+      durationStacking
+    };
   }
 
   const cumulativeDamage = dps.map((point) => ({
@@ -363,6 +453,17 @@ export function buildChartSeries(
     dps,
     effects,
     effectTypes,
+    effectSummaries,
+    boonGeneration: Object.fromEntries(
+      [...generation].map(([name, value]) => [
+        name,
+        {
+          ...value,
+          maximumStacks: stackCaps[name]
+        }
+      ])
+    ),
+    alliedPlayerCount: boonGeneration.alliedPlayerCount,
     effectUnits: Object.fromEntries(Object.keys(durationStackCaps).map((name) => [name, 's'])),
     cumulativeDamage,
     skillDamage,

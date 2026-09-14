@@ -1,0 +1,272 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+
+const self = {
+  includesSelf: true,
+  includesSummons: false,
+  alliedPlayerCount: 0,
+  companionIds: [],
+  recipientCount: 1
+};
+const buff = (kind, at, duration, stacks = 1, extra = {}) => ({
+  type: 'buff',
+  kind,
+  at,
+  duration,
+  stacks,
+  resolvedAudience: self,
+  ...extra
+});
+const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+
+// Small synthetic windows exercise integration and supply contracts independently of any benchmark rotation.
+test('duration supply can exceed a full window while caps and gaps reduce actual uptime', () => {
+  const result = {
+    duration: 60,
+    resolvedEvents: [buff('quickness', 0, 30), buff('quickness', 0, 30), buff('quickness', 40, 15)]
+  };
+  for (const sampleStep of [50, 1000]) {
+    const summary = buildChartSeries(result, sampleStep).effectSummaries.Quickness;
+    assert.equal(summary.uptime, 0.75);
+    assert.equal(summary.averageStacks, 0.75);
+    assert.equal(summary.generation.generatedStackSeconds, 75);
+    assert.equal(summary.generation.generatedStackSeconds / result.duration, 1.25);
+  }
+});
+
+test('intensity averages apply caps and include downtime while generation retains raw stack-seconds', () => {
+  const summary = buildChartSeries({
+    duration: 10,
+    resolvedEvents: [buff('might', 0, 5, 20), buff('might', 1, 3, 10)]
+  }).effectSummaries.Might;
+  assert.equal(summary.uptime, 0.5);
+  assert.equal(summary.averageStacks, 11.5);
+  assert.equal(summary.maximumStacks, 25);
+  assert.equal(summary.maximumStackUptime, 0.3);
+  assert.equal(summary.generation.generatedStackSeconds, 130);
+});
+
+test('pre-combat boons are stripped and the death boundary excludes later grants', () => {
+  const summary = buildChartSeries({
+    duration: 20,
+    dpsStartTime: 2,
+    deathTime: 8,
+    config: { boons: { quickness: true } },
+    resolvedEvents: [
+      buff('quickness', 0, 3),
+      buff('quickness', 3, 2),
+      buff('quickness', 4, 100, 1, { resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1 } }),
+      buff('quickness', 5, 100, 1, { actorType: 'environment' }),
+      buff('quickness', 6, 100, 1, { cancelled: true }),
+      buff('quickness', 8, 100)
+    ]
+  }).effectSummaries.Quickness;
+  assert.equal(summary.uptime, 1 / 3);
+  assert.equal(summary.generation.generatedStackSeconds, 2);
+});
+
+test('extensions count only existing boons and retain independent intensity lifetimes', () => {
+  const events = [
+    buff('fury', 0, 1),
+    buff('might', 0, 2, 2),
+    { type: 'boon_extension', at: 1, duration: 3 },
+    buff('fury', 2, 1),
+    { type: 'boon_extension', at: 2.5, duration: 2, kind: 'fury' },
+    { type: 'boon_extension', at: 4, duration: 1, excludedKind: 'might' }
+  ];
+  const summaries = buildChartSeries({ duration: 6, resolvedEvents: events }).effectSummaries;
+  close(summaries.Fury.uptime, 5 / 6);
+  assert.equal(summaries.Fury.generation.generatedStackSeconds, 5);
+  close(summaries.Might.averageStacks, 10 / 6);
+  assert.equal(summaries.Might.generation.generatedStackSeconds, 10);
+});
+
+test('same-time extension accounting follows causal order and excludes the right window boundary', () => {
+  const grant = buff('fury', 0, 1, 1, { causalOrder: 2 });
+  const extension = { type: 'boon_extension', at: 0, duration: 3, causalOrder: 1 };
+  assert.equal(buildBoonGeneration([grant, extension], 0, 4).boons.get('fury').self.generatedStackSeconds, 1);
+  assert.equal(
+    buildBoonGeneration([{ ...grant, causalOrder: 0 }, extension, buff('fury', 4, 100)], 0, 4).boons.get('fury').self
+      .generatedStackSeconds,
+    4
+  );
+});
+
+test('effect summaries integrate sub-sample transitions and never resurrect replaced effects', () => {
+  const summaries = buildChartSeries(
+    {
+      duration: 1,
+      resolvedEvents: [buff('first', 0.1, 10), buff('second', 0.3, 0.1)]
+    },
+    1000,
+    [
+      { kind: 'first', name: 'First', replacementGroup: 'mode' },
+      { kind: 'second', name: 'Second', replacementGroup: 'mode' }
+    ]
+  ).effectSummaries;
+  close(summaries.First.uptime, 0.2);
+  close(summaries.Second.uptime, 0.1);
+});
+
+test('relic proc state survives recording and refreshes replace stack counts', () => {
+  const context = createGw2ResolverRuntimeState({ config: { relic: 'Thief' } });
+  const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
+  invokeRelicHook(context, 'afterHit', hit(0), { type: 'Weapon', cooldown: 1 });
+  invokeRelicHook(context, 'afterHit', hit(1), { type: 'Weapon', cooldown: 1 });
+  const summary = buildChartSeries({ duration: 8, procSteps: context.procSteps }).effectSummaries['Relic of the Thief'];
+  assert.equal(summary.uptime, 7 / 8);
+  assert.equal(summary.averageStacks, 13 / 8);
+  assert.equal(summary.maximumStacks, 5);
+  assert.equal(summary.maximumStackUptime, 0);
+
+  // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
+  const thorns = createGw2ResolverRuntimeState({ config: { relic: 'Thorns', initialThornsStacks: 9 } });
+  invokeRelicHook(thorns, 'timeline', [], 5);
+  const ramp = buildChartSeries({ duration: 5, procSteps: thorns.procSteps }).effectSummaries['Relic of Thorns'];
+  assert.equal(ramp.uptime, 1);
+  assert.equal(ramp.averageStacks, 9.4);
+  assert.equal(ramp.maximumStackUptime, 0.4);
+});
+
+test('empty observation windows do not accrue uptime or generated duration', () => {
+  const summary = buildChartSeries({ duration: 2, dpsStartTime: 2, resolvedEvents: [buff('might', 2, 10, 25)] })
+    .effectSummaries.Might;
+  assert.equal(summary.uptime, 0);
+  assert.equal(summary.averageStacks, 0);
+  assert.equal(summary.generation, undefined);
+});
+
+test('combat stripping uses the marker and causal order, retaining boons granted in combat before the first hit', () => {
+  const series = buildChartSeries({
+    duration: 10,
+    dpsStartTime: 4,
+    combatStartTime: 2,
+    events: [{ type: 'combat_start', at: 2, causalOrder: 2 }],
+    resolvedEvents: [
+      buff('alacrity', 1, 30, 1, { audience: { recipients: 'party' } }),
+      buff('quickness', 2, 30, 1, { causalOrder: 1, audience: { recipients: 'party' } }),
+      buff('quickness', 2, 5, 1, { causalOrder: 3, audience: { recipients: 'party' } }),
+      { type: 'boon_extension', at: 3, duration: 10, kind: 'alacrity', extensionAudience: 'all' },
+      buff('fury', 3, 2)
+    ],
+    procSteps: [{ type: 'relic_proc', skill: 'Relic of Fireworks', start: 0, expiresAt: 8000 }]
+  });
+  assert.equal(series.effects.Alacrity, undefined);
+  assert.equal(series.boonGeneration.Alacrity, undefined);
+  assert.equal(series.effectSummaries.Quickness.uptime, 0.5);
+  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 5);
+  assert.equal(series.boonGeneration.Quickness.allies.generatedStackSeconds, 20);
+  assert.equal(series.effectSummaries.Fury.uptime, 1 / 6);
+  assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 2);
+  assert.equal(series.effectSummaries['Relic of Fireworks'].uptime, 4 / 6);
+});
+
+test('personal boons and extensions cannot inflate shared generation, including partial recipient caps', () => {
+  const series = buildChartSeries({
+    duration: 10,
+    alliedPlayerCount: 4,
+    resolvedEvents: [
+      buff('quickness', 0, 5),
+      buff('alacrity', 0, 8),
+      buff('quickness', 0, 2, 1, { resolvedAudience: { ...self, alliedPlayerCount: 2, recipientCount: 3 } }),
+      { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'self' },
+      { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
+    ]
+  });
+  const quickness = series.boonGeneration.Quickness;
+  assert.equal(series.alliedPlayerCount, 4);
+  assert.equal(quickness.self.generatedStackSeconds, 11);
+  assert.equal(quickness.selfOnly.generatedStackSeconds, 9);
+  assert.equal(quickness.sharedWithSelf.generatedStackSeconds, 2);
+  assert.equal(quickness.allies.generatedStackSeconds, 4);
+  assert.equal(quickness.allies.generatedStackSeconds / (10 * series.alliedPlayerCount), 0.1);
+  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 0);
+});
+
+test('allied-only intensity grants extend each reached recipient once and exclude summons', () => {
+  const series = buildChartSeries({
+    duration: 10,
+    alliedPlayerCount: 4,
+    resolvedEvents: [
+      buff('might', 0, 2, 2, {
+        resolvedAudience: {
+          ...self,
+          includesSelf: false,
+          alliedPlayerCount: 2,
+          includesSummons: true,
+          companionIds: ['pet'],
+          recipientCount: 3
+        }
+      }),
+      { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'all' },
+      { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
+    ]
+  });
+  assert.equal(series.effectSummaries.Might, undefined);
+  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.Might.allies.generatedStackSeconds, 24);
+});
+
+test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
+  const { guardianProfession } = await import('#gw2/professions/guardian/definition.js');
+  const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Tome of Justice', { type: 'wait', durationMs: 4000 }],
+    config: { specialization: 'Firebrand', allies: { count: 0 }, stats: { vitality: 1000 } }
+  });
+  assert.deepEqual(result.warnings, []);
+  const generation = buildChartSeries(result).boonGeneration.Quickness;
+  assert.ok(generation.selfOnly.generatedStackSeconds > 0);
+  assert.equal(generation.sharedWithSelf.generatedStackSeconds, 0);
+  assert.equal(generation.allies.generatedStackSeconds, 0);
+});
+
+test('presentation projects authored audiences onto four allies without mutating resolved combat recipients', () => {
+  const events = Object.freeze([
+    Object.freeze(buff('quickness', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } })),
+    Object.freeze(buff('quickness', 1, 1, 1, { audience: { recipients: 'self' } })),
+    Object.freeze(buff('alacrity', 0, 3, 1, { audience: { recipients: 'summons', affectsSelf: false } })),
+    Object.freeze({ type: 'boon_extension', at: 1.5, duration: 1, extensionAudience: 'all' })
+  ]);
+  const before = structuredClone(events);
+  const generation = buildBoonGeneration(events, 0, 10);
+  assert.equal(generation.alliedPlayerCount, 4);
+  assert.equal(generation.boons.get('quickness').selfOnly.generatedStackSeconds, 1);
+  assert.equal(generation.boons.get('quickness').sharedWithSelf.generatedStackSeconds, 3);
+  assert.equal(generation.boons.get('quickness').allies.generatedStackSeconds, 6);
+  assert.equal(generation.boons.has('alacrity'), false);
+  assert.deepEqual(events, before);
+});
+
+test('shared Firebrand generation uses metadata independently of the configured party size', async () => {
+  const { guardianProfession } = await import('#gw2/professions/guardian/definition.js');
+  const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
+  const simulate = (count) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['"Feel My Wrath!"', { type: 'wait', durationMs: 4000 }],
+      config: {
+        specialization: 'Firebrand',
+        allies: { count },
+        stats: { vitality: 1000 },
+        selectedSkills: ['"Feel My Wrath!"']
+      }
+    });
+  const solo = simulate(0);
+  const party = simulate(4);
+  assert.deepEqual(solo.warnings, []);
+  assert.deepEqual(party.warnings, []);
+  const soloGeneration = buildChartSeries(solo).boonGeneration.Quickness;
+  assert.ok(soloGeneration.allies.generatedStackSeconds > 0);
+  assert.deepEqual(soloGeneration, buildChartSeries(party).boonGeneration.Quickness);
+  assert.ok(
+    solo.resolvedEvents
+      .filter((event) => event.kind === 'quickness')
+      .every((event) => event.resolvedAudience.alliedPlayerCount === 0)
+  );
+});
