@@ -1,5 +1,5 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
-import type { MesmerApiTrait } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
+import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
 
 export { DEFAULT_TRAITS } from '#gw2/professions/lib/trait-data.js';
@@ -31,7 +31,7 @@ export const {
   coreSpecs: CORE_SPECS,
   traits: TRAITS,
   getActiveTraits
-} = createProfessionTraitData<MesmerApiTrait, MesmerTraitRecord>(CATALOG_SPECIALIZATIONS, {
+} = createProfessionTraitData<Gw2ApiTrait, MesmerTraitRecord>(CATALOG_SPECIALIZATIONS, {
   mapTrait(trait, { specialization, kind, tier, position }) {
     const tierName = kind === 'minor' ? MINOR_TIERS[tier] : MAJOR_TIERS[tier];
 

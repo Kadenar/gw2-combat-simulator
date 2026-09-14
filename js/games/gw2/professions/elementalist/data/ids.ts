@@ -409,18 +409,6 @@ export const ELEMENTALIST_TRAIT_IDS: Readonly<Record<string, number>> = Object.f
   SPECIALIZED_ELEMENTS: 2437
 });
 
-export const ELEMENTALIST_SPECIALIZATION_IDS: Readonly<Record<string, number>> = Object.freeze({
-  WATER: 17,
-  EARTH: 26,
-  FIRE: 31,
-  ARCANE: 37,
-  AIR: 41,
-  TEMPEST: 48,
-  WEAVER: 56,
-  CATALYST: 67,
-  EVOKER: 80
-});
-
 export const ELEMENTALIST_ATTUNEMENT_SKILL_IDS = Object.freeze({
   Fire: ELEMENTALIST_SKILL_IDS.FIRE_ATTUNEMENT,
   Water: ELEMENTALIST_SKILL_IDS.WATER_ATTUNEMENT,

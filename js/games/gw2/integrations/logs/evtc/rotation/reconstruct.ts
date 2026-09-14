@@ -32,7 +32,10 @@ import {
   missingInterruptCommitWarnings,
   referenceCastTimeMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { type EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import {
+  evtcRotationProfile,
+  type EvtcRotationProfessionProfile
+} from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import {
   reconstructProfessionActions,
   type EvtcRecordedRotationAction
@@ -371,4 +374,25 @@ export function reconstructWithProfile(
     rotation: buildRotation(resolved, origin, combatStart, options.onReplayWait),
     warnings: [...warningList(actions), ...missingInterruptCommitWarnings(professionContext, resolved)]
   };
+}
+
+/** Selects an EVTC player and reconstructs it with the matching shared profession profile. */
+export function reconstructEvtcRotation(
+  log: ParsedEvtc,
+  catalog: RotationCatalog | null = null,
+  options: EvtcRotationOptions = {}
+): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {
+  const { player } = selectPlayerAgent(log, options.playerAddress);
+  const profile = evtcRotationProfile(player.professionId, player.specializationId);
+  if (!profile) {
+    throw new EvtcError(
+      'UNSUPPORTED_PROFESSION',
+      `No EVTC rotation parser is registered for ${player.professionName} ${player.specializationName}.`
+    );
+  }
+
+  return reconstructWithProfile(log, profile, catalog, {
+    ...options,
+    playerAddress: player.address
+  });
 }

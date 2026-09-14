@@ -468,12 +468,3 @@ export function assembleNativeApplicationCatalog(
 ): Readonly<CanonicalCatalog> {
   return getNativeCatalogAssembly(modules, options).catalog;
 }
-
-/** Returns the native module label that owns a skill's runtime behavior. */
-export function nativeSkillRuntimeOwner(
-  modules: readonly AnyNativeModule[],
-  skill: Skill,
-  options?: NativeCatalogOptions
-): string {
-  return getNativeCatalogAssembly(modules, options).skillOwners.get(skill.id) || 'Core';
-}

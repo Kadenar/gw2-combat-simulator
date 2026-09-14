@@ -344,10 +344,6 @@ function plainObject(value: unknown): SchedulerRecord {
   return isPlainObject(value) ? value : {};
 }
 
-function clone<T>(value: T): T {
-  return structuredClone(value);
-}
-
 function listedName(names: readonly string[], value: unknown): value is string {
   return typeof value === 'string' && names.includes(value);
 }
@@ -422,7 +418,7 @@ function normalizeSpecializations(
   fallback: readonly Gw2BuildSpecialization[],
   catalog: CanonicalCatalog
 ): Gw2BuildSpecialization[] {
-  if (!Array.isArray(value)) return clone([...fallback]);
+  if (!Array.isArray(value)) return structuredClone([...fallback]);
   const known = new Map(catalog.specializations.map((specialization) => [specialization.name, specialization]));
   const selected = value
     .slice(0, 3)
@@ -450,7 +446,7 @@ function normalizeSpecializations(
   const eliteCount = selected.filter((entry) => known.get(entry.name)?.elite).length;
   // The entire selection must be exactly 3 lines with at most one elite;
   // any violation falls back to defaults rather than partial normalization.
-  return selected.length === 3 && eliteCount <= 1 ? selected : clone([...fallback]);
+  return selected.length === 3 && eliteCount <= 1 ? selected : structuredClone([...fallback]);
 }
 
 // Older builds stored skill IDs instead of names. Canonicalize numeric aliases
@@ -583,7 +579,7 @@ function migrateVersionedBuild(
   }
 
   // Clone before mutating so the original candidate object is never modified.
-  let saved = clone(candidateBuild);
+  let saved = structuredClone(candidateBuild);
   let version = Number(saved.schemaVersion ?? 0);
   // A version newer than this codec would need transforms we don't have yet.
   if (!Number.isInteger(version) || version < 0 || version > schemaVersion) {

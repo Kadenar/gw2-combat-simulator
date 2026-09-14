@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { nativeSkillRuntimeOwner } from '#gw2/platform/profession-definition/catalog.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
@@ -67,6 +67,7 @@ function assertUniqueOwners(modules, select, label) {
 export function assertProfessionFamilyConformance({ family, core, specializations }) {
   assert.equal(typeof family.resolveRuntime, 'function');
   const modules = [core, ...Object.values(specializations)];
+  const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
 
   assertUniqueOwners(
     modules,
@@ -109,7 +110,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       sortedIds(runtime.catalog.skills),
       sortedIds(
         family.catalog.skills.filter((skill) => {
-          const owner = nativeSkillRuntimeOwner(modules, skill);
+          const owner = skillOwners.get(skill.id);
 
           return owner === 'Core' || owner === name;
         })

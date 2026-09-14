@@ -5,12 +5,7 @@ import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation
 import { applyRotationImportPreview, previewDpsReportUrl } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
-import {
-  DPS_REPORT_PROFESSION_ROTATION_PARSERS,
-  getDpsReportProfessionRotationParser,
-  reconstructDpsReportRotation
-} from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -163,22 +158,6 @@ test('fetches and validates the raw Elite Insights response', async () => {
 
   assert.match(requested, /^https:\/\/dps\.report\/getJson\?/);
   assert.equal(report.players[0].profession, 'Amalgam');
-});
-
-test('registers a generic parser for every supported profession profile', () => {
-  const parserIds = DPS_REPORT_PROFESSION_ROTATION_PARSERS.map((parser) => parser.id);
-  const expectedIds = new Set(
-    ROTATION_PROFILES.map((profile) => `${profile.professionId}:${profile.specializationId}`)
-  );
-
-  assert.deepEqual(new Set(parserIds), expectedIds);
-  assert.equal(new Set(parserIds).size, parserIds.length);
-
-  for (const profile of ROTATION_PROFILES) {
-    const id = `${profile.professionId}:${profile.specializationId}`;
-
-    assert.equal(getDpsReportProfessionRotationParser(profile.professionId, profile.specializationId)?.id, id);
-  }
 });
 
 test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', () => {

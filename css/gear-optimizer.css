@@ -1,7 +1,6 @@
 /* The optimizer has its own page host, outside the workspace and Analysis layout. */
 body:not([data-simulator-view='gear-optimizer']) #gear-optimizer-view,
-body[data-profession][data-simulator-view='gear-optimizer']
-  :is(.profession-layout, .build-editor, .build-templates-region) {
+body[data-profession][data-simulator-view='gear-optimizer'] :is(.profession-layout, .build-editor) {
   display: none;
 }
 

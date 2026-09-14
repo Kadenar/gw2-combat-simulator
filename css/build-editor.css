@@ -252,10 +252,6 @@
   margin: 0;
 }
 
-.build-templates-region {
-  min-width: 0;
-}
-
 .profession-main {
   container: profession-main / inline-size;
   min-width: 0;
@@ -732,21 +728,6 @@
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
   text-transform: none;
-}
-
-.panel-hdr {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-
-.panel-hdr h3 {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
 }
 
 .build-io-btns {

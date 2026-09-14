@@ -2,13 +2,11 @@
 // Snapshot: 2026-07-25. Run npm run update:profession-data -- --profession Guardian to refresh.
 // Simulator mechanics are maintained under guardian/core/ and guardian/specializations/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
+import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-export type GuardianApiTrait = Gw2ApiTrait;
 export type GuardianApiSpecialization = Gw2ApiSpecialization;
 
-export const DATA_SNAPSHOT: string = '2026-07-25';
 export const SPECIALIZATIONS: readonly GuardianApiSpecialization[] = [
   {
     id: 42,

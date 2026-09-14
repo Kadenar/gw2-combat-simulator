@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   assembleNativeApplicationCatalog,
   createNativeModuleData,
-  nativeSkillRuntimeOwner
+  getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/catalog.js';
 import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -80,6 +80,7 @@ test('native module data admits only mechanics-backed metadata and explicit extr
 test('module-first assembly derives application and active runtime catalogs', () => {
   const modules = [coreModule(), eliteModule()];
   const catalog = assembleNativeApplicationCatalog(modules);
+  const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
   const family = defineNativeProfession({
     id: 'fixture',
     name: 'Fixture',
@@ -88,7 +89,7 @@ test('module-first assembly derives application and active runtime catalogs', ()
 
   assert.equal(family.catalog, catalog);
   assert.deepEqual(catalog.skills.map(({ id }) => id).sort(), [1, 2, 3]);
-  assert.equal(nativeSkillRuntimeOwner(modules, catalog.skillsById.get(3)), 'Core');
+  assert.equal(skillOwners.get(3), 'Core');
   assert.deepEqual(
     family.resolveRuntime({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
     [1, 3]

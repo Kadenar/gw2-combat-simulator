@@ -4,7 +4,7 @@ import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
-import { prepareSimulationConfig } from '#gw2/platform/engine/config.js';
+import { prepareSimulationConfig } from '../../helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { formatConcurrentTimelineBadge, formatInterruptTimelineBadge } from '#gw2/app/rotation/timeline/model.js';

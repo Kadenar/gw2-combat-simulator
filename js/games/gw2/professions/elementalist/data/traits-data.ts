@@ -1,5 +1,5 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
-import type { ElementalistApiTrait } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
+import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
 
 import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
 
@@ -11,4 +11,4 @@ export const {
   coreSpecs: CORE_SPECS,
   traits: TRAITS,
   getActiveTraits
-} = createProfessionTraitData<ElementalistApiTrait>(CATALOG_SPECIALIZATIONS);
+} = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);

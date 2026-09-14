@@ -5,11 +5,7 @@ import test from 'node:test';
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
-import {
-  ELEMENTALIST_SKILL_IDS,
-  ELEMENTALIST_SPECIALIZATION_IDS,
-  ELEMENTALIST_TRAIT_IDS
-} from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
 import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
@@ -141,10 +137,6 @@ test('Elementalist trait and specialization IDs follow the API snapshot', () => 
     apiTraits.map((trait) => trait.id)
   );
   assert.deepEqual(new Set(Object.values(ELEMENTALIST_TRAIT_IDS)), new Set(apiTraits.map((trait) => trait.id)));
-  assert.deepEqual(
-    new Set(Object.values(ELEMENTALIST_SPECIALIZATION_IDS)),
-    new Set(API_SPECIALIZATIONS.map((specialization) => specialization.id))
-  );
   for (const trait of TRAITS) {
     assert.equal('stats' in trait, false, trait.name);
     assert.equal('durations' in trait, false, trait.name);

@@ -254,8 +254,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     assert.match(source, /npm run update:profession-data -- --profession Warrior/);
     assert.match(source, /warrior\/core\/ and warrior\/specializations\//);
     assert.doesNotMatch(source, /warrior\/mechanics\//);
-    assert.match(source, /import type \{ Gw2ApiSpecialization, Gw2ApiTrait \}/);
-    assert.match(source, /export const DATA_SNAPSHOT: string = "2026-07-27"/);
+    assert.match(source, /import type \{ Gw2ApiSpecialization \}/);
     assert.match(source, /export const SPECIALIZATIONS: readonly WarriorApiSpecialization\[]/);
     assert.match(source, /export const SKILLS: readonly WarriorSkill\[]/);
 

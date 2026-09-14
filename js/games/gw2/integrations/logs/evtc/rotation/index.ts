@@ -1,6 +1,5 @@
 export * from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 export * from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
-export * from '#gw2/integrations/logs/evtc/rotation/registry.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 export * from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';

@@ -43,7 +43,3 @@ export interface EvtcProfessionReconstructionContext {
   readonly professionConfig?: Readonly<Record<string, unknown>>;
   readonly timelineOriginMs: number;
 }
-
-export type EvtcProfessionActionReconstructor = (
-  context: EvtcProfessionReconstructionContext
-) => readonly EvtcRecordedRotationAction[];

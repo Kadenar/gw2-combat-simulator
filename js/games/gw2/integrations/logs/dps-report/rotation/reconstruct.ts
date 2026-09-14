@@ -12,7 +12,8 @@ import type {
   ReconstructedRotationCommand,
   RotationActionStatus
 } from '#gw2/integrations/logs/lib/rotation/model.js';
-import type { RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -390,4 +391,43 @@ export function reconstructDpsReportWithProfile(
     ),
     warnings: warningList(actions)
   };
+}
+
+/** Selects a report player and reconstructs it with the matching shared profession profile. */
+export function reconstructDpsReportRotation(
+  report: ParsedDpsReport,
+  catalog: RotationCatalog | null = null,
+  options: DpsReportRotationOptions = {}
+): DpsReportRotationReconstruction {
+  const selection = selectRotationPlayer(
+    detectDpsReportRotationPlayers(report),
+    options.playerIndex == null ? undefined : (candidate) => candidate.index === options.playerIndex
+  );
+
+  if (selection.status !== 'selected') {
+    if (selection.status === 'no-player') {
+      throw new DpsReportError('NO_PLAYER', 'The Elite Insights report contains no supported player.');
+    }
+
+    throw new DpsReportError(
+      selection.status === 'selection-required' ? 'PLAYER_SELECTION_REQUIRED' : 'PLAYER_NOT_FOUND',
+      selection.status === 'selection-required'
+        ? 'Multiple players have the same recorded action count; select one by index.'
+        : 'The requested player is not present in the Elite Insights report.'
+    );
+  }
+
+  const player = selection.player;
+  const profile = ROTATION_PROFILES.find(
+    (candidate) =>
+      candidate.professionId === player.professionId && candidate.specializationId === player.specializationId
+  );
+  if (!profile) {
+    throw new DpsReportError(
+      'UNSUPPORTED_PROFESSION',
+      `No dps.report rotation parser is registered for ${player.professionName} ${player.specializationName}.`
+    );
+  }
+
+  return reconstructDpsReportWithProfile(report, profile, catalog, { ...options, playerIndex: player.index });
 }

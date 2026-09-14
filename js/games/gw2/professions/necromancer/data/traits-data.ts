@@ -1,5 +1,5 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
-import type { NecromancerApiTrait } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
+import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import { createProfessionTraitData, type ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
 
 export type NecromancerSpecializationSelection = ProfessionTraitSelection;
@@ -10,4 +10,4 @@ export const {
   coreSpecs: CORE_SPECS,
   traits: TRAITS,
   getActiveTraits
-} = createProfessionTraitData<NecromancerApiTrait>(CATALOG_SPECIALIZATIONS);
+} = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);

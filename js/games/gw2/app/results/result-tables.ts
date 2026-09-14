@@ -54,7 +54,7 @@ interface GroupedSkillBreakdown {
 
 // Generated breakdown names commonly append "— Effect"; the prefix is the
 // final attribution fallback when no explicit source skill survives resolution.
-const baseName = (name: unknown): string =>
+export const baseBreakdownName = (name: unknown): string =>
   String(name || '')
     .split('—')[0]!
     .trim();
@@ -140,7 +140,7 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry, lookup: Resolve
     lookup.resolvedByIdentity.get(eventIdentity(entry.skillId, entry.name)) ||
     lookup.resolvedByIdentity.get(eventIdentity(entry.sourceId, entry.name)) ||
     lookup.resolvedByName.get(entry.name);
-  const sourceSkill = entry.sourceSkill || sourceEvent?.skillName || baseName(entry.name);
+  const sourceSkill = entry.sourceSkill || sourceEvent?.skillName || baseBreakdownName(entry.name);
   const parentSkill = entry.parentSkill || sourceEvent?.parentSkillName || '';
   const icon = entry.icon || sourceEvent?.icon || '';
   const skillId = entry.skillId ?? sourceEvent?.skillId ?? null;

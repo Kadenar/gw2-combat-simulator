@@ -2,13 +2,11 @@
 // Snapshot: 2026-08-08. Run npm run update:profession-data -- --profession Warrior to refresh.
 // Simulator mechanics are maintained under warrior/core/ and warrior/specializations/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
+import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export type WarriorApiTrait = Gw2ApiTrait;
 export type WarriorApiSpecialization = Gw2ApiSpecialization;
 
-export const DATA_SNAPSHOT: string = '2026-08-08';
 export const SPECIALIZATIONS: readonly WarriorApiSpecialization[] = [
   {
     id: 4,

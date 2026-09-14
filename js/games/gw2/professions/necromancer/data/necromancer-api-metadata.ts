@@ -2,13 +2,11 @@
 // Snapshot: 2026-07-25. Run npm run update:profession-data -- --profession Necromancer to refresh.
 // Simulator mechanics are maintained under necromancer/core/ and necromancer/specializations/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
+import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export type NecromancerApiTrait = Gw2ApiTrait;
 export type NecromancerApiSpecialization = Gw2ApiSpecialization;
 
-export const DATA_SNAPSHOT: string = '2026-07-25';
 export const SPECIALIZATIONS: readonly NecromancerApiSpecialization[] = [
   {
     id: 53,

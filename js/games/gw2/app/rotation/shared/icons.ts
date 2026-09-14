@@ -6,6 +6,7 @@ import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { EQUIPMENT_ICONS } from '#gw2/platform/equipment/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { baseBreakdownName } from '#gw2/app/results/result-tables.js';
 
 export interface ResultIconRow {
   readonly name: string;
@@ -130,11 +131,6 @@ export function resolveProcIcon(app: ProfessionAppState, proc: Gw2ProcStep): str
   const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
   return String(proc.icon || traitIcon || relicIcon || procSkillIcon || sourceIcon || '');
 }
-
-export const baseBreakdownName = (name: unknown): string =>
-  String(name || '')
-    .split('\u2014')[0]
-    .trim();
 
 export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): string {
   if (row.icon) return String(row.icon);

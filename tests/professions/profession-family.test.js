@@ -5,7 +5,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { defineProfessionFamily, resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
-import { nativeSkillRuntimeOwner } from '#gw2/platform/profession-definition/catalog.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '../helpers/profession-family-conformance.js';
@@ -82,10 +82,10 @@ function nativeSkillHandlers(module) {
   return module.mechanics?.execution?.skillHandlers;
 }
 
-function nativeSkillOwnerMap(slices, catalog) {
+function nativeSkillOwnerMap(slices) {
   const modules = slices.map(([, module]) => module);
 
-  return new Map(catalog.skills.map((skill) => [skill.id, nativeSkillRuntimeOwner(modules, skill)]));
+  return getNativeCatalogAssembly(modules, undefined).skillOwners;
 }
 
 test('all migrated profession families share one conformance harness', () => {
@@ -308,12 +308,13 @@ test('native module contributions assemble disjoint application and runtime cata
       [...catalog.skillHandlers.keys()].sort(),
       `${name}:handlers`
     );
+    const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
     for (const active of ['Core', ...family.specializationIds]) {
       const runtime = family.resolveRuntime({ specialization: active });
       const runtimeIds = new Set(runtime.catalog.skills.map((skill) => skill.id));
 
       for (const skill of catalog.skills) {
-        const owner = nativeSkillRuntimeOwner(modules, skill);
+        const owner = skillOwners.get(skill.id);
 
         assert.equal(
           runtimeIds.has(skill.id),
@@ -871,16 +872,13 @@ test('Guardian modules contribute disjoint runtime slices', () => {
 
 test('Guardian runtimes exclude inactive elite catalogs, registries, and state', () => {
   assert.equal(guardianProfession.catalog, guardianCatalog);
-  const skillOwners = nativeSkillOwnerMap(
-    [
-      ['core', guardianCoreModule],
-      ['dragonhunter', dragonhunterModule],
-      ['firebrand', firebrandModule],
-      ['willbender', willbenderModule],
-      ['luminary', luminaryModule]
-    ],
-    guardianCatalog
-  );
+  const skillOwners = nativeSkillOwnerMap([
+    ['core', guardianCoreModule],
+    ['dragonhunter', dragonhunterModule],
+    ['firebrand', firebrandModule],
+    ['willbender', willbenderModule],
+    ['luminary', luminaryModule]
+  ]);
 
   for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
@@ -997,7 +995,7 @@ test('Mesmer modules contribute disjoint runtime slices', () => {
 });
 
 test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', () => {
-  const skillOwner = nativeSkillOwnerMap(mesmerSlices, mesmerCatalog);
+  const skillOwner = nativeSkillOwnerMap(mesmerSlices);
 
   assert.equal(mesmerProfession.catalog, mesmerCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
@@ -1143,7 +1141,7 @@ test('Revenant modules contribute disjoint runtime slices', () => {
 });
 
 test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () => {
-  const skillOwner = nativeSkillOwnerMap(revenantSlices, revenantCatalog);
+  const skillOwner = nativeSkillOwnerMap(revenantSlices);
 
   for (const [owner, skillIds] of [
     ['Herald', [REVENANT_SKILL_IDS.LEGENDARY_DRAGON_STANCE, REVENANT_SKILL_IDS.CALL_OF_THE_DRAGON]],
@@ -1299,7 +1297,7 @@ test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
 });
 
 test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () => {
-  const skillOwner = nativeSkillOwnerMap(engineerSlices, engineerCatalog);
+  const skillOwner = nativeSkillOwnerMap(engineerSlices);
   const holosmithSwordIds = [
     ENGINEER_ID.RADIANT_ARC,
     ENGINEER_ID.SUN_EDGE,

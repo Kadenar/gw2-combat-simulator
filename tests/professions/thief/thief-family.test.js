@@ -5,7 +5,7 @@ import test from 'node:test';
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { nativeSkillRuntimeOwner } from '#gw2/platform/profession-definition/catalog.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
@@ -56,6 +56,7 @@ const slices = Object.freeze([
   ['specializations/specter', specterModule],
   ['specializations/antiquary', antiquaryModule]
 ]);
+const thiefSkillOwners = getNativeCatalogAssembly(thiefNativeModules, undefined).skillOwners;
 
 // Check evaluated arrays, including generated packets and alternate outcome profiles, at the catalog boundary.
 test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () => {
@@ -209,7 +210,7 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
       rawOwnerById.set(Number(id), owner);
       const skill = catalogById.get(id);
 
-      if (skill) assert.equal(nativeSkillRuntimeOwner(thiefNativeModules, skill), owner, id);
+      if (skill) assert.equal(thiefSkillOwners.get(skill.id), owner, id);
     }
   }
 
@@ -247,7 +248,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     );
     assert.equal(
       runtime.catalog.skills.some((skill) => {
-        const owner = nativeSkillRuntimeOwner(thiefNativeModules, skill);
+        const owner = thiefSkillOwners.get(skill.id);
 
         return owner !== 'Core' && owner !== activeElite;
       }),

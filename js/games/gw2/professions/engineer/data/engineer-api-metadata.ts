@@ -2,13 +2,11 @@
 // Snapshot: 2026-07-28. Run npm run update:profession-data -- --profession Engineer to refresh.
 // Simulator mechanics are maintained under engineer/core/ and engineer/specializations/.
 
-import type { Gw2ApiSpecialization, Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
+import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-export type EngineerApiTrait = Gw2ApiTrait;
 export type EngineerApiSpecialization = Gw2ApiSpecialization;
 
-export const DATA_SNAPSHOT: string = '2026-07-28';
 export const SPECIALIZATIONS: readonly EngineerApiSpecialization[] = [
   {
     id: 6,
