@@ -1981,6 +1981,20 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
   transform: rotate(-35deg);
 }
 
+/* Native toggle buttons retain the trait icon sizing and support keyboard selection. */
+.spec-trait-minor,
+.spec-trait-major {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.spec-trait-minor:focus-visible img,
+.spec-trait-major:focus-visible img {
+  outline: 2px solid white;
+  outline-offset: -2px;
+}
+
 .spec-trait-minor {
   position: relative;
   z-index: 1;
@@ -2010,7 +2024,7 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
   gap: 4em;
 }
 
-/* Distinguish fixed minor traits with hexagons and selectable major traits with square frames. */
+/* Distinguish minor traits with hexagons and major choices with square frames. */
 .spec-trait-major {
   width: 42em;
   height: 42em;
@@ -2038,16 +2052,19 @@ body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
   filter: none;
 }
 
-.spec-trait-major.dim img {
+.spec-trait-major.dim img,
+.spec-trait-minor.dim img {
   opacity: 0.55;
   filter: grayscale(0.6) contrast(1.1);
 }
 
-.spec-trait-major.dim:hover {
+.spec-trait-major.dim:hover,
+.spec-trait-minor.dim:hover {
   filter: grayscale(0) drop-shadow(0 0 2px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
 }
 
-.spec-trait-major.dim:hover img {
+.spec-trait-major.dim:hover img,
+.spec-trait-minor.dim:hover img {
   opacity: 0.9;
   filter: grayscale(0);
 }
