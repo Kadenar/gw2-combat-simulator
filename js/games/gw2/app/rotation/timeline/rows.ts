@@ -186,9 +186,12 @@ export function timelineRowsView(
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcTimelineMarkers(results, rotation.length) : []),
     ...(app.overlayRelicProcs ? relicProcExpirationTimelineMarkers(results, rotation.length) : []),
-    // Keep this requested trait proc opt-in without overlaying every simulated trait proc.
+    // Keep these trait procs opt-in without overlaying every simulated trait proc.
     ...(specialization === 'Luminary' && app.overlaySovereignOfLightProcs
       ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'Sovereign of Light')
+      : []),
+    ...(specialization === 'Berserker' && app.overlayKingOfFiresProcs
+      ? traitProcTimelineMarkers(results, rotation.length).filter((marker) => marker.skill === 'King of Fires')
       : [])
   ].sort((left, right) => left.start - right.start);
   // Insertion indexes place simulated events between authored commands without adding editable commands.

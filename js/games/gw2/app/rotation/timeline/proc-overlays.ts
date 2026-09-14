@@ -2,7 +2,8 @@
 export const ROTATION_PROC_OVERLAY_STORAGE_KEYS = Object.freeze({
   sigil: 'gw2-rotation-overlay-sigil-procs',
   relic: 'gw2-rotation-overlay-relic-procs',
-  sovereignOfLight: 'gw2-rotation-overlay-sovereign-of-light-procs'
+  sovereignOfLight: 'gw2-rotation-overlay-sovereign-of-light-procs',
+  kingOfFires: 'gw2-rotation-overlay-king-of-fires-procs'
 } as const);
 
 export type RotationProcOverlayType = keyof typeof ROTATION_PROC_OVERLAY_STORAGE_KEYS;

@@ -77,6 +77,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
   overlaySovereignOfLightProcs: boolean;
+  overlayKingOfFiresProcs: boolean;
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
@@ -126,6 +127,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
     this.overlaySovereignOfLightProcs = readStoredRotationProcOverlayVisibility(document, 'sovereignOfLight');
+    this.overlayKingOfFiresProcs = readStoredRotationProcOverlayVisibility(document, 'kingOfFires');
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;

@@ -103,6 +103,7 @@ export interface ProfessionAppState {
   overlaySigilProcs?: boolean;
   overlayRelicProcs?: boolean;
   overlaySovereignOfLightProcs?: boolean;
+  overlayKingOfFiresProcs?: boolean;
   rotationSkillHighlightKey?: string | null;
   _skillSortCol?: string | null;
   _skillSortDir?: 'asc' | 'desc' | null;

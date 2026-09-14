@@ -112,6 +112,23 @@ export function mountRotationDisplayControls(app: ProfessionAppState, root: Docu
     );
   }
 
+  // Berserkers can display aura detonations in the rotation without changing simulation inputs.
+  if (activeSpecialization(app) === 'Berserker') {
+    controls.append(
+      checkboxControl(root, {
+        id: 'rotation-overlay-king-of-fires-procs',
+        label: 'Overlay King of Fires',
+        title: 'Show King of Fires detonations at their simulated positions in the rotation',
+        checked: Boolean(app.overlayKingOfFiresProcs),
+        onChange: (checked) => {
+          app.overlayKingOfFiresProcs = checked;
+          storeRotationProcOverlayVisibility(root, 'kingOfFires', checked);
+          renderTimeline(app);
+        }
+      })
+    );
+  }
+
   section.append(summary, controls);
   container.append(section);
 }
