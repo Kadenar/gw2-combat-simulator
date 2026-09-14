@@ -122,7 +122,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // reductions after shared recharge policy has produced the base duration.
 function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: WarriorSkill }, duration: number): number {
   const skill = context.skill;
-  if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? 5 : 0;
+  if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? Math.min(5, duration) : 0;
   let result = duration;
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER)) result *= 0.85;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) result *= 0.8;

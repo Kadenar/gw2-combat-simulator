@@ -33,7 +33,7 @@ import {
   normalizeBoonDuration,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/state/boons.js';
-import { relicWeaponSwapRechargeMultiplier } from '#gw2/platform/equipment/relics/catalog.js';
+import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
 import {
   gw2BoonDurationMultiplier,
   gw2SigilSet,
@@ -401,10 +401,10 @@ export function createGw2SchedulerPolicy(
         return 0;
       }
 
-      // Weapon swap ignores Alacrity; an equipped relic modifier instead changes
-      // its base recharge directly so rotations use the game's actual timing.
+      // Weapon swap ignores Alacrity; Relic of the Warrior removes a fixed 2.5 seconds
+      // from any base recharge so profession-specific swap timings remain distinct.
       if (skill.name === WEAPON_SWAP_SKILL) {
-        return baseDuration * relicWeaponSwapRechargeMultiplier(config.relic);
+        return Math.max(0, baseDuration - relicWeaponSwapRechargeReduction(config.relic));
       }
 
       const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');

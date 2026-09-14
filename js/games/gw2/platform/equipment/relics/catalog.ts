@@ -118,17 +118,17 @@ export const RELIC_DATA = {
     icon: 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png'
   },
   Warrior: {
-    trigger: 'Reduce weapon swap recharge by 25%',
+    trigger: 'Reduce weapon swap recharge by 2.5 seconds',
     cooldown: 0,
-    weaponSwapRechargeMultiplier: 0.75,
+    weaponSwapRechargeReduction: 2.5,
     icon: 'https://render.guildwars2.com/file/1D3CF82C05450A605921F6EB9D0AC23421C9CFA5/3122375.png'
   }
 };
 
-/** Resolves an equipped relic's shared weapon-swap timing modifier. */
-export function relicWeaponSwapRechargeMultiplier(relicName: string | undefined): number {
+/** Resolves the relic's fixed weapon-swap reduction so every base recharge loses the same 2.5 seconds. */
+export function relicWeaponSwapRechargeReduction(relicName: string | undefined): number {
   const relic = RELIC_DATA[relicName as keyof typeof RELIC_DATA];
-  return relic && 'weaponSwapRechargeMultiplier' in relic ? Number(relic.weaponSwapRechargeMultiplier) : 1;
+  return relic && 'weaponSwapRechargeReduction' in relic ? Number(relic.weaponSwapRechargeReduction) : 0;
 }
 
 export const RELIC_NAMES = [...Object.keys(RELIC_DATA)].sort((a, b) => a.localeCompare(b));

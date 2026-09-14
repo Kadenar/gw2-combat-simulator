@@ -549,6 +549,9 @@ test('Core Warrior weapon swap toggles the active set', () => {
     result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2),
     true
   );
+
+  const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { relic: 'Warrior' });
+  assert.equal(relic.endState.cooldowns['Swap Weapons'].readyAt, 2500);
 });
 
 test('Berserker gates primal bursts behind berserk mode', () => {
