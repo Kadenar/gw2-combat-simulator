@@ -280,7 +280,7 @@ frame.addEventListener('load', async () => {
     );
     assert(
       [...document.querySelectorAll('#rotation-results .res-label')].map((label) => label.textContent).join('|') ===
-        'Duration|Total Idle Time|Player Damage|Player DPS|Strike|Condition',
+        'Duration|Actions / min|Total Idle Time|Player Damage|Player DPS|Strike|Condition',
       'result summary metric order is incorrect'
     );
     assert(

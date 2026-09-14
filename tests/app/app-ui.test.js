@@ -799,9 +799,9 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   assert.match(summaryStrip.innerHTML, /res-summary-placeholder/);
   assert.deepEqual(
     [...summaryStrip.innerHTML.matchAll(/<span class="res-label">([^<]+)<\/span>/g)].map((match) => match[1]),
-    ['Duration', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
+    ['Duration', 'Actions / min', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
-  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 6);
+  assert.equal([...summaryStrip.innerHTML.matchAll(/<span class="res-val[^>]*">—<\/span>/g)].length, 7);
   assert.match(results.innerHTML, /No analysis yet/);
   assert.equal(summaryMirror.innerHTML, '');
 });
