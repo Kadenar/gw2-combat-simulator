@@ -109,6 +109,9 @@ test('duration-stacking boons use their in-game duration caps', () => {
     ['alacrity', 30],
     ['fury', 30],
     ['protection', 30],
+    ['regeneration', 30],
+    ['resistance', 30],
+    ['resolution', 30],
     ['vigor', 30],
     ['swiftness', 60]
   ]) {

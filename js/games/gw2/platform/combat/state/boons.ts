@@ -40,11 +40,15 @@ export const GW2_STANDARD_BOONS = Object.freeze([
   'vigor'
 ] as const);
 const STANDARD_BOON_SET = new Set<string>(GW2_STANDARD_BOONS);
+// Keep duration-pooling rules shared by combat queries, extensions, and result charts.
 const DURATION_STACKING_BOON_CAPS = new Map([
   ['quickness', GW2_BOON_DURATION_CAP_SECONDS],
   ['alacrity', GW2_BOON_DURATION_CAP_SECONDS],
   ['fury', GW2_BOON_DURATION_CAP_SECONDS],
   ['protection', GW2_BOON_DURATION_CAP_SECONDS],
+  ['regeneration', GW2_BOON_DURATION_CAP_SECONDS],
+  ['resistance', GW2_BOON_DURATION_CAP_SECONDS],
+  ['resolution', GW2_BOON_DURATION_CAP_SECONDS],
   ['vigor', GW2_BOON_DURATION_CAP_SECONDS],
   ['swiftness', GW2_SWIFTNESS_DURATION_CAP_SECONDS]
 ]);

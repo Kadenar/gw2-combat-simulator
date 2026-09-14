@@ -221,6 +221,12 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
         playerBuff({ at: 1, kind: 'fury', duration: 3 }),
         playerBuff({ at: 0, kind: 'protection', duration: 3 }),
         playerBuff({ at: 1, kind: 'protection', duration: 3 }),
+        playerBuff({ at: 0, kind: 'regeneration', duration: 3 }),
+        playerBuff({ at: 1, kind: 'regeneration', duration: 3 }),
+        playerBuff({ at: 0, kind: 'resistance', duration: 3 }),
+        playerBuff({ at: 1, kind: 'resistance', duration: 3 }),
+        playerBuff({ at: 0, kind: 'resolution', duration: 3 }),
+        playerBuff({ at: 1, kind: 'resolution', duration: 3 }),
         playerBuff({ at: 0, kind: 'vigor', duration: 3 }),
         playerBuff({ at: 1, kind: 'vigor', duration: 3 }),
         playerBuff({ at: 0, kind: 'swiftness', duration: 3 }),
@@ -238,7 +244,7 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
     series.effects.Alacrity.map((point) => point.v),
     [2, 1, 0, 2, 1, 0, 0, 0]
   );
-  for (const name of ['Fury', 'Protection', 'Vigor', 'Swiftness']) {
+  for (const name of ['Fury', 'Protection', 'Regeneration', 'Resistance', 'Resolution', 'Vigor', 'Swiftness']) {
     assert.deepEqual(
       series.effects[name].map((point) => point.v),
       [3, 5, 4, 3, 2, 1, 0, 0],
@@ -251,6 +257,9 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
     Alacrity: 's',
     Fury: 's',
     Protection: 's',
+    Regeneration: 's',
+    Resistance: 's',
+    Resolution: 's',
     Vigor: 's',
     Swiftness: 's'
   });
