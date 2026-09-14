@@ -1,13 +1,9 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
+import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
 import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  createPermanentTargetConditionStacks,
-  GW2_DAMAGING_CONDITIONS,
-  isDamagingCondition
-} from '#gw2/platform/combat/state/targets.js';
+import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 
 import type {
   Gw2ConditionResolution,
@@ -212,7 +208,8 @@ export function createGw2ConditionResolution({
     };
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
-        const dealsDamage = isDamagingCondition(group.condition);
+        // Explicit applications may use trait-only formulas such as Terror's Fear outside the standard damaging subset.
+        const dealsDamage = Object.hasOwn(CONDITION_FORMULAS, group.condition);
         for (const application of group.applications) {
           if (isRemoved(application, at)) continue;
           if (

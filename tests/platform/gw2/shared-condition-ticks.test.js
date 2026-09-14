@@ -66,6 +66,25 @@ function packetDamage(result, name = 'Bleeding') {
   return [...packets];
 }
 
+// Trait-emitted Fear uses its damage formula; ordinary fear controls and ambient Fear remain harmless.
+test('explicit Fear condition applications deal damage in detailed and score output', () => {
+  for (const output of ['detailed', 'score']) {
+    const control = {
+      type: 'control',
+      at: 0,
+      controlKind: 'fear',
+      duration: 1,
+      source: 'Player',
+      sourceId: 'fear-control',
+      actorType: 'player'
+    };
+    const options = { output, target: { conditions: { Fear: true } } };
+    assert.equal(resolve([control], options).conditionDamage, 0);
+    const result = resolve([control, condition(0, { condition: 'Fear', sourceId: 'terror' })], options);
+    assert.equal(result.conditionDamage, 444 + 0.4 * 125);
+  }
+});
+
 // Zero-damage applications retain duration snapshots and live target effects, but never rebuild damage attributes.
 test('non-damaging conditions preserve other skills modifiers, expiry, and reporting without damage sampling', () => {
   const statuses = ['Vulnerability', 'Chilled', 'Weakness', 'Crippled'];
