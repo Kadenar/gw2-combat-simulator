@@ -98,19 +98,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 5817,
-    name: 'Jump Shot',
-    description: 'Blast the ground, damaging nearby foes and leaping to your target.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jump_Shot.png',
-    type: 'Weapon',
-    slot: 'Weapon_5',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 5822,
     name: 'Galvanic Bomb',
     description: 'Set an explosive that electrocutes nearby foes, dazing them.',
@@ -427,45 +414,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 10661,
-    name: 'Withering Plague',
-    description: 'Add bleeding to your plague.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Withering_Plague.png',
-    type: 'Weapon',
-    slot: 'Weapon_1',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 10662,
-    name: 'Plague of Darkness',
-    description: 'Add blindness to your plague.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Darkness.png',
-    type: 'Weapon',
-    slot: 'Weapon_2',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 10663,
-    name: 'Plague of Pestilence',
-    description: 'Add cripple and weakness to your plague and increase its damage dealt.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague_of_Pestilence.png',
-    type: 'Weapon',
-    slot: 'Weapon_3',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 12334,
     name: 'Confusing Speech',
     description: 'Confuse nearby foes with complex calculations.',
@@ -531,19 +479,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 13516,
-    name: 'Ally Ward',
-    description: 'Grant protection to nearby allies.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Ally_Ward.png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 13552,
     name: 'Static Discharge (trait skill)',
     description:
@@ -552,20 +487,6 @@ const records: EngineerSupplementalSkill[] = [
     icon: 'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png',
     type: 'Action',
     slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 15796,
-    name: 'Plague',
-    description:
-      'Become a virulent cloud and inflict multiple conditions on foes you touch. Entering this form destroys all minions and removes spectral effects.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Plague.png',
-    type: 'Elite',
-    slot: 'Elite',
     specialization: '',
     categories: [],
     nextChainId: null,
@@ -638,19 +559,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 17815,
-    name: 'Glue Trail',
-    description: 'Leave a trail of glue behind you that hampers enemy movement.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Glue_Trail.png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 21661,
     name: 'Static Shock',
     description: 'Use your A.E.D. to stun an enemy.',
@@ -668,19 +576,6 @@ const records: EngineerSupplementalSkill[] = [
     name: 'Bunker Down (trait skill)',
     description: 'Detonates when enemies draw near.',
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bunker_Down_(trait_skill).png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 26027,
-    name: 'Overfueled Flame Jet',
-    description: 'Spray out a cone of fire with freedom to move.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Overfueled_Flame_Jet.png',
     type: 'Action',
     slot: 'Action',
     specialization: '',
@@ -820,19 +715,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 29902,
-    name: 'Drop Gunk',
-    description: 'Drop gunk at your location to inflict a random condition.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Drop_Gunk.png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 30032,
     name: 'Elixir Shell',
     description: 'Launch a mortar round that heals allies in the target area.',
@@ -952,19 +834,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 30686,
-    name: 'Long-Fused Powder Pack',
-    description: "Drop a delayed explosive pack at your foe's location.",
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Long-Fused_Powder_Pack.png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 30885,
     name: 'Poison Gas Shell',
     description: 'Launch a mortar round that spreads poisonous gas in an area.',
@@ -999,19 +868,6 @@ const records: EngineerSupplementalSkill[] = [
     slot: 'Action',
     specialization: 'Scrapper',
     categories: ['tool belt', 'Scrapper'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 40168,
-    name: 'Throw Junk (Doppelganger)',
-    description: 'Throw a bit of junk and inflict a random condition on your foe.',
-    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Throw_Junk_(Doppelganger).png',
-    type: 'Action',
-    slot: 'Action',
-    specialization: '',
-    categories: [],
     nextChainId: null,
     flipSkillId: null,
     simulatorExcluded: false

@@ -120,32 +120,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   },
-  [ID.PLAGUE]: {
-    castTimeMs: 0,
-    cooldown: 105,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.39,
-        hits: 1,
-        name: 'Plague',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 3,
-        stacks: 1
-      }
-    ]
-  },
   [ID.A_E_D]: {
     castTimeMs: 520,
     cooldown: 24,

@@ -1,4 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 
 import type {
@@ -10,6 +12,24 @@ const KIT_SWAP_SIGNAL_WINDOW_MS = 25;
 const PHOTON_FORGE_TRANSITION_IDS = new Set([42938, 41123, 45219]);
 // Vent Exhaust, Overheat, and the mech's Rocket Punch are generated consequences, not player inputs.
 const TRIGGERED_PROC_SKILL_IDS = new Set([43630, 43937, 63185]);
+
+/** Restores old EI Devastator pseudo-casts whose duration was emitted as one 80 ms tick despite a complete cast. */
+function restoreLegacyDevastatorCast(
+  context: LogActionNormalizationContext,
+  action: RecordedLogAction
+): RecordedLogAction {
+  if (
+    action.rawSkillId !== ID.DEVASTATOR ||
+    action.status !== 'reduced' ||
+    quantizeGw2ActionTimingMs(action.end - action.start) !== 80
+  ) {
+    return action;
+  }
+
+  const castTimeMs = referenceCastTimeMs(recordedActionSkill(action, context));
+  if (castTimeMs <= 0 || Number(action.expectedDurationMs) < castTimeMs - 80) return action;
+  return { ...action, end: action.start + castTimeMs, status: 'completed', expectedDurationMs: castTimeMs };
+}
 
 function kitName(skill: Skill | null): string | null {
   if (skill?.handlerId !== 'engineer.kit-equip') return null;
@@ -37,9 +57,9 @@ function kitStow(
 
 /** Converts represented kit swaps and mine detonations without inserting missing preparation. */
 export function reconstructEngineerDependencies(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
-  const sorted = [...context.recordedActions].sort(
-    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
-  );
+  const sorted = context.recordedActions
+    .map((action) => restoreLegacyDevastatorCast(context, action))
+    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];
   const forgeTransitions = sorted.filter((action) => PHOTON_FORGE_TRANSITION_IDS.has(action.rawSkillId));
   let activeKit: string | null = null;

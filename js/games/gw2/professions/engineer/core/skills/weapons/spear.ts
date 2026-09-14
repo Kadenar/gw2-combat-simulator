@@ -108,7 +108,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/mechanics/spear.ts`.
     handlerId: 'engineer.lightning-rod',
     castTimeMs: 400,
-
+    interruptCommitMs: 280,
     cooldown: 12,
     effects: []
   },

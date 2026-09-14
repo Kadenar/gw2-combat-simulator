@@ -357,8 +357,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
     handlerId: 'engineer.heat',
     castTimeMs: 1320,
-    // The shortest observed complete volley lasts 1204 ms; all eight impacts land before its aftercast ends.
-    interruptCommitMs: 1200,
+    // Each launched projectile and matching burn survive independently when the channel ends early.
+    interruptMode: 'per-packet',
     cooldown: 10,
     heatGain: 16,
     comboFinishers: [

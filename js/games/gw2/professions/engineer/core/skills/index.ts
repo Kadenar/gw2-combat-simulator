@@ -12,7 +12,6 @@ import { ENGINEER_FLAMETHROWER_SKILL_MECHANICS } from '#gw2/professions/engineer
 import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elixir-gun.js';
 import { ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 
-import { ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/supplemental-skills.js';
 import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import { ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/profession-skills.js';
 import { ENGINEER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/slot-skills.js';
@@ -28,7 +27,6 @@ import { ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/enginee
 /** Composes kit fragments with physical weapons, utilities, toolbelt actions, and synthetic Core skills. */
 export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   ...ENGINEER_TRAIT_SKILL_MECHANICS,
-  ...ENGINEER_SUPPLEMENTAL_SKILL_MECHANICS,
   ...ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS,
   ...ENGINEER_SLOT_SKILLS_SKILL_MECHANICS,
   ...ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS,

@@ -384,6 +384,10 @@ test('Photon Blitz gains two heat for each completed projectile', () => {
 
   // Three projectile pulses add 6 heat while six passive ticks add another 1.2.
   assert.equal(partial.endState.profession.heat, 7.2);
+  assert.equal(
+    partial.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Photon Blitz').length,
+    3
+  );
 
   const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
 

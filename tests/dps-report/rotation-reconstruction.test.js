@@ -367,6 +367,42 @@ test('preserves cancelled and shortened autoattack inputs at their observed dura
   );
 });
 
+test('restores legacy EI Devastator pseudo-casts without hiding true interrupts', () => {
+  const fixture = reportFixture();
+  fixture.players[0].profession = 'Holosmith';
+  fixture.players[0].rotation = [
+    {
+      id: 72974,
+      skills: [
+        { castTime: 0, duration: 78, timeGained: 890 },
+        { castTime: 2000, duration: 78, timeGained: -890 }
+      ]
+    }
+  ];
+  fixture.skillMap = { s72974: { name: 'Devastator' } };
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+  const actions = result.actions.filter((action) => action.name === 'Devastator');
+  const commands = result.rotation.filter((command) => command.name === 'Devastator');
+
+  // Source evidence remains intact while only EI's known reduced pseudo-cast becomes catalog-complete.
+  assert.deepEqual(
+    result.sourceActions.map((action) => action.durationMs),
+    [78, 78]
+  );
+  assert.deepEqual(
+    actions.map((action) => [action.durationMs, action.status]),
+    [
+      [1000, 'completed'],
+      [78, 'interrupted']
+    ]
+  );
+  assert.deepEqual(
+    commands.map((command) => command.interruptMs),
+    [undefined, 80]
+  );
+});
+
 test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relying on EI metadata', () => {
   const fixture = reportFixture();
   fixture.players[0].rotation.push({ id: 43630, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });

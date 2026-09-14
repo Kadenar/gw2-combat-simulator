@@ -121,7 +121,7 @@ test('protected variants and unreviewed IDs remain distinct', () => {
   // Phase 6 retained records either differ behaviorally or still lack an external identity relationship.
   for (const skillId of [
     9224, 41746, 73006, 73042, 30893, 76550, 76800, 40601, 41110, 41330, 42707, 42803, 43566, 71922, 71950, 72089,
-    73014, 15834, 42371, 5817, 6091, 6092, 30337, 45094, 16460, 71967, 76601, 76900, 77288, 72058
+    73014, 15834, 42371, 6091, 6092, 30337, 45094, 16460, 71967, 76601, 76900, 77288, 72058
   ]) {
     assert.equal(canonicalGw2SkillId(skillId), skillId);
   }
