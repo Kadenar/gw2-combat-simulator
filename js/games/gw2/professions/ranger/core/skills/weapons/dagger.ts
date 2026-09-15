@@ -8,7 +8,14 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       {
         type: 'strike',
         coefficient: 0.9,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'condition',

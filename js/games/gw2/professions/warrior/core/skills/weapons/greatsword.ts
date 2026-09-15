@@ -75,7 +75,16 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
           { atMs: 1520, coefficient: 1.5 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: 'Projectile',
+            chance: 1,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       }
     ]
   },

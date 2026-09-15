@@ -5,6 +5,13 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHARGE]: {
     castTimeMs: 333,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'boon',
@@ -22,6 +29,13 @@ export const WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CALL_OF_VALOR]: {
     castTimeMs: 333,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'boon',

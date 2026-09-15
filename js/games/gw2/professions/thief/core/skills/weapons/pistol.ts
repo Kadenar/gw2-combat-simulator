@@ -15,7 +15,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Bola Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -52,7 +60,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Shot Damage',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -80,7 +96,16 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Unload',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'boon',
@@ -103,7 +128,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Head Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       }
     ]
   },
@@ -119,7 +152,16 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Vital Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -141,7 +183,16 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Repeater (offhand empty)',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -165,7 +216,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Black Powder',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'blind',
@@ -191,7 +250,15 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Sneak Attack',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -215,7 +282,16 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Repeater',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

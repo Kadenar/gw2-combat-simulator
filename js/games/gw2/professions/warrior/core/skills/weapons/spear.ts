@@ -72,7 +72,16 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: 'Projectile',
+            chance: 1,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

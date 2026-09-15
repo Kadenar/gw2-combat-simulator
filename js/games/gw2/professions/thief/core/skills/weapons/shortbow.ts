@@ -16,7 +16,16 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Trick Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -76,7 +85,15 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Large Explosion',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -120,7 +137,15 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Disabling Shot (thief short bow skill)',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -144,7 +169,15 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Surprise Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

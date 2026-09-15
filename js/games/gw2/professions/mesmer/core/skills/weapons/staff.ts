@@ -128,6 +128,14 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'add',
       count: 1
     },
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: 'Leap',
+        fieldSelectionAnchor: 'castStart',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: []
   },
   [ID.CHAOS_ARMOR]: {

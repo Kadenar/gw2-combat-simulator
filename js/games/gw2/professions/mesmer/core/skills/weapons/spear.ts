@@ -21,7 +21,14 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'One lancer',
         actorType: 'summon',
         summonKind: 'phantasm',
-        weapon: 'phantasm medium'
+        weapon: 'phantasm medium',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'condition',
@@ -80,7 +87,15 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
-        weapon: 'spear'
+        weapon: 'spear',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       }
     ]
   },

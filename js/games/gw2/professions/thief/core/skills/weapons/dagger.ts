@@ -95,7 +95,15 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Dancing Dagger',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -126,7 +134,15 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Shadow Shot',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'blind',

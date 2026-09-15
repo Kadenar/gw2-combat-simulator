@@ -285,6 +285,13 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 30,
     aura: 'Magnetic|4',
     skillFamily: 'Weapon skill',
+    comboFinishers: [
+      {
+        ownerId: 'elementalist',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'boon',

@@ -101,6 +101,14 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.AURA_SLICER]: {
     castTimeMs: 750,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Leap',
+        fieldSelectionAnchor: 'castStart',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
 
     effects: [
       {

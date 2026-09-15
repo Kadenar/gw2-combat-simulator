@@ -107,7 +107,14 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
       {
         type: 'strike',
         coefficient: 0.4,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'buff',

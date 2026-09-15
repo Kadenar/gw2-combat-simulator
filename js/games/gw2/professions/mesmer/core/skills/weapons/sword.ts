@@ -93,7 +93,14 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Phantasm leap',
         actorType: 'summon',
         summonKind: 'phantasm',
-        weapon: 'phantasm medium'
+        weapon: 'phantasm medium',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'strike',
@@ -162,7 +169,16 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         hits: 1,
         name: 'Damage',
         actorType: 'player',
-        weapon: 'sword'
+        weapon: 'sword',
+        // Retain a field crossed during the leap even when it expires before landing.
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Leap',
+            fieldSelectionAnchor: 'castStart',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       }
     ]
   }

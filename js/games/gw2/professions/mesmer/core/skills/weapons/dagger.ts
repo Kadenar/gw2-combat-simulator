@@ -115,7 +115,16 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         actorType: 'player',
         weapon: 'dagger',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'strike',
@@ -138,7 +147,16 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
         actorType: 'player',
         weapon: 'dagger',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       }
     ],
     castTimeMs: 440

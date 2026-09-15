@@ -57,7 +57,16 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
           { atMs: 480, coefficient: 1.25 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'warrior',
+            finisherType: 'Projectile',
+            chance: 1,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'control',

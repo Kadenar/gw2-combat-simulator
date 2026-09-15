@@ -52,7 +52,16 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
         name: 'Illusion Damage',
         actorType: 'summon',
         summonKind: 'phantasm',
-        weapon: 'phantasm medium'
+        weapon: 'phantasm medium',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',
@@ -84,7 +93,15 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
         actorType: 'player',
         weapon: 'pistol',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'mesmer',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

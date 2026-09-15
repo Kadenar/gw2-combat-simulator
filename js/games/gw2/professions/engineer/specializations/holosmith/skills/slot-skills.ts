@@ -135,7 +135,16 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         hits: 1,
         name: 'Particle Accelerator',
         weapon: 'Profession mechanic',
-        actorType: 'player'
+        actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Projectile',
+            preferredFieldTypes: ['Fire'],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        projectile: true
       },
       {
         type: 'condition',

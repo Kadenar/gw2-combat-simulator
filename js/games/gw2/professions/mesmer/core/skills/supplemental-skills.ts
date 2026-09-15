@@ -77,6 +77,14 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
     cooldown: 0,
     flipDuration: 5,
     flipDelay: 0,
+    comboFinishers: [
+      {
+        ownerId: 'mesmer',
+        finisherType: 'Leap',
+        fieldSelectionAnchor: 'castStart',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: []
   },
   [ID.COUNTER_BLADE]: {

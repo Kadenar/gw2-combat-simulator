@@ -10,7 +10,15 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'necromancer',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       }
     ],
     lifeForceGain: 4,
@@ -59,7 +67,14 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         coefficient: 1.32,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'necromancer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       }
     ],
     // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.

@@ -55,6 +55,14 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     ammoCastLockout: 1,
     castTimeMs: 360,
     dualWieldCastTimeMs: 240,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',

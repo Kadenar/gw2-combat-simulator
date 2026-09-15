@@ -10,6 +10,9 @@
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Frigid Flurry fires five shots at these offsets, each an independent Bleeding stack and Projectile finisher.
+const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
+
 /**
  * Skill-id keyed fragments the Core module contributes to the pistol catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
@@ -313,125 +316,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
+        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        comboFinishers: [
+          {
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
         metadata: {}
       },
       {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 640,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 640,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 800,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 800,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 960,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 960,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 7
-          }
-        ],
+        ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 7 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         metadata: {}

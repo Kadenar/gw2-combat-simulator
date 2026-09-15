@@ -136,7 +136,15 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         name: 'Cunning Salvo',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        comboFinishers: [
+          {
+            ownerId: 'thief',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

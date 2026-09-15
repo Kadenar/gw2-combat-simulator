@@ -26,7 +26,15 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 0.5,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            chance: 0.2,
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'condition',
@@ -42,7 +50,14 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 0.8,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'condition',
@@ -94,7 +109,14 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 0.5,
-        hits: 1
+        hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'ranger',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
       },
       {
         type: 'boon',
