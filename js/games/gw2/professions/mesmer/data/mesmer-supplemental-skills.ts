@@ -13,100 +13,10 @@ export interface MesmerSupplementalSkill {
   readonly weapon: string;
   readonly slot: string;
   readonly specialization?: string;
-  readonly ambush?: boolean;
   readonly flipParentId?: number;
 }
 
 const supplementalSkills: MesmerSupplementalSkill[] = [
-  {
-    id: ID.IMAGINARY_AXES,
-    name: 'Imaginary Axes',
-    description: 'Ambush. Release phantasmal axes that seek out the nearest target after a short delay.',
-    icon: 'https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png',
-    type: 'Weapon',
-    weapon: 'Axe',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.PHANTOM_RAZOR,
-    name: 'Phantom Razor',
-    description: 'Ambush. Slice your foe with a flurry of blades. Each blade inflicts different conditions.',
-    icon: 'https://render.guildwars2.com/file/45D4ADDEDD740AFDD1AF1EB9632BFCB3FFACE75F/3098873.png',
-    type: 'Weapon',
-    weapon: 'Dagger',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.SPLIT_SURGE,
-    name: 'Split Surge',
-    description: 'Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.',
-    icon: 'https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png',
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.EFFERVESCENCE,
-    name: 'Effervescence',
-    description: 'Ambush. Spray invigorating magic, damaging enemies and healing allies.',
-    icon: 'https://render.guildwars2.com/file/4F0FBD163F2F996D1292B90193C356402BF7554D/3256357.png',
-    type: 'Weapon',
-    weapon: 'Rifle',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.ETHER_BARRAGE,
-    name: 'Ether Barrage',
-    description: 'Ambush. Launch a barrage of chaos orbs at your foe, inflicting confusion and torment.',
-    icon: 'https://render.guildwars2.com/file/26CCD4729A4E32E75704E50F6B35DB70040680B8/1770508.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.FRACTURED_GLASS,
-    name: 'Fractured Glass',
-    description: 'Ambush. Pierce targets in front of you in a flurry of blows, leaving them vulnerable.',
-    icon: 'https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png',
-    type: 'Weapon',
-    weapon: 'Spear',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.CHAOS_VORTEX,
-    name: 'Chaos Vortex',
-    description:
-      'Ambush. Release a vortex of chaos energy that inflicts damaging conditions on foes and grants boons to allies.',
-    icon: 'https://render.guildwars2.com/file/0E2D7DB6FB4C0A9F681759099DE5D794A04914BF/1770510.png',
-    type: 'Weapon',
-    weapon: 'Staff',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
-  {
-    id: ID.MIRAGE_THRUST,
-    name: 'Mirage Thrust',
-    description: 'Ambush. Lunge at your foe, briefly daze them, and leave behind a clone.',
-    icon: 'https://render.guildwars2.com/file/609505304F1D0AB548710E92335E5F550D7E396E/1770511.png',
-    type: 'Weapon',
-    weapon: 'Sword',
-    slot: 'Weapon_1',
-    specialization: 'Mirage',
-    ambush: true
-  },
   {
     id: ID.COUNTERSPELL,
     name: 'Counterspell',

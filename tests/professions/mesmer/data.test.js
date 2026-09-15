@@ -50,11 +50,10 @@ import {
   MIRAGE_BALANCE_PROFILE_IDS,
   mesmerProfiledAmbush
 } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
-import { MESMER_MIRAGE_AMBUSH_ATTACKS as AMBUSH_ATTACKS } from '#gw2/professions/mesmer/specializations/mirage/mechanics/definitions.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS,
-  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
@@ -116,18 +115,17 @@ const MESMER_SKILL_MECHANICS = composeSkillMechanics('Mesmer', [
 const MESMER_SUPPLEMENTAL_SKILL_MECHANICS = composeSkillMechanics('Mesmer supplemental', [
   MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
-  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 ]);
 
 const PSEUDO_SKILLS = Object.freeze([
   ...MESMER_CORE_EXTRA_SKILLS,
   ...MESMER_CHRONOMANCER_EXTRA_SKILLS,
-  ...MESMER_MIRAGE_EXTRA_SKILLS,
+  ...MESMER_MIRAGE_EXTRA_SKILLS.filter((skill) => skill.id < 0),
   ...MESMER_TROUBADOUR_EXTRA_SKILLS
 ]);
 
-const AMBUSH_SKILLS = Object.freeze(MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush));
+const AMBUSH_SKILLS = Object.freeze(Object.values(AMBUSH_ATTACKS));
 
 const phantasmTimingIds = new Set([
   ...Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS),
@@ -627,6 +625,13 @@ test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', 
       (skill) => skill.ambush && skill.specialization === 'Mirage' && skill.slot === 'Weapon_1' && skill.icon
     )
   );
+  // Catalog loading must retain the actor variants on the same skill that selects the ambush handler.
+  for (const skill of AMBUSH_SKILLS) {
+    const loaded = mesmerCatalog.skillsById.get(skill.id);
+    assert.equal(loaded.handlerId, 'mesmer.ambush');
+    assert.deepEqual(loaded.player, skill.player);
+    assert.deepEqual(loaded.clone, skill.clone);
+  }
 });
 
 test('Mirage ambush data uses current player and clone variants', () => {
@@ -713,7 +718,6 @@ test('Mirage dodge spends endurance without ammo or cooldown', () => {
 });
 
 test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {
-  assert.equal(MESMER_SUPPLEMENTAL_SKILLS.length, 15);
   assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
   const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParent'];

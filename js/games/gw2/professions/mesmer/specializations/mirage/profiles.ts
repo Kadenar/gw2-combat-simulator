@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
-import { MESMER_MIRAGE_AMBUSH_ATTACKS } from '#gw2/professions/mesmer/specializations/mirage/mechanics/definitions.js';
+import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 
 import type { MesmerAttackStatus } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/mesmer/types.js';
@@ -195,7 +195,7 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
       { type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
     ]
   },
-  ...Object.entries(MESMER_MIRAGE_AMBUSH_ATTACKS).map(([weapon, attack]) =>
+  ...Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) =>
     mesmerAmbushProfile(MIRAGE_AMBUSH_PROFILE_IDS[weapon], attack)
   ),
   trait(MIRAGE_BALANCE_PROFILE_IDS.nominalEndurance, "Nomad's Endurance", {

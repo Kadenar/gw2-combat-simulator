@@ -1,38 +1,67 @@
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/lib/rotation/professions/index.js';
 import { recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { effectEvidence } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
-/** Replay an observed cloak through its represented source so shatters and mirrors do not spend dodge endurance. */
+/** Resolves cloak sources from owned raw evidence; a cloak gain alone never proves a dodge. */
 function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.specializationId !== 'mirage') return [...context.recordedActions];
-  return context.recordedActions.flatMap((action) => {
-    if (action.rawSkillId !== -17) return [action];
-    const source = context.recordedActions.some(
-      (other) =>
-        [10190, 10191, 49068, -63, 10192, 10287, 43064, 45046].includes(other.rawSkillId) &&
-        Math.abs(other.start - action.start) < 10
-    );
-    if (source) return [];
-    const mirror = context.log.events.some(
+  const cloaks = context.recordedActions.filter((action) => action.rawSkillId === -17);
+  const sourceBuffs = context.log.events.filter(
+    (e) =>
+      e.source === context.playerAddress &&
+      e.target === context.playerAddress &&
+      (e.stateChange === 69 || (e.stateChange === 0 && e.buff === 1 && e.buffRemove === 0)) &&
+      e.value > 0 &&
+      [69209, 42501].includes(e.skillId)
+  );
+  const teleports = effectEvidence(context.log).filter(
+    ({ event, guid }) =>
+      guid === 'D7A05478BA0E164396EB90C037DCCF42' &&
+      event.source === context.playerAddress &&
+      event.target === context.playerAddress
+  );
+  const mirrorSources = new Set(
+    context.log.events
+      .filter(
+        (e) =>
+          e.source === context.playerAddress &&
+          e.skillId === 44677 &&
+          e.stateChange === 0 &&
+          e.buff === 0 &&
+          e.value > 0
+      )
+      .flatMap((hit) => {
+        // Mirror damage can follow the cloak by 50 ms; require a unique gain so one hit cannot resolve two inputs.
+        const candidates = cloaks.filter((action) => hit.time - action.start > -10 && hit.time - action.start <= 50);
+        return candidates.length === 1 ? candidates : [];
+      })
+  );
+  return context.recordedActions.map((action) => {
+    if (action.rawSkillId !== -17) return action;
+    const buffs = sourceBuffs.filter(
       (e) =>
-        e.source === context.playerAddress &&
-        e.skillId === 44677 &&
-        e.stateChange === 0 &&
-        e.buff === 0 &&
-        e.value > 0 &&
-        Math.abs(e.time - action.start) < 10
+        Math.abs(e.time - action.start) < 10 &&
+        cloaks.filter((cloak) => Math.abs(e.time - cloak.start) < 10).length === 1
     );
-    // ponytail: unmatched cloak gains replay as dodges; add source rules when evidence identifies other cloak providers.
-    return [
-      {
-        ...action,
-        canonicalSkillId: mirror ? -2 : -1,
-        canonicalName: mirror ? 'Pick Up Mirage Mirror' : 'Dodge / Mirage Cloak'
-      }
+    // Buff 69209 accompanies the dodge-origin cloak in modern EVTC, unlike the general ambush buff 43694.
+    const dodge = buffs.some((e) => e.skillId === 69209);
+    // False Stealth plus a self teleport identifies Illusionary Ambush only without a competing teleport cast.
+    const ambush =
+      buffs.some((e) => e.skillId === 42501) &&
+      teleports.some(({ event }) => event.time >= action.start && event.time <= action.start + 20) &&
+      !context.recordedActions.some(
+        (other) => [45449, 43761].includes(other.rawSkillId) && Math.abs(other.start - action.start) <= 20
+      );
+    const sources = [
+      ...(mirrorSources.has(action) ? [{ canonicalSkillId: -2, canonicalName: 'Pick Up Mirage Mirror' }] : []),
+      ...(dodge ? [{ canonicalSkillId: -1, canonicalName: 'Dodge / Mirage Cloak' }] : []),
+      ...(ambush ? [{ canonicalSkillId: 45046, canonicalName: 'Illusionary Ambush' }] : [])
     ];
+    return sources.length === 1 ? { ...action, ...sources[0] } : action;
   });
 }
 

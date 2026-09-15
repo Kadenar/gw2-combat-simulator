@@ -6,6 +6,7 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
@@ -33,6 +34,49 @@ function reportFixture(profession, rotation, skillMap, end = 40_000) {
     skillMap
   });
 }
+
+test('Mirage cloak sources import once without spending endurance or applying Dune Cloak twice', () => {
+  // A minimal shatter proves both the resource contract and the cooldown effect of a single cloak application.
+  const report = reportFixture(
+    'Mirage',
+    [
+      { id: -17, skills: [{ castTime: 0, duration: 0 }] },
+      { id: 10191, skills: [{ castTime: 0, duration: 0 }] }
+    ],
+    { 's-17': { name: 'Mirage Cloak' }, s10191: { name: 'Mind Wrack' } }
+  );
+  const imported = reconstructDpsReportRotation(report, mesmerCatalog);
+  const config = { specialization: 'Mirage', initialResource: 3, selectedTraitIds: [MESMER_TRAIT.DUNE_CLOAK] };
+  const actual = simulateMesmer(imported.rotation, config);
+  const expected = simulateMesmer(['__combat_start', 'Mind Wrack'], config);
+  assert.deepEqual(actual.warnings, []);
+  assert.equal(actual.endState.profession.endurance, 100);
+  assert.equal(actual.endState.profession.availableAmbush.source, 'Dune Cloak');
+  assert.deepEqual(actual.endState.cooldowns, expected.endState.cooldowns);
+  assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));
+});
+
+test('Mirage source matching uses numeric identity and the strict server window for every represented provider', () => {
+  // Report group order and localized names must not turn a represented source into another input.
+  for (const sourceId of [10190, 10191, 49068, -63, 10192, 10287, 43064, 45046]) {
+    for (const offset of [-10, -9, 0, 9, 10]) {
+      const report = reportFixture(
+        'Mirage',
+        [
+          { id: -17, skills: [{ castTime: 100, duration: 0 }] },
+          { id: sourceId, skills: [{ castTime: 100 + offset, duration: 0 }] }
+        ],
+        { 's-17': { name: 'Localized cloak' }, [`s${sourceId}`]: { name: 'Localized source' } }
+      );
+      const imported = reconstructDpsReportRotation(report, mesmerCatalog);
+      assert.equal(
+        imported.actions.some((action) => action.rawSkillId === -17),
+        Math.abs(offset) === 10
+      );
+      assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));
+    }
+  }
+});
 
 test('Guardian sword animation segments import as one activation without merging an unpaired follow-up', () => {
   // Weaponmaster and Willbender imports share the same composite; missing opener evidence stays unmodified.

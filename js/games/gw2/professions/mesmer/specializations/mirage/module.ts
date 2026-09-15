@@ -11,8 +11,7 @@ import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/stat
 import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
 import {
   MESMER_MIRAGE_EXTRA_SKILLS,
-  MESMER_MIRAGE_SKILL_MECHANICS,
-  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS
+  MESMER_MIRAGE_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mesmerReplaceProfile, scheduleProfileControls } from '#gw2/professions/mesmer/core/execution/index.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -41,7 +40,6 @@ export const mirageModule = defineNativeModule({
   id: 'Mirage',
   data: createMesmerModuleData('Mirage', {
     skillMechanics: MESMER_MIRAGE_SKILL_MECHANICS,
-    supplementalSkillMechanics: MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_MIRAGE_EXTRA_SKILLS,
     balanceProfiles: MIRAGE_BALANCE_PROFILES
   }),

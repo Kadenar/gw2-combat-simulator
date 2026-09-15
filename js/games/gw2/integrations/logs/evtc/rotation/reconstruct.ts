@@ -155,7 +155,7 @@ function weaponSwapActions(log: ParsedEvtc, address: bigint): RecordedAction[] {
 
 function isDodgeName(name: string): boolean {
   const value = name.trim().toLowerCase();
-  return value === 'dodge' || value === 'dodge roll' || value === 'mirage cloak';
+  return value === 'dodge' || value === 'dodge roll';
 }
 
 function resolveAction(

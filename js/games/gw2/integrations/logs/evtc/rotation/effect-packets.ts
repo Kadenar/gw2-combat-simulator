@@ -184,6 +184,8 @@ export function missingInterruptCommitWarnings(
   const validatePackets = createStrikePacketMatcher(context);
   const missingBySkill = new Map<string, number>();
   for (const action of actions) {
+    // Only a cancellation retained in the replay can discard damage; raw reduced markers may replay to completion.
+    if (action.replayInterruptMs == null) continue;
     if (!validatePackets(action).observedPostInterruptWithoutCommit) continue;
     const skill = skillForAction(context, action);
     const name = skill?.name || action.canonicalName || action.rawName;

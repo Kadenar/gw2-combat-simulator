@@ -37,8 +37,8 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 41682,
-        "upToDate": false
+        "benchmarkDps": 41037,
+        "upToDate": true
       },
       {
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",

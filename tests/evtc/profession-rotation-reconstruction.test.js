@@ -5,6 +5,7 @@ import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integra
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { missingInterruptCommitWarnings } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -27,6 +28,27 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+test('post-interrupt damage warns only when the replay actually retains a cancellation', () => {
+  // A reduced raw marker can replay to completion; its damage is not discarded in that case.
+  const c = context('mesmer', 'mirage', [event({ time: 200, skillId: 1000, value: 100 })]);
+  c.catalog = {
+    skills: [
+      {
+        id: 1000,
+        name: 'Mind Stab',
+        castTimeMs: 100,
+        effects: [{ type: 'strike', atMs: 100, timingAnchor: 'castStart', timingScale: 'fixed' }]
+      }
+    ]
+  };
+  const action = { start: 100, end: 140, rawSkillId: 1000, rawName: 'Mind Stab', eventIndex: 0, status: 'reduced' };
+  assert.deepEqual(missingInterruptCommitWarnings(c, [action]), []);
+  assert.match(
+    missingInterruptCommitWarnings(c, [{ ...action, replayInterruptMs: 40 }]).join('\n'),
+    /preserves the cancellation/
+  );
+});
 
 test('Mesmer shatter loading rejects matching clone visuals using packed ground coordinates', () => {
   const mapping = (skillId, guid) =>
@@ -79,7 +101,7 @@ test('Mirage cloak normalization preserves endurance by retaining the represente
   };
   const c = context('mesmer', 'mirage', []);
   c.recordedActions = [cloak];
-  assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, -1);
+  assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, undefined);
   c.log.events = [event({ time: 100, skillId: 44677, value: 100 })];
   assert.equal(reconstructProfessionActions(c)[0]?.canonicalSkillId, -2);
   c.log.events = [];
@@ -87,6 +109,86 @@ test('Mirage cloak normalization preserves endurance by retaining the represente
   const actions = reconstructProfessionActions(c);
   assert.equal(actions.length, 1);
   assert.equal(actions[0].rawSkillId, 10190);
+});
+
+test('Mirage mirror attribution accepts delayed owned damage only when its cloak source is unambiguous', () => {
+  // Packet delay does not spend dodge endurance, but neighboring gains and foreign damage remain unresolved.
+  const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
+  const c = context('mesmer', 'mirage', []);
+  c.recordedActions = [cloak];
+  for (const delay of [-10, -9, 0, 33, 50, 51]) {
+    c.log.events = [event({ time: 100 + delay, skillId: 44677, value: 100 })];
+    assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, delay > -10 && delay <= 50 ? -2 : undefined);
+  }
+
+  for (const overrides of [{ source: 0x9999n }, { value: 0 }, { buff: 1 }, { stateChange: 69 }]) {
+    c.log.events = [event({ time: 133, skillId: 44677, value: 100, ...overrides })];
+    assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
+  }
+
+  c.log.events = [event({ time: 150, skillId: 44677, value: 100 })];
+  c.recordedActions = [cloak, { ...cloak, start: 130, end: 130, eventIndex: 1 }];
+  assert.ok(reconstructProfessionActions(c).every((action) => action.canonicalSkillId == null));
+});
+
+test('Mirage dodge attribution requires an owned source buff and a unique cloak within the server window', () => {
+  const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
+  const c = context('mesmer', 'mirage', []);
+  c.recordedActions = [cloak];
+  const marker = event({ time: 101, stateChange: 69, target: PLAYER, skillId: 69209, value: 800, buff: 1 });
+  for (const [overrides, expected] of [
+    [{}, -1],
+    [{ time: 109 }, -1],
+    [{ time: 110 }, undefined],
+    [{ source: 0x9999n }, undefined],
+    [{ target: 0x9999n }, undefined],
+    [{ value: 0 }, undefined],
+    [{ stateChange: 70 }, undefined],
+    [{ skillId: 43694 }, undefined]
+  ]) {
+    c.log.events = [{ ...marker, ...overrides }];
+    assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, expected);
+  }
+
+  c.log.events = [marker];
+  c.recordedActions = [cloak, { ...cloak, start: 105, end: 105, eventIndex: 1 }];
+  assert.ok(reconstructProfessionActions(c).every((action) => action.canonicalSkillId == null));
+});
+
+test('Illusionary Ambush requires both owned False Stealth and a self teleport without conflicting sources', () => {
+  const guid = Buffer.from('D7A05478BA0E164396EB90C037DCCF42', 'hex');
+  const mapping = event({
+    stateChange: 46,
+    skillId: 77,
+    source: guid.readBigUInt64LE(0),
+    target: guid.readBigUInt64LE(8)
+  });
+  const cloak = { start: 100, end: 100, rawSkillId: -17, rawName: 'Mirage Cloak', eventIndex: 0, status: 'instant' };
+  const stealth = event({ time: 100, stateChange: 69, skillId: 42501, target: PLAYER, value: 50, buff: 1 });
+  const teleport = event({ time: 117, stateChange: 60, skillId: 77, target: PLAYER });
+  const c = context('mesmer', 'mirage', [mapping, stealth, teleport]);
+  c.recordedActions = [cloak];
+  assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, 45046);
+  for (const events of [
+    [mapping, teleport],
+    [mapping, stealth],
+    [mapping, stealth, { ...teleport, source: 0x9999n }],
+    [mapping, stealth, { ...teleport, time: 121 }],
+    [mapping, stealth, teleport, { ...stealth, skillId: 69209 }]
+  ]) {
+    c.log.events = events;
+    assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
+  }
+
+  c.log.events = [mapping, stealth, teleport];
+  for (const rawSkillId of [45449, 43761]) {
+    c.recordedActions = [cloak, { ...cloak, rawSkillId }];
+    assert.equal(reconstructProfessionActions(c)[0].canonicalSkillId, undefined);
+  }
+
+  // A real animation already records the source input, so the corroborating gain must not duplicate it.
+  c.recordedActions = [cloak, { ...cloak, rawSkillId: 45046 }];
+  assert.equal(reconstructProfessionActions(c).length, 1);
 });
 
 for (const [name, effectGuid, combinedId, normalId, finalId] of [

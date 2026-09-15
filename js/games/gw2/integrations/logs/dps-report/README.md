@@ -13,6 +13,10 @@ retain JSON traversal order. EI groups rows by skill, so original cross-skill ti
 attacks, split animations and generated bar swaps. Trait/gear/unconditional procs and simulator-generated packets do not
 become independent inputs. Supplied Luminary Forge entries remain inputs; missing opening entries stay missing.
 
+Mirage Cloak gains coincident with recorded shatters or cloak-granting Deceptions replay through those skills without
+adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
+teleport and mirror damage evidence to identify their source inputs.
+
 No additional cast is inferred from initial buffs, minions, aggregate damage, later repetitions, resources or dependent
 skills. No opener alignment or fixed preparation waits are applied. Users supply missing setup in the rotation editor.
 

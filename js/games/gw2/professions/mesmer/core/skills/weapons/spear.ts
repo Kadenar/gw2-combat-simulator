@@ -97,6 +97,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Spear',
     specialization: '',
     castTimeMs: 520,
+    interruptCommitMs: 480,
     cooldown: 0,
     nextChainId: ID.MIND_PIERCE,
     effects: [
@@ -104,6 +105,9 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'
@@ -146,6 +150,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Spear',
     specialization: '',
     castTimeMs: 560,
+    // Preserve the finisher's damage when interruption only skips the remaining recovery.
+    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: null,
     // The chain finisher applies weakness as a real target condition, independent of relic triggers.
@@ -155,7 +161,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         coefficient: 1.5,
         hits: 1,
         // The finisher lands before its cast recovery ends.
-        atMs: 520,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Damage',
@@ -167,7 +173,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         condition: 'Weakness',
         stacks: 1,
         duration: 2,
-        atMs: 520,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -197,7 +203,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     weapon: 'Spear',
     specialization: '',
     // The attack commits before its full cast animation finishes.
-    interruptCommitMs: 360,
+    interruptCommitMs: 400,
     cooldown: 0,
     nextChainId: ID.PSYSTRIKE,
     effects: [

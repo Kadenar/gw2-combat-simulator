@@ -209,11 +209,12 @@ test('a recorded Mirage dodge restores the state required to replay an ambush', 
   const { simulateMesmer } = await import('../helpers/mesmer-simulation.js');
   const fixture = log({
     agents: [{ ...log().agents[0], elite: 59 }],
-    // Synthetic EI dodge IDs have no entry in the raw EVTC skill table.
+    // The owned dodge-source buff identifies the input behind this cloak gain.
     skills: [{ id: 44321, name: 'Imaginary Axes' }],
     events: [
       event({ stateChange: 1 }),
       event({ stateChange: 69, target: 0x1000n, skillId: 40408, value: 1000 }),
+      event({ stateChange: 69, target: 0x1000n, skillId: 69209, value: 800 }),
       event({ time: 1100, stateChange: 67, skillId: 44321, value: 1000 }),
       event({ time: 2100, stateChange: 68, skillId: 44321, value: 1000, activation: 5 })
     ]
