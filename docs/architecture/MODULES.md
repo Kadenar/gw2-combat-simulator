@@ -75,6 +75,7 @@ Use this table as the first place to look.
 | Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/lib/`                 |
 | EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
 | dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
+| gw2wingman log fetch/reshape (rules stay in `dps-report/`)             | `js/games/gw2/integrations/logs/wingman/`             |
 | Upcoming balance changes                                              | Patch-preview system                                  |
 | Build migration/default/validation                                    | Profession `build/build.ts`                           |
 | New profession page/registry entry                                    | `js/games/gw2/app/profession/registry.ts`             |
@@ -1052,11 +1053,14 @@ Do not duplicate common gear/sigil/relic/weapon normalization inside individual 
 js/games/gw2/integrations/logs/
 ├── lib/
 ├── evtc/
-└── dps-report/
+├── dps-report/
+└── wingman/
 ```
 
 The shared library owns normalized action/result contracts, catalog and profile lookup, player selection, replay
-scheduling, and reusable rules. Neither adapter may import implementation code from the other.
+scheduling, and reusable rules. Adapters may not import implementation code from one another, except that `wingman/`
+reshapes its fetched document into the `dps-report/` document shape and calls into `dps-report/` for every
+reconstruction rule instead of duplicating them.
 
 The EVTC adapter owns raw ArcDPS behavior:
 
@@ -1089,6 +1093,20 @@ It is separate from raw EVTC parsing because Elite Insights exposes a different,
 different information loss and inference requirements.
 
 Do not add dps.report-specific parsing logic to profession simulator modules.
+
+---
+
+# gw2wingman adapter
+
+```text
+js/games/gw2/integrations/logs/wingman/
+```
+
+Fetches a public gw2wingman `/log/<id>` link and reshapes gw2wingman's response (Elite Insights' HTML-embed log
+format, not dps.report's raw JSON) into the document `dps-report/parser.ts` validates, then hands off to the
+unchanged `dps-report/` reconstruction pipeline. It owns only that fetch and reshape step.
+
+Do not duplicate dps.report reconstruction rules here; add new rules to `dps-report/` so both adapters share them.
 
 ---
 
@@ -1307,6 +1325,7 @@ tests/kernel/
 tests/ui/
 tests/evtc/
 tests/dps-report/
+tests/wingman/
 tests/log-analyzer/
 tests/browser/
 tests/scripts/

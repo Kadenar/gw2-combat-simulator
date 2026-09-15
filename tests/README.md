@@ -10,7 +10,7 @@ Tests follow the same ownership boundaries as the source tree:
 - `platform/engine/` and `platform/gw2/` cover shared engine and GW2 contracts, including condition resolution,
   observation windows, event resolution, and equipment procs.
 - `professions/` covers cross-profession contracts, while `professions/<profession>/` owns profession behavior.
-- `evtc/`, `dps-report/`, and `log-analyzer/` cover source-specific and shared combat-log reconstruction.
+- `evtc/`, `dps-report/`, `wingman/`, and `log-analyzer/` cover source-specific and shared combat-log reconstruction.
 - `browser/` covers the built application's browser and layout behavior.
 - `scripts/` covers command-line and authoring tools.
 - `fixtures/`, `helpers/`, and `typecheck/` contain shared test support and compile-time contracts.

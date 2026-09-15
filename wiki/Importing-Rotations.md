@@ -9,6 +9,7 @@ one.
 - Uncompressed `.evtc` logs
 - Compressed `.evtc.zip` or `.zevtc` logs
 - dps.report report data or a supported dps.report URL
+- A gw2wingman log URL (imported using the same rules as a dps.report URL)
 - A matching included preset rotation
 
 Use the simulator page for the recorded player's profession. The active build should also match the log's weapons,

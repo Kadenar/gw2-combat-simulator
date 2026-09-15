@@ -1,8 +1,13 @@
 import { bindDialog, showDialog } from '#app/dialog.js';
 import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
-import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
+import {
+  readDpsReportRotationData,
+  readDpsReportRotationUrl,
+  readWingmanRotationUrl
+} from '#gw2/app/build/io/dps-report-rotation-import.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
+import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
@@ -87,6 +92,22 @@ export async function previewDpsReportUrl(
   fetchImplementation: typeof fetch = fetch
 ): Promise<RotationImportPreview> {
   const imported = await readDpsReportRotationUrl(input, app, fetchImplementation);
+  return {
+    rotation: imported.rotation,
+    actionCount: imported.actionCount,
+    description: `Reconstructed ${imported.playerLabel} · ${imported.phaseLabel}`,
+    warnings: imported.warnings,
+    observations: []
+  };
+}
+
+/** Fetches and reconstructs a gw2wingman rotation through the same dps.report preview contract. */
+export async function previewWingmanUrl(
+  input: string,
+  app: ProfessionAppState,
+  fetchImplementation: typeof fetch = fetch
+): Promise<RotationImportPreview> {
+  const imported = await readWingmanRotationUrl(input, app, fetchImplementation);
   return {
     rotation: imported.rotation,
     actionCount: imported.actionCount,
@@ -189,8 +210,8 @@ function createDialog(document: Document, destination: RotationImportDestination
   dialog.setAttribute('aria-labelledby', titleId);
   dialog.innerHTML = `<form class="rotation-import-form app-dialog-body" method="dialog">
     <h3 id="${titleId}">${reference ? 'Load reference rotation' : 'Load rotation'}</h3>
-    <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report link.</p>
-    <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report omits some raw EVTC evidence, so review the imported rotation before relying on it.</p>
+    <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report or gw2wingman link.</p>
+    <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report and gw2wingman omit some raw EVTC evidence, so review the imported rotation before relying on it.</p>
     <div class="rotation-import-drop" data-rotation-import-drop>
       <div>
         <strong>Drop a rotation or combat log here</strong>
@@ -199,7 +220,7 @@ function createDialog(document: Document, destination: RotationImportDestination
       </div>
     </div>
     <div class="rotation-import-report">
-      <input type="url" inputmode="url" placeholder="https://dps.report/…" aria-label="dps.report link" data-rotation-import-report-input>
+      <input type="url" inputmode="url" placeholder="https://dps.report/… or https://gw2wingman.…/log/…" aria-label="dps.report or gw2wingman link" data-rotation-import-report-input>
       <button type="button" class="btn btn-io" data-rotation-import-report>Import link</button>
     </div>
     ${
@@ -319,7 +340,7 @@ export function bindRotationImportDialog(
 ): void {
   fileInput.accept = ROTATION_IMPORT_ACCEPT;
   button.setAttribute('aria-haspopup', 'dialog');
-  button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report log';
+  button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report/gw2wingman log';
 
   const elements = createDialog(button.ownerDocument, destination);
   const manifestCandidates = destination === 'reference' ? app.templatePresets.filter((preset) => preset.rotation) : [];
@@ -448,10 +469,11 @@ export function bindRotationImportDialog(
     if (importing) return;
     const input = elements.reportInput.value.trim();
     if (!input) return;
+    const wingman = isWingmanUrl(input);
     await loadPreview(
-      () => previewDpsReportUrl(input, app),
-      'Fetching dps.report…',
-      'Could not import the dps.report link.'
+      () => (wingman ? previewWingmanUrl(input, app) : previewDpsReportUrl(input, app)),
+      wingman ? 'Fetching gw2wingman…' : 'Fetching dps.report…',
+      wingman ? 'Could not import the gw2wingman link.' : 'Could not import the dps.report link.'
     );
   };
 

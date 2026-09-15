@@ -1,5 +1,6 @@
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
+import { fetchWingmanReport } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
@@ -61,5 +62,15 @@ export async function readDpsReportRotationUrl(
   fetchImplementation: typeof fetch = fetch
 ): Promise<ImportedDpsReportRotation> {
   const report: ParsedDpsReport = await fetchDpsReport(input, fetchImplementation);
+  return readDpsReportRotationData(report, app);
+}
+
+/** Fetches a public gw2wingman log link and reconstructs it through the same dps.report rules. */
+export async function readWingmanRotationUrl(
+  input: string,
+  app: ProfessionAppState,
+  fetchImplementation: typeof fetch = fetch
+): Promise<ImportedDpsReportRotation> {
+  const report: ParsedDpsReport = await fetchWingmanReport(input, fetchImplementation);
   return readDpsReportRotationData(report, app);
 }
