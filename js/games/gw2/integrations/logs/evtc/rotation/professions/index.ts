@@ -105,11 +105,11 @@ export function reconstructProfessionActions(
     metadataAccurate: action.metadataAccurate ?? true,
     expectedDurationMs: action.expectedDuration ?? undefined
   }));
-  // Keep source identity separate from sortable indices, including when EI rules share a raw event.
+  // Keep source identity when available; normalization may also synthesize actions without a source row.
   return normalizeLogProfessionActions({ ...context, recordedActions }).map((action) => ({
     ...originals[action.sourceActionIndex!],
     ...action,
-    eventIndex: originals[action.sourceActionIndex!].eventIndex,
+    eventIndex: originals[action.sourceActionIndex!]?.eventIndex ?? action.eventIndex,
     rawName: action.rawName === 'Weapon Swap' ? 'Swap Weapons' : action.rawName,
     // This read-only observation requires a landed packet during the represented airborne auto.
     ...(context.profile.specializationId === 'vindicator' &&

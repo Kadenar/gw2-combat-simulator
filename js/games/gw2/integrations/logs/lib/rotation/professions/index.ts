@@ -2,6 +2,7 @@ import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/lib/
 import { reconstructElementalistDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/elementalist.js';
 import { reconstructGuardianDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/guardian.js';
 import { reconstructMesmerDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/mesmer.js';
+import { reconstructNecromancerDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/necromancer.js';
 import { reconstructRangerDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/ranger.js';
 import { reconstructRevenantDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/revenant.js';
 import { reconstructThiefDpsReportActions } from '#gw2/integrations/logs/lib/rotation/professions/thief.js';
@@ -17,6 +18,7 @@ const reconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
   ['engineer', reconstructEngineerDpsReportActions],
   ['guardian', reconstructGuardianDpsReportActions],
   ['mesmer', reconstructMesmerDpsReportActions],
+  ['necromancer', reconstructNecromancerDpsReportActions],
   ['ranger', reconstructRangerDpsReportActions],
   ['revenant', reconstructRevenantDpsReportActions],
   ['thief', reconstructThiefDpsReportActions],

@@ -6,6 +6,7 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
@@ -102,6 +103,34 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
   });
   assert.deepEqual(sim.warnings, []);
   assert.equal(sim.endState.profession.activeTome, '');
+});
+
+test('Reaper shroud transitions do not import EI bar changes as weapon swaps', () => {
+  // Shroud changes emit a swap row one millisecond later; only the independent weapon swap is player input.
+  const report = reportFixture(
+    'Reaper',
+    [
+      { id: -2, skills: [879, 2399, 15318].map((castTime) => ({ castTime, duration: 0 })) },
+      { id: 30792, skills: [{ castTime: 2398, duration: 0 }] },
+      { id: 30961, skills: [{ castTime: 15317, duration: 0 }] }
+    ],
+    {
+      's-2': { name: 'Weapon Swap', isSwap: true },
+      s30792: { name: "Reaper's Shroud" },
+      s30961: { name: "Exit Reaper's Shroud" }
+    }
+  );
+
+  const result = reconstructDpsReportRotation(report, necromancerCatalog);
+
+  assert.deepEqual(
+    result.actions.filter((action) => action.kind === 'weapon-swap').map((action) => action.timestampMs),
+    [879]
+  );
+  assert.deepEqual(
+    result.actions.filter((action) => action.name.includes('Shroud')).map((action) => action.timestampMs),
+    [2398, 15317]
+  );
 });
 
 test('Firebrand resolves complete Solace charge bursts while preserving ambiguous sparse casts', () => {

@@ -11,6 +11,7 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
@@ -382,6 +383,31 @@ test('restores legacy EI Devastator pseudo-casts without hiding true interrupts'
   );
 });
 
+test('restores an EI-omitted Sun Edge only from its complete sword-chain gap', () => {
+  const fixture = reportFixture();
+  fixture.players[0].profession = 'Mechanist';
+  fixture.players[0].rotation = [
+    { id: 69565, skills: [{ castTime: 0, duration: 840, timeGained: 0 }] },
+    { id: 69906, skills: [{ castTime: 1280, duration: 480, timeGained: 0 }] },
+    { id: 70771, skills: [{ castTime: 1760, duration: 720, timeGained: 0 }] }
+  ];
+  fixture.skillMap = {
+    s69565: { name: 'Radiant Arc' },
+    s69906: { name: 'Sun Ripper', autoAttack: true },
+    s70771: { name: 'Gleam Saber', autoAttack: true }
+  };
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+  const replay = createScheduler({
+    profession: engineerProfession,
+    config: { specialization: 'Mechanist' }
+  }).run(result.rotation);
+
+  // EI can omit the root cast while retaining its exact occupied interval and later chain steps.
+  assert.equal(result.actions.find((action) => action.name === 'Sun Edge')?.metadataAccurate, false);
+  assert.deepEqual(replay.warnings, []);
+});
+
 test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relying on EI metadata', () => {
   const fixture = reportFixture();
   fixture.players[0].rotation.push({ id: 43630, skills: [{ castTime: 2_750, duration: 0, timeGained: 0 }] });
@@ -401,6 +427,51 @@ test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relyi
     result.rotation.some((command) => command.name === 'Vent Exhaust'),
     false
   );
+});
+
+test('ties a jittered Engineer kit transition after its outgoing weapon cast', () => {
+  const fixture = reportFixture();
+  fixture.durationMS = 6000;
+  fixture.phases[0].end = 6000;
+  fixture.players[0].rotation = [
+    { id: 30088, skills: [{ castTime: 1001, duration: 680, timeGained: 0 }] },
+    { id: 6020, skills: [{ castTime: 1000, duration: 0, timeGained: 0 }] },
+    {
+      id: -2,
+      skills: [
+        { castTime: 1001, duration: 0, timeGained: 0 },
+        { castTime: 2361, duration: 0, timeGained: 0 },
+        { castTime: 3201, duration: 0, timeGained: 0 },
+        { castTime: 4920, duration: 0, timeGained: 0 }
+      ]
+    },
+    { id: 5807, skills: [{ castTime: 1681, duration: 680, timeGained: 0 }] },
+    { id: 30665, skills: [{ castTime: 3000, duration: 1920, timeGained: 0 }] },
+    { id: 5812, skills: [{ castTime: 3200, duration: 0, timeGained: 0 }] }
+  ];
+  fixture.skillMap = {
+    s30088: { name: 'Electro-whirl' },
+    s6020: { name: 'Grenade Kit', isInstantCast: true, isNotAccurate: true },
+    's-2': { name: 'Weapon Swap', isSwap: true },
+    s5807: { name: 'Shrapnel Grenade' },
+    s30665: { name: 'Rocket Charge' },
+    s5812: { name: 'Bomb Kit', isInstantCast: true, isNotAccurate: true }
+  };
+
+  const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+  const names = result.rotation.map((command) => command.name);
+  const electroIndex = names.indexOf('Electro-whirl');
+  const kitIndex = names.indexOf('Grenade Kit');
+  const grenadeIndex = names.indexOf('Shrapnel Grenade');
+
+  // One transition must equip the kit after the hammer input without inventing an immediate stow.
+  assert.ok(electroIndex < kitIndex && kitIndex < grenadeIndex);
+  assert.equal(names.slice(kitIndex, grenadeIndex).includes('Stow Grenade Kit'), false);
+  assert.equal(
+    result.actions.find((action) => action.name === 'Electro-whirl').timestampMs,
+    result.actions.find((action) => action.name === 'Grenade Kit').timestampMs
+  );
+  assert.equal(result.rotation.find((command) => command.name === 'Rocket Charge').interruptMs, undefined);
 });
 
 test('Forge replaces an equipped kit without a redundant stow or cancelling overlapping toolbelt casts', () => {

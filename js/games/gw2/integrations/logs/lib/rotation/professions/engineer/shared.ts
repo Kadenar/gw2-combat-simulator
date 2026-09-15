@@ -57,8 +57,30 @@ function kitStow(
 
 /** Converts represented kit swaps and mine detonations without inserting missing preparation. */
 export function reconstructEngineerDependencies(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
+  const kitSwapSignals = context.recordedActions.filter(
+    (action) => action.isSwap && normalized(action.rawName) === 'weapon swap'
+  );
   const sorted = context.recordedActions
     .map((action) => restoreLegacyDevastatorCast(context, action))
+    .map((action) => {
+      const equippedKit = kitName(recordedActionSkill(action, context));
+      if (!equippedKit) return action;
+      // EI derives both rows from one kit transition; snap their millisecond jitter so an outgoing weapon cast wins the tie.
+      const signal = kitSwapSignals.find(
+        (candidate) => candidate.start >= action.start && candidate.start - action.start <= KIT_SWAP_SIGNAL_WINDOW_MS
+      );
+      const outgoingCast = signal
+        ? context.recordedActions.find((candidate) => {
+            const skill = recordedActionSkill(candidate, context);
+            return (
+              candidate.start === signal.start &&
+              normalized(skill?.type) === 'weapon' &&
+              normalized(skill?.kit) !== normalized(equippedKit)
+            );
+          })
+        : null;
+      return outgoingCast && signal ? { ...action, start: signal.start, end: signal.start } : action;
+    })
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];
   const forgeTransitions = sorted.filter((action) => PHOTON_FORGE_TRANSITION_IDS.has(action.rawSkillId));
