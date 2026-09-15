@@ -93,7 +93,9 @@ export function createGw2ResolverRuntimeState({
       // Proc rows are presentation only; combat effects have already been applied by the caller.
       if (!reporting) return;
       const start = Math.round(at * 1000);
-      const key = `${type}|${name}|${start}|${sourceSkill}`;
+      // Detail distinguishes genuinely sequential procs (e.g. per-blade stack counts)
+      // landing at the same instant from the same skill; without it they'd collapse to one row.
+      const key = `${type}|${name}|${start}|${sourceSkill}|${detail}`;
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
       const reducedBy = Number(cooldownReduction);
