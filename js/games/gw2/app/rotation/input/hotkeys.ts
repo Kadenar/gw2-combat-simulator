@@ -729,6 +729,11 @@ export function mountRotationHotkeys(root: HTMLElement | null, keybindImport?: R
       setRotationHotkeysActive(current, target instanceof Node && current.root.contains(target));
       activateRotationMouseHotkey(current, event);
     });
+    document.addEventListener('pointerup', (event) => {
+      const current = controller as RotationHotkeyController;
+      // Browsers commit Mouse 4/5 history navigation on release, so consume the matching active hotkey there too.
+      if (activeRotationMouseHotkeyAction(current.bindings, event, current.active)) event.preventDefault();
+    });
     document.addEventListener('auxclick', (event) => {
       const current = controller as RotationHotkeyController;
       const target = event.target;

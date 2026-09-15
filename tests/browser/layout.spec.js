@@ -239,6 +239,30 @@ test('import and hotkey controls use the shared surface and numeric font', async
   await expect(page.locator('#target-armor')).toHaveCSS('font-family', /Consolas/);
 });
 
+// A bound side mouse button adds its skill without also committing the browser's history action on release.
+test('side mouse rotation hotkeys suppress browser navigation', async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem('gw2-rotation-hotkeys-v1', JSON.stringify({ 'weapon-1': 'Mouse4' }))
+  );
+  await openSimulator(page);
+  const skill = page.locator('.pal-skill[data-hotkey-action="weapon-1"]:not(.pal-context-disabled)').first();
+  await skill.click();
+  await expect(page.locator('.rotation-hotkey-button')).toHaveText('Hotkeys: On');
+  await page.evaluate(() => history.pushState({}, '', '?mouse-hotkey'));
+  const url = page.url();
+  const casts = await page.evaluate(() => window.professionApp.build.rotation.length);
+  const bounds = await skill.boundingBox();
+  const session = await page.context().newCDPSession(page);
+  const mouse = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2, button: 'back', clickCount: 1 };
+
+  await session.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...mouse, buttons: 8 });
+  await session.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...mouse, buttons: 0 });
+
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.rotation.length)).toBe(casts + 1);
+  await page.waitForTimeout(100);
+  expect(page.url()).toBe(url);
+});
+
 test('landing page exposes profession navigation and restores focus after its tutorial', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
