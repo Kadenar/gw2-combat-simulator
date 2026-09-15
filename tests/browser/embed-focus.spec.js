@@ -102,3 +102,41 @@ test('embedded focus and settings follow the viewport of a scrolled cross-origin
   expect(await workspace.evaluate((element) => element.style.inset)).toBe('');
   await expect(settings).toBeVisible();
 });
+
+// An auto-resized iframe never scrolls itself, so the header must follow the host's scroll offset.
+test('embedded header stays pinned to the top of a scrolled cross-origin host', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.context().grantPermissions(['local-network-access'], { origin: 'http://localhost:4173' });
+  await page.route('http://localhost:4173/embed-host', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<style>body { margin: 0; padding-top: 60px; } iframe { width: 90%; height: 3000px; border: 0; }</style>
+        <iframe title="Simulator" src="http://127.0.0.1:4173/elementalist.html?embed=1"></iframe>
+        <script>
+          window.addEventListener('message', (event) => {
+            const iframe = document.querySelector('iframe');
+            if (event.source === iframe.contentWindow && event.data?.type === 'gw2sim:height') {
+              const height = Number(event.data.height);
+              if (Number.isFinite(height) && height > 0) iframe.style.height = Math.max(600, height) + 'px';
+            }
+          });
+        </script>`
+    })
+  );
+  await page.goto('http://localhost:4173/embed-host');
+  const frame = page.frameLocator('iframe');
+  const header = frame.locator('#app > header');
+  await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect.poll(() => page.locator('iframe').evaluate((iframe) => iframe.clientHeight)).toBeGreaterThan(1500);
+  await expect(header).not.toHaveClass(/simulator-header-scrolled/);
+
+  for (const scroll of [800, 1200, 400]) {
+    await page.evaluate((top) => scrollTo(0, top), scroll);
+    await expect.poll(async () => Math.abs((await header.boundingBox()).y)).toBeLessThan(1);
+    await expect(header).toHaveClass(/simulator-header-scrolled/);
+  }
+
+  await page.evaluate(() => scrollTo(0, 0));
+  await expect.poll(async () => (await header.boundingBox()).y).toBeGreaterThanOrEqual(59);
+  await expect(header).not.toHaveClass(/simulator-header-scrolled/);
+});

@@ -10,8 +10,9 @@
  *     sections) can be hidden in CSS, and internal navigation is rewritten to
  *     preserve the flag so the whole tool stays embedded as the user moves
  *     between the landing page and profession pages.
- *  3. Host viewport tracking — keeps embedded dialogs and focus mode in the
- *     visible browser area while the parent page scrolls and resizes.
+ *  3. Host viewport tracking — keeps embedded dialogs, focus mode, and the
+ *     sticky header in the visible browser area while the parent page scrolls
+ *     and resizes.
  *
  * Importing this module in a browser initializes both automatically. Importing
  * it outside a browser has no side effect.
@@ -68,6 +69,42 @@ export function trackEmbeddedViewport(
     element.style.removeProperty('--embed-viewport-height');
     element.style.removeProperty('--embed-viewport-width');
   };
+}
+
+/** Window event fired when the host scrolls the embedded frame's visible top. */
+export const EMBED_VISIBLE_TOP_EVENT = 'gw2sim:visibletop';
+
+let visibleTop = 0;
+
+/** Pixels of the framed document scrolled above the host viewport; 0 when not framed. */
+export function embeddedVisibleTop(): number {
+  return visibleTop;
+}
+
+/**
+ * Publishes the host scroll offset as `--embed-visible-top` so sticky chrome can follow the host viewport.
+ * An auto-resized iframe never scrolls itself, so native sticky offsets never engage without it.
+ */
+function trackVisibleTop(root: Document): void {
+  const view = root.defaultView;
+  if (!view || typeof IntersectionObserver === 'undefined') return;
+  const observer = new IntersectionObserver(([entry]) => {
+    const rect = entry.intersectionRect;
+    // A fully hidden frame has an empty rect; keep the last offset so chrome does not snap back to the top.
+    if (rect.width > 0 && rect.height > 0) {
+      const top = Math.max(0, Math.round(rect.top));
+      if (top !== visibleTop) {
+        visibleTop = top;
+        root.documentElement.style.setProperty('--embed-visible-top', `${top}px`);
+        view.dispatchEvent(new Event(EMBED_VISIBLE_TOP_EVENT));
+      }
+    }
+
+    // Host scrolling can move the visible rectangle without changing its intersection ratio.
+    observer.disconnect();
+    view.requestAnimationFrame(() => observer.observe(root.documentElement));
+  });
+  observer.observe(root.documentElement);
 }
 
 /** True when the current page was opened in embed mode (`?embed` / `?embed=1`). */
@@ -152,6 +189,7 @@ function setupResizeReporter(root: Document): void {
 export function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
   if (isEmbedded()) root.documentElement.classList.add('embed');
+  if (isEmbedded() && isFramed()) trackVisibleTop(root);
   decorateStaticLinks(root);
 }
 

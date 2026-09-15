@@ -513,6 +513,11 @@ html.embed {
   padding-top: 0;
 }
 
+/* An auto-resized iframe never scrolls itself, so pin the header to the host-visible top instead. */
+.embed :is(body[data-profession], .landing-page) #app > header {
+  top: var(--embed-visible-top, 0px);
+}
+
 /* Host viewport tracking bounds focus without shrinking the iframe and displacing the host's scroll position. */
 .embed body[data-rotation-focus] .rotation-section {
   max-height: var(--embed-viewport-height, 900px);

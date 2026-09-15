@@ -8,7 +8,7 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
-import { navigationRoute } from '#app/embed.js';
+import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/presentation/shared/gw2-icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/size.js';
 import { mountRotationWorkspace } from '#app/shell/workspace.js';
@@ -83,7 +83,8 @@ function mountStickyHeader(root: Document): void {
 
   const updateHeaderSurface = () => {
     const scrollTop = root.defaultView?.scrollY ?? root.scrollingElement?.scrollTop ?? 0;
-    header.classList.toggle('simulator-header-scrolled', scrollTop > 0);
+    // An auto-resized iframe never scrolls itself; the host's scroll offset arrives through embed tracking.
+    header.classList.toggle('simulator-header-scrolled', Math.max(scrollTop, embeddedVisibleTop()) > 0);
   };
 
   updateHeaderHeight();
@@ -92,6 +93,7 @@ function mountStickyHeader(root: Document): void {
   header.dataset.stickyHeaderMounted = 'true';
 
   root.defaultView?.addEventListener('scroll', updateHeaderSurface, { passive: true });
+  root.defaultView?.addEventListener(EMBED_VISIBLE_TOP_EVENT, updateHeaderSurface);
   const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
   if (ResizeObserverConstructor) {
     new ResizeObserverConstructor(updateHeaderHeight).observe(header);
