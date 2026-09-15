@@ -32,7 +32,9 @@ export const ENGINEER_SKILL_IDS: Readonly<Record<string, number>> = Object.freez
   ]),
   // The API names both variants Evolve; semantic IDs distinguish the trait-selected actions.
   EVOLVE_BASE: 76642,
-  EVOLVE_DOUBLE_HELIX: 76651
+  EVOLVE_DOUBLE_HELIX: 76651,
+  // The API names both Sword 1 variants Refraction Cutter; this is the non-Holosmith one.
+  REFRACTION_CUTTER_NON_HOLOSMITH: 71121
 });
 
 export const ENGINEER_TRAIT_IDS = stableNameIndex(

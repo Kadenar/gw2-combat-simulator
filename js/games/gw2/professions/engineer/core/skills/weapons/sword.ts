@@ -98,7 +98,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   },
-  [ID.REFRACTION_CUTTER_ID_71121]: {
+  [ID.REFRACTION_CUTTER_NON_HOLOSMITH]: {
     castTimeMs: 520,
     cooldown: 6,
     effects: [

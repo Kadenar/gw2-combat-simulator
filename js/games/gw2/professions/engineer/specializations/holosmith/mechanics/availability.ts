@@ -15,7 +15,7 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
   ID.SUN_RIPPER_ID_69906,
   ID.SUN_EDGE_ID_70514,
   ID.GLEAM_SABER_ID_70771,
-  ID.REFRACTION_CUTTER_ID_71121
+  ID.REFRACTION_CUTTER_NON_HOLOSMITH
 ]);
 
 /** Enforces Holosmith sword replacement, Forge bar state, overheat, and kit-lockout cast rules. */

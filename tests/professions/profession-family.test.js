@@ -1311,7 +1311,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
     ENGINEER_ID.SUN_EDGE_ID_70514,
     ENGINEER_ID.SUN_RIPPER_ID_69906,
     ENGINEER_ID.GLEAM_SABER_ID_70771,
-    ENGINEER_ID.REFRACTION_CUTTER_ID_71121
+    ENGINEER_ID.REFRACTION_CUTTER_NON_HOLOSMITH
   ];
 
   assert.ok(holosmithSwordIds.every((skillId) => skillOwner.get(skillId) === 'Holosmith'));

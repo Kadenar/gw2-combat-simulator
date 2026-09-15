@@ -526,7 +526,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     ID.SUN_RIPPER_ID_69906,
     ID.GLEAM_SABER_ID_70771,
     ID.RADIANT_ARC_ID_69565,
-    ID.REFRACTION_CUTTER_ID_71121
+    ID.REFRACTION_CUTTER_NON_HOLOSMITH
   ]) {
     assert.equal(skill(id).specialization, '');
   }
@@ -591,7 +591,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     ]
   );
 
-  const refraction = skill(ID.REFRACTION_CUTTER_ID_71121);
+  const refraction = skill(ID.REFRACTION_CUTTER_NON_HOLOSMITH);
 
   assert.equal(refraction.cooldown, 6);
   assert.equal(strikeEffectCoefficient(refraction.effects[0]), 1.4);
@@ -626,7 +626,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.deepEqual(quicknessDurations, [2, 4, 4, 4, 6]);
 
   const result = simulate('Mechanist', [
-    { type: 'cast', skillId: ID.REFRACTION_CUTTER_ID_71121 },
+    { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
     { type: 'cast', skillId: ID.SUN_EDGE_ID_70514 },
     { type: 'cast', skillId: ID.SUN_RIPPER_ID_69906 },
     { type: 'cast', skillId: ID.GLEAM_SABER_ID_70771 },
@@ -649,7 +649,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   const core = simulate(
     'Core',
     [
-      { type: 'cast', skillId: ID.REFRACTION_CUTTER_ID_71121 },
+      { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
       { type: 'cast', skillId: ID.SUN_EDGE_ID_70514 },
       { type: 'cast', skillId: ID.SUN_RIPPER_ID_69906 },
       { type: 'cast', skillId: ID.GLEAM_SABER_ID_70771 },
