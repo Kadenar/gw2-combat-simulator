@@ -9,8 +9,7 @@ import { fetchWingmanReport, isWingmanUrl, wingmanJsonUrl, wingmanLogId } from '
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
-const WINGMAN_LOG_URL =
-  'https://gw2wingman.nevermindcreations.de/log/a4deb-amdmda9462_20260915-105522_StdGolem_kill';
+const WINGMAN_LOG_URL = 'https://gw2wingman.nevermindcreations.de/log/a4deb-amdmda9462_20260915-105522_StdGolem_kill';
 const WINGMAN_LOG_ID = 'a4deb-amdmda9462_20260915-105522_StdGolem_kill';
 
 // Mirrors the shape gw2wingman's /api/getJson/<id> actually returns: EI's HTML-embed format,
@@ -109,16 +108,21 @@ test('fetches a gw2wingman log and reconstructs it through the exact dps.report 
   assert.equal(casts[0].interruptMs, undefined);
   assert.equal(casts[1].interruptMs, 1_400);
   // The trait-proc entry (id 90001) is filtered out, exactly like an automatic proc from dps.report.
-  assert.equal(result.rotation.some((command) => command.name === 'Automatic Proc'), false);
+  assert.equal(
+    result.rotation.some((command) => command.name === 'Automatic Proc'),
+    false
+  );
 });
 
 test('surfaces a gw2wingman error payload as a WingmanError', async () => {
   await assert.rejects(
-    fetchWingmanReport(WINGMAN_LOG_URL, async () =>
-      new Response(JSON.stringify({ error: 'Log not found' }), {
-        status: 200,
-        headers: { 'content-type': 'application/json' }
-      })
+    fetchWingmanReport(
+      WINGMAN_LOG_URL,
+      async () =>
+        new Response(JSON.stringify({ error: 'Log not found' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        })
     ),
     (error) => error instanceof WingmanError && error.code === 'REPORT_ERROR'
   );

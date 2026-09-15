@@ -73,6 +73,7 @@ export function alignImportedRotationWaits(
       profession = resolveProfessionRuntime(app.adapter.profession, config);
     }
   }
+
   const traits = selectedGw2TraitValues(config, profession.catalog);
   const corrected = [...rotation];
   const scheduler = () =>

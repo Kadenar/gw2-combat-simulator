@@ -23,7 +23,11 @@ function timeGainedFromStatus(statusId: number): number {
 function normalizeRotationTuple(tuple: unknown): WingmanCastTuple | null {
   if (!Array.isArray(tuple) || tuple.length < 5) return null;
   const [at, skillId, durationMs, statusId, quickness] = tuple;
-  if (![at, skillId, durationMs, statusId, quickness].every((value) => typeof value === 'number' && Number.isFinite(value))) {
+  if (
+    ![at, skillId, durationMs, statusId, quickness].every(
+      (value) => typeof value === 'number' && Number.isFinite(value)
+    )
+  ) {
     return null;
   }
 

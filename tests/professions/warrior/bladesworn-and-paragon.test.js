@@ -794,6 +794,7 @@ test('Paragon Action refrain boons reach the caster and party', () => {
     assert.equal(boon.resolvedAudience.includesSelf, true);
     assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
   }
+
   assert.equal(refrainState.at, refrain[0].at);
 });
 
