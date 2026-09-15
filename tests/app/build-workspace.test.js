@@ -7,8 +7,12 @@ import {
   captureBuildDestination,
   closeBuildTab,
   createBuildTab,
+  deleteMyBuild,
   emptyBuildTabSession,
   loadBuildWorkspace,
+  loadMyBuilds,
+  myBuildsStorageKey,
+  saveMyBuild,
   saveBuildWorkspace,
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
@@ -238,6 +242,49 @@ test('unreadable workspace falls back to the legacy build and failed saves retai
   assert.doesNotThrow(() => saveBuildWorkspace(app));
   assert.equal(app.workspace.tabs[0].build.gear.Helm, 'edited');
   assert.match(app.workspace.storageError, /could not be saved/);
+});
+
+test('My Builds validates, saves, overwrites, and deletes independent snapshots', (t) => {
+  const values = storage(t, {
+    [myBuildsStorageKey(adapter)]: JSON.stringify({
+      version: 1,
+      builds: [
+        { id: 'saved', name: ' Saved ', category: ' Raids ', build: build('saved') },
+        { id: 'saved', name: 'Duplicate', build: build('duplicate') },
+        { id: 'wrong', name: 'Wrong profession', build: { ...build(), profession: 'warrior' } }
+      ]
+    })
+  });
+  const { app } = appFixture();
+  let library = loadMyBuilds(adapter);
+  assert.deepEqual(
+    library.map(({ id, name, category, build: value }) => [id, name, category, value.gear.Helm]),
+    [['saved', 'Saved', 'Raids', 'saved']]
+  );
+
+  app.build.gear.Helm = 'new';
+  library = saveMyBuild(app, library, ' New build ', undefined, ' Fractals ');
+  const newEntry = library[1];
+  app.build.gear.Helm = 'edited-after-save';
+  assert.equal(newEntry.build.gear.Helm, 'new');
+
+  app.build.gear.Helm = 'replacement';
+  library = saveMyBuild(app, library, 'Renamed', newEntry.id, 'Benchmarks');
+  assert.deepEqual(
+    library.map(({ name, category, build: value }) => [name, category, value.gear.Helm]),
+    [
+      ['Saved', 'Raids', 'saved'],
+      ['Renamed', 'Benchmarks', 'replacement']
+    ]
+  );
+
+  library = deleteMyBuild(app, library, 'saved');
+  assert.equal(library.length, 1);
+  assert.deepEqual(
+    loadMyBuilds(adapter).map(({ name }) => name),
+    ['Renamed']
+  );
+  assert.equal(JSON.parse(values.get(myBuildsStorageKey(adapter))).version, 1);
 });
 
 test('switching preserves independent rotations, history, templates, comparisons, and cached results', (t) => {

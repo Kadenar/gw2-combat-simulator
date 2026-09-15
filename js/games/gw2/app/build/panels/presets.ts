@@ -1,13 +1,21 @@
 import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
-import { bindDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/dialog.js';
 import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
-import { replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
+import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
-import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
+import {
+  addBuildTab,
+  captureBuildDestination,
+  deleteMyBuild,
+  loadMyBuilds,
+  saveBuildWorkspace,
+  saveMyBuild,
+  type MyBuild
+} from '#gw2/app/build/state/workspace.js';
 import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 
@@ -134,7 +142,8 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
     preset.upToDate === false
       ? '<span class="template-preset-warning" title="This template may no longer match the current game balance.">⚠ Out of date</span>'
       : '';
-  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}">
+  const searchText = [section, preset.label, content.name, content.weapons].filter(Boolean).join(' ').toLowerCase();
+  return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}" data-build-search="${esc(searchText)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
         <span class="template-preset-name">${esc(content.weapons ? qualifier + content.weapons : content.name)}</span>
         ${boon === 'none' ? '' : `<span class="template-preset-boon">${boon[0].toUpperCase()}${boon.slice(1)}</span>`}
@@ -157,7 +166,8 @@ function applyTemplateFilter(
   container: HTMLElement,
   filter: TemplateFilter,
   boonFilter: TemplateBoonFilter,
-  specialization: string | null
+  specialization: string | null,
+  search = ''
 ): void {
   container.querySelectorAll<HTMLButtonElement>('[data-template-filter]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.templateFilter === filter));
@@ -180,14 +190,17 @@ function applyTemplateFilter(
   if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
   let visibleTemplates = 0;
-  container.querySelectorAll<HTMLElement>('.template-preset').forEach((preset) => {
+  container
+    .querySelectorAll<HTMLElement>('[data-library-panel="templates"] .template-preset')
+    .forEach((preset) => {
     const matchesDamageType = filter === 'all' || preset.dataset.templateCategory === filter;
     const matchesBoon = boonFilter === 'all' || preset.dataset.templateBoon === boonFilter;
     const matchesSpecialization = specialization === null || preset.dataset.templateSpecialization === specialization;
-    const visible = matchesDamageType && matchesBoon && matchesSpecialization;
+    const matchesSearch = !search || preset.dataset.buildSearch?.includes(search);
+    const visible = matchesDamageType && matchesBoon && matchesSpecialization && matchesSearch;
     preset.hidden = !visible;
     if (visible) visibleTemplates += 1;
-  });
+    });
 
   container.querySelectorAll<HTMLElement>('.template-subgroup, .presets-group').forEach((group) => {
     group.hidden = !group.querySelector('.template-preset:not([hidden])');
@@ -230,6 +243,102 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
       return `<div class="presets-group">${label}<div class="presets-group-btns template-preset-list">${templates}</div></div>`;
     })
     .join('');
+}
+
+/** Renders durable user snapshots through the existing build-row controls and current search. */
+function renderMyBuilds(container: HTMLElement, builds: readonly MyBuild[], search = ''): void {
+  const list = container.querySelector<HTMLElement>('.my-build-list');
+  if (!list) return;
+  const categories = new Map<string, MyBuild[]>();
+  for (const build of builds) {
+    const category = build.category || 'Uncategorized';
+    categories.set(category, [...(categories.get(category) || []), build]);
+  }
+
+  list.innerHTML = [...categories]
+    .map(
+      ([category, entries]) => `<section class="my-build-group">
+        <h4>${esc(category)}</h4>
+        <div class="my-build-group-rows">${entries
+          .map(({ id, name }) => {
+            const escapedId = esc(id);
+            const escapedName = esc(name);
+            return `<div class="template-preset my-build" data-my-build-id="${escapedId}" data-build-search="${esc(`${category} ${name}`.toLowerCase())}">
+              <button type="button" class="btn template-load-btn" data-library-action="load" data-my-build-id="${escapedId}" title="${escapedName}">
+                <span class="template-preset-name">${escapedName}</span>
+              </button>
+              <details class="template-actions">
+                <summary aria-label="More options for ${escapedName}" title="More options">•••</summary>
+                <div class="template-actions-menu" role="menu">
+                  <button type="button" role="menuitem" data-library-action="delete" data-my-build-id="${escapedId}">Delete</button>
+                </div>
+              </details>
+            </div>`;
+          })
+          .join('')}</div>
+      </section>`
+    )
+    .join('');
+  let visible = 0;
+  list.querySelectorAll<HTMLElement>('.my-build').forEach((build) => {
+    build.hidden = Boolean(search && !build.dataset.buildSearch?.includes(search));
+    if (!build.hidden) visible += 1;
+  });
+  list.querySelectorAll<HTMLElement>('.my-build-group').forEach((group) => {
+    group.hidden = !group.querySelector('.my-build:not([hidden])');
+  });
+  const empty = container.querySelector<HTMLElement>('.my-build-empty');
+  if (empty) {
+    empty.innerHTML = builds.length
+      ? `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+        <strong>No builds found</strong>
+        <span>Try a different search.</span>`
+      : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14l-7.5-4L3 20V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h5M10.5 6.5v5"></path></svg>
+        <strong>No saved builds yet</strong>
+        <span>Use “Save to My Builds” from a build tab’s menu to add one.</span>`;
+    empty.hidden = visible > 0;
+  }
+}
+
+/** Switches the dialog's accessible tab state without rebuilding either library view. */
+function showBuildLibraryView(container: HTMLElement, view: 'templates' | 'mine'): void {
+  container.querySelectorAll<HTMLButtonElement>('[data-library-view]').forEach((button) => {
+    const selected = button.dataset.libraryView === view;
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+  container.querySelectorAll<HTMLElement>('[data-library-panel]').forEach((panel) => {
+    panel.hidden = panel.dataset.libraryPanel !== view;
+  });
+}
+
+/** Loads a saved snapshot into the intended open tab, retaining the same reset and Undo behavior as templates. */
+function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void {
+  const container = app.templateContainer;
+  const newBuild = container?.dataset.newBuild === 'true';
+  container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
+  if (newBuild) {
+    delete container.dataset.newBuild;
+    addBuildTab(app, entry.build, entry.name, app.patchId, entry.build);
+    saveBuildWorkspace(app);
+    renderBuildTabs(app);
+    return;
+  }
+
+  const previousBuild = structuredClone(app.build);
+  const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
+  if (tab) tab.templateUndoResetBuild = tab.templateBuild;
+  app.build = replaceBuild(entry.build, app.adapter);
+  app.currentTemplate = null;
+  app.changed(true, true, { deferRotationRender: true });
+  if (tab) {
+    tab.templateBuild = structuredClone(app.build);
+    tab.name = entry.name;
+  }
+
+  showTemplateUndo(app, `Loaded ${entry.name}.`, previousBuild);
+  saveBuildWorkspace(app);
+  renderBuildTabs(app);
 }
 
 function buildSignature(build: Gw2ApplicationBuild): string {
@@ -303,32 +412,40 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 }
 
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
-  let manifest: unknown;
+  let manifest: unknown = [];
   try {
     manifest = await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true });
   } catch (error) {
-    // A missing manifest resolves to null above; only a genuine fetch failure reaches here, and it must stay visible.
+    // The user's local library remains available even when the standard catalog cannot be fetched.
     console.error(`Failed to load build templates for ${app.adapter.id}:`, error);
-    return;
   }
 
-  if (!Array.isArray(manifest) || manifest.length === 0) return;
   try {
     const groups = templateGroupsHtml(app, manifest);
-    if (!groups) return;
     const specializations = templateSpecializations(manifest);
+    let myBuilds = loadMyBuilds(app.adapter);
 
     const container = document.createElement('section');
     container.className = 'build-templates';
-    container.setAttribute('aria-labelledby', 'build-templates-title');
+    container.setAttribute('aria-labelledby', 'build-library-title');
     container.innerHTML = `
       <div class="panel build-templates-panel">
         <div class="build-templates-header">
           <div>
-            <h3 id="build-templates-title">Build templates</h3>
+            <h3 id="build-library-title">Build library</h3>
           </div>
           <span class="template-actions-hint">••• for partial loading</span>
         </div>
+        <div class="build-library-tabs" role="tablist" aria-label="Build library sections">
+          <button type="button" role="tab" data-library-view="templates" aria-controls="standard-builds-panel" aria-selected="true">Standard Templates</button>
+          <button type="button" role="tab" data-library-view="mine" aria-controls="my-builds-panel" aria-selected="false" tabindex="-1">My Builds</button>
+        </div>
+        <label class="build-library-search">
+          <span>Search builds</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+          <input type="search" placeholder="Search builds" autocomplete="off">
+        </label>
+        <div id="standard-builds-panel" role="tabpanel" data-library-panel="templates">
         <div class="template-filters">
           <details class="template-filter" name="build-template-filter">
             <summary>Role: <strong data-template-role-value>Any</strong></summary>
@@ -362,12 +479,18 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
           </details>
         </div>
         <div class="default-build-groups">${groups}</div>
-        <p class="template-filter-empty" hidden>No matching build templates.</p>
+        <p class="template-filter-empty" ${groups ? 'hidden' : ''}>${groups ? 'No matching build templates.' : 'No standard templates are available.'}</p>
+        </div>
+        <div id="my-builds-panel" role="tabpanel" data-library-panel="mine" hidden>
+          <div class="my-build-list"></div>
+          <div class="my-build-empty" hidden></div>
+        </div>
         <div class="template-toast" role="status" hidden>
           <span class="template-toast-message"></span>
           <button type="button" data-template-action="undo">Undo</button>
         </div>
       </div>`;
+    renderMyBuilds(container, myBuilds);
     app.templateContainer = container;
     mountBuildTemplateLayout(container);
     {
@@ -377,12 +500,12 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       const dialog = document.createElement('dialog');
       dialog.className = 'build-templates-dialog';
       dialog.id = 'build-templates-dialog';
-      dialog.setAttribute('aria-labelledby', 'build-templates-title');
+      dialog.setAttribute('aria-labelledby', 'build-library-title');
       const close = document.createElement('button');
       close.type = 'button';
       close.className = 'btn';
       close.textContent = 'Close';
-      close.setAttribute('aria-label', 'Close build templates');
+      close.setAttribute('aria-label', 'Close build library');
       close.autofocus = true;
       container.querySelector('.build-templates-header')!.append(close);
       dialog.append(panel);
@@ -390,9 +513,71 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       loading.className = 'template-load-status';
       loading.setAttribute('role', 'status');
       loading.hidden = true;
-      container.append(dialog, toast, loading);
+      const saveDialog = document.createElement('dialog');
+      saveDialog.className = 'build-save-dialog';
+      saveDialog.setAttribute('aria-labelledby', 'build-save-title');
+      saveDialog.innerHTML = `<form>
+        <h2 id="build-save-title">Save to My Builds</h2>
+        <label for="build-save-target">Save as</label>
+        <select id="build-save-target" name="target"></select>
+        <label for="build-save-name">Build name</label>
+        <input id="build-save-name" name="name" type="text" maxlength="80" required autocomplete="off">
+        <label for="build-save-category">Category <span>(optional)</span></label>
+        <input id="build-save-category" name="category" type="text" maxlength="80" placeholder="e.g. Raids" autocomplete="off">
+        <div class="build-save-actions app-dialog-actions">
+          <button type="button" class="btn btn-io" data-dialog-close>Cancel</button>
+          <button type="submit" class="btn btn-io">Save</button>
+        </div>
+      </form>`;
+      let saveTrigger: HTMLElement | null = null;
+      const target = saveDialog.querySelector<HTMLSelectElement>('select')!;
+      const name = saveDialog.querySelector<HTMLInputElement>('#build-save-name')!;
+      const category = saveDialog.querySelector<HTMLInputElement>('#build-save-category')!;
+      const save = saveDialog.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      target.addEventListener('change', () => {
+        const selected = target.selectedOptions[0];
+        const existingName = selected?.dataset.name;
+        if (existingName) name.value = existingName;
+        category.value = selected?.dataset.category || '';
+        save.disabled = !name.value.trim();
+      });
+      name.addEventListener('input', () => {
+        save.disabled = !name.value.trim();
+      });
+      saveDialog.querySelector('form')!.addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          myBuilds = saveMyBuild(app, myBuilds, name.value, target.value || undefined, category.value);
+          const search = container.querySelector<HTMLInputElement>('.build-library-search input')!.value
+            .trim()
+            .toLowerCase();
+          renderMyBuilds(container, myBuilds, search);
+          saveDialog.close();
+        } catch (error) {
+          alert(`Failed to save build: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      });
+      container.append(dialog, saveDialog, toast, loading);
       close.dataset.dialogClose = '';
       bindDialog(dialog);
+      bindDialog(saveDialog);
+      saveDialog.addEventListener('close', () => saveTrigger?.focus({ preventScroll: true }));
+      container.addEventListener('open-build-save', (event) => {
+        saveTrigger = (event as CustomEvent<HTMLElement>).detail || null;
+        target.innerHTML = `<option value="">New build</option>${myBuilds
+          .map(
+            ({ id, name, category }) =>
+              `<option value="${esc(id)}" data-name="${esc(name)}" data-category="${esc(category || '')}">Overwrite ${esc(name)}</option>`
+          )
+          .join('')}`;
+        name.value = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId)?.name || 'New build';
+        category.value = '';
+        target.value = '';
+        save.disabled = !name.value.trim();
+        showDialog(saveDialog);
+        name.focus();
+        name.select();
+      });
       dialog.addEventListener('close', () => {
         closeTemplateMenus(container);
         delete container.dataset.newBuild;
@@ -402,16 +587,57 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
     let templateFilter: TemplateFilter = 'all';
     let boonFilter: TemplateBoonFilter = 'all';
     let specializationFilter: string | null = null;
+    let search = '';
+    container.querySelector<HTMLElement>('.build-library-tabs')!.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const tabs = [...container.querySelectorAll<HTMLButtonElement>('[data-library-view]')];
+      const current = tabs.indexOf(event.target as HTMLButtonElement);
+      const next = tabs[(current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+    container.querySelector<HTMLInputElement>('.build-library-search input')!.addEventListener('input', (event) => {
+      search = (event.currentTarget as HTMLInputElement).value.trim().toLowerCase();
+      applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter, search);
+      renderMyBuilds(container, myBuilds, search);
+    });
     container.addEventListener('click', (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const viewButton = target.closest<HTMLButtonElement>('[data-library-view]');
+      if (viewButton) {
+        showBuildLibraryView(container, viewButton.dataset.libraryView === 'mine' ? 'mine' : 'templates');
+        return;
+      }
+
+      const libraryButton = target.closest<HTMLButtonElement>('[data-library-action]');
+      if (libraryButton) {
+        const action = libraryButton.dataset.libraryAction;
+        const id = libraryButton.dataset.myBuildId;
+        const entry = myBuilds.find((build) => build.id === id);
+        if (!entry) return;
+        closeTemplateMenus(container);
+        if (action === 'load') loadMyBuildEntry(app, entry);
+        if (action === 'delete' && confirm(`Delete ${entry.name}? This cannot be undone.`)) {
+          try {
+            myBuilds = deleteMyBuild(app, myBuilds, entry.id);
+            renderMyBuilds(container, myBuilds, search);
+          } catch (error) {
+            alert(`Failed to delete build: ${error instanceof Error ? error.message : String(error)}`);
+          }
+        }
+
+        return;
+      }
+
       const filterButton = target.closest('[data-template-filter]');
       if (filterButton instanceof HTMLButtonElement) {
         const filter = filterButton.dataset.templateFilter;
         if (isTemplateFilter(filter)) {
           templateFilter = filter;
           filterButton.closest('details')?.removeAttribute('open');
-          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter, search);
         }
 
         return;
@@ -423,7 +649,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         if (isTemplateBoonFilter(boon)) {
           boonFilter = boon;
           boonFilterButton.closest('details')?.removeAttribute('open');
-          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter, search);
         }
 
         return;
@@ -435,7 +661,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         if (specialization === null || specializations.includes(specialization)) {
           specializationFilter = specialization;
           specializationFilterButton.closest('details')?.removeAttribute('open');
-          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter);
+          applyTemplateFilter(container, templateFilter, boonFilter, specializationFilter, search);
         }
 
         return;

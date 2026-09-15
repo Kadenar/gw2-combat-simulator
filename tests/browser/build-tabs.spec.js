@@ -71,7 +71,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await settled(page);
   const originalDps = await page.locator('#floating-dps').textContent();
-  await tabAction(page, 'Duplicate tab');
+  await tabAction(page, 'Duplicate');
   await settled(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
   await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(2);
@@ -101,7 +101,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await strip.getByRole('button', { name: 'Alternative', exact: true }).click();
   await strip.getByRole('button', { name: 'Build 1', exact: true }).hover();
   page.once('dialog', (dialog) => dialog.accept());
-  await tabAction(page, 'Close tab', 'Build 1');
+  await tabAction(page, 'Close', 'Build 1');
   await expect(strip.locator('.build-tab')).toHaveCount(1);
   await expect(strip.locator('.build-tab-menu-trigger')).toHaveCount(1);
   await expect(strip.locator('.build-tab-notice')).toBeHidden();
@@ -215,7 +215,7 @@ test('template tabs reset independently to their loaded build after edits and re
     });
   }
 
-  await tabAction(page, 'Duplicate tab');
+  await tabAction(page, 'Duplicate');
   page.once('dialog', (dialog) => dialog.accept());
   await tabAction(page, 'Reset build');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
@@ -258,19 +258,21 @@ test('tab dropdown exposes its actions and supports keyboard dismissal', async (
   await page.keyboard.press('Enter');
   const menu = page.locator('#build-tab-menu');
   await expect(menu.locator('button')).toHaveText([
-    'Load template\u2026',
+    'Save to My Builds\u2026',
+    'Load build\u2026',
     'Rename',
-    'Duplicate tab',
+    'Duplicate',
     'Reset build',
-    'Close tab'
+    'Close'
   ]);
-  await expect(menu.getByRole('button', { name: 'Close tab' })).toBeDisabled();
-  await expect(menu.getByRole('button', { name: /Load template/ })).toBeFocused();
+  await expect(menu.getByRole('separator')).toHaveCount(2);
+  await expect(menu.getByRole('button', { name: 'Close' })).toBeDisabled();
+  await expect(menu.getByRole('button', { name: /Save to My Builds/ })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
   await expect(trigger).toBeFocused();
   await newBuild(page);
-  await tabAction(page, 'Duplicate tab', 'Build 1');
+  await tabAction(page, 'Duplicate', 'Build 1');
   await expect(page.locator('.build-tab')).toHaveCount(3);
   await expect(page.locator('.build-tab.is-active')).toContainText('Build 1 copy');
   await expect(page.locator('.build-tab.is-active .build-tab-menu-trigger')).toBeFocused();
@@ -301,7 +303,7 @@ test('tab menu loads a template into the chosen tab and resets only that build',
   const originalId = await page.locator('.build-tab-menu-trigger').getAttribute('data-build-tab-id');
   const originalTrigger = page.locator(`.build-tab-menu-trigger[data-build-tab-id="${originalId}"]`);
   await newBuild(page);
-  await tabAction(page, /Load template/, 'Build 1');
+  await tabAction(page, /Load build/, 'Build 1');
   const dialog = page.locator('#build-templates-dialog');
   await expect(dialog).toBeVisible();
   await dialog.locator('.template-load-btn').click();
@@ -494,11 +496,11 @@ test('mobile actions export, import, reset, and delete the active build', async 
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(original.targetArmor);
   await newBuild(page);
   page.once('dialog', (dialog) => dialog.dismiss());
-  await tabAction(page, 'Close tab');
+  await tabAction(page, 'Close');
   await expect(page.locator('.build-tab')).toHaveCount(2);
   page.once('dialog', (dialog) => dialog.accept());
-  await tabAction(page, 'Close tab');
+  await tabAction(page, 'Close');
   await expect(page.locator('.build-tab')).toHaveCount(1);
   await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
-  await expect(page.locator('#build-tab-menu').getByRole('button', { name: 'Close tab' })).toBeDisabled();
+  await expect(page.locator('#build-tab-menu').getByRole('button', { name: 'Close' })).toBeDisabled();
 });

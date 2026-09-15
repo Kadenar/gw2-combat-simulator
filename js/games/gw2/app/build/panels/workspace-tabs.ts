@@ -70,10 +70,13 @@ export function mountBuildTabs(app: ProfessionAppState): void {
       <div class="build-menu-io"></div>
     </div>
     <div id="build-tab-menu" class="build-toolbar-menu" popover="auto" role="group" aria-label="Tab options">
-      <button type="button" data-build-tab-action="load" ${app.templateContainer ? '' : 'disabled'}>Load template…</button>
+      <button type="button" data-build-tab-action="save-library" ${app.templateContainer ? '' : 'disabled'}>Save to My Builds…</button>
+      <button type="button" data-build-tab-action="load" ${app.templateContainer ? '' : 'disabled'}>Load build…</button>
+      <hr>
       <button type="button" data-build-tab-action="rename">Rename</button>
-      <button type="button" data-build-tab-action="duplicate">Duplicate tab</button>
-      <button type="button" data-build-tab-action="close">Close tab</button>
+      <button type="button" data-build-tab-action="duplicate">Duplicate</button>
+      <hr>
+      <button type="button" data-build-tab-action="close">Close</button>
     </div>
     <div class="build-tab-notice" role="status" hidden></div>`;
   // Keep build switching and file actions inside the sticky header in every simulator view.
@@ -133,6 +136,16 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     trigger?.focus({ preventScroll: true });
     if (!action) return;
     const id = button.dataset.buildTabId || menu?.dataset.buildTabId || app.workspace.activeTabId;
+    if (action === 'save-library') {
+      // A tab-level save snapshots the chosen build, including when its menu was opened while inactive.
+      app.activateBuildTab?.(id);
+      const focusTarget = strip.querySelector<HTMLButtonElement>(
+        `.build-tab-menu-trigger[data-build-tab-id="${CSS.escape(id)}"]`
+      );
+      app.templateContainer?.dispatchEvent(new CustomEvent('open-build-save', { detail: focusTarget }));
+      return;
+    }
+
     if (action === 'browse' || action === 'load') {
       if (action === 'load') {
         app.activateBuildTab?.(id);

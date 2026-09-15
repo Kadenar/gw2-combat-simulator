@@ -1,5 +1,71 @@
 import { expect, test } from '@playwright/test';
 
+// The personal library owns durable snapshots while search spans whichever library tab is active.
+test('My Builds saves new snapshots, overwrites, searches, loads, and deletes them', async ({ page }) => {
+  await page.goto('/mesmer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Load build/ }).click();
+  const library = page.getByRole('dialog', { name: 'Build library', exact: true });
+  await expect(library.getByRole('tab')).toHaveText(['Standard Templates', 'My Builds']);
+  const standardHeight = (await library.boundingBox()).height;
+
+  const search = library.getByPlaceholder('Search builds');
+  await search.fill('not-a-standard-build');
+  await expect(library.locator('.template-filter-empty')).toBeVisible();
+  await search.fill('');
+  await library.getByRole('tab', { name: 'My Builds' }).click();
+  await expect(library.locator('.my-build-empty')).toContainText('No saved builds yet');
+  await expect(library.getByRole('button', { name: /Save current build/ })).toHaveCount(0);
+  expect((await library.boundingBox()).height).toBe(standardHeight);
+  await library.getByRole('button', { name: 'Close build library' }).click();
+
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Save to My Builds/ }).click();
+  const save = page.getByRole('dialog', { name: 'Save to My Builds' });
+  await save.getByLabel('Build name').fill('My Mirage');
+  await save.getByLabel(/Category/).fill('Raids');
+  await save.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Load build/ }).click();
+  await expect(library.locator('.my-build')).toHaveCount(1);
+  await expect(library.locator('.my-build-group h4')).toHaveText('Raids');
+
+  await page.evaluate(() => {
+    window.professionApp.build.targetArmor = 2345;
+    window.professionApp.changed();
+  });
+  await library.getByRole('button', { name: 'Close build library' }).click();
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Save to My Builds/ }).click();
+  await save.getByLabel('Save as').selectOption({ label: 'Overwrite My Mirage' });
+  await expect(save.getByLabel(/Category/)).toHaveValue('Raids');
+  await save.getByLabel(/Category/).fill('Benchmarks');
+  await save.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Load build/ }).click();
+  await search.fill('missing');
+  await expect(library.locator('.my-build-empty')).toContainText('No builds found');
+  await search.fill('benchmarks');
+  await expect(library.locator('.my-build')).toBeVisible();
+  await expect(library.locator('.my-build-group h4')).toHaveText('Benchmarks');
+
+  await page.evaluate(() => {
+    window.professionApp.build.targetArmor = 2597;
+    window.professionApp.changed();
+  });
+  await library.getByRole('button', { name: 'My Mirage', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2345);
+
+  await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+  await page.getByRole('button', { name: /Load build/ }).click();
+  await search.fill('');
+  page.once('dialog', (dialog) => dialog.accept());
+  await library.locator('.my-build .template-actions > summary').click();
+  await library.getByRole('menuitem', { name: 'Delete' }).click();
+  await expect(library.locator('.my-build')).toHaveCount(0);
+});
+
 // The shared toolbar must load templates without leaving a tool view or hiding its picker and feedback.
 test('templates load from the optimizer and Analysis toolbars', async ({ page }) => {
   await page.route('**/data/gw2/builds/mesmer/manifest.json*', (route) =>
@@ -16,12 +82,12 @@ test('templates load from the optimizer and Analysis toolbars', async ({ page })
   await page.goto('/mesmer.html#gear-optimizer');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const originalArmor = await page.evaluate(() => window.professionApp.build.targetArmor);
-  const dialog = page.getByRole('dialog', { name: 'Build templates', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Build library', exact: true });
   for (const view of ['Gear Optimizer', 'Analysis']) {
     const tab = page.getByRole('link', { name: view, exact: true });
     await tab.click();
     await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
-    await page.getByRole('button', { name: 'Load template…', exact: true }).click();
+    await page.getByRole('button', { name: 'Load build…', exact: true }).click();
     await expect(dialog).toBeVisible();
     await dialog.locator('.template-load-btn').click();
     await expect(dialog).toBeHidden();
@@ -62,7 +128,7 @@ test('standalone templates open only in a dialog at every viewport width', async
     await newButton.click();
     await page.getByRole('button', { name: /Browse templates/ }).click();
     await expect(dialog).toBeInViewport();
-    await expect(dialog.getByRole('button', { name: 'Close build templates' })).toBeFocused();
+    await expect(dialog.getByRole('button', { name: 'Close build library' })).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(newButton).toBeFocused();
   }
@@ -74,7 +140,7 @@ test('standalone templates open only in a dialog at every viewport width', async
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(dialog).toBeInViewport();
   await expect(dialog.locator('[data-template-role-value]')).toHaveText('Power');
-  await dialog.getByRole('button', { name: 'Close build templates' }).click();
+  await dialog.getByRole('button', { name: 'Close build library' }).click();
   await expect(newButton).toBeFocused();
 });
 
@@ -94,7 +160,7 @@ test('template dialog follows the visible viewport inside a tall cross-origin if
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   const browse = frame.getByRole('button', { name: /Browse templates/ });
-  const dialog = frame.getByRole('dialog', { name: 'Build templates' });
+  const dialog = frame.getByRole('dialog', { name: 'Build library' });
   await frame.locator('.build-tab-new').click();
   await browse.click();
 
@@ -124,7 +190,7 @@ test('template dialog follows the visible viewport inside a tall cross-origin if
   await expectVisibleCenter();
   await page.setViewportSize({ width: 700, height: 500 });
   await expectVisibleCenter();
-  await dialog.getByRole('button', { name: 'Close build templates' }).click();
+  await dialog.getByRole('button', { name: 'Close build library' }).click();
   await expect(dialog).toBeHidden();
   await page.evaluate(() => scrollTo(0, 0));
   await frame.locator('.build-tab-new').click();
@@ -156,8 +222,8 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   const templates = frame.locator('.build-templates');
   const browse = frame.getByRole('button', { name: /Browse templates/ });
-  const dialog = frame.getByRole('dialog', { name: 'Build templates' });
-  const close = dialog.getByRole('button', { name: 'Close build templates' });
+  const dialog = frame.getByRole('dialog', { name: 'Build library' });
+  const close = dialog.getByRole('button', { name: 'Close build library' });
 
   for (const [width, height] of [
     [800, 600],

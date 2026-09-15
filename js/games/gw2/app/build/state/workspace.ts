@@ -44,6 +44,13 @@ export interface BuildWorkspace {
   storageError?: string;
 }
 
+export interface MyBuild {
+  id: string;
+  name: string;
+  category?: string;
+  build: Gw2ApplicationBuild;
+}
+
 export function createBuildTab(build: Gw2ApplicationBuild, name = 'New build', patchId = 'current'): BuildTab {
   return {
     id: crypto.randomUUID(),
@@ -58,6 +65,91 @@ export function createBuildTab(build: Gw2ApplicationBuild, name = 'New build', p
 /** A new storage envelope preserves the legacy single build as a migration fallback. */
 export function workspaceStorageKey(adapter: Gw2AppAdapter): string {
   return `${adapter.storageKey}-workspace-v1`;
+}
+
+export function myBuildsStorageKey(adapter: Gw2AppAdapter): string {
+  return `${adapter.storageKey}-my-builds-v1`;
+}
+
+/** Restores only valid, uniquely identified snapshots for the active profession. */
+export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(myBuildsStorageKey(adapter)) || 'null');
+    if (saved?.version !== 1 || !Array.isArray(saved.builds)) return [];
+    const builds: MyBuild[] = [];
+    for (const entry of saved.builds) {
+      if (
+        !entry ||
+        typeof entry.id !== 'string' ||
+        !entry.id ||
+        typeof entry.name !== 'string' ||
+        !entry.name.trim() ||
+        entry.build?.profession !== adapter.id ||
+        builds.some(({ id }) => id === entry.id)
+      )
+        continue;
+      try {
+        builds.push({
+          id: entry.id,
+          name: entry.name.trim().slice(0, 80),
+          category: typeof entry.category === 'string' ? entry.category.trim().slice(0, 80) || undefined : undefined,
+          build: replaceBuild(entry.build, adapter)
+        });
+      } catch {
+        /* One invalid snapshot must not hide the rest of the user's library. */
+      }
+    }
+
+    return builds;
+  } catch {
+    return [];
+  }
+}
+
+/** Commits a complete replacement list before the UI adopts it, preventing false successful saves. */
+function persistMyBuilds(app: ProfessionAppState, builds: readonly MyBuild[]): void {
+  localStorage.setItem(
+    myBuildsStorageKey(app.adapter),
+    JSON.stringify({
+      version: 1,
+      builds: builds.map(({ id, name, category, build }) => ({
+        id,
+        name,
+        category,
+        build: app.profession.migrateBuild(build)
+      }))
+    })
+  );
+}
+
+/** Saves the current build as a new named snapshot or replaces the selected snapshot in place. */
+export function saveMyBuild(
+  app: ProfessionAppState,
+  builds: readonly MyBuild[],
+  name: string,
+  id?: string,
+  category?: string
+): MyBuild[] {
+  const cleanName = name.trim().slice(0, 80);
+  if (!cleanName) throw new TypeError('Build name is required.');
+  if (id && !builds.some((entry) => entry.id === id)) throw new TypeError('Saved build no longer exists.');
+  const saved = {
+    id: id || crypto.randomUUID(),
+    name: cleanName,
+    category: category?.trim().slice(0, 80) || undefined,
+    build: structuredClone(app.build)
+  };
+  const next = id ? builds.map((entry) => (entry.id === id ? saved : entry)) : [...builds, saved];
+  persistMyBuilds(app, next);
+  return next;
+}
+
+/** Deletes one user-owned snapshot without affecting any open build tab. */
+export function deleteMyBuild(app: ProfessionAppState, builds: readonly MyBuild[], id: string): MyBuild[] {
+  const next = builds.filter((entry) => entry.id !== id);
+  if (next.length === builds.length) return [...builds];
+  persistMyBuilds(app, next);
+  return next;
 }
 
 export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
