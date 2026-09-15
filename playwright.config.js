@@ -8,6 +8,8 @@ export default defineConfig({
   // Parallel files stay within the host's cores alongside each page's own simulation workers: four lanes locally,
   // three on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
   workers: process.env.CI ? 3 : 4,
+  // Cold dev-server startup on loaded CI runners can exceed the 5s default before the loading overlay hides.
+  expect: { timeout: process.env.CI ? 15_000 : 5_000 },
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',
