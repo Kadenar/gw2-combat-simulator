@@ -1340,24 +1340,29 @@ test('reference rotation manifest builds load lazily once per template list', as
     { label: 'C', build: 'c.json', rotation: 'rc.json' }
   ];
   const fetched = [];
+  let offline = true;
   const fetchAsset = async (path) => {
     fetched.push(path);
-    if (path === 'c.json') throw new Error('Could not load c.json');
+    if (offline && path === 'c.json') throw new Error('Could not load c.json');
     return { path };
   };
 
-  const first = await loadManifestBuilds(presets, fetchAsset);
-  const again = await loadManifestBuilds(presets, fetchAsset);
+  const builds = (entries) => entries.map((entry) => entry?.build ?? null);
+
+  const failed = await loadManifestBuilds(presets, fetchAsset);
   assert.deepEqual(fetched, ['a.json', 'c.json']);
-  assert.equal(again, first);
-  assert.deepEqual(
-    first.map((entry) => entry?.build ?? null),
-    [{ path: 'a.json' }, null]
-  );
+  assert.deepEqual(builds(failed), [{ path: 'a.json' }, null]);
+
+  // A failed fetch may be a network blip, so the next open retries instead of reusing the failure.
+  offline = false;
+  const retried = await loadManifestBuilds(presets, fetchAsset);
+  assert.deepEqual(builds(retried), [{ path: 'a.json' }, { path: 'c.json' }]);
+  assert.equal(await loadManifestBuilds(presets, fetchAsset), retried);
+  assert.equal(fetched.length, 4);
 
   // Re-rendered templates produce a new list, which loads fresh.
   await loadManifestBuilds([...presets], fetchAsset);
-  assert.deepEqual(fetched, ['a.json', 'c.json', 'a.json', 'c.json']);
+  assert.equal(fetched.length, 6);
 });
 
 test('build file import applies only the selected parts', async () => {

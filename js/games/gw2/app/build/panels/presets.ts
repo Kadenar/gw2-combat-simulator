@@ -329,7 +329,8 @@ function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void {
   const previousBuild = structuredClone(app.build);
   const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
   if (tab) tab.templateUndoResetBuild = tab.templateBuild;
-  app.build = replaceBuild(entry.build, app.adapter);
+  // Library entries were converted when loaded or saved; copy so edits cannot change the snapshot.
+  app.build = structuredClone(entry.build);
   app.currentTemplate = null;
   app.changed(true, true, { deferRotationRender: true });
   if (tab) {
@@ -344,14 +345,6 @@ function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void {
 
 function buildSignature(build: Gw2ApplicationBuild): string {
   return JSON.stringify(build);
-}
-
-function validateBuildProfession(app: ProfessionAppState, buildData: unknown): void {
-  if (!buildData || typeof buildData !== 'object') return;
-  const profession = (buildData as { profession?: unknown }).profession;
-  if (profession && profession !== app.adapter.id) {
-    throw new Error(`This is a ${String(profession)} build.`);
-  }
 }
 
 function actionLabel(action: TemplateLoadAction): string {
@@ -753,21 +746,21 @@ export async function loadTemplateAction(
       app.changed(false, false, { deferRotationRender: true });
     } else if (action === 'build') {
       const buildData = await fetchJsonAsset(preset.build);
-      validateBuildProfession(app, buildData);
       validateDestination();
+      // The codec rejects a build saved for another profession.
       app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.currentTemplate = null;
       app.changed(true, true, { deferRotationRender: true });
     } else {
       const { buildData, rotationItems } = await loadPresetBundle(preset);
-      validateBuildProfession(app, buildData);
       if (preset.rotation && !Array.isArray(rotationItems)) {
         throw new Error('Rotation array missing.');
       }
 
-      // Validate the complete bundle before creating a tab or replacing the destination build.
-      const build = replaceBuildConfiguration(buildData, previousBuild, app.adapter);
-      const replacement = replaceBuildRotation(Array.isArray(rotationItems) ? rotationItems : [], build, app.adapter);
+      // Validate the complete bundle before creating a tab or replacing the destination build. One codec pass
+      // rejects another profession's build, migrates it, and resolves the rotation against its own specializations.
+      const template = buildData && typeof buildData === 'object' && !Array.isArray(buildData) ? buildData : {};
+      const replacement = replaceBuild({ ...template, rotation: rotationItems ?? [] }, app.adapter);
       if (action === 'new-tab') {
         addBuildTab(app, replacement, name, patchId);
       } else {

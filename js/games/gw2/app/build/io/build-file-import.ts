@@ -2,7 +2,7 @@
 
 import { getRotationItems } from '#gw2/app/build/io/files.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/build/io/rotation-import-dialog.js';
-import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
+import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
@@ -80,9 +80,10 @@ export function applyBuildFileImport(
   const applyBuild = selection.build && preview.build !== null;
   const applyRotation = selection.rotation && preview.rotation !== null;
   if (applyBuild) {
-    app.build = applyRotation
-      ? structuredClone(preview.build!)
-      : replaceBuildConfiguration(preview.build, app.build, app.adapter);
+    // The preview already converted the build through the codec; copy it instead of converting it again.
+    const build = structuredClone(preview.build!);
+    if (!applyRotation) build.rotation = app.build.rotation;
+    app.build = build;
     // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
     app.currentTemplate = null;
     app.changed();

@@ -155,28 +155,31 @@ const manifestBuildCache = new WeakMap<readonly BuildTemplatePreset[], Promise<r
  * Fetches the build of every preset that has a rotation, once per template list.
  *
  * The reference dialog is rebuilt on every comparison entry, so loading lazily and caching avoids re-downloading the
- * whole manifest each time. A preset whose build cannot be loaded resolves to null.
+ * whole manifest each time. A preset whose build cannot be loaded resolves to null, and a list with any failure is
+ * fetched again on the next call.
  */
 export function loadManifestBuilds(
   presets: readonly BuildTemplatePreset[],
   fetchAsset: (path: string) => Promise<unknown> = fetchJsonAsset
 ): Promise<readonly (ManifestBuildEntry | null)[]> {
-  let loading = manifestBuildCache.get(presets);
-  if (!loading) {
-    loading = Promise.all(
-      presets
-        .filter((preset) => preset.rotation)
-        .map(async (preset) => {
-          try {
-            return { preset, build: await fetchAsset(preset.build) };
-          } catch {
-            return null;
-          }
-        })
-    );
-    manifestBuildCache.set(presets, loading);
-  }
-
+  const cached = manifestBuildCache.get(presets);
+  if (cached) return cached;
+  const loading = Promise.all(
+    presets
+      .filter((preset) => preset.rotation)
+      .map(async (preset) => {
+        try {
+          return { preset, build: await fetchAsset(preset.build) };
+        } catch {
+          return null;
+        }
+      })
+  );
+  manifestBuildCache.set(presets, loading);
+  // A failure may be a network blip; forget it so the next open retries instead of hiding that preset.
+  void loading.then((entries) => {
+    if (entries.includes(null) && manifestBuildCache.get(presets) === loading) manifestBuildCache.delete(presets);
+  });
   return loading;
 }
 
