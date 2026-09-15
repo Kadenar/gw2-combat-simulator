@@ -40,11 +40,11 @@ test('shared relics are grouped by their damage effect', () => {
     },
     {
       label: 'Condition',
-      items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Mirage', 'Steamshrieker', 'Thorns']
+      items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Last Tyrant', 'Mirage', 'Steamshrieker', 'Thorns']
     },
     {
       label: 'Hybrid',
-      items: ['Nourys', 'Peitha', 'Warrior']
+      items: ['Nourys', 'Peitha', 'Visionary', 'Warrior']
     }
   ]);
 });

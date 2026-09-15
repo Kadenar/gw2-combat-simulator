@@ -107,6 +107,16 @@ export const RELIC_DATA = {
     cooldown: 20,
     icon: 'https://render.guildwars2.com/file/B2D409644147BF18935A95A52505ABCB9EECE142/3122351.png'
   },
+  'Last Tyrant': {
+    trigger: "Inflict Burning at 5 Tyrant's Fury stacks (explosion: strike coefficient TBD, 2 Burning for 8s)",
+    cooldown: 12,
+    icon: 'https://render.guildwars2.com/file/DC0E5B235AA36102E0A9A9D32AAB24169B2CAE59/3806032.png'
+  },
+  Visionary: {
+    trigger: 'Finish 8 combos (+10% strike and condition damage for 8s; whirls count once per 3s)',
+    cooldown: 0,
+    icon: 'https://render.guildwars2.com/file/042320E3287590E14067362A6DFD07191DB52C23/3806034.png'
+  },
   Thorns: {
     trigger: 'Hit by a poisoned foe (+30 Condition Damage)',
     cooldown: 5,
@@ -161,10 +171,10 @@ export const RELIC_GROUPS = [
   },
   {
     label: 'Condition',
-    items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Mirage', 'Steamshrieker', 'Thorns']
+    items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Last Tyrant', 'Mirage', 'Steamshrieker', 'Thorns']
   },
   {
     label: 'Hybrid',
-    items: ['Nourys', 'Peitha', 'Warrior']
+    items: ['Nourys', 'Peitha', 'Visionary', 'Warrior']
   }
 ];

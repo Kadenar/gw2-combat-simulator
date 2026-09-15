@@ -66,6 +66,14 @@ test('equipment dropdown labels expose their effects without hover text', () => 
     'Akeem — CC a foe with 5+ Torment or Confusion (2 Confusion for 10s, 2 Torment for 10s) (10s ICD)'
   );
   assert.equal(
+    relicOptionLabel('Last Tyrant'),
+    "Last Tyrant — Inflict Burning at 5 Tyrant's Fury stacks (explosion: strike coefficient TBD, 2 Burning for 8s) (12s ICD)"
+  );
+  assert.equal(
+    relicOptionLabel('Visionary'),
+    'Visionary — Finish 8 combos (+10% strike and condition damage for 8s; whirls count once per 3s)'
+  );
+  assert.equal(
     relicOptionLabel('Blightbringer'),
     'Blightbringer — Apply Poison with six distinct skill activations (3 Poison for 10s) (8s ICD)'
   );

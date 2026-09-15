@@ -43,6 +43,15 @@ const NOURYS_BUFF_DURATION = 5;
 const NOURYS_DAMAGE_BONUS = 0.25;
 const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOURYS_BUFF_DURATION;
 
+const LAST_TYRANT_STACKS_NEEDED = 5;
+const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
+// TODO: Placeholder until the explosion's strike coefficient is known; 0 emits no strike so on-hit effects stay untouched.
+const LAST_TYRANT_EXPLOSION_COEFFICIENT = 0;
+const VISIONARY_STACKS_NEEDED = 8;
+const VISIONARY_BUFF_DURATION = 8;
+const VISIONARY_DAMAGE_BONUS = 0.1;
+const VISIONARY_WHIRL_INTERNAL_COOLDOWN = 3;
+
 const THORNS_CONDITION_DAMAGE_PER_STACK = 30;
 const THORNS_MAX_STACKS = 10;
 const THORNS_FIRST_STACK_AT = 3;
@@ -654,6 +663,82 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
     }
   }),
 
+  'Last Tyrant': defineRelic({
+    createState: () => ({ readyAt: 0, stacks: 0 }),
+    condition(ctx, state, application, { applyCondition }) {
+      // The explosion's own burning cannot feed Tyrant's Fury.
+      if (
+        application.condition !== 'Burning' ||
+        application.sourceId === 'relic.last-tyrant' ||
+        missesTarget(application) ||
+        !(
+          isGw2PlayerActorEvent(application) ||
+          (application.actorType === 'effect' && application.ownerActorType === 'player')
+        ) ||
+        !(Number(application.stacks) > 0)
+      ) {
+        return;
+      }
+
+      const stacks = Number(state.stacks || 0);
+      if (stacks < LAST_TYRANT_STACKS_NEEDED) {
+        state.stacks = stacks + 1;
+        ctx.recordProc(
+          'relic',
+          'Relic of the Last Tyrant',
+          application.at,
+          application.skillName,
+          `${state.stacks}/${LAST_TYRANT_STACKS_NEEDED} stacks`,
+          '',
+          null,
+          null,
+          { stacks: Number(state.stacks), maximumStacks: LAST_TYRANT_STACKS_NEEDED }
+        );
+        return;
+      }
+
+      // At max stacks of Tyrant's Fury, the next burning application explodes once the 12s cooldown allows it.
+      if (!isInternalCooldownReady(application.at, state.readyAt)) return;
+      state.stacks = 0;
+      state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
+      ctx.recordProc('relic', 'Relic of the Last Tyrant', application.at, application.skillName, 'explosion');
+      if (LAST_TYRANT_EXPLOSION_COEFFICIENT > 0) {
+        ctx.queue.enqueue({
+          type: 'damage',
+          at: application.at,
+          name: 'Relic of the Last Tyrant',
+          skillName: 'Relic of the Last Tyrant',
+          coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
+          hits: 1,
+          hitIndex: 1,
+          totalHits: 1,
+          source: 'Relic',
+          sourceId: 'relic.last-tyrant',
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillWeapon: 'Unequipped',
+          canCrit: true,
+          triggeredBy: application.skillName
+        });
+      }
+
+      applyCondition(ctx, {
+        type: 'condition',
+        at: application.at,
+        name: 'Relic of the Last Tyrant — Burning',
+        skillName: 'Relic of the Last Tyrant',
+        condition: 'Burning',
+        duration: 8,
+        stacks: 2,
+        source: 'Relic',
+        sourceId: 'relic.last-tyrant',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        triggeredBy: application.skillName
+      });
+    }
+  }),
+
   Mistburn: defineRelic({
     createState: () => ({ readyAt: 0 }),
     materializeBoon(ctx, state, event) {
@@ -966,6 +1051,47 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
       return Number(state.stacks || 0) > 0 && Number(state.expiresAt || 0) > event.at
         ? 1 + Number(state.stacks || 0) * 0.01
         : 1;
+    }
+  }),
+
+  Visionary: defineRelic({
+    createState: () => ({ stacks: 0, whirlReadyAt: 0, windows: [] }),
+    combo(ctx, state, event) {
+      if (!isGw2PlayerActorEvent(event)) return;
+      const windows = state.windows as { from: number; until: number }[];
+      // Like Bloodstone, stacks cannot accumulate while Vloxx's Vision is active.
+      if (windows.some((window) => isTimeInWindow(event.at, window.from, window.until))) return;
+      if (event.finisherType === 'Whirl') {
+        if (!isInternalCooldownReady(event.at, Number(state.whirlReadyAt || 0))) return;
+        state.whirlReadyAt = event.at + VISIONARY_WHIRL_INTERNAL_COOLDOWN;
+      }
+
+      const stacks = Number(state.stacks || 0) + 1;
+      if (stacks < VISIONARY_STACKS_NEEDED) {
+        state.stacks = stacks;
+        ctx.recordProc(
+          'relic',
+          'Relic of the Visionary',
+          event.at,
+          event.skillName,
+          `${stacks}/${VISIONARY_STACKS_NEEDED} stacks`,
+          '',
+          null,
+          null,
+          { stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
+        );
+        return;
+      }
+
+      state.stacks = 0;
+      const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
+      windows.push({ from: event.at, until });
+      ctx.recordProc('relic', 'Relic of the Visionary', event.at, event.skillName, "Vloxx's Vision", '', null, until);
+    },
+    // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.
+    outgoingDamageBonus(_ctx, state, _damageType, at) {
+      const windows = (state.windows as { from: number; until: number }[] | undefined) || [];
+      return windows.some((window) => isTimeInWindow(at, window.from, window.until)) ? VISIONARY_DAMAGE_BONUS : 0;
     }
   }),
 
