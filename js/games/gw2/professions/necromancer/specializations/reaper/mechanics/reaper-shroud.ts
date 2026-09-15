@@ -32,15 +32,7 @@ function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number)
   const reduction = Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.rechargeReduction ?? 1);
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== 'reaper') continue;
-    const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
-    if (!(readyAt > at + context.epsilon)) continue;
-    const reduced = Math.max(at, readyAt - reduction);
-    // Delete rather than set to 0 so the cooldown map stays clean and future lookups default correctly.
-    if (reduced <= at + context.epsilon) {
-      context.state.cooldowns.delete(candidate.id);
-    } else {
-      context.state.cooldowns.set(candidate.id, reduced);
-    }
+    context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
   }
 }
 

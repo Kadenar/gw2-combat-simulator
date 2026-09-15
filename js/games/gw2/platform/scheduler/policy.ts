@@ -44,6 +44,7 @@ import {
   projectCastRelativeEffectTimingMs,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/skills/timing.js';
+import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -413,6 +414,14 @@ export function createGw2SchedulerPolicy(
       // start for skills whose recharge anchor is cast end or an effect event.
       // Recharge speed is a rate, so elapsed duration is divided by it.
       return baseDuration / Math.max(Number.EPSILON, rate);
+    },
+
+    rechargeReduction(context, skill, baseReduction) {
+      const at = Number(context.at ?? context.state.time ?? 0);
+      const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');
+      const rate = hasAlacrity ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1;
+      // Flat recharge reductions advance recharge units; only recharge speed converts them to wall time.
+      return gw2TrackedRechargeReduction(baseReduction, rate);
     }
   };
   return Object.freeze(policy);

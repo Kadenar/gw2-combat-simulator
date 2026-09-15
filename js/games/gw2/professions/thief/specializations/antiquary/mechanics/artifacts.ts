@@ -24,6 +24,7 @@ import type {
 } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 
 interface ForgedSurferTaskPayload extends Record<string, unknown> {
   readonly generation: number;
@@ -50,15 +51,12 @@ function allArtifactChoices(): ThiefArtifactSlot[] {
 
 function reduceSkrittSwipeRecharge(context: ThiefSchedulerContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.REPEAT_RANSACKER)) return;
-  const readyAt = Number(context.state.cooldowns.get(ID.SKRITT_SWIPE) || 0);
-  if (readyAt > at) {
-    // clamp to `at` so the cooldown never goes negative; happens when multiple artifacts are used close together
-    context.state.cooldowns.set(
-      ID.SKRITT_SWIPE,
-      Math.max(
-        at,
-        readyAt - Number(balanceProfileFromContext(context, PROFILE.repeatRansacker)?.rechargeReduction ?? 2)
-      )
+  const swipe = context.catalog.skillsById.get(ID.SKRITT_SWIPE);
+  if (swipe) {
+    context.cooldownController.reduceSkillRecharge(
+      swipe,
+      Number(balanceProfileFromContext(context, PROFILE.repeatRansacker)?.rechargeReduction ?? 2),
+      at
     );
   }
 }
@@ -96,15 +94,10 @@ function reduceUtilityRecharges(context: ThiefSchedulerContext, at: number): voi
   for (const name of selectedNames) {
     const skill = context.catalog.skillsByName.get(name);
     if (skill?.type !== 'Utility') continue;
-    const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-    if (readyAt > at) {
-      context.state.cooldowns.set(
-        skill.id,
-        at +
-          (readyAt - at) *
-            Number(balanceProfileFromContext(context, CORE_PROFILE.improvisation)?.rechargeMultiplier ?? 0.75)
-      );
-    }
+    const multiplier = Number(
+      balanceProfileFromContext(context, CORE_PROFILE.improvisation)?.rechargeMultiplier ?? 0.75
+    );
+    context.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), at);
   }
 
   state.improvisationReadyAt =

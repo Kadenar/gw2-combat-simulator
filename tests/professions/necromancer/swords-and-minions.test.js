@@ -1636,21 +1636,22 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
 test('Reaper traits reduce shroud cooldowns and ignore minion critical hits', () => {
   const rotation = ["Reaper's Shroud", "Death's Charge", 'Life Rend', 'Life Slash', 'Life Reap', "Death's Charge"];
   const base = simulate('Reaper', rotation, {
-    boons: { quickness: true, alacrity: true }
+    boons: { quickness: true, alacrity: true },
+    selectedTraitIds: [TRAIT.SINISTER_SHROUD]
   });
   const onslaught = simulate('Reaper', rotation, {
     boons: { quickness: true, alacrity: true },
-    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT]
+    selectedTraitIds: [TRAIT.SINISTER_SHROUD, TRAIT.REAPERS_ONSLAUGHT]
   });
   const shroudDamageTraits = simulate('Reaper', rotation, {
     boons: { quickness: true, alacrity: true },
-    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT, TRAIT.DEATH_PERCEPTION]
+    selectedTraitIds: [TRAIT.SINISTER_SHROUD, TRAIT.REAPERS_ONSLAUGHT, TRAIT.DEATH_PERCEPTION]
   });
   const secondChargeStart = (result) => result.steps.filter((step) => step.skill === "Death's Charge")[1].start;
   const firstLifeRendDamage = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Life Rend')?.damage || 0;
 
-  assert.equal(secondChargeStart(base) - secondChargeStart(onslaught), 1000);
+  assert.equal(secondChargeStart(base) - secondChargeStart(onslaught), 800);
   assert.ok(firstLifeRendDamage(onslaught) > firstLifeRendDamage(base));
   assert.ok(firstLifeRendDamage(shroudDamageTraits) > firstLifeRendDamage(base) * 1.15);
 

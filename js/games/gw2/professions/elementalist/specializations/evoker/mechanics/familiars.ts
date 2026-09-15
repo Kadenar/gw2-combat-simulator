@@ -16,6 +16,7 @@ import {
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { castRelativeEffectTimingScale, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
@@ -312,13 +313,12 @@ function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): v
   });
 }
 
-// Specialized Elements: shortens every weapon skill's remaining recharge by the given multiplier
+// Specialized Elements removes the profiled fraction of each weapon skill's base recharge.
 function applyWeaponSkillRechargeMultiplier(context: ElementalistCastContext, multiplier: number): void {
   const at = context.effectiveEnd;
   for (const candidate of context.catalog.skills) {
     if (candidate.type !== 'Weapon') continue;
-    const rechargeDuration = context.rechargeDurationFor(candidate, at);
-    const reduction = rechargeDuration * Math.max(0, 1 - multiplier);
+    const reduction = gw2BaseRecharge(candidate) * Math.max(0, 1 - multiplier);
     context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
   }
 }

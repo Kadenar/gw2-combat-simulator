@@ -12,6 +12,7 @@ interface CooldownControllerOptions<TProfessionState extends object> {
   readonly state: SchedulerState<TProfessionState>;
   readonly epsilon?: number;
   readonly rechargeDuration: (skill: Skill, at: number) => number;
+  readonly rechargeReduction?: (skill: Skill, reduction: number, at: number) => number;
   readonly maximumAmmo?: (skill: Skill) => number;
 }
 
@@ -24,6 +25,7 @@ export function createCooldownController<TProfessionState extends object>({
   state,
   epsilon = EPSILON,
   rechargeDuration,
+  rechargeReduction = (_skill, reduction) => reduction,
   maximumAmmo = (skill) => Number(skill.ammo || 0)
 }: CooldownControllerOptions<TProfessionState>): Readonly<CooldownController> {
   if (!state?.ammo || !state?.cooldowns) {
@@ -138,9 +140,9 @@ export function createCooldownController<TProfessionState extends object>({
     return { ammo, reducedBy };
   };
 
-  /** Reduces either an active ammo recharge or an ordinary skill cooldown without passing its ready time. */
+  /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
   const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
-    const requested = Math.max(0, Number(reduction) || 0);
+    const requested = Math.max(0, Number(rechargeReduction(skill, reduction, at)) || 0);
     if (requested <= 0) return 0;
     if (state.ammo.has(skill.id)) {
       return reduceAmmoRecharge(skill, requested, at).reducedBy;

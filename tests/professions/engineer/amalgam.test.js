@@ -513,12 +513,13 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     assert.deepEqual([...result.schedulerState.cooldowns.keys()], [skillId]);
     assert.deepEqual([...result.schedulerState.ammo.keys()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
-    assert.ok(third.start >= first.end + 40000);
+    // Both Evolve identities recover from activation rather than cast completion.
+    assert.ok(third.start >= first.start + 40000);
     if (traited) {
       assert.equal(result.schedulerState.ammo.get(skillId).maximum, 2);
-      assert.ok(second.start < first.end + 40000);
+      assert.ok(second.start < first.start + 40000);
     } else {
-      assert.ok(second.start >= first.end + 40000);
+      assert.ok(second.start >= first.start + 40000);
     }
 
     for (const name of ['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)']) {

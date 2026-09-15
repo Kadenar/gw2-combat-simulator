@@ -116,10 +116,8 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
     const alacrity = balanceProfileEffect(profile, 'boon');
     for (const chantId of CHANT_IDS) {
       if (chantId === skill.id) continue;
-      const readyAt = Number(context.state.cooldowns.get(chantId) || 0);
-      if (readyAt > at) {
-        context.state.cooldowns.set(chantId, Math.max(at, readyAt - Number(profile?.rechargeReduction ?? 2)));
-      }
+      const chant = context.catalog.skillsById.get(chantId);
+      if (chant) context.cooldownController.reduceSkillRecharge(chant, Number(profile?.rechargeReduction ?? 2), at);
     }
 
     emitSkillBuff(context, {

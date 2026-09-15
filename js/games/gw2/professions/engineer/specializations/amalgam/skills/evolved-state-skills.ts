@@ -24,6 +24,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     castTimeMs: 640,
+    // Evolve begins recharging on activation, so its cast window contributes to the next use.
+    rechargeAnchor: 'castStart',
     // Commit before the animation ends so its remaining aftercast can be interrupted.
     interruptCommitMs: 560,
     cooldown: 40,
@@ -37,6 +39,8 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.evolve',
     castTimeMs: 640,
+    // Keep the traited identity on the same activation-anchored recharge contract.
+    rechargeAnchor: 'castStart',
     // Commit before the animation ends so its remaining aftercast can be interrupted.
     interruptCommitMs: 560,
     cooldown: 40,

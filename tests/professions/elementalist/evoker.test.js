@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '../../helpers/elementalist-simulation.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/scheduler/policy.js';
 import {
   createEvokerState,
   grantElectricEnchantments
@@ -385,29 +388,33 @@ test('Specialized Elements grants three familiar charges per matching weapon ski
 });
 
 test('Specialized Elements familiar casts reduce active weapon recharge', () => {
-  const simulate = (traits) =>
+  const simulate = (traits, alacrity) =>
     runNative({
       lines: [['Fire'], ['Air'], ['Evoker', traits]],
       rotation: ['Flame Uprising', 'Ignite'],
       startAttunement: 'Fire',
       weapons: ['Sword', 'Dagger'],
-      evokerElement: 'Fire'
+      evokerElement: 'Fire',
+      assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, alacrity }
     });
-  const baseline = simulate('1-1-1');
-  const specialized = simulate('1-1-3');
 
-  assert.deepEqual(baseline.warnings, []);
-  assert.deepEqual(specialized.warnings, []);
-  // The basic familiar removes a fraction of the weapon's full recharge.
-  const weapon = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Flame Uprising');
-  const reduction = (weapon.rechargeReadyAt - weapon.endsAt) * 1000 * 0.1;
-  assert.ok(
-    Math.abs(
-      baseline.endState.cooldowns['Flame Uprising'].readyAt -
-        specialized.endState.cooldowns['Flame Uprising'].readyAt -
-        reduction
-    ) < 1e-6
-  );
+  for (const alacrity of [false, true]) {
+    const baseline = simulate('1-1-1', alacrity);
+    const specialized = simulate('1-1-3', alacrity);
+    const weapon = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Flame Uprising');
+    const weaponSkill = elementalistCatalog.skillsByName.get('Flame Uprising');
+    const reduction = (gw2BaseRecharge(weaponSkill) * 1000 * 0.1) / (alacrity ? GW2_ALACRITY_RECHARGE_RATE : 1);
+
+    assert.deepEqual(baseline.warnings, []);
+    assert.deepEqual(specialized.warnings, []);
+    assert.ok(
+      Math.abs(
+        baseline.endState.cooldowns['Flame Uprising'].readyAt -
+          specialized.endState.cooldowns['Flame Uprising'].readyAt -
+          reduction
+      ) < 1e-6
+    );
+  }
 });
 
 test('Evoker can cast a basic familiar after configured start charges fill', () => {

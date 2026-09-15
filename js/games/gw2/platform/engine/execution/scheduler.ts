@@ -511,6 +511,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     state,
     epsilon,
     rechargeDuration: rechargeDurationFor,
+    rechargeReduction: (skill, reduction, at) =>
+      schedulerPolicy.rechargeReduction?.({ ...context, skill, at }, skill, reduction) ?? reduction,
     maximumAmmo: maximumAmmoFor
   });
   context.cooldownController = cooldownController;

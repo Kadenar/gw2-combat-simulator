@@ -129,6 +129,7 @@ export interface CooldownController {
   ammoMaximum(skill: Skill): number;
   ensureAmmo(skill: Skill, at?: number): AmmoState | null;
   reduceAmmoRecharge(skill: Skill, reduction: number, at?: number): { ammo: AmmoState | null; reducedBy: number };
+  /** Reduces tracked wall time by the effective equivalent of the supplied base-recharge seconds. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   restoreAmmo(skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number;
@@ -165,6 +166,11 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     context: SchedulerContext<TProfessionState> & SchedulerRecord,
     skill: Skill,
     duration: number
+  ) => number | undefined;
+  readonly rechargeReduction?: (
+    context: SchedulerContext<TProfessionState> & SchedulerRecord,
+    skill: Skill,
+    reduction: number
   ) => number | undefined;
   readonly maximumAmmo?: (
     context: SchedulerContext<TProfessionState> & { skill: Skill },

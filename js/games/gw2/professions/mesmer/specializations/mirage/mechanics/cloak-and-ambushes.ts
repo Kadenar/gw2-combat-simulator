@@ -49,6 +49,7 @@ interface MirageActionControllerOptions {
   readonly queueResources: MesmerQueueResources;
   readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
   readonly boonDuration: (sourceSkill: string, boon: string, baseDuration: number) => number;
+  readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
 /**
@@ -69,7 +70,8 @@ export function createMirageActionController({
   activePrimaryWeapon,
   queueResources,
   balanceProfile,
-  boonDuration
+  boonDuration,
+  reduceSkillRecharge
 }: MirageActionControllerOptions): MesmerMirageController {
   const profileValue = balanceProfileValueFromContext.bind(null, balanceProfile);
   const profileEffect = balanceProfileEffectFromContext.bind(null, balanceProfile);
@@ -244,10 +246,7 @@ export function createMirageActionController({
       const shatter = skillsById.get(id);
       const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
       if (shatter && readyAt != null) {
-        state.cooldowns.set(
-          shatter.id,
-          Math.max(at, readyAt - profileValue(PROFILE.duneCloak, 'rechargeReduction', 1))
-        );
+        reduceSkillRecharge(shatter, profileValue(PROFILE.duneCloak, 'rechargeReduction', 1), at);
       }
     }
 

@@ -433,6 +433,31 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   assert.equal(rushingJusticeAction.rechargeReadyAt - rushingJusticeAction.at, 12);
 });
 
+test('Restorative Virtues converts base recharge reduction through Alacrity', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Rushing Justice', 'Whirling Wrath'],
+    config: {
+      ...config,
+      specialization: 'Willbender',
+      primaryWeapon: 'Greatsword',
+      boons: { quickness: true, alacrity: true },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES]
+    }
+  });
+  const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Whirling Wrath');
+  const procs = result.events.filter((event) => event.type === 'proc' && event.name === 'Restorative Virtues');
+  const trackedReadyAt = result.schedulerState.cooldowns.get(action.skillId);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(procs.length > 0);
+  assert.equal(
+    procs.every((event) => event.detail === '0.2s weapon recharge'),
+    true
+  );
+  assert.ok(Math.abs(action.rechargeReadyAt - trackedReadyAt - procs.length * 0.2) < 1e-9);
+});
+
 test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots', () => {
   const effectPresentations = guardianProfession.ui.effectPresentations({
     specialization: 'Willbender',

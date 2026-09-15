@@ -71,13 +71,9 @@ export function triggerChaoticInterruption(
   const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
   if (!(readyAt > event.at + EPSILON)) return;
   const reduction = balanceProfileValueFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge', 5);
-
-  const reduced = Math.max(event.at, readyAt - reduction);
-  if (reduced > event.at + EPSILON) {
-    context.state.cooldowns.set(targetId, reduced);
-  } else {
-    context.state.cooldowns.delete(targetId);
-  }
+  const target = context.catalog.skillsById.get(targetId);
+  if (!target) return;
+  context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   if (defiant) {
     core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =

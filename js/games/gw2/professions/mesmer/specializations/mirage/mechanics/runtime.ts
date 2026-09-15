@@ -48,7 +48,9 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     boonDuration: (sourceSkill, boon, baseDuration) => {
       const skill = context.catalog.skillsByName.get(sourceSkill) || ({ id: 0, name: sourceSkill } as MesmerSkill);
       return gw2SchedulerBoonDuration(context, skill, boon, baseDuration);
-    }
+    },
+    // Dune Cloak shares the scheduler's base-recharge conversion instead of editing tracked timestamps itself.
+    reduceSkillRecharge: context.cooldownController.reduceSkillRecharge
   });
   runtime.mirage = mirage;
   runtime.shatterResolvedHandlers.push((_castContext, resolution) => {

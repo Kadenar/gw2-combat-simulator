@@ -58,7 +58,7 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
       effectiveEnd: 9.999,
       epsilon: 0.0001,
       emit: () => {},
-      cooldownController: createCooldownController({ state, rechargeDuration: () => 10 })
+      cooldownController: createCooldownController({ state, rechargeDuration: (skill) => skill.cooldown })
     };
     handleRadiantWeaponEquipped(context, guardianCatalog.skillsById.get(ids.DAZZLING_HAMMER));
     assert.equal(state.cooldowns.get(ids.RADIANT_JUSTICE), enabled ? 16 : 20);

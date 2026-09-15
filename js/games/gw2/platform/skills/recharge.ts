@@ -14,3 +14,9 @@ export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
   if (Number(skill.ammo) > 0 && ammoRecharge != null && ammoRecharge > 0) return ammoRecharge;
   return finiteRecharge(skill.cooldown) ?? finiteRecharge(skill.recharge) ?? 0;
 }
+
+/** Converts base recharge progress to wall time using recharge speed, independent of static cooldown modifiers. */
+export function gw2TrackedRechargeReduction(baseReduction: number, rechargeRate: number): number {
+  const reduction = Math.max(0, Number(baseReduction) || 0);
+  return reduction / Math.max(Number.EPSILON, Number(rechargeRate) || 1);
+}

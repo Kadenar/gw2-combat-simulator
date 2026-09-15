@@ -205,9 +205,10 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
     const readyAt = flute ? context.state.cooldowns.get(flute.id) : null;
     if (!flute || readyAt == null) return;
-    context.state.cooldowns.set(
-      flute.id,
-      Math.max(at, readyAt - balanceProfileValueFromContext(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5))
+    context.cooldownController.reduceSkillRecharge(
+      flute,
+      balanceProfileValueFromContext(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5),
+      at
     );
     runtime.addTraitProc('Mayhem', at, skill.name);
   }

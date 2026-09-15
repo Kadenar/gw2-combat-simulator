@@ -172,9 +172,10 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
     const crescendo = runtime.skillsById.get(ID.CRESCENDO);
     const ready = crescendo ? context.state.cooldowns.get(crescendo.id) : undefined;
     if (crescendo && ready) {
-      context.state.cooldowns.set(
-        crescendo.id,
-        Math.max(at, ready - profileValue(runtime, TRAIT.ALTERED_CHORD, 'rechargeReduction', 2))
+      context.cooldownController.reduceSkillRecharge(
+        crescendo,
+        profileValue(runtime, TRAIT.ALTERED_CHORD, 'rechargeReduction', 2),
+        at
       );
     }
   }

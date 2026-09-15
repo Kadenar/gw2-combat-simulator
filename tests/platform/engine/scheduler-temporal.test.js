@@ -208,6 +208,24 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
   assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7);
 });
 
+test('skill recharge reduction accepts game-specific base-to-wall-time conversion', () => {
+  const ordinary = { id: 980012, cooldown: 10 };
+  const ammo = { id: 980013, ammo: 2, ammoRecharge: 10 };
+  const state = { time: 0, ammo: new Map(), cooldowns: new Map([[ordinary.id, 8]]) };
+  const controller = createCooldownController({
+    state,
+    rechargeDuration: () => 8,
+    rechargeReduction: (_skill, reduction) => reduction / 1.25
+  });
+
+  controller.spendAmmo(ammo, 0);
+
+  assert.equal(controller.reduceSkillRecharge(ordinary, 1, 0), 0.8);
+  assert.equal(state.cooldowns.get(ordinary.id), 7.2);
+  assert.equal(controller.reduceSkillRecharge(ammo, 1, 0), 0.8);
+  assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7.2);
+});
+
 function temporalCatalog() {
   return createCanonicalCatalog({
     generated: [

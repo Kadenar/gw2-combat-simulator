@@ -333,7 +333,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
 
   assert.equal(proc?.at, 3.92);
   assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
-  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 6440);
+  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 7440);
 });
 
 test('Troubadour tales grant their boons and instrument-specific notes', () => {
@@ -571,7 +571,7 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
       [4, 5]
     ]
   );
-  assert.equal(mayhem.steps[2].start, 15060);
+  assert.equal(mayhem.steps[2].start, 15360);
 
   const rogueEndurance = simulateMesmer(
     ['Dodge', 'Dodge', 'Tale of the Honorable Rogue', 'Dodge'],
@@ -749,7 +749,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
       })
     ).endState.cooldowns.Crescendo.readyAt;
 
-  assert.equal(crescendoReadyAt(0) - crescendoReadyAt(1), 2000);
+  assert.equal(crescendoReadyAt(0) - crescendoReadyAt(1), 1600);
 });
 
 test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', () => {
