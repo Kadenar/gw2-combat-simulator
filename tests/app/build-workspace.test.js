@@ -513,6 +513,7 @@ test('cancelled simulation workers cannot publish late output or failures into a
   for (const Runner of [BaselineSimulationRunner, ModifierContributionRunner, RandomDistributionRunner]) {
     const app = {
       buildRevision: 1,
+      resultRevision: 1,
       build: { rotation: [{ type: 'wait', durationMs: 1 }] },
       results: {},
       randomDistributionRunner: { isRunning: false },

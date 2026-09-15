@@ -353,7 +353,7 @@ function darkPactOnHit(
 function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
   if (impactAt > context.effectiveEnd + context.epsilon) return true;
-  const count = Math.min(5, observeTargetConditionCount(context, impactAt));
+  const count = Math.min(5, observeTargetConditionCount(context, impactAt, 5));
   emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
   if (count > 0) {
     emitSkillCondition(context, skill, { at: impactAt, condition: 'Torment', stacks: count, duration: 4 });

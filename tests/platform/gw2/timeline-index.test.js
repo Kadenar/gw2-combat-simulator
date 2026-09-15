@@ -248,3 +248,69 @@ test('appended and replaced boon extensions invalidate intensity and duration qu
   assert.equal(timeline.timedStacks('might', 0.5, 0, 25), 4);
   assert.equal(timeline.timedActive('fury', 0.5), true);
 });
+
+test('buff history bounds preserve mixed lifetimes, fallback durations, and backward queries', () => {
+  // A later short grant must not hide an older long grant, and a late insertion can widen the lifetime bound.
+  const events = [
+    buffEvent({ at: 0, duration: 1, stacks: 1 }),
+    buffEvent({ at: 1, duration: 10, stacks: 2 }),
+    buffEvent({ at: 2, duration: 0, stacks: 8 }),
+    buffEvent({ at: 3, duration: undefined, stacks: 4 }),
+    buffEvent({ at: 8, duration: 1, stacks: 16 }),
+    buffEvent({ at: 20, duration: 1, stacks: 32 })
+  ];
+  const timeline = createGw2TimelineIndex({ events });
+  assert.equal(timeline.timedStacks('might', 9, 2, 100), 2);
+  assert.equal(timeline.timedStacks('might', 11, 2, 100), 0);
+  assert.equal(timeline.timedStacks('might', 4, 2, 100), 6);
+  assert.equal(timeline.timedStacks('might', 4, 0, 100), 2);
+  assert.equal(timeline.timedStacks('might', 12, 10, 100), 4);
+  events.push(buffEvent({ at: 0.5, duration: 30, stacks: 64 }));
+  assert.equal(timeline.timedStacks('might', 12, 2, 100), 64);
+  assert.equal(timeline.timedStacks('might', 0.25, 2, 100), 1);
+});
+
+test('buff history bounds retain grants until their quantized expiry', () => {
+  // A nominal duration ending between action ticks remains active until the existing expiry rule rounds it up.
+  const timeline = createGw2TimelineIndex({
+    events: [buffEvent({ kind: 'compounding', at: 0.005, duration: 1, stacks: 1 })]
+  });
+  assert.equal(timeline.timedStacks('compounding', 1.005, 0, 5), 1);
+  assert.equal(timeline.timedStacks('compounding', 1.04, 0, 5), 0);
+});
+
+test('cooldown histories preserve prediction visibility and resolved execution order at timestamp ties', () => {
+  // Resolver execution order can differ from causal order; prediction excludes same-time actions but includes snapshots.
+  const events = [
+    { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 },
+    { type: 'action', at: 1, causalOrder: 2, skillId: 1, rechargeReadyAt: 8 },
+    { type: 'cooldown_snapshot', at: 1, causalOrder: 9, cooldowns: {} },
+    { type: 'action', at: 1, causalOrder: 1, skillId: 1, rechargeReadyAt: Infinity }
+  ];
+  const predicted = createGw2TimelineIndex({ events });
+  const resolved = createGw2TimelineIndex({ events, resolved: true });
+  assert.equal(predicted.skillOnCooldownAt(1, 1), false);
+  assert.equal(predicted.skillOnCooldownAt(1, 2), false);
+  assert.equal(resolved.skillOnCooldownAt(1, 1), true);
+  assert.equal(resolved.skillOnCooldownAt(1, 20), true);
+  assert.equal(resolved.skillOnCooldownAt(2, 2), false);
+  events.push({ type: 'marker', at: 2, action: 'cooldown-reset' });
+  assert.equal(resolved.skillOnCooldownAt(1, 2), false);
+  assert.equal(resolved.skillOnCooldownAt(1, 0.5), true);
+});
+
+test('queried cooldown histories accept late actions and snapshots for previously unseen skills', () => {
+  // Lazily selected skill histories must receive later updates, including chronologically earlier insertions.
+  const events = [{ type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 }];
+  const timeline = createGw2TimelineIndex({ events });
+  assert.equal(timeline.skillOnCooldownAt(1, 3), true);
+  assert.equal(timeline.skillOnCooldownAt(2, 3), false);
+  events.push({ type: 'action', at: 2, skillId: 2, rechargeReadyAt: 5 });
+  assert.equal(timeline.skillOnCooldownAt(2, 3), true);
+  events.push({ type: 'cooldown_snapshot', at: 1, cooldowns: { 3: 6 } });
+  assert.equal(timeline.skillOnCooldownAt(1, 3), false);
+  assert.equal(timeline.skillOnCooldownAt(2, 3), true);
+  assert.equal(timeline.skillOnCooldownAt(3, 3), true);
+  assert.equal(timeline.skillOnCooldownAt(2, 1.5), false);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.5), true);
+});

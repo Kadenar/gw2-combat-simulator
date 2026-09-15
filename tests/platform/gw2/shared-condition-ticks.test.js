@@ -119,6 +119,61 @@ function packetDamage(result, name = 'Bleeding') {
   return [...packets];
 }
 
+test('new conditions advance the queued sampler only for an earlier expiry', () => {
+  // Earlier expiries replace pending samples; later grants preserve them, and obsolete queue entries cannot sample twice.
+  for (const output of ['detailed', 'score']) {
+    const samples = [];
+    const result = resolve(
+      [
+        condition(0, { sourceId: 'original', duration: 0.8 }),
+        condition(0.1, { sourceId: 'earlier', duration: 0.15 }),
+        condition(0.15, { sourceId: 'middle', duration: 0.5 }),
+        condition(0.3, { sourceId: 'later', duration: 2 })
+      ],
+      {
+        output,
+        end: 1,
+        query: {
+          conditionMultiplier: (_name, at, application) => {
+            samples.push([application.sourceId, at]);
+            return 1;
+          }
+        }
+      }
+    );
+    assert.deepEqual(samples, [
+      ['earlier', 0.25],
+      ['middle', 0.65],
+      ['original', 0.8],
+      ['later', 1]
+    ]);
+    assert.equal(result.conditionDamage, 63);
+  }
+});
+
+test('condition sampling restarts after an idle gap and preserves an unpaid horizon remainder', () => {
+  // An expired application can await payout without active sampling; a new grant must restart its own expiry sample.
+  for (const output of ['detailed', 'score']) {
+    const samples = [];
+    const result = resolve(
+      [condition(0, { duration: 0.2 }), condition(0.4, { duration: 0.1 }), condition(1.25, { duration: 0.25 })],
+      {
+        output,
+        end: 1.5,
+        query: {
+          conditionMultiplier: (_name, at) => {
+            samples.push(at);
+            return 1;
+          }
+        }
+      }
+    );
+    assert.deepEqual(samples, [0.2, 0.5, 1.5]);
+    assert.equal(result.conditionDamage, 9);
+    assert.equal(result.lastHitTime, 1);
+  }
+});
+
 // Off-grid applications preserve exact expiry while pulses stay on encounter seconds.
 test('condition pulses retain encounter seconds and an exact off-grid expiry', () => {
   const origin = 0.375001;

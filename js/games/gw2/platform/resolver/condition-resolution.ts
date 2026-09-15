@@ -176,19 +176,28 @@ export function createGw2ConditionResolution({
   }
 
   /** Sample at whole-second pulses and exact expirations, without stepping through intervening milliseconds. */
-  function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number): void {
+  function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number, newExpiresAt?: number): void {
     let at = Math.floor(after) + 1;
-    for (const state of ctx.conditionState.values()) {
-      for (const group of state.groups?.values() ?? []) {
-        for (const application of group.applications) {
-          if (!isRemoved(application, after) && application.naturalExpiresAt > after) {
-            at = Math.min(at, application.naturalExpiresAt);
+    let active = ctx.environmentConditions.size > 0;
+    if (newExpiresAt !== undefined) {
+      // Existing applications already have a queued sample; only the new expiry can bring it forward.
+      at = Math.min(at, newExpiresAt);
+      active = true;
+    } else {
+      // After a sample, find both continued work and the next expiry in one pass without temporary arrays.
+      for (const state of ctx.conditionState.values()) {
+        for (const group of state.groups?.values() ?? []) {
+          for (const application of group.applications) {
+            if (!isRemoved(application, after) && application.naturalExpiresAt > after) {
+              active = true;
+              at = Math.min(at, application.naturalExpiresAt);
+            }
           }
         }
       }
     }
 
-    if ((ctx.conditionBufferAt != null && ctx.conditionBufferAt <= at) || at > ctx.horizon) return;
+    if (!active || (ctx.conditionBufferAt != null && ctx.conditionBufferAt <= at) || at > ctx.horizon) return;
     ctx.conditionBufferAt = at;
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
@@ -266,16 +275,7 @@ export function createGw2ConditionResolution({
     ctx.conditionBufferAt = undefined;
     bufferConditions(ctx, event.at);
     // Natural expiry stops sampling, while the owner wake retains its buffered remainder until payout.
-    const active =
-      ctx.environmentConditions.size > 0 ||
-      [...ctx.conditionState.values()].some((state) =>
-        [...(state.groups?.values() ?? [])].some((group) =>
-          group.applications.some(
-            (application) => !isRemoved(application, event.at) && application.naturalExpiresAt > event.at
-          )
-        )
-      );
-    if (active) scheduleBuffer(ctx, event.at);
+    scheduleBuffer(ctx, event.at);
   }
 
   function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null {
@@ -350,7 +350,7 @@ export function createGw2ConditionResolution({
     }
 
     group.applications.push(application);
-    scheduleBuffer(ctx, event.at);
+    scheduleBuffer(ctx, event.at, expiresAt);
     scheduleGroup(ctx, group);
 
     reactions.dispatch('condition.applied', ctx, application, {

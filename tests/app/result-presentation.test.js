@@ -12,6 +12,7 @@ import { eventLogCsv, mountEventLog } from '#gw2/app/results/event-log-view.js';
 import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import {
   dismissResultMetricDetails,
+  modifierContributionsHtml,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
@@ -22,6 +23,17 @@ import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+
+// Pending comparisons occupy only their own section and never present old values as current.
+test('modifier section shows pending, completed, empty, and failed states', () => {
+  const contributions = [{ name: 'Old modifier', dpsIncrease: 12, pctIncrease: 1 }];
+  const pending = modifierContributionsHtml({ contributions, contributionsStale: true });
+  assert.match(pending, /role="status">Calculating modifier contributions/);
+  assert.doesNotMatch(pending, /Old modifier|contrib-table/);
+  assert.match(modifierContributionsHtml({ contributions }), /Old modifier/);
+  assert.equal(modifierContributionsHtml({ contributions: [] }), '');
+  assert.match(modifierContributionsHtml({ contributionsError: 'Failed <request>' }), /Failed &lt;request&gt;/);
+});
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.
 test('shared chart lookup and series cover damage timing and configurable effects', () => {
@@ -555,7 +567,7 @@ test('shared results render summaries, totals, contributions, and icons', () => 
           pctIncrease: -1.5
         }
       ],
-      contributionsStale: true,
+      contributionsStale: false,
       randomDistributionRequested: true,
       randomDistribution: {
         trials: 500,
@@ -623,8 +635,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   );
   assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
-  assert.match(container.innerHTML, /contrib-status/);
-  assert.match(container.innerHTML, /Recalculating/);
   assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
   assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
   assert.match(container.innerHTML, /Randomized DPS range/);

@@ -187,6 +187,7 @@ test('rotation-only changes paint the builder once with their matching result', 
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
     adapter: {
+      capabilities: { modifierContributions: true },
       renderRotationBuilder(renderedApp) {
         renderedResults.push(renderedApp.results.id);
       }
@@ -252,7 +253,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     buildRevision: 0,
     simulationStatus: 'idle',
     simulationError: '',
-    results: null,
+    results: { contributions: [], modifierContributionsStale: false },
     profession,
     adapter,
     activeCatalog: {},
@@ -274,6 +275,11 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   assert.equal(app.buildRevision, 1);
   assert.equal(scheduledRevision, 1);
   assert.equal(app.simulationStatus, 'queued');
+  assert.equal(
+    app.results.modifierContributionsStale,
+    true,
+    'an edit invalidates modifiers before baseline completion'
+  );
   assert.deepEqual(cancelled, ['random', 'modifiers', 'relic']);
 });
 
@@ -499,6 +505,7 @@ test('comparison reference commits only while comparison is still active', (t) =
     buildRevision: 3,
     resultRevision: 2,
     results: { id: 'old-current' },
+    build: { rotation: STRIKE_ROTATION },
     patchComparison: null,
     rotationComparison: {
       referenceRotation: [{ type: 'wait', durationMs: 1 }],
@@ -512,7 +519,7 @@ test('comparison reference commits only while comparison is still active', (t) =
     randomDistributionRunner: { schedule() {} },
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
-    adapter: { renderRotationBuilder() {} }
+    adapter: { capabilities: { modifierContributions: true }, renderRotationBuilder() {} }
   });
 
   app.publishBaselineSimulation(
@@ -610,12 +617,66 @@ test('baseline runner recovers after Worker construction fails', (t) => {
   assert.deepEqual(published, [['new', 2]]);
 });
 
+// Workspace never prepares comparisons; Analysis waits for the current baseline and reuses completed empty results.
+test('modifier scheduling is deferred until Analysis and skips fresh or already running work', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+  });
+  const document = { body: { dataset: { simulatorView: 'workspace' } }, querySelector: () => null };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let prepared = 0;
+  let calculated = 0;
+  const app = {
+    build: { rotation: STRIKE_ROTATION },
+    buildRevision: 2,
+    resultRevision: 1,
+    results: { modifierContributionsStale: true },
+    randomDistributionRunner: { isRunning: false },
+    adapter: {
+      modifierContributionRequest() {
+        prepared++;
+        return { comparisons: [] };
+      },
+      calculateModifierContributions() {
+        calculated++;
+        return [];
+      },
+      presentation: testPresentation(() => assert.fail('Modifiers must not remount Analysis'))
+    }
+  };
+  const runner = new ModifierContributionRunner(app);
+  runner.schedule();
+  document.body.dataset.simulatorView = 'analysis';
+  runner.schedule();
+  assert.equal(prepared, 0);
+  app.resultRevision = 2;
+  runner.schedule();
+  runner.schedule();
+  assert.equal(prepared, 1);
+  assert.equal(runner.isRunning, true);
+  t.mock.timers.runAll();
+  assert.equal(calculated, 1);
+  assert.equal(runner.isRunning, false);
+  assert.equal(app.results.modifierContributionsStale, false);
+  runner.schedule();
+  assert.equal(prepared, 1, 'an empty completed result is still fresh');
+  app.results.modifierContributionsStale = true;
+  runner.schedule();
+  runner.cancel();
+  t.mock.timers.runAll();
+  assert.equal(calculated, 1, 'leaving before the debounce finishes cancels calculation');
+  assert.equal(app.results.modifierContributionsStale, true);
+});
+
 test('modifier fallback clears stale state when calculation fails', (t) => {
   runTimersImmediately(t);
   let renderCount = 0;
   const results = {
     contributions: [{ id: 'old', name: 'Old', dpsIncrease: 1, pctIncrease: 1 }],
-    modifierContributionsStale: false
+    modifierContributionsStale: true
   };
   const app = {
     build: { rotation: STRIKE_ROTATION },
@@ -639,7 +700,7 @@ test('modifier fallback clears stale state when calculation fails', (t) => {
   assert.equal(results.modifierContributionsStale, false);
   assert.equal(results.contributions, undefined);
   assert.equal(results.modifierContributionsError, 'Contribution calculation failed.');
-  assert.equal(renderCount, 1);
+  assert.equal(renderCount, 0, 'modifier errors do not rebuild the full view');
 });
 
 test('modifier worker batches ignore superseded responses and terminate on completion', (t) => {
@@ -680,7 +741,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
     value: ControlledWorker
   });
 
-  const results = { contributions: [], modifierContributionsStale: false };
+  const results = { contributions: [], modifierContributionsStale: true };
   let renderCount = 0;
   const app = {
     build: { rotation: STRIKE_ROTATION },
@@ -698,6 +759,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   const runner = new ModifierContributionRunner(app);
 
   runner.schedule();
+  runner.cancel();
   runner.schedule();
   assert.equal(workers[0].terminated, true);
   workers[0].respond({
@@ -707,7 +769,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   assert.deepEqual(results.contributions, []);
 
   workers[1].respond({
-    requestId: 2,
+    requestId: workers[1].message.requestId,
     contributions: [{ id: 'new', name: 'New', dpsIncrease: 2, pctIncrease: 2 }]
   });
   assert.deepEqual(
@@ -715,7 +777,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
     ['new']
   );
   assert.equal(workers[1].terminated, true);
-  assert.equal(renderCount, 1);
+  assert.equal(renderCount, 0, 'modifier completion does not rebuild the full view');
 });
 
 test('RNG worker errors preserve the ErrorEvent cause', (t) => {

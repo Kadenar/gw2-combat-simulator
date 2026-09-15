@@ -451,6 +451,47 @@ function bindResultMetricDetailsDismissal(container: HTMLElement): void {
   root.addEventListener('pointerdown', (event) => dismissResultMetricDetails(root, event.target));
 }
 
+/** Renders modifier status independently so worker completion preserves chart and table interactions. */
+export function modifierContributionsHtml(model: RotationResultsModel): string {
+  const contributions = model.contributions || [];
+  const contributionsStale = model.contributionsStale === true;
+  const contributionsError = String(model.contributionsError || '');
+  return `${
+    contributions.length || contributionsStale || contributionsError
+      ? `<div class="res-contributions">
+    <h4>
+      <span>Modifier Contributions</span>
+    </h4>
+    <p class="contrib-disclaimer">Values are estimated by disabling each modifier and rerunning the simulation. They may be misleading if doing so breaks the rotation.</p>
+    ${
+      contributionsStale
+        ? '<div class="contrib-pending" role="status">Calculating modifier contributions&hellip;</div>'
+        : contributions.length
+          ? `<div class="contrib-table">
+      <div class="contrib-hdr">
+        <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
+      </div>
+      ${contributions
+        .map((contribution) => {
+          return `<div class="contrib-row">
+          <span class="contrib-name">${
+            contribution.icon ? `<img src="${escapeHtml(contribution.icon)}" alt="" />` : ''
+          }${escapeHtml(contribution.name)}</span>
+          <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
+          <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
+        </div>`;
+        })
+        .join('')}
+    </div>`
+          : contributionsError
+            ? `<div class="contrib-pending contrib-error">${escapeHtml(contributionsError)}</div>`
+            : '<div class="contrib-pending">Calculating modifier contributions…</div>'
+    }
+  </div>`
+      : ''
+  }`;
+}
+
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
   model: RotationResultsModel = {},
@@ -473,10 +514,6 @@ export function mountRotationResults(
     { label: 'Damaging Conditions', conditions: conditions.filter((condition) => condition.damage > 0) },
     { label: 'Other Conditions', conditions: conditions.filter((condition) => condition.damage <= 0) }
   ].filter((group) => group.conditions.length);
-  // Contributions compare reruns with one modifier disabled; the UI warns that invalid rotations skew results.
-  const contributions = model.contributions || [];
-  const contributionsStale = model.contributionsStale === true;
-  const contributionsError = String(model.contributionsError || '');
   const randomDistribution = model.randomDistribution || null;
   const randomDistributionRequested = model.randomDistributionRequested === true;
   const randomDistributionStale = model.randomDistributionStale === true;
@@ -658,36 +695,8 @@ export function mountRotationResults(
   }
   ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
   ${
-    contributions.length || contributionsStale || contributionsError
-      ? `<div class="res-contributions">
-    <h4>
-      <span>Modifier Contributions</span>
-      ${contributionsStale ? '<span class="contrib-status">Recalculating</span>' : ''}
-    </h4>
-    <p class="contrib-disclaimer">Values are estimated by disabling each modifier and rerunning the simulation. They may be misleading if doing so breaks the rotation.</p>
-    ${
-      contributions.length
-        ? `<div class="contrib-table">
-      <div class="contrib-hdr">
-        <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
-      </div>
-      ${contributions
-        .map((contribution) => {
-          return `<div class="contrib-row">
-          <span class="contrib-name">${
-            contribution.icon ? `<img src="${escapeHtml(contribution.icon)}" alt="" />` : ''
-          }${escapeHtml(contribution.name)}</span>
-          <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
-          <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
-        </div>`;
-        })
-        .join('')}
-    </div>`
-        : contributionsError
-          ? `<div class="contrib-pending contrib-error">${escapeHtml(contributionsError)}</div>`
-          : '<div class="contrib-pending">Calculating modifier contributions…</div>'
-    }
-  </div>`
+    model.contributions !== undefined || model.contributionsStale || model.contributionsError
+      ? `<div data-role="modifier-contributions">${modifierContributionsHtml(model)}</div>`
       : ''
   }`;
 

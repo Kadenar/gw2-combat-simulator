@@ -46,7 +46,7 @@ export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event:
     at: Math.max(context.state.time, event.at),
     priority: -40,
     ownerId: event.cloneId == null ? null : `mesmer.clone:${event.cloneId}`,
-    payload: { event: event.blade ? event : { ...event, blade: true } }
+    payload: { eventOrder: Number(event.eventOrder) }
   });
 }
 
@@ -55,9 +55,11 @@ export function handleDeadlyBladesCriticalTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<'deadlyBladesCritical'>
 ): void {
-  const payloadEvent = task.payload.event;
-  const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
-  const event = { ...payloadEvent, ...(canonicalEvent || {}) } as Extract<SimulationEvent, { readonly type: 'damage' }>;
+  // Queue only identity; read replacements at execution and retain the skill-derived blade fallback.
+  const canonicalEvent = context.eventByOrder(task.payload.eventOrder);
+  if (!canonicalEvent) throw new TypeError('Deadly Blades critical proc requires a scheduled event.');
+  const event = { ...canonicalEvent };
+  if (!Object.hasOwn(event, 'blade')) event.blade = true;
   const deadlyBlades = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'condition');
   // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
   // Mind, but remains a separate trait-owned condition application.

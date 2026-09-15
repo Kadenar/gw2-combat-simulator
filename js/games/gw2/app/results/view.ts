@@ -1,6 +1,7 @@
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import {
   mountRotationResults,
+  modifierContributionsHtml,
   SKILL_COLS,
   type RotationResultsModel,
   type RotationResultsOptions
@@ -80,6 +81,25 @@ function randomDistributionModel(result: ProfessionAppResult) {
   };
 }
 
+/** Shares modifier labels and status between initial Analysis rendering and its isolated completion update. */
+function modifierContributionModel(app: ProfessionAppState) {
+  return {
+    contributions: (app.results?.contributions || []).map((contribution) => ({
+      ...contribution,
+      icon: resultSkillIcon(app, contribution)
+    })),
+    contributionsStale: app.results?.modifierContributionsStale === true,
+    contributionsError: app.results?.modifierContributionsError || ''
+  };
+}
+
+/** Updates only the modifier section; the rest of Analysis remains mounted and interactive. */
+export function renderModifierContributions(app: ProfessionAppState): void {
+  if (typeof document === 'undefined') return;
+  const container = document.querySelector<HTMLElement>('#rotation-results [data-role="modifier-contributions"]');
+  if (container) container.innerHTML = modifierContributionsHtml(modifierContributionModel(app));
+}
+
 /** Converts a GW2 resolver result into the neutral result-view contract. */
 export function createGw2SimulationViewModel(app: ProfessionAppState): SimulationViewModel {
   const result = app.results;
@@ -122,10 +142,6 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   );
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];
-  const contributions = (result.contributions || []).map((contribution) => ({
-    ...contribution,
-    icon: resultSkillIcon(app, contribution)
-  }));
   const breakpoints = targetHealthBreakpointSnapshots(
     result,
     app.build.targetHealth,
@@ -166,9 +182,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
               dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
             }
           : null,
-        contributions,
-        contributionsStale: result.modifierContributionsStale === true,
-        contributionsError: result.modifierContributionsError || '',
+        ...modifierContributionModel(app),
         ...randomDistributionModel(result),
         chartSeries: buildChartSeries(result, 250, effectPresentations)
       },

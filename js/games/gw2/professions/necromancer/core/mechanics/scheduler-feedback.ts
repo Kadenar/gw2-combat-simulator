@@ -92,8 +92,15 @@ export function refineNecromancerSchedulerConfig(
   };
 }
 
-/** Observe conditions at the requested boundary without replacing permanent target assumptions. */
-export function observeTargetConditionCount(context: NecromancerCastContext, at: number): number {
+/** Observe live conditions only when they can change the caller's capped result. */
+export function observeTargetConditionCount(
+  context: NecromancerCastContext,
+  at: number,
+  maximum = Number.POSITIVE_INFINITY
+): number {
+  const configuredCount = targetConditionCount({ config: context.config, time: at });
+  // Permanent target assumptions cannot expire, so runtime applications cannot change an already-capped result.
+  if (configuredCount >= maximum) return configuredCount;
   const key = `${context.commandIndex}:${context.skill.id}:${at}`;
   context.emit({
     type: 'necromancer.target-condition-count',
@@ -104,7 +111,7 @@ export function observeTargetConditionCount(context: NecromancerCastContext, at:
     observationKey: key
   });
   const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
-  return feedback?.conditionCounts?.[key] ?? targetConditionCount({ config: context.config, time: at });
+  return feedback?.conditionCounts?.[key] ?? configuredCount;
 }
 
 /** Capture the canonical live count for the next scheduler pass, including expiry and distinct-name deduplication. */

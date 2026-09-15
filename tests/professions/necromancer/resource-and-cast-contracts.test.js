@@ -121,6 +121,33 @@ test('NEC-006 condition scaling observes live distinct conditions and their expi
     torch.events.find((event) => event.type === 'buff' && event.skillId === ID.OPPRESSIVE_COLLAPSE).stacks,
     count * 2
   );
+
+  // Permanent conditions at the consumer cap make resolver feedback unable to change either outcome.
+  const cappedConditions = Object.fromEntries(
+    ['Bleeding', 'Burning', 'Torment', 'Confusion', 'Poisoned', 'Chilled', 'Crippled'].map((condition) => [
+      condition,
+      true
+    ])
+  );
+  const capped = simulate('Core', ['Devouring Darkness', 'Oppressive Collapse'], {
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Torch',
+    initialResource: 0,
+    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+    target: { conditions: cappedConditions }
+  });
+  assert.deepEqual(capped.warnings, []);
+  assert.equal(capped.resolvedEvents.filter((event) => event.type === 'necromancer.target-condition-count').length, 0);
+  assert.equal(
+    capped.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.skillId === ID.DEVOURING_DARKNESS)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
+  assert.equal(
+    capped.events.find((event) => event.type === 'buff' && event.skillId === ID.OPPRESSIVE_COLLAPSE).stacks,
+    14
+  );
 });
 
 test('NEC-007 strike life force is spendable by the next shroud entry', () => {

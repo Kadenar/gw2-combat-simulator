@@ -13,6 +13,7 @@ import {
 } from '#gw2/platform/combat/state/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
+import { clamp } from '#gw2/platform/combat/numeric.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -34,6 +35,7 @@ interface IndexedBuffEvents {
   readonly all: SimulationEvent[];
   readonly summon: SimulationEvent[];
   readonly summonTrait: SimulationEvent[];
+  maximumDuration: number;
 }
 
 interface CachedBuffStacks {
@@ -70,6 +72,8 @@ export function createGw2TimelineIndex({
     cooldown: []
   };
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
+  // Only queried skills need their own history; snapshots and resets remain visible to every skill.
+  const indexedCooldowns = new Map<SkillId, SimulationEvent[]>();
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
   const buffCache = new Map<string, CachedBuffStacks>();
   const cooldownCache = new Map<SkillId, boolean>();
@@ -86,6 +90,7 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
+    indexedCooldowns.clear();
     indexedLength = 0;
     hasExtensions = false;
   };
@@ -95,10 +100,11 @@ export function createGw2TimelineIndex({
     const kind = String(event.kind || '').toLowerCase();
     let bucket = indexedBuffs.get(kind);
     if (!bucket) {
-      bucket = { all: [], summon: [], summonTrait: [] };
+      bucket = { all: [], summon: [], summonTrait: [], maximumDuration: 0 };
       indexedBuffs.set(kind, bucket);
     }
 
+    bucket.maximumDuration = Math.max(bucket.maximumDuration, Number(event.duration) || 0);
     if (buffMatchesAudience(event, 'all')) {
       insertOrdered(bucket.all, event);
     }
@@ -134,6 +140,9 @@ export function createGw2TimelineIndex({
         (event.type === 'marker' && event.action === 'cooldown-reset')
       ) {
         insertOrdered(indexed.cooldown, event);
+        for (const [skillId, history] of indexedCooldowns) {
+          if (event.type !== 'action' || event.skillId === skillId) insertOrdered(history, event);
+        }
       }
     }
   };
@@ -190,16 +199,32 @@ export function createGw2TimelineIndex({
       return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }
 
-    return sumActiveStacks(
-      applications || [],
-      // Explicit zero durations stay empty, including grants rounded down to zero milliseconds.
-      (event) =>
+    // The longest grant gives a monotonic expiry bound even when individual grants expire out of order.
+    // Long grants widen this scan; use an expiry index if mixed lifetimes dominate.
+    const history = applications || [];
+    const maximumDuration = Math.max(bucket?.maximumDuration ?? 0, Number(duration) || 0);
+    let low = 0;
+    let high = history.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (gw2EffectExpiresAt(history[middle].at, maximumDuration) <= time) low = middle + 1;
+      else high = middle;
+    }
+
+    let stacks = 0;
+    for (let index = low; index < history.length; index += 1) {
+      const event = history[index];
+      if (canonicalTime(event.at) > time) break;
+      // Explicit zero durations stay empty; omitted durations still use this query's fallback.
+      if (
         buffMatchesAudience(event, audience, companionId) &&
-        isTimeInWindow(time, event.at, gw2EffectExpiresAt(event.at, Number(event.duration ?? duration))),
-      (event) => Number(event.stacks || 1),
-      maximum,
-      (event) => canonicalTime(event.at) > time
-    );
+        isTimeInWindow(time, event.at, gw2EffectExpiresAt(event.at, Number(event.duration ?? duration)))
+      ) {
+        stacks += Number(event.stacks || 1);
+      }
+    }
+
+    return clamp(stacks, 0, maximum);
   };
 
   const buffStacksAt = (
@@ -257,10 +282,25 @@ export function createGw2TimelineIndex({
     refreshQueryCache(time);
     const cached = cooldownCache.get(skillId);
     if (cached !== undefined) return cached;
+    let history = indexedCooldowns.get(skillId);
+    if (!history) {
+      history = indexed.cooldown.filter((event) => event.type !== 'action' || event.skillId === skillId);
+      indexedCooldowns.set(skillId, history);
+    }
+
+    // Find the latest visible update without replaying earlier cooldowns; history stays available for backward queries.
+    let low = 0;
+    let high = history.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (canonicalTime(history[middle].at) <= time) low = middle + 1;
+      else high = middle;
+    }
+
     let readyAt = 0;
-    for (const event of indexed.cooldown) {
-      if (canonicalTime(event.at) > time) break;
-      if (event.type === 'action' && event.skillId === skillId) {
+    for (let index = low - 1; index >= 0; index -= 1) {
+      const event = history[index];
+      if (event.type === 'action') {
         // Predictions must not see their own action's cooldown; resolved history contains only completed events.
         if (!resolved && canonicalTime(event.at) === time) continue;
         readyAt = Number(event.rechargeReadyAt || 0);
@@ -272,6 +312,8 @@ export function createGw2TimelineIndex({
         // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
         readyAt = 0;
       }
+
+      break;
     }
 
     const value = readyAt === Infinity || canonicalTime(readyAt) > time;

@@ -172,6 +172,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.baselineSimulationRunner.warmup();
     bindPageControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
+      // Analysis owns modifier work; navigation away cancels it without discarding completed results.
+      if (document.body?.dataset.simulatorView === 'analysis') this.modifierContributionRunner.schedule();
+      else this.modifierContributionRunner.cancel?.();
       // Leaving the optimizer gives the next view priority; entering it preserves an active search.
       if (document.body?.dataset.simulatorView !== 'gear-optimizer') this.gearOptimizerRunner?.cancel();
       if (document.body?.dataset.simulatorView === 'gear-optimizer') {
@@ -243,6 +246,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     // Prior-result analysis must release CPU and discard callbacks as soon as the build changes.
     this.randomDistributionRunner?.cancel?.();
     this.modifierContributionRunner?.cancel?.();
+    // Carried comparisons become stale immediately, including while the replacement baseline is pending.
+    if (this.results?.contributions) this.results.modifierContributionsStale = true;
     this.relicComparisonRunner?.cancel?.();
     this.simulationStatus = 'queued';
     this.simulationError = '';
@@ -283,6 +288,10 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     }
 
     if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
+    // Each baseline invalidates comparisons, even when Workspace defers their calculation.
+    this.results.modifierContributionsStale =
+      this.adapter.capabilities.modifierContributions === true && this.build.rotation.length > 0;
+    this.results.modifierContributionsError = '';
     this.resultRevision = revision;
     this.simulationStatus = 'idle';
     this.simulationError = '';
@@ -364,7 +373,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       this.baselineSimulationRunner.schedule(this.buildRevision);
     } else {
       if (this.results?.randomDistributionStale) this.randomDistributionRunner.schedule(true);
-      if (this.results?.modifierContributionsStale) this.modifierContributionRunner.schedule();
+      this.modifierContributionRunner.schedule();
       if (this.results?.relicComparisonStale) this.relicComparisonRunner.run?.();
     }
 

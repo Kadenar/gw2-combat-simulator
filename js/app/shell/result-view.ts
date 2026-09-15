@@ -8,7 +8,8 @@ export interface SimulationRenderState {
 }
 
 // Before navigation mounts, the URL hash still identifies whether detailed Analysis is visible.
-function analysisViewIsActive(): boolean {
+export function analysisViewIsActive(): boolean {
+  if (typeof document === 'undefined') return true;
   const body = document.body;
   if (!body) return true;
   const mountedView = body.dataset.simulatorView;

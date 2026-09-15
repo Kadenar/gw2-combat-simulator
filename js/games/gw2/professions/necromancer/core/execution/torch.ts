@@ -9,7 +9,7 @@ import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/
 // Converts the target's active-condition count into party Might, subject to Oppressive Collapse's seven-condition cap.
 function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const conditionCount = Math.min(7, observeTargetConditionCount(context, context.effectiveEnd));
+  const conditionCount = Math.min(7, observeTargetConditionCount(context, context.effectiveEnd, 7));
   if (!conditionCount) return;
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,

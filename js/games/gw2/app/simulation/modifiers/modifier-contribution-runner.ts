@@ -4,7 +4,9 @@ import {
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
-import type { ModifierContribution } from '#gw2/app/simulation/modifiers/types.js';
+import { analysisViewIsActive } from '#app/shell/result-view.js';
+import { renderModifierContributions } from '#gw2/app/results/view.js';
+import type { ModifierContribution, ModifierContributionRequest } from '#gw2/app/simulation/modifiers/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
@@ -17,6 +19,7 @@ export class ModifierContributionRunner {
   readonly app: ProfessionAppState;
   timer: ReturnType<typeof setTimeout> | null;
   requestId: number;
+  isRunning = false;
   private readonly batch: ManagedWorkerBatch<ModifierContributionWorkerMessage>;
 
   constructor(app: ProfessionAppState) {
@@ -32,44 +35,58 @@ export class ModifierContributionRunner {
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     this.batch.terminateAll();
+    this.isRunning = false;
   }
 
   schedule(): void {
     const app = this.app;
+    // Only missing or stale comparisons for the current baseline consume workers while Analysis is visible.
+    if (
+      this.isRunning ||
+      !analysisViewIsActive() ||
+      !app.build.rotation.length ||
+      !app.results ||
+      app.resultRevision !== app.buildRevision ||
+      (Array.isArray(app.results.contributions) && !app.results.modifierContributionsStale)
+    )
+      return;
+    this.isRunning = true;
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;
     const failContributions = (error: unknown): void => {
       if (requestId !== this.requestId || !app.results) return;
+      this.isRunning = false;
       // Failed comparisons must not make carried values from the prior build look current.
       app.results.contributions = undefined;
       app.results.modifierContributionsStale = false;
       app.results.modifierContributionsError =
         error instanceof Error ? error.message : String(error || 'Modifier contribution calculation failed.');
-      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+      renderModifierContributions(app);
     };
 
     // A new schedule owns a fresh batch, terminating and invalidating any prior pool.
     this.batch.begin(requestId, failContributions);
 
-    if (!app.build.rotation.length || !app.results) {
-      if (app.results) {
-        app.results.modifierContributionsStale = false;
-        app.results.modifierContributionsError = '';
-      }
+    app.results.modifierContributionsStale = true;
+    app.results.modifierContributionsError = '';
+    renderModifierContributions(app);
+    let request: ModifierContributionRequest;
+    try {
+      request = app.adapter.modifierContributionRequest(app);
+    } catch (error) {
+      failContributions(error);
 
       return;
     }
 
-    app.results.modifierContributionsStale = true;
-    app.results.modifierContributionsError = '';
-    const request = app.adapter.modifierContributionRequest(app);
     const applyContributions = (contributions: ModifierContribution[]): void => {
       if (requestId !== this.requestId || !app.results) return;
+      this.isRunning = false;
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
       app.results.modifierContributionsError = '';
-      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+      renderModifierContributions(app);
     };
 
     const calculateContributions = (): void => {

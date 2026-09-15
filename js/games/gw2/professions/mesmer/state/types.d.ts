@@ -1,5 +1,5 @@
 import type { ScheduledTask, SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   MesmerClone,
@@ -126,7 +126,7 @@ export interface MesmerSchedulerTaskPayloads {
   readonly expectedProc: MesmerExpectedProcCandidate;
   readonly trackedHit: { readonly skillId: SkillId };
   readonly virtuosoExpectedProc: MesmerVirtuosoExpectedProcCandidate;
-  readonly deadlyBladesCritical: { readonly event: Extract<SimulationEvent, { readonly type: 'damage' }> };
+  readonly deadlyBladesCritical: { readonly eventOrder: number };
   readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
   readonly bladeSpend: {
     readonly reservationId: string;

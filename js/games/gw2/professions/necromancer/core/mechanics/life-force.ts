@@ -332,7 +332,7 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
   }
 
   if (new Set<string | number>([ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]).has(skill.id)) {
-    amount += Math.min(5, observeTargetConditionCount(context, context.effectiveEnd));
+    amount += Math.min(5, observeTargetConditionCount(context, context.effectiveEnd, 5));
   }
 
   // Dark Pact's fixed gain is conditional on having at least one target boon to remove.

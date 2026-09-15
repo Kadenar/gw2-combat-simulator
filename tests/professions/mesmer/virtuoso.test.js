@@ -5,6 +5,111 @@ import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import {
+  handleVirtuosoExpectedProcTask,
+  observeVirtuosoExpectedProcEvent
+} from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
+import {
+  handleDeadlyBladesCriticalTask,
+  observeDeadlyBladesEvent
+} from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+
+test('deferred Virtuoso procs use replacement facts and preserve skill-derived blade metadata', () => {
+  // Both reactions read the current hit after queueing; an explicit replacement flag wins over the blade fallback.
+  for (const [blade, didCrit] of [
+    [undefined, true],
+    [false, true],
+    [true, false]
+  ]) {
+    const original = Object.freeze({
+      type: 'damage',
+      at: 1,
+      eventOrder: 7,
+      skillId: 1,
+      skillName: 'Original',
+      name: 'Original',
+      source: 'Player',
+      sourceId: 1,
+      actorType: 'player',
+      coefficient: 1,
+      didCrit: false
+    });
+    let current = original;
+    const observed = [];
+    const emitted = [];
+    const tasks = createTaskQueue({
+      handlers: {
+        'mesmer.virtuoso-expected-proc': handleVirtuosoExpectedProcTask,
+        'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask
+      }
+    });
+    const context = {
+      state: { time: 0 },
+      config: { randomness: { mode: 'stochastic' } },
+      profession: { id: 'mesmer' },
+      tasks,
+      mesmerRuntime: {
+        traits: new Set([TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES]),
+        skillsById: new Map([[1, { blade: true }]]),
+        addTraitProc() {}
+      },
+      schedulerPolicy: {
+        critical(_context, event) {
+          observed.push(event);
+          return { chance: 1 };
+        },
+        rollRandom() {
+          assert.fail('A stored critical outcome must not be rerolled.');
+        }
+      },
+      eventByOrder(order) {
+        assert.equal(order, 7);
+        return current;
+      },
+      emitDerived(cause, event) {
+        emitted.push({ cause, event });
+        return event;
+      }
+    };
+    observeVirtuosoExpectedProcEvent(context, original);
+    observeDeadlyBladesEvent(context, original);
+    current = Object.freeze({
+      ...original,
+      ...(blade === undefined ? {} : { blade }),
+      didCrit,
+      name: 'Replaced',
+      skillName: 'Replaced'
+    });
+    tasks.drainThrough(1, context);
+    assert.equal(observed.length, 2);
+
+    for (const event of observed) {
+      assert.equal(event.blade, blade ?? true);
+      assert.equal(event.didCrit, didCrit);
+      assert.equal(event.name, 'Replaced');
+    }
+
+    assert.equal(emitted.length, didCrit ? 2 : 0);
+
+    for (const { cause, event } of emitted) {
+      assert.equal(cause.eventOrder, 7);
+      assert.equal(event.skillName, 'Replaced');
+      assert.equal(event.at, 1);
+    }
+
+    assert.equal(Object.hasOwn(current, 'blade'), blade !== undefined);
+    assert.equal(original.didCrit, false);
+  }
+});
+
+test('Virtuoso critical tasks reject missing canonical events', () => {
+  // An identity-only task cannot silently fall back to stale event data when its scheduler contract is broken.
+  const context = { mesmerRuntime: {}, eventByOrder: () => undefined };
+  const task = { at: 1, payload: { type: 'blade', eventOrder: 7 } };
+  assert.throws(() => handleVirtuosoExpectedProcTask(context, task), /requires a scheduled event/);
+  assert.throws(() => handleDeadlyBladesCriticalTask(context, task), /requires a scheduled event/);
+});
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
 test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {
