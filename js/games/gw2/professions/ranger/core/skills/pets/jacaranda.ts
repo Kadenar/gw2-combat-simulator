@@ -66,8 +66,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     petSkill: true
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
-    // The storm commits after the 500 ms cast, preserving its remaining pulses after later interruption.
-    interruptCommitMs: 500,
+    // The autonomous storm commits when launched, so swapping pets does not erase its remaining pulses.
+    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',

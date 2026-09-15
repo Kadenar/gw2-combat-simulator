@@ -54,7 +54,8 @@ test('proc overrides control every opted-in trait without bypassing selection or
     }
 
     assert.equal(applications(run(1, false)).length, 0, name);
-    assert.equal(applications(run(1, true, 0)).length > 0, name === 'Shrapnel', name);
+    // The Mechanist's mech retains its own Precision and can proc Serrated Steel independently of the player.
+    assert.equal(applications(run(1, true, 0)).length > 0, ['Serrated Steel', 'Shrapnel'].includes(name), name);
     const runtime = profession.resolveRuntime({ specialization });
     assert.deepEqual(availableProcRateProfiles(runtime.catalog, []), []);
     assert.ok(availableProcRateProfiles(runtime.catalog, [traitId]).some((entry) => entry.procRate.id === key));

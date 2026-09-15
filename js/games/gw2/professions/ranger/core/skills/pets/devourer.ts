@@ -138,8 +138,8 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
     petSkill: true
   },
   [ID.TWIN_DARTS]: {
-    // The pet attack commits after its 880 ms animation, preserving both projectiles after later interruption.
-    interruptCommitMs: 880,
+    // Autonomous projectiles commit when launched, so swapping pets does not erase packets already in flight.
+    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',

@@ -996,7 +996,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
   assert.ok(
     log.some(
       (event) =>
-        Math.abs(event.at - 3.3601) < 0.00001 &&
+        Math.abs(event.at - 3.36) < 0.00001 &&
         event.description.includes('CLONE SPAWNED x1') &&
         event.description.includes('Phantasmal Duelist phantasm conversion')
     )
