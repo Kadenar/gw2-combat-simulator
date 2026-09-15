@@ -33,7 +33,9 @@ export function applyInspiredVirtue(
     actorType: 'player',
     name: 'Inspired Virtue',
     kind: boon,
-    duration: Number(inspired?.duration ?? 5)
+    duration: Number(inspired?.duration ?? 5),
+    // Virtue activations apply these boons to nearby allies.
+    audience: { recipients: 'party' as const }
   });
 }
 

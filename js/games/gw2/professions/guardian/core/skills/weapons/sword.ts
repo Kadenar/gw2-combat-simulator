@@ -24,7 +24,8 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'boon',
         boon: 'fury',
         duration: 2,
-        stacks: 1
+        stacks: 1,
+        audience: { recipients: 'party' as const }
       }
     ]
   },

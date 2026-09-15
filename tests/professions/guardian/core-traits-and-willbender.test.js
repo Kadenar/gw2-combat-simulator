@@ -610,6 +610,37 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
   );
 });
 
+test('Battle Presence shares Phoenix Protocol alacrity and Inspired Virtue boons reach allies', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Flowing Resolve', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }],
+    config: {
+      ...config,
+      specialization: 'Willbender',
+      primaryWeapon: 'Greatsword',
+      boons: { quickness: true },
+      allies: { count: 4 },
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+        GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE,
+        GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE
+      ]
+    }
+  });
+  const alacrity = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL
+  );
+  assert.ok(alacrity.length > 1);
+  assert.ok(alacrity.every((event) => event.audience?.recipients === 'party'));
+  assert.ok(alacrity.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
+
+  const inspired = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE
+  );
+  assert.ok(inspired.length > 0);
+  assert.ok(inspired.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
+});
+
 test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on virtue triggers', () => {
   // One run covers the activation/trigger boundary and the party audience without depending on a saved rotation.
   const result = simulateGw2({

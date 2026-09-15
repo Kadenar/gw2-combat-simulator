@@ -159,7 +159,10 @@ export function applyWillbenderVirtueActivationTraits(
       kind: 'alacrity',
       stacks: Number(alacrity?.stacks ?? 1),
       duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration ?? 5)),
-      audience: { recipients: 'self' as const }
+      // Phoenix Protocol is personal; Battle Presence shares its alacrity with nearby allies.
+      audience: {
+        recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
+      }
     });
   }
 
@@ -448,6 +451,9 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
         kind: 'alacrity',
         stacks: Number(alacrity?.stacks ?? 1),
         duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration ?? 1)),
+        audience: {
+          recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
+        },
         triggeredBy: sourceSkill
       });
     }
