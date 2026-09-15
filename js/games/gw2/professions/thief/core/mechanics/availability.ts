@@ -85,8 +85,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
         context.catalog.skillsById.get(event.skillId)?.stealthAttack
     ) &&
     context.events.some(
-      (event) =>
-        event.type === 'thief.state' && event.reason === 'strike-broke-stealth' && event.at === context.start
+      (event) => event.type === 'thief.state' && event.reason === 'strike-broke-stealth' && event.at === context.start
     );
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {

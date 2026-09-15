@@ -26,7 +26,7 @@ import { createProfessionSimulator } from '../../helpers/profession-simulation.j
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { beginStealthAttack, observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 
 const baseConfig = Object.freeze({
@@ -652,6 +652,19 @@ test('non-stealth strike skills remove stealth and restore the normal autoattack
   assert.ok(result.endState.profession.revealedUntil > 0);
   assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Double Strike'));
+});
+
+test('stealth-break work uses the strike timestamp and explicit same-time priority', () => {
+  const scheduled = [];
+  observeStealthBreakingStrike(
+    { catalog: thiefCatalog, tasks: { schedule: (task) => scheduled.push(task) } },
+    { type: 'damage', at: 1.25, actorType: 'player', skillId: ID.HEARTSEEKER, activationId: 'cast:1' }
+  );
+
+  assert.deepEqual(
+    scheduled.map(({ at, priority }) => ({ at, priority })),
+    [{ at: 1.25, priority: 20 }]
+  );
 });
 
 test('delayed strikes break stealth on impact without blocking a same-time stealth attack', () => {
