@@ -12,6 +12,7 @@ import {
   captureBuildDestination,
   deleteMyBuild,
   loadMyBuilds,
+  myBuildsStorageKey,
   saveBuildWorkspace,
   saveMyBuild,
   type MyBuild
@@ -547,7 +548,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       saveDialog.querySelector('form')!.addEventListener('submit', (event) => {
         event.preventDefault();
         try {
-          myBuilds = saveMyBuild(app, myBuilds, name.value, target.value || undefined, category.value);
+          myBuilds = saveMyBuild(app, name.value, target.value || undefined, category.value);
           const search = container.querySelector<HTMLInputElement>('.build-library-search input')!.value
             .trim()
             .toLowerCase();
@@ -564,6 +565,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       saveDialog.addEventListener('close', () => saveTrigger?.focus({ preventScroll: true }));
       container.addEventListener('open-build-save', (event) => {
         saveTrigger = (event as CustomEvent<HTMLElement>).detail || null;
+        // Offer overwrite targets from the stored library, including builds saved in other browser tabs.
+        myBuilds = loadMyBuilds(app.adapter);
         target.innerHTML = `<option value="">New build</option>${myBuilds
           .map(
             ({ id, name, category }) =>
@@ -621,7 +624,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         if (action === 'load') loadMyBuildEntry(app, entry);
         if (action === 'delete' && confirm(`Delete ${entry.name}? This cannot be undone.`)) {
           try {
-            myBuilds = deleteMyBuild(app, myBuilds, entry.id);
+            myBuilds = deleteMyBuild(app, entry.id);
             renderMyBuilds(container, myBuilds, search);
           } catch (error) {
             alert(`Failed to delete build: ${error instanceof Error ? error.message : String(error)}`);
@@ -686,6 +689,12 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       const destination = action === 'template' && container.dataset.newBuild === 'true' ? 'new-tab' : action;
       delete container.dataset.newBuild;
       loadTemplateAction(app, preset, destination, button);
+    });
+    window.addEventListener('storage', (event) => {
+      // Another browser tab changed the library; show its snapshots instead of a stale list.
+      if (event.key !== null && event.key !== myBuildsStorageKey(app.adapter)) return;
+      myBuilds = loadMyBuilds(app.adapter);
+      renderMyBuilds(container, myBuilds, search);
     });
     document.addEventListener('click', (event) => {
       const target = event.target;

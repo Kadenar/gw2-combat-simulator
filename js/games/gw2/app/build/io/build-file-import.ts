@@ -9,6 +9,10 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 export const BUILD_FILE_IMPORT_ACCEPT = '.json,application/json';
 
+// The codec fills every missing field with defaults, so an unrelated JSON object would otherwise import as a
+// default build. Older saves can omit `profession`, so any core build field marks a build.
+const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkills', 'weapons', 'gear'];
+
 export interface BuildFileImportPreview {
   readonly fileName: string;
   /** Imported build with any rotation normalized against its own specializations; null for rotation-only files. */
@@ -36,9 +40,11 @@ export function previewBuildFileImport(
   if (!saved || typeof saved !== 'object') throw new Error('File is not a build or rotation JSON.');
   const items = getRotationItems(saved);
   const rotation = items?.length ? items : null;
-  // Rotation exports are `{ rotation }` or a bare array; any other field marks saved build configuration.
-  const hasBuild = !Array.isArray(saved) && Object.keys(saved).some((key) => key !== 'rotation');
-  if (!hasBuild && !rotation) throw new Error('No build or rotation found in this file.');
+  // Rotation exports are `{ rotation }` or a bare array; only core build fields mark saved build configuration.
+  const hasBuild = !Array.isArray(saved) && BUILD_FIELDS.some((key) => Object.hasOwn(saved, key));
+  if (!hasBuild && !rotation) {
+    throw new Error('No build or rotation found in this file. Import combat logs with Load rotation.');
+  }
 
   const build = hasBuild ? replaceBuild(saved, app.adapter) : null;
   const warnings: string[] = [];
@@ -77,6 +83,8 @@ export function applyBuildFileImport(
     app.build = applyRotation
       ? structuredClone(preview.build!)
       : replaceBuildConfiguration(preview.build, app.build, app.adapter);
+    // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
+    app.currentTemplate = null;
     app.changed();
   } else if (applyRotation) {
     // Normalizing through the current build resolves specialization-specific skill names before the first simulation.

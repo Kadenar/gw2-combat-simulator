@@ -263,13 +263,13 @@ test('My Builds validates, saves, overwrites, and deletes independent snapshots'
   );
 
   app.build.gear.Helm = 'new';
-  library = saveMyBuild(app, library, ' New build ', undefined, ' Fractals ');
+  library = saveMyBuild(app, ' New build ', undefined, ' Fractals ');
   const newEntry = library[1];
   app.build.gear.Helm = 'edited-after-save';
   assert.equal(newEntry.build.gear.Helm, 'new');
 
   app.build.gear.Helm = 'replacement';
-  library = saveMyBuild(app, library, 'Renamed', newEntry.id, 'Benchmarks');
+  library = saveMyBuild(app, 'Renamed', newEntry.id, 'Benchmarks');
   assert.deepEqual(
     library.map(({ name, category, build: value }) => [name, category, value.gear.Helm]),
     [
@@ -278,13 +278,37 @@ test('My Builds validates, saves, overwrites, and deletes independent snapshots'
     ]
   );
 
-  library = deleteMyBuild(app, library, 'saved');
+  library = deleteMyBuild(app, 'saved');
   assert.equal(library.length, 1);
   assert.deepEqual(
     loadMyBuilds(adapter).map(({ name }) => name),
     ['Renamed']
   );
   assert.equal(JSON.parse(values.get(myBuildsStorageKey(adapter))).version, 1);
+});
+
+test('My Builds merges with saves made in another browser tab', (t) => {
+  const values = storage(t);
+  const { app } = appFixture();
+  const otherTab = { ...app, build: build('other-tab') };
+
+  const first = saveMyBuild(app, 'This tab');
+  saveMyBuild(otherTab, 'Other tab');
+  // This tab still holds its stale one-entry list; the next save must keep the other tab's entry.
+  assert.equal(first.length, 1);
+  const merged = saveMyBuild(app, 'This tab again');
+  assert.deepEqual(
+    merged.map(({ name }) => name),
+    ['This tab', 'Other tab', 'This tab again']
+  );
+
+  // Overwriting or deleting reads the stored library, so an entry removed elsewhere is reported, not resurrected.
+  deleteMyBuild(otherTab, first[0].id);
+  assert.throws(() => saveMyBuild(app, 'Resurrected', first[0].id), /no longer exists/);
+  assert.deepEqual(
+    JSON.parse(values.get(myBuildsStorageKey(adapter))).builds.map(({ name }) => name),
+    ['Other tab', 'This tab again']
+  );
 });
 
 test('switching preserves independent rotations, history, templates, comparisons, and cached results', (t) => {

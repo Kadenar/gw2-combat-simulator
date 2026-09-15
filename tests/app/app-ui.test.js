@@ -15,6 +15,7 @@ import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/build/io/build-file-import.js';
+import { loadManifestBuilds } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession/registry.js';
 import {
@@ -1287,10 +1288,76 @@ test('build file import detects which parts a file carries', async () => {
   assert.equal(bare.build, null);
   assert.throws(() => previewBuildFileImport({}, 'empty.json', app), /No build or rotation/);
   assert.throws(() => previewBuildFileImport({ rotation: [] }, 'empty.json', app), /No build or rotation/);
+  // Unrelated JSON must not import as a default build that would silently reset the current one.
+  assert.throws(
+    () => previewBuildFileImport({ players: [], phases: [], skillMap: {} }, 'report.json', app),
+    /No build or rotation/
+  );
+  const versioned = previewBuildFileImport({ version: 1, rotation: [skill] }, 'rotation.json', app);
+  assert.equal(versioned.build, null);
+  assert.equal(versioned.rotation.length, 1);
   assert.throws(
     () => previewBuildFileImport({ ...source, profession: 'necromancer' }, 'other.json', app),
     /necromancer/
   );
+});
+
+test('build file import clears the template highlight but keeps the tab reset target', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const source = { ...createDefaultBuild(adapter), rune: 'Krait' };
+  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const templateBuild = createDefaultBuild(adapter);
+  const tab = { id: 'tab', templateBuild };
+  const app = {
+    adapter,
+    build: createDefaultBuild(adapter),
+    changed() {},
+    currentTemplate: { build: 'template.json', signature: '' },
+    workspace: { tabs: [tab], activeTabId: 'tab' }
+  };
+
+  const rotationFile = getBuildWithRotationExportPayload({ ...source, rotation: [skill] });
+  applyBuildFileImport(app, previewBuildFileImport(rotationFile, 'combined.json', app), {
+    build: false,
+    rotation: true
+  });
+  assert.notEqual(app.currentTemplate, null);
+
+  applyBuildFileImport(app, previewBuildFileImport(getBuildExportPayload(source), 'build.json', app), {
+    build: true,
+    rotation: false
+  });
+  assert.equal(app.build.rune, 'Krait');
+  assert.equal(app.currentTemplate, null);
+  // Reset after an import returns to the tab's loaded baseline, not the imported file.
+  assert.equal(tab.templateBuild, templateBuild);
+});
+
+test('reference rotation manifest builds load lazily once per template list', async () => {
+  const presets = [
+    { label: 'A', build: 'a.json', rotation: 'ra.json' },
+    { label: 'B', build: 'b.json' },
+    { label: 'C', build: 'c.json', rotation: 'rc.json' }
+  ];
+  const fetched = [];
+  const fetchAsset = async (path) => {
+    fetched.push(path);
+    if (path === 'c.json') throw new Error('Could not load c.json');
+    return { path };
+  };
+
+  const first = await loadManifestBuilds(presets, fetchAsset);
+  const again = await loadManifestBuilds(presets, fetchAsset);
+  assert.deepEqual(fetched, ['a.json', 'c.json']);
+  assert.equal(again, first);
+  assert.deepEqual(
+    first.map((entry) => entry?.build ?? null),
+    [{ path: 'a.json' }, null]
+  );
+
+  // Re-rendered templates produce a new list, which loads fresh.
+  await loadManifestBuilds([...presets], fetchAsset);
+  assert.deepEqual(fetched, ['a.json', 'c.json', 'a.json', 'c.json']);
 });
 
 test('build file import applies only the selected parts', async () => {

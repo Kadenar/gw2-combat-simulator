@@ -90,7 +90,8 @@ export function downloadJson(filenameOrChoices: string | readonly JsonExportChoi
     link.href = url;
     link.download = exportName;
     link.click();
-    URL.revokeObjectURL(url);
+    // Some browsers start the download asynchronously and cancel it if the URL is revoked in the same task.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
     dialog.close();
   });
   bindDialog(dialog);

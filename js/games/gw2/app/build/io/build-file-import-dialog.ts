@@ -5,7 +5,14 @@ import {
   previewBuildFileImport
 } from '#gw2/app/build/io/build-file-import.js';
 import { readJsonFile } from '#gw2/app/build/io/files.js';
-import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
+import {
+  bindImportFileSources,
+  createImportPreviewController,
+  ensureImportDialogStyles,
+  importDropZoneHtml,
+  renderImportNotices,
+  requiredDialogPart
+} from '#gw2/app/build/io/import-dialog.js';
 import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 
 import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/build/io/build-file-import.js';
@@ -30,19 +37,6 @@ interface BuildFileImportDialogElements {
 
 const BUILD_FILE_IMPORT_STYLES = `
     .build-file-import-dialog { --dialog-width:560px; }
-    .build-file-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
-    .build-file-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
-    .build-file-import-drop { display:flex; min-height:130px; padding:20px; align-items:center;
-      justify-content:center; border:2px dashed var(--border-light); border-radius:8px;
-      background:var(--bg-panel-alt); text-align:center; transition:border-color .15s, background .15s; }
-    .build-file-import-drop.is-dragging { border-color:var(--accent); background:rgba(102,170,255,.08); }
-    .build-file-import-drop strong { display:block; margin-bottom:5px; color:var(--text-bright); font-size:13px; }
-    .build-file-import-drop small { display:block; margin:8px 0; color:var(--text-dim); font-size:10px; }
-    /* Class display rules would otherwise override the hidden attribute on these grid containers. */
-    .build-file-import-dialog [hidden], .build-file-import-status:empty { display:none; }
-    .build-file-import-status { margin:12px 0 0; color:var(--text-dim); font-size:12px; }
-    .build-file-import-status.is-success { color:var(--health); }
-    .build-file-import-error { margin:12px 0 0; color:var(--condi); font-size:12px; white-space:pre-wrap; }
     .build-file-import-parts { display:grid; gap:8px; min-width:0; margin:12px 0 0; padding:0; border:0; }
     .build-file-import-parts legend { margin-bottom:6px; padding:0; color:var(--text-dim); font-size:11px;
       overflow-wrap:anywhere; }
@@ -57,40 +51,24 @@ const BUILD_FILE_IMPORT_STYLES = `
     .build-file-import-summary { display:grid; grid-template-columns:max-content minmax(0, 1fr); gap:2px 10px; margin:0; }
     .build-file-import-summary dt { color:var(--text-dim); }
     .build-file-import-summary dd { margin:0; color:var(--text); overflow-wrap:anywhere; }
-    .build-file-import-warnings { display:grid; gap:6px; margin:10px 0 0; padding:0; list-style:none; font-size:11px; }
-    .build-file-import-warnings li { padding:8px 10px; border:1px solid var(--border); border-radius:5px;
-      background:rgba(166,124,34,.06); color:var(--text-dim); line-height:1.45; }
-    .build-file-import-warnings strong { display:block; margin-bottom:2px; color:var(--text-bright); }
-    .build-file-import-actions [data-build-file-apply]:disabled { opacity:.45; cursor:not-allowed; }
     @media (max-width:480px) { .build-file-import-summary { grid-template-columns:1fr; }
       .build-file-import-summary dd + dt { margin-top:4px; } }
   `;
 
 const SKILL_SLOTS = ['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite'];
 
-function required<T extends Element>(dialog: HTMLDialogElement, selector: string): T {
-  const element = dialog.querySelector<T>(selector);
-  if (!element) throw new Error('Build import dialog failed to initialize.');
-  return element;
-}
-
 function createDialog(document: Document): BuildFileImportDialogElements {
+  ensureImportDialogStyles(document);
   ensureDocumentStyles(document, 'build-file-import-styles', BUILD_FILE_IMPORT_STYLES);
   const dialog = document.createElement('dialog');
   dialog.className = 'build-file-import-dialog';
   dialog.setAttribute('aria-labelledby', 'build-file-import-title');
-  dialog.innerHTML = `<form class="build-file-import-form app-dialog-body" method="dialog">
+  dialog.innerHTML = `<form class="import-dialog-form app-dialog-body" method="dialog">
     <h3 id="build-file-import-title">Import build</h3>
-    <p class="build-file-import-intro">Load a build JSON saved from this simulator. When the file also contains a rotation, choose which parts to apply.</p>
-    <div class="build-file-import-drop" data-build-file-drop>
-      <div>
-        <strong>Drop a build file here</strong>
-        <small>.json</small>
-        <button type="button" class="btn btn-io" data-build-file-browse>Browse files</button>
-      </div>
-    </div>
-    <p class="build-file-import-status" role="status" data-build-file-status></p>
-    <p class="build-file-import-error" role="alert" data-build-file-error hidden></p>
+    <p class="import-dialog-intro">Load a build JSON saved from this simulator. When the file also contains a rotation, choose which parts to apply.</p>
+    ${importDropZoneHtml('build-file', 'Drop a build file here', '.json')}
+    <p class="import-dialog-status" role="status" data-build-file-status></p>
+    <p class="import-dialog-error" role="alert" data-build-file-error hidden></p>
     <fieldset class="build-file-import-parts" data-build-file-parts hidden>
       <legend>Apply from <span data-build-file-name></span></legend>
       <label class="build-file-import-part">
@@ -102,28 +80,28 @@ function createDialog(document: Document): BuildFileImportDialogElements {
         <span><strong>Rotation</strong><span class="build-file-import-part-detail" data-build-file-rotation-detail></span></span>
       </label>
     </fieldset>
-    <ul class="build-file-import-warnings" aria-label="Import notices" data-build-file-warnings hidden></ul>
-    <div class="build-file-import-actions app-dialog-actions">
+    <ul class="import-dialog-notices" aria-label="Import notices" data-build-file-warnings hidden></ul>
+    <div class="app-dialog-actions">
       <button type="button" class="btn" data-dialog-close>Cancel</button>
-      <button type="button" class="btn btn-io" data-build-file-apply disabled>Apply</button>
+      <button type="button" class="btn btn-io import-dialog-apply" data-build-file-apply disabled>Apply</button>
     </div>
   </form>`;
   bindDialog(dialog);
   document.body.append(dialog);
   return {
     dialog,
-    dropZone: required(dialog, '[data-build-file-drop]'),
-    browseButton: required(dialog, '[data-build-file-browse]'),
-    status: required(dialog, '[data-build-file-status]'),
-    error: required(dialog, '[data-build-file-error]'),
-    parts: required(dialog, '[data-build-file-parts]'),
-    fileName: required(dialog, '[data-build-file-name]'),
-    buildCheckbox: required(dialog, '[data-build-file-apply-build]'),
-    buildDetail: required(dialog, '[data-build-file-build-detail]'),
-    rotationCheckbox: required(dialog, '[data-build-file-apply-rotation]'),
-    rotationDetail: required(dialog, '[data-build-file-rotation-detail]'),
-    warnings: required(dialog, '[data-build-file-warnings]'),
-    applyButton: required(dialog, '[data-build-file-apply]')
+    dropZone: requiredDialogPart(dialog, '[data-build-file-drop]'),
+    browseButton: requiredDialogPart(dialog, '[data-build-file-browse]'),
+    status: requiredDialogPart(dialog, '[data-build-file-status]'),
+    error: requiredDialogPart(dialog, '[data-build-file-error]'),
+    parts: requiredDialogPart(dialog, '[data-build-file-parts]'),
+    fileName: requiredDialogPart(dialog, '[data-build-file-name]'),
+    buildCheckbox: requiredDialogPart(dialog, '[data-build-file-apply-build]'),
+    buildDetail: requiredDialogPart(dialog, '[data-build-file-build-detail]'),
+    rotationCheckbox: requiredDialogPart(dialog, '[data-build-file-apply-rotation]'),
+    rotationDetail: requiredDialogPart(dialog, '[data-build-file-rotation-detail]'),
+    warnings: requiredDialogPart(dialog, '[data-build-file-warnings]'),
+    applyButton: requiredDialogPart(dialog, '[data-build-file-apply]')
   };
 }
 
@@ -157,26 +135,6 @@ function renderPart(checkbox: HTMLInputElement, detail: HTMLElement, content: No
   detail.replaceChildren(content ?? 'Not in this file');
 }
 
-/** Renders "Label: detail" notices with the label emphasized, matching the rotation import dialog. */
-function renderWarnings(element: HTMLElement, warnings: readonly string[]): void {
-  element.replaceChildren(
-    ...warnings.map((warning) => {
-      const item = element.ownerDocument.createElement('li');
-      const separator = warning.indexOf(':');
-      if (separator > 0 && separator < 40) {
-        const label = element.ownerDocument.createElement('strong');
-        label.textContent = warning.slice(0, separator);
-        item.append(label, warning.slice(separator + 1).trim());
-      } else {
-        item.textContent = warning;
-      }
-
-      return item;
-    })
-  );
-  element.hidden = warnings.length === 0;
-}
-
 /** Replaces the plain file picker with a review step that lets the user apply the build, its rotation, or both. */
 export function bindBuildFileImportDialog(
   app: ProfessionAppState,
@@ -189,8 +147,6 @@ export function bindBuildFileImportDialog(
   const elements = createDialog(document);
   let preview: BuildFileImportPreview | null = null;
   let loading = false;
-  let generation = 0;
-  let validatePreviewDestination = (): void => {};
 
   const selection = (): BuildFileImportSelection => ({
     build: elements.buildCheckbox.checked,
@@ -204,12 +160,6 @@ export function bindBuildFileImportDialog(
       build && rotation ? 'Apply build + rotation' : rotation ? 'Apply rotation' : 'Apply build';
   };
 
-  const setLoading = (value: boolean): void => {
-    loading = value;
-    elements.browseButton.disabled = value;
-    syncApply();
-  };
-
   const reset = (): void => {
     preview = null;
     elements.status.classList.remove('is-success');
@@ -217,8 +167,7 @@ export function bindBuildFileImportDialog(
     elements.error.hidden = true;
     elements.error.textContent = '';
     elements.parts.hidden = true;
-    elements.warnings.hidden = true;
-    elements.warnings.replaceChildren();
+    renderImportNotices(elements.warnings, []);
     syncApply();
   };
 
@@ -229,58 +178,61 @@ export function bindBuildFileImportDialog(
     elements.error.textContent = errorMessage(error);
   };
 
-  const showPreview = (next: BuildFileImportPreview): void => {
-    preview = next;
-    const actions = next.rotation?.length ?? 0;
-    elements.fileName.textContent = next.fileName;
-    renderPart(elements.buildCheckbox, elements.buildDetail, next.build && buildSummary(document, next.build));
-    renderPart(
-      elements.rotationCheckbox,
-      elements.rotationDetail,
-      next.rotation && document.createTextNode(`${actions} action${actions === 1 ? '' : 's'}`)
-    );
-    renderWarnings(elements.warnings, next.warnings);
-    elements.parts.hidden = false;
-    elements.status.classList.add('is-success');
-    elements.status.textContent =
-      next.build && next.rotation ? 'Choose which parts to apply.' : `Ready to apply ${next.build ? 'build' : 'rotation'}.`;
-    syncApply();
-  };
-
-  const selectFile = async (file: File): Promise<void> => {
-    if (loading) return;
-    const current = ++generation;
-    const validateDestination = captureBuildDestination(app);
-    reset();
-    elements.status.textContent = `Reading ${file.name}…`;
-    setLoading(true);
-    try {
-      const saved = await readJsonFile(file);
-      if (current !== generation) return;
-      // An asynchronous file read cannot target a different tab selected while it was loading.
-      validateDestination();
-      validatePreviewDestination = validateDestination;
-      showPreview(previewBuildFileImport(saved, file.name, app));
-    } catch (error) {
-      if (current === generation) showError(`Could not import ${file.name}.`, error);
-    } finally {
+  const importer = createImportPreviewController<BuildFileImportPreview>(app, {
+    begin(message) {
+      reset();
+      elements.status.textContent = message;
+    },
+    ready(next) {
+      preview = next;
+      const actions = next.rotation?.length ?? 0;
+      elements.fileName.textContent = next.fileName;
+      renderPart(elements.buildCheckbox, elements.buildDetail, next.build && buildSummary(document, next.build));
+      renderPart(
+        elements.rotationCheckbox,
+        elements.rotationDetail,
+        next.rotation && document.createTextNode(`${actions} action${actions === 1 ? '' : 's'}`)
+      );
+      renderImportNotices(elements.warnings, next.warnings);
+      elements.parts.hidden = false;
+      elements.status.classList.add('is-success');
+      elements.status.textContent =
+        next.build && next.rotation
+          ? 'Choose which parts to apply.'
+          : `Ready to apply ${next.build ? 'build' : 'rotation'}.`;
+      syncApply();
+    },
+    fail: showError,
+    setLoading(value) {
+      loading = value;
+      elements.browseButton.disabled = value;
+      syncApply();
+    },
+    settled() {
       // Clear the selection so choosing the same file again still emits a change event.
       fileInput.value = '';
-      if (current === generation) setLoading(false);
     }
+  });
+
+  const selectFile = (file: File): void => {
+    void importer.load(
+      async () => previewBuildFileImport(await readJsonFile(file), file.name, app),
+      `Reading ${file.name}…`,
+      `Could not import ${file.name}.`
+    );
   };
 
   button.addEventListener('click', () => {
     reset();
     showDialog(elements.dialog);
   });
-  elements.browseButton.addEventListener('click', () => fileInput.click());
+  bindImportFileSources(elements.dropZone, elements.browseButton, fileInput, selectFile);
   elements.buildCheckbox.addEventListener('change', syncApply);
   elements.rotationCheckbox.addEventListener('change', syncApply);
   elements.applyButton.addEventListener('click', () => {
     if (!preview) return;
     try {
-      validatePreviewDestination();
+      importer.validateDestination();
       applyBuildFileImport(app, preview, selection());
     } catch (error) {
       showError('Could not apply the import.', error);
@@ -290,29 +242,7 @@ export function bindBuildFileImportDialog(
     elements.dialog.close();
   });
   elements.dialog.addEventListener('close', () => {
-    generation += 1;
     preview = null;
-    setLoading(false);
-  });
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) void selectFile(file);
-  });
-  for (const eventName of ['dragenter', 'dragover']) {
-    elements.dropZone.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      elements.dropZone.classList.add('is-dragging');
-    });
-  }
-
-  elements.dropZone.addEventListener('dragleave', (event) => {
-    event.preventDefault();
-    elements.dropZone.classList.remove('is-dragging');
-  });
-  elements.dropZone.addEventListener('drop', (event) => {
-    event.preventDefault();
-    elements.dropZone.classList.remove('is-dragging');
-    const file = event.dataTransfer?.files[0];
-    if (file) void selectFile(file);
+    importer.cancel();
   });
 }

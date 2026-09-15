@@ -6,11 +6,18 @@ import {
   readDpsReportRotationUrl,
   readWingmanRotationUrl
 } from '#gw2/app/build/io/dps-report-rotation-import.js';
+import {
+  bindImportFileSources,
+  createImportPreviewController,
+  ensureImportDialogStyles,
+  importDropZoneHtml,
+  renderImportNotices,
+  requiredDialogPart
+} from '#gw2/app/build/io/import-dialog.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
-import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
 
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
@@ -136,6 +143,43 @@ async function previewManifestRotation(
   };
 }
 
+export interface ManifestBuildEntry {
+  readonly preset: BuildTemplatePreset;
+  readonly build: unknown;
+}
+
+// Keyed by the template list itself: re-rendering templates replaces the array, which invalidates the cache.
+const manifestBuildCache = new WeakMap<readonly BuildTemplatePreset[], Promise<readonly (ManifestBuildEntry | null)[]>>();
+
+/**
+ * Fetches the build of every preset that has a rotation, once per template list.
+ *
+ * The reference dialog is rebuilt on every comparison entry, so loading lazily and caching avoids re-downloading the
+ * whole manifest each time. A preset whose build cannot be loaded resolves to null.
+ */
+export function loadManifestBuilds(
+  presets: readonly BuildTemplatePreset[],
+  fetchAsset: (path: string) => Promise<unknown> = fetchJsonAsset
+): Promise<readonly (ManifestBuildEntry | null)[]> {
+  let loading = manifestBuildCache.get(presets);
+  if (!loading) {
+    loading = Promise.all(
+      presets
+        .filter((preset) => preset.rotation)
+        .map(async (preset) => {
+          try {
+            return { preset, build: await fetchAsset(preset.build) };
+          } catch {
+            return null;
+          }
+        })
+    );
+    manifestBuildCache.set(presets, loading);
+  }
+
+  return loading;
+}
+
 function selectedSkillNames(build: unknown): string[] | null {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return null;
   const selectedSkills = (build as { selectedSkills?: unknown }).selectedSkills;
@@ -166,41 +210,25 @@ export function applyRotationImportPreview(app: ProfessionAppState, preview: Rot
 }
 
 const ROTATION_IMPORT_STYLES = `
-    .rotation-import-form h3 { margin:0 0 6px; color:var(--text-bright); }
-    .rotation-import-intro { margin:0 0 14px; color:var(--text-dim); font-size:12px; line-height:1.5; }
+    .rotation-import-dialog .import-dialog-drop { min-height:150px; }
     .rotation-import-experimental { margin:0 0 14px; padding:8px 10px; border:1px solid #a67c22;
       border-radius:5px; background:rgba(166,124,34,.1); color:#e0bd68; font-size:11px; line-height:1.45; }
-    .rotation-import-drop { display:flex; min-height:150px; padding:20px; align-items:center;
-      justify-content:center; border:2px dashed var(--border-light); border-radius:8px;
-      background:var(--bg-panel-alt); text-align:center; transition:border-color .15s, background .15s; }
-    .rotation-import-drop.is-dragging { border-color:var(--accent); background:rgba(102,170,255,.08); }
-    .rotation-import-drop strong { display:block; margin-bottom:5px; color:var(--text-bright); font-size:13px; }
-    .rotation-import-drop small { display:block; margin:8px 0; color:var(--text-dim); font-size:10px; }
     .rotation-import-report { display:flex; gap:6px; margin-top:10px; }
     .rotation-import-report input { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
       border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
     .rotation-import-preset { display:flex; gap:6px; margin-top:10px; }
     .rotation-import-preset select { min-width:0; flex:1; padding:7px 9px; border:1px solid var(--border-light);
       border-radius:5px; background:var(--bg-panel-alt); color:var(--text); }
-    .rotation-import-status { margin:12px 0 0; color:var(--text-dim); font-size:12px; }
-    .rotation-import-status.is-success { color:var(--health); }
-    .rotation-import-error { margin:12px 0 0; color:var(--condi); font-size:12px; white-space:pre-wrap; }
-    .rotation-import-warnings { margin:10px 0 0; color:var(--text-dim); font-size:11px; }
-    .rotation-import-warning-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
-    .rotation-import-warning-list li { padding:8px 10px; border:1px solid var(--border);
-      border-radius:5px; background:rgba(166,124,34,.06); line-height:1.45; }
-    .rotation-import-warning-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
-    .rotation-import-observations { margin:10px 0 0; font-size:11px; }
-    .rotation-import-observation-list { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
-    .rotation-import-observation-list li { padding:9px 10px; border:1px solid var(--border);
+    .rotation-import-observations { display:grid; gap:6px; margin:10px 0 0; padding:0; list-style:none; font-size:11px; }
+    .rotation-import-observations li { padding:9px 10px; border:1px solid var(--border);
       border-radius:5px; background:rgba(102,170,255,.06); line-height:1.45; }
-    .rotation-import-observation-list strong { display:block; margin-bottom:2px; color:var(--text-bright); }
+    .rotation-import-observations strong { display:block; margin-bottom:2px; color:var(--text-bright); }
     .rotation-import-observation-summary { color:var(--text); }
     .rotation-import-observation-detail { display:block; margin-top:4px; color:var(--text-dim); }
-    .rotation-import-actions [data-rotation-import-apply]:disabled { opacity:.45; cursor:not-allowed; }
   `;
 
 function createDialog(document: Document, destination: RotationImportDestination): RotationImportDialogElements {
+  ensureImportDialogStyles(document);
   ensureDocumentStyles(document, 'rotation-import-styles', ROTATION_IMPORT_STYLES);
   const reference = destination === 'reference';
   const titleId = `rotation-import-title-${destination}`;
@@ -208,17 +236,11 @@ function createDialog(document: Document, destination: RotationImportDestination
   dialog.className = 'rotation-import-dialog';
   dialog.dataset.rotationImportDestination = destination;
   dialog.setAttribute('aria-labelledby', titleId);
-  dialog.innerHTML = `<form class="rotation-import-form app-dialog-body" method="dialog">
+  dialog.innerHTML = `<form class="import-dialog-form app-dialog-body" method="dialog">
     <h3 id="${titleId}">${reference ? 'Load reference rotation' : 'Load rotation'}</h3>
-    <p class="rotation-import-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report or gw2wingman link.</p>
+    <p class="import-dialog-intro">Load a saved rotation JSON, reconstruct an ArcDPS EVTC log, or import the Elite Insights casts from a dps.report or gw2wingman link.</p>
     <p class="rotation-import-experimental"><strong>Experimental:</strong> Combat-log import may produce incomplete or inaccurate rotations. dps.report and gw2wingman omit some raw EVTC evidence, so review the imported rotation before relying on it.</p>
-    <div class="rotation-import-drop" data-rotation-import-drop>
-      <div>
-        <strong>Drop a rotation or combat log here</strong>
-        <small>.json · .evtc · .evtc.zip · .zevtc</small>
-        <button type="button" class="btn btn-io" data-rotation-import-browse>Browse files</button>
-      </div>
-    </div>
+    ${importDropZoneHtml('rotation-import', 'Drop a rotation or combat log here', '.json · .evtc · .evtc.zip · .zevtc')}
     <div class="rotation-import-report">
       <input type="url" inputmode="url" placeholder="https://dps.report/… or https://gw2wingman.…/log/…" aria-label="dps.report or gw2wingman link" data-rotation-import-report-input>
       <button type="button" class="btn btn-io" data-rotation-import-report>Import link</button>
@@ -231,104 +253,54 @@ function createDialog(document: Document, destination: RotationImportDestination
     </div>`
         : ''
     }
-    <p class="rotation-import-status" role="status" data-rotation-import-status>Select a file or enter a link to begin.</p>
-    <p class="rotation-import-error" role="alert" data-rotation-import-error hidden></p>
-    <div class="rotation-import-warnings" aria-label="Import notices" data-rotation-import-warnings hidden></div>
-    <div class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></div>
-    <div class="rotation-import-actions app-dialog-actions">
+    <p class="import-dialog-status" role="status" data-rotation-import-status>Select a file or enter a link to begin.</p>
+    <p class="import-dialog-error" role="alert" data-rotation-import-error hidden></p>
+    <ul class="import-dialog-notices" aria-label="Import notices" data-rotation-import-warnings hidden></ul>
+    <ul class="rotation-import-observations" aria-label="Combat log observations" data-rotation-import-observations hidden></ul>
+    <div class="app-dialog-actions">
       <button type="button" class="btn" data-dialog-close>Cancel</button>
-      <button type="button" class="btn btn-io" data-rotation-import-apply disabled>${reference ? 'Use as reference' : 'Apply rotation'}</button>
+      <button type="button" class="btn btn-io import-dialog-apply" data-rotation-import-apply disabled>${reference ? 'Use as reference' : 'Apply rotation'}</button>
     </div>
   </form>`;
   bindDialog(dialog);
   document.body.append(dialog);
 
-  const dropZone = dialog.querySelector<HTMLElement>('[data-rotation-import-drop]');
-  const status = dialog.querySelector<HTMLElement>('[data-rotation-import-status]');
-  const error = dialog.querySelector<HTMLElement>('[data-rotation-import-error]');
-  const warnings = dialog.querySelector<HTMLElement>('[data-rotation-import-warnings]');
-  const observations = dialog.querySelector<HTMLElement>('[data-rotation-import-observations]');
-  const browseButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-browse]');
-  const reportInput = dialog.querySelector<HTMLInputElement>('[data-rotation-import-report-input]');
-  const reportButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-report]');
-  const presetSelect = dialog.querySelector<HTMLSelectElement>('[data-rotation-import-preset]');
-  const presetButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-preset-load]');
-  const applyButton = dialog.querySelector<HTMLButtonElement>('[data-rotation-import-apply]');
-  const closeButton = dialog.querySelector<HTMLButtonElement>('[data-dialog-close]');
-  if (
-    !dropZone ||
-    !status ||
-    !error ||
-    !warnings ||
-    !observations ||
-    !browseButton ||
-    !reportInput ||
-    !reportButton ||
-    !applyButton ||
-    !closeButton
-  ) {
-    throw new Error('Rotation import dialog failed to initialize.');
-  }
-
   return {
     dialog,
-    dropZone,
-    status,
-    error,
-    warnings,
-    observations,
-    browseButton,
-    reportInput,
-    reportButton,
-    presetSelect,
-    presetButton,
-    applyButton,
-    closeButton
+    dropZone: requiredDialogPart(dialog, '[data-rotation-import-drop]'),
+    status: requiredDialogPart(dialog, '[data-rotation-import-status]'),
+    error: requiredDialogPart(dialog, '[data-rotation-import-error]'),
+    warnings: requiredDialogPart(dialog, '[data-rotation-import-warnings]'),
+    observations: requiredDialogPart(dialog, '[data-rotation-import-observations]'),
+    browseButton: requiredDialogPart(dialog, '[data-rotation-import-browse]'),
+    reportInput: requiredDialogPart(dialog, '[data-rotation-import-report-input]'),
+    reportButton: requiredDialogPart(dialog, '[data-rotation-import-report]'),
+    presetSelect: dialog.querySelector<HTMLSelectElement>('[data-rotation-import-preset]'),
+    presetButton: dialog.querySelector<HTMLButtonElement>('[data-rotation-import-preset-load]'),
+    applyButton: requiredDialogPart(dialog, '[data-rotation-import-apply]'),
+    closeButton: requiredDialogPart(dialog, '[data-dialog-close]')
   };
 }
 
-/** Renders technical import notices as labeled items that can be scanned independently. */
-function renderWarnings(element: HTMLElement, warnings: readonly string[]): void {
-  element.replaceChildren();
-  const list = element.ownerDocument.createElement('ul');
-  list.className = 'rotation-import-warning-list';
-  for (const warning of warnings) {
-    const item = element.ownerDocument.createElement('li');
-    const separator = warning.indexOf(':');
-    if (separator > 0 && separator < 40) {
-      const label = element.ownerDocument.createElement('strong');
-      label.textContent = warning.slice(0, separator);
-      item.append(label, warning.slice(separator + 1).trim());
-    } else {
-      item.textContent = warning;
-    }
-
-    list.append(item);
-  }
-
-  element.append(list);
-}
-
 /** Renders read-only combat-log evidence separately from reconstruction warnings. */
-function renderObservations(element: HTMLElement, observations: readonly RotationImportObservation[]): void {
-  element.replaceChildren();
-  const list = element.ownerDocument.createElement('ul');
-  list.className = 'rotation-import-observation-list';
-  for (const observation of observations) {
-    const item = element.ownerDocument.createElement('li');
-    const title = element.ownerDocument.createElement('strong');
-    const summary = element.ownerDocument.createElement('div');
-    const detail = element.ownerDocument.createElement('small');
-    title.textContent = observation.title;
-    summary.className = 'rotation-import-observation-summary';
-    summary.textContent = observation.summary;
-    detail.className = 'rotation-import-observation-detail';
-    detail.textContent = observation.detail;
-    item.append(title, summary, detail);
-    list.append(item);
-  }
-
-  element.append(list);
+function renderObservations(list: HTMLElement, observations: readonly RotationImportObservation[]): void {
+  const document = list.ownerDocument;
+  list.replaceChildren(
+    ...observations.map((observation) => {
+      const item = document.createElement('li');
+      const title = document.createElement('strong');
+      const summary = document.createElement('div');
+      const detail = document.createElement('small');
+      title.textContent = observation.title;
+      summary.className = 'rotation-import-observation-summary';
+      summary.textContent = observation.summary;
+      detail.className = 'rotation-import-observation-detail';
+      detail.textContent = observation.detail;
+      item.append(title, summary, detail);
+      return item;
+    })
+  );
+  list.hidden = observations.length === 0;
 }
 
 /** Connects a rotation destination to JSON, EVTC, dps.report, and optional manifest previews. */
@@ -343,30 +315,17 @@ export function bindRotationImportDialog(
   button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report/gw2wingman log';
 
   const elements = createDialog(button.ownerDocument, destination);
-  const manifestCandidates = destination === 'reference' ? app.templatePresets.filter((preset) => preset.rotation) : [];
-  const manifestBuilds = Promise.all(
-    manifestCandidates.map(async (preset) => {
-      try {
-        return { preset, build: await fetchJsonAsset(preset.build) };
-      } catch {
-        return null;
-      }
-    })
-  );
   let manifestRotations: BuildTemplatePreset[] = [];
-  if (elements.presetSelect && elements.presetButton) {
-    const placeholder = button.ownerDocument.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Loading compatible rotations…';
-    elements.presetSelect.append(placeholder);
-    elements.presetSelect.disabled = true;
-    elements.presetButton.disabled = true;
-  }
-
+  let manifestGeneration = 0;
   let importing = false;
   let activePreview: RotationImportPreview | null = null;
-  let importGeneration = 0;
-  let validatePreviewDestination = (): void => {};
+
+  const clearNotices = (): void => {
+    elements.error.hidden = true;
+    elements.error.textContent = '';
+    renderImportNotices(elements.warnings, []);
+    renderObservations(elements.observations, []);
+  };
 
   const resetMessages = (): void => {
     activePreview = null;
@@ -376,101 +335,84 @@ export function bindRotationImportDialog(
       destination === 'reference'
         ? 'Select a file, enter a link, or choose an existing rotation.'
         : 'Select a file or enter a link to begin.';
-    elements.error.hidden = true;
-    elements.error.textContent = '';
-    elements.warnings.hidden = true;
-    elements.warnings.replaceChildren();
-    elements.observations.hidden = true;
-    elements.observations.replaceChildren();
+    clearNotices();
   };
 
-  const setImporting = (value: boolean): void => {
-    importing = value;
-    elements.browseButton.disabled = value;
-    elements.reportButton.disabled = value;
-    elements.reportInput.disabled = value;
-    if (elements.presetSelect) elements.presetSelect.disabled = value || !manifestRotations.length;
-    if (elements.presetButton) {
-      elements.presetButton.disabled = value || !elements.presetSelect?.value;
+  const importer = createImportPreviewController<RotationImportPreview>(app, {
+    begin(message) {
+      activePreview = null;
+      elements.status.classList.remove('is-success');
+      elements.status.textContent = message;
+      clearNotices();
+    },
+    ready(preview) {
+      activePreview = preview;
+      elements.status.classList.add('is-success');
+      elements.status.textContent = `Ready to apply: ${preview.description} (${preview.actionCount} action${preview.actionCount === 1 ? '' : 's'}).`;
+      renderImportNotices(elements.warnings, preview.warnings);
+      renderObservations(elements.observations, preview.observations);
+    },
+    fail(message, error) {
+      elements.status.textContent = message;
+      elements.error.hidden = false;
+      elements.error.textContent = errorMessage(error);
+    },
+    setLoading(value) {
+      importing = value;
+      elements.browseButton.disabled = value;
+      elements.reportButton.disabled = value;
+      elements.reportInput.disabled = value;
+      if (elements.presetSelect) elements.presetSelect.disabled = value || !manifestRotations.length;
+      if (elements.presetButton) elements.presetButton.disabled = value || !elements.presetSelect?.value;
+      elements.closeButton.disabled = value;
+      elements.applyButton.disabled = value || !activePreview;
+    },
+    settled() {
+      fileInput.value = '';
     }
-
-    elements.closeButton.disabled = value;
-    elements.applyButton.disabled = value || !activePreview;
-  };
+  });
 
   const populateManifestRotations = async (): Promise<void> => {
-    if (!elements.presetSelect || !elements.presetButton) return;
-    elements.presetSelect.disabled = true;
-    elements.presetButton.disabled = true;
+    const { presetSelect, presetButton } = elements;
+    if (!presetSelect || !presetButton) return;
+    const request = ++manifestGeneration;
+    presetSelect.disabled = true;
+    presetButton.disabled = true;
     const placeholder = button.ownerDocument.createElement('option');
     placeholder.value = '';
     placeholder.textContent = 'Loading compatible rotations…';
-    elements.presetSelect.replaceChildren(placeholder);
-    manifestRotations = (await manifestBuilds)
-      .filter((entry) => entry && manifestRotationMatchesBuild(entry.build, app.build))
-      .map((entry) => entry!.preset);
+    presetSelect.replaceChildren(placeholder);
+    // Builds download on first open only; later opens and comparison re-entries reuse them.
+    const entries = await loadManifestBuilds(app.templatePresets);
+    // A reopen while loading repopulates the list; drop this older result instead of appending duplicates.
+    if (request !== manifestGeneration) return;
+    manifestRotations = entries
+      .filter((entry): entry is ManifestBuildEntry => entry !== null)
+      .filter((entry) => manifestRotationMatchesBuild(entry.build, app.build))
+      .map((entry) => entry.preset);
     placeholder.textContent = manifestRotations.length ? 'Choose a compatible rotation…' : 'No compatible rotations';
     manifestRotations.forEach((preset, index) => {
       const option = button.ownerDocument.createElement('option');
       option.value = String(index);
       option.textContent = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
-      elements.presetSelect?.append(option);
+      presetSelect.append(option);
     });
-    elements.presetSelect.disabled = !manifestRotations.length;
+    presetSelect.disabled = importing || !manifestRotations.length;
   };
 
-  const showReadyPreview = (imported: RotationImportPreview): void => {
-    activePreview = imported;
-    elements.status.classList.add('is-success');
-    elements.status.textContent = `Ready to apply: ${imported.description} (${imported.actionCount} action${imported.actionCount === 1 ? '' : 's'}).`;
-    elements.warnings.hidden = imported.warnings.length === 0;
-    renderWarnings(elements.warnings, imported.warnings);
-    elements.observations.hidden = imported.observations.length === 0;
-    renderObservations(elements.observations, imported.observations);
+  const selectFile = (file: File): void => {
+    void importer.load(
+      () => previewRotationFile(file, app),
+      `Reading ${file.name}…`,
+      `Could not import ${file.name}.`
+    );
   };
-
-  /** Closing or switching tabs invalidates previews as well as the eventual apply action. */
-  const loadPreview = async (
-    load: () => Promise<RotationImportPreview>,
-    loadingMessage: string,
-    failureMessage: string
-  ): Promise<void> => {
-    if (importing) return;
-    const generation = ++importGeneration;
-    const validateDestination = captureBuildDestination(app);
-    activePreview = null;
-    setImporting(true);
-    elements.status.classList.remove('is-success');
-    elements.status.textContent = loadingMessage;
-    elements.error.hidden = true;
-    elements.warnings.hidden = true;
-    elements.observations.hidden = true;
-    try {
-      const preview = await load();
-      if (generation !== importGeneration) return;
-      validateDestination();
-      validatePreviewDestination = validateDestination;
-      showReadyPreview(preview);
-    } catch (error) {
-      if (generation !== importGeneration) return;
-      elements.status.textContent = failureMessage;
-      elements.error.hidden = false;
-      elements.error.textContent = errorMessage(error);
-    } finally {
-      fileInput.value = '';
-      if (generation === importGeneration) setImporting(false);
-    }
-  };
-
-  const selectFile = (file: File): Promise<void> =>
-    loadPreview(() => previewRotationFile(file, app), `Reading ${file.name}…`, `Could not import ${file.name}.`);
 
   const selectReport = async (): Promise<void> => {
-    if (importing) return;
     const input = elements.reportInput.value.trim();
-    if (!input) return;
+    if (importing || !input) return;
     const wingman = isWingmanUrl(input);
-    await loadPreview(
+    await importer.load(
       () => (wingman ? previewWingmanUrl(input, app) : previewDpsReportUrl(input, app)),
       wingman ? 'Fetching gw2wingman…' : 'Fetching dps.report…',
       wingman ? 'Could not import the gw2wingman link.' : 'Could not import the dps.report link.'
@@ -481,7 +423,7 @@ export function bindRotationImportDialog(
     if (importing || !elements.presetSelect?.value) return;
     const preset = manifestRotations[Number(elements.presetSelect.value)];
     if (!preset) return;
-    await loadPreview(
+    await importer.load(
       () => previewManifestRotation(preset, app),
       'Loading existing rotation…',
       'Could not load the existing rotation.'
@@ -493,7 +435,7 @@ export function bindRotationImportDialog(
     showDialog(elements.dialog);
     void populateManifestRotations();
   });
-  elements.browseButton.addEventListener('click', () => fileInput.click());
+  bindImportFileSources(elements.dropZone, elements.browseButton, fileInput, selectFile);
   elements.reportButton.addEventListener('click', () => void selectReport());
   elements.reportInput.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return;
@@ -507,7 +449,7 @@ export function bindRotationImportDialog(
   elements.applyButton.addEventListener('click', () => {
     if (!activePreview) return;
     try {
-      validatePreviewDestination();
+      importer.validateDestination();
     } catch (error) {
       resetMessages();
       elements.error.hidden = false;
@@ -521,29 +463,7 @@ export function bindRotationImportDialog(
     elements.dialog.close();
   });
   elements.dialog.addEventListener('close', () => {
-    importGeneration += 1;
     activePreview = null;
-    setImporting(false);
-  });
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) void selectFile(file);
-  });
-  for (const eventName of ['dragenter', 'dragover']) {
-    elements.dropZone.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      elements.dropZone.classList.add('is-dragging');
-    });
-  }
-
-  elements.dropZone.addEventListener('dragleave', (event) => {
-    event.preventDefault();
-    elements.dropZone.classList.remove('is-dragging');
-  });
-  elements.dropZone.addEventListener('drop', (event) => {
-    event.preventDefault();
-    elements.dropZone.classList.remove('is-dragging');
-    const file = event.dataTransfer?.files[0];
-    if (file) void selectFile(file);
+    importer.cancel();
   });
 }

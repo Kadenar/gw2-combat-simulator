@@ -122,16 +122,15 @@ function persistMyBuilds(app: ProfessionAppState, builds: readonly MyBuild[]): v
   );
 }
 
-/** Saves the current build as a new named snapshot or replaces the selected snapshot in place. */
-export function saveMyBuild(
-  app: ProfessionAppState,
-  builds: readonly MyBuild[],
-  name: string,
-  id?: string,
-  category?: string
-): MyBuild[] {
+/**
+ * Saves the current build as a new named snapshot or replaces the selected snapshot in place.
+ *
+ * Merges into the stored library rather than a caller's copy, so a save from another browser tab is never lost.
+ */
+export function saveMyBuild(app: ProfessionAppState, name: string, id?: string, category?: string): MyBuild[] {
   const cleanName = name.trim().slice(0, 80);
   if (!cleanName) throw new TypeError('Build name is required.');
+  const builds = loadMyBuilds(app.adapter);
   if (id && !builds.some((entry) => entry.id === id)) throw new TypeError('Saved build no longer exists.');
   const saved = {
     id: id || crypto.randomUUID(),
@@ -144,10 +143,11 @@ export function saveMyBuild(
   return next;
 }
 
-/** Deletes one user-owned snapshot without affecting any open build tab. */
-export function deleteMyBuild(app: ProfessionAppState, builds: readonly MyBuild[], id: string): MyBuild[] {
+/** Deletes one user-owned snapshot from the stored library without affecting any open build tab. */
+export function deleteMyBuild(app: ProfessionAppState, id: string): MyBuild[] {
+  const builds = loadMyBuilds(app.adapter);
   const next = builds.filter((entry) => entry.id !== id);
-  if (next.length === builds.length) return [...builds];
+  if (next.length === builds.length) return builds;
   persistMyBuilds(app, next);
   return next;
 }
