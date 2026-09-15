@@ -38,6 +38,7 @@ import {
   necromancerGreatswordSkillMechanicHandlers,
   necromancerGreatswordTaskHandlers
 } from '#gw2/professions/necromancer/core/execution/greatsword.js';
+import { necromancerSpearTaskHandlers } from '#gw2/professions/necromancer/core/execution/spear.js';
 import { necromancerSwordTaskHandlers } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 import {
   applyNecromancerAfterCastTraits,
@@ -60,6 +61,7 @@ const necromancerSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     ...necromancerSwordTaskHandlers,
     ...necromancerGreatswordTaskHandlers,
+    ...necromancerSpearTaskHandlers,
     ...necromancerMinionTaskHandlers
   })
 });

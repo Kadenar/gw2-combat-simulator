@@ -1508,6 +1508,30 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
   assert.match(expiredFollowUp.warnings.join(' '), /Distress is unavailable/);
 });
 
+test('Perforate consumes one shard per strike after concurrent Distress', () => {
+  // Distress grants six shards during the channel before Perforate's first strike consumes one.
+  const result = simulate(
+    'Harbinger',
+    ['Isolate', 'Perforate', { type: 'cast', skillId: ID.DISTRESS, concurrentOffsetMs: 80 }],
+    {
+      initialResource: 0,
+      primaryWeapon: 'Spear'
+    }
+  );
+  const perforate = result.steps.find((step) => step.skillId === ID.PERFORATE);
+  const distress = result.steps.find((step) => step.skillId === ID.DISTRESS);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(distress.start > perforate.start && distress.start < perforate.end);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'necromancer.state' && event.reason === 'perforate')
+      .map((event) => event.state.soulShards),
+    [5, 4, 3, 2, 1, 0]
+  );
+  assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
+});
+
 test('Addle grants four shards to defiant foes and checks activation shards', () => {
   const normal = simulate('Harbinger', ['Addle'], {
     initialResource: 0,

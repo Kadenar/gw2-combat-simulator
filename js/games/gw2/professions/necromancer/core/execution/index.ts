@@ -66,9 +66,7 @@ const handlers = Object.freeze({
     afterEffects: necromancerTorchSkillHandlers['necromancer.oppressive-collapse']
   }),
   'necromancer.perforate': augmentSkill({
-    beforeEffects: necromancerSpearSkillHandlers['necromancer.perforate'].prepare,
-    afterEffect: necromancerSpearSkillHandlers['necromancer.perforate'].afterEffect,
-    afterEffects: necromancerSpearSkillHandlers['necromancer.perforate'].complete
+    afterEffect: necromancerSpearSkillHandlers['necromancer.perforate']
   }),
   'necromancer.distress': replaceSkill({
     beforeEffects: necromancerSpearSkillHandlers['necromancer.distress']

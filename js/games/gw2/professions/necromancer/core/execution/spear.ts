@@ -6,6 +6,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -16,17 +17,13 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type {
   NecromancerCastContext,
+  NecromancerSchedulerContext,
   NecromancerSimulationEvent,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-interface PerforateState {
-  readonly at: number;
-  readonly shardCount: number;
-  readonly interrupted?: boolean;
-}
-
 const SOUL_SHARDS_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png';
+const PERFORATE_SOUL_SHARD_TASK = 'necromancer.perforate-soul-shard';
 
 // Updates Soul Shards and records the resource change at the same simulation timestamp.
 function addShards(
@@ -76,9 +73,9 @@ function extirpate(context: NecromancerCastContext, skill: NecromancerSkill, eve
   addShards(context, skill, 2, 'extirpate', event.at);
 }
 
-// Scales a spear packet from the captured Soul Shard count while preserving source metadata.
+// Emits one Soul Shard bonus packet for the Perforate strike that consumed it.
 function soulShardDamage(
-  context: NecromancerCastContext,
+  context: NecromancerSchedulerContext,
   skill: NecromancerSkill,
   at: number,
   index: number,
@@ -112,31 +109,32 @@ function soulShardDamage(
   });
 }
 
-// Captures and consumes the shards available to a completed Perforate cast for its per-hit follow-up damage.
-function preparePerforate(context: NecromancerCastContext): PerforateState {
-  const at = context.effectiveEnd;
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return { at, shardCount: 0, interrupted: true };
-  return { at, shardCount: consumeSoulShards(professionCoreState(context), 6, at) };
-}
-
-// Emits Soul Shard damage only for committed Perforate packets.
+// Defers each committed Perforate packet so concurrent shard gains are visible when that individual strike starts.
 function afterPerforateEffect(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
-  event: NecromancerSimulationEvent,
-  state: unknown
+  event: NecromancerSimulationEvent
 ): void {
-  const perforateState = state as Partial<PerforateState> | null;
-  if (event?.type === 'damage' && Number(event.hitIndex || 1) <= Number(perforateState?.shardCount || 0)) {
-    soulShardDamage(context, skill, event.at, Number(event.hitIndex || 1), Number(perforateState?.shardCount || 0));
-  }
+  if (event?.type !== 'damage') return;
+  context.tasks.schedule({
+    id: `${context.reservationId}:perforate-soul-shard:${Number(event.hitIndex || 1)}`,
+    type: PERFORATE_SOUL_SHARD_TASK,
+    at: event.at,
+    ownerId: context.reservationId,
+    payload: {
+      skillId: skill.id,
+      hitIndex: Number(event.hitIndex || 1),
+      totalHits: Math.min(6, Number(event.totalHits || 1))
+    }
+  });
 }
 
-// Publishes the post-consumption shard state once a non-interrupted Perforate finishes resolving.
-function completePerforate(context: NecromancerCastContext, _skill: NecromancerSkill, state: unknown): void {
-  const perforateState = state as Partial<PerforateState> | null;
-  if (perforateState?.interrupted) return;
-  emitNecromancerStateSnapshot(context, perforateState?.at ?? context.effectiveEnd, 'perforate', {
+// Consumes one currently active shard and emits its bonus damage at the matching Perforate strike.
+function handlePerforateSoulShard(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+  const skill = context.catalog.skillsById.get(Number(task.payload?.skillId)) as NecromancerSkill | undefined;
+  if (!skill || consumeSoulShards(professionCoreState(context), 1, task.at) === 0) return;
+  soulShardDamage(context, skill, task.at, Number(task.payload?.hitIndex || 1), Number(task.payload?.totalHits || 1));
+  emitNecromancerStateSnapshot(context, task.at, 'perforate', {
     dedupeAcrossSourceIds: true
   });
 }
@@ -156,10 +154,11 @@ export const necromancerSpearSkillHandlers = Object.freeze({
   'necromancer.sinister-stab': sinisterStab,
   'necromancer.addle': addle,
   'necromancer.extirpate': extirpate,
-  'necromancer.perforate': Object.freeze({
-    prepare: preparePerforate,
-    afterEffect: afterPerforateEffect,
-    complete: completePerforate
-  }),
+  'necromancer.perforate': afterPerforateEffect,
   'necromancer.distress': distress
+});
+
+/** Exposes Perforate's per-strike shard consumption to Core task composition. */
+export const necromancerSpearTaskHandlers = Object.freeze({
+  [PERFORATE_SOUL_SHARD_TASK]: handlePerforateSoulShard
 });
