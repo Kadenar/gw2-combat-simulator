@@ -204,6 +204,7 @@ export interface MesmerAmbushStrike {
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly MesmerAttackStatus[];
+  readonly boons?: readonly MesmerAttackStatus[];
 }
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */
@@ -211,8 +212,6 @@ export interface MesmerAmbushAttack extends MesmerSkill {
   readonly balanceProfileId?: SkillId;
   readonly player: MesmerAmbushStrike;
   readonly clone: MesmerAmbushStrike;
-  readonly playerBoons?: readonly MesmerAttackStatus[];
-  readonly cloneBoons?: readonly MesmerAttackStatus[];
   readonly vulnerability?: {
     readonly duration: number;
     readonly stacks: number;

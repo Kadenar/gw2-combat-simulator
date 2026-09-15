@@ -216,7 +216,7 @@ export function createMirageActionController({
         });
       }
 
-      for (const boon of ambush.cloneBoons || []) {
+      for (const boon of ambush.clone.boons || []) {
         addBoon(impactAt, boon, `${ambush.name} — Clone`, 'summon');
       }
     }
@@ -355,7 +355,7 @@ export function createMirageActionController({
       mirageState.from(state).riddleOfSandReady = false;
     }
 
-    for (const boon of ambush.playerBoons || []) {
+    for (const boon of ambush.player.boons || []) {
       for (const packetAt of impactTimes) {
         addBoon(packetAt, boon, ambush.name, 'player', ambush.id === ID.CHAOS_VORTEX ? 'party' : 'self');
       }

@@ -268,6 +268,13 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
         { atMs: 360, coefficient: 3.1875 / 3 },
         { atMs: 520, coefficient: 3.1875 / 3 },
         { atMs: 680, coefficient: 3.1875 / 3 }
+      ],
+      boons: [
+        {
+          name: 'Might',
+          duration: 5,
+          stacks: 2
+        }
       ]
     },
     clone: {
@@ -275,13 +282,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       hits: 3,
       atMs: 0
     },
-    playerBoons: [
-      {
-        name: 'Might',
-        duration: 5,
-        stacks: 2
-      }
-    ],
     vulnerability: {
       duration: 5,
       stacks: 2
@@ -303,20 +303,20 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     player: {
       coefficient: 2.6,
       hits: 4,
-      atMs: 0
+      atMs: 0,
+      boons: [
+        {
+          name: 'Vigor',
+          duration: 4,
+          stacks: 1
+        }
+      ]
     },
     clone: {
       coefficient: 1.2,
       hits: 4,
       atMs: 0
-    },
-    playerBoons: [
-      {
-        name: 'Vigor',
-        duration: 4,
-        stacks: 1
-      }
-    ]
+    }
   },
   Scepter: {
     id: ID.ETHER_BARRAGE,
@@ -378,7 +378,7 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     slot: 'Weapon_1',
     specialization: 'Mirage',
     ambush: true,
-    interruptCommitMs: 840,
+    interruptMode: 'per-packet',
     effects: [],
     player: {
       // Fractured Glass applies one strike and one Vulnerability stack at each measured packet.
@@ -428,6 +428,18 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
           duration: 10,
           stacks: 1
         }
+      ],
+      boons: [
+        {
+          name: 'Might',
+          duration: 15,
+          stacks: 2
+        },
+        {
+          name: 'Fury',
+          duration: 2,
+          stacks: 1
+        }
       ]
     },
     clone: {
@@ -450,32 +462,20 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
           duration: 3,
           stacks: 1
         }
+      ],
+      boons: [
+        {
+          name: 'Might',
+          duration: 15,
+          stacks: 2
+        },
+        {
+          name: 'Fury',
+          duration: 2,
+          stacks: 1
+        }
       ]
-    },
-    playerBoons: [
-      {
-        name: 'Might',
-        duration: 15,
-        stacks: 2
-      },
-      {
-        name: 'Fury',
-        duration: 2,
-        stacks: 1
-      }
-    ],
-    cloneBoons: [
-      {
-        name: 'Might',
-        duration: 15,
-        stacks: 2
-      },
-      {
-        name: 'Fury',
-        duration: 2,
-        stacks: 1
-      }
-    ]
+    }
   },
   Sword: {
     id: ID.MIRAGE_THRUST,

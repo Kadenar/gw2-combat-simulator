@@ -92,12 +92,12 @@ export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): Bal
       ...(attack.player.conditions || []).flatMap((status) =>
         Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Player'))
       ),
-      ...(attack.playerBoons || []).map((status) => boonStatusEffect(status, 'Player')),
+      ...(attack.player.boons || []).map((status) => boonStatusEffect(status, 'Player')),
       ambushStrikeEffect(attack.clone, 'Clone'),
       ...(attack.clone.conditions || []).flatMap((status) =>
         Array.from({ length: Number(status.applications ?? 1) }, () => attackStatusEffect(status, 'Clone'))
       ),
-      ...(attack.cloneBoons || []).map((status) => boonStatusEffect(status, 'Clone')),
+      ...(attack.clone.boons || []).map((status) => boonStatusEffect(status, 'Clone')),
       ...(attack.vulnerability
         ? [
             {
@@ -156,7 +156,8 @@ export function mesmerProfiledAmbush(
             atMs: Number(playerStrike?.atMs ?? attack.player.atMs),
             ticks: undefined
           }),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Player') : attack.player.conditions
+      conditions: profile ? profileStatuses(profile, 'condition', 'Player') : attack.player.conditions,
+      boons: profile ? profileStatuses(profile, 'boon', 'Player') : attack.player.boons
     },
     clone: {
       ...attack.clone,
@@ -168,10 +169,9 @@ export function mesmerProfiledAmbush(
             atMs: Number(cloneStrike?.atMs ?? attack.clone.atMs),
             ticks: undefined
           }),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Clone') : attack.clone.conditions
+      conditions: profile ? profileStatuses(profile, 'condition', 'Clone') : attack.clone.conditions,
+      boons: profile ? profileStatuses(profile, 'boon', 'Clone') : attack.clone.boons
     },
-    playerBoons: profile ? profileStatuses(profile, 'boon', 'Player') : attack.playerBoons,
-    cloneBoons: profile ? profileStatuses(profile, 'boon', 'Clone') : attack.cloneBoons,
     vulnerability: vulnerability
       ? {
           duration: Number(vulnerability.duration || 0),
