@@ -129,7 +129,7 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   }
 }
 
-// Apply completed Rage-skill Burning and primal-burst party boons independently
+// Apply player-owned Rage-skill Burning and primal-burst party boons independently
 // from Berserk duration extension.
 function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!isComplete(context)) return;
@@ -140,6 +140,7 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
       source: 'Trait',
       sourceId: TRAIT.LAST_BLAZE,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
       name: 'Last Blaze — Burning',
@@ -327,6 +328,7 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
     source: 'Trait',
     sourceId: TRAIT.KING_OF_FIRES,
     actorType: 'effect',
+    ownerActorType: 'player',
     skillId: skill.id,
     skillName: skill.name
   } as const;

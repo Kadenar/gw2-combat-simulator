@@ -138,6 +138,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     duration: Number(shadeCondition?.duration || 0)
   });
 
+  // Sadistic Searing remains effect-sourced while player ownership lets equipment react to its Burning.
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(context, TRAIT.SADISTIC_SEARING)) {
     const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sadisticSearing), 'condition');
     emitSkillCondition(context, skill, {
@@ -145,6 +146,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       source: 'Trait',
       sourceId: TRAIT.SADISTIC_SEARING,
       actorType: 'effect',
+      ownerActorType: 'player',
       condition: String(condition?.condition || ''),
       stacks: Number(condition?.stacks ?? 1),
       duration: Number(condition?.duration || 0)

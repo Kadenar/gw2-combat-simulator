@@ -29,7 +29,7 @@ interface TraitVulnerabilityDefinition {
   readonly duration: number;
 }
 
-/** Applies a trait-owned condition immediately and records its proc attribution. */
+/** Applies a player-owned trait condition immediately so equipment triggers and chained reactions can observe it. */
 export function applyTraitCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -46,6 +46,7 @@ export function applyTraitCondition(
     source: 'Trait',
     sourceId: traitId,
     actorType: 'effect',
+    ownerActorType: 'player',
     triggeredBy: event.skillName,
     ...(procCount == null ? {} : { metadata: { procCount } })
   };

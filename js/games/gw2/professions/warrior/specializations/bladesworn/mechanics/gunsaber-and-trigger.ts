@@ -562,6 +562,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
       source: 'Warrior',
       sourceId: ID.OVERCHARGED_CARTRIDGES,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: event.skillId,
       skillName: event.skillName,
       name: 'Overcharged Cartridges — Burning',

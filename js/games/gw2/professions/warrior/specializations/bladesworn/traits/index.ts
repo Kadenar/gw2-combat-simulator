@@ -78,6 +78,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
       source: 'Trait',
       sourceId: traitId,
       actorType: 'effect',
+      ownerActorType: 'player',
       skillId: ID.UNSHEATHE_GUNSABER,
       skillName: 'Unsheathe Gunsaber',
       name: 'Sharp as the Wind — Burning',

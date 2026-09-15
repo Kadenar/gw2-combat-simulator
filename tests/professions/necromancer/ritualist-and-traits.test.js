@@ -455,6 +455,50 @@ test('Necromancer trait procs resolve from real event state', () => {
   assert.ok(deathlyChill.resolvedEvents.some((event) => event.name === 'Deathly Chill - Bleeding'));
 });
 
+test('Last Tyrant counts Necromancer trait Burning', () => {
+  const dhuumfire = simulate('Core', ['Death Shroud', ...Array(6).fill('Life Blast'), 'End Death Shroud'], {
+    relic: 'Last Tyrant',
+    selectedTraitIds: [TRAIT.DHUUMFIRE]
+  });
+  const demonicLore = simulate('Scourge', ['Manifest Sand Shade', { type: 'wait', durationMs: 3100 }], {
+    initialResource: 100,
+    relic: 'Last Tyrant',
+    selectedTraitIds: [TRAIT.DEMONIC_LORE]
+  });
+  const sadisticSearing = simulate(
+    'Scourge',
+    ['Manifest Sand Shade', 'Nefarious Favor', { type: 'wait', durationMs: 1000 }],
+    { initialResource: 100, relic: 'Last Tyrant', selectedTraitIds: [TRAIT.SADISTIC_SEARING] }
+  );
+
+  assert.equal(
+    dhuumfire.resolvedEvents.filter((event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning')
+      .length,
+    6
+  );
+  assert.equal(
+    dhuumfire.resolvedEvents.filter((event) => event.sourceId === 'relic.last-tyrant' && event.type === 'damage')
+      .length,
+    1
+  );
+  for (const [result, sourceId] of [
+    [dhuumfire, TRAIT.DHUUMFIRE],
+    [demonicLore, TRAIT.DEMONIC_LORE],
+    [sadisticSearing, TRAIT.SADISTIC_SEARING]
+  ]) {
+    assert.equal(
+      result.resolvedEvents.some(
+        (event) => event.sourceId === sourceId && event.condition === 'Burning' && event.ownerActorType === 'player'
+      ),
+      true
+    );
+    assert.equal(
+      result.procSteps.some((step) => step.skill === 'Relic of the Last Tyrant' && step.detail === '1/5 stacks'),
+      true
+    );
+  }
+});
+
 test('migrated Core trait lines retain previously uncovered threshold, blind, heal, and fear behavior', () => {
   const threshold = simulate('Core', ['Ghastly Claws'], {
     primaryWeapon: 'Axe',
