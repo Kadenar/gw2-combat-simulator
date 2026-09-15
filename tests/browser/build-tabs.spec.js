@@ -478,8 +478,11 @@ test('mobile actions export, import, reset, and delete the active build', async 
   await exportDialog.getByRole('textbox', { name: 'File name', exact: true }).fill('My mobile build');
   await exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
   expect((await download).suggestedFilename()).toBe('My mobile build.json');
-  const chooser = page.waitForEvent('filechooser');
   await buildAction(page, /Import$/);
+  const importDialog = page.locator('.build-file-import-dialog');
+  await expect(importDialog).toBeVisible();
+  const chooser = page.waitForEvent('filechooser');
+  await importDialog.getByRole('button', { name: 'Browse files', exact: true }).click();
   await (
     await chooser
   ).setFiles({
@@ -487,6 +490,10 @@ test('mobile actions export, import, reset, and delete the active build', async 
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify({ ...original, targetArmor: 2400 }))
   });
+  const apply = importDialog.locator('[data-build-file-apply]');
+  await expect(apply).toBeEnabled();
+  await apply.click();
+  await expect(importDialog).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
   page.once('dialog', (dialog) => dialog.dismiss());
   await tabAction(page, 'Reset build');

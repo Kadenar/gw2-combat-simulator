@@ -10,11 +10,7 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/options.js';
-import {
-  getBuildExportPayload,
-  getBuildWithRotationExportPayload,
-  getRotationItems
-} from '#gw2/app/build/io/files.js';
+import { getBuildExportPayload, getBuildWithRotationExportPayload, getRotationItems } from '#gw2/app/build/io/files.js';
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
@@ -1291,7 +1287,10 @@ test('build file import detects which parts a file carries', async () => {
   assert.equal(bare.build, null);
   assert.throws(() => previewBuildFileImport({}, 'empty.json', app), /No build or rotation/);
   assert.throws(() => previewBuildFileImport({ rotation: [] }, 'empty.json', app), /No build or rotation/);
-  assert.throws(() => previewBuildFileImport({ ...source, profession: 'necromancer' }, 'other.json', app), /necromancer/);
+  assert.throws(
+    () => previewBuildFileImport({ ...source, profession: 'necromancer' }, 'other.json', app),
+    /necromancer/
+  );
 });
 
 test('build file import applies only the selected parts', async () => {
