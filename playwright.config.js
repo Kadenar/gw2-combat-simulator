@@ -6,8 +6,8 @@ export default defineConfig({
   testMatch: '**/*.spec.js',
   outputDir: 'dist/playwright-results',
   // Parallel files stay within the host's cores alongside each page's own simulation workers: four lanes locally,
-  // two on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
-  workers: process.env.CI ? 2 : 4,
+  // three on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
+  workers: process.env.CI ? 3 : 4,
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',

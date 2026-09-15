@@ -60,7 +60,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     <button type="button" class="btn btn-io build-tab-new" popovertarget="build-new-menu">+ New <span aria-hidden="true">▾</span></button>
     <div id="build-new-menu" class="build-toolbar-menu" popover="auto" role="group" aria-label="New build options">
       <button type="button" data-build-tab-action="new">New blank build</button>
-      ${app.templateContainer ? '<button type="button" data-build-tab-action="browse">Browse templates…</button>' : ''}
+      <button type="button" data-build-tab-action="browse" ${app.templateContainer ? '' : 'disabled'}>Browse templates…</button>
     </div>
     <div class="build-tab-actions">
       <div class="build-toolbar-io"></div>

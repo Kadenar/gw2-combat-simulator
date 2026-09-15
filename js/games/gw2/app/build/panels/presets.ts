@@ -303,9 +303,17 @@ function mountBuildTemplateLayout(container: HTMLElement): void {
 }
 
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
+  let manifest: unknown;
   try {
-    const manifest = await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true });
-    if (!Array.isArray(manifest) || manifest.length === 0) return;
+    manifest = await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true });
+  } catch (error) {
+    // A missing manifest resolves to null above; only a genuine fetch failure reaches here, and it must stay visible.
+    console.error(`Failed to load build templates for ${app.adapter.id}:`, error);
+    return;
+  }
+
+  if (!Array.isArray(manifest) || manifest.length === 0) return;
+  try {
     const groups = templateGroupsHtml(app, manifest);
     if (!groups) return;
     const specializations = templateSpecializations(manifest);
@@ -460,8 +468,8 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       }
     });
     updateTemplateSelection(app);
-  } catch {
-    // Build templates are optional; import/export remains available without them.
+  } catch (error) {
+    console.error(`Failed to build the template picker for ${app.adapter.id}:`, error);
   }
 }
 
