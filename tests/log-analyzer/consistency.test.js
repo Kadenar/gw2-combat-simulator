@@ -496,7 +496,7 @@ test('the shared timeline subtracts accumulated simulator cast overruns from a l
   ]);
 });
 
-test('skipped aftercast jitter does not shift subsequent source timing targets', () => {
+test('skipped aftercast jitter does not shift subsequent source timing', () => {
   const retained = {
     ...fixtureSkill,
     castTimeMs: 600,
@@ -505,7 +505,6 @@ test('skipped aftercast jitter does not shift subsequent source timing targets',
   };
   const swap = { id: -3, name: 'Swap Weapons', castTimeMs: 0 };
   const origin = 137;
-  const targets = [];
   // Skip the local 40 ms gap, then recover it at the next wait instead of moving the source clock.
   const rotation = buildReplayTimeline(
     [
@@ -525,7 +524,6 @@ test('skipped aftercast jitter does not shift subsequent source timing targets',
     null,
     {
       alignWaitsToSimulatorTiming: true,
-      onReplayWait: (_, targetMs) => targets.push(targetMs),
       commandFor: ({ name, skillId, eventIndex }) => ({
         name,
         skillId,
@@ -533,7 +531,6 @@ test('skipped aftercast jitter does not shift subsequent source timing targets',
       })
     }
   );
-  assert.deepEqual(targets, [1120]);
   assert.deepEqual(
     rotation.filter(({ name }) => name === '__wait').map(({ waitMs }) => waitMs),
     [120]

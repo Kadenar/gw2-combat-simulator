@@ -9,11 +9,7 @@ import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evt
 import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import {
-  alignImportedRotationWaits,
-  appLogReconstructionOptions,
-  selectActiveBuildLogPlayer
-} from '#gw2/app/build/io/log-rotation-import.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
 import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
 
 export interface ImportedEvtcRotation {
@@ -162,11 +158,9 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
       }
     ).initialTomePages
   });
-  const waitTargets = new Map<number, number>();
   const result = rotationModule.reconstructEvtcRotation(log, app.activeCatalog, {
     playerAddress: selected.address,
-    ...reconstructionOptions,
-    onReplayWait: (index, targetMs) => waitTargets.set(index, targetMs)
+    ...reconstructionOptions
   });
   const playerAddress = BigInt(selected.address);
   const observations: RotationImportObservation[] = [];
@@ -254,17 +248,11 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
     );
   }
 
-  // Use the active build's scheduler once; report observations remain independent of replay timing.
-  const aligned = alignImportedRotationWaits(
-    normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
-    waitTargets,
-    app,
-    reconstructionOptions.professionConfig
-  );
   return {
-    rotation: aligned.rotation,
+    // Reconstruction output is an external format; canonicalize it at this boundary with its log-derived waits intact.
+    rotation: normalizeRotation(result.rotation, app.activeCatalog, { strict: true }),
     actionCount: result.actions.length,
-    warnings: [...new Set([...result.warnings, ...aligned.warnings])],
+    warnings: result.warnings,
     observations,
     playerLabel: `${selected.character} (${selected.account || selected.address})`
   };

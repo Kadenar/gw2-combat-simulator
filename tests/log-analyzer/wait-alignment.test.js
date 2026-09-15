@@ -1,25 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation-import.js';
-import { alignImportedRotationWaits } from '#gw2/app/build/io/log-rotation-import.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { event, log } from '../helpers/evtc-fixture.js';
 
-// Minimal skills expose cooldown and concurrent-lane contracts without depending on benchmark rotations.
+// Minimal skills expose a recharge the recorded casts violate without depending on benchmark rotations.
 const catalog = createCanonicalCatalog({
   generated: [
     { id: 1, name: 'Cooldown Skill', castTimeMs: 120, cooldown: 1, effects: [] },
-    { id: 2, name: 'Next Cast', castTimeMs: 120, effects: [] },
-    { id: 3, name: 'Long Cast', castTimeMs: 1200, effects: [] },
-    { id: 4, name: 'Instant', castTimeMs: 0, effects: [] }
+    { id: 2, name: 'Next Cast', castTimeMs: 120, effects: [] }
   ]
 });
 
-test('import correction uses one scheduler pass and handles cooldowns exposed by shortened waits', async () => {
+const waitDurations = (rotation) => rotation.filter((command) => command.type === 'wait').map((c) => c.durationMs);
+
+test('dps.report import keeps log-derived waits when replayed casts would be delayed', async () => {
   let initializations = 0;
   const profession = defineProfession({
     id: 'mesmer',
@@ -56,90 +54,13 @@ test('import correction uses one scheduler pass and handles cooldowns exposed by
     app
   );
 
-  assert.equal(initializations, 1);
+  // An incomplete import can contain casts the scheduler rejects or delays; that replay must not relocate idle time.
+  assert.equal(initializations, 0);
   assert.strictEqual(app.build.rotation, originalRotation);
-  assert.deepEqual(
-    imported.rotation.filter((c) => c.type === 'wait'),
-    [
-      { type: 'wait', durationMs: 360 },
-      { type: 'wait', durationMs: 160 }
-    ]
-  );
-  const replay = createScheduler({ profession }).run(imported.rotation);
-  assert.equal(replay.steps.filter((s) => s.skillId === 1).at(-1).start, 2240);
-  assert.equal(replay.steps.find((s) => s.skillId === 2).start, 2520);
-  assert.deepEqual(replay.warnings, []);
+  assert.deepEqual(waitDurations(imported.rotation), [1360, 800]);
 });
 
-test('fully absorbed waits retain the serial barrier before a concurrent input', () => {
-  const profession = defineProfession({ id: 'fixture', name: 'Fixture', catalog });
-  const rotation = [
-    { type: 'cast', skillId: 3 },
-    { type: 'cast', skillId: 4, concurrentOffsetMs: 200 },
-    { type: 'wait', durationMs: 80 },
-    { type: 'cast', skillId: 4, concurrentOffsetMs: 100 }
-  ];
-  const corrected = alignImportedRotationWaits(rotation, new Map([[2, 280]]), { adapter: { profession } }, {});
-  assert.deepEqual(corrected.rotation[2], { type: 'wait', durationMs: 0 });
-  assert.equal(rotation[2].durationMs, 80);
-  assert.equal(createScheduler({ profession }).run(corrected.rotation).steps.at(-1).start, 1200);
-  assert.deepEqual(corrected.warnings, []);
-});
-
-test('fully absorbed waits are removed when the following cast already preserves replay timing', () => {
-  const profession = defineProfession({ id: 'fixture', name: 'Fixture', catalog });
-  const rotation = [
-    { type: 'cast', skillId: 3 },
-    { type: 'wait', durationMs: 80 },
-    { type: 'cast', skillId: 2 }
-  ];
-
-  const corrected = alignImportedRotationWaits(rotation, new Map([[1, 1200]]), { adapter: { profession } }, {});
-
-  assert.deepEqual(corrected.rotation, [rotation[0], rotation[2]]);
-  assert.deepEqual(corrected.warnings, []);
-});
-
-test('wait alignment applies scheduler feedback before absorbing source idle time', () => {
-  const profession = defineProfession({
-    id: 'fixture',
-    name: 'Fixture',
-    catalog,
-    castRules: {
-      modifyRechargeDuration: (context, duration) => (context.config.cooldownReset ? 0 : duration)
-    },
-    simulation: {
-      refineSchedulerConfig: (config) => (config.cooldownReset ? null : { ...config, cooldownReset: true })
-    }
-  });
-  const rotation = [
-    { type: 'cast', skillId: 1 },
-    { type: 'cast', skillId: 1 },
-    { type: 'wait', durationMs: 40 },
-    { type: 'cast', skillId: 2 }
-  ];
-  const app = {
-    adapter: {
-      profession,
-      simulateBuild: () => ({})
-    }
-  };
-
-  const corrected = alignImportedRotationWaits(rotation, new Map([[2, 400]]), app, {});
-
-  assert.deepEqual(corrected.rotation[2], { type: 'wait', durationMs: 160 });
-  assert.equal(
-    createScheduler({ profession, config: { cooldownReset: true } })
-      .run(corrected.rotation)
-      .steps.at(-1).start,
-    400
-  );
-  assert.deepEqual(corrected.warnings, []);
-});
-
-test('EVTC wait targets use replay-relative time and feed the same correction', () => {
-  const profession = defineProfession({ id: 'mesmer', name: 'Mesmer', catalog });
-  const waitTargets = new Map();
+test('EVTC import keeps the same log-derived waits', () => {
   const imported = reconstructEvtcRotation(
     log({
       skills: [
@@ -159,25 +80,7 @@ test('EVTC wait targets use replay-relative time and feed the same correction', 
         ])
       ]
     }),
-    catalog,
-    { onReplayWait: (index, targetMs) => waitTargets.set(index, targetMs) }
+    catalog
   );
-  assert.deepEqual([...waitTargets.values()], [1600, 2520]);
-  const corrected = alignImportedRotationWaits(
-    normalizeRotation(imported.rotation, catalog, { strict: true }),
-    waitTargets,
-    { adapter: { profession } },
-    {}
-  );
-  assert.equal(createScheduler({ profession }).run(corrected.rotation).steps.at(-1).start, 2520);
-});
-
-test('scheduler wait adjustments reject invalid durations', () => {
-  const profession = defineProfession({ id: 'fixture', name: 'Fixture', catalog });
-  for (const durationMs of [-1, NaN, Infinity]) {
-    assert.throws(
-      () => createScheduler({ profession }).run([{ type: 'wait', durationMs: 40 }], () => durationMs),
-      /Adjusted wait duration must be a non-negative finite number/
-    );
-  }
+  assert.deepEqual(waitDurations(normalizeRotation(imported.rotation, catalog, { strict: true })), [1360, 800]);
 });

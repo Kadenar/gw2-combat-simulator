@@ -38,7 +38,6 @@ import type {
   SchedulerRecord,
   SchedulerRunResult,
   SchedulerStep,
-  SchedulerWaitDuration,
   SchedulerTaskAccess,
   TaskQueue
 } from '#gw2/platform/engine/execution/types.js';
@@ -1135,10 +1134,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   schedulerPolicy.initialize?.(context);
   activeProfession.initialize(context);
 
-  function run(
-    rotation: readonly unknown[],
-    adjustWaitDuration?: SchedulerWaitDuration
-  ): SchedulerRunResult<TProfessionState> {
+  function run(rotation: readonly unknown[]): SchedulerRunResult<TProfessionState> {
     const commands = normalizeRotation(rotation, activeCatalog, {
       strict: true
     });
@@ -1154,14 +1150,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         // Wait is serial: it starts only after all outstanding casts finish.
         const start = Math.max(state.time, serialReadyAt, latestReservedEnd);
         advanceTo(start);
-        // Importers can consume recorded idle time with actual cooldown delays without changing command shapes.
-        const durationMs =
-          adjustWaitDuration?.(index, Math.round(start * 1000), command.durationMs) ?? command.durationMs;
-        if (!Number.isFinite(durationMs) || durationMs < 0) {
-          throw new TypeError('Adjusted wait duration must be a non-negative finite number.');
-        }
-
-        const end = start + durationMs / 1000;
+        const end = start + command.durationMs / 1000;
         serialReadyAt = end;
         advanceTo(end);
         steps.push({

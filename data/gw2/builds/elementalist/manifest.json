@@ -167,7 +167,7 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34700,
+        "benchmarkDps": 34647,
         "upToDate": false
       }
     ]
@@ -328,8 +328,8 @@
         "build": "data/gw2/builds/elementalist/b-condi-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "dpsReportUrl": "https://dps.report/zPEa-20260421-193615_golem",
-        "benchmarkDps": 44070,
+        "dpsReportUrl": "https://dps.report/EVHT-20260423-002152_golem",
+        "benchmarkDps": 43450,
         "upToDate": true
       },
       {
@@ -337,8 +337,8 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "dpsReportUrl": "https://dps.report/2aDW-20260421-233936_golem",
-        "benchmarkDps": 39921,
+        "dpsReportUrl": "https://dps.report/EVHT-20260423-002152_golem",
+        "benchmarkDps": 39184,
         "upToDate": true
       },
       {
@@ -362,7 +362,7 @@
         "label": "Inferno SE (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-evoker-se.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-air-se-evoker.json",
-        "benchmarkDps": 40807,
+        "benchmarkDps": 40326,
         "upToDate": false
       }
     ]

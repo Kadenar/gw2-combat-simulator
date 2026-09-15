@@ -26,6 +26,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 560,
+    interruptCommitMs: 480,
     cooldown: 20,
     comboFields: [
       {
@@ -45,7 +46,8 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
           damageKind: 'field-tick'
         })),
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -57,6 +59,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]
@@ -86,6 +89,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 360,
+    interruptCommitMs: 280,
     cooldown: 10,
     nextChainId: ID.FIRE_SHIELD,
     skillFamily: 'Weapon skill',
@@ -99,7 +103,8 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -113,6 +118,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -123,6 +129,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 840,
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

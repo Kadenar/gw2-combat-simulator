@@ -680,6 +680,9 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         return;
       }
 
+      // The 12s cooldown starts at the explosion and blocks Tyrant's Fury gain until it expires.
+      if (!isInternalCooldownReady(application.at, state.readyAt)) return;
+
       const stacks = Number(state.stacks || 0);
       if (stacks < LAST_TYRANT_STACKS_NEEDED) {
         state.stacks = stacks + 1;
@@ -697,8 +700,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> = Object.fre
         return;
       }
 
-      // At max stacks of Tyrant's Fury, the next burning application explodes once the 12s cooldown allows it.
-      if (!isInternalCooldownReady(application.at, state.readyAt)) return;
+      // At max stacks of Tyrant's Fury, the next burning application explodes.
       state.stacks = 0;
       state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
       ctx.recordProc('relic', 'Relic of the Last Tyrant', application.at, application.skillName, 'explosion');

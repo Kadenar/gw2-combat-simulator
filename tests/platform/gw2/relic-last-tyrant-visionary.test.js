@@ -62,14 +62,16 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
   // The explosion's own burning does not start the next Fury cycle.
   assert.equal(relic.state.stacks, 0);
 
-  for (let at = 6; at < 12; at += 1) apply(burning(at));
-  assert.equal(relic.state.stacks, 5);
-  assert.equal(conditions.length, 1, 'cooldown blocks the second explosion');
-
-  // Internal cooldowns stay blocked through their boundary timestamp.
-  apply(burning(17));
+  // No Fury stacks build during the cooldown, including at its boundary timestamp.
+  for (let at = 6; at <= 17; at += 1) apply(burning(at));
+  assert.equal(relic.state.stacks, 0, 'cooldown blocks stack gain');
   assert.equal(conditions.length, 1);
-  apply(burning(17.25));
+
+  // Once the cooldown expires, stacks rebuild before the next explosion.
+  for (const at of [17.25, 18, 19, 20, 21]) apply(burning(at));
+  assert.equal(relic.state.stacks, 5);
+  assert.equal(conditions.length, 1);
+  apply(burning(22));
   assert.equal(conditions.length, 2);
 });
 

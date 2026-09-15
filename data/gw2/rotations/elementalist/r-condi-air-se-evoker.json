@@ -1,453 +1,273 @@
 {
   "rotation": [
-    "Dragon's Tooth",
-    {
-      "name": "Flame Barrage",
-      "offset": 0
-    },
-    {
-      "name": "Ignite",
-      "offset": 100
-    },
-    "Flamewall",
-    "Signet of Fire",
-    {
-      "name": "Cleansing Fire",
-      "offset": 318
-    },
-    {
-      "name": "Ignite",
-      "offset": 398
-    },
-    "Fox's Fury",
-    "Fire Shield",
-    "Phoenix",
-    "Transmute Fire",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 42
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 57
-    },
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 43
-    },
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 358
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 196
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 37
-    },
-    "Rejuvenate",
-    {
-      "name": "Fire Shield",
-      "offset": 204
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 201
-    },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 547
-    },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 42
-    },
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 363
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 237
-    },
-    "Phoenix",
-    {
-      "name": "Fire Shield",
-      "offset": 163
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 158
-    },
-    "Fox's Fury",
-    {
-      "name": "Cleansing Fire",
-      "offset": 41
-    },
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 41
-    },
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 409
-    },
-    "Flamewall",
-    {
-      "name": "Flame Barrage",
-      "offset": 144
-    },
-    "Signet of Fire",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 75
-    },
-    "Rejuvenate",
-    "Fire Shield",
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 121
-    },
-    "Flamestrike",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 42
-    },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 563
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 75
-    },
-    "Dragon's Tooth",
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 122
-    },
-    "Phoenix",
-    {
-      "name": "Fire Shield",
-      "offset": 243
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 321
-    },
-    "Fox's Fury",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Conflagration",
-    {
-      "name": "Flame Barrage",
-      "offset": 307
-    },
-    {
-      "name": "Cleansing Fire",
-      "offset": 53
-    },
-    "Signet of Fire",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 280
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 202
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 42
-    },
-    "Rejuvenate",
-    {
-      "name": "Fire Shield",
-      "offset": 200
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 237
-    },
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 193
-    },
-    "Flamewall",
-    "Signet of Fire",
-    {
-      "name": "Ignite",
-      "offset": 265
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 42
-    },
-    {
-      "name": "Flame Barrage",
-      "offset": 25
-    },
-    "Fire Shield",
-    "Phoenix",
-    "Transmute Fire",
-    "Ignite",
-    {
-      "name": "Flamestrike",
-      "interruptMs": 118
-    },
-    "Fox's Fury",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    {
-      "name": "Cleansing Fire",
-      "offset": 238
-    },
-    "Phoenix",
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 359
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 121
-    },
-    "Flamestrike",
-    "Rejuvenate",
-    {
-      "name": "Fire Shield",
-      "offset": 164
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 117
-    },
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Signet of Fire",
-    "Flamestrike",
-    {
-      "name": "Flame Barrage",
-      "offset": 465
-    },
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 280
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 157
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 42
-    },
-    "Phoenix",
-    {
-      "name": "Fire Shield",
-      "offset": 196
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 322
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 117
-    },
-    "Fox's Fury",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    {
-      "name": "Cleansing Fire",
-      "offset": 163
-    },
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 242
-    },
-    "Flamewall",
-    "Signet of Fire",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 41
-    },
-    "Rejuvenate",
-    {
-      "name": "Flame Barrage",
-      "offset": 346
-    },
-    "Fire Shield",
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 159
-    },
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 242
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 121
-    },
-    "Phoenix",
-    {
-      "name": "Fire Shield",
-      "offset": 116
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 125
-    },
-    "Fox's Fury",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Conflagration",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    {
-      "name": "Flame Barrage",
-      "offset": 226
-    },
-    {
-      "name": "Cleansing Fire",
-      "offset": 257
-    },
-    "Flamestrike",
-    "Dragon's Tooth",
-    {
-      "name": "Ignite",
-      "offset": 237
-    },
-    "Flamewall",
-    "Flamestrike",
-    {
-      "name": "Ignite",
-      "offset": 200
-    },
-    {
-      "name": "Flamestrike",
-      "interruptMs": 79
-    },
-    "Rejuvenate",
-    {
-      "name": "Fire Shield",
-      "offset": 201
-    },
-    "Transmute Fire",
-    {
-      "name": "Ignite",
-      "offset": 121
-    },
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Conflagration",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike"
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 120 },
+    { "type": "cast", "skillId": 5497, "interruptAfterMs": 520 },
+    { "type": "combat-start" },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 5535, "concurrentOffsetMs": 320 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 40 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 80 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 240 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 120 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 520 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 280 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 120 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 360 },
+    { "type": "wait", "durationMs": 120 },
+    { "type": "cast", "skillId": 5497, "interruptAfterMs": 480 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 240 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5535, "concurrentOffsetMs": 320 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 280 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 240 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 40 },
+    { "type": "cast", "skillId": 2662 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 120 },
+    { "type": "cast", "skillId": 5692, "interruptAfterMs": 640 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 280 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 80 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692, "interruptAfterMs": 640 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5535 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 240 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 120 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 120 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 120 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 520 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 520 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 320 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 200 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 320 },
+    { "type": "wait", "durationMs": 160 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 160 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5535, "concurrentOffsetMs": 200 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5692, "interruptAfterMs": 640 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 280 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 200 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 76643 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711, "interruptAfterMs": 280 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675, "interruptAfterMs": 440 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 160 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692, "interruptAfterMs": 640 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 240 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 280 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 0 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5535, "concurrentOffsetMs": 120 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 200 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 80 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 76585, "interruptAfterMs": 320 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 120 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 200 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 40 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 280 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 560 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "wait", "durationMs": 40 },
+    { "type": "cast", "skillId": 5542 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 76711 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 160 },
+    { "type": "cast", "skillId": 5497 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 76643, "concurrentOffsetMs": 80 },
+    { "type": "cast", "skillId": 5535 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 5508, "interruptAfterMs": 520 },
+    { "type": "wait", "durationMs": 80 },
+    { "type": "cast", "skillId": 76634 },
+    { "type": "cast", "skillId": 76643 },
+    { "type": "cast", "skillId": 5678 },
+    { "type": "cast", "skillId": 51711 },
+    { "type": "cast", "skillId": 5675 },
+    { "type": "cast", "skillId": 5692 },
+    { "type": "cast", "skillId": 76585 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 2662, "concurrentOffsetMs": 480 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 },
+    { "type": "cast", "skillId": 5508 }
   ]
 }

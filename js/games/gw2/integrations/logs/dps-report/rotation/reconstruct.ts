@@ -253,11 +253,9 @@ function buildRotation(
   actions: readonly DpsReportResolvedAction[],
   origin: number,
   combatStart: number,
-  completeReportedAftercast: boolean,
-  onReplayWait?: DpsReportRotationOptions['onReplayWait']
+  completeReportedAftercast: boolean
 ): ReconstructedCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
-    onReplayWait,
     // Idle gaps and concurrent offsets, including legend swaps, share observed casts' 40 ms precision.
     quantizeMs: quantizeGw2ActionTimingMs,
     // EI source durations can be shorter than simulator casts, so later waits absorb that accumulated difference.
@@ -382,13 +380,7 @@ export function reconstructDpsReportWithProfile(
     timelineOriginMs: origin,
     combatStartTimestampMs: combatStart - origin,
     actions,
-    rotation: buildRotation(
-      resolved,
-      origin,
-      combatStart,
-      profile.specializationId === 'troubadour',
-      options.onReplayWait
-    ),
+    rotation: buildRotation(resolved, origin, combatStart, profile.specializationId === 'troubadour'),
     warnings: warningList(actions)
   };
 }

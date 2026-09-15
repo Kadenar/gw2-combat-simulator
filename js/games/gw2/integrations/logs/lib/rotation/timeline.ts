@@ -21,8 +21,6 @@ export interface ReplayTimelineAction {
 }
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
-  /** Reports projected wait ends relative to the replay origin without attaching metadata to commands. */
-  readonly onReplayWait?: (commandIndex: number, targetMs: number) => void;
   readonly timingToleranceMs?: number;
   /** Positive source gaps at or below this threshold are timing jitter, not intentional simulator idle time. */
   readonly minimumWaitMs?: number;
@@ -158,10 +156,6 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const appendWait = (waitMs: number): void => {
     if (!(waitMs > 0)) return;
-    if (alignWaitsToSimulatorTiming) {
-      policy.onReplayWait?.(rotation.length, Math.max(projectedTime, projectedReservedEnd) + waitMs - origin);
-    }
-
     rotation.push({ name: '__wait', waitMs });
     if (alignWaitsToSimulatorTiming) {
       projectedTime = Math.max(projectedTime, projectedReservedEnd) + waitMs;
