@@ -11,6 +11,7 @@ import {
   COMBO_FIELD_TYPES,
   COMBO_FINISHER_TYPES,
   createGw2ComboRuntimeState,
+  isComboFieldActiveAt,
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
@@ -26,6 +27,18 @@ const context = {
   state: { activeWeaponSet: 1, profession: {} },
   createActivationId: () => 'unused'
 };
+
+test('combo field boundaries use exact canonical instants', () => {
+  // Ordinary fields are half-open while explicit inclusivity retains only the exact expiry instant.
+  const field = { at: 1, expiresAt: 2 };
+  assert.equal(isComboFieldActiveAt(field, 0.999999), false);
+  assert.equal(isComboFieldActiveAt(field, 1), true);
+  assert.equal(isComboFieldActiveAt(field, 1.999999), true);
+  assert.equal(isComboFieldActiveAt(field, 2), false);
+  assert.equal(isComboFieldActiveAt({ ...field, inclusiveExpiry: true }, 2), true);
+  assert.equal(isComboFieldActiveAt({ ...field, inclusiveExpiry: true }, 2.000001), false);
+  assert.equal(isComboFieldActiveAt({ ...field, at: 0.1 + 0.2 }, 0.3), true);
+});
 
 test('the universal combo table defines every field/finisher pair once', () => {
   assert.equal(COMBO_DEFINITIONS.length, 36);

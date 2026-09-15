@@ -959,7 +959,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
         effects: [
           {
             type: 'strike',
-            coefficient: 0,
+            coefficient: 1,
             comboFinishers: [
               {
                 ownerId: 'bloodstone-fixture',
@@ -1015,6 +1015,9 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   });
   const volatility = result.procSteps.filter((step) => step.skill === 'Bloodstone Volatility');
   const fervor = result.procSteps.filter((step) => step.skill === 'Relic of Bloodstone');
+  const blasts = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Bloodstone Fixture Blast'
+  );
   const strikes = result.resolvedEvents.filter((event) => event.skillName === 'Bloodstone Fixture Strike');
   const explosion = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Bloodstone Explosion'
@@ -1032,6 +1035,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
     false
   );
   assert.equal(fervor.length, 1);
+  assertFlooredDamageMultiplier(blasts[3].damage, blasts[0].damage, 1.07);
   assertFlooredDamageMultiplier(strikes[1].damage, strikes[0].damage, 1.07);
   assert.equal(explosion.coefficient, 3);
   assert.equal(explosion.at, 0.683);

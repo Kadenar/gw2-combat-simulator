@@ -1,4 +1,4 @@
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
 
@@ -11,9 +11,9 @@ export function isResolverCriticalSigil(name: string): boolean {
   return RESOLVER_CRITICAL_SIGILS.has(name);
 }
 
-/** Lets a sigil retrigger on its exact ICD boundary despite timeline floating-point drift. */
+/** Lets a sigil retrigger at its exact canonical ICD boundary without opening an early-proc window. */
 export function isSigilInternalCooldownReady(at: number, readyAt = 0): boolean {
-  return isInternalCooldownReady(at + EPSILON, readyAt);
+  return timeKey(at) >= timeKey(readyAt);
 }
 
 /** Reports whether an event is a scheduler-only sigil prediction. */

@@ -1,6 +1,8 @@
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import {
   createGw2ComboRuntimeState,
+  isComboFieldActiveAt,
   normalizeComboFieldType,
   normalizeComboFieldSelectionAnchor,
   normalizeComboFinisherType,
@@ -141,8 +143,7 @@ function activeOwnedFields<TProfessionState extends object>(
       (event): event is ComboFieldEvent =>
         event.type === 'combo_field' &&
         event.ownerId === ownerId &&
-        event.at <= at + context.epsilon &&
-        Number(event.expiresAt) > Math.max(event.at, fieldSelectionAt) + context.epsilon
+        isComboFieldActiveAt(event as ComboFieldEvent, at, fieldSelectionAt)
     );
 }
 
@@ -167,8 +168,7 @@ function descriptorBinding<TProfessionState extends object>(
               (event): event is ComboFieldEvent =>
                 event.type === 'combo_field' &&
                 event.fieldId === explicit.fieldId &&
-                event.at <= at + context.epsilon &&
-                Number(event.expiresAt) > Math.max(event.at, fieldSelectionAt) + context.epsilon
+                isComboFieldActiveAt(event as ComboFieldEvent, at, fieldSelectionAt)
             )
         : undefined;
     return { binding: explicit, fieldAt: field?.at, warnOnUnbound: false };
@@ -267,7 +267,8 @@ function produceField<TProfessionState extends object>(
     activationId: event.activationId,
     fieldId: `${descriptor.ownerId}:${event.activationId || event.eventOrder}:field:${descriptorIndex + 1}`,
     fieldType: descriptor.fieldType,
-    expiresAt: at + descriptor.duration + (descriptor.inclusiveExpiry === true ? context.epsilon * 2 : 0),
+    expiresAt: canonicalTime(at + descriptor.duration),
+    ...(descriptor.inclusiveExpiry === true ? { inclusiveExpiry: true } : {}),
     ownerId: descriptor.ownerId,
     ownerActorType: descriptor.ownerActorType || event.actorType || 'player',
     comboBindingPriority: descriptor.comboBindingPriority

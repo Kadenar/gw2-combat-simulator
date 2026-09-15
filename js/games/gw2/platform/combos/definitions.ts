@@ -360,6 +360,8 @@ interface ComboOutcomeEventBase extends Record<string, unknown> {
 function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
   return {
     ...comboCombatMetadata(combo),
+    // Combo boons and other outcomes resolve before the damage packet that produced the finisher.
+    ...(combo.priority == null ? {} : { priority: combo.priority }),
     at: combo.at,
     source: combo.source,
     sourceId: combo.sourceId,

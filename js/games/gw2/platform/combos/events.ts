@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
@@ -145,7 +145,7 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);
     const comboBindingPriority = event.comboBindingPriority == null ? null : Number(event.comboBindingPriority);
-    if (!Number.isFinite(expiresAt) || !(expiresAt > at)) {
+    if (!Number.isFinite(expiresAt) || !(canonicalTime(expiresAt) > canonicalTime(at))) {
       throw new TypeError('Combo field expiresAt must be later than at.');
     }
 
@@ -164,7 +164,7 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
       priority: event.priority ?? -1,
       fieldId: requiredString(event.fieldId, 'Combo field fieldId'),
       fieldType: normalizeComboFieldType(event.fieldType),
-      expiresAt,
+      expiresAt: canonicalTime(expiresAt),
       ownerId: requiredString(event.ownerId, 'Combo field ownerId'),
       ...(comboBindingPriority == null ? {} : { comboBindingPriority })
     };
@@ -194,7 +194,8 @@ export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEve
 
     return {
       ...event,
-      priority: event.priority ?? 0,
+      // Finishers and their derived combo chain settle after fields (-1) but before the originating damage (0).
+      priority: event.priority ?? -0.5,
       attemptId: requiredString(event.attemptId, 'Combo finisher attemptId'),
       finisherType: normalizeComboFinisherType(event.finisherType),
       fieldBinding: normalizeComboFieldBinding(event.fieldBinding),
@@ -265,12 +266,21 @@ export function registerComboField(state: Gw2ComboRuntimeState, event: ComboFiel
   state.fields.set(event.fieldId, event);
 }
 
-function activeAt(field: ComboFieldEvent, at: number, fieldSelectionAt = at, allowFieldAtExpiry = false): boolean {
+/** Applies one canonical field-window rule to scheduler selection and resolver validation. */
+export function isComboFieldActiveAt(
+  field: ComboFieldEvent,
+  at: number,
+  fieldSelectionAt = at,
+  allowFieldAtExpiry = false
+): boolean {
   // Anchored finishers accept a field present at any point from cast start through impact.
-  const selectionAt = Math.max(field.at, fieldSelectionAt);
+  const startsAt = timeKey(field.at);
+  const impactAt = timeKey(at);
+  const selectionAt = Math.max(startsAt, timeKey(fieldSelectionAt));
+  const expiresAt = timeKey(field.expiresAt);
   return (
-    field.at <= at + EPSILON &&
-    (field.expiresAt > selectionAt + EPSILON || (allowFieldAtExpiry && field.expiresAt === selectionAt))
+    startsAt <= impactAt &&
+    (selectionAt < expiresAt || ((field.inclusiveExpiry === true || allowFieldAtExpiry) && selectionAt === expiresAt))
   );
 }
 
@@ -307,7 +317,7 @@ function boundField(
 
   if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
-    if (field && activeAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
+    if (field && isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
@@ -322,7 +332,8 @@ function boundField(
   const candidates = [...state.fields.values()]
     .filter(
       (field) =>
-        field.fieldType === binding.fieldType && activeAt(field, event.at, at, event.allowFieldAtExpiry === true)
+        field.fieldType === binding.fieldType &&
+        isComboFieldActiveAt(field, event.at, at, event.allowFieldAtExpiry === true)
     )
     .sort((left, right) => left.at - right.at);
   if (candidates[0]) return candidates[0];
@@ -382,6 +393,8 @@ export function resolveComboAttempt(
       ...comboCombatMetadata(event),
       type: 'combo' as const,
       at: event.effectAt,
+      // Preserve pre-damage placement so relic reactions and combo outcomes can affect the originating hit.
+      ...(event.priority == null ? {} : { priority: event.priority }),
       source: event.source,
       sourceId: event.sourceId,
       actorType: event.actorType,

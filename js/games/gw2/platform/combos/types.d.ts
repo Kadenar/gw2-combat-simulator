@@ -18,6 +18,8 @@ export interface ComboFieldEvent extends SimulationEventBase<'combo_field'> {
   readonly fieldId: string;
   readonly fieldType: ComboFieldType;
   readonly expiresAt: number;
+  /** Keeps only the field's exact expiry instant eligible for a finisher. */
+  readonly inclusiveExpiry?: boolean;
   readonly ownerId: string;
   readonly ownerActorType: SimulationActorType;
   readonly comboBindingPriority?: number;

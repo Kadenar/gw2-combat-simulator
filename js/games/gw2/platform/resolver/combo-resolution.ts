@@ -1,5 +1,6 @@
 import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 import {
+  isComboFieldActiveAt,
   normalizeComboFinisherType,
   registerComboField,
   resolveComboAttempt,
@@ -42,7 +43,7 @@ export function enqueueGw2OwnedComboFinisher(
   const at = Number(options.at ?? event.at);
   // Filter at the resolver timestamp; the shared selector owns field ordering.
   const fields = [...context.combo.fields.values()].filter(
-    (field) => field.ownerId === options.ownerId && field.at <= at && field.expiresAt > at
+    (field) => field.ownerId === options.ownerId && isComboFieldActiveAt(field, at)
   );
   const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
   context.queue.enqueue({

@@ -10,6 +10,14 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
+import { isSigilInternalCooldownReady } from '#gw2/platform/equipment/sigils/proc-events.js';
+
+test('sigil cooldown boundaries use exact canonical instants', () => {
+  // A sigil may proc at its boundary, never before it, including across equivalent floating-point expressions.
+  assert.equal(isSigilInternalCooldownReady(5.999999, 6), false);
+  assert.equal(isSigilInternalCooldownReady(6, 6), true);
+  assert.equal(isSigilInternalCooldownReady(0.1 + 0.2, 0.3), true);
+});
 
 test('missed attacks leave consecutive swaps out of combat', () => {
   // A retained cast must not impose combat recharge when its hostile effects miss.

@@ -17,6 +17,51 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   });
 }
 
+test('combo outcomes settle before their originating damage packet', () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({
+      type: 'combo_field',
+      at: 0,
+      source: 'Fire Field',
+      sourceId: 'fixture.fire-field',
+      actorType: 'effect',
+      fieldId: 'fixture:fire',
+      fieldType: 'Fire',
+      expiresAt: 2,
+      ownerId: 'combo-fixture',
+      ownerActorType: 'player'
+    });
+    context.emit({
+      type: 'damage',
+      at: 1,
+      source: 'Fixture Blast',
+      sourceId: 'fixture.blast',
+      actorType: 'player',
+      skillName: 'Fixture Blast',
+      coefficient: 1,
+      weaponStrength: 1000,
+      comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }]
+    });
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: 'wait', durationMs: 2000 }],
+    damageDiagnostics: true,
+    config: {
+      stats: { power: 1000, precision: 0, ferocity: 0 },
+      target: { armor: 2597, conditions: {} }
+    }
+  });
+  const mightIndex = result.resolvedEvents.findIndex((event) => event.type === 'buff' && event.kind === 'might');
+  const damageIndex = result.resolvedEvents.findIndex(
+    (event) => event.type === 'damage' && event.skillName === 'Fixture Blast'
+  );
+
+  // The blast receives the three Might stacks produced by its own successful Fire combo.
+  assert.ok(mightIndex >= 0 && mightIndex < damageIndex);
+  assert.equal(result.resolvedEvents[damageIndex].damageCalculation.power, 1090);
+});
+
 // Shortening a live field must preserve earlier combos and unbind later scheduled finishers.
 test('replacing field expiry updates combo predictions and pending bindings', () => {
   const profession = defineProfession({
@@ -716,7 +761,7 @@ test('the scheduler predicts a delayed combo result for later facts', () => {
   assert.equal(scheduler.context.hasBuff('might', 2), true);
 });
 
-test('epsilon-equal fields register before finishers by default', () => {
+test('canonically equal fields register before finishers by default', () => {
   const profession = fixtureProfession((context) => {
     context.emit({
       type: 'combo_finisher',
