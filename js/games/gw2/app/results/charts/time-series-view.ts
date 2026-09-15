@@ -398,7 +398,7 @@ function drawLineChart(
   };
 }
 
-/** Leads with projected ally support while retaining personal boon results as secondary context. */
+/** Separates ally boon supply from personal buff uptime so each table only shows relevant metrics. */
 function effectSummaryHtml(series: ChartSeries): string {
   const priority = ['Might', 'Fury', 'Protection', 'Quickness', 'Alacrity'];
   const summaries = series.effectSummaries || {};
@@ -409,9 +409,9 @@ function effectSummaryHtml(series: ChartSeries): string {
     return boon && boon.self.generatedStackSeconds + boon.allies.generatedStackSeconds > 0;
   });
   const names = [...new Set([...Object.keys(summaries), ...Object.keys(generation)])];
-  const relics = names.filter((name) => summaries[name]?.relic).sort();
-  if (!Object.keys(generation).length && !relics.length) return '';
-  const supplementary = names.filter((name) => generation[name] && !priority.includes(name)).sort();
+  if (!names.length) return '';
+  const supplementaryBoons = names.filter((name) => generation[name] && !priority.includes(name)).sort();
+  const supplementaryBuffs = names.filter((name) => summaries[name] && !generation[name]).sort();
   const duration = series.durationMs / 1000;
   const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
   // Normalize intensity supply against its cap so excess generation is not mistaken for obtainable stacks.
@@ -470,9 +470,24 @@ function effectSummaryHtml(series: ChartSeries): string {
         <tbody>${rows(effects)}</tbody>
       </table>
     </div>`;
+  const buffTable = (effects: readonly string[]): string => `
+    <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="Other buffs">
+      <table>
+        <thead><tr><th scope="col">Effect</th><th scope="col">Player uptime</th></tr></thead>
+        <tbody>${effects
+          .map(
+            (name) => `<tr>
+      <th scope="row">${escapeHtml(name)}</th>
+      <td>${percent(summaries[name]?.uptime || 0)}</td>
+    </tr>`
+          )
+          .join('')}</tbody>
+      </table>
+    </div>`;
   return `<div class="effect-summary" data-role="effect-summary">
-    ${table([...primaryBoons, ...relics], 'Boons & relics')}
-    ${supplementary.length ? `<details data-role="supplementary-boons"><summary>Other boons (${supplementary.length})</summary>${table(supplementary, 'Other boons', false)}</details>` : ''}
+    ${table(primaryBoons, 'Boons')}
+    ${supplementaryBoons.length ? `<details data-role="supplementary-boons"><summary>Other boons (${supplementaryBoons.length})</summary>${table(supplementaryBoons, 'Other boons', false)}</details>` : ''}
+    ${supplementaryBuffs.length ? `<details data-role="supplementary-buffs"><summary>Other buffs (${supplementaryBuffs.length})</summary>${buffTable(supplementaryBuffs)}</details>` : ''}
   </div>`;
 }
 

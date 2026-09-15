@@ -53,7 +53,7 @@ test('effect summaries prioritize allied generation and stay readable on narrow 
   });
   const summary = page.locator('[data-role="effect-summary"]');
   const quickness = summary
-    .getByRole('region', { name: 'Boons & relics' })
+    .getByRole('region', { name: 'Boons' })
     .getByRole('row')
     .filter({ has: page.getByRole('rowheader', { name: 'Quickness', exact: true }) });
   await expect(quickness).toContainText('75.0%');
@@ -63,14 +63,8 @@ test('effect summaries prioritize allied generation and stay readable on narrow 
   await expect(quickness.getByRole('cell').first()).toHaveText(/^60\.0015\.00 per ally/);
   await expect(quickness.getByRole('cell').last()).toHaveText(/^25\.0%/);
   await expect(summary.getByRole('region', { name: 'Allied boon generation' })).toHaveCount(0);
-  const primary = summary.getByRole('region', { name: 'Boons & relics' });
-  await expect(primary.getByRole('rowheader')).toHaveText([
-    'Might',
-    'Fury',
-    'Protection',
-    'Quickness',
-    'Relic of Fireworks'
-  ]);
+  const primary = summary.getByRole('region', { name: 'Boons' });
+  await expect(primary.getByRole('rowheader')).toHaveText(['Might', 'Fury', 'Protection', 'Quickness']);
   await expect(primary.getByRole('columnheader')).toHaveText(['Effect', 'Allied stack-seconds', 'Coverage']);
   const might = primary.getByRole('row').filter({ has: page.getByRole('rowheader', { name: 'Might', exact: true }) });
   await expect(might).toContainText('50.0% at cap');
@@ -81,14 +75,10 @@ test('effect summaries prioritize allied generation and stay readable on narrow 
   await expect(might).not.toContainText('Self-only:');
   const fury = primary.getByRole('row').filter({ has: page.getByRole('rowheader', { name: 'Fury', exact: true }) });
   await expect(fury.getByRole('cell').last()).toHaveText(/^0\.0%/);
-  const relic = primary
-    .getByRole('row')
-    .filter({ has: page.getByRole('rowheader', { name: 'Relic of Fireworks', exact: true }) });
-  await expect(relic.getByRole('cell').last()).toHaveText('Self uptime: 50.0%');
-  await expect(relic.getByRole('cell').last().locator('small')).toHaveCount(0);
-  await expect(summary).not.toContainText('Ashes Of The Just');
+  await expect(summary).toContainText('Ashes Of The Just');
   const other = summary.locator('[data-role="supplementary-boons"]');
   await expect(other).not.toHaveAttribute('open');
+  await expect(other.locator('summary')).toHaveText('Other boons (1)');
   await expect(other.locator('caption')).toHaveCount(0);
   await other.locator('summary').click();
   const resolution = other
@@ -97,9 +87,19 @@ test('effect summaries prioritize allied generation and stay readable on narrow 
   await expect(resolution.getByRole('cell').first()).toHaveText(/^0\.000\.00 per ally/);
   await expect(resolution.getByRole('cell').last()).toHaveText(/^0\.0%/);
   await other.locator('summary').click();
+  const buffs = summary.locator('[data-role="supplementary-buffs"]');
+  await expect(buffs.locator('summary')).toHaveText('Other buffs (3)');
+  await buffs.locator('summary').click();
+  await expect(buffs.getByRole('columnheader')).toHaveText(['Effect', 'Player uptime']);
+  await expect(buffs.getByRole('rowheader')).toHaveText([
+    'Ashes Of The Just',
+    'Bad"><img src=x>',
+    'Relic of Fireworks'
+  ]);
+  await expect(buffs.getByRole('cell')).toHaveText(['3.3%', '3.3%', '50.0%']);
   await expect(summary.locator('img')).toHaveCount(0);
   await page.locator('[data-chart-phase="100-80"]').click();
-  await expect(primary.locator('caption')).toHaveText('Boons & relics · 4 allies · full benchmark (60.00s)');
+  await expect(primary.locator('caption')).toHaveText('Boons · 4 allies · full benchmark (60.00s)');
   await expect(quickness).toContainText('125.0%');
   await summary.screenshot({ path: testInfo.outputPath('effect-summary-desktop.png') });
   await expect(summary.locator('[data-role="effect-summary-help"]')).toHaveCount(0);

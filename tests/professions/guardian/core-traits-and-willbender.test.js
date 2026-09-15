@@ -495,6 +495,23 @@ test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots',
   );
 });
 
+test('Willbender virtue windows appear as independent timed buff uptimes', () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Rushing Justice', 'Flowing Resolve', { type: 'wait', durationMs: 10000 }],
+    config: { ...config, specialization: 'Willbender' }
+  });
+  const presentations = guardianProfession.ui.effectPresentations({
+    specialization: 'Willbender',
+    catalog: guardianProfession.catalog
+  });
+  const summaries = buildChartSeries(result, 1000, presentations).effectSummaries;
+
+  assert.ok(summaries['Rushing Justice'].uptime > 0);
+  assert.ok(summaries['Flowing Resolve'].uptime > 0);
+  assert.equal(summaries['Crashing Courage'], undefined);
+});
+
 test('Willbender flame replacement and Phoenix Protocol follow virtue triggers', () => {
   const willbenderConfig = {
     ...config,

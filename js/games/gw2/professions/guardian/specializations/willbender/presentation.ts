@@ -53,9 +53,20 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   return items;
 }
 
-/** Treats each Lethal Tempo event as the complete refreshed stack state rather than an additive grant. */
+/** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
 function willbenderEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
   return [
+    ...[
+      ['justice', 'Rushing Justice'],
+      ['resolve', 'Flowing Resolve'],
+      ['courage', 'Crashing Courage']
+    ].map(([virtue, name]) => ({
+      id: `guardian-willbender-${virtue}`,
+      kind: `willbender-${virtue}`,
+      name,
+      maximumStacks: 1,
+      replacementGroup: `guardian-willbender-${virtue}`
+    })),
     {
       id: 'guardian-lethal-tempo',
       kind: 'lethal-tempo',

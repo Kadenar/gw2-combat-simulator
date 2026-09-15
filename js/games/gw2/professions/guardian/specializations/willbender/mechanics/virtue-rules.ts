@@ -82,8 +82,7 @@ export const willbenderAttributeRules = Object.freeze({
   modifierRules: willbenderModifierRules
 });
 
-// Open the chosen virtue window and grant its activation traits from one
-// timestamp; the returned duration lets the caller schedule matching expiry.
+// Open and report the chosen virtue window from one timestamp so combat logic and uptime charts share its duration.
 export function applyWillbenderVirtueActivationTraits(
   context: GuardianCastContext,
   virtue: GuardianVirtue,
@@ -99,6 +98,17 @@ export function applyWillbenderVirtueActivationTraits(
       ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration ?? 10)
       : Number(window?.duration ?? (virtue === 'justice' ? 8 : 6));
   state[`${virtue}Until`] = at + duration;
+  emitSkillBuff(context, {
+    at,
+    source: 'guardian',
+    sourceId: context.skill.id,
+    actorType: 'player',
+    skillId: context.skill.id,
+    skillName: context.skill.name,
+    kind: `willbender-${virtue}`,
+    duration,
+    audience: { recipients: 'self' }
+  });
   gainLethalTempo(state, at, lethalTempoParameters(context));
   emitSkillBuff(context, {
     at,
