@@ -247,6 +247,8 @@ test('side mouse rotation hotkeys suppress browser navigation', async ({ page })
   await openSimulator(page);
   const skill = page.locator('.pal-skill[data-hotkey-action="weapon-1"]:not(.pal-context-disabled)').first();
   await skill.click();
+  // The worker result replaces palette nodes; wait for that refresh before reading mouse coordinates.
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   await expect(page.locator('.rotation-hotkey-button')).toHaveText('Hotkeys: On');
   await page.evaluate(() => history.pushState({}, '', '?mouse-hotkey'));
   const url = page.url();

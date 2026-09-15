@@ -10,14 +10,14 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     castTimeMs: 520,
     cooldown: 20,
-    // Auto-overcharges .25s after drop: water field + 5s regen on top of the base 3s regen.
+    // Keep the water field and extra regeneration together at the nearest 40 ms tick to the .25s overcharge delay.
     comboFields: [
       {
         ownerId: 'engineer',
         fieldType: 'Water',
         duration: 3,
         startAnchor: 'castEnd',
-        startMs: 250,
+        startMs: 240,
         inclusiveExpiry: true
       }
     ],
@@ -34,7 +34,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 5,
         stacks: 1,
         timingAnchor: 'castEnd',
-        atMs: 250
+        timingScale: 'fixed',
+        atMs: 240
       }
     ]
   },
