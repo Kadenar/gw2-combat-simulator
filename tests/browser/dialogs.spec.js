@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 const launchers = [
   ['[data-tutorial-trigger]', '.tutorial-dialog'],
   ['.build-template-import', '.build-template-import-dialog'],
+  ['#btn-import-build', '.build-file-import-dialog'],
   ['#btn-import-rotation', '.rotation-import-dialog[data-rotation-import-destination="current"]'],
   ['.rotation-hotkey-button', '.rotation-hotkey-dialog'],
   ['.build-tab-menu-trigger', '.build-rename-dialog']

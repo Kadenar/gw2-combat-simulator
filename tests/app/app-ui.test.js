@@ -10,10 +10,15 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/options.js';
-import { getBuildExportPayload } from '#gw2/app/build/io/files.js';
+import {
+  getBuildExportPayload,
+  getBuildWithRotationExportPayload,
+  getRotationItems
+} from '#gw2/app/build/io/files.js';
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/build/io/build-file-import.js';
 import { groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession/registry.js';
 import {
@@ -1248,6 +1253,76 @@ test('build import and export leave rotation state separate', async () => {
   assert.equal(loaded.rune, 'Krait');
   assert.equal(Object.hasOwn(exported, 'rotation'), false);
   assert.deepEqual(current.rotation, ['Keep this rotation']);
+});
+
+test('build + rotation export stays readable by both importers', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const build = { ...createDefaultBuild(adapter), rune: 'Krait', rotation: ['Keep this rotation'] };
+
+  const exported = getBuildWithRotationExportPayload(build);
+  exported.rotation.push('Mutating the export');
+
+  assert.deepEqual(build.rotation, ['Keep this rotation']);
+  assert.deepEqual(getRotationItems(exported), ['Keep this rotation', 'Mutating the export']);
+  assert.equal(replaceBuildConfiguration(exported, createDefaultBuild(adapter), adapter).rune, 'Krait');
+});
+
+test('build file import detects which parts a file carries', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const source = createDefaultBuild(adapter);
+  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const app = { adapter, build: createDefaultBuild(adapter), changed() {} };
+
+  const combined = previewBuildFileImport(
+    getBuildWithRotationExportPayload({ ...source, rotation: [skill] }),
+    'combined.json',
+    app
+  );
+  const buildOnly = previewBuildFileImport(getBuildExportPayload(source), 'build.json', app);
+  const wrapped = previewBuildFileImport({ rotation: [skill] }, 'rotation.json', app);
+  const bare = previewBuildFileImport([skill], 'rotation.json', app);
+
+  assert.notEqual(combined.build, null);
+  assert.equal(combined.rotation.length, 1);
+  assert.notEqual(buildOnly.build, null);
+  assert.equal(buildOnly.rotation, null);
+  assert.equal(wrapped.build, null);
+  assert.equal(wrapped.rotation.length, 1);
+  assert.equal(bare.build, null);
+  assert.throws(() => previewBuildFileImport({}, 'empty.json', app), /No build or rotation/);
+  assert.throws(() => previewBuildFileImport({ rotation: [] }, 'empty.json', app), /No build or rotation/);
+  assert.throws(() => previewBuildFileImport({ ...source, profession: 'necromancer' }, 'other.json', app), /necromancer/);
+});
+
+test('build file import applies only the selected parts', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const source = createDefaultBuild(adapter);
+  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const exported = getBuildWithRotationExportPayload({ ...source, rune: 'Krait', rotation: [skill] });
+  const importInto = (selection) => {
+    const calls = [];
+    const app = { adapter, build: createDefaultBuild(adapter), changed: (rebuild = true) => calls.push(rebuild) };
+    const originalRune = app.build.rune;
+    applyBuildFileImport(app, previewBuildFileImport(exported, 'combined.json', app), selection);
+    return { build: app.build, calls, originalRune };
+  };
+
+  const both = importInto({ build: true, rotation: true });
+  assert.equal(both.build.rune, 'Krait');
+  assert.equal(both.build.rotation.length, 1);
+  assert.deepEqual(both.calls, [true]);
+
+  const buildOnly = importInto({ build: true, rotation: false });
+  assert.equal(buildOnly.build.rune, 'Krait');
+  assert.equal(buildOnly.build.rotation.length, 0);
+  assert.deepEqual(buildOnly.calls, [true]);
+
+  const rotationOnly = importInto({ build: false, rotation: true });
+  assert.equal(rotationOnly.build.rune, rotationOnly.originalRune);
+  assert.equal(rotationOnly.build.rotation.length, 1);
+  assert.deepEqual(rotationOnly.calls, [false]);
+
+  assert.throws(() => importInto({ build: false, rotation: false }), /Choose the build/);
 });
 
 test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {

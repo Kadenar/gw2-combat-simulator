@@ -13,15 +13,48 @@ interface PresetBundle {
   readonly rotationItems: unknown[] | undefined;
 }
 
+/** One selectable export variant; its filename becomes the default name when chosen. */
+export interface JsonExportChoice {
+  readonly label: string;
+  readonly filename: string;
+  readonly payload: unknown;
+}
+
 /**
  * Uses the app's modal controls to name an export, downloading only when the form is submitted.
+ *
+ * Passing an array of choices lets the user pick which payload to export; the first choice is selected by default.
  */
-export function downloadJson(filename: string, payload: unknown): void {
+export function downloadJson(filename: string, payload: unknown): void;
+export function downloadJson(choices: readonly JsonExportChoice[]): void;
+export function downloadJson(filenameOrChoices: string | readonly JsonExportChoice[], payload?: unknown): void {
+  const choices =
+    typeof filenameOrChoices === 'string'
+      ? [{ label: '', filename: filenameOrChoices, payload }]
+      : filenameOrChoices;
+  if (!choices.length) throw new Error('No export choices provided.');
+  let selected = choices[0]!;
+
   const dialog = document.createElement('dialog');
   dialog.className = 'file-export-dialog';
   dialog.setAttribute('aria-labelledby', 'file-export-title');
   dialog.innerHTML = `<form>
     <h2 id="file-export-title">Export file</h2>
+    ${
+      choices.length > 1
+        ? `<fieldset class="file-export-choices">
+      <legend>Contents</legend>
+      ${choices
+        .map(
+          (_choice, index) => `<label class="file-export-choice">
+        <input type="radio" name="file-export-choice" value="${index}"${index === 0 ? ' checked' : ''}>
+        <span></span>
+      </label>`
+        )
+        .join('')}
+    </fieldset>`
+        : ''
+    }
     <label for="file-export-name">File name</label>
     <input id="file-export-name" name="filename" type="text" autocomplete="off" spellcheck="false" autofocus>
     <div class="file-export-actions app-dialog-actions">
@@ -29,15 +62,27 @@ export function downloadJson(filename: string, payload: unknown): void {
       <button type="submit" class="btn btn-io">Export</button>
     </div>
   </form>`;
-  const input = dialog.querySelector('input')!;
-  input.value = filename;
-  input.placeholder = filename;
+  const input = dialog.querySelector<HTMLInputElement>('#file-export-name')!;
+  input.value = selected.filename;
+  input.placeholder = selected.filename;
+  dialog.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((radio, index) => {
+    // Labels are assigned as text so profession-provided names cannot inject markup.
+    radio.nextElementSibling!.textContent = choices[index]!.label;
+    radio.addEventListener('change', () => {
+      if (!radio.checked) return;
+      // Only replace the name while it is still the previous default, preserving a name the user typed.
+      const untouched = !input.value.trim() || input.value === selected.filename;
+      selected = choices[index]!;
+      input.placeholder = selected.filename;
+      if (untouched) input.value = selected.filename;
+    });
+  });
   dialog.querySelector('form')!.addEventListener('submit', (event) => {
     event.preventDefault();
-    let exportName = input.value.trim() || filename;
+    let exportName = input.value.trim() || selected.filename;
     if (!/\.json$/i.test(exportName)) exportName += '.json';
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    const blob = new Blob([JSON.stringify(selected.payload, null, 2)], {
       type: 'application/json'
     });
     const url = URL.createObjectURL(blob);
@@ -126,6 +171,16 @@ export function getRotationItems(payload: unknown): unknown[] | undefined {
 export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2ApplicationBuild, 'rotation'> {
   const { rotation: _rotation, ...payload } = build;
   return payload;
+}
+
+/**
+ * Creates an exportable build payload that keeps its rotation.
+ *
+ * The flat shape stays readable by both importers: build import reads the build fields and the rotation
+ * import reads the `rotation` array.
+ */
+export function getBuildWithRotationExportPayload(build: Gw2ApplicationBuild): Gw2ApplicationBuild {
+  return { ...build, rotation: [...build.rotation] };
 }
 
 /**

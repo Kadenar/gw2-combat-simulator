@@ -227,7 +227,7 @@
 
 .build-rename-dialog input,
 .build-save-dialog :is(input, select),
-.file-export-dialog input {
+.file-export-dialog input[type='text'] {
   display: block;
   width: 100%;
   margin-top: 6px;
@@ -247,6 +247,32 @@
 .build-save-dialog label span {
   color: var(--text-dim);
   font-weight: 400;
+}
+
+.file-export-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.file-export-choices legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.file-export-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.file-export-choice input {
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .build-rename-dialog :focus-visible,

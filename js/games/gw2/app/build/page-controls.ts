@@ -1,11 +1,11 @@
-import { downloadJson, getBuildExportPayload, readJsonFile } from '#gw2/app/build/io/files.js';
+import { bindBuildFileImportDialog } from '#gw2/app/build/io/build-file-import-dialog.js';
+import { downloadJson, getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/build/io/files.js';
 import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
-import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
-import { errorMessage, requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';
+import { requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
 
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');
@@ -51,29 +51,21 @@ export function bindPageControls(app: ProfessionAppState): void {
     }
   });
   requiredElement('btn-export-build').addEventListener('click', () =>
-    downloadJson(app.adapter.filenames.build, getBuildExportPayload(app.build))
+    downloadJson([
+      {
+        label: 'Build only',
+        filename: app.adapter.filenames.build,
+        payload: getBuildExportPayload(app.build)
+      },
+      {
+        label: 'Build + rotation',
+        filename: app.adapter.filenames.build.replace(/-build\.json$/i, '-build-rotation.json'),
+        payload: getBuildWithRotationExportPayload(app.build)
+      }
+    ])
   );
-  const importFileInput = requiredInput('import-file-input');
-  const importBuildButton = requiredElement('btn-import-build');
-  importBuildButton.addEventListener('click', () => importFileInput.click());
+  bindBuildFileImportDialog(app, requiredElement('btn-import-build'), requiredInput('import-file-input'));
   app.adapter.buildEditor.bindControls?.(app);
-  importFileInput.addEventListener('change', async () => {
-    const file = importFileInput.files?.[0];
-    if (!file) return;
-    const validateDestination = captureBuildDestination(app);
-    try {
-      const saved = await readJsonFile(file);
-      // An asynchronous file read cannot replace a different tab selected while it was loading.
-      validateDestination();
-      app.build = replaceBuildConfiguration(saved, app.build, app.adapter);
-      app.changed();
-    } catch (error) {
-      alert(errorMessage(error));
-    } finally {
-      // Clear the selection so choosing the same file again still emits a change event.
-      importFileInput.value = '';
-    }
-  });
   requiredElement('btn-export-rotation').addEventListener('click', () =>
     downloadJson(app.adapter.filenames.rotation, {
       rotation: app.build.rotation
