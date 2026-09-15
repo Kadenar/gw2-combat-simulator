@@ -116,9 +116,27 @@ function pairAnimations(
   for (const { event, index } of pending.values())
     actions.push(animatedCast(event, null, index, names, window.end, modern));
   const player = log.agents.some((agent) => agent.address === address && agent.elite !== 0xffffffff);
-  const sorted = actions
-    .filter((action) => !player || action.end - action.start > 1)
-    .sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
+  const candidates = actions.sort((a, b) => a.start - b.start || a.eventIndex - b.eventIndex);
+  const sorted = candidates.filter((action, index) => {
+    if (!player || action.end - action.start > 1) return true;
+    const nextSameSkill = candidates.slice(index + 1).find((candidate) => candidate.rawSkillId === action.rawSkillId);
+    // Retain a zero-length cancellation glitch when a later same-skill strike proves that the input fired.
+    return (
+      action.status === 'interrupted' &&
+      log.events.some(
+        (event) =>
+          event.source === address &&
+          event.target !== address &&
+          event.skillId === action.rawSkillId &&
+          event.time >= action.start &&
+          event.time < (nextSameSkill?.start ?? Infinity) &&
+          event.value > 0 &&
+          event.buff === 0 &&
+          event.activation === EVTC_ACTIVATION.NONE &&
+          event.stateChange === EVTC_STATE_CHANGE.NONE
+      )
+    );
+  });
   return sorted.map((action, index) =>
     action.status === 'unknown' && sorted[index + 1]
       ? { ...action, end: Math.min(action.end, sorted[index + 1].start + SERVER_DELAY_MS) }

@@ -23,6 +23,7 @@ export interface StrikePacketValidation {
   readonly lastObservedOffsetMs: number | null;
   readonly lastObservedExpectedOffsetMs: number | null;
   readonly lastObservedCancelableExpectedOffsetMs: number | null;
+  readonly observedCommittedDelayedPacket: boolean;
   readonly observedPostInterruptWithoutCommit: boolean;
 }
 
@@ -109,6 +110,7 @@ export function createStrikePacketMatcher(
     const observedCancelableExpectedOffsets: number[] = [];
     const observedExplicitTimings: boolean[] = [];
     const missingOffsets: number[] = [];
+    let observedCommittedDelayedPacket = false;
     let observedPostInterruptWithoutCommit = false;
     for (const packet of packets) {
       const expectedTime = action.start + packet.offsetMs;
@@ -137,13 +139,16 @@ export function createStrikePacketMatcher(
       observedOffsets.push(observedOffset);
       observedExpectedOffsets.push(packet.offsetMs);
       observedExplicitTimings.push(packet.timingExplicit);
-      if (
+      const observedAfterInterrupt =
         (action.status === 'interrupted' || action.status === 'reduced') &&
         observedOffset >= Math.max(0, action.end - action.start) &&
-        packet.interruptMode !== 'per-packet' &&
-        packet.interruptCommitMs == null
-      ) {
-        observedPostInterruptWithoutCommit = true;
+        packet.interruptMode !== 'per-packet';
+      if (observedAfterInterrupt) {
+        if (packet.persistsAfterInterrupt && packet.interruptCommitMs != null) {
+          observedCommittedDelayedPacket = true;
+        } else if (packet.interruptCommitMs == null) {
+          observedPostInterruptWithoutCommit = true;
+        }
       }
 
       if (!packet.persistsAfterInterrupt) {
@@ -163,6 +168,7 @@ export function createStrikePacketMatcher(
       lastObservedCancelableExpectedOffsetMs: observedCancelableExpectedOffsets.length
         ? Math.max(...observedCancelableExpectedOffsets)
         : null,
+      observedCommittedDelayedPacket,
       observedPostInterruptWithoutCommit
     };
     cache.set(action, validation);

@@ -329,6 +329,52 @@ test('the browser rotation importer previews compressed .zevtc files before appl
   ]);
   assert.match(interruptedImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
 
+  const zeroDurationInterruptBytes = zipEvtc(
+    expandedEvtcFixture({ interruptedDamage: true, zeroDurationInterrupt: true })
+  );
+  for (const persistsAfterInterrupt of [true, false]) {
+    const committedImport = await readEvtcRotationFile(
+      {
+        name: persistsAfterInterrupt ? 'committed-delayed-strike.zevtc' : 'false-cancelled-strike.zevtc',
+        type: 'application/octet-stream',
+        arrayBuffer: async () =>
+          zeroDurationInterruptBytes.buffer.slice(
+            zeroDurationInterruptBytes.byteOffset,
+            zeroDurationInterruptBytes.byteOffset + zeroDurationInterruptBytes.byteLength
+          )
+      },
+      {
+        profession: { id: 'mesmer', name: 'Mesmer' },
+        adapter: { eliteSpecialization: () => 'Chronomancer' },
+        build: {},
+        activeCatalog: {
+          skills: catalog.skills.map((skill) =>
+            skill.id === 1_000
+              ? {
+                  ...skill,
+                  castTimeMs: 540,
+                  interruptCommitMs: 40,
+                  effects: [
+                    {
+                      type: 'strike',
+                      atMs: 350,
+                      timingAnchor: 'castStart',
+                      timingScale: 'fixed',
+                      ...(persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
+                    }
+                  ]
+                }
+              : skill
+          )
+        }
+      }
+    );
+
+    // Complete timed packets prove the zero-duration cancellation marker is false for either effect model.
+    assert.deepEqual(committedImport.rotation, [{ type: 'combat-start' }, { type: 'cast', skillId: 1_000 }]);
+    assert.doesNotMatch(committedImport.warnings.join('\n'), /no interruptCommitMs cutoff/);
+  }
+
   const perPacketImport = await readEvtcRotationFile(
     {
       name: 'interrupted-channel.zevtc',

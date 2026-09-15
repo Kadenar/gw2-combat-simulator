@@ -29,6 +29,7 @@ import {
   type RotationCatalog
 } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import {
+  createStrikePacketMatcher,
   missingInterruptCommitWarnings,
   referenceCastTimeMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
@@ -87,17 +88,33 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
 function applyObservedInterruptTiming(
   actions: readonly RecordedAction[],
   catalog: RotationCatalog | null,
-  profile: EvtcRotationProfessionProfile
+  profile: EvtcRotationProfessionProfile,
+  validatePackets: ReturnType<typeof createStrikePacketMatcher>
 ): RecordedAction[] {
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
+    const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(skill);
+    const packets = validatePackets(action);
+    const falseZeroDurationCancellation =
+      action.status === 'interrupted' &&
+      action.end === action.start &&
+      packets.allObserved &&
+      packets.allObservedTimingExplicit;
+    if (runtimeDuration > 0 && (packets.observedCommittedDelayedPacket || falseZeroDurationCancellation)) {
+      // Proven packets override a false stop marker so replay retains the complete cast and its damage.
+      return {
+        ...action,
+        replayCastEnd: action.start + runtimeDuration,
+        replayInterruptMs: undefined
+      };
+    }
+
     const interruptMs = observedInterruptMs(action, skill);
     if (interruptMs != null) {
       return { ...action, replayInterruptMs: interruptMs };
     }
 
     // Profession-resolved variants can be instant even when the base catalog skill has a cast time.
-    const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(skill);
     const observedDuration = Math.max(0, action.end - action.start);
     const needsDefaultRuntime =
       runtimeDuration > 0 &&
@@ -323,7 +340,12 @@ export function reconstructWithProfile(
     ...professionContext,
     recordedActions: sourceActions.filter((a) => a.castOrigin == null || a.castOrigin === 'skill')
   });
-  const resolved = applyObservedInterruptTiming(normalized, catalog, profile)
+  const resolved = applyObservedInterruptTiming(
+    normalized,
+    catalog,
+    profile,
+    createStrikePacketMatcher(professionContext)
+  )
     .filter(inEncounter)
     .map((action) => resolveAction(action, catalog, profile))
     .filter((action) => action.skill?.simulatorExcluded !== true);

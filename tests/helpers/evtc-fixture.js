@@ -71,6 +71,7 @@ export function log(overrides = {}) {
 /** Encodes the smallest binary EVTC fixture needed by parser and importer tests. */
 export function expandedEvtcFixture({
   interruptedDamage = false,
+  zeroDurationInterrupt = false,
   secondActivation = false,
   skillName = 'Mind Stab'
 } = {}) {
@@ -129,9 +130,9 @@ export function expandedEvtcFixture({
 
   const animationStop = Buffer.alloc(64);
 
-  animationStop.writeBigUInt64LE(1_040n, 0);
+  animationStop.writeBigUInt64LE(zeroDurationInterrupt ? 1_000n : 1_040n, 0);
   animationStop.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
-  animationStop.writeInt32LE(40, 24);
+  animationStop.writeInt32LE(zeroDurationInterrupt ? 0 : 40, 24);
   animationStop.writeUInt32LE(1_000, 36);
   animationStop.writeUInt16LE(1, 40);
   animationStop[51] = 4;
