@@ -5,10 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CONFUSING_IMAGES]: {
     interruptMode: 'per-packet',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    specialization: '',
-    cooldown: 9,
     effects: [
       {
         type: 'strike',
@@ -43,20 +39,12 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 1920
   },
   [ID.ILLUSIONARY_COUNTER]: {
-    type: 'Weapon',
-    weapon: 'Scepter',
-    specialization: '',
     castTimeMs: 1200,
-    cooldown: 6,
     effects: [],
     defaultInterruptMs: 120,
     interruptCommitMs: 80
   },
   [ID.ETHER_BOLT]: {
-    type: 'Weapon',
-    weapon: 'Scepter',
-    specialization: '',
-    cooldown: 0,
     nextChainId: ID.ETHER_BLAST,
     effects: [
       {
@@ -78,11 +66,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 440
   },
   [ID.ETHER_BLAST]: {
-    type: 'Weapon',
-    weapon: 'Scepter',
-    specialization: '',
     castTimeMs: 520,
-    cooldown: 0,
     nextChainId: ID.ETHER_CLONE,
     effects: [
       {
@@ -104,11 +88,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ETHER_CLONE]: {
     interruptCommitMs: 440,
-    type: 'Weapon',
-    weapon: 'Scepter',
-    specialization: '',
     castTimeMs: 840,
-    cooldown: 0,
     // Ether Clone creates its clone with the projectile hit; interruptions before that packet grant no clone.
     resource: {
       mode: 'add',

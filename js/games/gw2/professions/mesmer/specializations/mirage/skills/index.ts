@@ -10,12 +10,8 @@ import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
 export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.FALSE_OASIS]: {
-    type: 'Heal',
-    weapon: '',
-    specialization: 'Mirage',
     // Use the observed Quickness cast as the timing reference.
     castTimeMs: 960,
-    cooldown: 25,
     // The oasis starts pulsing during the cast; its mirror appears three seconds after that first pulse.
     mechanicTriggers: [
       {
@@ -29,13 +25,9 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     effects: []
   },
   [ID.CRYSTAL_SANDS]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Mirage',
     castTimeMs: 371,
     // The launched sand and its mirror survive cancellation of the remaining animation.
     interruptCommitMs: 320,
-    cooldown: 20,
     // The ground mirror appears when the sand projectiles converge, after their damage packets.
     mechanicTriggers: [
       {
@@ -68,11 +60,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
   },
   [ID.MIRAGE_ADVANCE]: {
     shadowstepSkill: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Mirage',
     castTimeMs: 500,
-    cooldown: 25,
     effects: [
       {
         type: 'control',
@@ -96,12 +84,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
     ]
   },
   [ID.SAND_THROUGH_GLASS]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Mirage',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 20,
     // These instant Deceptions grant Mirage Cloak when their cast completes.
     mechanicTriggers: [
       {
@@ -113,12 +97,8 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
   },
   [ID.ILLUSIONARY_AMBUSH]: {
     shadowstepSkill: true,
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Mirage',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 20,
     mechanicTriggers: [
       {
         type: 'mesmer.mirage.grant-cloak',
@@ -129,9 +109,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
   },
   [ID.JAUNT]: {
     shadowstepSkill: true,
-    type: 'Elite',
-    weapon: '',
-    specialization: 'Mirage',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 0.5,

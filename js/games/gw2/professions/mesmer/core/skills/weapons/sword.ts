@@ -4,10 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIND_SLASH]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
-    cooldown: 0,
     nextChainId: ID.MIND_GASH,
     // Sword's opening hits apply their own vulnerability, independent of the equipped relic.
     effects: [
@@ -24,11 +20,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 360
   },
   [ID.MIND_GASH]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
     castTimeMs: 520,
-    cooldown: 0,
     nextChainId: ID.MIND_SPIKE,
     effects: [
       {
@@ -43,11 +35,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_SPIKE]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
     castTimeMs: 840,
-    cooldown: 0,
     boonlessCoefficient: 2,
     nextChainId: null,
     effects: [
@@ -62,11 +50,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.ILLUSIONARY_LEAP]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
     castTimeMs: 400,
-    cooldown: 12,
     resource: {
       mode: 'add',
       count: 1
@@ -83,10 +67,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
-    cooldown: 15,
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -136,11 +116,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 880
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
     castTimeMs: 1500,
-    cooldown: 12,
     resource: {
       mode: 'add',
       count: 1
@@ -160,11 +136,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLURRED_FRENZY]: {
     interruptMode: 'per-packet',
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: '',
     castTimeMs: 960,
-    cooldown: 10,
     effects: [
       {
         type: 'strike',
@@ -178,11 +150,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.BLADE_LEAP]: {
-    type: 'Weapon',
-    weapon: 'Sword',
-    specialization: 'Troubadour',
     castTimeMs: 500,
-    cooldown: 12,
     resource: {
       mode: 'add',
       count: 1

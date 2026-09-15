@@ -50,7 +50,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
   }
 
   for (const skill of context.catalog.skills) {
-    if (skill.armedAtStart && skill.mesmerMechanic?.flipParentId && context.maximumAmmoFor(skill)) {
+    if (skill.armedAtStart && skill.flipParentId && context.maximumAmmoFor(skill)) {
       professionCoreState(state).availableFlips[skill.id] = {
         availableAt: 0,
         expiresAt: Infinity

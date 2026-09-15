@@ -20,10 +20,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   Record<SkillId, SkillFragment & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
   [ID.TROUBADOUR_BLADECALL]: {
-    type: 'Weapon',
-    weapon: 'Dagger',
-    specialization: 'Troubadour',
-    cooldown: 5,
     resource: {
       mode: 'add',
       count: 1
@@ -77,13 +73,9 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     castTimeMs: 440
   },
   [ID.LIVELY_LUTE]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 560,
     // Preserve the performance when interruption only skips the remaining recovery.
     interruptCommitMs: 520,
-    cooldown: 12,
     instrument: {
       slot: 1,
       instrument: 'Lute',
@@ -100,9 +92,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     effects: []
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 4,
@@ -113,20 +102,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     effects: []
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
-    type: 'Heal',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 666.666666667,
-    cooldown: 15,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.FLUSTERING_FLUTE]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 560,
-    cooldown: 20,
     instrument: {
       slot: 2,
       instrument: 'Flute',
@@ -149,50 +130,30 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 20,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.CRESCENDO]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 1000,
-    cooldown: 35,
     damageAtMs: 840,
     effects: []
   },
   [ID.HARMONIOUS_HARP]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     // Harp packets remain valid independently when the channel is interrupted.
     castTimeMs: 2000,
     interruptMode: 'per-packet',
-    cooldown: 25,
     instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
-    type: 'Elite',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 666.666666667,
-    cooldown: 75,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 400,
-    cooldown: 20,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: [
       {
@@ -241,24 +202,16 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     // Both Harp variants preserve packets independently when interrupted.
     castTimeMs: 2000,
     interruptMode: 'per-packet',
-    cooldown: 25,
     instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
   },
   [ID.DEAFENING_DRUM]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 680,
     // The report's 600 ms Drum still lands its impact and delayed wave; preserve that committed performance.
     interruptCommitMs: 600,
-    cooldown: 25,
     instrument: {
       slot: 3,
       instrument: 'Drum',
@@ -280,23 +233,15 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 30,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Troubadour',
     castTimeMs: 560,
     // Both Lute variants share the same performance commit point.
     interruptCommitMs: 520,
-    cooldown: 12,
     instrument: {
       slot: 1,
       instrument: 'Lute',

@@ -9,11 +9,7 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.WELL_OF_PRECOGNITION]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 800,
-    cooldown: 60,
     // Protect allies during the well's three-second lifetime, then refund endurance when it ends.
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 3, startAnchor: 'castEnd' }],
     effects: [
@@ -47,9 +43,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.CONTINUUM_SPLIT]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 0,
     lockouts: [
       {
@@ -58,15 +51,10 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       }
     ],
     rechargeAnchor: 'castStart',
-    cooldown: 105,
     effects: []
   },
   [ID.WELL_OF_SENILITY]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 760,
-    cooldown: 20,
     effects: [
       {
         type: 'strike',
@@ -80,19 +68,11 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_ETERNITY]: {
-    type: 'Heal',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 400,
-    cooldown: 30,
     effects: []
   },
   [ID.GRAVITY_WELL]: {
-    type: 'Elite',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 1080,
-    cooldown: 60,
     effects: [
       {
         type: 'strike',
@@ -143,11 +123,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_CALAMITY]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 800,
-    cooldown: 20,
     // The well is created on its first observed pulse, so later pulses survive an interrupted cast after that point.
     interruptCommitMs: 560,
     comboFields: [
@@ -211,12 +187,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.WELL_OF_ACTION]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Chronomancer',
     // Store the measured Quickness duration so the catalog derives the corresponding base cast consistently.
     castTimeMs: 800,
-    cooldown: 20,
     // The first pulse commits the well before its animation can be shortened by a shatter or another instant action.
     interruptCommitMs: 520,
     comboFields: [
@@ -246,9 +218,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.TIME_SINK]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 0,
     lockouts: [
       {
@@ -257,7 +226,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       }
     ],
     rechargeAnchor: 'castStart',
-    cooldown: 38,
     effects: [
       {
         type: 'control',
@@ -272,9 +240,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     ]
   },
   [ID.REWINDER]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 0,
     lockouts: [
       {
@@ -283,13 +248,9 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       }
     ],
     rechargeAnchor: 'castStart',
-    cooldown: 30,
     effects: []
   },
   [ID.SPLIT_SECOND]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Chronomancer',
     castTimeMs: 0,
     lockouts: [
       {
@@ -298,7 +259,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
       }
     ],
     rechargeAnchor: 'castStart',
-    cooldown: 12,
     effects: []
   }
 });

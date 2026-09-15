@@ -7,11 +7,7 @@ import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.j
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
   [ID.THOUSAND_CUTS]: {
-    type: 'Elite',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 0,
-    cooldown: 60,
     blade: true,
     effects: [
       {
@@ -67,11 +63,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.SWORD_OF_DECIMATION]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 333.333333333,
-    cooldown: 25,
     blade: true,
     effects: [
       {
@@ -85,11 +77,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADE_RENEWAL]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 1333.333333333,
-    cooldown: 35,
     resource: {
       mode: 'fill',
       count: 5
@@ -98,11 +86,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     effects: []
   },
   [ID.RAIN_OF_SWORDS]: {
-    type: 'Utility',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 680,
-    cooldown: 25,
     blade: true,
     effects: [
       {
@@ -132,11 +116,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.TWIN_BLADE_RESTORATION]: {
-    type: 'Heal',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 666.666666667,
-    cooldown: 20,
     blade: true,
     effects: [
       {
@@ -151,9 +131,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADETURN_REQUIEM]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 0,
     lockouts: [
       {
@@ -161,14 +138,10 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         durationMs: 50
       }
     ],
-    cooldown: 30,
     blade: true,
     effects: []
   },
   [ID.BLADESONG_DISSONANCE]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 480,
     lockouts: [
       {
@@ -176,7 +149,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         durationMs: 50
       }
     ],
-    cooldown: 30,
     blade: true,
     effects: [
       {
@@ -191,9 +163,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADESONG_SORROW]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 480,
     lockouts: [
       {
@@ -201,14 +170,10 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         durationMs: 50
       }
     ],
-    cooldown: 20,
     blade: true,
     effects: []
   },
   [ID.BLADESONG_HARMONY]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 640,
     interruptCommitMs: 560,
     retainsCastLockoutAfterInterrupt: true,
@@ -218,14 +183,10 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         durationMs: 50
       }
     ],
-    cooldown: 12,
     blade: true,
     effects: []
   },
   [ID.BLADESONG_DISTORTION]: {
-    type: 'Profession',
-    weapon: '',
-    specialization: 'Virtuoso',
     castTimeMs: 0,
     lockouts: [
       {
@@ -234,7 +195,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
       }
     ],
     rechargeAnchor: 'castStart',
-    cooldown: 50,
     blade: true,
     effects: []
   }

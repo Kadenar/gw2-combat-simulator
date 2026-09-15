@@ -4,11 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIRROR_STRIKES]: {
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Mirage',
     castTimeMs: 720,
-    cooldown: 0,
     nextChainId: null,
     effects: [
       {
@@ -38,10 +34,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     shadowstepSkill: true,
     peithaProjectileDelay: 0.52,
     // Both weapon variants are shadowsteps and use the same movement-relic projectile timing.
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Mirage',
-    cooldown: 8,
     effects: [
       {
         type: 'strike',
@@ -65,10 +57,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 1000
   },
   [ID.LACERATING_CHOP]: {
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Mirage',
-    cooldown: 0,
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
       {
@@ -89,11 +77,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 430
   },
   [ID.ETHEREAL_CHOP]: {
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Mirage',
     castTimeMs: 530,
-    cooldown: 0,
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
       {
@@ -113,9 +97,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     ]
   },
   [ID.LINGERING_THOUGHTS]: {
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Mirage',
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
@@ -160,9 +141,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   // Virtuoso and Troubadour Axe variants retain separate IDs so their conditions and finishers resolve independently.
   [ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS]: {
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Troubadour',
     cooldown: 0.25,
     ammo: 2,
     ammoRecharge: 6,
@@ -208,10 +186,6 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     // The shared weapon variant retains the same shadowstep and relic response timing.
     shadowstepSkill: true,
     peithaProjectileDelay: 0.52,
-    type: 'Weapon',
-    weapon: 'Axe',
-    specialization: 'Troubadour',
-    cooldown: 8,
     comboFinishers: [
       {
         ownerId: 'mesmer',

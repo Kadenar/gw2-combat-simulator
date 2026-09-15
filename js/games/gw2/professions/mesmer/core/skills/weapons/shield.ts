@@ -4,11 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TIDES_OF_TIME]: {
-    type: 'Weapon',
-    weapon: 'Shield',
-    specialization: 'Chronomancer',
     castTimeMs: 680,
-    cooldown: 35,
     effects: [
       // Preserve this skill's existing cast-completion CC timing in its own definition.
       {
@@ -30,10 +26,6 @@ export const MESMER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.ECHO_OF_MEMORY]: {
-    type: 'Weapon',
-    weapon: 'Shield',
-    specialization: 'Chronomancer',
-    cooldown: 30,
     phantasm: true,
     resource: {
       mode: 'phantasm',

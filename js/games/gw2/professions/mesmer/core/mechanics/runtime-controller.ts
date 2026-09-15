@@ -21,7 +21,6 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
-import { MESMER_FLIP_CHILD_BY_PARENT_ID } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import {
   MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE,
@@ -81,10 +80,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   const skillsById = catalog.skillsById;
   const allSkills = catalog.skills;
   const flipSkillsByParent = new Map<SkillId, MesmerSkill>(
-    Object.entries(MESMER_FLIP_CHILD_BY_PARENT_ID).flatMap(([parentId, childId]) => {
-      const child = skillsById.get(childId);
-      return child ? [[Number(parentId), child] as const] : [];
-    })
+    allSkills.flatMap((skill) => (skill.flipParentId == null ? [] : ([[skill.flipParentId, skill]] as const)))
   );
   const runtime = {
     context,

@@ -1,8 +1,4 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  MESMER_FLIP_CHILD_BY_PARENT_ID,
-  MESMER_FLIP_PARENT_BY_CHILD_ID
-} from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 
 import type { MesmerSkillCatalogFragment } from '#gw2/professions/mesmer/data/types.js';
 
@@ -30,8 +26,6 @@ const INSTRUMENT_SKILL_IDS = new Set<number>([
   ID.HARMONIOUS_HARP,
   ID.HARMONIOUS_HARP_ALTERNATE
 ]);
-
-export { MESMER_FLIP_CHILD_BY_PARENT_ID, MESMER_FLIP_PARENT_BY_CHILD_ID };
 
 /**
  * Assigns handlers only when packet emission itself is runtime-dependent.
@@ -62,22 +56,8 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
   return null;
 }
 
-/** Attaches flip relationships while leaving fixed profiles on the shared scheduler. */
+/** Attaches only handlers whose packet emission depends on Mesmer runtime state. */
 export function prepareMesmerSkillForCatalog<TSkill extends MesmerSkillCatalogFragment>(skill: TSkill): TSkill {
   const handlerId = mesmerHandlerIdFor(skill);
-  const flipParentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(skill.id)];
-  const flipChildId = MESMER_FLIP_CHILD_BY_PARENT_ID[Number(skill.id)];
-  const mechanic =
-    flipParentId || flipChildId
-      ? {
-          ...(skill.mesmerMechanic && typeof skill.mesmerMechanic === 'object' ? skill.mesmerMechanic : {}),
-          ...(flipParentId ? { flipParentId } : {}),
-          ...(flipChildId ? { flipChildId } : {})
-        }
-      : skill.mesmerMechanic;
-  const prepared: TSkill = {
-    ...skill,
-    ...(mechanic ? { mesmerMechanic: mechanic } : {})
-  };
-  return handlerId ? { ...prepared, handlerId } : prepared;
+  return handlerId ? { ...skill, handlerId } : skill;
 }

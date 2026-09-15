@@ -1,4 +1,3 @@
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type {
   MesmerRuntime,
   MesmerShatterResolver,
@@ -14,25 +13,6 @@ import type {
   MesmerTraitDamage
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
-
-export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> = Object.freeze({
-  [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,
-  [ID.POWER_SPIKE]: ID.MANTRA_OF_PAIN,
-  [ID.DIMENSIONAL_APERTURE]: ID.SINGULARITY_SHOT,
-  [ID.ABSTRACTION]: ID.INSPIRING_IMAGERY,
-  [ID.INTO_THE_VOID]: ID.TEMPORAL_CURTAIN,
-  [ID.COUNTER_BLADE]: ID.ILLUSIONARY_RIPOSTE,
-  [ID.SWAP]: ID.ILLUSIONARY_LEAP
-});
-
-export const MESMER_FLIP_CHILD_BY_PARENT_ID: Readonly<Record<number, number>> = Object.freeze(
-  Object.fromEntries(
-    Object.entries(MESMER_FLIP_PARENT_BY_CHILD_ID).map(([childId, parentId]): [number, number] => [
-      parentId,
-      Number(childId)
-    ])
-  )
-);
 
 export function mesmerRuntimeFor(
   context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined

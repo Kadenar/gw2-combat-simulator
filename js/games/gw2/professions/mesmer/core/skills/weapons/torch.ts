@@ -4,10 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_MAGE]: {
-    type: 'Weapon',
-    weapon: 'Torch',
-    specialization: '',
-    cooldown: 20,
     phantasm: true,
     // The mage has already spawned before the aftercast ends, so a later cancellation retains its clone conversion.
     interruptCommitMs: 560,
@@ -62,12 +58,8 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 760
   },
   [ID.THE_PRESTIGE]: {
-    type: 'Weapon',
-    weapon: 'Torch',
-    specialization: '',
     castTimeMs: 40,
     rechargeAnchor: 'castStart',
-    cooldown: 20,
     effects: [
       // Blind on activation; the later burning explosion performs the blast finisher.
       { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },

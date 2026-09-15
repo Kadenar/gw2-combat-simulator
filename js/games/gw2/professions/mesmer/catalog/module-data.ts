@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
-import { defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
@@ -9,15 +10,21 @@ import {
   MESMER_DUPLICATE_SKILL_NAMES
 } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import {
-  MESMER_FLIP_PARENT_BY_CHILD_ID,
-  prepareMesmerSkillForCatalog
-} from '#gw2/professions/mesmer/catalog/skill-preparation.js';
+import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/catalog/skill-preparation.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
-const generated: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS].map((skill) => ({
+const allSkills: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
+
+// Same-name API flips are specialization replacements, not runtime flip palettes.
+const flipParentById = createFlipParentMap(allSkills, {
+  include: (parent, child) => parent.name !== child.name
+});
+
+const generated: readonly Skill[] = allSkills.map((skill) => ({
   ...skill,
+  cooldown: gw2BaseRecharge(skill),
+  flipParentId: flipParentById.get(skill.id) ?? null,
   effects: []
 }));
 
@@ -93,9 +100,9 @@ export function createMesmerModuleData(
     Object.entries(supplementalSkillMechanics)
       .filter(([, skill]) => Number(skill.ammo || 0) > 0)
       .flatMap(([id]) => {
-        const parentId = MESMER_FLIP_PARENT_BY_CHILD_ID[Number(id)];
+        const parentId = flipParentById.get(Number(id));
 
-        return parentId == null ? [] : [parentId];
+        return parentId == null ? [] : [Number(parentId)];
       })
   );
 

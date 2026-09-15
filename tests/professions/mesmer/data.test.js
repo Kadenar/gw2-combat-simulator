@@ -390,6 +390,28 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     Object.values(MESMER_SKILL_MECHANICS).some((mechanics) => mechanics.blade === false),
     false
   );
+  // Generated metadata owns identity and ordinary recharge; fragments retain only deliberate runtime overrides.
+  assert.ok(
+    Object.values(MESMER_SKILL_MECHANICS).every(
+      (mechanics) => !Object.hasOwn(mechanics, 'type') && !Object.hasOwn(mechanics, 'weapon')
+    )
+  );
+  assert.deepEqual(
+    Object.entries(MESMER_SKILL_MECHANICS)
+      .filter(([, mechanics]) => Object.hasOwn(mechanics, 'specialization'))
+      .map(([id]) => Number(id))
+      .sort((left, right) => left - right),
+    [ID.FLYING_CUTTER, ID.UNSTABLE_BLADESTORM].sort((left, right) => left - right)
+  );
+  assert.deepEqual(
+    Object.entries(MESMER_SKILL_MECHANICS)
+      .filter(([, mechanics]) => Object.hasOwn(mechanics, 'cooldown'))
+      .map(([id]) => Number(id))
+      .sort((left, right) => left - right),
+    [ID.LINGERING_THOUGHTS, ID.JAUNT, ID.VIRTUOSO_TROUBADOUR_LINGERING_THOUGHTS, ID.TALE_OF_THE_HONORABLE_ROGUE].sort(
+      (left, right) => left - right
+    )
+  );
   assert.equal(MESMER_SKILL_MECHANICS[ID.FLYING_CUTTER].specialization, '');
   assert.equal(MESMER_SKILL_MECHANICS[ID.UNSTABLE_BLADESTORM].specialization, '');
   assert.equal(SHATTERS[ID.MIND_WRACK].resolver, 'mesmer.core.clone-shatter');
@@ -575,6 +597,10 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
 });
 
 test('requested rifle, focus, and sword sequence flips are cataloged', () => {
+  for (const skill of MESMER_SUPPLEMENTAL_SKILLS.filter((candidate) => candidate.flipParentId)) {
+    assert.equal(mesmerCatalog.skillsById.get(skill.id).flipParentId, skill.flipParentId);
+  }
+
   assert.deepEqual(
     MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.flipParentId).map((skill) => [
       skill.name,

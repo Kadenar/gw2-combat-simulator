@@ -5,12 +5,9 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLYING_CUTTER]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    type: 'Weapon',
-    weapon: 'Dagger',
     specialization: '',
     castTimeMs: 440,
     interruptCommitMs: 360,
-    cooldown: 0,
     blade: true,
     effects: [
       {
@@ -50,11 +47,8 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     }
   },
   [ID.UNSTABLE_BLADESTORM]: {
-    type: 'Weapon',
-    weapon: 'Dagger',
     specialization: '',
     castTimeMs: 440,
-    cooldown: 12,
     blade: true,
     // The storm commits 200ms into a Quickness cast; its four pulse pairs then persist after interruption.
     interruptCommitMs: 200,
@@ -90,10 +84,6 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.BLADECALL]: {
-    type: 'Weapon',
-    weapon: 'Dagger',
-    specialization: '',
-    cooldown: 5,
     interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
     resource: {

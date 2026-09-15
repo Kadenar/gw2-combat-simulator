@@ -5,11 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIENDLY_FIRE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    type: 'Weapon',
-    weapon: 'Rifle',
-    specialization: '',
     castTimeMs: 500,
-    cooldown: 0,
     effects: [
       {
         type: 'strike',
@@ -22,11 +18,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.JOURNEY]: {
-    type: 'Weapon',
-    weapon: 'Rifle',
-    specialization: '',
     castTimeMs: 333.333333333,
-    cooldown: 5,
     resource: {
       mode: 'add',
       count: 1
@@ -43,11 +35,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.INSPIRING_IMAGERY]: {
-    type: 'Weapon',
-    weapon: 'Rifle',
-    specialization: '',
     castTimeMs: 500,
-    cooldown: 12,
     // The image grants boons after its field expires unless Abstraction detonates it first.
     handlerId: 'mesmer.inspiring-imagery',
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
@@ -58,11 +46,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
-    type: 'Weapon',
-    weapon: 'Rifle',
-    specialization: '',
     castTimeMs: 500,
-    cooldown: 20,
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -92,11 +76,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.SINGULARITY_SHOT]: {
-    type: 'Weapon',
-    weapon: 'Rifle',
-    specialization: '',
     castTimeMs: 333.333333333,
-    cooldown: 20,
     effects: []
   }
 });

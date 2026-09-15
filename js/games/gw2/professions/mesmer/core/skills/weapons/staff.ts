@@ -7,10 +7,6 @@ const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
 
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHAOS_STORM]: {
-    type: 'Weapon',
-    weapon: 'Staff',
-    specialization: '',
-    cooldown: 20,
     // Once the field's opening impact lands, cancelling the aftercast preserves its remaining pulses.
     interruptCommitMs: CHAOS_STORM_PULSES_MS[0],
     mechanicTriggers: [
@@ -56,10 +52,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 480
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    type: 'Weapon',
-    weapon: 'Staff',
-    specialization: '',
-    cooldown: 12,
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -95,10 +87,6 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.WINDS_OF_CHAOS]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    type: 'Weapon',
-    weapon: 'Staff',
-    specialization: '',
-    cooldown: 0,
     interruptCommitMs: 560,
     effects: [
       {
@@ -134,12 +122,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.PHASE_RETREAT]: {
     shadowstepSkill: true,
     peithaProjectileDelay: 0.84,
-    type: 'Weapon',
-    weapon: 'Staff',
-    specialization: '',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 8,
     resource: {
       mode: 'add',
       count: 1
@@ -147,12 +131,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.CHAOS_ARMOR]: {
-    type: 'Weapon',
-    weapon: 'Staff',
-    specialization: '',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    cooldown: 16,
     effects: [
       // The activation blinds once for five seconds, independently of its Confusion.
       { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },

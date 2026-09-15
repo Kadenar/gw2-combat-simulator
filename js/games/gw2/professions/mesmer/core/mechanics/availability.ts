@@ -19,10 +19,10 @@ export function mesmerAvailability(
   const runtime = mesmerRuntimeFor(context);
   const { state } = context;
   const at = context.start;
-  if (skill.mesmerMechanic?.flipParentId) {
+  if (skill.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
     if (!flip || flip.expiresAt < at - EPSILON) {
-      const parent = runtime.skillsById.get(skill.mesmerMechanic?.flipParentId);
+      const parent = runtime.skillsById.get(skill.flipParentId);
       if (parent && context.inFlight.get(parent.id)?.size) {
         return {
           ready: false,

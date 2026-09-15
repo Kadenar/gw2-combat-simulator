@@ -4,10 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_DUELIST]: {
-    type: 'Weapon',
-    weapon: 'Pistol',
-    specialization: '',
-    cooldown: 16,
     phantasm: true,
     // Cancelling after commitment preserves the Duelist's attacks and clone conversion while retaining its cast lockout.
     interruptCommitMs: 360,
@@ -71,10 +67,6 @@ export const MESMER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 560
   },
   [ID.MAGIC_BULLET]: {
-    type: 'Weapon',
-    weapon: 'Pistol',
-    specialization: '',
-    cooldown: 20,
     effects: [
       // Preserve this skill's existing cast-completion CC timing in its own definition.
       {

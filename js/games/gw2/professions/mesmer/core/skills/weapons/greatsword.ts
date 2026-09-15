@@ -4,10 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIND_STAB]: {
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    specialization: '',
-    cooldown: 10,
     effects: [
       {
         type: 'strike',
@@ -24,11 +20,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.SPATIAL_SURGE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptMode: 'per-packet',
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    specialization: '',
     castTimeMs: 760,
-    cooldown: 0,
     effects: [
       {
         type: 'strike',
@@ -46,11 +38,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ILLUSIONARY_WAVE]: {
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    specialization: '',
     castTimeMs: 640,
-    cooldown: 20,
     effects: [
       // Preserve this skill's existing cast-completion CC timing in its own definition.
       {
@@ -73,13 +61,9 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    specialization: '',
     // Once committed, interrupting the remaining animation preserves the attack and phantasm summon.
     interruptCommitMs: 520,
     phantasmSummonProgress: 520 / 560,
-    cooldown: 12,
     phantasm: true,
     resource: {
       mode: 'phantasm',
@@ -111,11 +95,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 560
   },
   [ID.MIRROR_BLADE]: {
-    type: 'Weapon',
-    weapon: 'Greatsword',
-    specialization: '',
     castTimeMs: 600,
-    cooldown: 5,
     // The projectile commits before the animation ends; its bounces and clone survive a later interrupt.
     interruptCommitMs: 560,
     resource: {

@@ -4,18 +4,10 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TEMPORAL_CURTAIN]: {
-    type: 'Weapon',
-    weapon: 'Focus',
-    specialization: '',
     castTimeMs: 740,
-    cooldown: 25,
     effects: []
   },
   [ID.PHANTASMAL_WARDEN]: {
-    type: 'Weapon',
-    weapon: 'Focus',
-    specialization: '',
-    cooldown: 20,
     phantasm: true,
     resource: {
       mode: 'phantasm',

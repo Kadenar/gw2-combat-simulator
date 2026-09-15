@@ -24,8 +24,6 @@ export interface MesmerSkillResource {
 
 export interface MesmerMechanic extends SchedulerRecord {
   readonly chaosStormPoison?: ConditionEffect;
-  readonly flipParentId?: number;
-  readonly flipChildId?: number;
 }
 
 export interface MesmerStrikeEffect extends StrikeEffect {

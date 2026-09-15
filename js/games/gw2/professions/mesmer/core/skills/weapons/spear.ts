@@ -4,11 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.PHANTASMAL_LANCER]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 520,
-    cooldown: 12,
     effects: [
       {
         type: 'strike',
@@ -68,13 +64,9 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingScale: 'fixed'
       }
     ],
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 640,
     // Preserve the impact when interruption only skips the remaining recovery.
     interruptCommitMs: 600,
-    cooldown: 20,
     effects: [
       {
         type: 'strike',
@@ -93,12 +85,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PSYSTRIKE]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 520,
     interruptCommitMs: 480,
-    cooldown: 0,
     nextChainId: ID.MIND_PIERCE,
     effects: [
       {
@@ -115,14 +103,10 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_THE_GAP]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 600,
     // Committed interrupts preserve the attack while its full cast still occupies the casting lane.
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
-    cooldown: 5,
     // The impact uses the next action tick after 480 ms so a just-prior shatter cannot consume this clone.
     resource: {
       mode: 'add',
@@ -146,13 +130,9 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.MIND_PIERCE]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 560,
     // Preserve the finisher's damage when interruption only skips the remaining recovery.
     interruptCommitMs: 400,
-    cooldown: 0,
     nextChainId: null,
     // The chain finisher applies weakness as a real target condition, independent of relic triggers.
     effects: [
@@ -180,12 +160,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.IMAGINARY_INVERSION]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     castTimeMs: 680,
     interruptCommitMs: 600,
-    cooldown: 10,
     effects: [
       {
         type: 'strike',
@@ -199,12 +175,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.PSYCUT]: {
-    type: 'Weapon',
-    weapon: 'Spear',
-    specialization: '',
     // The attack commits before its full cast animation finishes.
     interruptCommitMs: 400,
-    cooldown: 0,
     nextChainId: ID.PSYSTRIKE,
     effects: [
       {
