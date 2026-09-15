@@ -478,6 +478,27 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
     )
   );
 
+  const serratedSteel = simulate('Mechanist', ['Spark Revolver', { type: 'wait', durationMs: 2300 }], {
+    selectedTraitIds: [
+      TRAIT.SERRATED_STEEL,
+      TRAIT.MECH_ARMS_JADE_CANNONS,
+      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+      TRAIT.MECH_CORE_J_DRIVE
+    ],
+    stats: { precision: 4000 },
+    target: { conditions: {} }
+  });
+  // Firearms procs caused by the mech must stay on its independent condition owner.
+  assert.ok(
+    serratedSteel.resolvedEvents.some(
+      (event) =>
+        event.type === 'condition' &&
+        event.skillName === 'Serrated Steel' &&
+        event.actorType === 'summon' &&
+        event.summonOwner === 'engineer.mech'
+    )
+  );
+
   const meleeChain = simulate('Mechanist', [{ type: 'wait', durationMs: 3000 }], {
     selectedTraitIds: [
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,

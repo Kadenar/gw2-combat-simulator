@@ -2,7 +2,8 @@ import { isEngineerMechEvent as mechEvent } from '#gw2/professions/engineer/spec
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
-  balanceProfileValueFromContext
+  balanceProfileValueFromContext,
+  procChanceFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -27,9 +28,45 @@ function isEngineerMechEvent(context: EngineerResolverContext, event: EngineerRe
   return mechEvent(event, () => resolverSkill(context, event.skillId ?? event.application?.skillId));
 }
 
-// The mech owns an independent Incendiary Powder tracker so its critical hits
-// cannot consume the player's progress or internal cooldown.
+// The mech owns independent Firearms proc trackers so its critical hits cannot consume the player's progress.
 export const mechanistCriticalHitDefinitions = Object.freeze([
+  {
+    id: 'engineer.mechanist.serrated-steel-mech',
+    actorTypes: ['summon'],
+    when: (context, event) =>
+      Number(event.coefficient) > 0 && isEngineerMechEvent(context, event) && hasTrait(context, TRAIT.SERRATED_STEEL),
+    chanceOnCriticalHit: (context) => procChanceFromContext(context, CORE_PROFILE.serratedSteel),
+    expectedProgress: {
+      get: (context) => Number(procState(context)['serratedSteelProgress.mech'] || 0),
+      set: (context, progress) => {
+        procState(context)['serratedSteelProgress.mech'] = progress;
+      }
+    },
+    randomStream: 'engineer.serrated-steel.mech',
+    attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
+    handler(context, event, _details, application) {
+      applyEngineerDerivedCondition(context, event, {
+        name: 'Serrated Steel',
+        procCount: application.quantity,
+        condition: 'Bleeding',
+        stacks:
+          balanceProfileValue(
+            balanceProfileEffectFromContext(context, CORE_PROFILE.serratedSteel, 'condition'),
+            'stacks',
+            1
+          ) * application.quantity,
+        duration: balanceProfileValue(
+          balanceProfileEffectFromContext(context, CORE_PROFILE.serratedSteel, 'condition'),
+          'duration',
+          3
+        ),
+        sourceId: TRAIT.SERRATED_STEEL,
+        actorType: 'summon',
+        metadata: { engineerMech: true }
+      });
+      recordTrait(context, 'Serrated Steel', event);
+    }
+  },
   {
     id: 'engineer.mechanist.incendiary-powder-mech',
     actorTypes: ['summon'],
