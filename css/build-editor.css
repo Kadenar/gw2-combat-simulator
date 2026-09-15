@@ -515,6 +515,13 @@
   white-space: nowrap;
 }
 
+.template-preset-warning {
+  grid-column: 1;
+  color: #ffb454;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
 .btn.template-load-btn--current {
   background: transparent;
   color: #a0e8be;

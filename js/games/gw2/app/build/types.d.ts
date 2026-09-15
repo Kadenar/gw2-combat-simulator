@@ -14,6 +14,7 @@ export interface BuildTemplatePreset extends SchedulerRecord {
   readonly rotation?: string;
   readonly snowCrowsUrl?: string;
   readonly benchmarkDps?: number;
+  readonly upToDate?: boolean;
   readonly section?: string | null;
 }
 

@@ -17,28 +17,31 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-hammer.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
-        "benchmarkDps": 48721
+        "benchmarkDps": 48723,
+        "upToDate": true
       },
       {
         "label": "Power Alacrity (Sword/Sword)",
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-staff-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
-        "benchmarkDps": 34462
+        "benchmarkDps": 34462,
+        "upToDate": true
       },
       {
         "label": "Condition (Shortbow - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41123
+        "benchmarkDps": 41123,
+        "upToDate": true
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41470,
+        "benchmarkDps": 41461,
         "referenceDps": 40839,
         "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
@@ -55,14 +58,16 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
         "benchmarkDps": 31935,
         "referenceDps": 32073,
-        "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem"
+        "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem",
+        "upToDate": true
       },
       {
         "label": "Condition Quickness (Shortbow - Mace/Axe)",
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 32020
+        "benchmarkDps": 32020,
+        "upToDate": true
       }
     ]
   },
@@ -81,7 +86,8 @@
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
-        "benchmarkDps": 42668
+        "benchmarkDps": 42668,
+        "upToDate": true
       }
     ]
   },

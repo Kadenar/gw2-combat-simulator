@@ -20,7 +20,8 @@
         "build": "data/gw2/builds/necromancer/b-power-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-reaper-greatsword-spear",
-        "benchmarkDps": 43468
+        "benchmarkDps": 42834,
+        "upToDate": true
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
@@ -60,7 +61,8 @@
         "build": "data/gw2/builds/necromancer/b-power-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-harbinger-greatsword-spear",
-        "benchmarkDps": 43267
+        "benchmarkDps": 43267,
+        "upToDate": true
       },
       {
         "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
@@ -75,7 +77,8 @@
         "build": "data/gw2/builds/necromancer/b-condi-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
-        "benchmarkDps": 45204
+        "benchmarkDps": 45204,
+        "upToDate": true
       },
       {
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",

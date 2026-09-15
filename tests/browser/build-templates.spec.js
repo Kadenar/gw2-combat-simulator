@@ -242,7 +242,7 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
             { label: 'Condition Alacrity (Staff)', build: 'alacrity.json' }
           ]
         },
-        { section: 'Mirage', presets: [{ label: 'Condition (Axe)', build: 'axe.json' }] }
+        { section: 'Mirage', presets: [{ label: 'Condition (Axe)', build: 'axe.json', upToDate: false }] }
       ]
     })
   );
@@ -263,6 +263,8 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
   await expect(boon.locator('.template-preset-boon')).toHaveText(['Quickness', 'Alacrity']);
   await expect(mirage.locator('.template-subgroup > summary')).toHaveText(['Condition']);
   await expect(mirage.locator('.template-preset-name')).toHaveText('Axe');
+  await expect(mirage.locator('.template-preset-warning')).toHaveText('⚠ Out of date');
+  await expect(chrono.locator('.template-preset-warning')).toHaveCount(0);
 
   await power.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');

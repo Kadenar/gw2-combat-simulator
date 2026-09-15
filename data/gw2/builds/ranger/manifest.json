@@ -36,9 +36,8 @@
         "label": "Power (Spear / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
-        "//": "Expose the diagnostic spear replay as a preset; DPS tracks the simulation while unmeasured timings remain provisional.",
         "benchmarkDps": 41001,
-        "upToDate": false
+        "upToDate": true
       }
     ]
   },

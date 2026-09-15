@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 41777,
+        "benchmarkDps": 41748,
         "sourceBenchmarkDps": 41809,
         "upToDate": true
       },
@@ -94,7 +94,8 @@
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-longbow-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-longbow-greatsword-bench.json",
         "benchmarkDps": 41928,
-        "dpsReportUrl": "https://dps.report/7zCO-42179lbdh-_golem"
+        "dpsReportUrl": "https://dps.report/7zCO-42179lbdh-_golem",
+        "upToDate": true
       }
     ]
   },
@@ -106,7 +107,8 @@
         "build": "data/gw2/builds/guardian/b-power-luminary.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
-        "benchmarkDps": 41427
+        "benchmarkDps": 41427,
+        "upToDate": true
       },
       {
         "label": "Power (Greatsword / Spear) - Nagy Rotation",

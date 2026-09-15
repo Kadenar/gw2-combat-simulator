@@ -129,11 +129,17 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
+  // Surface manifest freshness where users choose a template so stale builds are not mistaken for current ones.
+  const freshnessWarning =
+    preset.upToDate === false
+      ? '<span class="template-preset-warning" title="This template may no longer match the current game balance.">⚠ Out of date</span>'
+      : '';
   return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
         <span class="template-preset-name">${esc(content.weapons ? qualifier + content.weapons : content.name)}</span>
         ${boon === 'none' ? '' : `<span class="template-preset-boon">${boon[0].toUpperCase()}${boon.slice(1)}</span>`}
         ${content.dps ? `<span class="template-preset-dps">${esc(content.dps)}</span>` : ''}
+        ${freshnessWarning}
       </button>
       <details class="template-actions">
         <summary aria-label="More options for ${label}" title="More loading options">•••</summary>
