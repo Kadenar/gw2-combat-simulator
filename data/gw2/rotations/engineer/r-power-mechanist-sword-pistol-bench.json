@@ -6,215 +6,948 @@
     "benchmarkDps": 41140.31
   },
   "rotation": [
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    "Stow Bomb Kit",
-    "Core Reactor Shot",
-    "Glue Shot",
-    { "name": "__combat_start", "offset": 160 },
-    { "name": "__cooldown_reset" },
-    { "name": "__wait", "waitMs": 468 },
-    "Jade Mortar",
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Spark Revolver",
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Blowtorch", "interruptMs": 0 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Overclock Signet",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Jade Mortar",
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    "Core Reactor Shot",
-    "Magnetic Bomb",
-    "Spark Revolver",
-    "Stow Bomb Kit",
-    "Glue Shot",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Jade Mortar",
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    "Spark Revolver",
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Core Reactor Shot",
-    "Fire Bomb",
-    "Magnetic Bomb",
-    "Galvanic Bomb",
-    "Stow Bomb Kit",
-    "Glue Shot",
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    "Jade Mortar",
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Spark Revolver",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Blowtorch",
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Fire Bomb",
-    "Core Reactor Shot",
-    "Galvanic Bomb",
-    "Magnetic Bomb",
-    "Stow Bomb Kit",
-    "Glue Shot",
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Jade Mortar",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Blowtorch", "interruptMs": 0 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Spark Revolver",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    "Core Reactor Shot",
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    "Magnetic Bomb",
-    "Stow Bomb Kit",
-    "Glue Shot",
-    "Jade Mortar",
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906, "interruptMs": 234 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Spark Revolver",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    "Overclock Signet",
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Radiant Arc", "skillId": 69565 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    "Jade Mortar",
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Core Reactor Shot",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    "Magnetic Bomb",
-    "Stow Bomb Kit",
-    "Glue Shot",
-    { "name": "Radiant Arc", "skillId": 69565 },
-    "Spark Revolver",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Refraction Cutter", "skillId": 71121 },
-    "Blowtorch",
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 },
-    { "name": "Sun Edge", "skillId": 70514 },
-    { "name": "Sun Ripper", "skillId": 69906 },
-    { "name": "Gleam Saber", "skillId": 70771 }
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 840
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 63095,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 70514,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
+      "skillId": 70514,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 640
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 70514,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "cast",
+      "skillId": 63095,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 63121,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 63345,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5830
+    },
+    {
+      "type": "cast",
+      "skillId": 69565
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 63188,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 70771,
+      "interruptAfterMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 71121
+    },
+    {
+      "type": "cast",
+      "skillId": 5831
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 70514
+    },
+    {
+      "type": "cast",
+      "skillId": 69906
+    },
+    {
+      "type": "cast",
+      "skillId": 70771
+    }
   ]
 }

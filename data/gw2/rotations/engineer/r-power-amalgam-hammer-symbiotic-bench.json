@@ -1,207 +1,907 @@
 {
-  "metadata": {
-    "log": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
-    "benchmarkDurationSeconds": 94.202,
-    "benchmarkDamage": 3973116,
-    "benchmarkDps": 42176.556761002954
-  },
   "rotation": [
-    "Throw Mine",
-    { "name": "__wait", "waitMs": 5000 },
-    "Bomb Kit",
-    "Big Ol' Bomb",
-    "Magnetic Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    "Stow Bomb Kit",
-    "Thunderclap",
-    { "name": "__combat_start", "offset": 160 },
-    "Electro-whirl",
-    { "name": "Defensive Protocol: Thorns", "offset": 166, "skillId": 77104 },
-    { "name": "Detonate", "offset": 159 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    { "name": "Evolve", "skillId": 76642 },
-    "Flux State",
-    { "name": "Defensive Protocol: Thorns", "offset": 275, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    "Throw Mine",
-    "Electro-whirl",
-    { "name": "Detonate", "offset": 58 },
-    { "name": "Grenade Kit", "offset": 225 },
-    "Shrapnel Grenade",
-    "Poison Grenade",
-    "Freeze Grenade",
-    { "name": "Bomb Kit", "offset": 199 },
-    "Fire Bomb",
-    { "name": "Stow Bomb Kit", "offset": 434 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    { "name": "Positive Strike", "interruptMs": 83 },
-    "Rocket Charge",
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 275 },
-    "Shrapnel Grenade",
-    { "name": "Stow Grenade Kit", "offset": 526 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Thunderclap",
-    { "name": "Bomb Kit", "offset": 66 },
-    "Throw Mine",
-    "Magnetic Bomb",
-    { "name": "Detonate", "offset": 74 },
-    "Big Ol' Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    { "name": "Stow Bomb Kit", "offset": 167 },
-    "Electro-whirl",
-    { "name": "Defensive Protocol: Thorns", "offset": 83, "skillId": 77104 },
-    { "name": "Grenade Kit", "offset": 41 },
-    "Shrapnel Grenade",
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Stow Grenade Kit", "offset": 241 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    { "name": "Evolve", "skillId": 76642 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Defensive Protocol: Thorns", "offset": 192, "skillId": 77104 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 125 },
-    "Throw Mine",
-    "Shrapnel Grenade",
-    { "name": "Detonate", "offset": 83 },
-    "Poison Grenade",
-    "Freeze Grenade",
-    { "name": "Bomb Kit", "offset": 157 },
-    "Fire Bomb",
-    { "name": "Stow Bomb Kit", "offset": 451 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 42 },
-    "Shrapnel Grenade",
-    { "name": "Stow Grenade Kit", "offset": 392 },
-    "Thunderclap",
-    "Rocket Charge",
-    { "name": "Bomb Kit", "offset": 82 },
-    "Throw Mine",
-    "Magnetic Bomb",
-    { "name": "Detonate", "offset": 74 },
-    "Big Ol' Bomb",
-    "Fire Bomb",
-    "Galvanic Bomb",
-    { "name": "Stow Bomb Kit", "offset": 158 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 157 },
-    "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "offset": 83, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Stow Grenade Kit", "offset": 317 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    { "name": "Evolve", "skillId": 76642 },
-    "Flux State",
-    { "name": "Defensive Protocol: Thorns", "offset": 400, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 82 },
-    "Throw Mine",
-    "Shrapnel Grenade",
-    { "name": "Detonate", "offset": 83 },
-    "Poison Grenade",
-    "Freeze Grenade",
-    { "name": "Bomb Kit", "offset": 157 },
-    "Fire Bomb",
-    { "name": "Stow Bomb Kit", "offset": 433 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Rocket Charge",
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 324 },
-    "Shrapnel Grenade",
-    { "name": "Stow Grenade Kit", "offset": 468 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Thunderclap",
-    { "name": "Bomb Kit", "offset": 158 },
-    "Magnetic Bomb",
-    "Throw Mine",
-    "Big Ol' Bomb",
-    { "name": "Detonate", "offset": 78 },
-    "Fire Bomb",
-    "Galvanic Bomb",
-    { "name": "Stow Bomb Kit", "offset": 159 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 158 },
-    "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "offset": 0, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Stow Grenade Kit", "offset": 317 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    { "name": "Evolve", "skillId": 76642 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Defensive Protocol: Thorns", "offset": 233, "skillId": 77104 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 206 },
-    "Shrapnel Grenade",
-    "Throw Mine",
-    "Poison Grenade",
-    { "name": "Detonate", "offset": 83 },
-    "Freeze Grenade",
-    { "name": "Bomb Kit", "offset": 116 },
-    "Fire Bomb",
-    { "name": "Stow Bomb Kit", "offset": 401 },
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Positive Strike",
-    "Negative Bash",
-    "Equalizing Blow",
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 32 },
-    "Shrapnel Grenade",
-    { "name": "Stow Grenade Kit", "offset": 442 },
-    "Thunderclap",
-    "Rocket Charge",
-    { "name": "Bomb Kit", "offset": 199 },
-    "Magnetic Bomb",
-    "Big Ol' Bomb",
-    "Throw Mine",
-    "Fire Bomb",
-    { "name": "Detonate", "offset": 75 },
-    "Galvanic Bomb",
-    { "name": "Stow Bomb Kit", "offset": 276 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 240 },
-    "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "offset": 233, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    { "name": "Stow Grenade Kit", "offset": 518 },
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    { "name": "Evolve", "skillId": 76642 },
-    "Flux State",
-    { "name": "Defensive Protocol: Thorns", "offset": 400, "skillId": 77104 },
-    { "name": "Offensive Protocol: Demolish", "skillId": 76927 },
-    "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 315 },
-    "Shrapnel Grenade",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
-    "Poison Grenade",
-    "Freeze Grenade",
-    { "name": "Stow Grenade Kit", "offset": 125 },
-    "Throw Mine",
-    "Rocket Charge",
-    { "name": "Detonate", "offset": 75 },
-    "Electro-whirl"
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5812
+    },
+    {
+      "type": "wait",
+      "durationMs": 9000
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "cast",
+      "skillId": 30713
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5823,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30665
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 30713
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5823,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 30713
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30665
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 77104
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5823,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30665
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 30713
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5823,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 6111
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "cast",
+      "skillId": 30501
+    },
+    {
+      "type": "cast",
+      "skillId": 29785
+    },
+    {
+      "type": "cast",
+      "skillId": 30489
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 30713
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 30665
+    },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 76530
+    },
+    {
+      "type": "cast",
+      "skillId": 5813
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 5823
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5822
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 76642
+    },
+    {
+      "type": "cast",
+      "skillId": 76993
+    },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 76927
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
+    {
+      "type": "cast",
+      "skillId": 5807
+    },
+    {
+      "type": "cast",
+      "skillId": 5806
+    },
+    {
+      "type": "cast",
+      "skillId": 5809
+    },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 6161
+    },
+    {
+      "type": "cast",
+      "skillId": 30665
+    },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 30088
+    }
   ]
 }

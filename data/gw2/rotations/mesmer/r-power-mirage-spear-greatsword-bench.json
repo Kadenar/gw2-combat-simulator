@@ -312,10 +312,6 @@
     },
     {
       "type": "cast",
-      "skillId": 44241
-    },
-    {
-      "type": "cast",
       "skillId": 40200
     },
     {
@@ -466,10 +462,6 @@
     {
       "type": "cast",
       "skillId": 73093
-    },
-    {
-      "type": "cast",
-      "skillId": 73067
     },
     {
       "type": "cast",
