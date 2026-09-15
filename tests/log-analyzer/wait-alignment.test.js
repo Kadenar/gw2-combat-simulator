@@ -86,6 +86,57 @@ test('fully absorbed waits retain the serial barrier before a concurrent input',
   assert.deepEqual(corrected.warnings, []);
 });
 
+test('fully absorbed waits are removed when the following cast already preserves replay timing', () => {
+  const profession = defineProfession({ id: 'fixture', name: 'Fixture', catalog });
+  const rotation = [
+    { type: 'cast', skillId: 3 },
+    { type: 'wait', durationMs: 80 },
+    { type: 'cast', skillId: 2 }
+  ];
+
+  const corrected = alignImportedRotationWaits(rotation, new Map([[1, 1200]]), { adapter: { profession } }, {});
+
+  assert.deepEqual(corrected.rotation, [rotation[0], rotation[2]]);
+  assert.deepEqual(corrected.warnings, []);
+});
+
+test('wait alignment applies scheduler feedback before absorbing source idle time', () => {
+  const profession = defineProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    catalog,
+    castRules: {
+      modifyRechargeDuration: (context, duration) => (context.config.cooldownReset ? 0 : duration)
+    },
+    simulation: {
+      refineSchedulerConfig: (config) => (config.cooldownReset ? null : { ...config, cooldownReset: true })
+    }
+  });
+  const rotation = [
+    { type: 'cast', skillId: 1 },
+    { type: 'cast', skillId: 1 },
+    { type: 'wait', durationMs: 40 },
+    { type: 'cast', skillId: 2 }
+  ];
+  const app = {
+    adapter: {
+      profession,
+      simulateBuild: () => ({})
+    }
+  };
+
+  const corrected = alignImportedRotationWaits(rotation, new Map([[2, 400]]), app, {});
+
+  assert.deepEqual(corrected.rotation[2], { type: 'wait', durationMs: 160 });
+  assert.equal(
+    createScheduler({ profession, config: { cooldownReset: true } })
+      .run(corrected.rotation)
+      .steps.at(-1).start,
+    400
+  );
+  assert.deepEqual(corrected.warnings, []);
+});
+
 test('EVTC wait targets use replay-relative time and feed the same correction', () => {
   const profession = defineProfession({ id: 'mesmer', name: 'Mesmer', catalog });
   const waitTargets = new Map();
