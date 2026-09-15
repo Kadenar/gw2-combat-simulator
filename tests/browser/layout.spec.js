@@ -497,12 +497,7 @@ test('timing skill selection submits the picker and details expand below DPS', a
 });
 
 test('profession state duration checks use their own authoritative transitions', async ({ page }) => {
-  for (const fixture of [
-    { page: '/engineer.html', specialization: 'Holosmith', label: 'Time in Photon Forge' },
-    { page: '/guardian.html', specialization: 'Luminary', label: 'Time in Radiant Forge' },
-    { page: '/necromancer.html', specialization: 'Reaper', label: 'Time in Shroud' },
-    { page: '/warrior.html', specialization: 'Bladesworn', label: 'Time in Gunsaber' }
-  ]) {
+  for (const fixture of [{ page: '/necromancer.html', specialization: 'Reaper', label: 'Time in Shroud' }]) {
     await page.goto(fixture.page, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.professionApp);
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

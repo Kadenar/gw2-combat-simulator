@@ -5,8 +5,9 @@ export default defineConfig({
   testDir: './tests/browser',
   testMatch: '**/*.spec.js',
   outputDir: 'dist/playwright-results',
-  // Run one browser worker so page simulation workers and Vite startup do not contend across tests.
-  workers: 1,
+  // Parallel files stay within the host's cores alongside each page's own simulation workers: four lanes locally,
+  // two on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
+  workers: process.env.CI ? 2 : 4,
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',

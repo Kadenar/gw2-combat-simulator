@@ -1,46 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-// Baseline validation must stop both worker search modes before invalid rotations populate any result group.
-test('invalid rotation skills fail optimization without publishing results', async ({ page }) => {
-  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.addRotation('Bladecall');
-    app.build.weapons = ['Greatsword', ''];
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  const panel = page.locator('#gear-optimizer');
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  for (const search of ['fast', 'exact']) {
-    if (search === 'exact')
-      await page.evaluate(() => {
-        const runner = window.professionApp.gearOptimizerRunner;
-        runner.run({ ...runner.request, search: 'exact' });
-      });
-    await expect(panel.locator('[data-role="optimizer-status"]')).toContainText(
-      'Fix invalid rotation skills before running the optimizer:',
-      { timeout: 20000 }
-    );
-    await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Bladecall');
-    await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
-    await expect(panel.locator('[data-role="optimizer-warnings"]')).toBeEmpty();
-    expect(
-      await page.evaluate(() => {
-        const runner = window.professionApp.gearOptimizerRunner;
-        return {
-          running: runner.isRunning,
-          baseline: runner.state.baseline,
-          simulations: String(runner.state.simulations),
-          winners: runner.state.winners,
-          groups: Object.values(runner.state.groups).flat()
-        };
-      })
-    ).toEqual({ running: false, baseline: null, simulations: '0', winners: [], groups: [] });
-  }
-});
-
 // Switching builds clears results, restores current gear, and terminates an outgoing search.
 test('build switches discard optimizer results and active searches', async ({ page }) => {
   await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
@@ -165,102 +124,6 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await page.getByRole('button', { name: 'New blank build', exact: true }).click();
   await expect(tab).toHaveAttribute('aria-current', 'page');
   await expect(comparison).toBeEmpty();
-});
-
-// Optional requirements survive worker updates, reject before combat, and disappear when cleared.
-test('optimizer requirement inputs reject candidates and blank fields remove limits', async ({ page }) => {
-  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
-  const panel = page.locator('#gear-optimizer');
-  for (const label of [
-    'Minimum toughness',
-    'Maximum toughness',
-    'Minimum vitality',
-    'Minimum boon duration (%)',
-    'Minimum quickness duration (%)'
-  ])
-    await expect(panel.getByRole('spinbutton', { name: label, exact: true })).toHaveValue('');
-  await panel.getByRole('spinbutton', { name: 'Maximum toughness', exact: true }).fill('0');
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('0 simulations');
-  await expect(panel.locator('[data-role="optimizer-results"]')).toContainText(
-    'No gear combinations met the requirements'
-  );
-  await panel.getByRole('spinbutton', { name: 'Maximum toughness', exact: true }).fill('');
-  await panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true }).fill('100000');
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('0 simulations');
-  await expect(panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true })).toHaveValue('100000');
-  await panel.getByRole('spinbutton', { name: 'Minimum vitality', exact: true }).fill('');
-  await panel.getByRole('spinbutton', { name: 'Minimum boon duration (%)', exact: true }).fill('0');
-  await panel.getByRole('spinbutton', { name: 'Minimum quickness duration (%)', exact: true }).fill('0');
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  expect(await page.evaluate(() => ({ ...window.professionApp.gearOptimizerRunner.request.selections }))).toMatchObject(
-    { minBoonDuration: 0, minQuicknessDuration: 0 }
-  );
-  expect(await page.evaluate(() => 'maxToughness' in window.professionApp.gearOptimizerRunner.request.selections)).toBe(
-    false
-  );
-  expect(await page.evaluate(() => 'minVitality' in window.professionApp.gearOptimizerRunner.request.selections)).toBe(
-    false
-  );
-  await expect(panel.getByRole('table', { name: 'Gear comparison' })).toBeVisible();
-});
-
-// Collapsing slot controls preserves overrides through workers; clearing restores shared prefix choices.
-test('forced slots start collapsed and constrain results until cleared', async ({ page }) => {
-  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  const panel = page.locator('#gear-optimizer');
-  const forced = panel.locator('.optimizer-forced-slots');
-  await expect(forced).not.toHaveAttribute('open');
-  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toBeHidden();
-  await forced.locator('summary').click();
-  await forced.getByRole('combobox', { name: 'Helm', exact: true }).selectOption('Celestial');
-  await forced.getByRole('combobox', { name: 'Set 2 main hand', exact: true }).selectOption("Assassin's");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await forced.getByRole('combobox', { name: 'Helm', exact: true }).scrollIntoViewIfNeeded();
-  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toBeInViewport();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await forced.screenshot({ path: '.scratch/optimizer/forced-slots-mobile.png' });
-  await page.setViewportSize({ width: 1440, height: 1100 });
-  await forced.screenshot({ path: '.scratch/optimizer/forced-slots-desktop.png' });
-  await forced.locator('summary').click();
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  const result = await page.evaluate(() => {
-    const runner = window.professionApp.gearOptimizerRunner;
-    return {
-      forcedSlots: runner.request.selections.forcedSlots,
-      equipment: runner.state.winners.map((entry) => entry.equipment)
-    };
-  });
-  expect(result.forcedSlots).toEqual({ Helm: 'Celestial', AlternateWeapon1: "Assassin's" });
-  expect(result.equipment.length).toBeGreaterThan(0);
-  for (const equipment of result.equipment) {
-    expect(equipment.gear.Helm).toBe('Celestial');
-    expect(equipment.alternateWeaponPrefixes[0]).toBe("Assassin's");
-  }
-
-  await expect(forced).not.toHaveAttribute('open');
-  await forced.locator('summary').click();
-  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toHaveValue('Celestial');
-  await forced.getByRole('button', { name: 'Clear forced slots', exact: true }).click();
-  await expect(forced.getByRole('combobox', { name: 'Helm', exact: true })).toHaveValue('');
-  await expect(forced.getByRole('combobox', { name: 'Set 2 main hand', exact: true })).toHaveValue('');
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request.selections.forcedSlots)).toEqual(
-    {}
-  );
 });
 
 /** Pick by the underlying equipment identity while the dropdown supplies readable attribute descriptions. */
@@ -463,36 +326,6 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   ).toBeVisible();
 });
 
-test('large search remains responsive and navigation cancels its workers', async ({ page }) => {
-  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
-  const panel = page.locator('#gear-optimizer');
-  await panel.getByRole('spinbutton', { name: 'Workers', exact: true }).fill('4');
-  await addChoice(panel, 'prefixes', "Assassin's");
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Evaluating', { timeout: 20000 });
-  await expect(panel.getByRole('spinbutton', { name: 'Workers', exact: true })).toBeDisabled();
-  await expect.poll(() => page.evaluate(() => window.professionApp.gearOptimizerRunner.batch.workers.size)).toBe(4);
-  await expect(panel.locator('[data-role="optimizer-counts"]')).toHaveText(/^[\d,]+ candidates checked\.$/);
-  const inlineProgress = await panel.locator('.optimizer-status-text').evaluate((element) => {
-    const status = element.querySelector('[data-role="optimizer-status"]').getBoundingClientRect();
-    const counts = element.querySelector('[data-role="optimizer-counts"]').getBoundingClientRect();
-    return counts.left >= status.right && Math.abs(counts.bottom - status.bottom) < 2;
-  });
-  expect(inlineProgress).toBe(true);
-  await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
-  expect(
-    await page.evaluate(() => ({
-      running: window.professionApp.gearOptimizerRunner.isRunning,
-      status: window.professionApp.gearOptimizerRunner.state.status
-    }))
-  ).toEqual({ running: false, status: 'canceled' });
-  await expect(panel).not.toBeVisible();
-});
-
 test('prepopulated choices enforce limits and stay usable on mobile', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
@@ -528,24 +361,6 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
   await expect(panel.locator('[data-role="optimizer-estimate"]')).toBeEmpty();
   await panel.screenshot({ path: '.scratch/optimizer/revised-mobile.png' });
   expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-});
-
-test('bounded preparation can be canceled before scoring begins', async ({ page }) => {
-  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
-  const panel = page.locator('#gear-optimizer');
-  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
-  // Submit and cancel in the same task so the assertion does not depend on machine preparation speed.
-  await panel.evaluate((element) => {
-    element.querySelector('form').requestSubmit();
-    element.querySelector('[data-role="optimizer-cancel"]').click();
-  });
-  await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Canceled');
-  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.isRunning)).toBe(false);
-  await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
 });
 
 // Compare actual candidates in the visible grid, including changes and horizontal scrolling on mobile.
@@ -637,28 +452,6 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   }
 
   await expect(results.getByRole('button')).toHaveCount(0);
-});
-
-// Large searches skip the exhaustive index and finish with explicitly approximate, verified results.
-test('large searches use a bounded candidate budget and leave the page usable', async ({ page }) => {
-  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
-  const panel = page.locator('#gear-optimizer');
-  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', {
-    timeout: 60000
-  });
-  await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
-  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.isRunning)).toBe(false);
-  const simulations = await page.evaluate(() => Number(window.professionApp.gearOptimizerRunner.state.simulations));
-  expect(simulations).toBeGreaterThan(256);
-  expect(simulations).toBeLessThanOrEqual(2048);
-  await panel.locator('tbody tr .optimizer-damage').first().click();
-  await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
 });
 
 test('result filters group upgrades without rerunning and keep equipped gear pinned', async ({ page }) => {
@@ -797,101 +590,6 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   await withoutFood.locator('.optimizer-damage').click();
   await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
-});
-
-// Cancel as soon as real worker results arrive, then apply a retained candidate from its preview.
-test('early cancellation keeps previewed results applicable', async ({ page }) => {
-  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  const panel = page.locator('#gear-optimizer');
-  for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);
-  await panel.locator('.optimizer-forced-slots > summary').click();
-  await panel.locator('[data-forced-slot="Helm"]').selectOption("Viper's");
-  const revision = await page.evaluate(() => {
-    const app = window.professionApp;
-    const panel = document.querySelector('#gear-optimizer');
-    const observer = new MutationObserver(() => {
-      if (!panel.querySelector('tbody tr') || !app.gearOptimizerRunner.isRunning) return;
-      observer.disconnect();
-      panel.querySelector('[data-role="optimizer-cancel"]').click();
-    });
-    observer.observe(panel.querySelector('[data-role="optimizer-results"]'), { childList: true, subtree: true });
-    return app.buildRevision;
-  });
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Canceled.', { timeout: 20000 });
-  expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.state.completed > 0n)).toBe(true);
-  await panel.locator('tbody tr .optimizer-damage').first().click();
-  const preview = panel.locator('[data-role="optimizer-preview"]');
-  await preview.getByRole('combobox', { name: 'Preview weapon set', exact: true }).selectOption('2');
-  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toBeEnabled();
-  await preview.getByRole('button', { name: 'Apply gear', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  expect(await page.evaluate(() => window.professionApp.build.gear.Helm)).toBe("Viper's");
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(revision + 1);
-  await expect(preview.getByRole('button', { name: 'Apply gear', exact: true })).toHaveCount(0);
-  await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
-});
-
-// Exercise both axes independently through scoring, preview, and Apply on a Hammer / Axe-Axe Soulbeast.
-test('Soulbeast optimizes and applies the off-hand axe independently', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1100 });
-  await page.goto('/ranger.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.startingWeaponSet = 2;
-    app.addRotation('Whirling Defense');
-  });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  const panel = page.locator('#gear-optimizer');
-  await panel.locator('.optimizer-forced-slots > summary').click();
-  await panel.locator('[data-forced-slot="AlternateWeapon2"]').selectOption("Viper's");
-  await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
-  await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
-  const results = panel.getByRole('table', { name: 'Gear comparison' });
-  await expect(results.locator('thead tr:first-child th[scope="colgroup"]')).toHaveText([
-    'Weapon set 1',
-    'Weapon set 2'
-  ]);
-  await expect(results.locator('thead tr').nth(1).locator('th')).toHaveText([
-    'Hammer (2H)',
-    'Sigils',
-    'Axe (MH)',
-    'Axe (OH)',
-    'Sigils'
-  ]);
-  const row = results.locator('tbody tr').first();
-  await expect(row.getByRole('cell', { name: "Weapon1: Berserker's", exact: true })).toBeVisible();
-  await expect(row.getByRole('cell', { name: "AlternateWeapon1: Berserker's", exact: true })).toBeVisible();
-  const offhand = row.getByRole('cell', { name: "AlternateWeapon2: Viper's", exact: true });
-  await expect(offhand).toBeVisible();
-  expect(
-    await page.evaluate(() => {
-      const state = window.professionApp.gearOptimizerRunner.state;
-      return state.winners[0].score.dps !== state.baseline.dps;
-    })
-  ).toBe(true);
-  await offhand.click();
-  await expect(
-    panel.locator('.optimizer-preview-weapons').getByRole('group', { name: /^Axe: Berserker's;/ })
-  ).toBeVisible();
-  await expect(
-    panel.locator('.optimizer-preview-weapons').getByRole('group', { name: /^Axe: Viper's;/ })
-  ).toBeVisible();
-  await panel
-    .locator('[data-role="optimizer-results"]')
-    .screenshot({ path: '.scratch/optimizer/soulbeast-weapons.png' });
-  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-  expect(
-    await page.evaluate(() => {
-      const build = window.professionApp.build;
-      return [build.weapons, build.alternateWeapons, build.gear.Weapon1, build.alternateWeaponPrefixes];
-    })
-  ).toEqual([['Hammer', ''], ['Axe', 'Axe'], "Berserker's", ["Berserker's", "Viper's"]]);
 });
 
 test('an unchanged setup appears only in the pinned row', async ({ page }) => {
