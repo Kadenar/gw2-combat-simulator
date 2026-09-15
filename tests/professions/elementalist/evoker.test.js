@@ -401,7 +401,6 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
   for (const alacrity of [false, true]) {
     const baseline = simulate('1-1-1', alacrity);
     const specialized = simulate('1-1-3', alacrity);
-    const weapon = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Flame Uprising');
     const weaponSkill = elementalistCatalog.skillsByName.get('Flame Uprising');
     const reduction = (gw2BaseRecharge(weaponSkill) * 1000 * 0.1) / (alacrity ? GW2_ALACRITY_RECHARGE_RATE : 1);
 
