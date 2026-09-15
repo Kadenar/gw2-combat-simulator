@@ -136,6 +136,96 @@ test('shared DPS charts start their sample grid at the first hit', () => {
   ]);
 });
 
+// A sorted sweep must preserve inclusive sample boundaries, tick ownership, and the reporting window.
+test('DPS samples accumulate unordered hits and ticks without changing reporting metrics', () => {
+  const result = {
+    duration: 9,
+    dpsStartTime: 1,
+    deathTime: 2.1,
+    totalDamage: 212,
+    dps: 212 / 1.1,
+    resolvedEvents: Object.freeze([
+      Object.freeze({ type: 'damage', at: 2, damage: 20 }),
+      Object.freeze({
+        type: 'condition',
+        at: 1,
+        condition: 'Bleeding',
+        damage: 999,
+        damageTicks: Object.freeze([
+          Object.freeze({ at: 2.2, damage: 10000 }),
+          Object.freeze({ at: 1.5, damage: 30 }),
+          Object.freeze({ at: 1.25, damage: 10 }),
+          Object.freeze({ at: 2.1, damage: 40 })
+        ])
+      }),
+      Object.freeze({ type: 'damage', at: 1, damage: 100 }),
+      Object.freeze({ type: 'damage', at: 1.5, damage: 5 }),
+      Object.freeze({ type: 'damage', at: 0.75, damage: 7 })
+    ])
+  };
+  const metrics = resultSummaryMetrics(result);
+  const series = buildChartSeries(result, 500);
+  assert.deepEqual(series.dps, [
+    { t: 0, v: 0 },
+    { t: 500, v: 152 / 0.5 },
+    { t: 1000, v: 172 },
+    { t: 1100, v: 212 / 1.1 }
+  ]);
+  assert.equal(series.cumulativeDamage.at(-1).v, result.totalDamage);
+  assert.equal(series.dps.at(-1).v, result.dps);
+  assert.deepEqual(resultSummaryMetrics(result), metrics);
+});
+
+// Only chart preparation reads a relic's expiry; hidden-view creation must not visit that history.
+test('Analysis charts are prepared only when the Analysis view is active', (t) => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (descriptor) Object.defineProperty(globalThis, 'document', descriptor);
+    else delete globalThis.document;
+  });
+  const document = {
+    body: { dataset: { simulatorView: 'workspace' } },
+    defaultView: { location: { hash: '#analysis' } }
+  };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
+  let chartReads = 0;
+  const app = {
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
+    results: {
+      duration: 1,
+      totalDamage: 100,
+      dps: 100,
+      procSteps: [
+        {
+          type: 'relic_proc',
+          skill: 'Test relic',
+          start: 0,
+          get expiresAt() {
+            chartReads++;
+            return 1000;
+          }
+        }
+      ]
+    }
+  };
+  for (const view of ['workspace', 'gear-optimizer', 'analysis', 'workspace', 'analysis']) {
+    document.body.dataset.simulatorView = view;
+    chartReads = 0;
+    const model = createGw2SimulationViewModel(app);
+    assert.equal(chartReads > 0, view === 'analysis');
+    const summary = inertContainer();
+    model.summary.panels[0].mount(summary);
+    assert.match(summary.innerHTML, /Player DPS/);
+    assert.match(summary.innerHTML, />100</);
+  }
+
+  // A direct #analysis load also prepares charts before navigation sets the body dataset.
+  delete document.body.dataset.simulatorView;
+  chartReads = 0;
+  createGw2SimulationViewModel(app);
+  assert.ok(chartReads > 0);
+});
+
 test('target health breakpoints use cumulative damage and individual condition ticks', () => {
   const snapshots = targetHealthBreakpointSnapshots(
     {

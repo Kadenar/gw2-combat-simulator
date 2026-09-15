@@ -135,22 +135,22 @@ export function buildChartSeries(
       (event.type === 'damage' || event.type === 'condition') &&
       (Number(event.damage || 0) > 0 || eventDamageTicks(event).some((tick) => Number(tick.damage || 0) > 0))
   );
+  // Walk hits once in time order; ticks replace their application's aggregate damage and the source stays untouched.
+  const damageHits = damageEvents
+    .flatMap((event) => {
+      const ticks = eventDamageTicks(event);
+      return ticks.length ? ticks : [{ at: event.at, damage: Number(event.damage || 0) }];
+    })
+    .sort((left, right) => Number(left.at || 0) - Number(right.at || 0));
+  let hitIndex = 0;
+  let damage = 0;
   const dps = times.map((time) => {
     const elapsed = time / 1000;
     if (elapsed <= 0) return { t: time, v: 0 };
     const absoluteTime = dpsStartMs + time;
-    let damage = 0;
-    for (const event of damageEvents) {
-      const damageTicks = eventDamageTicks(event);
-      if (damageTicks.length) {
-        // Condition applications store aggregate damage plus individual ticks;
-        // use ticks to avoid showing future condition damage too early.
-        damage += damageTicks
-          .filter((tick) => Number(tick.at || 0) * 1000 <= absoluteTime)
-          .reduce((sum, tick) => sum + Number(tick.damage || 0), 0);
-      } else if (Number(event.at || 0) * 1000 <= absoluteTime) {
-        damage += Number(event.damage || 0);
-      }
+    while (hitIndex < damageHits.length && Number(damageHits[hitIndex]!.at || 0) * 1000 <= absoluteTime) {
+      damage += Number(damageHits[hitIndex]!.damage || 0);
+      hitIndex++;
     }
 
     return { t: time, v: damage / elapsed };

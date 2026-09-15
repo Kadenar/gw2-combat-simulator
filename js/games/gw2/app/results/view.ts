@@ -8,7 +8,7 @@ import {
 } from '#gw2/app/results/rotation-results.js';
 import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
-import { renderSimulationViewModel } from '#app/shell/result-view.js';
+import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
@@ -184,7 +184,8 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           : null,
         ...modifierContributionModel(app),
         ...randomDistributionModel(result),
-        chartSeries: buildChartSeries(result, 250, effectPresentations)
+        // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
+        chartSeries: analysisViewIsActive() ? buildChartSeries(result, 250, effectPresentations) : null
       },
       {
         resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
