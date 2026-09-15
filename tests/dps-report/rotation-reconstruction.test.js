@@ -325,7 +325,7 @@ test('preserves cancelled and shortened autoattack inputs at their observed dura
       castTimeMs: 2_570,
       effects: [{ type: 'strike', atMs: 172 }]
     }),
-    skill(5842, 'Bomb', { type: 'weapon', castTimeMs: 500, interruptCommitMs: 0 })
+    skill(5842, 'Bomb', { type: 'weapon', castTimeMs: 500 })
   );
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {

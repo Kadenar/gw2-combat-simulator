@@ -5,7 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ABYSSAL_BLITZ]: {
-    interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     castTimeMs: 520,
@@ -19,7 +18,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, coefficient: 0.5 },
           { atMs: 720, coefficient: 0.5 },
@@ -32,7 +30,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, condition: 'Slow', stacks: 1, duration: 3 },
           { atMs: 720, condition: 'Slow', stacks: 1, duration: 3 },
@@ -45,7 +42,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, condition: 'Chilled', stacks: 1, duration: 3 },
           { atMs: 720, condition: 'Chilled', stacks: 1, duration: 3 },
@@ -58,7 +54,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         ticks: [
           { atMs: 560, condition: 'Weakness', stacks: 1, duration: 3 },
           { atMs: 720, condition: 'Weakness', stacks: 1, duration: 3 },
@@ -69,7 +64,8 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ABYSSAL_BLOT]: {
-    interruptCommitMs: 0,
+    // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.
+    interruptCommitMs: 760,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     castTimeMs: 800,
@@ -141,7 +137,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.ABYSSAL_FORCE]: {
-    interruptCommitMs: 0,
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',
     castTimeMs: 520,
@@ -156,7 +151,6 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -164,16 +158,14 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         ticks: [{ atMs: 1160, condition: 'Burning', stacks: 1, duration: 8 }],
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 1160, condition: 'Chilled', stacks: 1, duration: 2 }],
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ]
   },

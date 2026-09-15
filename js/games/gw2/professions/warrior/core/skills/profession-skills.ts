@@ -145,7 +145,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.COMBUSTIVE_SHOT]: {
-    interruptCommitMs: 0,
     comboFields: [
       {
         ownerId: 'warrior',

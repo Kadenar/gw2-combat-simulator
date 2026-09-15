@@ -24,7 +24,6 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.HUNGERING_MAELSTROM]: {
-    interruptCommitMs: 0,
     castTimeMs: 640,
     flipDuration: OFF_HAND_SWORD_FOLLOW_UP_WINDOW_SECONDS,
     effects: [
@@ -32,15 +31,13 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: 720, coefficient: 2.75 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 720, condition: 'Vulnerability', stacks: 5, duration: 8 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       }
     ]
   },
@@ -117,22 +114,19 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.CONSUME]: {
-    interruptCommitMs: 0,
     castTimeMs: 520,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 480 + index * 280, coefficient: 2.5 / 5 })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 480, condition: 'Weakness', stacks: 1, duration: 4 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'boon',
@@ -141,8 +135,7 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         stacks: 5,
         atMs: 480,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       }
     ]
   },

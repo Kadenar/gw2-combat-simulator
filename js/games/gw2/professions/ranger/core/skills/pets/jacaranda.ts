@@ -10,7 +10,6 @@ const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JACARANDAS_EMBRACE]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -18,7 +17,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 920, coefficient: 0.16 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -32,7 +30,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -46,7 +43,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -70,7 +66,8 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     petSkill: true
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
-    interruptCommitMs: 0,
+    // The storm commits after the 500 ms cast, preserving its remaining pulses after later interruption.
+    interruptCommitMs: 500,
     effects: [
       {
         type: 'strike',

@@ -7,7 +7,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.POISONOUS_CLOUD]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -22,7 +21,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'player'
       },
@@ -38,7 +36,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger',
         actorType: 'player'
       }
@@ -141,7 +138,8 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
     petSkill: true
   },
   [ID.TWIN_DARTS]: {
-    interruptCommitMs: 0,
+    // The pet attack commits after its 880 ms animation, preserving both projectiles after later interruption.
+    interruptCommitMs: 880,
     effects: [
       {
         type: 'strike',

@@ -30,7 +30,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'ranger.cyclone-bow-enter'
   },
   [ID.PERFECT_STORM]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -47,7 +46,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         name: 'Perfect Storm - Stationary Tornado Damage'
       },
       {
@@ -134,7 +132,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   [ID.HAWKEYE]: {
     paletteTileId: CYCLONE_BOW_ONE_PALETTE_TILE,
     paletteTileOrder: 2,
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -143,8 +140,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           coefficient: 1.36
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     arrowCost: 0,
@@ -220,14 +216,12 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     windForceApplyMs: 280
   },
   [ID.PELT]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 800, coefficient: 2.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     arrowCost: 1,

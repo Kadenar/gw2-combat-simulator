@@ -15,7 +15,8 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     lifeForceGain: 2
   },
   [ID.GRASPING_DARKNESS]: {
-    interruptCommitMs: 0,
+    // The projectile commits after 120 ms, so its delayed hit and attached effects survive later interruption.
+    interruptCommitMs: 120,
     commitAtMs: 120,
     castTimeMs: 520,
     lifeForceOnHit: 10,
@@ -50,7 +51,8 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     handlerId: 'necromancer.grasping-darkness'
   },
   [ID.NIGHTFALL]: {
-    interruptCommitMs: 0,
+    // The field commits at 440 ms; every delayed pulse then survives the interrupted cast.
+    interruptCommitMs: 440,
     castTimeMs: 480,
     lifeForcePerPulse: 7,
     effects: [

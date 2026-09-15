@@ -5,8 +5,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIELD_OF_THE_MISTS]: {
-    interruptCommitMs: 0,
-
     // Measured Quickness animations include recovery time beyond the tooltip cast.
     castTimeMs: 600,
     cooldown: 12,
@@ -28,7 +26,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {},
         comboFinishers: [
           {
@@ -76,8 +73,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.DROP_THE_HAMMER]: {
-    interruptCommitMs: 0,
-
     castTimeMs: 480,
     cooldown: 15,
     energyCost: 15,
@@ -89,7 +84,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {},
         comboFinishers: [
           {
@@ -105,14 +99,11 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         atMs: 1640,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         controlKind: 'knockdown'
       }
     ]
   },
   [ID.COALESCENCE_OF_RUIN]: {
-    interruptCommitMs: 0,
-
     castTimeMs: 720,
     cooldown: 4,
     energyCost: 5,
@@ -125,7 +116,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -136,7 +126,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: { largeHitboxOnly: true }
       }
     ]

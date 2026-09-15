@@ -50,6 +50,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.extirpate'
   },
   [ID.DARK_SLASH]: {
+    interruptCommitMs: 560,
     castTimeMs: 600,
     effects: [
       {

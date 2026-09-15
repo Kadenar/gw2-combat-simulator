@@ -772,7 +772,22 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     initialResource: 0,
     primaryWeapon: 'Greatsword'
   });
+  const interruptedNightfall = simulate(
+    'Harbinger',
+    [
+      { type: 'cast', skillId: ID.NIGHTFALL, interruptAfterMs: nightfallSkill.interruptCommitMs },
+      { type: 'wait', durationMs: 4000 }
+    ],
+    {
+      initialResource: 0,
+      primaryWeapon: 'Greatsword'
+    }
+  );
   const nightfallHits = nightfall.events.filter((event) => event.type === 'damage' && event.skillId === ID.NIGHTFALL);
+  const nightfallEffects = (result) =>
+    result.events.filter(
+      (event) => event.skillId === ID.NIGHTFALL && ['damage', 'blind', 'condition', 'combo_field'].includes(event.type)
+    );
 
   assert.deepEqual(
     nightfallSkill.effects.map((effect) => effect.type),
@@ -834,6 +849,23 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     4
   );
   assert.equal(nightfall.endState.profession.lifeForce, 28);
+  assert.deepEqual(
+    nightfallEffects(interruptedNightfall).map(({ type, at, coefficient, condition, fieldType }) => ({
+      type,
+      at,
+      coefficient,
+      condition,
+      fieldType
+    })),
+    nightfallEffects(nightfall).map(({ type, at, coefficient, condition, fieldType }) => ({
+      type,
+      at,
+      coefficient,
+      condition,
+      fieldType
+    }))
+  );
+  assert.equal(interruptedNightfall.endState.profession.lifeForce, 28);
 });
 
 test('Lich Form swaps its bar and grants life force on exit', () => {

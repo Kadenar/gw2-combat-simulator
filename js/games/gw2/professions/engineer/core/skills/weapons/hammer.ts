@@ -70,6 +70,8 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.EQUALIZING_BLOW]: {
+    // A kit swap after the final attack packet still commits Equalizing Blow's effects.
+    interruptCommitMs: 400,
     castTimeMs: 440,
     cooldown: 0,
     effects: [

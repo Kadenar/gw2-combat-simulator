@@ -35,7 +35,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 333
   },
   [ID.SIGNET_OF_THE_WILD]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -44,8 +43,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           coefficient: 0.2
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       ...[520, 1520, 2520, 3520].map((atMs) => ({
         type: 'condition' as const,
@@ -54,8 +52,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         duration: 1,
         atMs,
         timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
-        persistsAfterInterrupt: true
+        timingScale: 'fixed' as const
       }))
     ],
     castTimeMs: 520
@@ -332,7 +329,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 1000
   },
   [ID.ENTANGLE]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -341,8 +337,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           coefficient: 0.16
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -353,8 +348,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           duration: 8
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -365,8 +359,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           duration: 2
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     // Match the measured Quickness animation from the benchmark EVTC.

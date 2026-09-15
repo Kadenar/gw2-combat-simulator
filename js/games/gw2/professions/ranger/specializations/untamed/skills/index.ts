@@ -10,7 +10,6 @@ const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
-    interruptCommitMs: 0,
     castTimeMs: 0,
     effects: [
       {
@@ -21,7 +20,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -35,7 +33,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       }

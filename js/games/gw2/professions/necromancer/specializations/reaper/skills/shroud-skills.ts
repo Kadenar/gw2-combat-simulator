@@ -55,6 +55,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'necromancer.flip'
   },
   [ID.LIFE_REAP]: {
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     castTimeMs: 560,
     effects: [
       {
@@ -72,7 +74,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Reaper'
   },
   [ID.SOUL_SPIRAL]: {
-    interruptCommitMs: 0,
+    // Resolve Soul Spiral per packet so interruption keeps landed hits while cancelling only later packets.
+    interruptMode: 'per-packet',
     castTimeMs: 2160,
     effects: [
       {
@@ -100,8 +103,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           { atMs: 2040, coefficient: 0.7 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -120,8 +122,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           { atMs: 2040, condition: 'Poisoned', stacks: 1, duration: 2 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     type: 'Profession',
@@ -131,7 +132,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     specialization: 'Reaper'
   },
   [ID.EXECUTIONERS_SCYTHE]: {
-    interruptCommitMs: 0,
+    // The scythe commits after 920 ms, allowing its lingering Chill field to continue after interruption.
+    interruptCommitMs: 920,
     castTimeMs: 1320,
     // EVTC places the strike and first Chill at 840 ms, followed by four fixed one-second field pulses.
     effects: [

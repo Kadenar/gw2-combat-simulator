@@ -31,14 +31,12 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   const skill = { id: 1, name: 'Example Skill' };
   const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
   const buffSkill = { id: 3, name: 'Committed Buff', interruptCommitMs: 1 };
-  const instantCommitSkill = { id: 4, name: 'Instant Commit', interruptCommitMs: 0 };
   const app = {
-    skills: [skill, packetSkill, buffSkill, instantCommitSkill],
+    skills: [skill, packetSkill, buffSkill],
     skillById: new Map([
       [1, skill],
       [2, packetSkill],
-      [3, buffSkill],
-      [4, instantCommitSkill]
+      [3, buffSkill]
     ]),
     adapter: { eliteSpecialization: () => '' },
     profession: { ui: { timelineWeaponLineTransition: () => null } }
@@ -50,8 +48,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     { interrupted: true, invalid: true },
     { interrupted: true, skillId: packetSkill.id },
     { interrupted: true, skillId: buffSkill.id },
-    { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true },
-    { interrupted: true, skillId: instantCommitSkill.id }
+    { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true }
   ].map((state, ri) => ({
     ...state,
     ri,
@@ -82,7 +79,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       html,
       /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled without dealing damage[^>]*--att-border:#ff3b45/
     );
-    for (const index of [1, 2, 3, 4, 5, 7]) {
+    for (const index of [1, 2, 3, 4, 5]) {
       assert.match(html, new RegExp(`data-idx="${index}"[^>]*--att-border:#9d7bd0`));
     }
 

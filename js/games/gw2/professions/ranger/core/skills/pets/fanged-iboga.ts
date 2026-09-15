@@ -7,14 +7,12 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FANG_GRAPPLE]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 1040, coefficient: 0.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -23,7 +21,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         ticks: [{ atMs: 1040, condition: 'Immobilized', stacks: 1, duration: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -32,7 +29,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         atMs: 1040,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon',
         controlKind: 'pull'
@@ -86,7 +82,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
     petSkill: true
   },
   [ID.NARCOTIC_SPORES_PET]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -96,7 +91,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -110,7 +104,6 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       }

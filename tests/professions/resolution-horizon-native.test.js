@@ -31,7 +31,7 @@ function simulateNecromancer(specialization, rotation, config = {}, observationP
   });
 }
 
-test('native wells, projectiles, and interrupted channels obey caller observation', () => {
+test('native wells and uncommitted interrupted effects obey caller observation', () => {
   const well = simulateNecromancer(
     'Core',
     ['Well of Suffering'],
@@ -54,9 +54,7 @@ test('native wells, projectiles, and interrupted channels obey caller observatio
     (event) => event.type === 'damage' && event.skillId === NECRO_SKILL.GRASPING_DARKNESS
   );
 
-  assert.ok(projectileHit);
-  assert.ok(projectileHit.at > projectile.steps[1].start / 1000);
-  assert.ok(projectileHit.at <= projectile.duration);
+  assert.equal(projectileHit, undefined);
 
   const channel = simulateNecromancer(
     'Reaper',
@@ -69,7 +67,7 @@ test('native wells, projectiles, and interrupted channels obey caller observatio
   assert.equal(
     channel.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === NECRO_SKILL.SOUL_SPIRAL)
       .length,
-    12
+    0
   );
 });
 

@@ -204,8 +204,7 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     type: 'strike',
     ticks: [{ atMs: 5480, coefficient: 1 }],
     timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    persistsAfterInterrupt: true
+    timingScale: 'fixed'
   });
   assert.deepEqual(
     flamesOfWar.effects[1].ticks.map(({ atMs, stacks, duration }) => [atMs, stacks, duration]),

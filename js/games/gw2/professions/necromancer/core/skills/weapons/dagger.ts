@@ -104,15 +104,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.LIFE_SIPHON]: {
-    interruptCommitMs: 0,
     castTimeMs: 560,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     // Custom: Applies Life Siphon's self-bleeding on its first resolved hit; see `core/mechanics/conditions.ts`.

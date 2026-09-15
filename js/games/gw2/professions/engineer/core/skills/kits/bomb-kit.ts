@@ -14,7 +14,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kitName: 'Bomb Kit'
   },
   [ID.BIG_OL_BOMB]: {
-    interruptCommitMs: 0,
+    // The placed bomb commits after 520 ms, so its delayed explosion and knockdown survive later interruption.
+    interruptCommitMs: 520,
     castTimeMs: 600,
     cooldown: 20,
     comboFinishers: [
@@ -49,7 +50,9 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.GALVANIC_BOMB]: {
-    interruptCommitMs: 0,
+    // Once placement commits at 520 ms, retain the full cast lockout and delayed explosion, confusion, and daze.
+    interruptCommitMs: 520,
+    retainsCastLockoutAfterInterrupt: true,
     castTimeMs: 600,
     cooldown: 16,
     comboFinishers: [
@@ -151,7 +154,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
   },
   [ID.BOMB]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    interruptCommitMs: 0,
     castTimeMs: 360,
     cooldown: 0,
     effects: [
@@ -162,7 +164,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         timingScale: 'fixed',
         name: 'Bomb',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         damageKind: 'explosion'
       }
     ],
@@ -179,7 +180,9 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     kit: 'Bomb Kit'
   },
   [ID.MAGNETIC_BOMB]: {
-    interruptCommitMs: 0,
+    // Once placement commits at 440 ms, retain the full cast lockout and delayed explosion and pull.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     castTimeMs: 600,
     cooldown: 20,
     effects: [

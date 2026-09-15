@@ -35,7 +35,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.BANISH_ENCHANTMENT]: {
-    interruptCommitMs: 0,
+    // Banish Enchantment commits at 400 ms, preserving the launched multi-hit sequence after interruption.
+    interruptCommitMs: 400,
     castTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
@@ -82,7 +83,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.CALL_TO_ANGUISH]: {
-    interruptCommitMs: 0,
+    // Call to Anguish commits at 800 ms, preserving its impact effects after interruption.
+    interruptCommitMs: 800,
     castTimeMs: 820,
     cooldown: 3,
     energyCost: 30,

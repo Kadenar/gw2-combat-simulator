@@ -21,7 +21,6 @@ export const WARRIOR_WEAPON_STOW: Skill = Object.freeze({
   flipSkillId: null,
   castTimeMs: 80,
 
-  interruptCommitMs: 0,
   simulatorExcluded: false,
   effects: []
 });

@@ -74,7 +74,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     lifeForceGain: 1
   },
   [ID.WELL_OF_SUFFERING]: {
-    interruptCommitMs: 0,
+    // The well commits after 320 ms, allowing its remaining pulses to continue after a later interruption.
+    interruptCommitMs: 320,
     castTimeMs: 480,
     effects: [
       {
@@ -111,15 +112,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.corruption'
   },
   [ID.PLAGUELANDS]: {
-    interruptCommitMs: 0,
     castTimeMs: 920,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -130,8 +129,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 8
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -142,8 +140,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 5
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -154,50 +151,43 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 5
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -208,8 +198,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 2
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -220,8 +209,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 3
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'blind',
@@ -230,7 +218,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         duration: 3
       },
       {
@@ -242,15 +229,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           duration: 2
         })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
@@ -362,7 +347,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     handlerId: 'necromancer.minion-command'
   },
   [ID.WELL_OF_DARKNESS]: {
-    interruptCommitMs: 0,
     castTimeMs: 480,
     effects: [
       {
@@ -370,8 +354,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.8 })),
         comboFields: [{ ownerId: 'necromancer', fieldType: 'Dark', duration: 5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'blind',
@@ -381,7 +364,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        persistsAfterInterrupt: true,
         duration: 3
       },
       {
@@ -394,8 +376,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         intervalMs: 1000,
         intervalTimingScale: 'fixed',
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       }
     ]
   },

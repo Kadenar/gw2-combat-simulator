@@ -22,7 +22,6 @@ function mechCommand(fragment: SkillFragment): SkillFragment {
 /** Supplies command fragments and their independent cast-lane metadata. */
 export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
   [ID.JADE_MORTAR]: mechCommand({
-    interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
     // Issuing the command starts recharge even though the mech remains busy
     // on its independent lane for the measured animation.
@@ -35,23 +34,20 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Jade Mortar',
-        actorType: 'summon',
-        persistsAfterInterrupt: true
+        actorType: 'summon'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 600, condition: 'Burning', stacks: 3, duration: 6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        actorType: 'summon',
-        persistsAfterInterrupt: true
+        actorType: 'summon'
       },
       {
         type: 'control',
         atMs: 600,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        persistsAfterInterrupt: true,
         actorType: 'summon',
         controlKind: 'daze'
       }
@@ -78,7 +74,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     mechanicSlot: 3
   }),
   [ID.SPARK_REVOLVER]: mechCommand({
-    interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.SPARK_REVOLVER] * 1000,
     rechargeAnchor: 'castStart',
     cooldown: 20,
@@ -102,8 +97,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Spark Revolver',
-        actorType: 'summon',
-        persistsAfterInterrupt: true
+        actorType: 'summon'
       }
     ],
     mechanicSlot: 1
@@ -203,7 +197,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     mechanicSlot: 1
   }),
   [ID.CORE_REACTOR_SHOT]: mechCommand({
-    interruptCommitMs: 0,
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.CORE_REACTOR_SHOT] * 1000,
     rechargeAnchor: 'castStart',
     cooldown: 25,
@@ -214,15 +207,13 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Core Reactor Shot',
-        actorType: 'summon',
-        persistsAfterInterrupt: true
+        actorType: 'summon'
       },
       {
         type: 'control',
         atMs: 680,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        persistsAfterInterrupt: true,
         actorType: 'summon',
         controlKind: 'launch'
       }

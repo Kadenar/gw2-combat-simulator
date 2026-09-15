@@ -78,7 +78,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ]
   },
   [ID.MAGNETIC_BOMB_TRAIT_SKILL]: {
-    interruptCommitMs: 0,
     castTimeMs: 0,
     cooldown: 0,
     effects: [

@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMSTRING]: {
-    interruptCommitMs: 0,
     castTimeMs: 400,
     dualWieldCastTimeMs: 320,
     effects: [
@@ -12,22 +11,19 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [{ atMs: 240, coefficient: 1.2 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 240, condition: 'Crippled', stacks: 1, duration: 1 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       }
     ]
   },
@@ -162,7 +158,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.REND]: {
-    interruptCommitMs: 0,
     castTimeMs: 960,
     dualWieldCastTimeMs: 720,
     effects: [
@@ -170,30 +165,26 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [{ atMs: 440, coefficient: 0.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 880, coefficient: 2.5 }],
         name: 'Rend — Follow-Up Damage',
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 440, condition: 'Immobilized', stacks: 1, duration: 2 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 6, duration: 6 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        timingScale: 'cast'
       }
     ]
   }

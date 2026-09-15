@@ -2,8 +2,6 @@
  * Owns Necromancer greatsword cast behavior, life-force tasks, and Gravedigger cooldown feedback.
  * Greatsword skill fragments remain in `skills/weapons/greatsword.ts`; `index.ts` assigns cast phases.
  */
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
-import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
@@ -42,21 +40,6 @@ function committedAtBaseOffset(
 // Tests Grasping Darkness against its authored projectile-release commit point.
 function graspingDarknessCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   return committedAtBaseOffset(context, skill, Number(skill.commitAtMs || 0));
-}
-
-// Treats Nightfall as committed once its first runtime-scaled damage packet is due.
-function nightfallCommitted(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  if (context.effectiveEnd >= context.fullEnd - context.epsilon) return true;
-  const firstPacket = skill.effects?.find((effect) => effect.type === 'strike');
-  const authoredOffsetMs = Number(
-    firstPacket?.type === 'strike' ? effectFirstAtMs(firstPacket) || skill.castTimeMs || 0 : skill.castTimeMs || 0
-  );
-  // Nightfall commits at its first runtime packet, so project its stored Quickness-relative offset onto the current cast.
-  const runtimeOffsetMs =
-    firstPacket?.timingScale === 'cast'
-      ? authoredOffsetMs * castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000)
-      : authoredOffsetMs;
-  return context.effectiveEnd + context.epsilon >= context.start + runtimeOffsetMs / 1000;
 }
 
 // Defers Grasping Darkness life force to a task tied to its committed damage timestamp and reservation.
@@ -112,7 +95,6 @@ export const necromancerGreatswordSkillHandlers = Object.freeze({
     afterEffect: afterGraspingDarknessEffect
   }),
   'necromancer.nightfall': Object.freeze({
-    committed: nightfallCommitted,
     afterEffect: afterNightfallEffect
   })
 });

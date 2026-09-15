@@ -107,7 +107,6 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     kitName: 'Elite Mortar Kit'
   },
   [ID.POISON_GAS_SHELL]: {
-    interruptCommitMs: 0,
     // Use the measured Quickness animation so the poison field and its pulses start at the observed time.
     castTimeMs: 560,
     cooldown: 10,
@@ -138,8 +137,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       }
     ],
     kit: 'Elite Mortar Kit'

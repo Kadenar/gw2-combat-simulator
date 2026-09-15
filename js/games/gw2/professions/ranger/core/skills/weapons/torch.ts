@@ -4,7 +4,6 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BONFIRE]: {
-    interruptCommitMs: 0,
     effects: [
       {
         type: 'strike',
@@ -13,8 +12,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           coefficient: 0.1
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -28,8 +26,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           }))
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     recharge: 25,

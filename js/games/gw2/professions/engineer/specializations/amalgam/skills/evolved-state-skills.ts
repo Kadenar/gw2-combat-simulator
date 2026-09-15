@@ -167,7 +167,6 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     effects: []
   },
   [ID.PLASMATIC_STATE]: {
-    interruptCommitMs: 0,
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
     handlerId: 'engineer.plasmatic-state',
     castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
@@ -184,8 +183,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Plasmatic State',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -195,8 +193,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       }
     ]
   },

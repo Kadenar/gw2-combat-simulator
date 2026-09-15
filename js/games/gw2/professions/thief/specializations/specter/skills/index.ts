@@ -242,7 +242,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.WELL_OF_SORROW]: {
-    interruptCommitMs: 0,
     movementSkill: true,
     shadowstepSkill: true,
     castTimeMs: 600,
@@ -255,8 +254,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         name: 'Well of Sorrow',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -269,8 +267,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         ],
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ]
   },
@@ -290,7 +287,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     ]
   },
   [ID.WELL_OF_TEARS]: {
-    interruptCommitMs: 0,
     movementSkill: true,
     shadowstepSkill: true,
     castTimeMs: 600,
@@ -303,13 +299,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         name: 'Well of Tears',
         actorType: 'player',
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.WELL_OF_BOUNTY]: {
-    interruptCommitMs: 0,
     movementSkill: true,
     shadowstepSkill: true,
     castTimeMs: 400,
@@ -323,8 +317,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 2,
         atMs: 0,
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -333,8 +326,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 8,
         atMs: 1000,
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -343,8 +335,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         atMs: 2000,
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -353,8 +344,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         atMs: 3000,
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
@@ -363,8 +353,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         stacks: 1,
         atMs: 4000,
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ]
   },

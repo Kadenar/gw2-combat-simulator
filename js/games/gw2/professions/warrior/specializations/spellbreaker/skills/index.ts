@@ -293,7 +293,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'warrior.resource'
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
-    interruptCommitMs: 0,
     comboFields: [
       {
         ownerId: 'warrior',
@@ -307,8 +306,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 800 + index * 1000, coefficient: 2.25 / 5 })),
         timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'custom',
@@ -318,7 +316,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         applications: 5,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         event: {
           attemptedBoonRemovals: 1
         }

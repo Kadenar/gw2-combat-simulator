@@ -81,8 +81,6 @@ const handlers = Object.freeze({
     afterEffect: necromancerGreatswordSkillHandlers['necromancer.grasping-darkness'].afterEffect
   }),
   'necromancer.nightfall': augmentSkill({
-    resolveMode: (context, skill) =>
-      necromancerGreatswordSkillHandlers['necromancer.nightfall'].committed(context, skill) ? 'augment' : 'replace',
     afterEffect: necromancerGreatswordSkillHandlers['necromancer.nightfall'].afterEffect
   })
 });

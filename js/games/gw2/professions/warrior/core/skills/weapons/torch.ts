@@ -38,7 +38,6 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
     ]
   },
   [ID.FLAMES_OF_WAR]: {
-    interruptCommitMs: 0,
     cooldown: 20,
     comboFields: [
       {
@@ -54,8 +53,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'strike',
         ticks: [{ atMs: 5480, coefficient: 1 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -98,8 +96,7 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ]
   }

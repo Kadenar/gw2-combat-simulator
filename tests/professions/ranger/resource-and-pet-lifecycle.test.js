@@ -163,8 +163,8 @@ test('personal stances ignore pet-only combat and trigger on the next player str
   );
 });
 
-test('modeled and unmodeled swaps preserve projectiles but interrupt unfinished melee attacks', () => {
-  // Existing projectile effects retain their caster; swapping interrupts a Root Slap before its impact.
+test('pet swaps cancel uncommitted projectiles and unfinished melee attacks', () => {
+  // Skills without an explicit commit cutoff retain no pending packets after their pet swaps out.
   for (const selectedPet2 of ['Tiger', 'Pig']) {
     for (const selectedPet of ['Carrion Devourer', 'Jacaranda']) {
       const result = simulate('Core', [{ type: 'combat-start' }, wait(500), ID.PET_SWAP, wait(2000)], {
@@ -175,11 +175,7 @@ test('modeled and unmodeled swaps preserve projectiles but interrupt unfinished 
       const outgoing = result.resolvedEvents.filter(
         (event) => event.type === 'damage' && event.summonOwner === 'ranger-pet:1:0' && event.at > 0.5
       );
-      if (selectedPet === 'Carrion Devourer') {
-        assert.ok(outgoing.some((event) => event.skillId === ID.TWIN_DARTS));
-      } else {
-        assert.deepEqual(outgoing, []);
-      }
+      assert.deepEqual(outgoing, []);
 
       const swap = result.events.find((event) => event.type === 'ranger.pet-swapped');
       assert.equal(swap.generation, 1);
@@ -197,8 +193,8 @@ test('modeled and unmodeled swaps preserve projectiles but interrupt unfinished 
   }
 });
 
-test('persistent autonomous effects survive swaps with the outgoing pet identity and attributes', () => {
-  // Call Lightning has launched before the swap; its remaining pulses belong to the outgoing Jacaranda.
+test('autonomous effects without a commit cutoff stop when their pet swaps out', () => {
+  // Call Lightning keeps packets before the swap but cancels its uncommitted remaining pulses.
   for (const selectedPet2 of ['Tiger', 'Pig']) {
     const result = simulate('Core', [{ type: 'combat-start' }, wait(2500), ID.PET_SWAP, wait(5000)], {
       selectedPet: 'Jacaranda',
@@ -211,11 +207,7 @@ test('persistent autonomous effects survive swaps with the outgoing pet identity
     const before = lightning.find((event) => event.at < 2.5);
     const after = lightning.filter((event) => event.at > 2.5);
     assert.ok(before);
-    assert.ok(after.length > 0);
-    for (const event of after) {
-      assert.equal(event.summonOwner, before.summonOwner);
-      assert.equal(event.summonBasePower, before.summonBasePower);
-    }
+    assert.deepEqual(after, []);
 
     assert.equal(
       result.events.some(

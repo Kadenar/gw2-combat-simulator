@@ -308,9 +308,10 @@ packets, conditions, reactions, and result filtering. Skill, effect, and event m
 Saved benchmark metadata cannot select a policy either; benchmark logs and metrics are comparison targets, and benchmark
 tooling uses the default rotation boundary.
 
-`persistsAfterInterrupt` controls packet cancellation only. Every persistent effect declares `interruptCommitMs` itself
-or inherits it from its skill; zero means immediate commitment. Persistent actors use typed tasks with an explicit
-active-generation, lifetime, or stop condition, and recurring handlers schedule only the next bounded unit of work.
+`persistsAfterInterrupt` controls packet cancellation only. Every persistent effect declares a positive
+`interruptCommitMs` itself or inherits one from its skill; per-packet skills use `interruptMode: 'per-packet'` instead.
+Persistent actors use typed tasks with an explicit active-generation, lifetime, or stop condition, and recurring
+handlers schedule only the next bounded unit of work.
 
 Scheduler snapshots and public profession state are separate contracts. Snapshots may contain task progress,
 deterministic-choice indices, internal cooldowns, and resolver bookkeeping. `resources.projectEndState` constructs a
@@ -419,7 +420,8 @@ rotation migration.
 All native profession skill mechanics use one timing contract:
 
 - Player `castTimeMs` is the effective action duration, calibrated with permanent Quickness. The scheduler does not
-  convert or quantize player cast durations based on boon presence. Runtime skill variants may still change their duration.
+  convert or quantize player cast durations based on boon presence. Runtime skill variants may still change their
+  duration.
 - Independent summon casts retain base `castTimeMs`, optional measured `quicknessCastTimeMs`, and their existing
   Quickness action-rate conversion and 40 ms rounding. Autonomous summons retain their profession-owned timing rules.
 - Player effect offsets use the same effective timeline as `castTimeMs`. Cast-relative effects scale with runtime

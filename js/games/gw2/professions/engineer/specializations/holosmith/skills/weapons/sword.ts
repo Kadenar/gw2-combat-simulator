@@ -176,7 +176,9 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
     handlerId: 'engineer.gleam-saber',
     castTimeMs: 720,
-    interruptCommitMs: 640,
+    // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
+    interruptCommitMs: 600,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     effects: [
       {

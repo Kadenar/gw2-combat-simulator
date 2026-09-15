@@ -130,7 +130,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.SCORCHED_EARTH]: {
-    interruptCommitMs: 0,
     skillWeapon: 'Longbow',
     comboFields: [
       {
@@ -149,8 +148,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           { atMs: 4320, coefficient: 0.5 }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
@@ -175,8 +173,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        timingScale: 'fixed'
       }
     ],
     castTimeMs: 360,

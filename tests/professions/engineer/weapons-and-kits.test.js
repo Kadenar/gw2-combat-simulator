@@ -959,6 +959,21 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").comboFinishers[0].successfulCombos, 2);
   assert.equal(engineerCatalog.skillsByName.get("Big Ol' Bomb").castTimeMs, 600);
 
+  // Shortening a committed placed-bomb animation must not remove its delayed reactions.
+  for (const [name, reactions] of [
+    ['Galvanic Bomb', ['damage', 'condition', 'control']],
+    ['Magnetic Bomb', ['damage', 'control']]
+  ]) {
+    const interrupted = simulate('Core', ['Bomb Kit', { name, interruptMs: 560 }, waitForBombPackets()], {
+      selectedSkills
+    });
+
+    assert.deepEqual(
+      reactions.filter((type) => interrupted.events.some((event) => event.type === type && event.skillName === name)),
+      reactions
+    );
+  }
+
   const doubleBlast = simulate(
     'Core',
     [
