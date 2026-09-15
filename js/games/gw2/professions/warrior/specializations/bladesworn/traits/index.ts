@@ -261,7 +261,7 @@ export function applyBladeswornCompletionTraits(
 
   if (dragonAdrenalineSpent > 0) {
     const stacks = dragonAdrenalineSpent >= 30 ? 4 : dragonAdrenalineSpent >= 20 ? 3 : 2;
-    grantBerserkersPower(context, stacks, at + context.epsilon, skill);
+    grantBerserkersPower(context, stacks, at, skill);
   }
 }
 

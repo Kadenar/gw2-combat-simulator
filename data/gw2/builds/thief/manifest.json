@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-sword-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-sword-pistol",
-        "benchmarkDps": 34997,
+        "benchmarkDps": 34986,
         "upToDate": true
       },
       {
@@ -15,7 +15,7 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-rifle-only",
-        "benchmarkDps": 36726,
+        "benchmarkDps": 36717,
         "upToDate": true
       }
     ]
@@ -36,7 +36,7 @@
         "build": "data/gw2/builds/thief/b-condi-antiquary-spear.json",
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-spear-only",
-        "benchmarkDps": 42080,
+        "benchmarkDps": 42033,
         "upToDate": true
       },
       {

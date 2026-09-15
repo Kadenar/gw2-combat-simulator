@@ -111,7 +111,7 @@ export function grantBerserkersPowerOnFirstHit(
   if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) return false;
   const stacks = berserkersPowerStacks(context, skill, spent);
   if (stacks <= 0) return false;
-  grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
+  grantBerserkersPower(context, stacks, event.at, skill);
   return true;
 }
 
@@ -162,6 +162,8 @@ export function grantBerserkersPower(
   state.burstPowerExpiries.push(...Array(granted).fill(at + duration));
   emitSkillBuff(context, {
     at,
+    // The triggering burst packet resolves before its same-time reward.
+    priority: 5,
     source: 'Trait',
     sourceId: TRAIT.BERSERKERS_POWER,
     actorType: 'effect',

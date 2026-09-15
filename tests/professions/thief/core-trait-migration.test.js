@@ -298,29 +298,34 @@ test('Thief critical proc batches reread patched effects and retain live boon sc
   }
 });
 
-test('No Quarter uses the shared timeline epsilon at Fury expiration', () => {
-  const { context } = traitContext([TRAIT.NO_QUARTER]);
-  context.boons.set('fury', [
-    {
-      at: 0,
-      expiresAt: 1,
-      resolvedAudience: {
-        includesSelf: true,
-        includesSummons: false,
-        alliedPlayerCount: 0,
-        companionIds: [],
-        recipientCount: 1
+test("No Quarter follows Fury's exact half-open expiration boundary", () => {
+  for (const [at, expectedProcs] of [
+    [0.99995, 1],
+    [1, 0]
+  ]) {
+    const { context } = traitContext([TRAIT.NO_QUARTER]);
+    context.boons.set('fury', [
+      {
+        at: 0,
+        expiresAt: 1,
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          alliedPlayerCount: 0,
+          companionIds: [],
+          recipientCount: 1
+        }
       }
-    }
-  ]);
-  thiefCoreCriticalReactions.noQuarter.handler(
-    context,
-    { type: 'damage', at: 0.99995, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
-    {},
-    { quantity: 1 }
-  );
-  assert.equal(context.boons.get('fury')[0].expiresAt, 1);
-  assert.equal(context.queue.length, 0);
+    ]);
+    thiefCoreCriticalReactions.noQuarter.handler(
+      context,
+      { type: 'damage', at, actorType: 'player', coefficient: 1, skillName: 'Boundary Test' },
+      {},
+      { quantity: 1 }
+    );
+    assert.equal(context.boons.get('fury')[0].expiresAt, 1);
+    assert.equal(context.queue.length, expectedProcs);
+  }
 });
 
 test("Assassin's Fury queues Might from self Fury", () => {

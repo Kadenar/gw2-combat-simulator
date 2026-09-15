@@ -168,7 +168,7 @@ const traitCases = [
     verify: (result) => {
       const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Signet of Might');
       const mastery = result.events.find((event) => event.kind === 'signet-mastery');
-      assert.ok(mastery.at > action.endsAt);
+      assert.equal(mastery.at, action.endsAt);
     }
   },
   {

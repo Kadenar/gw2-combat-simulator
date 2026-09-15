@@ -1,6 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -70,9 +70,9 @@ function queueThiefBoon(
 }
 
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
-  // Add one self-only duration delta at the hit time, retaining the shared expiry tolerance.
+  // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
-    remainingDurationStackSeconds(context.boons.get('fury') || [], event.at + EPSILON, {
+    remainingDurationStackSeconds(context.boons.get('fury') || [], event.at, {
       includes: (application) => buffMatchesAudience(application, 'all'),
       maximum: durationStackingBoonCapSeconds('fury')
     }) <= 0

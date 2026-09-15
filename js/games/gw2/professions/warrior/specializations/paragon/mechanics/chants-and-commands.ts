@@ -21,9 +21,7 @@ import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior
 
 const CHANT_IDS = [ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM] as const;
 
-// Broadcasts paragon state as a typed event so the resolver can mirror it.
-// The resolver does not share mutable scheduler state, so motivation and
-// refrain must travel through the event stream.
+// Broadcast Paragon state at its exact transition timestamp so the resolver mirrors scheduler state without delay.
 function emitParagonState(context: WarriorSchedulerContext, at: number, reason: string): void {
   const state = paragonState.from(context);
   context.emit({
@@ -141,7 +139,7 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
     });
   }
 
-  emitParagonState(context, at + context.epsilon, 'chant');
+  emitParagonState(context, at, 'chant');
 }
 
 // Materialize one delayed Paragon command echo using the original command's
@@ -254,7 +252,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   if (!skill) {
     state.activeRefrainId = null;
     state.nextRefrainAt = 0;
-    emitParagonState(context, at + context.epsilon, 'refrain-missing');
+    emitParagonState(context, at, 'refrain-missing');
     return;
   }
 
@@ -307,7 +305,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
     state.nextRefrainAt = 0;
   }
 
-  emitParagonState(context, at + context.epsilon, 'refrain-pulse');
+  emitParagonState(context, at, 'refrain-pulse');
 }
 
 export function advanceParagon(context: WarriorSchedulerContext, target: number): void {
@@ -330,7 +328,7 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
     state.nextRefrainAt = event.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
   }
 
-  emitParagonState(context, event.at + context.epsilon, 'call-to-action');
+  emitParagonState(context, event.at, 'call-to-action');
 }
 
 export function updateParagonCast(context: WarriorCastContext, skill: WarriorSkill): void {
@@ -355,7 +353,7 @@ export function applyParagonWeaponSwapTraits(context: WarriorCastContext): void 
     state.inspiringImplementsReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 4);
     gainWarriorAdrenaline(context, Number(profile?.resourceGain ?? 5));
     gainMotivation(context, Number(profile?.minimumStacks ?? 2));
-    emitParagonState(context, context.effectiveEnd + context.epsilon, 'implements');
+    emitParagonState(context, context.effectiveEnd, 'implements');
   }
 }
 
@@ -374,7 +372,7 @@ export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkil
   }
 
   gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.rallyTheValiant)?.resourceGain ?? 4));
-  emitParagonState(context, context.start + context.epsilon, 'rally');
+  emitParagonState(context, context.start, 'rally');
 }
 
 export function handleParagonCommandEchoTask(context: WarriorSchedulerContext, task: ScheduledTask): void {

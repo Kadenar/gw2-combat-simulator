@@ -180,12 +180,13 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
       (event) =>
         event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
     );
+    const slash = result.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
+    const berserkersPower = result.events.find((event) => event.type === 'buff' && event.name === "Berserker's Power");
 
     assert.equal(spend.adrenalineBarsSpent, bars);
-    assert.equal(
-      result.events.find((event) => event.type === 'buff' && event.name === "Berserker's Power").stacks,
-      powerStacks
-    );
+    assert.equal(berserkersPower.stacks, powerStacks);
+    assert.equal(berserkersPower.at, slash.endsAt);
+    assert.equal(berserkersPower.priority, 5);
     assert.equal(
       result.events.find((event) => event.type === 'buff' && event.name === 'Burst Precision').duration,
       precisionDuration
@@ -206,13 +207,14 @@ test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
     { kind: 'tail', durationMs: 1 }
   );
 
-  assert.equal(mastered.endState.profession.flow - baseline.endState.profession.flow, 4);
-  assert.equal(
-    mastered.events.some(
-      (event) => event.type === 'buff' && event.name === 'Burst Mastery — Swiftness' && event.duration === 3
-    ),
-    true
+  const slash = mastered.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
+  const swiftness = mastered.events.find(
+    (event) => event.type === 'buff' && event.name === 'Burst Mastery — Swiftness'
   );
+  assert.equal(mastered.endState.profession.flow - baseline.endState.profession.flow, 4);
+  assert.equal(swiftness.duration, 3);
+  assert.equal(swiftness.at, slash.endsAt);
+  assert.equal(swiftness.priority, 5);
 });
 
 test('Brave Stride reads movement classification from elite skill slices', () => {
@@ -742,6 +744,9 @@ test('Paragon chants consume adrenaline and start a refrain', () => {
   assert.equal(result.endState.profession.adrenaline, 0);
   assert.equal(result.endState.profession.motivation, 4);
   assert.equal(result.endState.profession.activeRefrain, 'Chant of Action');
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.CHANT_OF_ACTION);
+  const state = result.events.find((event) => event.sourceId === 'warrior.paragon-state.chant');
+  assert.equal(state.at, action.endsAt);
 });
 
 test('Paragon chant opening boons reach the caster and party', () => {
@@ -777,6 +782,7 @@ test('Paragon Action refrain boons reach the caster and party', () => {
   });
   const boons = result.events.filter((event) => event.type === 'buff' && event.skillId === ID.CHANT_OF_ACTION);
   const refrain = boons.filter((event) => event.at > boons[0].at);
+  const refrainState = result.events.find((event) => event.sourceId === 'warrior.paragon-state.refrain-pulse');
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -788,6 +794,7 @@ test('Paragon Action refrain boons reach the caster and party', () => {
     assert.equal(boon.resolvedAudience.includesSelf, true);
     assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
   }
+  assert.equal(refrainState.at, refrain[0].at);
 });
 
 test('Rally the Valiant grants motivation when a burst starts', () => {
@@ -798,6 +805,13 @@ test('Rally the Valiant grants motivation when a burst starts', () => {
   });
 
   assert.equal(result.endState.profession.motivation, 8);
+  const combatStart = result.events.find((event) => event.type === 'combat_start');
+  const burst = result.events.find((event) => event.type === 'action' && event.skillName === 'Breaching Strike');
+  assert.equal(
+    result.events.find((event) => event.sourceId === 'warrior.paragon-state.call-to-action').at,
+    combatStart.at
+  );
+  assert.equal(result.events.find((event) => event.sourceId === 'warrior.paragon-state.rally').at, burst.at);
 
   const withoutRally = simulate('Paragon', ['__combat_start', 'Breaching Strike'], {
     initialResource: 10,
@@ -812,6 +826,10 @@ test('Signet active buffs ignore boon duration and mastery requires activation',
   const active = (stats) =>
     simulate('Core', [ID.SIGNET_OF_FURY], { stats }).events.find((event) => event.kind === 'signet-of-fury-active');
   assert.equal(active({ concentration: 1500 }).duration, active({ concentration: 0 }).duration);
+
+  const mastered = simulate('Core', [ID.SIGNET_OF_FURY], { selectedTraitIds: [TRAIT.SIGNET_MASTERY] });
+  const action = mastered.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_FURY);
+  assert.equal(mastered.events.find((event) => event.kind === 'signet-mastery').at, action.endsAt);
 
   const noAutomaticPrecast = simulate('Core', ['__combat_start'], {
     selectedTraitIds: [TRAIT.SIGNET_MASTERY]
@@ -855,8 +873,12 @@ test('Lesser Signet of Might procs use the signet skill icon', () => {
     target: { health: 1 }
   });
   const proc = result.procSteps.find((step) => step.skill === 'Lesser Signet of Might');
+  const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.THROW_BOLAS);
+  const lesser = result.resolvedEvents.find((event) => event.skillName === 'Lesser Signet of Might');
 
   assert.equal(proc?.icon, warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT).icon);
+  assert.equal(lesser.at, strike.at);
+  assert.equal(lesser.priority, 5);
 });
 
 test('Burst Precision duration follows the adrenaline stage', () => {

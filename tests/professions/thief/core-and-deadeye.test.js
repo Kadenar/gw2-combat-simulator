@@ -667,6 +667,7 @@ test('delayed strikes break stealth on impact without blocking a same-time steal
   );
 
   assert.equal(stealthBreak.at, flareDamage.at);
+  assert.equal(stealthBreak.priority, 5);
   const sameTimeAttack = simulate(
     'Deadeye',
     ['Kneel', 'Shadow Meld', 'Shadow Flare', "Malicious Death's Judgment"],

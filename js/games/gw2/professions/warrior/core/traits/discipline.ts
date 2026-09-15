@@ -44,7 +44,7 @@ export function applyAxeMastery(context: WarriorSchedulerContext, event: Warrior
     );
 }
 
-// Refund the configured burst resource and emit Swiftness after Burst Precision is armed.
+// Refund the configured burst resource and resolve Swiftness after same-time burst packets.
 export function applyBurstMastery(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -61,7 +61,8 @@ export function applyBurstMastery(
   const resourceRefundRate = Number(options.resourceRefundRate ?? profile?.resourceGain ?? 0.33);
   gainWarriorAdrenaline(context, Math.max(0, resourceSpent) * resourceRefundRate);
   emitSkillBuff(context, {
-    at: context.effectiveEnd + context.epsilon,
+    at: context.effectiveEnd,
+    priority: 5,
     source: 'Trait',
     sourceId: TRAIT.BURST_MASTERY,
     actorType: 'effect',

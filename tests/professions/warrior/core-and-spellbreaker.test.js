@@ -745,7 +745,8 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
     (event) => event.kind === 'berserkers-power' && event.skillId === ID.WILD_THROW
   );
 
-  assert.ok(Math.abs(berserkersPower.at - firstWildThrowHit.at - 0.0001) < 1e-9);
+  assert.equal(berserkersPower.at, firstWildThrowHit.at);
+  assert.equal(berserkersPower.priority, 5);
 
   const traits = simulate('Berserker', ['Berserk', 'Wild Throw'], {
     initialResource: 30,

@@ -30,7 +30,13 @@ interface BreakStealthTaskPayload extends Record<string, unknown> {
 }
 
 /** Removes active stealth, applies Revealed, and fires traits shared by every attack that breaks stealth. */
-function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at: number, reason: string): boolean {
+function breakThiefStealth(
+  context: ThiefSchedulerContext,
+  skill: ThiefSkill,
+  at: number,
+  reason: string,
+  snapshotPriority?: number
+): boolean {
   const state = professionCoreState(context);
   const stealthed = state.stealthStartedAt <= at && state.stealthUntil > at && state.revealedUntil <= at;
   if (!stealthed) return false;
@@ -60,11 +66,12 @@ function breakThiefStealth(context: ThiefSchedulerContext, skill: ThiefSkill, at
   // Only a real stealth exit starts the linger; bonus attack charges do not.
   state.hiddenKillerUntil = at + 4;
   if (!skill.preservesStealth) state.revealedUntil = at + 3;
-  emitThiefStateSnapshot(context, at, reason);
+  const snapshot = emitThiefStateSnapshot(context, at, reason);
+  if (snapshot && snapshotPriority != null) context.replaceEvent(snapshot, { priority: snapshotPriority });
   return true;
 }
 
-/** Defers stealth loss until each player strike reaches its authored damage timestamp. */
+/** Defers stealth loss to an ordered task at each player strike's authored damage timestamp. */
 export function observeStealthBreakingStrike(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   if (event.type !== 'damage' || event.cancelled === true || event.actorType !== 'player') return;
   const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
@@ -72,10 +79,11 @@ export function observeStealthBreakingStrike(context: ThiefSchedulerContext, eve
   const grantsStealth = skill?.effects?.some((effect) => effect.type === 'buff' && effect.kind === 'stealth');
   if (!skill || skill.stealthAttack || grantsStealth) return;
 
-  // Same-timestamp casts commit before the strike transition, matching activation-before-damage EVTC ordering.
+  // Same-time damage-derived work settles before the stealth transition without manufacturing elapsed time.
   context.tasks.schedule({
     type: THIEF_BREAK_STEALTH_TASK,
-    at: event.at + context.epsilon * 2,
+    at: event.at,
+    priority: 20,
     ownerId: event.activationId,
     payload: { skillId: skill.id, strikeAt: event.at }
   });
@@ -88,7 +96,8 @@ export function handleStealthBreakingStrike(
 ): void {
   const skill = context.catalog.skillsById.get(task.payload.skillId);
   if (skill && !skill.stealthAttack) {
-    breakThiefStealth(context, skill, task.payload.strikeAt, 'strike-broke-stealth');
+    // The snapshot sorts after a same-time action even though scheduler state is ready for its availability check.
+    breakThiefStealth(context, skill, task.payload.strikeAt, 'strike-broke-stealth', 5);
   }
 }
 

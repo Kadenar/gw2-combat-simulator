@@ -11,10 +11,7 @@ import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/profe
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefCoreState, ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import {
-  THIEF_BREAK_STEALTH_TASK,
-  thiefStealthAttackChargeState
-} from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { thiefStealthAttackChargeState } from '#gw2/professions/thief/core/mechanics/stealth.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
@@ -78,12 +75,22 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   const bonusStealthAttack =
     Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
     Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
-  // At a shared activation/damage timestamp, either replacement may be the causally earlier event in EVTC.
-  const strikeBreakPending =
-    context.tasks.nextAt(THIEF_BREAK_STEALTH_TASK) <= context.start + Number(context.epsilon || 0.0001) * 2;
+  // A same-time action may precede the strike transition; let one stealth attack claim the consumed window.
+  const sameTimeStrikeBreak =
+    !context.events.some(
+      (event) =>
+        event.type === 'action' &&
+        event.at === context.start &&
+        event.skillId != null &&
+        context.catalog.skillsById.get(event.skillId)?.stealthAttack
+    ) &&
+    context.events.some(
+      (event) =>
+        event.type === 'thief.state' && event.reason === 'strike-broke-stealth' && event.at === context.start
+    );
   // Stealth replaces the equipped weapon's slot one, never the separate Shadow Shroud bar.
   if (skill.stealthAttack) {
-    if (!stealthed && !bonusStealthAttack) {
+    if (!stealthed && !bonusStealthAttack && !sameTimeStrikeBreak) {
       return deny(skill, 'thief.not-stealthed', 'requires stealth.');
     }
 
@@ -91,7 +98,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
       return deny(skill, 'thief.stealth-weapon', `requires ${skill.requiredMainHand}.`);
     }
   } else if (
-    ((stealthed && !strikeBreakPending) || bonusStealthAttack) &&
+    (stealthed || bonusStealthAttack) &&
     !skill.shadowShroudSkill &&
     skill.type === 'Weapon' &&
     skill.slot === 'Weapon_1'

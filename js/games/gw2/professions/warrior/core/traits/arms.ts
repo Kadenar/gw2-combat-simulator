@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -35,7 +35,7 @@ import type {
   WarriorSkill
 } from '#gw2/professions/warrior/types.js';
 
-// Trigger Lesser Signet of Might on the first eligible post-half-health strike, reserving its ICD first.
+// Trigger Lesser Signet of Might after the first eligible post-half-health strike at that strike's exact timestamp.
 export function reactToWarriorDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const targetHealth = Number(context.config.target?.health || 0);
   const damageDone = targetHealthLoss(context.config, context);
@@ -57,8 +57,8 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     const kind = String(effect.boon || effect.kind || '');
     context.queue.enqueue({
       type: 'buff',
-      at: event.at + EPSILON,
-      priority: -5,
+      at: event.at,
+      priority: 5,
       source: 'Trait',
       sourceId: TRAIT.SIGNET_MASTERY,
       actorType: 'effect',
@@ -89,12 +89,12 @@ export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSki
     spent >= 30 ? Number(profile?.maximumStacks ?? 4) : Number(profile?.minimumStacks ?? 2);
 }
 
-// Materialize Signet Mastery before relic and Strength cast-completion effects.
+// Materialize Signet Mastery at cast completion before relic and Strength completion effects.
 export function applySignetMasteryCastComplete(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!skill.categories?.includes('Signet') || !hasTrait(context, TRAIT.SIGNET_MASTERY)) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.signetMastery), 'buff');
   emitSkillBuff(context, {
-    at: context.effectiveEnd + context.epsilon,
+    at: context.effectiveEnd,
     source: 'Trait',
     sourceId: TRAIT.SIGNET_MASTERY,
     actorType: 'effect',
