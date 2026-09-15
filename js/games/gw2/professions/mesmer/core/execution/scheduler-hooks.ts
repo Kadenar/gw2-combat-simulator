@@ -116,14 +116,14 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
     if (skill && skill.handlerId !== 'mesmer.phantasm' && isGw2PlayerActorEvent(event)) {
       // Default-scheduled sword and tracked-hit packets drive Mesmer state at their canonical impact timestamps.
       const firstFencerTriggerAt = emitFencersFinesseStacks(
-        { traits: runtime.traits, epsilon: EPSILON, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
+        { traits: runtime.traits, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
         skill,
         [event.at],
         1
       );
       if (Number(event.hitIndex || 1) === 1) {
         recordFencersFinesseProc(
-          { traits: runtime.traits, epsilon: EPSILON, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
+          { traits: runtime.traits, addEvent: runtime.addEvent, addTraitProc: runtime.addTraitProc },
           skill,
           firstFencerTriggerAt
         );

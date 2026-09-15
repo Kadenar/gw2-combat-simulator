@@ -51,6 +51,10 @@ timestamps are rejected. This is numerical normalization, not a change to author
 Observation cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation
 tail.
 
+`EPSILON` is only a tolerance for comparisons at numeric boundaries. Never add or subtract it from `at`, `duration`, or
+`expiresAt` to express ordering. Synthetic 0.1 ms gaps create false gameplay time and bypass the queue's ordering
+contract. The 40 ms action tick is also mechanic-specific; it is not a replacement for same-time priority.
+
 ```text
 at=1.000, priority=-10
 at=1.000, priority=0
@@ -145,9 +149,10 @@ Status queries use canonical half-open windows: active at application, inactive 
 still enter a later payout; forced removal discards pending damage separately from natural expiration.
 
 Standard boon and condition durations round half-even to whole milliseconds after duration bonuses, including
-fixed-duration grants. Boon extension amounts use the same rounding. Expiration is application time plus the final
-duration, without further snapping. Duration-stacking grants add to the remaining pool before its cap is applied;
-draining remaining time is not rounded again. Generic profession buffs retain their authored durations.
+fixed-duration grants. Boon extension amounts use the same rounding. Temporary buff expiry follows the shared effect
+clock and rounds up to the next absolute 40 ms boundary; condition natural expiry remains exact. Duration-stacking boon
+grants add to the remaining pool before its cap is applied. Generic profession buff events retain their authored
+duration even though their active window uses the shared effect-expiry policy.
 
 Do not depend on incidental array order. Use:
 
@@ -168,8 +173,8 @@ Tasks are ordered by:
 3. insertion order.
 
 Task draining never executes beyond its canonical target. Continuous resource retry estimates round upward to the next
-representable ready instant. Mesmer direct clone grants, shatter refunds, and Bloodsong resource tasks use their actual
-completion timestamp; task ordering replaces the synthetic delays previously consumed early by epsilon draining.
+representable ready instant. Mesmer direct clone grants, phantasm conversions, shatter refunds, Harmonize, Tales, and
+Bloodsong resource tasks use their actual completion timestamp; task ordering replaces synthetic delays.
 
 Current platform examples include core cast completion at `-100`, shared trigger materialization at `-60`, combo
 materialization at approximately `-59`, and a default of `0`. These are existing relative placements, not a public set
@@ -198,13 +203,14 @@ Hook order does not move events on the timeline. Modifier order does not determi
 
 1. Leave events at priority `0` unless a same-time state dependency requires otherwise.
 2. Put real delays in `at`; do not simulate elapsed time with priority.
-3. Set priority on the emitted event or procedural skill-event options. Ordinary declarative effects use the default
+3. Never use `EPSILON` to move an event, task, duration, or expiry. Use it only as a documented comparison tolerance.
+4. Set priority on the emitted event or procedural skill-event options. Ordinary declarative effects use the default
    event priority.
-4. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
-5. Add resolver-created events with `enqueueOrdered()`, never a raw array push.
-6. Use hook or reaction `order` when ordering handlers for the same event; do not manufacture another event solely to
+5. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
+6. Add resolver-created events with `enqueueOrdered()`, never a raw array push.
+7. Use hook or reaction `order` when ordering handlers for the same event; do not manufacture another event solely to
    order callbacks.
-7. Test the smallest simultaneous-event scenario that proves the required state or packet order.
+8. Test the smallest simultaneous-event scenario that proves the required state or packet order.
 
 ## Implementation references
 

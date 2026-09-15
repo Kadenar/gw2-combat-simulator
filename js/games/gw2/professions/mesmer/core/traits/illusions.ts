@@ -77,7 +77,6 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
 
 interface MesmerCompoundingPowerContext {
   readonly traits: ReadonlySet<number>;
-  readonly epsilon: number;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly balanceProfile: MesmerRuntime['balanceProfile'];
@@ -117,7 +116,8 @@ export function triggerCompoundingPower(
   for (let index = 0; index < count; index += 1) {
     context.addEvent({
       type: 'buff',
-      at: at + index * context.epsilon,
+      // Simultaneous resource gains create simultaneous independent stacks.
+      at,
       kind: 'compounding',
       stacks: 1,
       duration

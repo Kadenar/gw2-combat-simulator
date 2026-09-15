@@ -413,12 +413,14 @@ export function createMirageActionController({
     if (traits.has(TRAIT.PHANTOM_PAIN)) {
       addEvent({
         type: 'buff',
-        at: at + epsilon,
+        at,
+        // Phantom Pain starts after the same-time shatter packets resolve.
+        priority: 5,
         kind: 'phantom-pain',
         stacks: Math.min(profileValue(PROFILE.phantomPain, 'maximumStacks', 4), spent + 1),
         duration: profileValue(PROFILE.phantomPain, 'durationMultiplier', 10)
       });
-      addTraitProc('Phantom Pain', at + epsilon, skill.name);
+      addTraitProc('Phantom Pain', at, skill.name);
     }
 
     if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {

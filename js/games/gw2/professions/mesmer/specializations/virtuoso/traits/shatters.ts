@@ -16,7 +16,7 @@ export function resolveInfiniteForgeRefund(context: MesmerCastContext, resolutio
   }
 
   runtime.resources.queueResources(
-    resolution.at + context.epsilon * 2,
+    resolution.at,
     balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'resourceGain', 2),
     runtime.activePrimaryWeapon(),
     'Infinite Forge refund',

@@ -56,12 +56,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
 
   const requiredInstrument = TALE_INSTRUMENTS[skill.id];
   if (requiredInstrument && Number(troubadourState.from(context).instruments[requiredInstrument] || 0) > castStart) {
-    runtime.resources.queueResources(
-      at + context.epsilon,
-      Number(profile?.resourceGain ?? 1),
-      runtime.activePrimaryWeapon(),
-      skill.name
-    );
+    runtime.resources.queueResources(at, Number(profile?.resourceGain ?? 1), runtime.activePrimaryWeapon(), skill.name);
   }
 
   if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {

@@ -27,6 +27,8 @@ export interface ComboFinisherEvent extends SimulationEventBase<'combo_finisher'
   readonly attemptId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldBinding: ComboFieldBinding;
+  /** Lets an explicitly bound interaction consume its field at the field's exact expiry timestamp. */
+  readonly allowFieldAtExpiry?: boolean;
   /** Earliest eligible field interaction; the window ends at the finisher event without moving its outcome. */
   readonly fieldSelectionAt?: number;
   readonly companionCandidates?: readonly string[];

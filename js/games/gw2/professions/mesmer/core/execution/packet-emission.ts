@@ -57,7 +57,7 @@ export function createSkillDamageController({
   addCondition,
   addDamage
 }: SkillDamageControllerOptions): MesmerSkillDamageController {
-  const fencersFinesseContext = { traits, epsilon, addEvent, addTraitProc };
+  const fencersFinesseContext = { traits, addEvent, addTraitProc };
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,

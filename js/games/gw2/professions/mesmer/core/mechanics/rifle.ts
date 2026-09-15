@@ -12,7 +12,7 @@ export function detonateInspiringImagery(context: MesmerCastContext): void {
     .eventsOfType('combo_field')
     .find((event) => event.skillId === ID.INSPIRING_IMAGERY && event.at === flip?.availableAt);
   if (!field) return;
-  context.replaceEvent(field, { expiresAt: context.start + context.epsilon * 2 });
+  context.replaceEvent(field, { expiresAt: context.start });
   context.emitDerived(context.action, {
     type: 'combo_finisher',
     at: context.start,
@@ -25,6 +25,8 @@ export function detonateInspiringImagery(context: MesmerCastContext): void {
     attemptId: `${context.reservationId}:abstraction`,
     finisherType: 'Blast',
     fieldBinding: { kind: 'field-id', fieldId: String(field.fieldId) },
+    // Abstraction consumes this exact field at the shared detonation timestamp.
+    allowFieldAtExpiry: true,
     chance: 1,
     applications: 1,
     successfulCombos: 1

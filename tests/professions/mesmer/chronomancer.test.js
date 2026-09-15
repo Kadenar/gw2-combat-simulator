@@ -135,10 +135,10 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
   );
 
   assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.16)) < 0.00001);
-  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 2.0401)) < 0.00001);
+  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 2.04)) < 0.00001);
   assert.ok(Math.abs(resummon.at - (chronoCastEnd + 2.04)) < 0.00001);
   assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.32)) < 0.00001);
-  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.1401)) < 0.00001);
+  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.14)) < 0.00001);
 });
 
 test('Chronophantasma preserves each Bountiful Blades conversion timestamp', () => {
@@ -159,8 +159,8 @@ test('Chronophantasma preserves each Bountiful Blades conversion timestamp', () 
   assert.deepEqual(
     conversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 5.6801],
-      [1, 5.7201]
+      [1, 5.68],
+      [1, 5.72]
     ]
   );
 });

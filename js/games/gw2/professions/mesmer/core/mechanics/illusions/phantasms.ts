@@ -75,7 +75,6 @@ interface PhantasmEffectControllerOptions {
   readonly traits: ReadonlySet<number>;
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
-  readonly epsilon: number;
   readonly queueResources: MesmerQueueResources;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -95,7 +94,6 @@ export function createPhantasmEffectController({
   traits,
   phantasmAttackTimings,
   phantasmPolicy,
-  epsilon,
   queueResources,
   addEvent,
   addTraitProc,
@@ -203,7 +201,7 @@ export function createPhantasmEffectController({
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
     triggerCompoundingPower(
-      { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+      { traits, addEvent, addTraitProc, balanceProfile },
       execution.summonAt,
       count,
       skill.name,
@@ -218,7 +216,7 @@ export function createPhantasmEffectController({
       name: skill.name,
       count,
       // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
-      conversionTimes: executions.map((item) => canonicalTime((item.resourceAtOverride ?? item.conversionAt) + epsilon))
+      conversionTimes: executions.map((item) => canonicalTime(item.resourceAtOverride ?? item.conversionAt))
     });
     addEvent({
       type: 'mesmer.phantasm-attack',
@@ -243,7 +241,7 @@ export function createPhantasmEffectController({
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     triggerCompoundingPower(
-      { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+      { traits, addEvent, addTraitProc, balanceProfile },
       execution.spawnAt,
       count,
       `${skill.name} - ${policy.repeat.label}`,
@@ -601,23 +599,17 @@ export function createPhantasmEffectController({
   };
 
   const queueConversion = (execution: MesmerPhantasmExecution, amount = 1): void => {
-    // epsilon offset ensures conversion resolves after any same-timestamp damage events.
+    // Resource tasks use their real conversion time; task priority keeps them after same-time illusion work.
     if (execution.resourceAtOverride != null) {
       // An active specialization may align conversion to a measured per-phantasm tick.
-      queueResources(
-        execution.resourceAtOverride + epsilon,
-        amount,
-        null,
-        `${execution.skill.name} phantasm conversion`,
-        {
-          kind: 'phantasm-conversion',
-          sourceSkillId: execution.skill.id
-        }
-      );
+      queueResources(execution.resourceAtOverride, amount, null, `${execution.skill.name} phantasm conversion`, {
+        kind: 'phantasm-conversion',
+        sourceSkillId: execution.skill.id
+      });
       return;
     }
 
-    queueResources(execution.conversionAt + epsilon, amount, null, `${execution.skill.name} phantasm conversion`, {
+    queueResources(execution.conversionAt, amount, null, `${execution.skill.name} phantasm conversion`, {
       kind: 'phantasm-conversion',
       sourceSkillId: execution.skill.id
     });

@@ -214,7 +214,7 @@ test('Harmonious Harp replays at 480ms after its Harp Playing packet commits wit
   const instrument = interrupted.events.find(
     (event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'
   );
-  assert.ok(Math.abs(instrument.at - 0.4801) < 1e-12);
+  assert.equal(instrument.at, 0.48);
   assert.equal(instrument.expiresAt, 20.48);
   assert.equal(
     interrupted.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Harmonious Harp'),
@@ -712,11 +712,12 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     })
   );
 
-  assert.ok(
-    luteSpotlight.events.some(
-      (event) => event.type === 'buff' && event.kind === 'altered-chord' && event.duration === 10
-    )
+  const luteStrike = luteSpotlight.events.find((event) => event.type === 'damage' && event.skillName === 'Crescendo');
+  const alteredChord = luteSpotlight.events.find(
+    (event) => event.type === 'buff' && event.kind === 'altered-chord' && event.duration === 10
   );
+  assert.equal(alteredChord.at, luteStrike.at);
+  assert.ok(alteredChord.priority > Number(luteStrike.priority || 0));
 
   const fluteSpotlight = simulateMesmer(
     ['Flustering Flute', 'Crescendo'],

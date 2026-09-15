@@ -672,7 +672,7 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
 
   assert.deepEqual(
     applications(simulate()),
-    [7591, 17201, 22001, 22401, 25201, 25601, 28001, 28401, 31201, 31601].map((at) => ({ at, stacks: 1 }))
+    [7590, 17200, 22000, 22400, 25200, 25600, 28000, 28400, 31200, 31600].map((at) => ({ at, stacks: 1 }))
   );
 });
 
@@ -709,15 +709,15 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
   assert.deepEqual(
     normalConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 4.9601],
-      [1, 5.0601]
+      [1, 4.96],
+      [1, 5.06]
     ]
   );
   assert.deepEqual(
     chronoConversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
     [
-      [1, 9.3201],
-      [1, 9.3601]
+      [1, 9.32],
+      [1, 9.36]
     ]
   );
   assert.ok(Math.abs(proc.at - 4.96) < 0.00001);
@@ -868,7 +868,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
   assert.deepEqual(
     triggers.map((event) => Number(event.at.toFixed(4))),
-    [0.88, 4.96, 9.3201, 9.3601]
+    [0.88, 4.96, 9.32, 9.36]
   );
 });
 
@@ -1097,11 +1097,11 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
   );
 
   assert.equal(normalConversion.amount, 1);
-  assert.ok(Math.abs(normalConversion.at - 3.3601) < 0.00001);
+  assert.ok(Math.abs(normalConversion.at - 3.36) < 0.00001);
   assert.ok(Math.abs(resummon.at - 3.36) < 0.00001);
   assert.ok(Math.abs(repeat.at - 5.84) < 0.00001);
   assert.equal(chronoConversion.amount, 1);
-  assert.ok(Math.abs(chronoConversion.at - 6.3601) < 0.00001);
+  assert.ok(Math.abs(chronoConversion.at - 6.36) < 0.00001);
 });
 
 test('Mimic resets the next utility skill within its ten-second window', () => {

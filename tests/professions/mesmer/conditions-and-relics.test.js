@@ -629,7 +629,7 @@ test('Danger Time buffs phantasms while Claw and Time Bomb remain player-only', 
 
   assert.equal(explosion.coefficient, 3);
   assert.equal(explosion.source, 'Player');
-  assert.ok(explosion.at < timeBombBuff.at + timeBombBuff.duration);
+  assert.equal(explosion.at, timeBombBuff.at + timeBombBuff.duration);
 
   const rows = skillBreakdownRows(dangerTime);
   const playerRow = rows.find((row) => row.name === 'Phantasmal Swordsman' && row.group === 'Player');

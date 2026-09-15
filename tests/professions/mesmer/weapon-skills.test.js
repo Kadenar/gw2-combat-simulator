@@ -519,7 +519,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
       result.events.some((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY),
       false
     );
-    assert.ok(Math.abs(field.expiresAt - cast.start / 1000) < 0.001);
+    assert.equal(field.expiresAt, cast.start / 1000);
     const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.ABSTRACTION);
     assert.equal(combo.fieldId, field.fieldId);
     assert.equal(combo.finisherType, 'Blast');

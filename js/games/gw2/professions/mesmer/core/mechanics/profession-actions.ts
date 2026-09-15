@@ -32,7 +32,6 @@ interface ProfessionActionControllerOptions {
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
-  readonly epsilon: number;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly warnings: string[];
   readonly addEvent: MesmerAddEvent;
@@ -47,7 +46,6 @@ export function createProfessionActionController({
   traits,
   resourceDefinition,
   destroyClone,
-  epsilon,
   shatters,
   warnings,
   addEvent,
@@ -144,8 +142,7 @@ export function createProfessionActionController({
     triggerMesmerPostShatterTraits(
       { traits, addEvent, addTraitProc, addCondition, balanceProfile },
       shatters[resolution.skill.id],
-      resolution,
-      epsilon
+      resolution
     );
   };
 

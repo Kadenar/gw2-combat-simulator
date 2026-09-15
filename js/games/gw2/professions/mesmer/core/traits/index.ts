@@ -48,11 +48,10 @@ export function triggerMesmerCriticalTraits(
 export function triggerMesmerPostShatterTraits(
   context: MesmerPostShatterTraitContext,
   shatter: MesmerShatter | undefined,
-  resolution: MesmerShatterResolution,
-  epsilon: number
+  resolution: MesmerShatterResolution
 ): void {
   triggerMaimTheDisillusioned(context, resolution);
-  triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at, epsilon);
+  triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at);
 }
 
 /** Evaluates Chaotic Interruption with explicit player ownership when a delayed control packet lands. */

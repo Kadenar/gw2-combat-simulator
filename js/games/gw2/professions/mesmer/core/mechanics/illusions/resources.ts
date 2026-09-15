@@ -14,7 +14,6 @@ export interface MesmerIllusionResourceController {
 
 interface IllusionResourceControllerOptions {
   readonly resourceDefinition: MesmerResourceDefinition;
-  readonly epsilon: number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly phantasms: MesmerPhantasmEffectController;

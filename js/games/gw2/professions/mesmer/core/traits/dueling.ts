@@ -36,7 +36,6 @@ export interface MesmerDuelingCriticalContext {
 
 interface FencersFinesseContext {
   readonly traits: ReadonlySet<number>;
-  readonly epsilon: number;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
 }
@@ -117,24 +116,27 @@ export function emitFencersFinesseStacks(
     for (const hitAt of hitTimes) {
       context.addEvent({
         type: 'buff',
-        at: hitAt + context.epsilon,
+        at: hitAt,
+        // The triggering sword packet resolves before its same-time stack.
+        priority: 5,
         kind: 'fencer',
         stacks: 1,
         duration: 6
       });
     }
 
-    return Math.min(...hitTimes) + context.epsilon;
+    return Math.min(...hitTimes);
   }
 
   context.addEvent({
     type: 'buff',
-    at: hitTimes[0] + context.epsilon,
+    at: hitTimes[0],
+    priority: 5,
     kind: 'fencer',
     stacks: Math.min(10, hitCount),
     duration: 6
   });
-  return hitTimes[0] + context.epsilon;
+  return hitTimes[0];
 }
 
 /** Records one Fencer's Finesse proc after all qualifying hit groups are scheduled. */

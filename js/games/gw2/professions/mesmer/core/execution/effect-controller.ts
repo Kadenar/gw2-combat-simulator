@@ -80,7 +80,6 @@ export function createSkillEffectController({
     traits,
     phantasmAttackTimings,
     phantasmPolicy,
-    epsilon,
     queueResources,
     addEvent,
     addTraitProc,
@@ -90,7 +89,6 @@ export function createSkillEffectController({
   });
   const illusionResources = createIllusionResourceController({
     resourceDefinition,
-    epsilon,
     activePrimaryWeapon,
     queueResources,
     phantasms

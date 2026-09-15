@@ -1,6 +1,5 @@
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -43,13 +42,21 @@ function instrumentChecksEnabled(context: Gw2ModifierContext): boolean {
   return !specialization || specialization === 'Troubadour';
 }
 
+/** Prevents a newly committed instrument from affecting earlier events at the same timestamp. */
+function instrumentStarted(context: Gw2ModifierContext, event: SimulationEvent): boolean {
+  if (event.at !== context.time) return event.at < context.time;
+  const instrumentOrder = Number(event.eventOrder);
+  const currentOrder = Number(context.event?.eventOrder);
+  return !Number.isFinite(instrumentOrder) || !Number.isFinite(currentOrder) || instrumentOrder <= currentOrder;
+}
+
 // Count distinct, unexpired instruments at the query time so repeated events for
 // one performance cannot inflate Fortissimo.
 function activeInstrumentCount(context: Gw2ModifierContext): number {
   if (!instrumentChecksEnabled(context)) return 0;
   const active = new Set<string>();
   for (const event of instrumentEvents(context)) {
-    if (event.at <= context.time + EPSILON && Number(event.expiresAt || 0) > context.time) {
+    if (instrumentStarted(context, event) && Number(event.expiresAt || 0) > context.time) {
       active.add(String(event.instrument || ''));
     }
   }
@@ -61,7 +68,7 @@ function hasLute(context: Gw2ModifierContext): boolean {
   if (!instrumentChecksEnabled(context)) return false;
   return instrumentEvents(context).some(
     (event) =>
-      event.instrument === 'Lute' && event.at <= context.time + EPSILON && Number(event.expiresAt || 0) > context.time
+      event.instrument === 'Lute' && instrumentStarted(context, event) && Number(event.expiresAt || 0) > context.time
   );
 }
 
@@ -126,7 +133,7 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
 
   const runtime = mesmerRuntimeFor(context);
   runtime.resources.queueResources(
-    context.fullEnd + context.epsilon,
+    context.fullEnd,
     balanceProfileValueFromContext(context, TRAIT.HARMONIZE, 'resourceGain', 1),
     runtime.activePrimaryWeapon(),
     'Harmonize',

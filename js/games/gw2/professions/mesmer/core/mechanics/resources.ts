@@ -25,7 +25,6 @@ interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
-  readonly epsilon: number;
   readonly clamp: (value: number, minimum: number, maximum: number) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly cloneAttackScheduler: MesmerCloneAttackScheduler;
@@ -41,7 +40,6 @@ export function createResourceController({
   state,
   traits,
   resourceDefinition,
-  epsilon,
   clamp,
   activePrimaryWeapon,
   cloneAttackScheduler,
@@ -109,7 +107,7 @@ export function createResourceController({
     });
     if (cause.kind !== 'initial') {
       triggerCompoundingPower(
-        { traits, epsilon, addEvent, addTraitProc, balanceProfile },
+        { traits, addEvent, addTraitProc, balanceProfile },
         at,
         gained,
         reason,

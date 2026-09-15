@@ -265,9 +265,13 @@ export function registerComboField(state: Gw2ComboRuntimeState, event: ComboFiel
   state.fields.set(event.fieldId, event);
 }
 
-function activeAt(field: ComboFieldEvent, at: number, fieldSelectionAt = at): boolean {
+function activeAt(field: ComboFieldEvent, at: number, fieldSelectionAt = at, allowFieldAtExpiry = false): boolean {
   // Anchored finishers accept a field present at any point from cast start through impact.
-  return field.at <= at + EPSILON && field.expiresAt > Math.max(field.at, fieldSelectionAt) + EPSILON;
+  const selectionAt = Math.max(field.at, fieldSelectionAt);
+  return (
+    field.at <= at + EPSILON &&
+    (field.expiresAt > selectionAt + EPSILON || (allowFieldAtExpiry && field.expiresAt === selectionAt))
+  );
 }
 
 function warningLabel(event: ComboFinisherEvent): string {
@@ -303,7 +307,7 @@ function boundField(
 
   if (event.fieldBinding.kind === 'field-id') {
     const field = state.fields.get(event.fieldBinding.fieldId);
-    if (field && activeAt(field, event.at, at)) return field;
+    if (field && activeAt(field, event.at, at, event.allowFieldAtExpiry === true)) return field;
     warnOnce(
       state,
       `inactive-id|${event.fieldBinding.fieldId}|${label}`,
@@ -316,7 +320,10 @@ function boundField(
   const binding = event.fieldBinding;
   if (binding.kind !== 'field-type') return null;
   const candidates = [...state.fields.values()]
-    .filter((field) => field.fieldType === binding.fieldType && activeAt(field, event.at, at))
+    .filter(
+      (field) =>
+        field.fieldType === binding.fieldType && activeAt(field, event.at, at, event.allowFieldAtExpiry === true)
+    )
     .sort((left, right) => left.at - right.at);
   if (candidates[0]) return candidates[0];
   warnOnce(

@@ -20,7 +20,8 @@ test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => 
 
   assert.ok(buff);
   assert.equal(buff.duration, 7);
-  assert.ok(Math.abs(buff.at - action.fullEndsAt - 0.0001) < 1e-12);
+  assert.equal(buff.at, action.fullEndsAt);
+  assert.equal(buff.priority, 5);
   assert.equal(
     interrupted.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'),
     false
@@ -54,7 +55,7 @@ test('Infinite Forge refunds two blades only after a completed five-blade Blades
   assert.equal(partialShatter.endState.profession.resource, 0);
   assert.equal(interruptedShatter.endState.profession.resource, 5);
   assert.equal(refund.amount, 2);
-  assert.ok(Math.abs(refund.at - action.fullEndsAt - 0.0002) < 1e-12);
+  assert.equal(refund.at, action.fullEndsAt);
 });
 
 test("Phantasmal Blade lands one second after Phantasmal Lancer's phantasm hit", () => {
@@ -232,8 +233,8 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
     conversions.map((event) => event.amount),
     [1, 1]
   );
-  assert.ok(Math.abs(conversions[0].at - 3.6801) < 0.00001);
-  assert.ok(Math.abs(conversions[1].at - 4.0001) < 0.00001);
+  assert.equal(conversions[0].at, 3.68);
+  assert.equal(conversions[1].at, 4);
 });
 
 test('Rain of Swords pulses after its cast with fixed damage and vulnerability timing', () => {

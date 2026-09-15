@@ -29,7 +29,7 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
       at,
       kind: 'time-bomb',
       stacks: 1,
-      duration: duration + context.epsilon,
+      duration,
       sourceSkill: skill.name
     });
     runtime.addDamage(

@@ -19,10 +19,12 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
   const runtime = mesmerRuntimeFor(context);
   if (!runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
-  const at = resolution.at + context.epsilon;
+  const at = resolution.at;
   runtime.addEvent({
     type: 'buff',
     at,
+    // Deadly Blades starts after the Bladesong's same-time resolution work.
+    priority: 5,
     kind: 'deadly-blades',
     stacks: 1,
     duration: balanceProfileValueFromContext(context, TRAIT.DEADLY_BLADES, 'durationMultiplier', 7)

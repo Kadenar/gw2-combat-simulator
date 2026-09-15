@@ -147,7 +147,7 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
   state.lastInstrument = data.instrument;
   runtime.addEvent({
     type: 'mesmer.instrument',
-    at: at + context.epsilon,
+    at,
     instrument: data.instrument,
     expiresAt
   });
@@ -232,12 +232,14 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
     if (state.lastInstrument === 'Lute') {
       runtime.addEvent({
         type: 'buff',
-        at: damageAt + context.epsilon,
+        at: damageAt,
+        // Altered Chord must not modify the Crescendo strike that triggered it.
+        priority: 5,
         kind: 'altered-chord',
         stacks: 1,
         duration: profileValue(runtime, TRAIT.ALTERED_CHORD, 'durationMultiplier', 10)
       });
-      runtime.addTraitProc('Altered Chord', damageAt + context.epsilon, skill.name, 'Lute');
+      runtime.addTraitProc('Altered Chord', damageAt, skill.name, 'Lute');
     } else if (state.lastInstrument === 'Flute') {
       runtime.addCondition(
         skill.name,

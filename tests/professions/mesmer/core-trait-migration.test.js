@@ -19,9 +19,11 @@ test("Mirage Thrust retains player and clone skill identity and grants one Fence
   assert.deepEqual(new Set(hits.map((event) => event.actorType)), new Set(['player', 'summon']));
   assert.ok(hits.every((event) => event.skillId === ID.MIRAGE_THRUST && event.sourceId === ID.MIRAGE_THRUST));
   const stacks = result.events.filter((event) => event.kind === 'fencer');
+  const playerHit = hits.find((event) => event.actorType === 'player');
   assert.equal(stacks.length, 1);
   assert.equal(stacks[0].stacks, 1);
-  assert.ok(stacks[0].at > hits.find((event) => event.actorType === 'player').at);
+  assert.equal(stacks[0].at, playerHit.at);
+  assert.ok(stacks[0].priority > Number(playerHit.priority || 0));
 });
 
 // The Pledge follows each eligible player application, preserving delay and excluding phantasm and derived Burning.

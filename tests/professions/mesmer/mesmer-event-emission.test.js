@@ -40,7 +40,7 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
         resources.length,
         (progress === 0.5 && effectiveEnd >= 3 - context.epsilon) || effectiveEnd === 4 ? 1 : 0
       );
-      if (resources.length) assert.equal(resources[0][0], context.fullEnd + context.epsilon);
+      if (resources.length) assert.equal(resources[0][0], context.fullEnd);
       assert.equal(context.mesmerRuntime.activeEmission, null);
     }
   }

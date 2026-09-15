@@ -97,19 +97,20 @@ export function triggerIllusionaryMembrane(
   context: MesmerIllusionaryMembraneContext,
   shatter: MesmerShatter | undefined,
   skillName: string,
-  at: number,
-  epsilon: number
+  at: number
 ): void {
   if (shatter?.slot !== 2 || !context.traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) return;
   const effect = context.balanceProfile(TRAIT.ILLUSIONARY_MEMBRANE)?.effects?.find(({ type }) => type === 'buff');
   context.addEvent({
     type: 'buff',
-    at: at + epsilon,
+    at,
+    // Resolve after the same-time shatter packets without inventing elapsed time.
+    priority: 5,
     kind: 'illusionary-membrane',
     stacks: Number(effect?.stacks ?? 1),
     duration: Number(effect?.duration ?? 15)
   });
-  context.addTraitProc('Illusionary Membrane', at + epsilon, skillName);
+  context.addTraitProc('Illusionary Membrane', at, skillName);
 }
 
 /** Emits Method of Madness at the owning healing-skill completion position. */
