@@ -10,12 +10,31 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     castTimeMs: 520,
     cooldown: 20,
+    // Auto-overcharges .25s after drop: water field + 5s regen on top of the base 3s regen.
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Water',
+        duration: 3,
+        startAnchor: 'castEnd',
+        startMs: 250,
+        inclusiveExpiry: true
+      }
+    ],
     effects: [
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 3,
         stacks: 1
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1,
+        timingAnchor: 'castEnd',
+        atMs: 250
       }
     ]
   },
@@ -48,6 +67,14 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         coefficient: 2,
         hits: 1,
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        damageKind: 'explosion',
         name: 'Detonate Healing Turret',
         actorType: 'player'
       }
