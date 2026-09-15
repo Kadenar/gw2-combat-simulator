@@ -35,6 +35,12 @@ const holosmithSkillHandlers = Object.freeze({
   }),
   'engineer.heat': augmentSkill({
     afterEffects: engineerPhotonForgeSkillHandlers['engineer.heat']
+  }),
+  'engineer.corona-burst-heat': augmentSkill({
+    afterEffects: engineerPhotonForgeSkillHandlers['engineer.corona-burst-heat']
+  }),
+  'engineer.photon-blitz-heat': augmentSkill({
+    afterEffects: engineerPhotonForgeSkillHandlers['engineer.photon-blitz-heat']
   })
 });
 

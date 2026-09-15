@@ -15,10 +15,8 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitEngineerBarSwap } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import {
-  HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS,
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
-  HOLOSMITH_HEAT,
-  HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS
+  HOLOSMITH_HEAT
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -42,8 +40,6 @@ interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
   readonly seconds: number;
 }
 
-const CORONA_QUICKNESS_PULSE_OFFSETS_MS = HOLOSMITH_CORONA_QUICKNESS_PULSE_OFFSETS_MS;
-const PHOTON_BLITZ_PULSE_OFFSETS_MS = HOLOSMITH_PHOTON_BLITZ_PULSE_OFFSETS_MS;
 const PHOTON_FORGE_PASSIVE_HEAT_TASK = 'engineer.photon-forge-passive-heat';
 const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penalty';
 
@@ -414,33 +410,44 @@ function scheduleHeatPulse(
   });
 }
 
-/**
- * Schedules a Forge skill's heat at authored animation beats or at completion,
- * preserving committed pulses after interrupts and Corona Burst pulses after Forge exit.
- */
-function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
+/** Allows skill heat only while Photon Forge is active and below Overheat. */
+function canApplyHeat(context: EngineerCastContext, skill: HolosmithSkill): boolean {
   const state = holosmithState.from(context);
-  if (!state.photonForgeActive || state.overheated || !(Number(skill.heatGain) > 0)) return;
+  return state.photonForgeActive && !state.overheated && Number(skill.heatGain) > 0;
+}
+
+// Match Corona Burst heat to its five quickness-scaled damage pulses.
+const CORONA_QUICKNESS_PULSE_OFFSETS_MS = Object.freeze([400, 760, 1120, 1480, 1800]);
+
+/** Schedules every committed Corona Burst pulse, including pulses that land after Forge exit. */
+function applyCoronaBurstHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
+  if (!canApplyHeat(context, skill)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
-  if (skill.id === ID.CORONA_BURST) {
-    const offsets = CORONA_QUICKNESS_PULSE_OFFSETS_MS;
-    if (elapsedMs + context.epsilon * 1000 < offsets[0]) return;
-    for (const offsetMs of offsets) {
-      scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2, true);
-    }
-
-    return;
+  if (elapsedMs + context.epsilon * 1000 < CORONA_QUICKNESS_PULSE_OFFSETS_MS[0]) return;
+  const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
+  for (const offsetMs of CORONA_QUICKNESS_PULSE_OFFSETS_MS) {
+    scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse, true);
   }
+}
 
-  if (skill.id === ID.PHOTON_BLITZ) {
-    for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
-      if (offsetMs > elapsedMs + context.epsilon * 1000) break;
-      scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, 2);
-    }
+// Match Photon Blitz heat to projectile launches rather than impacts.
+const PHOTON_BLITZ_PULSE_OFFSETS_MS = Object.freeze([240, 400, 480, 640, 720, 880, 960, 1120]);
 
-    return;
+/** Schedules heat only for Photon Blitz projectiles launched before the channel ends. */
+function applyPhotonBlitzHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
+  if (!canApplyHeat(context, skill)) return;
+  const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
+  const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
+  for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
+    if (offsetMs > elapsedMs + context.epsilon * 1000) break;
+    scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse);
   }
+}
 
+/** Schedules an ordinary Forge attack's heat at completion or its interrupt commit point. */
+function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
+  if (!canApplyHeat(context, skill)) return;
+  const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     const commitMs = Number(skill.interruptCommitMs);
     if (!Number.isFinite(commitMs) || elapsedMs + context.epsilon * 1000 < commitMs) return;
@@ -536,8 +543,8 @@ export function triggerThermalReleaseValve(context: EngineerCastContext, skill: 
 /**
  * Holosmith decoration for the Core kit transition. Core equips the kit; the
  * active Holosmith slice owns leaving Photon Forge and its trait payoff.
- * This path skips the Deactivate Photon Forge skill (no heatGain=15) because
- * the player swapped a kit, not pressed the deactivate button.
+ * This path skips the Deactivate Photon Forge skill because the player swapped
+ * a kit rather than pressing the deactivate button.
  */
 export function handleHolosmithKitEquip(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = holosmithState.from(context);
@@ -563,5 +570,7 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
 export const engineerPhotonForgeSkillHandlers = Object.freeze({
   'engineer.photon-forge-enter': enterPhotonForge,
   'engineer.photon-forge-exit': exitPhotonForge,
-  'engineer.heat': applyHeat
+  'engineer.heat': applyHeat,
+  'engineer.corona-burst-heat': applyCoronaBurstHeat,
+  'engineer.photon-blitz-heat': applyPhotonBlitzHeat
 });

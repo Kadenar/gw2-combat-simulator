@@ -307,7 +307,7 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
 
   const scheduled = [];
   const corona = { ...engineerCatalog.skillsById.get(ID.CORONA_BURST), name: 'Renamed heat skill' };
-  engineerPhotonForgeSkillHandlers['engineer.heat'](
+  engineerPhotonForgeSkillHandlers['engineer.corona-burst-heat'](
     {
       state: { profession },
       start: 0,
@@ -319,6 +319,10 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
     corona
   );
   assert.equal(scheduled.length, 5);
+  assert.deepEqual(
+    scheduled.map((task) => task.payload.amount),
+    [2, 2, 2, 2, 2]
+  );
 });
 
 test('Engineer availability follows skill IDs after display labels change', () => {

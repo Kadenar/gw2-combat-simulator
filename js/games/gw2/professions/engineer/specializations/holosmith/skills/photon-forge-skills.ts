@@ -13,7 +13,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
     cooldown: 6,
-    heatGain: 15,
     effects: [],
     toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
@@ -110,7 +109,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     handlerId: 'engineer.photon-forge-enter',
     castTimeMs: 0,
     cooldown: 1,
-    heatGain: 2,
     effects: [],
     toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
@@ -202,8 +200,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: []
   },
   [ID.CORONA_BURST]: {
-    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+    // Custom: Schedules committed heat pulses that persist after Forge exit; see `holosmith/mechanics/photon-forge.ts`.
+    handlerId: 'engineer.corona-burst-heat',
     castTimeMs: 480,
     interruptCommitMs: 400,
     cooldown: 6,
@@ -327,7 +325,6 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     handlerId: 'engineer.photon-forge-exit',
     castTimeMs: 0,
     cooldown: 6,
-    heatGain: 15,
     effects: [],
     toolbeltParentName: 'Photon Projector',
     countsAsToolbeltSkill: false,
@@ -354,8 +351,8 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.PHOTON_BLITZ]: {
-    // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+    // Custom: Adds heat per completed projectile launch; see `holosmith/mechanics/photon-forge.ts`.
+    handlerId: 'engineer.photon-blitz-heat',
     castTimeMs: 1320,
     // Each launched projectile and matching burn survive independently when the channel ends early.
     interruptMode: 'per-packet',
