@@ -67,7 +67,7 @@ test('equipment dropdown labels expose their effects without hover text', () => 
   );
   assert.equal(
     relicOptionLabel('Last Tyrant'),
-    "Last Tyrant — Inflict Burning at 5 Tyrant's Fury stacks (explosion: strike coefficient TBD, 2 Burning for 8s) (12s ICD)"
+    "Last Tyrant — Inflict Burning at 5 Tyrant's Fury stacks (explosion: 3.0 strike placeholder, 2 Burning for 8s) (12s ICD)"
   );
   assert.equal(
     relicOptionLabel('Visionary'),

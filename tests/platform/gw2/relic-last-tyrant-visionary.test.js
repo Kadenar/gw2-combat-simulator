@@ -54,10 +54,10 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
     { stacks: conditions[0].stacks, duration: conditions[0].duration, sourceId: conditions[0].sourceId },
     { stacks: 2, duration: 8, sourceId: 'relic.last-tyrant' }
   );
-  // The strike coefficient is still an unknown placeholder, so the explosion emits no strike hit.
+  // The explosion strike temporarily borrows Bloodstone Explosion's coefficient.
   assert.deepEqual(
-    queued.filter((event) => event.type === 'damage'),
-    []
+    queued.filter((event) => event.type === 'damage').map((event) => [event.coefficient, event.sourceId]),
+    [[3, 'relic.last-tyrant']]
   );
   // The explosion's own burning does not start the next Fury cycle.
   assert.equal(relic.state.stacks, 0);

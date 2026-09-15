@@ -45,8 +45,8 @@ const NOURYS_CYCLE_DURATION = NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED + NOU
 
 const LAST_TYRANT_STACKS_NEEDED = 5;
 const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
-// TODO: Placeholder until the explosion's strike coefficient is known; 0 emits no strike so on-hit effects stay untouched.
-const LAST_TYRANT_EXPLOSION_COEFFICIENT = 0;
+// TODO: Temporarily borrows Bloodstone Explosion's 3.0 until the real coefficient is known; 0 emits no strike.
+const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 const VISIONARY_STACKS_NEEDED = 8;
 const VISIONARY_BUFF_DURATION = 8;
 const VISIONARY_DAMAGE_BONUS = 0.1;
