@@ -38,6 +38,7 @@ export interface MesmerCoreState {
   pendingResources: MesmerPendingResource[];
   trackedSkillHits: Record<string, number[]>;
   traitReadyAt: Record<string, number>;
+  mimicUntil: number;
   counterspellAvailable: boolean;
   availableFlips: Record<string, MesmerAvailableFlip>;
   autoattackChains: Record<string, SkillId>;

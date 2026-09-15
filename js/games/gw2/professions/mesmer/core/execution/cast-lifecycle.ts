@@ -1,5 +1,4 @@
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -7,7 +6,6 @@ import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/index.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -116,7 +114,7 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
     }
   }
 
-  const flipParentId = skill.mesmerMechanic?.flipParentId;
+  const flipParentId = skill.flipParentId;
   if (!flipParentId) return;
 
   const flipAmmo = state.ammo.get(skill.id);
@@ -143,40 +141,6 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
         parentReadyAt + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease)
       );
     }
-  }
-}
-
-function applyMimicCompletion(context: MesmerCastContext, skill: MesmerSkill, at: number): void {
-  const runtime = mesmerRuntimeFor(context);
-  const { state } = context;
-  const core = professionCoreState(state);
-  const mimicUntil = Number(core.traitReadyAt.mimicUntil || 0);
-  if (skill.id === ID.MIMIC) {
-    core.traitReadyAt.mimicUntil =
-      at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10);
-  } else if (
-    skill.type === 'Utility' &&
-    !skill.mesmerMechanic?.flipParentId &&
-    mimicUntil > 0 &&
-    mimicUntil >= context.start - EPSILON
-  ) {
-    // Mimic resets the independent cast lockout as well as the visible cooldown.
-    const ammo = state.ammo.get(skill.id);
-    if (ammo) ammo.lockoutReadyAt = 0;
-    state.cooldowns.delete(skill.id);
-    core.traitReadyAt.mimicUntil = 0;
-    runtime.addEvent({
-      type: 'proc',
-      at,
-      source: 'Mimic',
-      sourceId: ID.MIMIC,
-      skillId: ID.MIMIC,
-      skillName: 'Mimic',
-      name: 'Mimic',
-      targetSkillId: skill.id,
-      targetSkillName: skill.name,
-      reduction: context.rechargeDuration
-    });
   }
 }
 
@@ -225,7 +189,6 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
     }
 
     runtime.skillEffects.complete(skill, at, context.start);
-    applyMimicCompletion(context, skill, at);
   } finally {
     runtime.activeEmission = null;
     runtime.castDetails.delete(context.reservationId);

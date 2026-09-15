@@ -8,6 +8,7 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
     pendingResources: [],
     trackedSkillHits: {},
     traitReadyAt: {},
+    mimicUntil: 0,
     counterspellAvailable: false,
     availableFlips: {},
     autoattackChains: {},

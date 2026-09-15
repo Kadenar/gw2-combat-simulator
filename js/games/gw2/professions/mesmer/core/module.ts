@@ -16,6 +16,7 @@ import {
 } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerCastRules } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import {
   handleSignetIllusionsPassiveTask,
@@ -85,6 +86,16 @@ export const mesmerCoreModule = defineNativeModule({
     execution: {
       skillHandlers: mesmerCoreSkillHandlers,
       castRules: mesmerCastRules,
+      // Mimic observes completed casts after Core has committed their cooldown and ammo state.
+      castLifecycle: [
+        {
+          phase: 'scheduler',
+          hook: 'onCastComplete',
+          id: 'mesmer.core.mimic',
+          order: 50,
+          handler: completeMimicCast
+        }
+      ],
       skillMechanicHandlers: {
         ...mesmerCoreSignetSkillMechanicHandlers,
         ...mesmerCoreRifleSkillMechanicHandlers,
