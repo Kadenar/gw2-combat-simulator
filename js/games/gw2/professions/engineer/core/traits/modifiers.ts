@@ -4,7 +4,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/index.js';
 import {
@@ -336,6 +336,11 @@ function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, du
   return duration;
 }
 
+/** Defers Healing Turret's recharge until its detonation starts the real cooldown. */
+function commitEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
+  return context.skill?.id === ID.HEALING_TURRET ? 0 : duration;
+}
+
 export const engineerCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyEngineerCoreAttributes,
   modifyConditionBaseDuration: modifyEngineerConditionBaseDuration,
@@ -350,5 +355,6 @@ export const engineerCoreCastRules = Object.freeze({
     order: 10,
     handler: engineerCoreCastAvailability
   },
+  commitRechargeDuration: commitEngineerCoreRechargeDuration,
   modifyRechargeDuration: modifyEngineerCoreRechargeDuration
 });

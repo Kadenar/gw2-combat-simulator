@@ -14,7 +14,27 @@ import {
   scheduleLightningRod,
   scheduleRoilingSkiesControl
 } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import {
+  scheduleCleansingBurstUse,
+  scheduleHealingTurretCast,
+  scheduleHealingTurretDetonate
+} from '#gw2/professions/engineer/core/mechanics/healing-turret.js';
 import { rechargeOtherSwordSkills } from '#gw2/professions/engineer/core/execution/sword.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
+
+/** Arms a palette flip, then applies Healing Turret's own additional overcharge-cycle setup. */
+function armFlipAndHealingTurretCast(context: EngineerCastContext, skill: EngineerSkill): void {
+  engineerFlipSkillHandlers['engineer.arm-flip'](context, skill);
+  if (skill.id === ID.HEALING_TURRET) scheduleHealingTurretCast(context, skill);
+}
+
+/** Consumes a palette flip, then applies Detonate/Cleansing Burst's additional overcharge-cycle transitions. */
+function consumeFlipAndHealingTurretTransition(context: EngineerCastContext, skill: EngineerSkill): void {
+  engineerFlipSkillHandlers['engineer.consume-flip'](context, skill);
+  if (skill.id === ID.DETONATE_HEALING_TURRET) scheduleHealingTurretDetonate(context, skill);
+  else if (skill.id === ID.CLEANSING_BURST) scheduleCleansingBurstUse(context, skill);
+}
 
 // replaceSkill: the platform has no default behavior for this handlerId — the custom handler IS the cast
 // augmentSkill: platform handles the default cast lifecycle; the custom handler runs alongside it
@@ -29,11 +49,11 @@ export const engineerCoreSkillHandlers = Object.freeze({
     afterEffects: engineerKitSkillHandlers['engineer.kit-stow']
   }),
   'engineer.arm-flip': augmentSkill({
-    afterEffects: engineerFlipSkillHandlers['engineer.arm-flip']
+    afterEffects: armFlipAndHealingTurretCast
   }),
   'engineer.consume-flip': augmentSkill({
     afterEffect: duplicateGadgeteerMine,
-    afterEffects: engineerFlipSkillHandlers['engineer.consume-flip']
+    afterEffects: consumeFlipAndHealingTurretTransition
   }),
   'engineer.mine-field': augmentSkill({
     // A precast field replaces normal emission so its packets can move to the combat boundary.

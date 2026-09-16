@@ -87,6 +87,8 @@ const byName = new Map<string, Skill>(allDeclared.map((skill) => [skill.name, sk
 
 const preferredFlipParentById = new Map<SkillId, SkillId>([
   [ID.DETONATE_HEALING_TURRET, ID.HEALING_TURRET],
+  // The GW2 API doesn't link Cleansing Burst back to Healing Turret's flip chain.
+  [ID.CLEANSING_BURST, ID.HEALING_TURRET],
   [ID.DETONATE, ID.THROW_MINE],
   [ID.STOW_FLAMETHROWER, ID.FLAMETHROWER],
   [ID.ELECTRIC_ARTILLERY, ID.LIGHTNING_ROD]

@@ -33,6 +33,7 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     autoattackChains: {},
     lightningRodActivationId: '',
     lightningRodChargeExpiries: [],
+    healingTurretActivationId: '',
     electricArtilleryAvailable: false,
     electricArtilleryReadyAt: 0,
     electricArtilleryExpiresAt: 0,

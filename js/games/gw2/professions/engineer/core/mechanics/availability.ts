@@ -34,6 +34,10 @@ export function engineerCoreCastAvailability(
         );
   }
 
+  if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
+    return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
+  }
+
   if (skill.id === ID.ELECTRIC_ARTILLERY && !state.electricArtilleryAvailable) {
     // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
     const retryAt = Number(state.electricArtilleryReadyAt || 0);

@@ -28,6 +28,7 @@ import {
   handleElectricArtilleryReady,
   handleLightningRodCharge
 } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { handleHealingTurretSwapToCleansingBurst } from '#gw2/professions/engineer/core/mechanics/healing-turret.js';
 import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
 
 /** Registers Core Engineer resources, weapons, traits, and tasks in scheduler order. */
@@ -59,7 +60,8 @@ export const engineerCoreSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     'engineer.lightning-rod-charge': handleLightningRodCharge,
     'engineer.electric-artillery-ready': handleElectricArtilleryReady,
-    'engineer.electric-artillery-expire': handleElectricArtilleryExpire
+    'engineer.electric-artillery-expire': handleElectricArtilleryExpire,
+    'engineer.healing-turret-swap-to-cleansing-burst': handleHealingTurretSwapToCleansingBurst
   })
 });
 

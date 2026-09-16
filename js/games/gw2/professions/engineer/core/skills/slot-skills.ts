@@ -2,40 +2,27 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal
+// slot needs a shared UI-only tile to keep showing whichever of the three is currently armed.
+const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
+
 /** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEALING_TURRET]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
+    // 10s overcharge window; see `core/mechanics/healing-turret.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
+    paletteTileId: HEALING_TURRET_PALETTE_TILE,
+    paletteTileOrder: 1,
     castTimeMs: 520,
     cooldown: 20,
-    // Keep the water field and extra regeneration together at the nearest 40 ms tick to the .25s overcharge delay.
-    comboFields: [
-      {
-        ownerId: 'engineer',
-        fieldType: 'Water',
-        duration: 3,
-        startAnchor: 'castEnd',
-        startMs: 240,
-        inclusiveExpiry: true
-      }
-    ],
     effects: [
       {
         type: 'boon',
         boon: 'regeneration',
         duration: 3,
         stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'regeneration',
-        duration: 5,
-        stacks: 1,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        atMs: 240
       }
     ]
   },
@@ -61,8 +48,10 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
+    paletteTileId: HEALING_TURRET_PALETTE_TILE,
+    paletteTileOrder: 2,
     castTimeMs: 0,
-    cooldown: 10,
+    cooldown: 0,
     effects: [
       {
         type: 'strike',
@@ -82,8 +71,21 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CLEANSING_BURST]: {
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    handlerId: 'engineer.consume-flip',
+    flipParentName: 'Healing Turret',
+    paletteTileId: HEALING_TURRET_PALETTE_TILE,
+    paletteTileOrder: 3,
     castTimeMs: 0,
-    cooldown: 1,
+    cooldown: 0,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Water',
+        duration: 3,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',

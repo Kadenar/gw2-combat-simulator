@@ -51,8 +51,16 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     kit: 'Med Kit'
   },
   [ID.CLEANSING_FIELD]: {
-    castTimeMs: 360,
+    castTimeMs: 400,
     cooldown: 15,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Water',
+        duration: 3,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: [],
     kit: 'Med Kit'
   },
@@ -63,8 +71,15 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     kit: 'Med Kit'
   },
   [ID.INFUSION_BOMB]: {
-    castTimeMs: 360,
+    castTimeMs: 680,
     cooldown: 20,
+    comboFinishers: [
+      {
+        ownerId: 'engineer',
+        finisherType: 'Blast',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'boon',

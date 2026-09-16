@@ -1020,6 +1020,11 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
   const healing = simulate('Core', ['Healing Turret']);
 
+  assert.equal(healing.endState.cooldowns['Healing Turret'], undefined);
+  assert.deepEqual(healing.endState.cooldowns['Detonate Healing Turret'], {
+    readyAt: healing.steps[0].end + 500,
+    remaining: 500
+  });
   assert.ok(
     healing.events.some(
       (event) =>
@@ -1029,6 +1034,22 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
         event.duration === 3
     )
   );
+
+  // Placement delays detonation until after the automatic burst, whose timestamp starts overcharge recharge.
+  const turretCycle = simulate('Core', [
+    'Healing Turret',
+    'Detonate Healing Turret',
+    { type: 'wait', durationMs: 19760 },
+    'Healing Turret',
+    { type: 'wait', durationMs: 10240 },
+    'Cleansing Burst'
+  ]);
+  const [firstTurret, detonation, secondTurret, cleansingBurst] = turretCycle.steps.filter((step) =>
+    ['Healing Turret', 'Detonate Healing Turret', 'Cleansing Burst'].includes(step.skill)
+  );
+  assert.equal(detonation.start - firstTurret.end, 500);
+  assert.equal(secondTurret.start - detonation.end, 20000);
+  assert.equal(cleansingBurst.start - secondTurret.end, 10240);
 
   const mineConfig = {
     selectedSkills: [...baseConfig.selectedSkills, 'Throw Mine']

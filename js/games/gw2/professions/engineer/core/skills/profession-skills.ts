@@ -59,8 +59,16 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     toolbeltParentName: 'Throw Mine'
   },
   [ID.REGENERATING_MIST]: {
-    castTimeMs: 0,
+    castTimeMs: 300,
     cooldown: 18,
+    comboFields: [
+      {
+        ownerId: 'engineer',
+        fieldType: 'Water',
+        duration: 1,
+        startAnchor: 'castEnd'
+      }
+    ],
     effects: [
       {
         type: 'boon',

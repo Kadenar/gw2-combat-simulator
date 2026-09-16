@@ -89,7 +89,16 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Landing Damage',
-        actorType: 'player'
+        actorType: 'player',
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: 'Leap',
+            fieldSelectionAnchor: 'castStart',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        metadata: {}
       },
       {
         type: 'condition',

@@ -85,6 +85,7 @@ export interface EngineerCoreState {
   focusedUntil: number;
   lightningRodActivationId: string;
   lightningRodChargeExpiries: number[];
+  healingTurretActivationId: string;
   electricArtilleryAvailable: boolean;
   electricArtilleryReadyAt: number;
   electricArtilleryExpiresAt: number;
