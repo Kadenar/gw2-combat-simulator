@@ -224,6 +224,7 @@ export function resolveGw2Timeline({
         : profession.createProfessionState(config),
     warnings: [...(handoff.warnings || [])],
     applyCondition: conditions.applyCondition,
+    onFirstDamage: conditions.startDamageClock,
     reactions: extensions.reactions
   });
   if (handoff.hasExplicitCombatStart) {

@@ -30,6 +30,7 @@ export function createGw2ResolverRuntimeState({
   professionState = {},
   warnings = [],
   applyCondition,
+  onFirstDamage,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const runtime: Gw2ResolverRuntime = {
@@ -196,9 +197,10 @@ export function createGw2ResolverRuntimeState({
     },
 
     markDamageTime(at: number): void {
-      // First positive damage starts DPS reporting; condition pulses stay on encounter seconds.
+      // First positive damage starts both DPS reporting and the shared condition clock.
       if (this.firstHitTime == null) {
         this.firstHitTime = at;
+        onFirstDamage?.(this);
       }
 
       this.lastHitTime = at;

@@ -126,11 +126,13 @@ any remaining tie.
 
 ### Shared condition pulses
 
-All conditions follow encounter-second pulses at 1s, 2s, and so on, independently of first damage. Sample reads all
-owners at whole-second pulses and exact natural expirations. Settle commits condition payouts and their same-time
-derived state. Ordinary then runs strikes, direct condition-kind damage, and ordinary state events. A negative ordinary
-priority cannot precede settlement. An eligible condition payout takes precedence over a first strike at the same
-timestamp and establishes first damage.
+All conditions follow pulses at 1s, 2s, and so on after first positive player damage. Sample reads all owners at
+whole-second pulses and exact natural expirations. Settle commits condition payouts and their same-time derived state.
+Ordinary then runs strikes, direct condition-kind damage, and ordinary state events. A negative ordinary priority cannot
+precede settlement. An eligible condition payout takes precedence over a first strike at the same timestamp and
+establishes first damage. Before an opener, provisional encounter-second pulses allow conditions to establish first
+damage themselves. A direct opener between those pulses replaces pending wakes with the first-damage phase; an explicit
+Combat Start marker only gates damage.
 
 Non-damage events emitted during settlement inherit Settle only at that timestamp; future work receives its normal
 phase. Direct damage remains Ordinary. Enqueueing work in the past or in an earlier phase at the current timestamp

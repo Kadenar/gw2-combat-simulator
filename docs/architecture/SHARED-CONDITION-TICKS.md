@@ -6,9 +6,19 @@ Boon and condition durations round half-even to whole milliseconds after duratio
 round; generic profession buffs retain authored durations. Natural expiration is application time plus rounded duration,
 with no 40ms ceiling or further snapping. Application timestamps retain canonical microsecond precision.
 
-All condition owners use encounter-second pulses at 1s, 2s, 3s, and so on. First positive player damage sets the DPS
-reporting window without shifting these pulses. Empty target windows stop unnecessary queued work; subsequent
-applications resume on the same encounter clock.
+First positive player damage starts both the DPS reporting window and the shared condition clock. All condition owners
+pay at `firstHitTime + 1s`, `firstHitTime + 2s`, and so on, displayed as 1s, 2s, 3s of fight time. An explicit Combat
+Start marker gates damage but does not establish this phase. Empty target windows stop unnecessary queued work;
+subsequent applications resume on the same first-damage clock.
+
+Before first damage, provisional encounter-second pulses allow a condition-only opener to deal its first damage. If a
+condition payout opens combat, that opening packet is at fight time zero and subsequent pulses are at 1s, 2s, and so on.
+If a direct hit opens combat between provisional pulses, pending player, pet, and environment wakes move to the new
+phase; obsolete wakes are inert. Existing applications retain their natural expiry, but their accrual restarts at first
+damage without carrying pre-fight buffered damage into the first full-second payout.
+
+For example, an explicit marker at 7.88s followed by first damage at 8.72s produces condition payouts at 9.72s, 10.72s,
+11.72s, and so on. Kill Time and chart timestamps already use that same first-damage origin.
 
 Each condition application samples its owner's current stats and modifiers at a pulse for the elapsed interval since its
 last sample. If it expires between pulses, it samples the final partial interval at that exact expiration time. That
@@ -16,7 +26,8 @@ remainder stays buffered until the next whole-second payout. Changes after expir
 no intermediate 40ms samples or 1ms simulation steps. Expiry sampling affects only applications expiring at that
 timestamp, so one application's expiry cannot change another application's sampling schedule.
 
-For a two-second burn applied at 0.960s with a constant rate of 100 damage per stack-second:
+For a two-second burn applied at fight time 0.960s with a constant rate of 100 damage per stack-second (all times below
+are relative to first damage):
 
 | Packet time | Sample time | Elapsed time | Damage |
 | ----------- | ----------- | ------------ | ------ |
@@ -70,8 +81,8 @@ scheduler feedback. Direct damage events marked `damageKind: condition` retain d
 Duration rounding follows
 [gw2combat's effect duration calculation](https://github.com/Mk-Chan/gw2combat/blob/master/src/utils/effect_utils.hpp).
 Pulse/expiry sampling follows
-[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). The
-encounter-second clock matches its default zero condition-tick offset.
+[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). This project's
+first-damage-relative phase deliberately differs from the reference's default zero condition-tick offset.
 
 The user explicitly requires one rounding for the complete owner/condition stack and conditions-before-strikes ordering.
 The inspected reference rounds each application group separately, and its public loop calls strike/effect application

@@ -555,7 +555,7 @@ test('environment conditions do not change player attribution over an equal obse
 });
 
 test('environment damage can end a player sequence early without entering player totals', () => {
-  // Environment payouts remain at 1s and 2s regardless of the off-grid opener.
+  // Environment payouts share the first-damage origin: the 0.5s opener schedules ticks at 1.5s and 2.5s.
   const events = [0.5, 1.5, 2.6].map((at, index) => ({
     type: 'damage',
     at,
@@ -576,7 +576,7 @@ test('environment damage can end a player sequence early without entering player
 
   assert.equal(baseline.deathTime, null);
   assert.equal(baseline.totalDamage, 60);
-  assert.equal(ambient.deathTime, 2);
+  assert.equal(ambient.deathTime, 2.5);
   assert.equal(ambient.totalDamage, 40);
   assert.equal(ambient.environmentDamage, 44);
   assert.ok(ambient.totalDamage + ambient.environmentDamage >= 75);

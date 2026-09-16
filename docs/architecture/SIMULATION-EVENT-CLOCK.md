@@ -8,18 +8,18 @@ steps.
 
 ## Contract summary
 
-| Property | Contract |
-| --- | --- |
-| Internal time unit | Seconds |
-| Rotation and skill metadata | Milliseconds where the field name ends in `Ms`; cooldown and effect durations are seconds |
-| Canonical precision | One microsecond |
-| General event progression | Jump directly to the next command, task, event, or final boundary |
-| Event horizon | Inclusive: an event exactly at the resolution end is processed |
-| Status lifetime | Half-open: `[startsAt, expiresAt)` |
-| Task ordering | Timestamp, ascending priority, insertion order |
-| Resolver ordering | Timestamp, resolver phase, ascending priority, causal order, insertion order |
-| Default observation | Through the end of the entered rotation |
-| Runaway-work limit | 100,000 rotation commands, task executions, same-time resolver events, or observation emissions, depending on the loop |
+| Property                    | Contract                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Internal time unit          | Seconds                                                                                                                |
+| Rotation and skill metadata | Milliseconds where the field name ends in `Ms`; cooldown and effect durations are seconds                              |
+| Canonical precision         | One microsecond                                                                                                        |
+| General event progression   | Jump directly to the next command, task, event, or final boundary                                                      |
+| Event horizon               | Inclusive: an event exactly at the resolution end is processed                                                         |
+| Status lifetime             | Half-open: `[startsAt, expiresAt)`                                                                                     |
+| Task ordering               | Timestamp, ascending priority, insertion order                                                                         |
+| Resolver ordering           | Timestamp, resolver phase, ascending priority, causal order, insertion order                                           |
+| Default observation         | Through the end of the entered rotation                                                                                |
+| Runaway-work limit          | 100,000 rotation commands, task executions, same-time resolver events, or observation emissions, depending on the loop |
 
 ## 1. Canonical time
 
@@ -43,9 +43,9 @@ and `actorType`. Common event types are registered by the platform; a custom typ
 
 ### Floating-point tolerance
 
-`EPSILON` is `0.0001` seconds, or 100 microseconds. It is used for readiness and boundary comparisons where metadata
-may contain floating-point residue. It is not the clock resolution and is not used to merge or sort events. Queue
-ordering always uses canonical microsecond keys.
+`EPSILON` is `0.0001` seconds, or 100 microseconds. It is used for readiness and boundary comparisons where metadata may
+contain floating-point residue. It is not the clock resolution and is not used to merge or sort events. Queue ordering
+always uses canonical microsecond keys.
 
 ### The 40 ms GW2 action tick
 
@@ -70,8 +70,8 @@ The simulation runs in two phases:
    horizon or target death.
 
 The scheduler and resolver do not share mutable combat state. Resolver state starts at time zero and reconstructs the
-result by consuming scheduler events in order. Scheduler-only predictions used to make rotation decisions can be
-removed before resolver replay when resolver reactions own the real outcome.
+result by consuming scheduler events in order. Scheduler-only predictions used to make rotation decisions can be removed
+before resolver replay when resolver reactions own the real outcome.
 
 ## 3. Scheduler clock
 
@@ -115,22 +115,21 @@ queued work; cancelling an owner does not prevent new tasks from later using tha
 
 ### Emission is not resolution
 
-When a cast is accepted, all declarative event packets for that activation can be emitted immediately, including
-packets whose `at` time is in the future. Scheduler event observers also run immediately in a FIFO observation queue.
-Code querying emitted history must therefore compare the event's `at` and lifetime against the query time; presence in
-the array does not mean the event has happened yet.
+When a cast is accepted, all declarative event packets for that activation can be emitted immediately, including packets
+whose `at` time is in the future. Scheduler event observers also run immediately in a FIFO observation queue. Code
+querying emitted history must therefore compare the event's `at` and lifetime against the query time; presence in the
+array does not mean the event has happened yet.
 
 ## 4. Rotation commands and cast lanes
 
 Rotation input is normalized strictly into four command types: `cast`, `wait`, `combat-start`, and `cooldown-reset`.
-Malformed commands stop the run. Unknown or non-retryably unavailable skills instead produce invalid steps and
-warnings.
+Malformed commands stop the run. Unknown or non-retryably unavailable skills instead produce invalid steps and warnings.
 
 The scheduler tracks separate timing lanes:
 
 - ordinary player casts use the serial cast lane;
-- instant player skills may overlap a cast when their metadata permits it, but preserve command order and wait until
-  the actual interruption point of preceding work;
+- instant player skills may overlap a cast when their metadata permits it, but preserve command order and wait until the
+  actual interruption point of preceding work;
 - independent actors, such as summons, use a separate serial lane unless the skill explicitly permits independent
   overlap;
 - waits and the final rotation boundary remain behind every outstanding reservation on every lane.
@@ -159,9 +158,9 @@ effectiveEnd = fullEnd, or min(fullEnd, canonicalTime(start + interruptAfterMs /
 `castTimeMs` is already the effective player duration stored in skill metadata. Shared game rules then profession rules
 may modify the duration. Only independent summon casts apply runtime Quickness conversion in the shared policy.
 
-An interrupted skill can reserve the lane through `fullEnd` when its metadata says a committed interruption retains
-the remaining cast as aftercast. Otherwise it releases the lane at `effectiveEnd`. The action event is emitted at
-`start`; the cast-completion task runs at `effectiveEnd`.
+An interrupted skill can reserve the lane through `fullEnd` when its metadata says a committed interruption retains the
+remaining cast as aftercast. Otherwise it releases the lane at `effectiveEnd`. The action event is emitted at `start`;
+the cast-completion task runs at `effectiveEnd`.
 
 ### Effect packet timestamps
 
@@ -214,18 +213,18 @@ reservation. Final input recovery is included. It does not automatically extend 
 
 `resolutionEndTime` is selected by the observation policy:
 
-| Policy | Resolution end |
-| --- | --- |
-| omitted or `{ kind: "rotation" }` | `rotationEndTime` |
-| `{ kind: "tail", durationMs }` | `rotationEndTime + durationMs / 1000` |
+| Policy                            | Resolution end                           |
+| --------------------------------- | ---------------------------------------- |
+| omitted or `{ kind: "rotation" }` | `rotationEndTime`                        |
+| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000`    |
 | `{ kind: "absolute", endTimeMs }` | `max(rotationEndTime, endTimeMs / 1000)` |
 
 Durations and absolute endpoints must be non-negative and finite. An absolute endpoint more than `EPSILON` before the
 rotation end is rejected. A tail is applied once; recurring work inside the tail does not recursively extend it.
 
-The scheduler advances private tasks through `resolutionEndTime`, allowing finite recurring actors and mechanics to
-emit their tail events. The resolver then uses the same value as its inclusive horizon. Consequently, a packet exactly
-at the horizon is processed and a packet one microsecond later is not.
+The scheduler advances private tasks through `resolutionEndTime`, allowing finite recurring actors and mechanics to emit
+their tail events. The resolver then uses the same value as its inclusive horizon. Consequently, a packet exactly at the
+horizon is processed and a packet one microsecond later is not.
 
 ## 6. Event stream ordering
 
@@ -266,19 +265,19 @@ The resolver loads the stream into a stable min-heap. Its complete ordering key 
 
 GW2 defines three private phases:
 
-| Phase | Value | Events |
-| --- | ---: | --- |
-| Sample | 0 | `condition_buffer` |
-| Settle | 1 | `condition_tick`; non-damage work derived while settling the same instant |
-| Ordinary | 2 | all other events, including direct damage |
+| Phase    | Value | Events                                                                    |
+| -------- | ----: | ------------------------------------------------------------------------- |
+| Sample   |     0 | `condition_buffer`                                                        |
+| Settle   |     1 | `condition_tick`; non-damage work derived while settling the same instant |
+| Ordinary |     2 | all other events, including direct damage                                 |
 
 Phase outranks event priority. At one timestamp, condition state is therefore sampled first, condition damage settles
 second, and ordinary strikes and actions resolve last. Within a phase, lower priority runs first, then causal placement,
 then insertion order.
 
-Resolver-generated events inherit the currently executing event's causal placement unless they provide an explicit
-one. The queue rejects an event before the current time and rejects a same-time event in an earlier phase. A future
-timestamp may begin again at any phase.
+Resolver-generated events inherit the currently executing event's causal placement unless they provide an explicit one.
+The queue rejects an event before the current time and rejects a same-time event in an earlier phase. A future timestamp
+may begin again at any phase.
 
 The resolver loop is:
 
@@ -302,8 +301,8 @@ boundary metadata is published before tasks at its timestamp are drained; the `c
 after that drain. This allows boundary-time hits to trigger combat effects.
 
 Target death clips the effective reporting end. Events after the death timestamp are not processed. At the lethal
-timestamp, the resolver finishes sibling packets from the same activation and the simultaneous condition-tick batch,
-but skips a distinct later attack.
+timestamp, the resolver finishes sibling packets from the same activation and the simultaneous condition-tick batch, but
+skips a distinct later attack.
 
 DPS time does not necessarily start at zero or Combat Start. It starts at the first surviving positive player-damage
 event. Explicit Combat Start supplies only the damage-free fallback and the precombat gate. The DPS window is:
@@ -323,18 +322,21 @@ active(at) = startsAt <= at && at < expiresAt
 ```
 
 A status is active at its application timestamp and inactive at its expiry timestamp. Standard boon durations are
-rounded to whole milliseconds using half-even rounding after duration modifiers. Their actual expiry is then rounded
-up to the next absolute 40 ms action-tick boundary.
+rounded to whole milliseconds using half-even rounding after duration modifiers. Their actual expiry is then rounded up
+to the next absolute 40 ms action-tick boundary.
 
-Conditions use the encounter's integer-second clock, not a timer relative to the first damage event:
+Conditions use a shared clock relative to first positive player damage (`origin`), matching DPS and Kill Time:
 
-- the first payout for a condition applied at `t` is at `floor(t) + 1`;
+- the next payout for a condition applied at `t` is at `origin + floor(t - origin) + 1`;
 - one owner/condition group shares a wake and is rounded as one damage packet;
 - condition rates are sampled at whole-second boundaries and at exact off-grid expirations;
 - an off-grid expiry remainder is buffered and paid at the group's next whole-second wake;
 - applications are semantically active through `[appliedAt, naturalExpiresAt)`;
 - the observation horizon clips scheduled damage but does not change the application's natural semantic expiry;
-- ambient target conditions tick at `1, 2, ... floor(resolutionEndTime)`.
+- ambient target conditions use the same first-damage phase;
+- before first damage, provisional encounter-second pulses allow a condition-only opener to start the clock;
+- an off-grid direct opener replaces provisional wakes and discards pre-fight accrual; application expiry is unchanged;
+- explicit Combat Start gates damage but does not set the tick phase.
 
 The Sample phase runs before the Settle phase at a shared second, so all condition owners use one coherent target-state
 sample before any condition payout changes health.
