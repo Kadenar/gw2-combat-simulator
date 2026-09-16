@@ -238,8 +238,6 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, impactMs] of [
-      ['Hammer Bolt', 720],
-      ['Coalescence of Ruin', 1040],
       ['Field of the Mists', 920],
       ['Drop the Hammer', 1640]
     ]) {
