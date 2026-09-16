@@ -8,7 +8,13 @@
  * therefore the order side effects fire in.
  */
 import { effectStacking, isDamagingEffect, maxEffectDuration } from '#gw2/platform/combat-engine/effect-rules.js';
-import { findCounter, getSkill, getSkillEntity, isStageDependent } from '#gw2/platform/combat-engine/queries.js';
+import {
+  findCounter,
+  findDirectSkillEntity,
+  getSkill,
+  getSkillEntity,
+  isStageDependent
+} from '#gw2/platform/combat-engine/queries.js';
 import {
   createEntity,
   createRotationComponent,
@@ -66,11 +72,8 @@ function addSideEffectHolders(registry: Registry, sideEffects: SideEffects, pare
  * owned by the actor, so they stay active for as long as the actor exists.
  */
 export function addSkillToActor(registry: Registry, skill: Skill, actorEntity: Entity): Entity {
-  for (const entity of view([registry.owner, registry.isSkill]).entities()) {
-    if (registry.owner.get(entity) === actorEntity && registry.isSkill.get(entity).skillKey === skill.skillKey) {
-      return entity;
-    }
-  }
+  const existing = findDirectSkillEntity(registry, skill.skillKey, actorEntity);
+  if (existing !== undefined) return existing;
 
   const skillEntity = createEntity(registry, `${skill.skillKey} skill holder entity`);
   registry.isSkill.emplace(skillEntity, skill);

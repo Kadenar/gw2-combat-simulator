@@ -313,15 +313,46 @@ export class SkillLookupError extends Error {
   readonly code = 'engine.unknown-skill';
 }
 
+const directSkillIndexes = new WeakMap<
+  Registry,
+  {
+    skillRevision: number;
+    ownershipRevision: number;
+    byActor: Map<Entity, Map<string, Entity>>;
+  }
+>();
+
+/** Cache direct skills by their immediate owner and key, retaining the first match in reference view order. */
+export function findDirectSkillEntity(registry: Registry, skillKey: string, actorEntity: Entity): Entity | undefined {
+  let index = directSkillIndexes.get(registry);
+  if (
+    !index ||
+    index.skillRevision !== registry.isSkill.revision ||
+    index.ownershipRevision !== registry.owner.revision
+  ) {
+    const byActor = new Map<Entity, Map<string, Entity>>();
+    view([registry.owner, registry.isSkill]).forEach((entity) => {
+      const actor = registry.owner.get(entity);
+      const skills = byActor.get(actor) ?? new Map<string, Entity>();
+      const key = registry.isSkill.get(entity).skillKey;
+      if (!skills.has(key)) skills.set(key, entity);
+      byActor.set(actor, skills);
+    });
+    index = { skillRevision: registry.isSkill.revision, ownershipRevision: registry.owner.revision, byActor };
+    directSkillIndexes.set(registry, index);
+  }
+
+  return index.byActor.get(actorEntity)?.get(skillKey);
+}
+
 /**
  * Resolves a skill key for an actor. A conditional skill group resolves to its
  * first member whose condition currently holds, so the same key can cast
  * different skills as state changes.
  */
 export function getSkillEntity(registry: Registry, skillKey: string, actorEntity: Entity): Entity {
-  for (const entity of view([registry.owner, registry.isSkill]).entities()) {
-    if (registry.owner.get(entity) === actorEntity && registry.isSkill.get(entity).skillKey === skillKey) return entity;
-  }
+  const direct = findDirectSkillEntity(registry, skillKey, actorEntity);
+  if (direct !== undefined) return direct;
 
   let failure = `skill ${skillKey} not found for actor ${registry.names.get(actorEntity) ?? 'temporary_entity'}`;
   for (const groupEntity of view([registry.owner, registry.isConditionalSkillGroup]).entities()) {
