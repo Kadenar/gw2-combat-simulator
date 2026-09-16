@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
+import {
+  LOG_OPENER_WARNING,
+  MUSHROOM_KINGS_BLESSING_BUFF_ID,
+  MUSHROOM_KINGS_BLESSING_SKILL_ID
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 import { applyRotationImportPreview } from '#gw2/app/build/io/rotation-import-dialog.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
 import { event, log, expandedEvtcFixture } from '../helpers/evtc-fixture.js';
@@ -81,6 +85,27 @@ test('incomplete imports keep unsupported diagnostics and receive exactly one op
 
 test('binary parsing retains canonical skill labels', () => {
   assert.equal(parseEvtc(expandedEvtcFixture({ skillName: 'Master Tuning Crystal' })).skills[0].name, 'Tuning Icicle');
+});
+
+// Raw logs expose the training reset as a buff gain, so reconstruction must synthesize EI's cast before replay.
+test("EVTC Mushroom King's Blessing buff gains become cooldown resets", () => {
+  const out = reconstructEvtcRotation(
+    log({
+      events: [
+        event({
+          time: 500,
+          stateChange: 69,
+          skillId: MUSHROOM_KINGS_BLESSING_BUFF_ID,
+          target: 0x1000n
+        })
+      ]
+    }),
+    catalog
+  );
+
+  assert.ok(out.sourceActions.some((action) => action.rawSkillId === MUSHROOM_KINGS_BLESSING_SKILL_ID));
+  assert.ok(out.rotation.some((command) => command.name === '__cooldown_reset'));
+  assert.ok(out.warnings.every((warning) => !warning.includes('not present')));
 });
 
 test('applying an import preserves manually configured starting resources', () => {

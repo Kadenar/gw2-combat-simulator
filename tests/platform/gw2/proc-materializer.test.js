@@ -19,6 +19,44 @@ test('sigil cooldown boundaries use exact canonical instants', () => {
   assert.equal(isSigilInternalCooldownReady(0.1 + 0.2, 0.3), true);
 });
 
+test('computed combat boundaries admit opening procs but exclude the preceding microsecond', () => {
+  // Decimal addition must not put the opening hit before combat or admit a genuinely earlier hit.
+  const profession = defineProfession({
+    id: 'combat-boundary-fixture',
+    name: 'Combat Boundary Fixture',
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 1,
+          name: 'Strike',
+          type: 'Utility',
+          castTimeMs: 200,
+          effects: [
+            {
+              type: 'strike',
+              timingAnchor: 'castStart',
+              ticks: [
+                { atMs: 199.999, coefficient: 1 },
+                { atMs: 200, coefficient: 1 }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+  });
+  const config = { stats: { precision: 4000 }, sigilSets: [{ names: ['Air'] }] };
+  const rotation = [{ type: 'wait', durationMs: 100 }, 'Strike', { type: 'combat-start', concurrentOffsetMs: 200 }];
+  const scheduled = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
+    rotation
+  );
+  assert.equal(scheduled.context.combatStartTime, 0.3);
+  const sigilTimes = (events) =>
+    events.filter((event) => event.type === 'damage' && event.sourceId === 'sigil.air').map((event) => event.at);
+  assert.deepEqual(sigilTimes(scheduled.stream.events), [0.3]);
+  assert.deepEqual(sigilTimes(simulateGw2({ profession, config, rotation }).resolvedEvents), [0.3]);
+});
+
 test('missed attacks leave consecutive swaps out of combat', () => {
   // A retained cast must not impose combat recharge when its hostile effects miss.
   const profession = defineProfession({

@@ -4,6 +4,7 @@ import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 
 // These focused rotations verify that the training-area command resets both standard recharge and profession resources.
 test('cooldown reset refills shared life force for every Necromancer specialization', () => {
@@ -38,4 +39,19 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.shadowForce, result.endState.profession.maximumShadowForce);
   assert.equal(result.endState.cooldowns.Siphon, undefined);
+});
+
+test('cooldown reset restores Revenant energy only after combat starts', () => {
+  const simulate = (rotation) =>
+    simulateGw2({
+      profession: revenantProfession,
+      rotation,
+      config: { specialization: 'Core', initialEnergy: 25 }
+    });
+
+  const beforeCombat = simulate([{ type: 'cooldown-reset' }, { type: 'combat-start' }]);
+  const inCombat = simulate([{ type: 'combat-start' }, { type: 'cooldown-reset' }]);
+
+  assert.equal(beforeCombat.endState.profession.energy, 25);
+  assert.equal(inCombat.endState.profession.energy, 100);
 });

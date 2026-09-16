@@ -6,6 +6,10 @@ import type {
 import { EI_INSTANT_RULES } from '#gw2/integrations/logs/evtc/rotation/ei-rules.js';
 import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import {
+  MUSHROOM_KINGS_BLESSING_NAME,
+  MUSHROOM_KINGS_BLESSING_SKILL_ID
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 
 /** EI BuffGainCastFinder excludes snapshots and extensions; custom animated finders opt into snapshots explicitly. */
 export function isBuffApply(log: ParsedEvtc, event: ParsedEvtcEvent, initial = false): boolean {
@@ -143,7 +147,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
   const actions: EvtcRecordedRotationAction[] = [];
   const rules = EI_INSTANT_RULES.filter(
     (r) =>
-      r.profession === profile.professionId &&
+      (r.profession === '*' || r.profession === profile.professionId) &&
       (!r.specialization || r.specialization === profile.specializationId) &&
       r.excludeSpec !== profile.specializationId &&
       gw2Build >= (r.minBuild ?? 0) &&
@@ -246,7 +250,11 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         end: start,
         expectedDuration: 0,
         rawSkillId: rule.skillId,
-        rawName: names.get(rule.skillId) ?? 'Unknown ' + rule.skillId,
+        rawName:
+          names.get(rule.skillId) ??
+          (rule.skillId === MUSHROOM_KINGS_BLESSING_SKILL_ID
+            ? MUSHROOM_KINGS_BLESSING_NAME
+            : 'Unknown ' + rule.skillId),
         status: 'instant',
         eventIndex,
         evidence: rule.kind.startsWith('buff-') ? 'buff-transition' : rule.kind === 'missile' ? 'missile' : 'effect',

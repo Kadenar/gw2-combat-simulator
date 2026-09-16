@@ -1,7 +1,11 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
-import type { ReconstructedCommand, ReconstructedRotationCommand } from '#gw2/integrations/logs/lib/rotation/model.js';
+import type {
+  ReconstructedCommand,
+  ReconstructedCooldownResetCommand,
+  ReconstructedRotationCommand
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
@@ -33,13 +37,19 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   /** Limits runtime correction to observed casts, preserving command occupancy owned by profession mechanics. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
-  readonly commandFor: (action: Action) => ReconstructedRotationCommand;
+  readonly commandFor: (action: Action) => ReconstructedRotationCommand | ReconstructedCooldownResetCommand;
   readonly canEmit?: (action: Action) => boolean;
   readonly isBoundaryTransition?: (action: Action, activeCastEnd: number, previousCastStart: number | null) => boolean;
 }
 
 function identityMilliseconds(value: number): number {
   return Math.max(0, value);
+}
+
+function isCooldownResetCommand(
+  command: ReconstructedRotationCommand | ReconstructedCooldownResetCommand
+): command is ReconstructedCooldownResetCommand {
+  return command.name === '__cooldown_reset';
 }
 
 /** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
@@ -234,6 +244,20 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const command = { ...policy.commandFor(action) };
+    if (isCooldownResetCommand(command)) {
+      // Environment resets are serial markers; preserve their source position without treating them as player casts.
+      if (overlapping) appendPendingAftercastWait();
+      else appendObservedIdle(at);
+      rotation.push(command);
+      previousCastStart = null;
+      if (alignWaitsToSimulatorTiming) {
+        projectedTime = Math.max(projectedTime, projectedReservedEnd);
+        projectedPreviousCastStart = null;
+      }
+
+      continue;
+    }
+
     const instant = actionReplayEnd <= at;
     const independent = action.skill?.independentCast === true || action.independentTimeline === true;
     // Swaps can overlap dodge without cancelling it; delaying them also delays the next swap's cooldown.

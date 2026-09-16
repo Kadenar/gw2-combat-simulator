@@ -1,6 +1,11 @@
+import {
+  MUSHROOM_KINGS_BLESSING_BUFF_ID,
+  MUSHROOM_KINGS_BLESSING_SKILL_ID
+} from '#gw2/integrations/logs/lib/rotation/model.js';
+
 /** Explicit EI d7f186c instant finders; unsupported checker families are listed in the adapter README. */
 export interface EiInstantRule {
-  readonly profession: string;
+  readonly profession: string | '*';
   readonly specialization?: string;
   readonly skillId: number;
   readonly signal: number | string;
@@ -33,6 +38,15 @@ export interface EiInstantRule {
   readonly gainedBuff?: number;
 }
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
+  {
+    profession: '*',
+    skillId: MUSHROOM_KINGS_BLESSING_SKILL_ID,
+    signal: MUSHROOM_KINGS_BLESSING_BUFF_ID,
+    kind: 'buff-gain',
+    rule: 'Golem.BuffGainCastFinder(MushroomKingsBlessing)',
+    // Match Elite Insights' encounter-level finder and collapse duplicate buff packets from one activation.
+    icd: 500
+  },
   {
     profession: 'elementalist',
     skillId: 5780,

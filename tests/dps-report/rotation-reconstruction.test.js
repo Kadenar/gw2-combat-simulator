@@ -12,6 +12,10 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import {
+  MUSHROOM_KINGS_BLESSING_NAME,
+  MUSHROOM_KINGS_BLESSING_SKILL_ID
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
@@ -189,6 +193,35 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
     result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
     [120]
   );
+});
+
+// Elite Insights already synthesizes the training reset as a rotation cast; replay maps it to the platform marker.
+test("dps.report Mushroom King's Blessing casts become cooldown resets", () => {
+  const report = parseDpsReport({
+    players: [
+      {
+        name: 'Fixture Chronomancer',
+        profession: 'Chronomancer',
+        rotation: [
+          {
+            id: MUSHROOM_KINGS_BLESSING_SKILL_ID,
+            skills: [{ castTime: 500, duration: 0, timeGained: 0 }]
+          }
+        ]
+      }
+    ],
+    phases: [{ start: 0, end: 1_000, name: 'Full Fight', phaseType: 'Encounter' }],
+    skillMap: {
+      [`s${MUSHROOM_KINGS_BLESSING_SKILL_ID}`]: {
+        name: MUSHROOM_KINGS_BLESSING_NAME,
+        isInstantCast: true
+      }
+    }
+  });
+  const result = reconstructDpsReportRotation(report, catalogFixture());
+
+  assert.ok(result.rotation.some((command) => command.name === '__cooldown_reset'));
+  assert.ok(result.warnings.every((warning) => !warning.includes('could not be matched')));
 });
 
 // Report imports retain shortened channels while snapping their replay durations to the action grid.

@@ -1,4 +1,4 @@
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
+import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import {
@@ -41,7 +41,12 @@ import {
   reconstructProfessionActions,
   type EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
-import type { ReconstructedCommand, RotationReconstructionBase } from '#gw2/integrations/logs/lib/rotation/model.js';
+import type {
+  ReconstructedCommand,
+  ReconstructedCooldownResetCommand,
+  ReconstructedRotationCommand,
+  RotationReconstructionBase
+} from '#gw2/integrations/logs/lib/rotation/model.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
@@ -190,7 +195,8 @@ function resolveAction(
   };
 }
 
-function actionCommand(action: ResolvedAction): ReconstructedCommand {
+function actionCommand(action: ResolvedAction): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
+  if (isMushroomKingsBlessing(action)) return { name: '__cooldown_reset' };
   const command: {
     name: string;
     skillId?: string | number;
@@ -245,7 +251,11 @@ function buildRotation(
     hasObservedCastTime: (action) =>
       action.status !== 'unknown' && (action.evidence === 'animation' || action.evidence === 'legacy-activation'),
     commandFor: actionCommand,
-    canEmit: (action) => action.skill != null || action.rawName === 'Swap Weapons' || isDodgeName(action.rawName),
+    canEmit: (action) =>
+      action.skill != null ||
+      action.rawName === 'Swap Weapons' ||
+      isDodgeName(action.rawName) ||
+      isMushroomKingsBlessing(action),
     // Continuum Split must stay anchored at its recorded cast boundary so its cooldown snapshot uses the EVTC order.
     isBoundaryTransition: (action, activeCastEnd, previousCastStart) =>
       replayActionEnd(action) <= action.start &&
@@ -259,7 +269,7 @@ function buildRotation(
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
   const inferred = actions.filter((action) => action.evidence === 'effect' || action.evidence === 'missile');
-  const unsupported = actions.filter((action) => !action.supportedByCatalog);
+  const unsupported = actions.filter((action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action));
   const unfinished = actions.filter((action) => action.status === 'unknown');
   const warnings: string[] = [LOG_OPENER_WARNING];
   if (inferred.length) {

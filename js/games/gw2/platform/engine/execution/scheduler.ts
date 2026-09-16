@@ -1200,9 +1200,12 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
         }
 
         const concurrent = command.concurrentOffsetMs != null && hasPreviousCast;
-        combatStartTime = concurrent
-          ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
-          : Math.max(state.time, serialReadyAt, latestReservedEnd);
+        // Match event timestamps before publishing the boundary so decimal residue cannot exclude opening hits.
+        combatStartTime = canonicalTime(
+          concurrent
+            ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
+            : Math.max(state.time, serialReadyAt, latestReservedEnd)
+        );
         // Like a concurrent cast, an explicitly offset combat marker is
         // anchored to the previous cast start.
         // Publish the boundary before draining tasks so opening hits can trigger

@@ -1,4 +1,4 @@
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
+import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
 import {
   actionKind,
   findNamedRotationSkill,
@@ -9,6 +9,7 @@ import {
 import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 import type {
   ReconstructedCommand,
+  ReconstructedCooldownResetCommand,
   ReconstructedRotationCommand,
   RotationActionStatus
 } from '#gw2/integrations/logs/lib/rotation/model.js';
@@ -179,7 +180,10 @@ function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
-function actionCommand(action: DpsReportResolvedAction): ReconstructedRotationCommand {
+function actionCommand(
+  action: DpsReportResolvedAction
+): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
+  if (isMushroomKingsBlessing(action)) return { name: '__cooldown_reset' };
   const command: {
     name: string;
     skillId: string | number;
@@ -266,13 +270,16 @@ function buildRotation(
     hasObservedCastTime: () => true,
     compareSimultaneousActions,
     // Weapon Swap is a supported simulator action even when no catalog entry was supplied.
-    canEmit: (action) => action.skill != null || (action.isSwap && normalized(action.rawName) === 'weapon swap')
+    canEmit: (action) =>
+      action.skill != null ||
+      (action.isSwap && normalized(action.rawName) === 'weapon swap') ||
+      isMushroomKingsBlessing(action)
   });
 }
 
 function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   const warnings = [LOG_OPENER_WARNING];
-  const unsupported = actions.filter((action) => !action.supportedByCatalog);
+  const unsupported = actions.filter((action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action));
   const interrupted = actions.filter((action) => action.status === 'interrupted');
   if (unsupported.length) {
     warnings.push(
