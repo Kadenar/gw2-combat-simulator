@@ -78,8 +78,8 @@
     "targetMoving": false,
     "targetBoonless": true,
     "targetConditions": {
-      "Bleeding": 1,
-      "Burning": true,
+      "Bleeding": 5,
+      "Burning": false,
       "Torment": 1,
       "Confusion": 1,
       "Poisoned": true,
