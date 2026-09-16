@@ -39,6 +39,9 @@ import type { AuditEvent } from '#gw2/platform/combat-engine/types.js';
 
 export type Entity = number;
 
+/** Not an entity: counter dependencies, random predicates, and root membership changes invalidate every pair. */
+export const ALL_ATTRIBUTE_PAIRS = -1;
+
 const ENTITY_MASK = 0xfffff;
 const VERSION_SHIFT = 20;
 const VERSION_MASK = 0xfff;
@@ -49,8 +52,9 @@ export class Pool<T> {
   private readonly values: T[] = [];
   private readonly slots = new Map<Entity, number>();
 
-  /** Attribute inputs notify the cache on structural changes; mutable values notify at their mutation site. */
-  constructor(private readonly onChange?: () => void) {}
+  /** Structural revisions invalidate derived indexes; mutable component values notify at their mutation site. */
+  revision = 0;
+  constructor(private readonly onChange?: (entity: Entity | undefined, previous?: unknown) => void) {}
 
   get size(): number {
     return this.packed.length;
@@ -77,7 +81,8 @@ export class Pool<T> {
     this.slots.set(entity, this.packed.length);
     this.packed.push(entity);
     this.values.push(value);
-    this.onChange?.();
+    this.revision += 1;
+    this.onChange?.(entity);
     return value;
   }
 
@@ -85,8 +90,10 @@ export class Pool<T> {
   emplaceOrReplace(entity: Entity, value: T): T {
     const slot = this.slots.get(entity);
     if (slot === undefined) return this.emplace(entity, value);
+    const previous = this.values[slot];
     this.values[slot] = value;
-    this.onChange?.();
+    this.revision += 1;
+    this.onChange?.(entity, previous);
     return value;
   }
 
@@ -98,6 +105,7 @@ export class Pool<T> {
   remove(entity: Entity): void {
     const slot = this.slots.get(entity);
     if (slot === undefined) return;
+    const previous = this.values[slot];
     const last = this.packed.length - 1;
     if (slot !== last) {
       this.packed[slot] = this.packed[last];
@@ -108,7 +116,8 @@ export class Pool<T> {
     this.packed.pop();
     this.values.pop();
     this.slots.delete(entity);
-    this.onChange?.();
+    this.revision += 1;
+    this.onChange?.(entity, previous);
   }
 
   clear(): void {
@@ -116,7 +125,8 @@ export class Pool<T> {
     this.packed.length = 0;
     this.values.length = 0;
     this.slots.clear();
-    this.onChange?.();
+    this.revision += 1;
+    this.onChange?.(undefined);
   }
 
   /**
@@ -290,7 +300,7 @@ export interface Registry {
   readonly detailed: boolean;
   readonly auditEvents: AuditEvent[];
   readonly afkTicksByActor: Map<string, number>;
-  /** Encounter-wide dirty tag on entity 0: target predicates and global counters can affect any pair. */
+  /** Dirty actor rows/columns, or ALL_ATTRIBUTE_PAIRS for inputs that cannot be localized. */
   readonly recalculateAttributes: Pool<Tag>;
   readonly attributeDependencies: Set<AttributeDependency>;
 
@@ -388,12 +398,12 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
   const recalculateAttributes = new Pool<Tag>();
   const attributeDependencies = new Set<AttributeDependency>();
   const attributeInput = <T>(dependency?: AttributeDependency) =>
-    new Pool<T>(() => {
+    new Pool<T>((entity) => {
       if (dependency === undefined || attributeDependencies.has(dependency)) {
-        recalculateAttributes.emplaceOrReplace(0, true);
+        markAttributesDirty(registry, dependency === 'counter' ? undefined : entity);
       }
     });
-  return {
+  const registry: Registry = {
     tick: 0,
     stepMs,
     encounter,
@@ -403,13 +413,19 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     afkTicksByActor: new Map(),
     recalculateAttributes,
     attributeDependencies,
-    isActor: attributeInput(),
+    isActor: new Pool((entity) => {
+      if (entity === undefined || registry.staticAttributes.has(entity)) markAttributesDirty(registry);
+    }),
     actorCreated: pool(),
     team: pool(),
     baseClass: pool(),
     profession: pool(),
     currentWeaponSet: attributeInput(),
-    staticAttributes: attributeInput(),
+    staticAttributes: new Pool((entity) => {
+      // Adding or removing a root's static attributes changes the set of cached pairs.
+      if (entity === undefined || !registry.staticAttributes.has(entity)) markAttributesDirty(registry);
+      else markAttributesDirty(registry, entity);
+    }),
     equippedWeapons: attributeInput(),
     whirlFinisherSkills: pool(),
     rotation: pool(),
@@ -441,7 +457,11 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     incomingEffects: pool(),
     incomingDamage: pool(),
     bufferedConditionDamage: pool(),
-    owner: attributeInput(),
+    owner: new Pool((entity, previous) => {
+      if (entity !== undefined && registry.staticAttributes.has(entity)) markAttributesDirty(registry);
+      else markAttributesDirty(registry, entity);
+      if (typeof previous === 'number') markAttributesDirty(registry, previous);
+    }),
     destroyEntity: pool(),
     isSkill: attributeInput('cooldown'),
     ammo: pool(),
@@ -471,6 +491,24 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     freeList: null,
     names: new Map()
   };
+  return registry;
+}
+
+/** Actor-local inputs affect that actor as source or target; unseen roots and global inputs need a full rebuild. */
+export function markAttributesDirty(registry: Registry, entity?: Entity): void {
+  if (registry.recalculateAttributes.has(ALL_ATTRIBUTE_PAIRS)) return;
+  if (entity === undefined) {
+    registry.recalculateAttributes.emplaceOrReplace(ALL_ATTRIBUTE_PAIRS, true);
+    return;
+  }
+
+  const actor = ownerOf(registry, entity);
+  if (registry.staticAttributes.has(actor)) {
+    registry.recalculateAttributes.emplaceOrReplace(
+      registry.relativeAttributes.has(actor) ? actor : ALL_ATTRIBUTE_PAIRS,
+      true
+    );
+  }
 }
 
 const entityIndex = (entity: Entity) => entity & ENTITY_MASK;
@@ -504,7 +542,12 @@ export function isValidEntity(registry: Registry, entity: Entity): boolean {
 
 /** Removes every component, then releases the slot with a bumped version. */
 export function destroyEntity(registry: Registry, entity: Entity): void {
-  for (const pool of allPools(registry)) pool.remove(entity);
+  // Keep ownership available while removing dependent components so their invalidation reaches the former root.
+  for (const pool of allPools(registry)) {
+    if (pool !== registry.owner) pool.remove(entity);
+  }
+
+  registry.owner.remove(entity);
   const index = entityIndex(entity);
   let version = (entityVersion(entity) + 1) & VERSION_MASK;
   if (version === VERSION_MASK) version = 0;

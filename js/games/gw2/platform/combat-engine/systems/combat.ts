@@ -16,7 +16,7 @@ import {
   onEffectApplicationConditionsSatisfied,
   onStrikeConditionsSatisfied
 } from '#gw2/platform/combat-engine/queries.js';
-import { ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
+import { markAttributesDirty, ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
 import { calculateRelativeAttributes, relativeAttribute } from '#gw2/platform/combat-engine/systems/attributes.js';
 import { pendingApplications } from '#gw2/platform/combat-engine/systems/skills.js';
 import type { Entity, Registry } from '#gw2/platform/combat-engine/registry.js';
@@ -330,7 +330,7 @@ export function updateCombatStats(registry: Registry): void {
     stats.health -= total;
     // Damage only dirties attributes when a modifier or conversion reads a health threshold.
     if (total !== 0 && registry.attributeDependencies.has('health')) {
-      registry.recalculateAttributes.emplaceOrReplace(0, true);
+      markAttributesDirty(registry, entity);
     }
 
     if (stats.health <= 0) registry.isDownstate.emplace(entity, true);

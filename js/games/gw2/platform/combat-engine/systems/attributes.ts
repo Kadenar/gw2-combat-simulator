@@ -12,9 +12,9 @@
 import { roundHalfEven, roundHalfEvenDigits } from '#gw2/platform/combat-engine/numeric.js';
 import { maxConsideredStacks } from '#gw2/platform/combat-engine/effect-rules.js';
 import { independentConditionsSatisfied } from '#gw2/platform/combat-engine/queries.js';
-import { ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
+import { ALL_ATTRIBUTE_PAIRS, ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
 import type { Attribute, Condition } from '#gw2/platform/combat-engine/configuration.js';
-import type { Entity, Registry } from '#gw2/platform/combat-engine/registry.js';
+import type { Entity, Pool, Registry } from '#gw2/platform/combat-engine/registry.js';
 
 const CONDITION_DURATION_ATTRIBUTES: readonly Attribute[] = [
   'condition_duration_multiplier',
@@ -34,19 +34,18 @@ export function relativeAttribute(registry: Registry, actor: Entity, other: Enti
 
 /**
  * Counts how many holders of the same effect or unique effect have already
- * contributed for an (owner, other) pair, so stacks beyond the considered cap
+ * contributed for an owner, so stacks beyond the considered cap
  * add nothing.
  */
 function stackCapAllows(
   registry: Registry,
   occurrences: Map<string, number>,
   holderOwner: Entity,
-  ownerActor: Entity,
-  other: Entity
+  ownerActor: Entity
 ): boolean {
   const uniqueEffect = registry.isUniqueEffect.tryGet(holderOwner);
   if (uniqueEffect) {
-    const key = `u\0${uniqueEffect.uniqueEffectKey}\0${ownerActor}\0${other}`;
+    const key = `u\0${uniqueEffect.uniqueEffectKey}\0${ownerActor}`;
     const count = occurrences.get(key) ?? 0;
     if (count >= uniqueEffect.maxConsideredStacks) return false;
     occurrences.set(key, count + 1);
@@ -54,13 +53,29 @@ function stackCapAllows(
 
   const effect = registry.isEffect.tryGet(holderOwner);
   if (effect) {
-    const key = `e\0${effect.effect}\0${ownerActor}\0${other}`;
+    const key = `e\0${effect.effect}\0${ownerActor}`;
     const count = occurrences.get(key) ?? 0;
     if (count >= maxConsideredStacks(effect.effect)) return false;
     occurrences.set(key, count + 1);
   }
 
   return true;
+}
+
+/** Stack admission is target-independent; count even empty holders, then visit contributing holders once per pair. */
+function attributeHolders<T>(registry: Registry, pool: Pool<readonly T[]>): Entity[] {
+  const occurrences = new Map<string, number>();
+  const holders: Entity[] = [];
+  view([registry.owner, pool]).forEach((holder) => {
+    const holderOwner = registry.owner.get(holder);
+    if (
+      stackCapAllows(registry, occurrences, holderOwner, ownerOf(registry, holderOwner)) &&
+      pool.get(holder).length > 0
+    ) {
+      holders.push(holder);
+    }
+  });
+  return holders;
 }
 
 /** Track mutable predicate inputs, including nested predicates and cooldown-dependent skill-group selection. */
@@ -80,7 +95,13 @@ function collectDependencies(registry: Registry, condition: Condition): void {
 export function calculateRelativeAttributes(registry: Registry): void {
   if (registry.relativeAttributes.size > 0 && registry.recalculateAttributes.size === 0) return;
 
-  // ponytail: invalidation rebuilds all pairs; narrow by actor only if multi-actor profiling warrants it.
+  // Random predicates keep their original draw order by rebuilding every pair whenever attributes are dirty.
+  const allPairs =
+    registry.relativeAttributes.size === 0 ||
+    registry.recalculateAttributes.has(ALL_ATTRIBUTE_PAIRS) ||
+    registry.attributeDependencies.has('random');
+  const dirtyPair = (actor: Entity, other: Entity) =>
+    allPairs || registry.recalculateAttributes.has(actor) || registry.recalculateAttributes.has(other);
   registry.attributeDependencies.clear();
   for (const pool of [registry.isAttributeModifier, registry.isAttributeConversion]) {
     pool.forEach((_, entries) => {
@@ -106,6 +127,7 @@ export function calculateRelativeAttributes(registry: Registry): void {
     }
 
     for (const other of roots) {
+      if (!dirtyPair(entity, other)) continue;
       const values = relative.get(other) ?? new Map<Attribute, number>();
       values.clear();
       for (const [attribute, value] of staticAttributes) values.set(attribute, value);
@@ -113,14 +135,13 @@ export function calculateRelativeAttributes(registry: Registry): void {
     }
   }
 
-  const modifierOccurrences = new Map<string, number>();
-  view([registry.owner, registry.isAttributeModifier]).forEach((holder) => {
+  for (const holder of attributeHolders(registry, registry.isAttributeModifier)) {
     const holderOwner = registry.owner.get(holder);
     const modifiers = registry.isAttributeModifier.get(holder);
     const ownerActor = ownerOf(registry, holderOwner);
     const relative = registry.relativeAttributes.get(ownerActor);
     registry.relativeAttributes.forEach((other) => {
-      if (!stackCapAllows(registry, modifierOccurrences, holderOwner, ownerActor, other)) return;
+      if (!dirtyPair(ownerActor, other)) return;
       const values = relative.get(other);
       if (!values) throw new Error(`Missing relative attributes for ${ownerActor} against ${other}.`);
       for (const modifier of modifiers) {
@@ -130,18 +151,18 @@ export function calculateRelativeAttributes(registry: Registry): void {
         values.set(modifier.attribute, current * modifier.multiplier + modifier.addend);
       }
     });
-  });
+  }
 
-  const conversionOccurrences = new Map<string, number>();
+  const conversionHolders = attributeHolders(registry, registry.isAttributeConversion);
   registry.relativeAttributes.forEach((other) => {
     // Bonuses read post-modifier, pre-conversion values and apply together, so conversions never chain.
     const bonuses = new Map<Entity, Map<Attribute, number>>();
-    view([registry.owner, registry.isAttributeConversion]).forEach((holder) => {
+    for (const holder of conversionHolders) {
       const holderOwner = registry.owner.get(holder);
       const conversions = registry.isAttributeConversion.get(holder);
       const ownerActor = ownerOf(registry, holderOwner);
       const relative = registry.relativeAttributes.get(ownerActor);
-      if (!stackCapAllows(registry, conversionOccurrences, holderOwner, ownerActor, other)) return;
+      if (!dirtyPair(ownerActor, other)) continue;
       for (const conversion of conversions) {
         if (!independentConditionsSatisfied(registry, conversion.condition, ownerActor, other).satisfied) continue;
         const from = relative.get(other)?.get(conversion.from);
@@ -153,7 +174,7 @@ export function calculateRelativeAttributes(registry: Registry): void {
         );
         bonuses.set(ownerActor, ownerBonuses);
       }
-    });
+    }
 
     for (const ownerActor of [...bonuses.keys()].sort((left, right) => left - right)) {
       const values = registry.relativeAttributes.get(ownerActor).get(other);
@@ -164,8 +185,9 @@ export function calculateRelativeAttributes(registry: Registry): void {
     }
   });
 
-  registry.relativeAttributes.forEach((_, relative) => {
+  registry.relativeAttributes.forEach((actor, relative) => {
     registry.relativeAttributes.forEach((other) => {
+      if (!dirtyPair(actor, other)) return;
       const values = relative.get(other);
       if (!values) throw new Error(`Missing relative attributes against ${other}.`);
       const read = (attribute: Attribute) => values.get(attribute) ?? 0;

@@ -8,11 +8,12 @@
  * therefore the order side effects fire in.
  */
 import { effectStacking, isDamagingEffect, maxEffectDuration } from '#gw2/platform/combat-engine/effect-rules.js';
-import { findCounter, getSkill, getSkillEntity } from '#gw2/platform/combat-engine/queries.js';
+import { findCounter, getSkill, getSkillEntity, isStageDependent } from '#gw2/platform/combat-engine/queries.js';
 import {
   createEntity,
   createRotationComponent,
   entityName,
+  markAttributesDirty,
   ownerOf,
   view
 } from '#gw2/platform/combat-engine/registry.js';
@@ -467,6 +468,39 @@ class CounterLookupError extends Error {
   readonly code = 'engine.unknown-counter';
 }
 
+const tickHookIndexes = new WeakMap<
+  Pool<unknown>,
+  {
+    revision: number;
+    ownershipRevision: number;
+    byActor: Map<Entity, Entity[]>;
+  }
+>();
+
+/** Index eligible tick holders in pool order, rebuilding after holder or ownership changes, never evaluating predicates early. */
+function tickHookHolders<T>(
+  registry: Registry,
+  pool: Pool<T>,
+  actor: Entity,
+  eligible: (value: T) => boolean
+): readonly Entity[] {
+  let index = tickHookIndexes.get(pool);
+  if (!index || index.revision !== pool.revision || index.ownershipRevision !== registry.owner.revision) {
+    const byActor = new Map<Entity, Entity[]>();
+    index = { revision: pool.revision, ownershipRevision: registry.owner.revision, byActor };
+    pool.forEach((holder, value) => {
+      if (!eligible(value)) return;
+      const owner = ownerOf(registry, holder);
+      const holders = byActor.get(owner) ?? [];
+      holders.push(holder);
+      byActor.set(owner, holders);
+    });
+    tickHookIndexes.set(pool, index);
+  }
+
+  return index.byActor.get(actor) ?? [];
+}
+
 /**
  * Fires every side effect owned by the source's root actor whose condition the
  * current stage accepts: counters, cooldowns, removals, then the three trigger kinds.
@@ -474,28 +508,45 @@ class CounterLookupError extends Error {
 export function applySideEffects(
   registry: Registry,
   sourceEntity: Entity,
-  accepts: (condition: Condition) => boolean
+  accepts: (condition: Condition) => boolean,
+  everyTick = false
 ): void {
   const sourceOwner = ownerOf(registry, sourceEntity);
+  const visit = <T>(pool: Pool<T>, eligible: (value: T) => boolean, apply: (holder: Entity, value: T) => void) => {
+    if (!everyTick) {
+      pool.forEach(apply);
+      return;
+    }
+
+    for (const holder of tickHookHolders(registry, pool, sourceOwner, eligible)) apply(holder, pool.get(holder));
+  };
+
+  const independent = (entries: readonly { readonly condition: Condition }[]) =>
+    entries.some((entry) => !isStageDependent(entry.condition));
 
   // Empty holders preserve reference pool ordering, but need no ownership walk or predicate evaluation.
-  registry.isCounterModifier.forEach((holder, modifiers) => {
-    if (modifiers.length === 0 || ownerOf(registry, holder) !== sourceOwner) return;
-    for (const modifier of modifiers) {
-      const counter = findCounter(registry, modifier.counterKey);
-      if (!counter) throw new CounterLookupError(`Counter with key ${modifier.counterKey} not found`);
-      if (accepts(modifier.condition)) {
-        const previous = counter.value;
-        applyCounterModification(registry, counter, modifier);
-        // Counters mutate in place, so notify attribute predicates when their input actually changes.
-        if (counter.value !== previous && registry.attributeDependencies.has('counter')) {
-          registry.recalculateAttributes.emplaceOrReplace(CONSOLE_ENTITY, true);
+  // Keep stage-bound counter holders indexed too: missing counter references must still fail before stage gating.
+  visit(
+    registry.isCounterModifier,
+    (entries) => entries.length > 0,
+    (holder, modifiers) => {
+      if (modifiers.length === 0 || ownerOf(registry, holder) !== sourceOwner) return;
+      for (const modifier of modifiers) {
+        const counter = findCounter(registry, modifier.counterKey);
+        if (!counter) throw new CounterLookupError(`Counter with key ${modifier.counterKey} not found`);
+        if (accepts(modifier.condition)) {
+          const previous = counter.value;
+          applyCounterModification(registry, counter, modifier);
+          // Counters mutate in place, so notify attribute predicates when their input actually changes.
+          if (counter.value !== previous && registry.attributeDependencies.has('counter')) {
+            markAttributesDirty(registry);
+          }
         }
       }
     }
-  });
+  );
 
-  registry.isCooldownModifier.forEach((holder, modifiers) => {
+  visit(registry.isCooldownModifier, independent, (holder, modifiers) => {
     if (modifiers.length === 0) return;
     const ownerActor = ownerOf(registry, holder);
     if (ownerActor !== sourceOwner) return;
@@ -504,7 +555,7 @@ export function applySideEffects(
     }
   });
 
-  registry.isEffectRemoval.forEach((holder, removals) => {
+  visit(registry.isEffectRemoval, independent, (holder, removals) => {
     if (removals.length === 0 || ownerOf(registry, holder) !== sourceOwner) return;
     for (const removal of removals) {
       if (!accepts(removal.condition)) continue;
@@ -538,22 +589,34 @@ export function applySideEffects(
   });
 
   // Chained triggers fire at most once per tick; the flag resets with the tick's temporary state.
-  registry.isSkillTrigger.forEach((holder, trigger) => {
-    if (ownerOf(registry, holder) !== sourceOwner) return;
-    if (!trigger.alreadyTriggered && accepts(trigger.skillTrigger.condition)) {
-      trigger.alreadyTriggered = true;
-      enqueueChildSkill(registry, trigger.skillTrigger.skillKey, sourceOwner);
+  visit(
+    registry.isSkillTrigger,
+    (trigger) => !isStageDependent(trigger.skillTrigger.condition),
+    (holder, trigger) => {
+      if (ownerOf(registry, holder) !== sourceOwner) return;
+      if (!trigger.alreadyTriggered && accepts(trigger.skillTrigger.condition)) {
+        trigger.alreadyTriggered = true;
+        enqueueChildSkill(registry, trigger.skillTrigger.skillKey, sourceOwner);
+      }
     }
-  });
+  );
 
-  registry.isUnchainedSkillTrigger.forEach((holder, trigger) => {
-    if (ownerOf(registry, holder) !== sourceOwner) return;
-    if (accepts(trigger.condition)) enqueueChildSkill(registry, trigger.skillKey, sourceOwner);
-  });
+  visit(
+    registry.isUnchainedSkillTrigger,
+    (trigger) => !isStageDependent(trigger.condition),
+    (holder, trigger) => {
+      if (ownerOf(registry, holder) !== sourceOwner) return;
+      if (accepts(trigger.condition)) enqueueChildSkill(registry, trigger.skillKey, sourceOwner);
+    }
+  );
 
-  registry.isSourceActorSkillTrigger.forEach((holder, trigger) => {
-    const ownerActor = ownerOf(registry, holder);
-    if (ownerActor !== sourceOwner) return;
-    if (accepts(trigger.condition)) enqueueSourceActorChildSkill(registry, trigger.skillKey, ownerActor);
-  });
+  visit(
+    registry.isSourceActorSkillTrigger,
+    (trigger) => !isStageDependent(trigger.condition),
+    (holder, trigger) => {
+      const ownerActor = ownerOf(registry, holder);
+      if (ownerActor !== sourceOwner) return;
+      if (accepts(trigger.condition)) enqueueSourceActorChildSkill(registry, trigger.skillKey, ownerActor);
+    }
+  );
 }

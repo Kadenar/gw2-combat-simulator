@@ -9,7 +9,7 @@
  * that never meets its conditions fails at the tick limit instead of reporting
  * a partial score.
  */
-import { view, destroyEntity, isValidEntity } from '#gw2/platform/combat-engine/registry.js';
+import { view, destroyEntity, isValidEntity, markAttributesDirty } from '#gw2/platform/combat-engine/registry.js';
 import { audit } from '#gw2/platform/combat-engine/systems/audit.js';
 import { calculateRelativeAttributes } from '#gw2/platform/combat-engine/systems/attributes.js';
 import {
@@ -107,7 +107,7 @@ function clearTemporaryComponents(registry: Registry): void {
     skillEntities.length = 0;
   });
   // Random attribute predicates must roll again on the next consuming tick, even without state changes.
-  if (registry.attributeDependencies.has('random')) registry.recalculateAttributes.emplaceOrReplace(0, true);
+  if (registry.attributeDependencies.has('random')) markAttributesDirty(registry);
 }
 
 /** Actors neither owned nor casting accumulate idle time for the report. */
