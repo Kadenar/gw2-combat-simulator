@@ -214,14 +214,43 @@ function tick(registry: Registry, damage: DamageTotals): void {
   clearTemporaryComponents(registry);
 }
 
-function actorMatches(registry: Registry, entity: Entity, actor: string): boolean {
-  return actor === '' || registry.names.get(entity) === actor;
+const terminationActorIndexes = new WeakMap<
+  Registry,
+  {
+    revision: number;
+    all: Entity[];
+    byName: Map<string, Entity[]>;
+  }
+>();
+
+/** Names are fixed at creation; cache matching actors until membership changes, including temporary actors. */
+function terminationActors(registry: Registry, name?: string): readonly Entity[] {
+  let index = terminationActorIndexes.get(registry);
+  if (!index || index.revision !== registry.isActor.revision) {
+    const all: Entity[] = [];
+    const byName = new Map<string, Entity[]>();
+    registry.isActor.forEach((entity) => {
+      all.push(entity);
+      const actorName = registry.names.get(entity);
+      if (actorName === undefined) return;
+      const matches = byName.get(actorName) ?? [];
+      matches.push(entity);
+      byName.set(actorName, matches);
+    });
+    index = { revision: registry.isActor.revision, all, byName };
+    terminationActorIndexes.set(registry, index);
+  }
+
+  return name === undefined ? index.all : (index.byName.get(name) ?? []);
 }
 
 /** Returns the first satisfied stop reason, or null to keep simulating. */
 function terminationReason(registry: Registry): TerminationReason | null {
-  for (const entity of registry.isActor.entries()) {
-    if (registry.isDownstate.has(entity[0])) return 'downstate';
+  // Most ticks have no downed entities, so avoid creating an actor iterator for the common case.
+  if (registry.isDownstate.size > 0) {
+    for (const [entity] of registry.isDownstate.entries()) {
+      if (registry.isActor.has(entity)) return 'downstate';
+    }
   }
 
   for (const condition of registry.encounter.terminationConditions) {
@@ -231,8 +260,8 @@ function terminationReason(registry: Registry): TerminationReason | null {
     }
 
     if (condition.type === 'DAMAGE') {
-      for (const entity of view([registry.isActor, registry.staticAttributes, registry.combatStats]).entities()) {
-        if (registry.names.get(entity) !== condition.actor) continue;
+      for (const entity of terminationActors(registry, condition.actor)) {
+        if (!registry.staticAttributes.has(entity) || !registry.combatStats.has(entity)) continue;
         if (damageTaken(registry, entity) >= condition.damage) return 'DAMAGE';
       }
 
@@ -241,8 +270,8 @@ function terminationReason(registry: Registry): TerminationReason | null {
 
     let outOfRotation = true;
     let noActiveSkills = true;
-    for (const [entity] of registry.isActor.entries()) {
-      if (!actorMatches(registry, entity, condition.actor) || !registry.rotation.has(entity)) continue;
+    for (const entity of terminationActors(registry, condition.actor === '' ? undefined : condition.actor)) {
+      if (!registry.rotation.has(entity)) continue;
       if (condition.type === 'ROTATION') {
         if (!registry.noMoreRotation.has(entity) || registry.animation.has(entity)) {
           outOfRotation = false;

@@ -62,18 +62,45 @@ function stackCapAllows(
   return true;
 }
 
-/** Stack admission is target-independent; count even empty holders, then visit contributing holders once per pair. */
-function attributeHolders<T>(registry: Registry, pool: Pool<readonly T[]>): Entity[] {
+const holderIndexes = new WeakMap<
+  Pool<unknown>,
+  {
+    revision: number;
+    ownershipRevision: number;
+    effectRevision: number;
+    uniqueEffectRevision: number;
+    holders: { holder: Entity; ownerActor: Entity }[];
+  }
+>();
+
+/** Cache target-independent stack admission and owners; live predicate inputs do not change this metadata. */
+function attributeHolders<T>(registry: Registry, pool: Pool<readonly T[]>) {
+  const cached = holderIndexes.get(pool);
+  // ponytail: any ownership/effect edit invalidates this list; narrow invalidation if rebuilds remain a bottleneck.
+  if (
+    cached?.revision === pool.revision &&
+    cached.ownershipRevision === registry.owner.revision &&
+    cached.effectRevision === registry.isEffect.revision &&
+    cached.uniqueEffectRevision === registry.isUniqueEffect.revision
+  )
+    return cached.holders;
+
   const occurrences = new Map<string, number>();
-  const holders: Entity[] = [];
+  const holders: { holder: Entity; ownerActor: Entity }[] = [];
   view([registry.owner, pool]).forEach((holder) => {
     const holderOwner = registry.owner.get(holder);
-    if (
-      stackCapAllows(registry, occurrences, holderOwner, ownerOf(registry, holderOwner)) &&
-      pool.get(holder).length > 0
-    ) {
-      holders.push(holder);
+    const ownerActor = ownerOf(registry, holderOwner);
+    // Empty holders still consume a considered-stack slot in the original pool order.
+    if (stackCapAllows(registry, occurrences, holderOwner, ownerActor) && pool.get(holder).length > 0) {
+      holders.push({ holder, ownerActor });
     }
+  });
+  holderIndexes.set(pool, {
+    revision: pool.revision,
+    ownershipRevision: registry.owner.revision,
+    effectRevision: registry.isEffect.revision,
+    uniqueEffectRevision: registry.isUniqueEffect.revision,
+    holders
   });
   return holders;
 }
@@ -92,16 +119,25 @@ function collectDependencies(registry: Registry, condition: Condition): void {
   for (const nested of condition.and) collectDependencies(registry, nested);
 }
 
-export function calculateRelativeAttributes(registry: Registry): void {
-  if (registry.relativeAttributes.size > 0 && registry.recalculateAttributes.size === 0) return;
+const dependencyIndexes = new WeakMap<
+  Registry,
+  {
+    modifierRevision: number;
+    conversionRevision: number;
+    groupRevision: number;
+  }
+>();
 
-  // Random predicates keep their original draw order by rebuilding every pair whenever attributes are dirty.
-  const allPairs =
-    registry.relativeAttributes.size === 0 ||
-    registry.recalculateAttributes.has(ALL_ATTRIBUTE_PAIRS) ||
-    registry.attributeDependencies.has('random');
-  const dirtyPair = (actor: Entity, other: Entity) =>
-    allPairs || registry.recalculateAttributes.has(actor) || registry.recalculateAttributes.has(other);
+/** Predicate definitions are immutable; rescan dependencies only when their component pools change. */
+function refreshDependencies(registry: Registry): void {
+  const cached = dependencyIndexes.get(registry);
+  if (
+    cached?.modifierRevision === registry.isAttributeModifier.revision &&
+    cached.conversionRevision === registry.isAttributeConversion.revision &&
+    cached.groupRevision === registry.isConditionalSkillGroup.revision
+  )
+    return;
+
   registry.attributeDependencies.clear();
   for (const pool of [registry.isAttributeModifier, registry.isAttributeConversion]) {
     pool.forEach((_, entries) => {
@@ -114,6 +150,25 @@ export function calculateRelativeAttributes(registry: Registry): void {
       for (const member of group.conditionalSkillKeys) collectDependencies(registry, member.condition);
     });
   }
+
+  dependencyIndexes.set(registry, {
+    modifierRevision: registry.isAttributeModifier.revision,
+    conversionRevision: registry.isAttributeConversion.revision,
+    groupRevision: registry.isConditionalSkillGroup.revision
+  });
+}
+
+export function calculateRelativeAttributes(registry: Registry): void {
+  if (registry.relativeAttributes.size > 0 && registry.recalculateAttributes.size === 0) return;
+
+  // Random predicates keep their original draw order by rebuilding every pair whenever attributes are dirty.
+  const allPairs =
+    registry.relativeAttributes.size === 0 ||
+    registry.recalculateAttributes.has(ALL_ATTRIBUTE_PAIRS) ||
+    registry.attributeDependencies.has('random');
+  const dirtyPair = (actor: Entity, other: Entity) =>
+    allPairs || registry.recalculateAttributes.has(actor) || registry.recalculateAttributes.has(other);
+  refreshDependencies(registry);
 
   // Reuse pair maps, but repack roots in reference order and discard pairs whose actors disappeared.
   const roots = [...view([registry.isActor, registry.staticAttributes], [registry.owner]).entities()];
@@ -135,10 +190,8 @@ export function calculateRelativeAttributes(registry: Registry): void {
     }
   }
 
-  for (const holder of attributeHolders(registry, registry.isAttributeModifier)) {
-    const holderOwner = registry.owner.get(holder);
+  for (const { holder, ownerActor } of attributeHolders(registry, registry.isAttributeModifier)) {
     const modifiers = registry.isAttributeModifier.get(holder);
-    const ownerActor = ownerOf(registry, holderOwner);
     const relative = registry.relativeAttributes.get(ownerActor);
     registry.relativeAttributes.forEach((other) => {
       if (!dirtyPair(ownerActor, other)) return;
@@ -157,10 +210,8 @@ export function calculateRelativeAttributes(registry: Registry): void {
   registry.relativeAttributes.forEach((other) => {
     // Bonuses read post-modifier, pre-conversion values and apply together, so conversions never chain.
     const bonuses = new Map<Entity, Map<Attribute, number>>();
-    for (const holder of conversionHolders) {
-      const holderOwner = registry.owner.get(holder);
+    for (const { holder, ownerActor } of conversionHolders) {
       const conversions = registry.isAttributeConversion.get(holder);
-      const ownerActor = ownerOf(registry, holderOwner);
       const relative = registry.relativeAttributes.get(ownerActor);
       if (!dirtyPair(ownerActor, other)) continue;
       for (const conversion of conversions) {
