@@ -18,8 +18,8 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     effects: [
       {
         type: 'strike',
-        // Model all eight spatial Smite opportunities as hits at their observed cadence.
-        ticks: [240, 760, 1240, 1760, 2240, 2760, 3240, 3760].map((atMs) => ({
+        // Model seven landed Smite hits, omitting the fifth spatial opportunity as in the reference build.
+        ticks: [240, 760, 1240, 1760, 2760, 3240, 3760].map((atMs) => ({
           atMs,
           coefficient: 0.2
         })),

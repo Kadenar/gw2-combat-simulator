@@ -90,8 +90,8 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
         name: skill.name,
         coefficient: packet.coefficient,
         skillWeapon: 'Scepter',
-        hitIndex: 13 + index,
-        totalHits: 12 + strikePackets.length,
+        hitIndex: 12 + index,
+        totalHits: 11 + strikePackets.length,
         isSymbol: true,
         triggeredBy: 'Writ of Persistence'
       })
