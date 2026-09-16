@@ -3,6 +3,8 @@ import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -452,6 +454,80 @@ test('Symbol of Ignition burns on other player hits within its active field', ()
     )
   );
   assert.deepEqual(ignitions(simulate(['Symbol of Ignition', { type: 'wait', durationMs: 6000 }])), []);
+});
+
+test('symbol and projectile ignition independently block through 240 ms without triggering themselves', () => {
+  // A simultaneous melee/projectile pair may ignite twice; each lane then enforces its own cooldown.
+  const core = { ...createGuardianCoreState(), symbolIgnitionStartsAt: 1, symbolIgnitionUntil: 5 };
+  const queued = [];
+  const context = {
+    catalog: guardianCatalog,
+    state: { profession: { core } },
+    queue: { enqueue: (e) => queued.push(e) }
+  };
+  const strike = { type: 'damage', actorType: 'player', skillId: GUARDIAN_SKILL_IDS.PEACEKEEPER, coefficient: 1 };
+  for (const at of [0.9, 1, 1.239, 1.24, 1.241, 5.001]) {
+    for (const projectile of [false, true]) reactToSymbolOfIgnition(context, { ...strike, at, projectile });
+  }
+
+  assert.deepEqual(
+    queued.map(({ at, projectile }) => [at, projectile]),
+    [
+      [1, false],
+      [1, true],
+      [1.241, false],
+      [1.241, true]
+    ]
+  );
+  reactToSymbolOfIgnition(context, { ...strike, at: 2, actorType: 'summon' });
+  reactToSymbolOfIgnition(context, { ...strike, at: 2, skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION });
+  reactToSymbolOfIgnition(context, { ...queued[0], at: 2 });
+  reactToSymbolOfIgnition(context, { ...strike, type: 'condition', condition: 'Burning', at: 2 });
+  assert.equal(queued.length, 4);
+});
+
+test('torch pulses and fire-whirl bolts ignite through the condition application hook', () => {
+  // Condition-only pulses must enter the correct lane without converting every Burning application into a trigger.
+  for (const whirling of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: whirling
+        ? ['Purging Flames', 'Symbol of Ignition', 'Whirling Light', { type: 'wait', durationMs: 6000 }]
+        : ['Symbol of Ignition', "Zealot's Flame", { type: 'wait', durationMs: 6000 }],
+      config: { ...config, specialization: 'Willbender', primaryWeapon: 'Pistol', secondaryWeapon: 'Torch' }
+    });
+    assert.deepEqual(result.warnings, []);
+    const pulses = result.resolvedEvents.filter(
+      (event) =>
+        event.type === 'condition' &&
+        event.condition === 'Burning' &&
+        (whirling
+          ? event.finisherType === 'Whirl' && event.fieldType === 'Fire'
+          : event.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME)
+    );
+    const ignitions = result.resolvedEvents.filter(
+      (event) =>
+        event.type === 'condition' &&
+        event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION &&
+        event.projectile === whirling
+    );
+    assert.ok(ignitions.length > 0);
+    assert.ok(ignitions.every((ignition) => pulses.some((pulse) => pulse.at === ignition.at)));
+    if (whirling) {
+      // Whirl strikes use the other lane, so a bolt may ignite at the same instant as a strike.
+      assert.ok(
+        ignitions.some((ignition) =>
+          result.resolvedEvents.some(
+            (event) =>
+              event.type === 'condition' &&
+              event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION &&
+              event.projectile === false &&
+              event.at === ignition.at
+          )
+        )
+      );
+    }
+  }
 });
 
 test('Peacekeeper begins recharge when its cast starts', () => {

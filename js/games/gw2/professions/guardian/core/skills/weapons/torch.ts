@@ -30,7 +30,8 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 2.25 }],
+        // The thrown flame uses the projectile ignition cooldown.
+        ticks: [{ atMs: 480, coefficient: 2.25, projectile: true }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
