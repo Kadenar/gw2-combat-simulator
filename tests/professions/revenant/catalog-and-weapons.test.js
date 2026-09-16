@@ -141,7 +141,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   assert.equal(fieldOfTheMists.effects[1].duration, 2);
   assert.equal(fieldOfTheMists.comboFields[0].fieldType, 'Dark');
   assert.equal(fieldOfTheMists.comboFields[0].duration, 6);
-  assert.equal(fieldOfTheMists.comboFields[0].startMs, 920);
+  assert.equal(fieldOfTheMists.comboFields[0].startMs, 680);
   assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].finisherType, 'Projectile');
   assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].chance, 1);
   const dropTheHammer = revenantCatalog.skillsById.get(SKILL.DROP_THE_HAMMER);
