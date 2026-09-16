@@ -59,8 +59,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
     },
     // Committed interrupts retain the full cast lockout and the phantasm launched at the fixed summon point.
     retainsCastLockoutAfterInterrupt: true,
-    interruptCommitMs: 640,
-    phantasmSummonProgress: 640 / 880,
+    interruptCommitMs: 600,
+    phantasmSummonProgress: 600 / 880,
     effects: [
       {
         type: 'strike',
@@ -72,7 +72,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'One warlock',
         actorType: 'summon',
         summonKind: 'phantasm',
-        weapon: 'Phantasm high'
+        weapon: 'Phantasm high',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -80,7 +81,8 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         duration: 4,
         stacks: 6,
         actorType: 'summon',
-        summonKind: 'phantasm'
+        summonKind: 'phantasm',
+        persistsAfterInterrupt: true
       }
     ],
     castTimeMs: 880

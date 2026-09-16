@@ -29,7 +29,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 600,
-    // Flamestrike commits both damage packets only after the second strike launches at 520 ms.
+    // Flamestrike commits its first packet on the first 40 ms action tick after 400 ms, then its second at 520 ms.
     interruptCommitMs: 520,
     cooldown: 0,
     skillFamily: 'Weapon skill',
@@ -43,7 +43,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true,
+        interruptCommitMs: 320
       },
       {
         type: 'condition',
@@ -57,6 +59,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
+        interruptCommitMs: 320,
         metadata: {}
       },
       {

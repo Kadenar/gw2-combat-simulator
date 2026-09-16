@@ -90,6 +90,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   },
   [ID.WHIRLING_LIGHT]: {
     castTimeMs: 960,
+    interruptCommitMs: 920,
     cooldown: 15,
     effects: [
       {
@@ -109,7 +110,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           ]
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -120,7 +122,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           duration: 3
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -131,7 +134,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           duration: 3
         })),
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
