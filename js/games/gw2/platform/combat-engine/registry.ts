@@ -49,6 +49,9 @@ export class Pool<T> {
   private readonly values: T[] = [];
   private readonly slots = new Map<Entity, number>();
 
+  /** Attribute inputs notify the cache on structural changes; mutable values notify at their mutation site. */
+  constructor(private readonly onChange?: () => void) {}
+
   get size(): number {
     return this.packed.length;
   }
@@ -74,6 +77,7 @@ export class Pool<T> {
     this.slots.set(entity, this.packed.length);
     this.packed.push(entity);
     this.values.push(value);
+    this.onChange?.();
     return value;
   }
 
@@ -82,6 +86,7 @@ export class Pool<T> {
     const slot = this.slots.get(entity);
     if (slot === undefined) return this.emplace(entity, value);
     this.values[slot] = value;
+    this.onChange?.();
     return value;
   }
 
@@ -103,12 +108,15 @@ export class Pool<T> {
     this.packed.pop();
     this.values.pop();
     this.slots.delete(entity);
+    this.onChange?.();
   }
 
   clear(): void {
+    if (this.size === 0) return;
     this.packed.length = 0;
     this.values.length = 0;
     this.slots.clear();
+    this.onChange?.();
   }
 
   /**
@@ -244,6 +252,8 @@ export interface PendingEffectApplication extends Omit<EffectApplication, 'numTa
 export interface IncomingEffectApplication {
   readonly sourceEntity: Entity;
   readonly application: PendingEffectApplication;
+  /** Duration actually applied, so auditing never recomputes against later attribute state. */
+  durationMs?: number;
 }
 
 export interface IncomingDamageEvent {
@@ -266,8 +276,10 @@ export interface CounterState {
   readonly configuration: CounterConfiguration;
 }
 
-/** Attributes one actor has against each other actor, rebuilt when strikes or effects need them. */
+/** Attributes one actor has against each other actor, retained until an input changes. */
 export type RelativeAttributes = Map<Entity, Map<Attribute, number>>;
+
+export type AttributeDependency = 'health' | 'counter' | 'cooldown' | 'random';
 
 export interface Registry {
   tick: number;
@@ -278,6 +290,9 @@ export interface Registry {
   readonly detailed: boolean;
   readonly auditEvents: AuditEvent[];
   readonly afkTicksByActor: Map<string, number>;
+  /** Encounter-wide dirty tag on entity 0: target predicates and global counters can affect any pair. */
+  readonly recalculateAttributes: Pool<Tag>;
+  readonly attributeDependencies: Set<AttributeDependency>;
 
   readonly isActor: Pool<Tag>;
   readonly actorCreated: Pool<Tag>;
@@ -370,6 +385,14 @@ function allPools(registry: Registry): Pool<unknown>[] {
 
 export function createRegistry(encounter: Encounter, random: RandomSource, detailed: boolean, stepMs = 1): Registry {
   const pool = <T>() => new Pool<T>();
+  const recalculateAttributes = new Pool<Tag>();
+  const attributeDependencies = new Set<AttributeDependency>();
+  const attributeInput = <T>(dependency?: AttributeDependency) =>
+    new Pool<T>(() => {
+      if (dependency === undefined || attributeDependencies.has(dependency)) {
+        recalculateAttributes.emplaceOrReplace(0, true);
+      }
+    });
   return {
     tick: 0,
     stepMs,
@@ -378,14 +401,16 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     detailed,
     auditEvents: [],
     afkTicksByActor: new Map(),
-    isActor: pool(),
+    recalculateAttributes,
+    attributeDependencies,
+    isActor: attributeInput(),
     actorCreated: pool(),
     team: pool(),
     baseClass: pool(),
     profession: pool(),
-    currentWeaponSet: pool(),
-    staticAttributes: pool(),
-    equippedWeapons: pool(),
+    currentWeaponSet: attributeInput(),
+    staticAttributes: attributeInput(),
+    equippedWeapons: attributeInput(),
     whirlFinisherSkills: pool(),
     rotation: pool(),
     noMoreRotation: pool(),
@@ -401,11 +426,11 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     destroySkillsTicksTracker: pool(),
     skillsActions: pool(),
     finishedSkillsActions: pool(),
-    bundle: pool(),
+    bundle: attributeInput(),
     equippedBundle: pool(),
     droppedBundle: pool(),
     relativeAttributes: pool(),
-    combatStats: pool(),
+    combatStats: attributeInput('health'),
     combatStatsUpdated: pool(),
     isDownstate: pool(),
     hasQuickness: pool(),
@@ -416,32 +441,32 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     incomingEffects: pool(),
     incomingDamage: pool(),
     bufferedConditionDamage: pool(),
-    owner: pool(),
+    owner: attributeInput(),
     destroyEntity: pool(),
-    isSkill: pool(),
+    isSkill: attributeInput('cooldown'),
     ammo: pool(),
     ammoGained: pool(),
-    cooldown: pool(),
+    cooldown: attributeInput('cooldown'),
     cooldownExpired: pool(),
     alreadyFinishedCastingSkill: pool(),
-    isConditionalSkillGroup: pool(),
+    isConditionalSkillGroup: attributeInput(),
     isPartOfConditionalSkillGroup: pool(),
-    isEffect: pool(),
+    isEffect: attributeInput(),
     isDamagingEffect: pool(),
-    isUniqueEffect: pool(),
-    sourceActor: pool(),
+    isUniqueEffect: attributeInput(),
+    sourceActor: attributeInput(),
     sourceSkill: pool(),
     duration: pool(),
     durationExpired: pool(),
-    isAttributeModifier: pool(),
-    isAttributeConversion: pool(),
+    isAttributeModifier: attributeInput(),
+    isAttributeConversion: attributeInput(),
     isCounterModifier: pool(),
     isCooldownModifier: pool(),
     isEffectRemoval: pool(),
     isSkillTrigger: pool(),
     isUnchainedSkillTrigger: pool(),
     isSourceActorSkillTrigger: pool(),
-    isCounter: pool(),
+    isCounter: attributeInput('counter'),
     entityPool: [],
     freeList: null,
     names: new Map()

@@ -196,13 +196,23 @@ export function dispatchEffects(registry: Registry): void {
       }
     }
   });
+  // Each pass consumes only newly emitted work; the post-strike pass must not replay pre-strike applications.
+  registry.outgoingEffects.clear();
 }
 
 export function applyEffects(registry: Registry): void {
   view([registry.incomingEffects], [registry.owner]).forEach((targetEntity) => {
     for (const incoming of registry.incomingEffects.get(targetEntity)) {
+      if (incoming.durationMs !== undefined) continue;
+      calculateRelativeAttributes(registry);
       const { application } = incoming;
       const applicationSource = ownerOf(registry, incoming.sourceEntity);
+      incoming.durationMs =
+        application.effect == null
+          ? application.baseDurationMs
+          : effectiveEffectDuration(application.baseDurationMs, application.effect, (attribute) =>
+              relativeAttribute(registry, applicationSource, targetEntity, attribute)
+            );
       if (application.uniqueEffect.uniqueEffectKey !== '') {
         addUniqueEffectStacks(
           registry,
@@ -217,14 +227,11 @@ export function applyEffects(registry: Registry): void {
 
       if (application.effect != null) {
         const effect = application.effect;
-        const duration = effectiveEffectDuration(application.baseDurationMs, effect, (attribute) =>
-          relativeAttribute(registry, applicationSource, targetEntity, attribute)
-        );
         addEffectStacks(
           registry,
           effect,
           application.numStacks,
-          duration,
+          incoming.durationMs,
           application.sourceSkill,
           applicationSource,
           targetEntity
@@ -321,6 +328,11 @@ export function updateCombatStats(registry: Registry): void {
     let total = 0;
     for (const event of registry.incomingDamage.get(entity)) total += event.value;
     stats.health -= total;
+    // Damage only dirties attributes when a modifier or conversion reads a health threshold.
+    if (total !== 0 && registry.attributeDependencies.has('health')) {
+      registry.recalculateAttributes.emplaceOrReplace(0, true);
+    }
+
     if (stats.health <= 0) registry.isDownstate.emplace(entity, true);
     registry.combatStatsUpdated.emplaceOrReplace(entity, true);
   });

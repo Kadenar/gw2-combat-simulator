@@ -478,16 +478,25 @@ export function applySideEffects(
 ): void {
   const sourceOwner = ownerOf(registry, sourceEntity);
 
+  // Empty holders preserve reference pool ordering, but need no ownership walk or predicate evaluation.
   registry.isCounterModifier.forEach((holder, modifiers) => {
-    if (ownerOf(registry, holder) !== sourceOwner) return;
+    if (modifiers.length === 0 || ownerOf(registry, holder) !== sourceOwner) return;
     for (const modifier of modifiers) {
       const counter = findCounter(registry, modifier.counterKey);
       if (!counter) throw new CounterLookupError(`Counter with key ${modifier.counterKey} not found`);
-      if (accepts(modifier.condition)) applyCounterModification(registry, counter, modifier);
+      if (accepts(modifier.condition)) {
+        const previous = counter.value;
+        applyCounterModification(registry, counter, modifier);
+        // Counters mutate in place, so notify attribute predicates when their input actually changes.
+        if (counter.value !== previous && registry.attributeDependencies.has('counter')) {
+          registry.recalculateAttributes.emplaceOrReplace(CONSOLE_ENTITY, true);
+        }
+      }
     }
   });
 
   registry.isCooldownModifier.forEach((holder, modifiers) => {
+    if (modifiers.length === 0) return;
     const ownerActor = ownerOf(registry, holder);
     if (ownerActor !== sourceOwner) return;
     for (const modifier of modifiers) {
@@ -496,7 +505,7 @@ export function applySideEffects(
   });
 
   registry.isEffectRemoval.forEach((holder, removals) => {
-    if (ownerOf(registry, holder) !== sourceOwner) return;
+    if (removals.length === 0 || ownerOf(registry, holder) !== sourceOwner) return;
     for (const removal of removals) {
       if (!accepts(removal.condition)) continue;
       if (removal.effect != null) {

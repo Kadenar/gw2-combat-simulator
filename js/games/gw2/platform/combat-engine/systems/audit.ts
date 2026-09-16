@@ -7,9 +7,7 @@
  * combat behavior or consumes random draws.
  */
 import { getSkill, canCastSkill } from '#gw2/platform/combat-engine/queries.js';
-import { effectiveEffectDuration } from '#gw2/platform/combat-engine/effect-rules.js';
 import { entityName, ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
-import { relativeAttribute } from '#gw2/platform/combat-engine/systems/attributes.js';
 import type { AuditType, Effect } from '#gw2/platform/combat-engine/configuration.js';
 import type { Entity, Registry } from '#gw2/platform/combat-engine/registry.js';
 import type { AuditEvent, DamageType, SkillStatus } from '#gw2/platform/combat-engine/types.js';
@@ -70,14 +68,10 @@ export function audit(registry: Registry, damage: DamageTotals): void {
       record(registry, 'BUNDLES', actorEntity, { type: 'dropped_bundle', bundle })
     );
     registry.incomingEffects.forEach((actorEntity, applications) => {
-      for (const { sourceEntity, application } of applications) {
+      for (const { sourceEntity, application, durationMs } of applications) {
         const actualSource = ownerOf(registry, sourceEntity);
-        const durationMs =
-          application.effect == null
-            ? application.baseDurationMs
-            : effectiveEffectDuration(application.baseDurationMs, application.effect, (attribute) =>
-                relativeAttribute(registry, actualSource, actorEntity, attribute)
-              );
+        // Report the application-time duration even if later effects changed duration attributes.
+        if (durationMs === undefined) throw new Error('Cannot audit an unapplied effect.');
         record(registry, 'EFFECT_APPLICATIONS', actorEntity, {
           type: 'effect_application',
           sourceActor: entityName(registry, actualSource),
