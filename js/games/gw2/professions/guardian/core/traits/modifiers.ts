@@ -183,17 +183,19 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   {
     id: 'guardian.inspired-virtue',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
+    // Boon bonuses sum within this trait, then multiply the outgoing additive bucket.
+    operation: 'multiply',
     parameters: { damagePerBoon: 0.005 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      GW2_STANDARD_BOONS.filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon,
+    factor: (context, _target, parameters) =>
+      1 + GW2_STANDARD_BOONS.filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon,
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
   },
   {
     id: 'guardian.unscathed-contender-health',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.05,
+    // The assumed above-90% health bonus multiplies damage; the Aegis bonus stays additive.
+    operation: 'multiply',
+    factor: 1.05,
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER)
   },
   {
