@@ -416,6 +416,20 @@ evaluate their conditions at lookup time. The warm median fell further from 1.26
 unchanged deterministic fixture DPS. The focused lookup contracts cover cached reads, reassignment, replacement,
 removal, entity recycling, duplicate precedence, and live conditional-group decisions.
 
+Revision `phase-2-cached-termination-attribute-metadata` indexes termination actors by name until actor membership
+changes. Downstate checks skip actor traversal when nobody is downed; configured condition order, wildcard rotation
+selectors, and live health/completion checks are preserved, including temporary actors and recycled entities.
+
+Attribute dependency analysis now persists until modifier, conversion, or conditional-group definitions change. Eligible
+holder lists retain stack admission and resolved owners until their holder, ownership, effect, or unique-effect pools
+change. Empty holders still consume stack slots. Predicates and conversion inputs continue to evaluate against live
+state, and random predicates retain their draw order. Ownership and effect invalidation remains conservative.
+
+On Node 24.14.1, the three-run warm median was 1.07 s before this change, 0.89 s after termination indexing, and 0.86 s
+after attribute metadata caching (19% less time overall). Deterministic fixture DPS was unchanged; timings are local
+measurements from the same profiling script, not a guarantee for other encounters. Focused tests cover cache reuse,
+definition and cap changes, transitive skill-group dependencies, and termination ordering/membership.
+
 ### Phase 3 — Existing UI integration for that build
 
 Add temporary whole-run selection at the common simulation boundary, then trace every caller to ensure it uses it. Adapt
