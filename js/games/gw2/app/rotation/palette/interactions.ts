@@ -12,15 +12,15 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
-export type PaletteMouseEvent = MouseEvent & {
+type PaletteMouseEvent = MouseEvent & {
   readonly currentTarget: HTMLElement;
 };
 
-export type PaletteDragEvent = DragEvent & {
+type PaletteDragEvent = DragEvent & {
   readonly currentTarget: HTMLElement;
 };
 
-export interface PaletteInteractionHandlers {
+interface PaletteInteractionHandlers {
   readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
   readonly onControlActivate?: (id: string, event: PaletteMouseEvent) => unknown;
   readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;

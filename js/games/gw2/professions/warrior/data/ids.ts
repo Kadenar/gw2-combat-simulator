@@ -176,7 +176,17 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   DRAGON_SLASH_BOOST: 62980, // Dragon Slash—Boost
   DRAGON_SLASH_REACH: 62951, // Dragon Slash—Reach
   FLICKER_STEP: 62926, // Flicker Step
-  TRIGGERGUARD: 62893 // Triggerguard
+  TRIGGERGUARD: 62893, // Triggerguard
+  SHARP_DRAGON_SLASH_FORCE: 80199, // Dragon Slash—Force (Sharp as the Wind)
+  SHARP_BLOOMING_FIRE: 80212, // Blooming Fire (Sharp as the Wind)
+  SHARP_EXPLOSIVE_THRUST: 80213, // Explosive Thrust (Sharp as the Wind)
+  SHARP_STEEL_DIVIDE: 80238, // Steel Divide (Sharp as the Wind)
+  SHARP_BREAK_STEP: 80241, // Break Step (Sharp as the Wind)
+  SHARP_DRAGON_SLASH_REACH: 80246, // Dragon Slash—Reach (Sharp as the Wind)
+  SHARP_CYCLONE_TRIGGER: 80226, // Cyclone Trigger (Sharp as the Wind)
+  SHARP_ARTILLERY_SLASH: 80274, // Artillery Slash (Sharp as the Wind)
+  SHARP_DRAGON_SLASH_BOOST: 80281, // Dragon Slash—Boost (Sharp as the Wind)
+  SHARP_SWIFT_CUT: 80293 // Swift Cut (Sharp as the Wind)
 });
 
 export const WARRIOR_TRAIT_IDS = Object.freeze({

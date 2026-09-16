@@ -88,7 +88,10 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.sharpAsTheWind, 'Sharp as the Wind', {
     internalCooldown: 4,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }]
+    effects: [
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
+      { type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
+    ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.riversFlow, "River's Flow", {
     internalCooldown: 4,

@@ -23,6 +23,7 @@ export interface EvtcRecordedRotationAction {
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
+  readonly releaseAtCharges?: number;
   readonly replayCastEnd?: number;
   readonly replayInterruptMs?: number;
   readonly replayDurationMs?: number;

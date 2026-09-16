@@ -97,8 +97,7 @@ export interface ProfessionPaletteGroup {
   /** Resource meters rendered in the same visual container as this group. */
   readonly resourceIds?: readonly string[];
   /** Where attached resources sit relative to the group's skills. */
-  readonly resourcePlacement?: 'above' | 'beside' | 'below';
-  readonly reservedSkillIds?: readonly number[];
+  readonly resourcePlacement?: 'above' | 'beside';
   readonly skillEntries?: readonly SchedulerRecord[];
   readonly includeActionSkills?: boolean;
   readonly controls?: readonly ProfessionPaletteControl[];

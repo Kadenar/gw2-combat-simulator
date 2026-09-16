@@ -13,7 +13,7 @@ import {
 } from '#gw2/app/rotation/shared/context.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/rotation/shared/icons.js';
 import { resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model.js';
-import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
+import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display.js';
 
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -28,9 +28,8 @@ import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/sk
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
-export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
+interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
   readonly skillEntries: SchedulerRecord[];
-  readonly reservedSkillIds: readonly number[];
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
@@ -38,7 +37,7 @@ export interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'sk
   readonly weaponRowLabel: string;
   readonly resourceAnchor: boolean;
   readonly resourceIds: readonly string[];
-  readonly resourcePlacement: 'above' | 'beside' | 'below';
+  readonly resourcePlacement: 'above' | 'beside';
 }
 
 const PALETTE_ACTION_ORDER = new Map<string, number>([
@@ -62,7 +61,6 @@ export function paletteView(profession: ProfessionAppContract, context: Schedule
     id: String(group.id),
     label: String(group.label || group.id),
     skillIds: [...(group.skillIds || [])],
-    reservedSkillIds: [...(group.reservedSkillIds || [])],
     skillEntries: (group.skillEntries || []).map((entry) => ({ ...entry })),
     color: String(group.color || ''),
     className: String(group.className || ''),
@@ -74,10 +72,7 @@ export function paletteView(profession: ProfessionAppContract, context: Schedule
     weaponRowLabel: String(group.weaponRowLabel || ''),
     resourceAnchor: Boolean(group.resourceAnchor),
     resourceIds: (group.resourceIds || []).map(String),
-    resourcePlacement:
-      group.resourcePlacement === 'above' || group.resourcePlacement === 'beside' || group.resourcePlacement === 'below'
-        ? group.resourcePlacement
-        : 'below',
+    resourcePlacement: group.resourcePlacement === 'beside' ? 'beside' : 'above',
     includeActionSkills: Boolean(group.includeActionSkills),
     controls: (group.controls || []).map((control) => ({
       id: String(control.id),
@@ -101,7 +96,7 @@ export function paletteView(profession: ProfessionAppContract, context: Schedule
   }));
 }
 
-export function uniqueByName(skills: readonly Skill[]): Skill[] {
+function uniqueByName(skills: readonly Skill[]): Skill[] {
   const unique = new Map<string, Skill>();
   for (const skill of skills) {
     if (!unique.has(skill.name)) unique.set(skill.name, skill);
@@ -123,7 +118,7 @@ function weaponVariantRank(skill: Skill, specialization: string): number {
   return 2;
 }
 
-export function uniqueBySpecializedName(skills: readonly Skill[], specialization: string): Skill[] {
+function uniqueBySpecializedName(skills: readonly Skill[], specialization: string): Skill[] {
   const byName = new Map<string, Skill>();
   for (const skill of skills) {
     const existing = byName.get(skill.name);
@@ -177,7 +172,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   });
 }
 
-export interface WeaponPaletteRow {
+interface WeaponPaletteRow {
   readonly id: string;
   readonly label: string;
   readonly weaponSet: number;
@@ -599,12 +594,6 @@ export function paletteSkillIsInstant(
   );
 }
 
-export interface AmmoView {
-  readonly current?: number;
-  readonly maximum?: number;
-  readonly pips?: readonly boolean[];
-}
-
 export interface PaletteStatusIconView {
   readonly icon: string;
   readonly label: string;
@@ -634,13 +623,11 @@ export interface PaletteSkillView extends SchedulerRecord {
   readonly color?: string;
   readonly disabled?: boolean;
   readonly contextDisabled?: boolean;
-  readonly concealed?: boolean;
   readonly highlighted?: boolean;
   readonly draggable?: boolean;
   readonly cooldownLabel?: string;
-  readonly ammo?: AmmoView | null;
+  readonly ammo?: AmmoDisplayView | null;
   readonly resource?: PaletteResourceView | null;
-  readonly virtual?: boolean;
 }
 
 export interface PaletteGroupView {
@@ -779,7 +766,6 @@ export function paletteSkillView(
     color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
     disabled: unavailable,
     contextDisabled: !contextAvailable && !retryableContext,
-    concealed: Boolean(skill.concealed),
     highlighted,
     draggable: contextAvailable,
     cooldownLabel,
@@ -797,20 +783,10 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   const renderGroups = (groups: readonly ProfessionPaletteGroup[]): RenderedPaletteGroup[] =>
     groups.map((group) => {
       const skillIds = group.skillIds || [];
-      const reservedSkillIds = group.reservedSkillIds || [];
-      // Reserved IDs keep a group's declared positions stable while inactive
-      // alternatives remain concealed rather than disappearing from the model.
       const skills = [
-        ...(reservedSkillIds.length ? reservedSkillIds : skillIds).flatMap((id) => {
+        ...skillIds.flatMap((id) => {
           const skill = app.skillById.get(id);
-          return skill && (group.includeActionSkills || skill.type !== 'Action')
-            ? [
-                {
-                  ...skill,
-                  concealed: reservedSkillIds.length > 0 && !skillIds.includes(skill.id)
-                }
-              ]
-            : [];
+          return skill && (group.includeActionSkills || skill.type !== 'Action') ? [skill] : [];
         }),
         ...(group.skillEntries || []).flatMap((entry) => {
           const skill = app.skillById.get(Number(entry.skillId));
@@ -821,9 +797,8 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
       ];
       return {
         ...group,
-        // Reserved groups intentionally retain stable placeholders; ordinary
-        // profession groups project sequence families to the live bar tile.
-        skills: reservedSkillIds.length ? skills : displayedSkillTiles(app, skills, paletteContext)
+        // Project sequence families to the skill currently occupying each live palette tile.
+        skills: displayedSkillTiles(app, skills, paletteContext)
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);
@@ -847,7 +822,7 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   }));
   const groupedActionSkillIds = new Set(
     [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
-      group.skills.filter((skill) => skill.type === 'Action' && !skill.concealed).map((skill) => String(skill.id))
+      group.skills.filter((skill) => skill.type === 'Action').map((skill) => String(skill.id))
     )
   );
   // Actions explicitly placed by a profession or loadout group must not also
