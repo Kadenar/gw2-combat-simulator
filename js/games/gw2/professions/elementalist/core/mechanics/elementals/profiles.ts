@@ -15,21 +15,22 @@ export const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({
   basePower: (2500 * 2597) / 690.5
 });
 
-/** Fire Elemental timings and packets measured from a 2026-07-16 ArcDPS log. */
+/** Fire Elemental profile */
 export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
   lifetime: 120,
   rechargeAfterExpiry: 40,
   targetAcquisitionDelay: 0.16,
   postCommandRecovery: 0.56,
   subsequentCommandRecovery: 0.08,
-  basePower: 1000,
+  // Provisional effective Power
+  basePower: 1580,
   basePrecision: 1000,
   baseFerocity: 0,
   fireball: Object.freeze({
     skillId: ID.FIRE_ELEMENTAL_FIREBALL,
-    // Greater Fire Elemental Fireball starts at 830 before inherited Might and outgoing modifiers.
-    baseDamage: 830,
-    impact: 1.2,
+    // Approximate noncritical mean after removing the elemental's own Might from the controlled sample.
+    baseDamage: 760,
+    impact: 1.08,
     animationEnd: 2,
     recovery: 3.2
   }),
@@ -39,7 +40,8 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
     baseDamage: 1150,
     impact: 2.52,
     animationEnd: 3.68,
-    recovery: 4.64,
+    // The next autonomous action starts about 4.8 seconds after an uninterrupted Burst begins.
+    recovery: 4.8,
     cooldown: 15,
     burningStacks: 1,
     burningDuration: 3,
@@ -48,15 +50,16 @@ export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({
   }),
   flameBarrage: Object.freeze({
     skillId: ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
-    // All four strike packets share a fixed elemental damage scale instead of player Power or Might.
-    damagePerCoefficient: 2500,
+    // Approximate noncritical scale normalized for pet Might; player Power/equipment are not inherited.
+    damagePerCoefficient: 2050,
     projectileCoefficient: 0.15,
     explosionCoefficient: 1.8,
-    projectileImpacts: Object.freeze([1.12, 1.32, 1.52]),
+    // Short-range projectiles arrive before the separate explosion, each bringing its own Burning stack.
+    projectileImpacts: Object.freeze([0.88, 1.08, 1.28]),
     explosionImpact: 1.52,
     animationEnd: 3.04,
     cooldown: 15,
-    burningStacks: 3,
+    burningStacks: 1,
     burningDuration: 3
   })
 });

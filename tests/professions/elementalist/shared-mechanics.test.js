@@ -405,6 +405,27 @@ test('Flame Expulsion delays both packets and uses its own icon in the damage br
   assert.equal(row?.icon, expectedIcon);
 });
 
+// The delayed ally boon must reach an active elemental without reapplying Might to its owner.
+test('Flame Expulsion grants capped Might to other allies at impact', () => {
+  const result = runNative({
+    lines: [['Fire', '1-1-2'], ['Air'], ['Arcane']],
+    rotation: ['Glyph of Elementals', 'Flame Uprising', 'Air Attunement', 1000],
+    startAttunement: 'Fire',
+    weapons: ['Sword', 'Dagger'],
+    assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, might: 25 }
+  });
+  const strike = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Expulsion');
+  const might = result.resolvedEvents.find((event) => event.type === 'buff' && event.skillName === 'Flame Expulsion');
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(might.at, strike.at);
+  assert.equal(might.kind, 'might');
+  assert.equal(might.stacks, 10);
+  assert.equal(might.resolvedAudience.includesSelf, false);
+  assert.equal(might.resolvedAudience.includesSummons, true);
+  assert.equal(might.resolvedAudience.companionIds.length, 1);
+});
+
 test('Sunspot uses its own icon in the damage breakdown', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],

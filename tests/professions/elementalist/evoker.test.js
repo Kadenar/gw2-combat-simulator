@@ -13,6 +13,33 @@ import { onEventScheduled } from '#gw2/professions/elementalist/specializations/
 import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { afterCast } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+
+test('Ignite retains its final burning tier until the inactivity window expires', () => {
+  // Exercise the familiar state transition independently of weapon recharge and rotation timing.
+  const state = createEvokerState();
+  const event = { type: 'condition', condition: 'Burning', activationId: 'ignite' };
+  const context = {
+    catalog: elementalistCatalog,
+    state: { profession: { specialization: { kind: 'Evoker', state } } },
+    reservationId: 'ignite',
+    events: [event],
+    replaceEvent: (target, updates) => Object.assign(target, updates)
+  };
+  for (const [start, duration] of [
+    [0, 2],
+    [1, 0.5],
+    [2, 1],
+    [3, 1.5],
+    [4, 1.5],
+    [18, 1.5],
+    [33, 2]
+  ]) {
+    context.start = start;
+    afterCast(context, elementalistCatalog.skillsByName.get('Ignite'));
+    assert.equal(event.duration, duration);
+  }
+});
 
 // Exercise real event observers, including immutable replacement and reentrant proc emission.
 function enchantmentHarness() {
@@ -480,7 +507,7 @@ test('Evoker concurrent actions wait for an active familiar cast', () => {
   assert.ok(attunement.at >= familiar.endsAt);
 });
 
-test('Evoker applies parent charge progression after a concurrent basic familiar', () => {
+test('Evoker does not award a completed parent charge grant twice', () => {
   const calcify = elementalistCatalog.skillsByName.get('Calcify');
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
@@ -499,11 +526,11 @@ test('Evoker applies parent charge progression after a concurrent basic familiar
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.charges, 1);
+  assert.equal(result.endState.profession.charges, 0);
   assert.equal(result.endState.profession.empowered, 1);
 });
 
-test('Evoker reapplies Rejuvenate after its concurrent basic familiar', () => {
+test('Evoker spends a completed Rejuvenate refill only once', () => {
   const calcify = elementalistCatalog.skillsByName.get('Calcify');
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Evoker']],
@@ -527,8 +554,37 @@ test('Evoker reapplies Rejuvenate after its concurrent basic familiar', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.charges, 6);
+  assert.equal(result.endState.profession.charges, 0);
   assert.equal(result.endState.profession.empowered, 1);
+});
+
+test('Evoker queues early familiar inputs only when pending charges can make them available', () => {
+  // A pending resource grant can unblock the input; existing charges still permit a real overlap.
+  for (const initialEvokerCharges of [3, 4, 6]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Evoker']],
+      rotation: ['Sand Squall', { type: 'cast', skillId: 77226, concurrentOffsetMs: 100 }],
+      startAttunement: 'Earth',
+      weapons: ['Pistol', 'Warhorn'],
+      evokerElement: 'Earth',
+      initialEvokerCharges
+    });
+    const parent = result.events.find((event) => event.type === 'action' && event.skillName === 'Sand Squall');
+    const familiar = result.events.find((event) => event.type === 'action' && event.skillName === 'Calcify');
+    if (initialEvokerCharges === 3) {
+      assert.equal(familiar, undefined);
+      assert.match(result.warnings.join('\n'), /requires 6 charges/);
+    } else {
+      assert.deepEqual(result.warnings, []);
+      if (initialEvokerCharges === 4) {
+        assert.equal(familiar.at, parent.endsAt);
+        assert.equal(result.endState.profession.charges, 0);
+      } else {
+        assert.ok(familiar.at < parent.endsAt);
+        assert.equal(result.endState.profession.charges, 2);
+      }
+    }
+  }
 });
 
 test('Elemental Procession uses familiar weapon strength and lets Buoyant Deluge trigger Lightning Rod', () => {

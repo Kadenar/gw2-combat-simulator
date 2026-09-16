@@ -128,7 +128,7 @@ function cancelActivationEffects(context: ElementalistSchedulerContext, activati
 export function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   const state = evokerState.from(context);
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
-  // non-concurrent commands anchor their own charge grant so a concurrent familiar can adopt it below
+  // Track pending grants so early familiar inputs can wait for their resource provider.
   if (context.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
     const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.maximumCharges : 0;
@@ -149,22 +149,6 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
 
   // familiar casts block every other action until they finish (enforced in availability.ts)
   if (familiarElement) {
-    const concurrentParent =
-      context.command.concurrentOffsetMs != null
-        ? state.concurrentParentAnchors
-            .filter((entry) => entry.commandIndex < context.commandIndex)
-            .sort((left, right) => right.commandIndex - left.commandIndex)[0]
-        : null;
-    // steal the parent command's charge grant so it doesn't reset before the basic familiar resets charges
-    if (
-      BASIC_FAMILIARS.has(skill.id) &&
-      concurrentParent?.weaponChargeGain &&
-      concurrentParent.weaponChargeGain.at <= context.start + context.epsilon
-    ) {
-      state.pendingWeaponChargeGains.push(concurrentParent.weaponChargeGain);
-      concurrentParent.weaponChargeGain = null;
-    }
-
     state.activeFamiliarCast = {
       reservationId: context.reservationId,
       endsAt: context.effectiveEnd,
@@ -215,7 +199,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
   }
 
   if (skill.id === ID.IGNITE) {
-    // tier resets if unused for 15s; cycling through 4 tiers gives a short pulse on tier 1 to front-load damage
+    // Consecutive Ignites stay at the final burning tier until the inactivity window resets it.
     if (
       context.start - state.igniteLastUsedAt >=
       balanceProfileValueFromContext(context, PROFILE.ignite, 'threshold', 15)
@@ -236,7 +220,7 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       }
     }
 
-    state.igniteTier = (state.igniteTier + 1) % durations.length;
+    state.igniteTier = Math.min(state.igniteTier + 1, durations.length - 1);
     state.igniteLastUsedAt = context.start;
   }
 
@@ -562,6 +546,10 @@ export function onCastComplete(context: ElementalistCastContext, skill: Skill): 
 
   const state = evokerState.from(context);
   const completesActiveFamiliar = state.activeFamiliarCast?.reservationId === context.reservationId;
+  // A settled grant cannot fund another retry or be awarded again after a familiar spends it.
+  state.concurrentParentAnchors = state.concurrentParentAnchors.filter(
+    (entry) => entry.commandIndex !== context.commandIndex
+  );
   grantWeaponSkillCharges(context, skill, state);
   applyFamiliarTraitProcs(context, skill);
   applyFamiliarSkillEffects(context, skill);

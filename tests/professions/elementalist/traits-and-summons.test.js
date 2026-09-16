@@ -16,21 +16,27 @@ import { weaverModifierRules } from '#gw2/professions/elementalist/specializatio
 const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
 
 test('Evoker familiar flip interruption cancels both familiar attacks', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Evoker']],
-    rotation: ['Lightning Blitz', 'Zap', 4000],
-    evokerElement: 'Air',
-    initialEvokerCharges: 6,
-    initialEvokerEmpowered: 3
-  });
+  // The flip interaction also cancels released Fire packets that survive ordinary animation cancellation.
+  for (const [element, empowered, basic] of [
+    ['Air', 'Lightning Blitz', 'Zap'],
+    ['Fire', 'Conflagration', 'Ignite']
+  ]) {
+    const result = runNative({
+      lines: [['Fire'], ['Air'], ['Evoker']],
+      rotation: [empowered, basic, 4000],
+      evokerElement: element,
+      initialEvokerCharges: 6,
+      initialEvokerEmpowered: 3
+    });
 
-  assert.equal(
-    result.resolvedEvents.some(
-      (event) => event.type === 'damage' && ['Lightning Blitz', 'Zap'].includes(event.skillName)
-    ),
-    false
-  );
-  assert.equal(result.endState.profession.empowered, 1);
+    assert.equal(
+      result.resolvedEvents.some(
+        (event) => ['damage', 'condition'].includes(event.type) && [empowered, basic].includes(event.skillName)
+      ),
+      false
+    );
+    assert.equal(result.endState.profession.empowered, 1);
+  }
 });
 
 test("Fox's Fury applies the PvE high-Might burn", () => {
@@ -587,46 +593,35 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
   );
 });
 
-test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
-  // Permanent player Quickness shortens the Glyph cast; the summon keeps its own attack cadence.
+test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () => {
+  // The pet waits through Burst recovery before starting its next action, without requiring a player command.
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Glyph of Elementals', 15000],
+    rotation: ['Glyph of Elementals', 7000],
     startAttunement: 'Fire',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: true
+      quickness: false
     }
   });
-  const elementalActions = result.events.filter(
-    (event) => event.type === 'action' && event.actorType === 'summon' && event.at < 16
-  );
+  const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
   const flameBurst = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Burst');
   const fireball = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fireball');
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    elementalActions.map((event) => [event.skillName, Math.round(event.at * 1000), Boolean(event.interrupted)]),
-    [
-      ['Flame Burst', 1000, false],
-      ['Fireball', 5640, false],
-      ['Fireball', 8840, false],
-      ['Fireball', 12040, false],
-      ['Fireball', 15240, false]
-    ]
-  );
+  const burstAction = elementalActions.find((event) => event.skillName === 'Flame Burst');
+  const fireballAction = elementalActions.find((event) => event.skillName === 'Fireball');
+  assert.equal(Math.round((fireballAction.at - burstAction.at) * 1000), 4800);
+  assert.ok(fireballAction.at > burstAction.endsAt);
+  assert.equal(Math.round((fireball.at - fireballAction.at) * 1000), 1080);
 
   assert.equal(
     result.events.some((event) => event.skillName === 'Flame Barrage'),
     false
   );
-  assert.equal(
-    result.events.filter((event) => event.type === 'damage' && event.skillName === 'Fireball' && event.at < 16).length,
-    3
-  );
-  // Autonomous fire attacks retain their documented bases and may scale with the elemental's Might/modifiers.
-  assert.equal(flameBurst.summonDamagePerCoefficient, 1150);
-  assert.equal(fireball.summonDamagePerCoefficient, 830);
+  // Autonomous fire attacks use companion attributes and may receive party buffs.
+  assert.equal(flameBurst.summonInheritsAttributes, false);
+  assert.equal(fireball.summonInheritsAttributes, false);
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
@@ -634,14 +629,14 @@ test('Fire Elemental autonomously alternates Flame Burst and Fireball', () => {
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
-  // Commands follow the quickened Glyph cast and explicit wait, then respect their unalacritized cooldown.
+  // Commands preempt the pet, retain their cooldown, and pair each projectile with its own burn.
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Glyph of Elementals', 1000, 'Flame Barrage', 'Flame Barrage', 4000],
     startAttunement: 'Air',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: true,
+      quickness: false,
       alacrity: false
     }
   });
@@ -649,13 +644,13 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.summonedElemental.element, 'Fire');
-  assert.deepEqual(
-    elementalActions.filter((event) => event.skillName === 'Flame Barrage').map((event) => Math.round(event.at * 1000)),
-    [1840, 16840]
-  );
+  const barrageActions = elementalActions.filter((event) => event.skillName === 'Flame Barrage');
+  assert.equal(barrageActions.length, 2);
+  assert.equal(barrageActions[1].at - barrageActions[0].at, 15);
   assert.ok(
     elementalActions.some(
-      (event) => event.skillName === 'Flame Burst' && Math.round(event.at * 1000) === 1000 && event.interrupted === true
+      (event) =>
+        event.skillName === 'Flame Burst' && event.endsAt === barrageActions[0].at && event.interrupted === true
     )
   );
   assert.ok(
@@ -665,24 +660,27 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   );
 
   const firstBarrageDamage = result.events.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.at < 5
+    (event) => event.type === 'damage' && event.activationId === barrageActions[0].activationId
   );
 
   assert.deepEqual(
-    firstBarrageDamage.map((event) => Math.round(event.at * 1000)),
-    [2960, 3160, 3360, 3360]
+    firstBarrageDamage.map((event) => Math.round((event.at - barrageActions[0].at) * 1000)),
+    [880, 1080, 1280, 1520]
   );
   assert.ok(firstBarrageDamage.every((event) => event.actorType === 'summon'));
 
   const firstBarrageBurns = result.events.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Flame Barrage' && event.at < 5
+    (event) => event.type === 'condition' && event.activationId === barrageActions[0].activationId
   );
 
-  assert.equal(firstBarrageBurns.length, 1);
+  assert.deepEqual(
+    firstBarrageBurns.map((event) => event.at),
+    firstBarrageDamage.slice(0, 3).map((event) => event.at)
+  );
   assert.ok(
     firstBarrageBurns.every(
       (event) =>
-        event.actorType === 'player' && event.condition === 'Burning' && event.stacks === 3 && event.duration === 3
+        event.actorType === 'player' && event.condition === 'Burning' && event.stacks === 1 && event.duration === 3
     )
   );
 
@@ -693,18 +691,12 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.ok(
     firstBarrageDamage.every(
       (event) =>
-        event.summonDamagePerCoefficient === 2500 &&
-        event.summonUsesMight === false &&
+        event.summonInheritsAttributes === false &&
+        event.summonUsesMight !== false &&
         event.summonUsesEquipmentModifiers === false
     )
   );
 
-  const resolvedBarrages = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.hitIndex === 1
-  );
-
-  assert.equal(resolvedBarrages.length, 2);
-  assert.equal(resolvedBarrages[0].damage, resolvedBarrages[1].damage);
   assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
 
   const armedResult = runNative({
@@ -750,6 +742,51 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   );
   assert.match(palette.innerHTML, /64A5054179704B60614F90964DE1FB3D39AEC972/);
   assert.doesNotMatch(palette.innerHTML, /011D983FEAFB946EF0F45E7F290838CFA31D63D0/);
+});
+
+test('Flame Barrage cannot apply future projectile burns outside the observation window', () => {
+  // Stopping between the first two impacts must leave just one applied stack, not the entire channel's burns.
+  const { app, commands } = createNativeApp({
+    lines: [['Fire'], ['Earth'], ['Evoker']],
+    rotation: ['Flame Barrage'],
+    assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, targetConditions: {} }
+  });
+  const result = simulateGw2({
+    profession: elementalistProfession,
+    rotation: commands,
+    config: elementalistAppAdapter.simulationConfig(app),
+    observationPolicy: { kind: 'tail', durationMs: 1000 }
+  });
+  const burns = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Flame Barrage'
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(burns.length, 1);
+  assert.equal(burns[0].stacks, 1);
+});
+
+test('combat start preserves an elemental command already in progress', () => {
+  // Explicit and first-hit combat starts must reuse the command's existing AI loop.
+  for (const [command, elite] of [
+    ['Flame Barrage', 'Glyph of Elementals'],
+    ['Stomp', 'Glyph of Elementals (Earth)']
+  ]) {
+    for (const explicit of [false, true]) {
+      const result = runNative({
+        lines: [['Fire'], ['Air'], ['Arcane']],
+        rotation: [command, ...(explicit ? [500, { type: 'combat-start' }] : []), 6000],
+        selectedSkills: { ...elementalistProfession.createBuildDefaults().selectedSkills, Elite: elite }
+      });
+      assert.deepEqual(result.warnings, []);
+      const actions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
+      const opener = actions.find((event) => event.skillName === command);
+      assert.equal(opener.endsAt, opener.fullEndsAt);
+      assert.notEqual(opener.interrupted, true);
+      assert.ok(actions.some((event) => event.autonomousElementalSkill));
+      assert.ok(actions.filter((event) => event.autonomousElementalSkill).every((event) => event.at >= opener.endsAt));
+      assert.ok(result.events.some((event) => event.type === 'damage' && event.activationId === opener.activationId));
+    }
+  }
 });
 
 test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () => {

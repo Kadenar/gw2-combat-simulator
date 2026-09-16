@@ -4,7 +4,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -99,7 +99,7 @@ export function triggerSunspot(
   });
 }
 
-// Snapshot capped might on Fire exit, then land the strike and Burning together after the proc delay.
+// Snapshot capped Might on Fire exit; the delayed blast damages enemies and grants that Might to other allies.
 export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
 
@@ -162,6 +162,24 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     ),
     skillName: 'Flame Expulsion'
   });
+
+  if (cappedMight > 0) {
+    emitSkillBuff(context, elementalistEventSkill(context, 'Flame Expulsion', sourceId), {
+      at: impactAt,
+      source: 'Flame Expulsion',
+      sourceId,
+      skillName: 'Flame Expulsion',
+      kind: 'might',
+      stacks: cappedMight,
+      duration: balanceProfileValue(
+        balanceProfileEffectFromContext(context, PROFILE.pyromancersPuissance, 'buff', 0, 'Flame Expulsion Might'),
+        'duration',
+        15
+      ),
+      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 }
+    });
+  }
+
   emitElementalistProc(context, {
     at: impactAt,
     name: 'Flame Expulsion',

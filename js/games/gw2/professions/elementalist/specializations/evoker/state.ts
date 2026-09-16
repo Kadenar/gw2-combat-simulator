@@ -27,7 +27,7 @@ export interface EvokerState {
   elementalBalanceUntil: number;
   // per-trait-profile Evocation internal cooldowns, shared by real swaps and Specialized Elements entries
   attunementTraitProcReadyAt: Record<string, number>;
-  // Ignite cycles its burning duration through four tiers; the tier resets when unused long enough, and its passive Might proc keeps its own ICD
+  // Ignite reaches and retains its final burning tier until inactivity resets it; passive Might has its own ICD.
   igniteTier: number;
   igniteLastUsedAt: number;
   ignitePassiveReadyAt: number;
@@ -46,7 +46,7 @@ export interface EvokerState {
     endsAt: number;
     resetsCharges: boolean;
   } | null;
-  // charge grants owned by non-concurrent parent commands, so a concurrent familiar can take one over before resetting charges
+  // Pending parent grants let an early familiar input wait until its charges become available.
   concurrentParentAnchors: Array<{
     commandIndex: number;
     weaponChargeGain: {

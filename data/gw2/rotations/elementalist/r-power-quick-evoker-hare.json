@@ -27,15 +27,15 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 241
+      "offset": 121
     },
     {
       "name": "Blinding Flash",
-      "offset": 280
+      "offset": 39
     },
     {
       "name": "Zap",
-      "offset": 441
+      "offset": 161
     },
     "Fox's Fury",
     "Ride the Lightning",
@@ -117,11 +117,11 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 237
+      "offset": 116
     },
     {
       "name": "Zap",
-      "offset": 358
+      "offset": 121
     },
     "Blinding Flash",
     "Ride the Lightning",
@@ -202,15 +202,15 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 237
+      "offset": 156
     },
     {
       "name": "Blinding Flash",
-      "offset": 237
+      "offset": 0
     },
     {
       "name": "Zap",
-      "offset": 435
+      "offset": 198
     },
     {
       "name": "Arc Lightning",
@@ -307,15 +307,15 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 317
+      "offset": 76
     },
     {
       "name": "Blinding Flash",
-      "offset": 358
+      "offset": 41
     },
     {
       "name": "Zap",
-      "offset": 519
+      "offset": 161
     },
     "Ride the Lightning",
     {
@@ -493,11 +493,11 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 323
+      "offset": 161
     },
     {
       "name": "Zap",
-      "offset": 443
+      "offset": 120
     },
     {
       "name": "Blinding Flash",
@@ -653,7 +653,7 @@
     },
     {
       "name": "Zap",
-      "offset": 436
+      "offset": 157
     },
     "Lightning Strike",
     "Blinding Flash",
@@ -684,11 +684,11 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 238
+      "offset": 121
     },
     {
       "name": "Zap",
-      "offset": 398
+      "offset": 160
     },
     "Ride the Lightning",
     {
