@@ -724,7 +724,7 @@ test('Reaper prioritizes assumed Ice and otherwise uses standard field resolutio
     initialResource: 100,
     primaryWeapon: 'Greatsword',
     boons: { quickness: true },
-    professionAssumptions: { permanentIceField: true }
+    professionAssumptions: { permanentComboField: 'Ice' }
   });
   const standardExtirpate = simulate(
     'Reaper',
@@ -739,7 +739,7 @@ test('Reaper prioritizes assumed Ice and otherwise uses standard field resolutio
   const extirpate = simulate('Reaper', ['Well of Darkness', 'Extirpate'], {
     primaryWeapon: 'Spear',
     selectedSkills: ['Well of Darkness'],
-    professionAssumptions: { permanentIceField: true }
+    professionAssumptions: { permanentComboField: 'Ice' }
   });
   const gravediggerCombo = (result) =>
     result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Gravedigger');
@@ -751,8 +751,8 @@ test('Reaper prioritizes assumed Ice and otherwise uses standard field resolutio
   );
 
   assert.equal(gravediggerCombo(standard).fieldType, 'Dark');
-  assert.equal(gravediggerCombo(assumed).fieldId, 'necromancer:assumption:permanent-ice-field');
-  assert.equal(extirpateCombo.fieldId, 'necromancer:assumption:permanent-ice-field');
+  assert.equal(gravediggerCombo(assumed).fieldId, 'necromancer:assumption:permanent-combo-field:Ice');
+  assert.equal(extirpateCombo.fieldId, 'necromancer:assumption:permanent-combo-field:Ice');
   assert.equal(standardExtirpateCombo.fieldType, 'Ice');
   assert.deepEqual(standard.warnings, []);
   assert.deepEqual(assumed.warnings, []);
@@ -1287,7 +1287,7 @@ test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', ()
       primaryWeapon: 'Greatsword',
       selectedSkills: ['Summon Bone Fiend'],
       selectedTraitIds: [TRAIT.DEATHLY_CHILL],
-      professionAssumptions: { permanentIceField: true }
+      professionAssumptions: { permanentComboField: 'Ice' }
     }
   );
   const boneShards = result.resolvedEvents.filter(

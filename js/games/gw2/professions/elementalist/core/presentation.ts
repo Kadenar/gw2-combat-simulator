@@ -8,6 +8,7 @@
  * exception is `updatePaletteControl`, which edits the build's starting stock.
  */
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import {
@@ -455,7 +456,7 @@ function rotationStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
  * the family and specialization contracts by the module registry.
  */
 export const elementalistCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
+  assumptionControls: [...ELEMENTALIST_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   paletteGroups: elementalistPaletteGroups,
   paletteActionSkills,
   paletteWeaponSkills,

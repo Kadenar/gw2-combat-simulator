@@ -1,6 +1,7 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
@@ -242,7 +243,7 @@ function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEf
 }
 
 export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: warriorCoreEffectPresentations,
   eventLogRow: warriorEventLogRow,
   rotationStateSnapshot: warriorCoreStateSnapshot,

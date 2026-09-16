@@ -77,7 +77,7 @@
     "aegis": true,
     "targetMoving": false,
     "targetBoonless": true,
-    "permanentIceField": true,
+    "permanentComboField": "Ice",
     "targetConditions": {
       "Bleeding": 1,
       "Burning": true,

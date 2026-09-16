@@ -14,8 +14,6 @@ import {
   necromancerEventSkill,
   necromancerTargetChilled
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import { ensurePermanentIceFieldAssumption } from '#gw2/professions/necromancer/specializations/reaper/mechanics/combos.js';
-
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
@@ -79,9 +77,8 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 }
 
-/** Seeds assumed combo fields and applies Blighter's Boon life force to scheduled player boons. */
+/** Applies Blighter's Boon life force to scheduled player boons. */
 function onEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
-  ensurePermanentIceFieldAssumption(context, event);
   if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,

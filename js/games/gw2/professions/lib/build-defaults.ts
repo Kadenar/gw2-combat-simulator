@@ -1,4 +1,5 @@
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
+import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
@@ -32,6 +33,7 @@ export type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
 export function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverrides = {}): SchedulerRecord {
   return {
     ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+    ...DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS,
 
     might: 25,
 

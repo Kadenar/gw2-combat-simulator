@@ -1,6 +1,7 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
@@ -151,7 +152,7 @@ function mesmerCoreEffectPresentations(context: SchedulerRecord): ProfessionEffe
 }
 
 export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,
   rotationStateSnapshot: mesmerCoreStateSnapshot,

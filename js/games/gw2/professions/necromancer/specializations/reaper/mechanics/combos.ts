@@ -1,47 +1,6 @@
-/** Reaper-specific combo field assumptions and summon-owned finisher resolution. */
+/** Reaper-specific summon-owned finisher resolution. */
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerSchedulerContext,
-  NecromancerSimulationEvent
-} from '#gw2/professions/necromancer/types.js';
-
-// Far-future sentinel so the assumption field is never reclaimed during a normal simulation run.
-const ASSUMED_FIELD_EXPIRES_AT = 1_000_000_000;
-
-/** Emits the explicit field selected by the Reaper permanent-field assumption. */
-export function ensurePermanentIceFieldAssumption(
-  context: NecromancerSchedulerContext,
-  event: NecromancerSimulationEvent
-): void {
-  // Guard is idempotent: the field must be emitted only once regardless of how many events trigger the hook.
-  if (
-    !context.config.professionAssumptions?.permanentIceField ||
-    context.events.some(
-      (candidate) =>
-        candidate.type === 'combo_field' && candidate.fieldId === 'necromancer:assumption:permanent-ice-field'
-    )
-  ) {
-    return;
-  }
-
-  context.emitDerived(event, {
-    type: 'combo_field',
-    at: event.at,
-    source: 'Permanent Ice Field assumption',
-    sourceId: 'necromancer.assumption.permanent-ice-field',
-    actorType: 'effect',
-    skillName: 'Permanent Ice Field assumption',
-    fieldId: 'necromancer:assumption:permanent-ice-field',
-    fieldType: 'Ice',
-    expiresAt: ASSUMED_FIELD_EXPIRES_AT,
-    ownerId: 'necromancer',
-    ownerActorType: 'player',
-    // Priority 1 ensures this assumption field wins over any zero-priority real fields when both overlap.
-    comboBindingPriority: 1
-  });
-}
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /**
  * Summon attacks become finishers only after their resolver generation guards

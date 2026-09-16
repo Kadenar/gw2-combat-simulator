@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -329,7 +330,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 
 /** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
 export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Core owns both labels because the effects remain available across Necromancer specializations.
   effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
   eventLogRow: necromancerEventLogRow,

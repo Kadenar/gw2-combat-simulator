@@ -102,7 +102,7 @@ test('every native profession exposes persisted simulation randomness', () => {
       profession.ui.assumptionControls
         .filter((control) => control.section === 'simulation')
         .map((control) => control.key),
-      ['simulationMode']
+      ['simulationMode', 'permanentComboField']
     );
     assert.equal(
       profession.ui.assumptionControls.find((control) => control.key === 'simulationMode')?.label,
@@ -507,7 +507,7 @@ test('Reaper rolls ice-field projectile finishers per bullet by seed', () => {
       config: {
         specialization: 'Reaper',
         primaryWeapon: 'Pistol',
-        professionAssumptions: { permanentIceField: true },
+        professionAssumptions: { permanentComboField: 'Ice' },
         stats: {
           power: 2000,
           precision: 2000,

@@ -23,6 +23,7 @@ import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
 } from '#gw2/platform/scheduler/combo-materializer.js';
+import { ensurePermanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
@@ -291,6 +292,7 @@ export function createGw2SchedulerPolicy(
     },
 
     onEventScheduled(context, event: SimulationEvent) {
+      ensurePermanentComboFieldAssumption(context, event);
       materializer.onEventScheduled(context, event);
       comboMaterializer.onEventScheduled(context, event);
     },

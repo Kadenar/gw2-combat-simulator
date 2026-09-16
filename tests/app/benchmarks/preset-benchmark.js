@@ -57,8 +57,8 @@ export async function assertManifestRegressions(professionId) {
         rotation
       });
       // The app object mirrors the real shell: `adapter` exposes the assumption
-      // controls (e.g. reaper `permanentIceField`) and `profession` backs the
-      // slot-loadout skill resolution used by config building.
+      // controls (e.g. the shared `permanentComboField` testing assumption) and
+      // `profession` backs the slot-loadout skill resolution used by config building.
       const app = {
         build,
         adapter,

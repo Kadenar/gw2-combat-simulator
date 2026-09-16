@@ -2,6 +2,7 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
@@ -233,7 +234,11 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
 }
 
 export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: [...RANGER_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS],
+  assumptionControls: [
+    ...RANGER_ASSUMPTION_CONTROLS,
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+  ],
   skillBarGroups: (context: RangerUiContext) => {
     const pet = selectedRangerUiPet(context);
     const pet2 = selectedRangerUiPet(context, 2);

@@ -1,5 +1,6 @@
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
@@ -19,7 +20,8 @@ function buildAssumptionControls(
   const professionKeys = new Set(controls.map((control) => control.key));
   return [
     ...controls,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.filter((control) => !professionKeys.has(control.key))
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS.filter((control) => !professionKeys.has(control.key)),
+    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS.filter((control) => !professionKeys.has(control.key))
   ];
 }
 

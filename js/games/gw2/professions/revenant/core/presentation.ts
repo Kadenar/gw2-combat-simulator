@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
@@ -172,7 +173,11 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
 }
 
 export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: Object.freeze([...REVENANT_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
+  assumptionControls: Object.freeze([
+    ...REVENANT_ASSUMPTION_CONTROLS,
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+  ]),
   targetHealthThresholds: (context: RevenantUiContext = {}) => {
     const traits = getActiveTraits(context.build?.specializations || []);
     return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];

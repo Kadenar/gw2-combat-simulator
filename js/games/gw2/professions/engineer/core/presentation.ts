@@ -1,4 +1,5 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   normalizeSelectedSkillNames,
@@ -265,7 +266,7 @@ export function engineerEventLogRow(
 }
 
 export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
   paletteGroups: (context: EngineerUiContext) => {
     const groups: ProfessionPaletteGroup[] = [];

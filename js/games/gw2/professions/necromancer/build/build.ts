@@ -50,7 +50,6 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
     },
     ...createCommonBuildDefaults({
       assumptions: {
-        permanentIceField: false,
         targetSkillActivationsPerSecond: 0
       }
     }),

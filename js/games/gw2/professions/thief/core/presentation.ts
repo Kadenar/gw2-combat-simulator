@@ -2,6 +2,7 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
@@ -249,7 +250,11 @@ export const thiefCoreUi = Object.freeze({
       maximumStacks: balanceProfileValueFromContext(context, PROFILE.leadAttacks, 'maximumStacks', 15)
     }
   ],
-  assumptionControls: Object.freeze([...THIEF_CORE_ASSUMPTION_CONTROLS, ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS]),
+  assumptionControls: Object.freeze([
+    ...THIEF_CORE_ASSUMPTION_CONTROLS,
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+  ]),
   rotationStateSnapshot: thiefCoreStateSnapshot,
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) =>

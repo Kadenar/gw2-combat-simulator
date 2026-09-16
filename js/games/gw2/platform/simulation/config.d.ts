@@ -30,6 +30,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly utility?: string;
   readonly timeOfDay?: 'day' | 'night';
   readonly randomness?: SimulationRandomnessConfig;
+  readonly professionAssumptions?: Readonly<Record<string, unknown>>;
   readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
   readonly alacrityRechargeRate?: number;
   readonly target?: Gw2TargetConfig;
