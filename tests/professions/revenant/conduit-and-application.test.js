@@ -238,7 +238,7 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, impactMs] of [
-      ['Field of the Mists', 920],
+      ['Field of the Mists', 680],
       ['Drop the Hammer', 1640]
     ]) {
       const strike = skill(name).effects.find((effect) => effect.type === 'strike');
