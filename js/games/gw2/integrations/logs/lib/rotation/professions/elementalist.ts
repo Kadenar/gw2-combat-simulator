@@ -80,9 +80,15 @@ function inferStartingElement(context: LogActionNormalizationContext, actions: r
 }
 
 function normalizeRecordedActions(context: LogActionNormalizationContext): RecordedLogAction[] {
-  const sorted = [...context.recordedActions].sort(
-    (left, right) => left.start - right.start || left.eventIndex - right.eventIndex
+  const unravelTimes = new Set(
+    context.recordedActions.filter((action) => action.rawSkillId === ID.UNRAVEL).map((action) => action.start)
   );
+  // Unravel performs this fully attuned transition itself; EI also records it as a tied synthetic Dual attunement.
+  const sorted = context.recordedActions
+    .filter(
+      (action) => !(unravelTimes.has(action.start) && /^Dual (Fire|Water|Air|Earth) Attunement$/i.test(action.rawName))
+    )
+    .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];
   let currentElement = inferStartingElement(context, sorted);
 
