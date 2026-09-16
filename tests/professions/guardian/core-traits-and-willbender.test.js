@@ -466,7 +466,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   assert.equal(
     full.events.some(
       (event) =>
-        event.type === 'proc' && event.name === 'Restorative Virtues' && event.detail === '0.25s weapon recharge'
+        event.type === 'proc' && event.name === 'Restorative Virtues' && event.detail === '0.28s weapon recharge'
     ),
     true
   );
@@ -504,10 +504,10 @@ test('Restorative Virtues converts base recharge reduction through Alacrity', ()
   assert.deepEqual(result.warnings, []);
   assert.ok(procs.length > 0);
   assert.equal(
-    procs.every((event) => event.detail === '0.2s weapon recharge'),
+    procs.every((event) => event.detail === '0.224s weapon recharge'),
     true
   );
-  assert.ok(Math.abs(action.rechargeReadyAt - trackedReadyAt - procs.length * 0.2) < 1e-9);
+  assert.ok(Math.abs(action.rechargeReadyAt - trackedReadyAt - procs.length * 0.224) < 1e-9);
 });
 
 test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots', () => {
