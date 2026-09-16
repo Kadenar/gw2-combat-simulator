@@ -190,11 +190,13 @@ function actionCommand(
     offset?: number;
     interruptMs?: number;
     doubleEdgeOutcome?: 'success' | 'backfire';
+    releaseAtCharges?: number;
   } = { name: action.name, skillId: action.skillId };
   const interruptMs = action.replayInterruptMs ?? observedInterruptMs(action);
   // Keep cancelled inputs explicit so their elapsed time survives without replaying a full damaging cast.
   if (interruptMs != null) command.interruptMs = interruptMs;
   if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
+  if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
 
   return command;
 }

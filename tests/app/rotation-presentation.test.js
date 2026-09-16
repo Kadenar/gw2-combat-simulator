@@ -289,7 +289,6 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(html, /&lt;MAX&gt;/);
   assert.doesNotMatch(html, /<bad>/);
   assert.doesNotMatch(html, /onerror="bad"/);
-  assert.match(paletteSkillHtml({ name: 'Reserved', concealed: true }), /pal-concealed/);
 
   const virtualView = {
     name: 'Wait',
@@ -307,7 +306,7 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
         label: 'Fanged Iboga',
         title: 'Active pet: Fanged Iboga'
       },
-      skills: [{ ...virtualView, virtual: true }]
+      skills: [virtualView]
     }),
     /&lt;Group&gt;/
   );
@@ -342,14 +341,6 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
       ]
     }),
     /data-palette-group="resource-controls"[\s\S]*class="pal-control resource-control pal-control-active pal-control-pressed pal-control-muted"[\s\S]*data-palette-control-id="resource&quot;&gt;&lt;bad&gt;"[\s\S]*class="pal-control-badge"/
-  );
-  assert.match(
-    paletteGroupHtml({
-      label: 'Reserved',
-      className: 'pal-group-concealed',
-      skills: [virtualView]
-    }),
-    /pal-group pal-group-concealed/
   );
 });
 

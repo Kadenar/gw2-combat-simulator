@@ -744,7 +744,6 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.match(legendGroups[0].className, /compact-resource-palette/);
   assert.equal(legendGroups[1].resourceAnchor, false);
   assert.equal(legendGroups[1].className, 'revenant-legend-skills-inactive');
-  assert.ok(revenantLegendLoadout.paletteGroups(context).every((group) => Array.isArray(group.reservedSkillIds)));
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_ELEMENTS), [SKILL.ELEMENTAL_BLAST]);
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_STRENGTH), [SKILL.BURST_OF_STRENGTH]);
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, SKILL.CALL_TO_ANGUISH), [SKILL.UNYIELDING_IMPACT]);

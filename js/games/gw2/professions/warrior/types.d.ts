@@ -84,6 +84,7 @@ export interface BladeswornState {
   dragonTriggerStartedAt: number;
   dragonTriggerChargeDeadline: number;
   nextDragonChargeAt: number;
+  dragonChargeTickCount: number;
   dragonCharges: number;
   dragonChargesPerInterval: number;
   dragonTriggerRotationIndex: number;
@@ -158,6 +159,8 @@ export interface WarriorSkill extends Skill {
   readonly dragonSlash?: boolean;
   readonly dragonSlashMinimumCoefficient?: number;
   readonly dragonSlashMaximumCoefficient?: number;
+  readonly dragonSlashMinimumBurningDuration?: number;
+  readonly dragonSlashMaximumBurningDuration?: number;
 }
 
 export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> &

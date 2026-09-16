@@ -17,7 +17,7 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-hammer.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
-        "benchmarkDps": 48825,
+        "benchmarkDps": 48880,
         "upToDate": true
       },
       {

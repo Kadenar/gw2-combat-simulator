@@ -3,9 +3,9 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
-  DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   dragonSlashCoefficient,
+  dragonChargeTickOffsetSeconds,
   projectDragonCharges,
   type DragonFlowRateSegment
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -91,6 +91,7 @@ export function dragonChargeReleaseProjection(context: {
     maximumFlow: Number(entry.maximumFlow),
     maximumCharges,
     chargesPerInterval,
+    tickAt: (tickIndex) => startTime + dragonChargeTickOffsetSeconds(tickIndex, maximumCharges, chargesPerInterval),
     flowPerInterval: Number(entry.flowPerInterval),
     flowRateSegments: flowRateSegments(entry.flowRateSegments),
     deadline
@@ -108,7 +109,7 @@ export function dragonChargeReleaseProjection(context: {
   return {
     rows: chargeLevels.map((charges, index) => {
       const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
-      const earliestAt = firstTickAt + index * DRAGON_CHARGE_INTERVAL_SECONDS;
+      const earliestAt = startTime + dragonChargeTickOffsetSeconds(index + 1, maximumCharges, chargesPerInterval);
       const pastDeadline = earliestAt > deadline + EPSILON;
       return {
         charges,

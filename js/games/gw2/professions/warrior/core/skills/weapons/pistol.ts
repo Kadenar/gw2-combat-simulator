@@ -15,7 +15,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
         count: 3
       }
     ],
-    castTimeMs: 333,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
