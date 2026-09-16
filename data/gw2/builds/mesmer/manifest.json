@@ -15,7 +15,7 @@
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 44009,
+        "benchmarkDps": 44020,
         "referenceDps": 44458,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword",
         "upToDate": true
@@ -24,7 +24,7 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 45285,
+        "benchmarkDps": 45498,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-chronomancer-staff-scepter-pistol",
         "upToDate": true
       }
@@ -37,7 +37,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 41037,
+        "benchmarkDps": 41055,
         "upToDate": true
       },
       {
@@ -58,7 +58,7 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
-        "benchmarkDps": 41977,
+        "benchmarkDps": 41978,
         "referenceDps": 42191,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword",
         "upToDate": true
@@ -67,7 +67,7 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39877,
+        "benchmarkDps": 39881,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol",
         "upToDate": true
       }
@@ -80,7 +80,7 @@
         "label": "Power (Dagger-Sword / Spear)",
         "build": "data/gw2/builds/mesmer/b-power-troubadour.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-troubadour-bench.json",
-        "benchmarkDps": 42793,
+        "benchmarkDps": 42785,
         "referenceDps": 42509,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-troubadour-spear-dagger-sword",
         "upToDate": true

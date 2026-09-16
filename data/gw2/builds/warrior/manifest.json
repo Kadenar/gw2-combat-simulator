@@ -6,7 +6,7 @@
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 41883,
+        "benchmarkDps": 41813,
         "upToDate": true
       }
     ]
@@ -33,7 +33,7 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 43934,
+        "benchmarkDps": 44056,
         "upToDate": true
       }
     ]
@@ -72,7 +72,7 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42293,
+        "benchmarkDps": 42273,
         "upToDate": true
       }
     ]

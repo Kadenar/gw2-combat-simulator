@@ -15,7 +15,7 @@
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-rifle.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-rifle-only",
-        "benchmarkDps": 36717,
+        "benchmarkDps": 36715,
         "upToDate": true
       }
     ]
@@ -57,7 +57,7 @@
         "build": "data/gw2/builds/thief/b-condi-specter-scepter-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-specter-scepter-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-specter-scepter-dagger-only",
-        "benchmarkDps": 36789,
+        "benchmarkDps": 36639,
         "upToDate": true
       }
     ]
@@ -70,7 +70,7 @@
         "build": "data/gw2/builds/thief/b-power-daredevil-dagger-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-daredevil-dagger-dagger-axe-pistol",
-        "benchmarkDps": 42720,
+        "benchmarkDps": 42719,
         "upToDate": true
       },
       {
@@ -78,7 +78,7 @@
         "build": "data/gw2/builds/thief/b-condi-daredevil-dagger-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-daredevil-dagger-only",
-        "benchmarkDps": 38623,
+        "benchmarkDps": 38624,
         "upToDate": true
       }
     ]
