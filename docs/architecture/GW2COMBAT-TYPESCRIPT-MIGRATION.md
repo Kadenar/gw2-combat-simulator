@@ -383,17 +383,31 @@ Post-port corrections (`phase-2-effects-first-attribute-cache`):
 
 These intentionally change the original event-for-event fidelity claim. Focused ordering/cache contracts live in
 `tests/platform/combat-engine/attributes.test.js`; both frozen fixture variants still meet the 1% total-DPS criterion.
-Invalidation currently rebuilds all pairs because target predicates and global counters can affect other actors.
+The first cache revision rebuilt all pairs because target predicates and global counters can affect other actors.
 
 Profiling the deterministic fixture in score mode found about 51% of sampled time under every-tick hooks, 14% under
 attribute calculation, and 7% under skill lookup (inclusive costs overlap). Skipping empty side-effect lists before
 ownership traversal reduced the three-run warm median from 3.33 s to 1.74 s on the same local Node environment, with
 unchanged DPS. The attribute cache alone left whole-fixture timing around 3.1 s because this encounter changes effects
 frequently. After the empty-list shortcut, sampled costs were approximately 23% attributes, 22% every-tick hooks, and
-11% skill lookup. Next candidates are narrower attribute invalidation, indexing hook holders by actor/stage while
-preserving iteration order, and indexing direct skill lookups while still evaluating conditional groups live. Reproduce
-with `npm run build:modules` followed by `node scripts/analysis/profile-combat-engine.mjs`; the script warms the
-fixture, measures three unprofiled runs, and profiles a separate run using Node's built-in inspector.
+11% skill lookup. Reproduce with `npm run build:modules` followed by `node scripts/analysis/profile-combat-engine.mjs`;
+the script warms the fixture, measures three unprofiled runs, and profiles a separate run using Node's built-in
+inspector.
+
+The follow-up revision `phase-2-scoped-attributes-indexed-tick-hooks` narrows attribute invalidation to pairs containing
+the changed actor, leaving unrelated pair maps untouched. Global counters, root membership changes, and random
+predicates retain full invalidation. Stack-cap admission is target-independent and now runs once per holder; empty
+holders still consume their reference stack slots. Destruction preserves ownership until dependent components have
+notified their caches.
+
+Every-tick hooks index eligible holders by root actor in original pool order. Pool and ownership revisions invalidate
+the indexes on addition, replacement, removal, or reassignment. Predicates still evaluate at execution time; additions
+to the current trigger pool wait for its next visit, while later pools see same-tick additions. Counter holders retain
+their existing missing-reference checks even when their conditions require another stage.
+
+On Node 24.14.1, the same three-run warm benchmark improved from 1.73 s to 1.26 s (27% less time), with unchanged
+deterministic fixture DPS. Follow-up samples put attributes near 17%, every-tick hooks near 10%, and direct/conditional
+skill lookup near 14% of sampled time. Skill lookup indexing remains a separate optimization.
 
 ### Phase 3 — Existing UI integration for that build
 

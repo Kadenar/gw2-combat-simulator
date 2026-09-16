@@ -2,8 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { runCombatLoop } from '#gw2/platform/combat-engine/loop.js';
-import { addEffectToActor } from '#gw2/platform/combat-engine/mutations.js';
-import { createEntity, createRegistry, destroyEntity } from '#gw2/platform/combat-engine/registry.js';
+import { addEffectToActor, applySideEffects } from '#gw2/platform/combat-engine/mutations.js';
+import {
+  createEntity,
+  createRegistry,
+  destroyEntity,
+  markAttributesDirty
+} from '#gw2/platform/combat-engine/registry.js';
 import { createRandomSource } from '#gw2/platform/combat-engine/rng.js';
 import { prepareEncounter, runCombatEngine } from '#gw2/platform/combat-engine/run.js';
 import { calculateRelativeAttributes, relativeAttribute } from '#gw2/platform/combat-engine/systems/attributes.js';
@@ -231,7 +236,7 @@ test('random attribute predicates reroll on later consuming ticks without audit-
     }
   });
   const { registry } = setup(configuration);
-  registry.recalculateAttributes.emplaceOrReplace(0, true);
+  markAttributesDirty(registry);
   const draws = t.mock.method(registry.random, 'real', () => (registry.tick === 1 ? 0 : 99));
   runCombatLoop(registry, { total: 0, bySourceActor: new Map() });
   assert.deepEqual(
@@ -258,4 +263,106 @@ test('actor creation, destruction, and static replacements update cached pairs',
   );
   calculateRelativeAttributes(registry);
   assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+});
+
+test('removing static attributes drops obsolete actor pairs', () => {
+  const { registry, player, target } = setup(encounter());
+  registry.staticAttributes.remove(target);
+  calculateRelativeAttributes(registry);
+  assert.equal(registry.relativeAttributes.has(target), false);
+  assert.equal(registry.relativeAttributes.get(player).has(target), false);
+});
+
+test('actor-local invalidation updates source and target pairs without rebuilding unrelated pairs', (t) => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: { permanent_unique_effects: [trait([modifier({ effect_on_target: 'BURNING' })])] }
+    })
+  );
+  const unaffected = registry.relativeAttributes.get(player).get(0);
+  const resets = t.mock.method(unaffected, 'clear');
+  addEffectToActor(registry, 'BURNING', target, player, '', 100, 1);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  assert.equal(relativeAttribute(registry, player, 0, 'power'), 1000);
+  assert.equal(resets.mock.callCount(), 0);
+  registry.staticAttributes.emplaceOrReplace(
+    target,
+    new Map([...registry.staticAttributes.get(target), ['power', 3000]])
+  );
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, target, player, 'power'), 3000);
+  assert.equal(resets.mock.callCount(), 0);
+});
+
+test('reparenting and destroying a modifier invalidates its former and current owner', () => {
+  const { registry, player, target } = setup(encounter());
+  const holder = createEntity(registry);
+  registry.owner.emplace(holder, player);
+  registry.isAttributeModifier.emplace(holder, [
+    {
+      condition: { not: [], or: [], and: [] },
+      attribute: 'power',
+      multiplier: 2,
+      addend: 0
+    }
+  ]);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  registry.owner.emplaceOrReplace(holder, target);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, 0, 'power'), 1000);
+  assert.equal(relativeAttribute(registry, target, 0, 'power'), 2000);
+  destroyEntity(registry, holder);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, target, 0, 'power'), 1000);
+});
+
+test('a global counter invalidates pairs that do not include the counter owner', () => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: {
+        permanent_unique_effects: [
+          trait([
+            modifier({
+              threshold: {
+                threshold_type: 'lower_bound_inclusive',
+                threshold_value: 1,
+                counter_value_subject_to_threshold: 'Global'
+              }
+            })
+          ])
+        ]
+      },
+      targetBuild: {
+        counters: [
+          { counter_key: 'Global', counter_modifiers: [{ counter_key: 'Global', operation: 'add', value: 1 }] }
+        ]
+      }
+    })
+  );
+  assert.equal(relativeAttribute(registry, player, 0, 'power'), 1000);
+  applySideEffects(registry, target, () => true);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, 0, 'power'), 2000);
+});
+
+test('empty newer holders still consume considered-stack slots before contributing holders', () => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: {
+        permanent_unique_effects: [
+          {
+            unique_effect_key: 'Capped',
+            max_stored_stacks: 2,
+            max_considered_stacks: 1,
+            attribute_modifiers: [modifier({})]
+          },
+          { unique_effect_key: 'Capped', max_stored_stacks: 2, max_considered_stacks: 1 }
+        ]
+      }
+    })
+  );
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  assert.equal(relativeAttribute(registry, player, player, 'power'), 1000);
 });

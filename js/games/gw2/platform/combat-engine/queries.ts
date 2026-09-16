@@ -208,7 +208,8 @@ function countEffect(registry: Registry, effect: Effect, ownerEntity: Entity, en
   return stacks;
 }
 
-function isStageDependent(condition: Condition): boolean {
+/** Shared stage classification lets hook indexes exclude predicates that cannot fire on ordinary ticks. */
+export function isStageDependent(condition: Condition): boolean {
   return (
     condition.onlyAppliesOnStrikes === true ||
     condition.onlyAppliesOnEffectApplication === true ||

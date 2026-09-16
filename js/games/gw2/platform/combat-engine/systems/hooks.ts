@@ -42,7 +42,8 @@ export function onEveryTickHooks(registry: Registry): void {
     applySideEffects(
       registry,
       actorEntity,
-      (condition) => independentConditionsSatisfied(registry, condition, actorEntity, null).satisfied
+      (condition) => independentConditionsSatisfied(registry, condition, actorEntity, null).satisfied,
+      true
     );
   });
 }
