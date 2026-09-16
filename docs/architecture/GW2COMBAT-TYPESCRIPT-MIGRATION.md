@@ -407,7 +407,14 @@ their existing missing-reference checks even when their conditions require anoth
 
 On Node 24.14.1, the same three-run warm benchmark improved from 1.73 s to 1.26 s (27% less time), with unchanged
 deterministic fixture DPS. Follow-up samples put attributes near 17%, every-tick hooks near 10%, and direct/conditional
-skill lookup near 14% of sampled time. Skill lookup indexing remains a separate optimization.
+skill lookup near 14% of sampled time.
+
+Revision `phase-2-scoped-attributes-indexed-lookups` also indexes direct skills by immediate owner and key, using the
+same lookup for execution and duplicate registration checks. Skill and ownership pool revisions invalidate the index;
+duplicate keys retain the first match in reference view order. Conditional groups still resolve their members and
+evaluate their conditions at lookup time. The warm median fell further from 1.26 s to 1.06 s (17% less time), with
+unchanged deterministic fixture DPS. The focused lookup contracts cover cached reads, reassignment, replacement,
+removal, entity recycling, duplicate precedence, and live conditional-group decisions.
 
 ### Phase 3 — Existing UI integration for that build
 
