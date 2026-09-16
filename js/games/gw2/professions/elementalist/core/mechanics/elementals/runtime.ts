@@ -199,6 +199,8 @@ function beginSummonAction(
   const playerCommanded = skillName === commandName(element);
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
+  // A commanded opener already owns the AI loop; combat start must not replace its pending impacts.
+  elemental.started = true;
   const activationId = context.createActivationId('summon-attack');
   elemental.currentActivationId = activationId;
   context.emit({
@@ -539,13 +541,8 @@ function handleElementalImpactTask(
   }
 
   if (payload.impact === 'flame-barrage-projectile') {
-    // 3 projectile hits (hitIndex 1..3 of 4); the first also applies stacked Burning.
+    // Each landed projectile supplies one player-owned burn
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
-    const fixedStrikeMetadata = {
-      // Barrage keeps the elemental's fixed damage profile while Fury remains eligible to affect critical hits.
-      summonUsesMight: false,
-      summonUsesEquipmentModifiers: false
-    };
     emitStrike(
       context,
       task,
@@ -555,19 +552,18 @@ function handleElementalImpactTask(
       Number(payload.hitIndex || 1),
       4,
       profile.projectileCoefficient,
-      fixedStrikeMetadata
+      // The elemental's own Might scales Barrage; owner equipment still does not.
+      { summonUsesEquipmentModifiers: false }
     );
-    if (Number(payload.hitIndex || 1) === 1) {
-      emitPlayerOwnedCondition(
-        context,
-        task,
-        profile.skillId,
-        'Flame Barrage',
-        'Burning',
-        profile.burningDuration,
-        profile.burningStacks
-      );
-    }
+    emitPlayerOwnedCondition(
+      context,
+      task,
+      profile.skillId,
+      'Flame Barrage',
+      'Burning',
+      profile.burningDuration,
+      profile.burningStacks
+    );
 
     return;
   }
@@ -584,10 +580,7 @@ function handleElementalImpactTask(
       4,
       4,
       profile.explosionCoefficient,
-      {
-        summonUsesMight: false,
-        summonUsesEquipmentModifiers: false
-      }
+      { summonUsesEquipmentModifiers: false }
     );
     return;
   }
@@ -617,6 +610,7 @@ function handleElementalImpactTask(
 // AI task handler: picks the next autonomous attack. Prefers the secondary attack
 // (Flame Burst / Enervating Punch) whenever its cooldown is ready, else the auto.
 // Player commands (Flame Barrage / Stomp) are driven by the rotation, not here.
+// Ready-first Fire AI omits observed selection delays; replace when their eligibility rule is established.
 function handleElementalAiTask(context: ElementalistSchedulerContext, task: ScheduledTask<ElementalTaskPayload>): void {
   const payload = task.payload;
   if (!payload) return;

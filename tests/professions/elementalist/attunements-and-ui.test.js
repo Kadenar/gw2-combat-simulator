@@ -10,6 +10,7 @@ import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 
 test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {
   assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
@@ -185,19 +186,23 @@ test('Tempest party boons affect the summoned elemental', () => {
       )
   );
 
-  const firstBarrage = (result) =>
-    result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.hitIndex === 1
+  // Both projectile and explosion branches receive pet Might and Fury through the same damage contract.
+  for (const hitIndex of [1, 4]) {
+    const barrage = (result) =>
+      result.resolvedEvents.find(
+        (event) => event.type === 'damage' && event.skillName === 'Flame Barrage' && event.hitIndex === hitIndex
+      );
+    const sharedBarrage = barrage(shared);
+    const isolatedBarrage = barrage(isolated);
+    assertFlooredDamageMultiplier(
+      sharedBarrage.damage,
+      isolatedBarrage.damage,
+      // The shared ten Might adds 300 pet Power; shared Fury independently changes the expected crit multiplier.
+      ((1 + 300 / FIRE_ELEMENTAL_EVTC_PROFILE.basePower) * (1 + sharedBarrage.criticalChance * 0.5)) /
+        (1 + isolatedBarrage.criticalChance * 0.5)
     );
-  const sharedBarrage = firstBarrage(shared);
-  const isolatedBarrage = firstBarrage(isolated);
-
-  assertFlooredDamageMultiplier(
-    sharedBarrage.damage,
-    isolatedBarrage.damage,
-    (1 + sharedBarrage.criticalChance * 0.5) / (1 + isolatedBarrage.criticalChance * 0.5)
-  );
-  assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
+    assert.ok(sharedBarrage.criticalChance > isolatedBarrage.criticalChance);
+  }
 });
 
 test('overload boons are party-scoped', () => {

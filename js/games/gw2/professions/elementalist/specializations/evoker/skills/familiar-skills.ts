@@ -63,6 +63,8 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     mechanicSlot: 5,
     categories: ['Familiar'],
     castTimeMs: 360,
+    // A released Conflagration survives cutting the command animation short.
+    interruptCommitMs: 320,
     cooldown: 0,
     nextChainId: ID.IGNITE,
     skillFamily: 'Familiar',
@@ -76,7 +78,8 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -90,6 +93,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
+        persistsAfterInterrupt: true,
         metadata: {}
       }
     ]

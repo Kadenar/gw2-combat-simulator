@@ -22,9 +22,8 @@ import { evokerState } from '#gw2/professions/elementalist/specializations/evoke
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
 /**
- * The single Evoker availability gate. Only the in-flight familiar cast yields a
- * time-based denial (`retryAt` set, so the scheduler waits and re-checks); every
- * other denial carries `retryAt: null` and is final for this command.
+ * Waits for in-flight familiar casts and charge grants; missing resources without
+ * a pending grant remain a final denial for this command.
  */
 export function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
@@ -49,7 +48,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     }
   }
 
-  // the one retryable denial: nothing may start until the familiar cast in flight ends
+  // Nothing may start until the familiar cast in flight ends.
   if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - context.epsilon) {
     return retryCast(
       state.activeFamiliarCast.endsAt,
@@ -71,6 +70,25 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
   if (BASIC_FAMILIARS.has(skill.id)) {
     const requiredEmpowered = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3);
+    // Recorded familiar inputs can precede the simulator's weapon completion; wait for real pending grants.
+    if (state.empowered < requiredEmpowered && state.charges < state.maximumCharges) {
+      const pending = state.concurrentParentAnchors
+        .flatMap((entry) => (entry.weaponChargeGain ? [entry.weaponChargeGain] : []))
+        .filter((grant) => grant.at > context.start + context.epsilon)
+        .sort((left, right) => left.at - right.at);
+      let charges = state.charges;
+      for (const grant of pending) {
+        charges += grant.gain;
+        if (charges >= state.maximumCharges) {
+          return retryCast(
+            grant.at,
+            'elementalist.evoker-charges',
+            `${skill.name} waits for the active cast to supply familiar charges.`
+          );
+        }
+      }
+    }
+
     return state.empowered < requiredEmpowered && state.charges >= state.maximumCharges
       ? { ready: true }
       : denyCast(

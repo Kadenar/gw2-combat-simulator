@@ -173,7 +173,7 @@
     {
       "type": "cast",
       "skillId": 77370,
-      "concurrentOffsetMs": 279
+      "concurrentOffsetMs": 157
     },
     {
       "type": "cast",
@@ -258,12 +258,12 @@
     {
       "type": "cast",
       "skillId": 5561,
-      "concurrentOffsetMs": 237
+      "concurrentOffsetMs": 118
     },
     {
       "type": "cast",
       "skillId": 77370,
-      "concurrentOffsetMs": 355
+      "concurrentOffsetMs": 118
     },
     {
       "type": "cast",

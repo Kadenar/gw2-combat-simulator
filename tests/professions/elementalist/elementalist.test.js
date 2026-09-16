@@ -25,7 +25,6 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profiles.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
@@ -202,8 +201,6 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     elementalistCatalog.balanceProfilesById.get(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources).recharge,
     10
   );
-  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.fireball.baseDamage, 830);
-  assert.equal(FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst.baseDamage, 1150);
   assert.equal(
     [...elementalistCatalog.balanceProfilesById.values()].some(
       (entry) => entry.parentId === ID.FIRE_ELEMENTAL_FIREBALL

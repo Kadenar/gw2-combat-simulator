@@ -94,7 +94,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     weapon: 'Warhorn',
     attunement: 'Fire',
     categories: ['Weapon skill'],
-    castTimeMs: 660,
+    castTimeMs: 840,
     cooldown: 30,
     comboFields: [
       {

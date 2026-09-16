@@ -314,6 +314,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     durationPerTier: 0.5,
     effects: [
       namedBoon('Attunement Might', 'might', 1, 15),
+      namedBoon('Flame Expulsion Might', 'might', 1, 15),
       { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
       namedCondition('Flame Expulsion', 'Burning', 1, 2)
     ]
