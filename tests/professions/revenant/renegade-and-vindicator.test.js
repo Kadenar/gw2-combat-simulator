@@ -244,8 +244,8 @@ test('Dwarf upkeep stops dealing damage when released', () => {
   assert.equal(result.endState.profession.activeUpkeeps.length, 0);
 });
 
-// Use isolated strike times to distinguish the 250 ms ICD from the independent strike delay.
-test('Impossible Odds uses a 250 ms interval and 250 ms delay for player-owned strikes', () => {
+// Measure the interval from the triggering hit, so a new hit may land 120 ms after the prior delayed strike.
+test('Impossible Odds uses a 280 ms interval and 280 ms delay for player-owned strikes', () => {
   const profession = {
     ...revenantProfession,
     resolveRuntime(config) {
@@ -256,9 +256,10 @@ test('Impossible Odds uses a 250 ms interval and 250 ms delay for player-owned s
           runtime.initialize(context);
           for (const [at, source, actorType] of [
             [1, 'Unlabelled equipment', 'effect'],
-            [1.249, 'Relic', 'effect'],
-            [1.25, 'Sigil', 'effect'],
-            [1.5, 'Player', 'player'],
+            [1.25, 'Early equipment', 'effect'],
+            [1.279999, 'Relic', 'effect'],
+            [1.4, 'Sigil', 'effect'],
+            [1.68, 'Player', 'player'],
             [2, 'Summon', 'summon']
           ]) {
             context.emit({
@@ -284,9 +285,9 @@ test('Impossible Odds uses a 250 ms interval and 250 ms delay for player-owned s
       .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
       .map((event) => [event.at, event.triggeredBy]),
     [
-      [1.25, 'Unlabelled equipment'],
-      [1.5, 'Sigil'],
-      [1.75, 'Player']
+      [1.28, 'Unlabelled equipment'],
+      [1.68, 'Sigil'],
+      [1.96, 'Player']
     ]
   );
 });
@@ -310,7 +311,7 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
   );
   assert.ok(shackles);
   assert.equal(followups.length, 1);
-  assert.ok(Math.abs(followups[0].at - shackles.at - 0.25) < 1e-12);
+  assert.ok(Math.abs(followups[0].at - shackles.at - 0.28) < 1e-12);
 });
 
 test('Icerazor packets use player ownership and trigger player equipment', () => {
@@ -1165,13 +1166,13 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     ]
   });
 
-  // Equipment triggered by the delayed strike can cause another eligible follow-up.
+  // Air from the delayed strike lands at the 280 ms ICD boundary and can trigger another follow-up.
   const followups = oddsWithAir.resolvedEvents.filter((event) => event.skillName === 'Impossible Odds');
   assert.deepEqual(
     followups.map((event) => event.triggeredBy),
     ['Phase Traversal', 'Sigil of Air']
   );
-  assert.ok(followups[1].at > followups[0].at);
+  assert.equal(Math.round((followups[1].at - followups[0].at) * 1000), 280);
   assert.ok(
     oddsWithAir.resolvedEvents.some(
       (event) => event.skillName === 'Sigil of Air' && event.triggeredBy === 'Impossible Odds'

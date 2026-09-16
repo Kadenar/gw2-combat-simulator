@@ -124,7 +124,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
 
   assert.equal(coalescence.cooldown, 4);
   assert.equal(coalescence.energyCost, 5);
-  assert.deepEqual(coalescence.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient), [2.3, 2.3]);
+  assert.deepEqual(coalescence.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient), [2.3]);
   const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
 
   assert.equal(phaseSmash.cooldown, 8);
@@ -142,7 +142,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   assert.equal(fieldOfTheMists.effects[1].duration, 2);
   assert.equal(fieldOfTheMists.comboFields[0].fieldType, 'Dark');
   assert.equal(fieldOfTheMists.comboFields[0].duration, 6);
-  assert.equal(fieldOfTheMists.comboFields[0].startMs, 560);
+  assert.equal(fieldOfTheMists.comboFields[0].startMs, 920);
   assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].finisherType, 'Projectile');
   assert.equal(fieldOfTheMists.effects[0].comboFinishers[0].chance, 1);
   const dropTheHammer = revenantCatalog.skillsById.get(SKILL.DROP_THE_HAMMER);

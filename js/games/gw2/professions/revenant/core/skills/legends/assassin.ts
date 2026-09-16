@@ -43,12 +43,12 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     // Exhausting Energy locks the upkeep for four seconds from starvation.
     starvationCooldown: 4,
     pulseInterval: 1,
-    // Triggered strikes use a separate quarter-second ICD from the upkeep pulse.
-    triggerIntervalMs: 250,
+    // Space eligible by 280 ms independently of upkeep pulses and the strike delay.
+    triggerIntervalMs: 280,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 250, coefficient: 0.65 }],
+        ticks: [{ atMs: 280, coefficient: 0.65 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Impossible Odds',

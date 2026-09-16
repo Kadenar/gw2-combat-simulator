@@ -14,14 +14,14 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'revenant',
         fieldType: 'Dark',
         duration: 6,
-        startMs: 560,
+        startMs: 920,
         startAnchor: 'castStart'
       }
     ],
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1.8 }],
+        ticks: [{ atMs: 680, coefficient: 1.8 }],
         name: 'Field of the Mists',
         actorType: 'player',
         timingAnchor: 'castStart',
@@ -140,7 +140,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 0.9 }],
+        ticks: [{ atMs: 560, coefficient: 0.9 }],
         name: 'Hammer Bolt',
         actorType: 'player',
         timingAnchor: 'castStart',
