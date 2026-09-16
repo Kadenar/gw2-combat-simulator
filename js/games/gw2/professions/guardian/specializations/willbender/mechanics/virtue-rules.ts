@@ -35,35 +35,35 @@ export const willbenderModifierRules: readonly Gw2ModifierRule[] = Object.freeze
   {
     id: 'guardian.willbender.lethal-tempo-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
+    // Lethal Tempo shares the outgoing additive bucket with equipment and other additive traits.
+    operation: 'damage-additive',
     // Tyrant's Momentum raises strike bonus (5 % vs 2 %) to compensate for the shorter window.
     parameters: {
       damagePerStack: 0.02,
       tyrantsMomentumDamagePerStack: 0.05
     } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      1 +
+    amount: (context, _target, parameters) =>
       lethalTempoStacks(context) *
-        (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
-          ? parameters.tyrantsMomentumDamagePerStack
-          : parameters.damagePerStack),
+      (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
+        ? parameters.tyrantsMomentumDamagePerStack
+        : parameters.damagePerStack),
     order: 100
   },
   {
     id: 'guardian.willbender.lethal-tempo-condition',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'multiply',
+    // Use the same additive grouping for conditions so Bursting does not multiply Lethal Tempo.
+    operation: 'damage-additive',
     // Condition bonus is identical (2 %) without Tyrant's Momentum; the trait adds 1 % here too.
     parameters: {
       damagePerStack: 0.02,
       tyrantsMomentumDamagePerStack: 0.03
     } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      1 +
+    amount: (context, _target, parameters) =>
       lethalTempoStacks(context) *
-        (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
-          ? parameters.tyrantsMomentumDamagePerStack
-          : parameters.damagePerStack),
+      (hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM)
+        ? parameters.tyrantsMomentumDamagePerStack
+        : parameters.damagePerStack),
     order: 100
   },
   {
