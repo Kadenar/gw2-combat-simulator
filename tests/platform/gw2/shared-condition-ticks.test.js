@@ -11,6 +11,7 @@ import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
 test('samples and strikes see cooldown resets, snapshots, and swaps only after execution', () => {
@@ -174,8 +175,8 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
   }
 });
 
-// Off-grid applications preserve exact expiry while pulses stay on encounter seconds.
-test('condition pulses retain encounter seconds and an exact off-grid expiry', () => {
+// The first-damage phase retains canonical precision over many pulses without accumulating drift.
+test('condition pulses retain first-damage phase and exact expiry', () => {
   const origin = 0.375001;
   const samples = [];
   const result = resolve(
@@ -193,8 +194,11 @@ test('condition pulses retain encounter seconds and an exact off-grid expiry', (
       }
     }
   );
-  assert.deepEqual(samples, [...Array.from({ length: 40 }, (_, index) => index + 1), 40.375001]);
-  assert.equal(result.lastHitTime, 40);
+  assert.deepEqual(
+    samples,
+    Array.from({ length: 40 }, (_, index) => (375001 + (index + 1) * 1_000_000) / 1_000_000)
+  );
+  assert.equal(result.lastHitTime, 40.375001);
 });
 
 // Trait-emitted Fear uses its damage formula; ordinary fear controls and ambient Fear remain harmless.
@@ -334,8 +338,8 @@ test('condition buffering shares Vulnerability once per pass and refreshes it on
   assert.notEqual(first.modifierValues, second.modifierValues);
 });
 
-// First damage affects the DPS window, while each owner and the environment retain encounter-second pulses.
-test('first damage and empty gaps do not shift condition pulses', () => {
+// All owners and environment packets follow first damage, and empty target windows preserve that origin.
+test('first damage anchors condition pulses and empty gaps do not shift them', () => {
   for (const output of ['detailed', 'score']) {
     const payouts = [];
     const samples = [];
@@ -359,23 +363,23 @@ test('first damage and empty gaps do not shift condition pulses', () => {
       }
     );
     assert.equal(result.firstHitTime, 0.375);
-    assert.deepEqual(samples, [1, 1.385, 4, 4.375]);
-    assert.deepEqual(payouts, [1, 2, 4, 5]);
+    assert.deepEqual(samples, [1.375, 1.385, 4.375]);
+    assert.deepEqual(payouts, [1.375, 2.375, 4.375]);
     if (output === 'detailed') {
       assert.deepEqual(
         applications(result)[0].damageTicks.map(({ fraction }) => fraction),
-        [0.625, 0.385]
+        [1, 0.01]
       );
       assert.deepEqual(
         result.environmentConditionBreakdown[0].damageTicks.map(({ at }) => at),
-        [1, 2, 3, 4, 5]
+        [1.375, 2.375, 3.375, 4.375]
       );
     }
   }
 });
 
 // Misses, zero damage and explicit combat markers do not shift the condition clock.
-test('first damage leaves existing condition wakes and precombat gating intact', () => {
+test('first damage replaces existing condition wakes while preserving precombat gating', () => {
   const damage = (at, extra = {}) => ({
     type: 'damage',
     at,
@@ -401,12 +405,50 @@ test('first damage leaves existing condition wakes and precombat gating intact',
   assert.deepEqual(
     applications(result)[0].damageTicks.map(({ at, fraction }) => [at, fraction]),
     [
-      [1, 1],
-      [2, 1],
-      [3, 1]
+      [1.375, 1],
+      [2.375, 1],
+      [3.375, 0.625]
     ]
   );
   assert.deepEqual(applications(result)[1].damageTicks, []);
+});
+
+// Explicit Combat Start only gates damage; the first surviving hit sets both the packet phase and chart origin.
+test('delayed first damage aligns payouts with whole fight seconds in both output modes', () => {
+  for (const output of ['detailed', 'score']) {
+    const payouts = [];
+    const result = resolve(
+      [
+        { type: 'damage', at: 8.72, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
+        condition(8.72, { duration: 2.2 }),
+        condition(9.22, { condition: 'Burning', duration: 0.2 })
+      ],
+      {
+        output,
+        combatStartTime: 7.88,
+        end: 11.72,
+        reactions: { 'condition-tick.resolved': (_ctx, event) => payouts.push(event.at) }
+      }
+    );
+    assert.equal(result.firstHitTime, 8.72);
+    assert.equal(result.dpsStartTime, 8.72);
+    assert.deepEqual([...new Set(payouts)], [9.72, 10.72, 11.72]);
+    if (output === 'detailed') {
+      const chart = buildChartSeries(result);
+      assert.deepEqual(
+        chart.conditionDamage.Bleeding.map(({ t }) => t),
+        [1000, 2000, 3000]
+      );
+      assert.deepEqual(
+        chart.conditionDamage.Burning.map(({ t }) => t),
+        [1000]
+      );
+      assert.deepEqual(
+        applications(result)[0].damageTicks.map(({ fraction }) => fraction),
+        [1, 1, 0.2]
+      );
+    }
+  }
 });
 
 test('an eligible condition payout establishes first damage before the same-time opening strike', () => {

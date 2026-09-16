@@ -36,6 +36,13 @@ export function createGw2ConditionResolution({
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
+
+  // First positive damage fixes the shared phase; integer arithmetic avoids drifting off that phase.
+  function nextPulseAt(ctx: Gw2ResolverRuntime, after: number): number {
+    const origin = timeKey(ctx.firstHitTime ?? 0);
+    return (origin + (Math.floor((timeKey(after) - origin) / 1_000_000) + 1) * 1_000_000) / 1_000_000;
+  }
+
   function activeStacks(ctx: Gw2ResolverRuntime, name: string, at: number): Gw2ResolverConditionStack[] {
     const state = ctx.conditionState.get(name);
     if (!state) return [];
@@ -82,7 +89,6 @@ export function createGw2ConditionResolution({
    * ticks without inserting duplicate stacks into player condition state.
    */
   function initializeEnvironment(ctx: Gw2ResolverRuntime): void {
-    const startsAt = 0;
     for (const condition of GW2_DAMAGING_CONDITIONS) {
       const stacks = permanentTargetConditionStacks(condition);
       if (!(stacks > 0)) continue;
@@ -94,8 +100,15 @@ export function createGw2ConditionResolution({
         stackSeconds: 0,
         damageTicks: []
       });
-      for (let pulseIndex = 1; pulseIndex <= Math.floor(ctx.horizon - startsAt); pulseIndex += 1) {
-        const at = (timeKey(startsAt) + pulseIndex * 1_000_000) / 1_000_000;
+    }
+
+    scheduleEnvironment(ctx, 0);
+    if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
+  }
+
+  function scheduleEnvironment(ctx: Gw2ResolverRuntime, after: number): void {
+    for (const { name: condition, stacks } of ctx.environmentConditions.values()) {
+      for (let at = nextPulseAt(ctx, after); at <= ctx.horizon; at = canonicalTime(at + 1)) {
         ctx.queue.enqueue({
           type: 'condition_tick',
           at,
@@ -109,8 +122,31 @@ export function createGw2ConditionResolution({
         });
       }
     }
+  }
 
-    if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
+  /** Replace provisional wakes once first damage establishes fight time; pre-fight accrual cannot fund later ticks. */
+  function startDamageClock(ctx: Gw2ResolverRuntime): void {
+    const at = ctx.firstHitTime!;
+    // An opening condition payout already lies on the provisional phase and must finish its entire batch.
+    if (timeKey(at) % 1_000_000 === 0) return;
+    for (const state of ctx.conditionState.values()) {
+      for (const group of state.groups?.values() ?? []) {
+        for (const application of group.applications) {
+          application.settledThrough = Math.min(application.naturalExpiresAt, at);
+          application.bufferedRawDamage = 0;
+          application.bufferedDurationUs = 0;
+        }
+
+        pruneGroup(group, at);
+        group.nextPulseAt = nextPulseAt(ctx, at);
+        scheduleGroup(ctx, group);
+      }
+    }
+
+    for (const entry of ctx.environmentConditions.values()) entry.bufferedRate = 0;
+    scheduleEnvironment(ctx, at);
+    ctx.conditionBufferAt = undefined;
+    scheduleBuffer(ctx, at);
   }
 
   /** Summons share player condition packets unless their producer marks an independent pet/mech owner. */
@@ -151,7 +187,7 @@ export function createGw2ConditionResolution({
       return;
     }
 
-    const at = group.nextPulseIndex;
+    const at = group.nextPulseAt;
     if (group.wakeAt === at) return;
     group.wakeAt = at;
     group.wakeToken += 1;
@@ -177,7 +213,7 @@ export function createGw2ConditionResolution({
 
   /** Sample at whole-second pulses and exact expirations, without stepping through intervening milliseconds. */
   function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number, newExpiresAt?: number): void {
-    let at = Math.floor(after) + 1;
+    let at = nextPulseAt(ctx, after);
     let active = ctx.environmentConditions.size > 0;
     if (newExpiresAt !== undefined) {
       // Existing applications already have a queued sample; only the new expiry can bring it forward.
@@ -218,7 +254,7 @@ export function createGw2ConditionResolution({
   function bufferConditions(ctx: Gw2ResolverRuntime, at: number): void {
     if (ctx.conditionBufferedAt != null && at <= ctx.conditionBufferedAt) return;
     ctx.conditionBufferedAt = at;
-    const onGrid = timeKey(at) % 1_000_000 === 0;
+    const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
     // Each pass observes one target state; discard these facts before processing another event or timestamp.
     const sample = {
       vulnerabilityStacks: ctx.query.vulnerabilityStacksAt?.(at, ctx) ?? 0,
@@ -337,11 +373,11 @@ export function createGw2ConditionResolution({
     }
 
     if (!group) {
-      // The reference's default condition clock uses encounter seconds; first damage only sets the DPS window.
+      // New applications join the first-damage clock, even after the target had no active conditions.
       group = {
         owner,
         condition: name,
-        nextPulseIndex: Math.floor(event.at) + 1,
+        nextPulseAt: nextPulseAt(ctx, event.at),
         wakeToken: 0,
         wakeAt: null,
         applications: []
@@ -369,7 +405,7 @@ export function createGw2ConditionResolution({
     group.wakeAt = null;
     bufferConditions(ctx, event.at);
     pruneGroup(group, event.at);
-    group.nextPulseIndex += 1;
+    group.nextPulseAt = canonicalTime(event.at + 1);
     const canDamage = ctx.combatStartTime == null || event.at >= ctx.combatStartTime;
     const contributions = [];
     for (const application of group.applications) {
@@ -413,6 +449,8 @@ export function createGw2ConditionResolution({
 
   /** Applies only the condition's base formula and target Vulnerability, never player-owned outgoing effects. */
   function handleEnvironmentConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+    // Provisional environment wakes become inert when first damage shifts the clock.
+    if ((timeKey(event.at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 !== 0) return;
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, Number(event.stacks || 0));
     const entry = ctx.environmentConditions.get(condition);
@@ -434,6 +472,7 @@ export function createGw2ConditionResolution({
     applyCondition,
     handleConditionTick,
     handleConditionBuffer,
+    startDamageClock,
     initializeEnvironment,
     handleEnvironmentConditionTick
   });

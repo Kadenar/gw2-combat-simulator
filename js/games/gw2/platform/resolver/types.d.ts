@@ -127,7 +127,7 @@ export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
 export interface Gw2ResolverConditionGroup {
   readonly owner: string | Gw2ResolvedConditionApplication;
   readonly condition: string;
-  nextPulseIndex: number;
+  nextPulseAt: number;
   wakeToken: number;
   wakeAt: number | null;
   applications: Gw2ResolvedConditionApplication[];
@@ -315,6 +315,7 @@ export interface Gw2ConditionResolution {
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;
+  startDamageClock(context: Gw2ResolverRuntime): void;
   handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
 }
 
@@ -440,5 +441,6 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly applyCondition: Gw2ConditionResolution['applyCondition'];
+  readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }
