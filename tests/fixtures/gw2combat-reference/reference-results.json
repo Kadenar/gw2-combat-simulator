@@ -1,0 +1,19 @@
+{
+  "referenceRevision": "cc9a0d069350516b6daba7d80d4395f9004971d5",
+  "generatedBy": "scripts/analysis/gw2combat-reference/compare-reference.mjs",
+  "platform": "win32-x64",
+  "dpsDefinition": "Sum of every audit damage event divided by the final tick in seconds.",
+  "canonical": {
+    "runs": 30,
+    "meanDps": 45120.35525862001,
+    "standardDeviation": 45.298517115145465,
+    "minimumDps": 44954.711812650305,
+    "maximumDps": 45201.56531531545
+  },
+  "deterministic": {
+    "endTick": 87800,
+    "totalDamage": 4014403.000000015,
+    "dps": 45722.12984054686,
+    "eventCount": 11105
+  }
+}
