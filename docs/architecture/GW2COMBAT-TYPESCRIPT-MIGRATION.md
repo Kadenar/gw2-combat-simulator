@@ -336,7 +336,8 @@ Why the registry mirrors EnTT: side effects, stack removal, child-actor spawning
 iteration order. The port therefore keeps one typed pool per component with EnTT's ordering rules instead of inventing
 an order. It is not a general ECS: every view is an explicit call listing its pools.
 
-Evidence (reproduce with the commands in [scripts/README.md](../../scripts/README.md)):
+Original Phase 2 evidence, before the corrections recorded below (reproduce with the commands in
+[scripts/README.md](../../scripts/README.md) at engine revision `phase-2-reference`):
 
 - **Deterministic lane:** the C++ and TypeScript audit streams for the deterministic fixture are identical. Both have
   11,105 events with the same order, child-actor identifiers, damage values, effect applications, and expirations. The
@@ -365,6 +366,34 @@ Recorded discrepancies and decisions:
 | Upstream gives three skill names built-in behavior: `Weapon Swap`, `Lifesteal Proc` (no on-strike effects), `Burning Bolts` (fire-field whirl) | Resolved as content flags: skill `weapon_swap`, skill `skip_on_strike_hooks`, and build/recipe `whirl_finisher_skills` (combo field to skill). The shared core has no skill names. `withUpstreamSkillConventions` adds the flags to upstream input at the adapter boundary, and the fixture still matches C++ event for event. |
 | Condition damage is modeled only for a stationary, idle golem (torment and confusion formulas)                                                 | Reference limitation, recorded for Phase 4 current-game validation.                                                                                                                                                                                                                                                            |
 | Single-run speed (TypeScript about 3.1 s against C++ about 1.8 s for 87.8 s of combat)                                                         | Not a fidelity issue. Phase 6 must profile this before any batch or optimizer use.                                                                                                                                                                                                                                             |
+
+Post-port corrections (`phase-2-effects-first-attribute-cache`):
+
+- Pending effect applications now resolve before strikes so target-condition and source-boon modifiers apply to
+  same-tick hits. On-strike applications resolve in a second, consuming pass after their triggering strikes. Condition
+  damage payouts and end-of-tick health commits keep their existing positions.
+- Relative attributes persist across ticks. Attribute-input pool changes add an encounter-wide `recalculateAttributes`
+  component; the next calculation rebuilds into reusable actor-pair maps. Equipment, effects, modifier/conversion
+  holders, ownership, and actor membership invalidate the cache. Health, counters, and cooldowns invalidate it only when
+  attribute predicates depend on them, including nested predicates and conditional skill-group selection. Random
+  predicates invalidate each tick so their results are not frozen. Expiration/removal invalidates when components are
+  actually removed. In-place health/counter mutations explicitly mark the cache; future mutable inputs must do likewise.
+- Effect audits retain the duration calculated when each application resolves, avoiding later-state duration changes or
+  observer-only random draws. Stack-cap keys use visible `\0` escapes instead of literal NUL bytes in source.
+
+These intentionally change the original event-for-event fidelity claim. Focused ordering/cache contracts live in
+`tests/platform/combat-engine/attributes.test.js`; both frozen fixture variants still meet the 1% total-DPS criterion.
+Invalidation currently rebuilds all pairs because target predicates and global counters can affect other actors.
+
+Profiling the deterministic fixture in score mode found about 51% of sampled time under every-tick hooks, 14% under
+attribute calculation, and 7% under skill lookup (inclusive costs overlap). Skipping empty side-effect lists before
+ownership traversal reduced the three-run warm median from 3.33 s to 1.74 s on the same local Node environment, with
+unchanged DPS. The attribute cache alone left whole-fixture timing around 3.1 s because this encounter changes effects
+frequently. After the empty-list shortcut, sampled costs were approximately 23% attributes, 22% every-tick hooks, and
+11% skill lookup. Next candidates are narrower attribute invalidation, indexing hook holders by actor/stage while
+preserving iteration order, and indexing direct skill lookups while still evaluating conditional groups live. Reproduce
+with `npm run build:modules` followed by `node scripts/analysis/profile-combat-engine.mjs`; the script warms the
+fixture, measures three unprofiled runs, and profiles a separate run using Node's built-in inspector.
 
 ### Phase 3 — Existing UI integration for that build
 
@@ -614,18 +643,18 @@ milestones expose the actual porting effort and are the basis for scheduling the
 
 ## 14. Implementation status and first work package
 
-| Milestone                            | Status      | Required evidence before completion                                                                                            |
-| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Plan recorded                        | Complete    | This document                                                                                                                  |
-| Upstream revision and C++ reference  | Complete    | Recorded under Phase 0 status; the caller inventory and current-engine baseline are still open                                 |
-| Shared TypeScript core               | Complete    | Phase 1 kernel, replaced in Phase 2 by the reference port; see Phase 1 status                                                  |
-| First Guardian reference build       | Complete    | Willbender fixture: identical deterministic audit stream, canonical DPS within noise, 21 reference-verified contract scenarios |
-| First Guardian UI slice              | Not started | Editing, prefix state, simulation, and results acceptance                                                                      |
-| Complete current-patch Guardian      | Not started | Core plus all four elites and product feature checks                                                                           |
-| Non-Guardian portability slices      | Not started | Thief resource and independent-pet Ranger evidence                                                                             |
-| Guardian performance/default cutover | Not started | Recorded budgets/results and exercised rollback                                                                                |
-| All remaining professions            | Not started | Accepted matrix rows and cross-profession checks                                                                               |
-| Legacy retirement                    | Not started | One production runtime and full repository checks                                                                              |
+| Milestone                            | Status      | Required evidence before completion                                                                                             |
+| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Plan recorded                        | Complete    | This document                                                                                                                   |
+| Upstream revision and C++ reference  | Complete    | Recorded under Phase 0 status; the caller inventory and current-engine baseline are still open                                  |
+| Shared TypeScript core               | Complete    | Phase 1 kernel, replaced in Phase 2 by the reference port; see Phase 1 status                                                   |
+| First Guardian reference build       | Complete    | Original reference fidelity verified; subsequent effect-order/cache corrections documented under Phase 2; fixture DPS within 1% |
+| First Guardian UI slice              | Not started | Editing, prefix state, simulation, and results acceptance                                                                       |
+| Complete current-patch Guardian      | Not started | Core plus all four elites and product feature checks                                                                            |
+| Non-Guardian portability slices      | Not started | Thief resource and independent-pet Ranger evidence                                                                              |
+| Guardian performance/default cutover | Not started | Recorded budgets/results and exercised rollback                                                                                 |
+| All remaining professions            | Not started | Accepted matrix rows and cross-profession checks                                                                                |
+| Legacy retirement                    | Not started | One production runtime and full repository checks                                                                               |
 
 The next work packages are the remaining Phase 0 inventories and baselines (production callers, result consumers,
 saved-data versions, the Guardian and all-profession mechanic inventory, and current-engine workload measurements),
