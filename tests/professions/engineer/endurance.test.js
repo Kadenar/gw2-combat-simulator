@@ -5,9 +5,6 @@ import {
   engineerEnduranceReadyAt
 } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
-import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-
 // Explicit recipients keep another actor's Vigor from changing player recovery.
 const vigor = (at, duration, includesSelf = true) => ({
   type: 'buff',
@@ -98,3 +95,4 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap'
   advanceEngineerResources(permanent, 30);
   assert.equal(permanent.state.profession.core.endurance, 100);
 });
+
