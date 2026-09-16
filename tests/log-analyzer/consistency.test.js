@@ -116,6 +116,44 @@ test('both importers place tied weapon casts on the correct side of an attunemen
   }
 });
 
+test('dps.report omits the synthetic Dual attunement tied to Unravel', () => {
+  // A distinct Dual attunement remains a real recorded input even when EI grouped it with the generated transition.
+  const result = reconstructDpsReportRotation(
+    {
+      players: [
+        {
+          name: 'Fixture',
+          profession: 'Weaver',
+          rotation: [
+            {
+              id: 41166,
+              skills: [
+                { castTime: 1000, duration: 0 },
+                { castTime: 1001, duration: 0 }
+              ]
+            },
+            { id: 80231, skills: [{ castTime: 1000, duration: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ start: 1000, end: 2000, name: 'Full Fight' }],
+      skillMap: {
+        s41166: { name: 'Dual Water Attunement', isSwap: true },
+        s80231: { name: 'Unravel' }
+      }
+    },
+    elementalistCatalog
+  );
+
+  assert.deepEqual(
+    result.actions.map(({ timestampMs, name }) => ({ timestampMs, name })),
+    [
+      { timestampMs: 0, name: 'Unravel' },
+      { timestampMs: 1, name: 'Water Attunement' }
+    ]
+  );
+});
+
 test('both importers order tied legend swaps before weapon swaps without reversing distinct timestamps', () => {
   // Report skill-group order and EVTC record order cannot decide which weapon owns a tied legend-swap proc.
   for (const legendOffset of [0, 1]) {
