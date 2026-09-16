@@ -1,53 +1,58 @@
 # Keeping log imports aligned with Elite Insights
 
 Use this guide when an Elite Insights (EI) release, ArcDPS encoding change, game patch, or reported import mismatch
-requires reviewing our parser. It continues the
-[log-import alignment work](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md); that document records the cleanup and its
-original validation, while this guide describes ongoing maintenance.
+requires reviewing our parser. The
+[log-import alignment contract](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md) defines what an import must and must
+not do and what's currently covered; this guide is the process for keeping that contract aligned with upstream EI.
 
 ## Baseline and scope
 
-The current reference is EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a` in
-[GW2-Elite-Insights-Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser). This is a source behavior baseline,
-not a claim of complete parity or the latest upstream version. The pinned links below come from the alignment document.
+Current reference: EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a` in
+[GW2-Elite-Insights-Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser) — a source behavior baseline, not a
+claim of complete parity or the latest upstream version. The pinned links below come from the alignment doc.
 
 - Raw EVTC imports decode recorded casts and apply supported, explicit EI finders with their actual evidence checks.
-- dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts. Older
-  reports remain authoritative for their own contents; updating our EVTC rules does not authorize adding rows to them.
-- Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`, and
-  replay commands distinct so a replay change cannot silently rewrite evidence.
-- Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation requirements
-  do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
+- dps.report imports use the selected player's supplied rotation and selected phase, including EI-inferred casts.
+  Older reports remain authoritative for their own contents — updating our EVTC rules does not authorize adding rows
+  to them.
+- Shared normalization maps represented actions into simulator inputs. Keep `sourceActions`, normalized `actions`,
+  and replay commands distinct so a replay change can't silently rewrite evidence.
+- Missing setup stays missing. Initial buffs, existing minions, later skills, damage totals, and simulation
+  requirements do not justify inventing casts. Preserve the single opener notice and independent actionable warnings.
 
-Known gaps include extension healing/barrier and unported custom checker families, time-aware ownership and reused
-instance IDs, and EI encounter-specific boundaries. Some custom finders have separate implementations even when excluded
-from the ordinary table. Consult the
+Known gaps: extension healing/barrier and unported custom checker families, time-aware ownership and reused instance
+IDs, EI encounter-specific boundaries. Some custom finders have separate implementations even when excluded from the
+ordinary table. Check the
 [coverage inventory](../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits) and
 [EVTC README](evtc/README.md) before treating a difference as a regression.
 
 ## Review an upstream update
 
-1. **Choose an exact candidate commit.** Record the old and candidate full SHAs and any release tag. Review the upstream
-   diff between them, including renamed files; release notes alone cannot establish parser compatibility. A release
-   without relevant changes needs only a recorded review, not a parser edit.
-2. **Keep three versions separate.** The EI commit identifies the reference implementation; the ArcDPS/EVTC build
-   selects event encoding; the GW2 build selects game-era rules. Locally, `minBuild`/`maxBuild` gate GW2 builds and
-   `minEvtcBuild`/`maxEvtcBuild` gate ArcDPS builds. Their ranges are half-open: minimum inclusive, maximum exclusive.
-   Do not use today's date, the report upload date, or the EI release number as an event-format gate.
-3. **Trace the changed upstream behavior to its local owner.** Review shared finder implementations as well as
-   profession declarations and identifier/build constants. One shared finder change can affect many professions without
-   changing their declarations. Follow each changed local helper's callers before editing it.
-4. **Classify each relevant change.** Record it as implemented, unaffected with a reason, or deferred with an explicit
-   coverage limitation. Review additions, modifications, and removals; merely appending new skill IDs misses changed
-   predicates and obsolete rules. Preserve older log behavior through the applicable build gates.
-5. **Port complete conditions.** Carry over evidence IDs/GUIDs and namespaces, actor/owner selection, specialization and
-   build gates, initial/extension exclusions, secondary checks, effect-availability gates, offsets, duplicate windows,
-   and origin/accuracy metadata. If a checker is unsupported, document the omission instead of approximating it from
-   damage or the simulator catalog. Add a short functional comment naming the EI method and why the local logic exists.
+1. **Choose an exact candidate commit.** Record the old and candidate full SHAs and any release tag, then diff between
+   them (including renamed files) — release notes alone don't establish parser compatibility. A release with no
+   relevant changes only needs a recorded review, not a parser edit.
+2. **Keep three versions separate.**
+   - EI commit → reference implementation.
+   - ArcDPS/EVTC build → event encoding. Locally: `minEvtcBuild`/`maxEvtcBuild`.
+   - GW2 build → game-era rules. Locally: `minBuild`/`maxBuild`.
+
+   All ranges are half-open (min inclusive, max exclusive). Never use today's date, report upload date, or the EI
+   release number as an event-format gate.
+3. **Trace the changed upstream behavior to its local owner.** Check shared finder implementations as well as
+   profession declarations and identifier/build constants — one shared finder change can affect many professions
+   without touching their declarations. Follow each changed local helper's callers before editing it.
+4. **Classify each relevant change** as implemented, unaffected (with a reason), or deferred (with an explicit
+   coverage limitation). Review additions, modifications, *and* removals — appending new skill IDs alone misses
+   changed predicates and obsolete rules. Preserve older log behavior through the applicable build gates.
+5. **Port complete conditions**, not just IDs: evidence IDs/GUIDs and namespaces, actor/owner selection,
+   specialization and build gates, initial/extension exclusions, secondary checks, effect-availability gates, offsets,
+   duplicate windows, and origin/accuracy metadata. If a checker is unsupported, document the omission instead of
+   approximating it from damage or the simulator catalog. Add a short comment naming the EI method and why the local
+   logic exists.
 6. **Validate before advancing the pin.** Update the baseline, affected source provenance comments, adapter
-   documentation, and coverage inventory together after reviewing the candidate. Keep old/new SHAs and remaining gaps in
-   the change description. For a partial port, record the affected rule's candidate SHA and retain an explicit
-   mixed-version scope; do not relabel every rule as aligned with the candidate.
+   documentation, and the coverage inventory together. Keep old/new SHAs and remaining gaps in the change description.
+   For a partial port, record the affected rule's candidate SHA and keep an explicit mixed-version scope — don't
+   relabel every rule as aligned with the candidate.
 
 To inspect an upstream checkout, run these commands there, replacing `CANDIDATE_SHA` with the reviewed full SHA:
 
@@ -80,11 +85,12 @@ the candidate commit.
 
 Use the same raw log with the exact reference EI version and our adapter. Record the input identity, EI SHA/version,
 ArcDPS build, GW2 build, selected player, EI parser/export settings, and observation window. Keep the generated JSON
-with the comparison evidence; a public report may have been generated by a different EI version.
+with the comparison evidence — a public report may have been generated by a different EI version.
 
-First compare `sourceActions`, including skill identity, start, duration, status, origin/accuracy and rule provenance
-where available. Align recording, combat, report/phase, and replay origins explicitly; a common offset does not permit
-moving individual casts. Only then inspect normalized actions and commands. Simulated DPS is not a parser parity test.
+Compare in this order: `sourceActions` first (skill identity, start, duration, status, origin/accuracy, rule
+provenance where available), then normalized actions and commands. Align recording, combat, report/phase, and replay
+origins explicitly — a common offset does not permit moving individual casts. Simulated DPS is not a parser parity
+test.
 
 For an absent, extra, or shifted cast, check in order:
 

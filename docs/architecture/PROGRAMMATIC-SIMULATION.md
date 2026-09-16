@@ -49,7 +49,7 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import { prepareSimulationConfig } from '#gw2/platform/engine/config.js';
+import { prepareSimulationConfig } from './tests/helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { engineerProfession } from '#gw2/professions/engineer/definition.js';
@@ -138,7 +138,8 @@ Build before running so Node executes the current compiled modules.
 ## The reusable wrapper pattern
 
 Profession tests define a base config once and merge small overrides for each simulation. `prepareSimulationConfig`
-provides the shared version of that merge:
+(`tests/helpers/simulation-config.js`) provides the shared version of that merge. It is a test-only helper, not a
+platform export — standalone scripts outside `tests/` should import it by relative path or inline the equivalent merge:
 
 ```js
 function simulate(specialization, rotation, overrides = {}) {

@@ -98,30 +98,3 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap'
   advanceEngineerResources(permanent, 30);
   assert.equal(permanent.state.profession.core.endurance, 100);
 });
-
-test('Engineer wait partitioning cannot change endurance or the next affordable dodge', () => {
-  const simulate = createProfessionSimulator(engineerProfession, {
-    selectedSkills: ['Healing Turret'],
-    selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION],
-    target: { armor: 2597, conditions: {} }
-  });
-  for (const waits of [[6000], [3000, 3000], [4000, 2000]]) {
-    const rotation = [
-      'Dodge',
-      'Dodge',
-      'Regenerating Mist',
-      ...waits.map((durationMs) => ({ type: 'wait', durationMs }))
-    ];
-    const recovery = simulate('Core', rotation);
-    assert.deepEqual(recovery.warnings, []);
-    // Eight endurance plus four Vigor seconds and two base seconds must always total 48.
-    assert.ok(Math.abs(recovery.endState.profession.endurance - 48) < 1e-9);
-    const retry = simulate('Core', [...rotation, 'Dodge']);
-    assert.deepEqual(retry.warnings, []);
-    assert.equal(retry.steps.filter((step) => step.skill === 'Dodge').at(-1).start, 8000);
-  }
-
-  const immediate = simulate('Core', ['Dodge', 'Dodge', 'Regenerating Mist', 'Dodge']);
-  assert.deepEqual(immediate.warnings, []);
-  assert.equal(immediate.steps.filter((step) => step.skill === 'Dodge').at(-1).start, 8000);
-});

@@ -1,7 +1,5 @@
 # Shared condition ticks
 
-Status: implemented with half-even millisecond durations and stat sampling at whole-second pulses and exact expiry.
-
 ## Timing contract
 
 Boon and condition durations round half-even to whole milliseconds after duration bonuses. Fixed-duration grants still
@@ -80,13 +78,3 @@ The inspected reference rounds each application group separately, and its public
 before condition settlement and cleans up expired effects afterward. This project retains its existing
 Sample/Settle/Ordinary phases and half-open status queries. These differences, authored skill timing, and
 profession/balance data mean this is not a claim of complete simulator parity.
-
-## Validation
-
-Focused tests cover millisecond half ties, post-bonus rounding, fixed durations, off-grid expiry, partial intervals,
-combined stack rounding across skills and expiry remainders, pulse and expiry stat changes, owner profiles, stale wakes,
-precombat gating, observations, health thresholds, and condition settlement before same-time strikes. Boon tests cover
-scheduler/resolver agreement, stacking, extensions, caps, immutable input, and zero-duration grants.
-
-Run `npm run build:modules`, the Node test suite, and `npm run benchmarks:compare`. Saved-preset comparisons retain the
-maximum 1% relative DPS tolerance without rebasing manifests or suppressing warnings.
