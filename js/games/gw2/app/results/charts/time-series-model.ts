@@ -380,6 +380,7 @@ export function buildChartSeries(
       const conditionType = damageType === 'condition' ? effectName(event.condition, event) : undefined;
       // Preserve cast ownership for multi-hit inspection; unowned condition ticks share only their application.
       const activationId = event.activationId || `event:${eventIndex}`;
+      const triggeredBy = event.triggeredBy || undefined;
       const damageTicks = eventDamageTicks(event);
       if (damageTicks.length) {
         // Condition ticks are neither critical nor non-critical strikes.
@@ -387,7 +388,7 @@ export function buildChartSeries(
           const value = Number(tick.damage || 0);
           const time = Number(tick.at || 0) * 1000 - dpsStartMs;
           if (value > 0 && time >= 0 && time <= durationMs) {
-            hits.push({ t: time, v: value, crit: null, activationId, damageType, conditionType });
+            hits.push({ t: time, v: value, crit: null, activationId, damageType, conditionType, triggeredBy });
           }
         }
       } else {
@@ -400,7 +401,8 @@ export function buildChartSeries(
             crit: damageType === 'condition' ? null : crit,
             activationId,
             damageType,
-            conditionType
+            conditionType,
+            triggeredBy
           });
         }
       }

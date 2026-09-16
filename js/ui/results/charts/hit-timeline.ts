@@ -19,6 +19,8 @@ export interface SkillHit {
   readonly damageType?: 'strike' | 'condition';
   readonly conditionType?: string;
   readonly contributions?: readonly ConditionTickContribution[];
+  // The skill whose hit triggered this proc, when the hit is not itself a direct cast.
+  readonly triggeredBy?: string;
 }
 
 const CONDITION_WINDOW_MS = 5000;
@@ -442,6 +444,7 @@ function mountHitTimelineLane(
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
     const showAttribution = detailHits.some((hit) => hit.contributions?.length);
+    const showTriggeredBy = detailHits.some((hit) => hit.triggeredBy);
     const heading =
       index == null
         ? `All ticks · ${detailHits.length} ${noun}${detailHits.length === 1 ? '' : 's'} · ${Math.round(detailHits.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()} damage`
@@ -457,12 +460,12 @@ function mountHitTimelineLane(
         <div class="condition-payouts">${detailHits.map((hit) => tickAttributionHtml(hit.contributions || [], hit.t + timeOffsetMs, hit.v)).join('')}</div>`
           : `<div class="hit-detail-table"><table>
         <caption>${escapeHtml(detailLabel)}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
         <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
           ${isCondition ? `<td>${escapeHtml(hit.conditionType || 'Unknown')}</td>` : ''}
-          <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}</tr>`
+          <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showTriggeredBy ? `<td>${escapeHtml(hit.triggeredBy || '—')}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
       </table></div>`
@@ -534,7 +537,8 @@ function mountHitTimelineLane(
           ${group.length > 1 ? `<div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div><div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>` : ''}
           <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>
           ${isCondition && group.length === 1 ? `<div>Condition type: ${escapeHtml(first.conditionType || 'Unknown')}</div>` : ''}
-          ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}`;
+          ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}
+          ${group.length === 1 && first.triggeredBy ? `<div>Triggered by: ${escapeHtml(first.triggeredBy)}</div>` : ''}`;
         tooltip.style.display = 'block';
         tooltip.style.left = `${Math.max(0, Math.min(left, layout.cssWidth - tooltip.offsetWidth))}px`;
         tooltip.style.top = `${layout.pad.top + layout.plotHeight + 4}px`;
