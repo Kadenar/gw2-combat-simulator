@@ -22,6 +22,7 @@ export interface RecordedLogAction {
   /** Preserve an observed action inside another cast, such as an airborne Vindicator autoattack. */
   readonly concurrentTimeline?: boolean;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
+  readonly releaseAtCharges?: number;
   readonly independentTimeline?: boolean;
   readonly canonicalSkillId?: number;
   readonly canonicalName?: string;

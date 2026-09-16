@@ -8,7 +8,6 @@ import {
   projectPalette,
   weaponPaletteRows,
   weaponSkills,
-  type AmmoView,
   type PaletteContext,
   type PaletteControlView,
   type PaletteGroupView,
@@ -26,24 +25,8 @@ import type {
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-function ammoView(ammo: AmmoView | null | undefined): {
-  readonly current: number;
-  readonly maximum: number;
-  readonly pips: readonly boolean[];
-} | null {
-  if (!ammo) return null;
-  const maximum = Math.max(0, Number(ammo.maximum || 0));
-  const current = Math.max(0, Math.min(maximum, Number(ammo.current || 0)));
-  const pips = Array.isArray(ammo.pips)
-    ? // A caller may provide nonstandard pip availability; otherwise derive the
-      // usual left-to-right filled state from current charges.
-      ammo.pips
-    : Array.from({ length: maximum }, (_, index) => index < current);
-  return { current, maximum, pips };
-}
-
 export function paletteSkillHtml(view: PaletteSkillView = {}): string {
-  const ammo = ammoView(view.ammo);
+  const ammo = view.ammo;
   const resource = view.resource;
   const skillId = view.skillId == null ? '' : String(view.skillId);
   const hotkeyAction = String(view.hotkeyAction || '');
@@ -56,7 +39,6 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     'pal-skill',
     disabled ? 'pal-disabled' : '',
     contextDisabled ? 'pal-context-disabled' : '',
-    view.concealed ? 'pal-concealed' : '',
     view.highlighted ? 'pal-ambush-active' : '',
     ammo ? 'pal-has-ammo' : '',
     ammo && ammo.current > 0 ? 'pal-ammo-available' : '',
@@ -107,7 +89,7 @@ export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
   });
 }
 
-export function paletteControlHtml(view: PaletteControlView): string {
+function paletteControlHtml(view: PaletteControlView): string {
   const classes = [
     'pal-control',
     view.className || '',
@@ -144,9 +126,7 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   return `<div class="pal-group${view.className ? ` ${esc(view.className)}` : ''}"
       ${view.id ? `data-palette-group="${esc(view.id)}"` : ''}>
     <div class="pal-label" style="color:${esc(view.color || '#a88be8')}">${esc(view.label)}</div>
-    <div class="pal-row">${statusIconHtml}${controls.map(paletteControlHtml).join('')}${skills
-      .map((skill) => (skill?.virtual ? virtualPaletteSkillHtml(skill) : paletteSkillHtml(skill)))
-      .join('')}</div>
+    <div class="pal-row">${statusIconHtml}${controls.map(paletteControlHtml).join('')}${skills.map(paletteSkillHtml).join('')}</div>
   </div>`;
 }
 
@@ -155,14 +135,10 @@ export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
   return content ? `<div class="weapon-palette-stack" data-role="weapon-set-stack">${content}</div>` : '';
 }
 
-export function weaponPaletteSectionHtml(
-  weaponGroups: readonly string[] = [],
-  actionGroup = '',
-  trailingGroup = ''
-): string {
+export function weaponPaletteSectionHtml(weaponGroups: readonly string[] = [], actionGroup = ''): string {
   const weapons = weaponPaletteStackHtml(weaponGroups);
-  return weapons || actionGroup || trailingGroup
-    ? `<div class="weapon-palette-section" data-role="weapon-palette-section">${weapons}${actionGroup}${trailingGroup}</div>`
+  return weapons || actionGroup
+    ? `<div class="weapon-palette-section" data-role="weapon-palette-section">${weapons}${actionGroup}</div>`
     : '';
 }
 
@@ -285,7 +261,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
       : '';
     if (!groupHtml || !attachedResourcesHtml) return groupHtml;
     const resourcesFirst = group.resourcePlacement === 'above';
-    return `<div class="profession-palette-resource-group resource-${esc(group.resourcePlacement || 'below')}">
+    return `<div class="profession-palette-resource-group resource-${esc(group.resourcePlacement)}">
               ${resourcesFirst ? attachedResourcesHtml : groupHtml}
               ${resourcesFirst ? groupHtml : attachedResourcesHtml}
             </div>`;

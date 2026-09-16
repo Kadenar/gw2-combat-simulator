@@ -358,12 +358,7 @@ function currentHotkeyTarget(root: HTMLElement, action: RotationHotkeyAction): H
   const candidates = [...root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')].filter(
     (candidate) => candidate.dataset.hotkeyAction === action
   );
-  return (
-    candidates.find(
-      (candidate) =>
-        !candidate.classList.contains('pal-context-disabled') && !candidate.classList.contains('pal-concealed')
-    ) || null
-  );
+  return candidates.find((candidate) => !candidate.classList.contains('pal-context-disabled')) || null;
 }
 
 function activateRotationHotkey(controller: RotationHotkeyController, event: KeyboardEvent): void {

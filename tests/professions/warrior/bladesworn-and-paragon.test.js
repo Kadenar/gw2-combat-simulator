@@ -13,6 +13,8 @@ import {
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+  dragonChargeTickOffsetSeconds,
+  dragonChargesForDurationMs,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -63,6 +65,132 @@ test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   assert.equal(result.endState.profession.dragonTriggerActive, false);
   assert.equal(result.endState.profession.maximumAdrenaline, 0);
   assert.equal(result.totalDamage > 0, true);
+});
+
+test('Sharp as the Wind selects condition Gunsaber variants and their secondary effects', () => {
+  // Runtime-selected variants retain their parent presentation while using separate combat identities.
+  for (const [parentId, variantId] of [
+    [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
+    [ID.STEEL_DIVIDE, ID.SHARP_STEEL_DIVIDE],
+    [ID.EXPLOSIVE_THRUST, ID.SHARP_EXPLOSIVE_THRUST],
+    [ID.BLOOMING_FIRE, ID.SHARP_BLOOMING_FIRE],
+    [ID.ARTILLERY_SLASH, ID.SHARP_ARTILLERY_SLASH],
+    [ID.CYCLONE_TRIGGER, ID.SHARP_CYCLONE_TRIGGER],
+    [ID.BREAK_STEP, ID.SHARP_BREAK_STEP],
+    [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE],
+    [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST],
+    [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH]
+  ]) {
+    assert.equal(warriorCatalog.skillsById.get(variantId).icon, warriorCatalog.skillsById.get(parentId).icon);
+  }
+
+  const result = simulate(
+    'Bladesworn',
+    [
+      ID.UNSHEATHE_GUNSABER,
+      ID.SWIFT_CUT,
+      ID.STEEL_DIVIDE,
+      ID.EXPLOSIVE_THRUST,
+      ID.BLOOMING_FIRE,
+      ID.ARTILLERY_SLASH,
+      ID.CYCLONE_TRIGGER,
+      ID.BREAK_STEP
+    ],
+    { initialResource: 100, selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND] }
+  );
+  const conditionsFor = (skillId) =>
+    result.events
+      .filter((event) => event.type === 'condition' && event.skillId === skillId)
+      .map(({ condition, stacks, duration }) => [condition, stacks, duration]);
+  const coefficientsFor = (skillId) =>
+    result.events
+      .filter((event) => event.type === 'damage' && event.skillId === skillId)
+      .map((event) => Number(event.coefficient.toFixed(6)));
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(coefficientsFor(ID.SHARP_SWIFT_CUT), [0.3, 0.1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_SWIFT_CUT), [['Bleeding', 2, 3]]);
+  assert.deepEqual(coefficientsFor(ID.SHARP_STEEL_DIVIDE), [0.4, 0.1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_STEEL_DIVIDE), [['Bleeding', 1, 3]]);
+  assert.deepEqual(coefficientsFor(ID.SHARP_EXPLOSIVE_THRUST), [0.6, 0.1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_EXPLOSIVE_THRUST), [['Bleeding', 1, 4]]);
+  assert.deepEqual(coefficientsFor(ID.SHARP_BLOOMING_FIRE), [0.5, 0.1, 0.1, 0.1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_BLOOMING_FIRE), [
+    ['Burning', 1, 3],
+    ['Burning', 1, 3],
+    ['Burning', 1, 3]
+  ]);
+  assert.deepEqual(coefficientsFor(ID.SHARP_ARTILLERY_SLASH), [2]);
+  assert.deepEqual(conditionsFor(ID.SHARP_ARTILLERY_SLASH), [['Bleeding', 4, 7]]);
+  assert.deepEqual(coefficientsFor(ID.SHARP_CYCLONE_TRIGGER), [1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_CYCLONE_TRIGGER), [['Burning', 2, 5]]);
+  assert.equal(
+    result.events.find(
+      (event) => event.type === 'buff' && event.kind === 'aegis' && event.skillId === ID.SHARP_CYCLONE_TRIGGER
+    )?.duration,
+    5
+  );
+  assert.deepEqual(coefficientsFor(ID.SHARP_BREAK_STEP), [0.1]);
+  assert.deepEqual(conditionsFor(ID.SHARP_BREAK_STEP), [['Burning', 1, 8]]);
+  assert.equal(
+    result.events.find((event) => event.type === 'damage' && event.skillId === ID.SHARP_ARTILLERY_SLASH)
+      ?.comboFinishers?.[0]?.finisherType,
+    'Projectile'
+  );
+  assert.equal(
+    result.events.find((event) => event.type === 'damage' && event.skillId === ID.SHARP_BREAK_STEP)?.comboFinishers?.[0]
+      ?.finisherType,
+    'Leap'
+  );
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'buff' && event.kind === 'positive-flow')
+      .map(({ stacks, duration }) => [stacks, duration]),
+    [[2, 5]]
+  );
+});
+
+test('Sharp as the Wind scales each Dragon Slash burning payload with charge', () => {
+  for (const [skillId, variantId, coefficient, minimumDuration, maximumDuration] of [
+    [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE, 3, 2, 4],
+    [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST, 2.4, 1.5, 3.25],
+    [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH, 1.5, 1, 2]
+  ]) {
+    for (const [charges, expectedStacks, expectedDuration] of [
+      [1, 1, minimumDuration],
+      [5, 1 + (19 * 4) / 9, minimumDuration + ((maximumDuration - minimumDuration) * 4) / 9],
+      [10, 20, maximumDuration]
+    ]) {
+      const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: charges }], {
+        initialResource: 100,
+        selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
+      });
+      const damage = result.events.find((event) => event.type === 'damage' && event.skillId === variantId);
+      const burning = result.events.find(
+        (event) => event.type === 'condition' && event.skillId === variantId && event.condition === 'Burning'
+      );
+
+      assert.deepEqual(result.warnings, []);
+      assert.equal(damage.coefficient, coefficient);
+      assert.equal(burning.stacks, expectedStacks);
+      assert.equal(burning.duration, expectedDuration);
+    }
+  }
+});
+
+test('Dragon Slash—Force lands 720ms after release', () => {
+  for (const selectedTraitIds of [[], [TRAIT.SHARP_AS_THE_WIND]]) {
+    const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], {
+      initialResource: 100,
+      selectedTraitIds
+    });
+    const slash = result.steps.find((step) => step.skill === 'Dragon Slash—Force');
+    const hit = result.events.find(
+      (event) => event.type === 'damage' && [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE].includes(event.skillId)
+    );
+
+    assert.equal(canonicalTime(hit.at - slash.start / 1000), 0.72);
+  }
 });
 
 test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
@@ -153,6 +281,31 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
     empty.every((tick) => tick.granted === false),
     true
   );
+});
+
+test('Dragon Trigger charge thresholds use measured 40 ms timing', () => {
+  assert.deepEqual(
+    Array.from({ length: 10 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, 10, 1) * 1000),
+    [240, 480, 760, 1000, 1240, 1480, 1720, 2000, 2240, 2480]
+  );
+  assert.deepEqual(
+    Array.from({ length: 5 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1, 10, 2) * 1000),
+    [240, 480, 720, 960, 1200]
+  );
+  assert.equal(dragonChargesForDurationMs(1240, 10, 1), 5);
+  assert.equal(dragonChargesForDurationMs(720, 10, 2), 6);
+
+  for (const [rotation, expectedSeconds] of [
+    [[ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], 2.48],
+    [[ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], 1.2]
+  ]) {
+    const result = simulate('Bladesworn', rotation, { initialResource: 100 });
+    const release = result.events.find(
+      (event) =>
+        event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
+    );
+    assert.equal(release.chargingSeconds, expectedSeconds);
+  }
 });
 
 test('Dragon charges map to adrenaline-spend trait tiers', () => {
@@ -334,6 +487,8 @@ test('Dragon Trigger resource ticks match the shared projection', () => {
     maximumCharges: entry.maximumCharges,
     chargesPerInterval: entry.chargesPerInterval,
     flowPerInterval: entry.flowPerInterval,
+    tickAt: (tickIndex) =>
+      entry.at + dragonChargeTickOffsetSeconds(tickIndex, entry.maximumCharges, entry.chargesPerInterval),
     flowRateSegments: entry.flowRateSegments,
     deadline: entry.deadline
   }).slice(0, actual.length);
@@ -351,7 +506,7 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = 0;
   state.dragonTriggerChargeDeadline = 2.5;
-  state.nextDragonChargeAt = 0.25;
+  state.nextDragonChargeAt = 0.24;
   const context = {
     epsilon: 1e-9,
     config: {},
@@ -369,19 +524,19 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
     }
   };
 
-  for (const target of [0.05, 0.1, 0.15, 0.2, 0.24]) {
+  for (const target of [0.05, 0.1, 0.15, 0.2]) {
     advanceBladesworn(context, target);
   }
 
   assert.equal(state.dragonCharges, 0);
-  advanceBladesworn(context, 0.25);
+  advanceBladesworn(context, 0.24);
   assert.equal(state.dragonCharges, 1);
-  for (let target = 0.5; target <= 2.5; target += 0.25) {
-    advanceBladesworn(context, Number(target.toFixed(2)));
+  for (const target of [0.48, 0.76, 1, 1.24, 1.48, 1.72, 2, 2.24, 2.48]) {
+    advanceBladesworn(context, target);
   }
 
   assert.equal(state.dragonCharges, 10);
-  assert.equal(state.flow, 54.5);
+  assert.ok(Math.abs(state.flow - 54.48) < 1e-9);
   assert.deepEqual(
     context.events.map(({ at, value, flowAfter, granted }) => ({
       at,
@@ -396,6 +551,7 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
       maximumCharges: 10,
       chargesPerInterval: 1,
       flowPerInterval: 5,
+      tickAt: (tickIndex) => dragonChargeTickOffsetSeconds(tickIndex, 10, 1),
       flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 2 }],
       deadline: 2.5
     }).map(({ at, charges, flowAfter, granted }) => ({

@@ -11,6 +11,7 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
@@ -175,6 +176,41 @@ test('Reaper shroud transitions do not import EI bar changes as weapon swaps', (
     result.actions.filter((action) => action.name.includes('Shroud')).map((action) => action.timestampMs),
     [2398, 15317]
   );
+});
+
+test('Bladesworn Gunsaber transitions omit EI swaps and Dragon Trigger charge waits', () => {
+  // Gunsaber bar changes are represented by their own inputs, while Dragon Slash owns its charge delay in simulation.
+  const report = reportFixture(
+    'Bladesworn',
+    [
+      { id: 62745, skills: [{ castTime: 0, duration: 0 }] },
+      { id: 62803, skills: [{ castTime: 1, duration: 2480 }] },
+      { id: 62797, skills: [{ castTime: 2481, duration: 1040 }] },
+      { id: 62861, skills: [{ castTime: 3521, duration: 0 }] },
+      { id: -2, skills: [1, 3522, 5000].map((castTime) => ({ castTime, duration: 0 })) }
+    ],
+    {
+      s62745: { name: 'Unsheathe Gunsaber' },
+      s62803: { name: 'Dragon Trigger' },
+      s62797: { name: 'Dragon Slash—Force' },
+      s62861: { name: 'Sheathe Gunsaber' },
+      's-2': { name: 'Weapon Swap', isSwap: true }
+    }
+  );
+
+  const result = reconstructDpsReportRotation(report, warriorCatalog);
+
+  assert.equal(
+    result.rotation.some((command) => command.name === 'Unsheathe Gunsaber'),
+    false
+  );
+  assert.deepEqual(
+    result.actions.filter((action) => action.kind === 'weapon-swap').map((action) => action.timestampMs),
+    [5000]
+  );
+  const triggerIndex = result.rotation.findIndex((command) => command.name === 'Dragon Trigger');
+  assert.equal(result.rotation[triggerIndex + 1].releaseAtCharges, 10);
+  assert.equal(result.rotation[triggerIndex + 1].name, 'Dragon Slash—Force');
 });
 
 test('Firebrand resolves complete Solace charge bursts while preserving ambiguous sparse casts', () => {

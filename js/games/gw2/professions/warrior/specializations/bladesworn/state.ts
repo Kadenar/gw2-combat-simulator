@@ -40,6 +40,7 @@ export function createBladeswornState(config: WarriorConfig = {}): BladeswornSta
     dragonTriggerStartedAt: 0,
     dragonTriggerChargeDeadline: 0,
     nextDragonChargeAt: 0,
+    dragonChargeTickCount: 0,
     dragonCharges: 0,
     dragonChargesPerInterval: 1,
     dragonTriggerRotationIndex: -1,
