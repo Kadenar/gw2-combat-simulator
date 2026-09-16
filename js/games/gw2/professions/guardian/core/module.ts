@@ -2,6 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import {
   augmentSkill,
   onBuffApplied,
+  onConditionApplied,
   onResolvedDamage,
   replaceSkill
 } from '#gw2/platform/profession-definition/mechanics.js';
@@ -102,6 +103,7 @@ export const guardianCoreModule = defineNativeModule({
     resolution: {
       reactions: [
         ...guardianCoreEventReactions.damage.map(onResolvedDamage),
+        ...guardianCoreEventReactions.condition.map(onConditionApplied),
         ...guardianCoreEventReactions.buff.map(onBuffApplied)
       ],
       hooks: {

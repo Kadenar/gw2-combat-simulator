@@ -94,18 +94,19 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        comboFinishers: [
-          {
-            ownerId: 'guardian',
-            finisherType: 'Whirl',
-            applications: 4,
-            ambiguousFieldSelection: 'oldest',
-            preferredFieldTypes: ['Fire']
-          }
-        ],
+        // Resolve one bolt per strike so field expiry and ignition cooldowns apply to each pulse.
         ticks: [280, 480, 680, 880].map((atMs) => ({
           atMs,
-          coefficient: 1
+          coefficient: 1,
+          comboFinishers: [
+            {
+              ownerId: 'guardian',
+              finisherType: 'Whirl' as const,
+              attemptGroup: `whirl:${atMs}`,
+              // Overlapping fields compete by age, regardless of their combo outcome.
+              ambiguousFieldSelection: 'oldest' as const
+            }
+          ]
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'

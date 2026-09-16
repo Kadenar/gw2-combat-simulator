@@ -33,9 +33,10 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
       : virtue === 'courage'
         ? Math.min(context.effectiveEnd, context.start + 0.52)
         : context.effectiveEnd;
-  // For justice the flame spawns at the very end of the skill window, not at impact time,
-  // so the pulsing DoT doesn't begin until the physical lunge finishes.
-  const flameAt = virtue === 'justice' ? Math.max(at, context.effectiveEnd - 0.04) : at;
+  // Resolve lays its trail during the dash; waiting for recovery delays pulses and loses hits before replacement.
+  // use the trail's start; target-specific crossing offsets require spatial movement tracking.
+  const flameAt =
+    virtue === 'resolve' ? context.start : virtue === 'justice' ? Math.max(at, context.effectiveEnd - 0.04) : at;
   const state = willbenderState.from(context);
   // virtueUntil may still hold the previous window; reset hit counts only when that
   // window has actually expired so a rapid re-activation doesn't wipe an in-progress tally.

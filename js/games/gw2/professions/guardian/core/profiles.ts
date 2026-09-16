@@ -219,7 +219,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     name: 'Symbol of Ignition - Field',
     profileKind: 'skill-variant',
     parentId: ID.SYMBOL_OF_IGNITION,
-    internalCooldown: 0.25,
+    internalCooldown: 0.24,
     effects: [
       {
         type: 'condition',

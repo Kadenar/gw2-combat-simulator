@@ -249,14 +249,66 @@ test('Whirling Light creates four Burning Bolts inside Purging Flames', () => {
     );
 
   assert.deepEqual(inFireField.warnings, []);
-  assert.equal(burningCombos(inFireField).length, 1);
+  assert.equal(burningCombos(inFireField).length, 4);
+  assert.equal(new Set(burningCombos(inFireField).map((event) => event.at)).size, 4);
   assert.equal(
     burningCombos(inFireField).every(
-      (event) => event.applicationCount === 4 && event.outcome.condition === 'Burning' && event.outcome.duration === 1
+      (event) => event.applicationCount === 1 && event.outcome.condition === 'Burning' && event.outcome.duration === 1
     ),
     true
   );
   assert.equal(burningCombos(withoutFireField).length, 0);
+});
+
+test('Master of Consecrations extends the usable combo field without creating a duplicate', () => {
+  // Finishers between the base and traited expirations must bind only when the duration trait is selected.
+  for (const traited of [false, true]) {
+    for (const delay of [6000, 8000]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: ['Purging Flames', { type: 'wait', durationMs: delay }, 'Whirling Light'],
+        config: {
+          ...config,
+          specialization: 'Willbender',
+          selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS] : []
+        }
+      });
+      const fields = result.events.filter(
+        (event) => event.type === 'combo_field' && event.skillId === GUARDIAN_SKILL_IDS.PURGING_FLAMES
+      );
+      assert.equal(fields.length, 1);
+      assert.equal(fields[0].expiresAt - fields[0].at, traited ? 7 : 5);
+      assert.equal(
+        result.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Fire'),
+        traited && delay === 6000
+      );
+      assert.deepEqual(result.warnings, []);
+    }
+  }
+});
+
+test('Flowing Resolve starts its flame trail before recovery and retains off-target ownership', () => {
+  // An early replacement must preserve the pulse that landed during Resolve's trail, but suppress an off-target trail.
+  for (const offTarget of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        { type: 'cast', skillId: GUARDIAN_SKILL_IDS.FLOWING_RESOLVE, offTarget },
+        { type: 'wait', durationMs: 500 },
+        'Rushing Justice',
+        { type: 'wait', durationMs: 2000 }
+      ],
+      config: { ...config, specialization: 'Willbender' }
+    });
+    const flames = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES
+    );
+    assert.deepEqual(
+      flames.map((event) => event.at),
+      offTarget ? [] : [1]
+    );
+    assert.deepEqual(result.warnings, []);
+  }
 });
 
 test('Guardian Blasts use centralized field binding and require an active field', () => {

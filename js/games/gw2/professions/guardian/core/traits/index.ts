@@ -114,14 +114,22 @@ export function handleSymbolOfIgnitionField(context: GuardianResolverContext, ev
   state.symbolIgnitionUntil = event.at + Number(event.duration ?? 4);
 }
 
-// While the symbol window is active, attach its burning to other player hits;
-// the symbol's own packets are excluded to prevent self-recursion.
-function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+// Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
+// and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
+export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const profile = balanceProfileFromContext(context, PROFILE.symbolOfIgnition);
   const burning = balanceProfileEffect(profile, 'condition');
+  const burningBolt =
+    event.type === 'condition' &&
+    event.condition === 'Burning' &&
+    !!event.comboId &&
+    event.fieldType === 'Fire' &&
+    event.finisherType === 'Whirl';
+  const torchPulse =
+    event.type === 'condition' && event.condition === 'Burning' && event.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME;
   if (
     !isGw2PlayerActorEvent(event) ||
-    !(Number(event.coefficient || 0) > 0) ||
+    !((event.type === 'damage' && Number(event.coefficient || 0) > 0) || burningBolt || torchPulse) ||
     event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION
   ) {
     return;
@@ -137,9 +145,12 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
     return;
   }
 
-  if (!isInternalCooldownReady(event.at, Number(state.symbolIgnitionReadyAt || 0))) return;
+  const projectile = event.projectile === true || burningBolt;
+  const cooldownKey = projectile ? 'symbolProjectileIgnitionReadyAt' : 'symbolIgnitionReadyAt';
+  // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
+  if (!isInternalCooldownReady(event.at, state[cooldownKey])) return;
 
-  state.symbolIgnitionReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
+  state[cooldownKey] = event.at + Number(profile?.internalCooldown ?? 0.24);
   context.queue.enqueue({
     type: 'condition',
     at: event.at,
@@ -154,7 +165,7 @@ function reactToSymbolOfIgnition(context: GuardianResolverContext, event: Guardi
     stacks: Number(burning?.stacks ?? 1),
     duration: Number(burning?.duration ?? 1),
     triggeredBy: event.skillName,
-    projectile: event.projectile === true
+    projectile
   });
 }
 

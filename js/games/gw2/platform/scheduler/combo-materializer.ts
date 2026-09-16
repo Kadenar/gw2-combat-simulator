@@ -366,8 +366,19 @@ export function createGw2ComboMaterializer(
   const materializer = {
     state,
 
-    // Detonated fields must stop accepting future finishers in both predictions and final resolution.
-    onEventReplaced(context: SchedulerContext, event: SimulationEvent): void {
+    // Keep field lifetimes and pending finishers aligned in prediction and final resolution.
+    onEventReplaced(context: SchedulerContext, event: SimulationEvent, previous: SimulationEvent): void {
+      // Cast-time trait changes must reach fields already materialized from the original action.
+      if (event.type === 'action' && event.comboFields !== previous.comboFields) {
+        fieldDescriptors(context, event).forEach((descriptor, index) => {
+          const fieldId = `${descriptor.ownerId}:${event.activationId || event.eventOrder}:field:${index + 1}`;
+          const field = context.eventsOfType('combo_field').find((candidate) => candidate.fieldId === fieldId);
+          if (field) {
+            context.replaceEvent(field, { expiresAt: canonicalTime(field.at + descriptor.duration) });
+          }
+        });
+      }
+
       if (event.type !== 'combo_field') return;
       registerComboField(state, event as ComboFieldEvent);
       rebindPendingFinishers(context, String(event.ownerId));

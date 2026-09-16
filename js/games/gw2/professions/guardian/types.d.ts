@@ -52,6 +52,7 @@ export interface GuardianCoreState {
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
   symbolIgnitionReadyAt: number;
+  symbolProjectileIgnitionReadyAt: number;
   zealotsResolutionReadyAt: number;
   resolutionUntil: number;
   righteousNextMightAt: number;

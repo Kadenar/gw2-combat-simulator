@@ -4,6 +4,7 @@ import {
   handleSymbolOfIgnitionField,
   handleRighteousInstinctsTick,
   reactToGuardianBuffTraits,
+  reactToSymbolOfIgnition,
   reactToGuardianDamageTraits
 } from '#gw2/professions/guardian/core/traits/index.js';
 
@@ -15,6 +16,7 @@ export const guardianCoreEventHandlers = Object.freeze({
 });
 
 export const guardianCoreEventReactions = Object.freeze({
+  condition: Object.freeze([{ id: 'guardian.ignition', order: 15, handler: reactToSymbolOfIgnition }]),
   damage: Object.freeze([
     {
       id: 'guardian.traits',
