@@ -1,4 +1,5 @@
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
@@ -230,19 +231,21 @@ export function handleImpossibleOddsStrike(
   if (
     !impossible ||
     !(state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === impossible.id) ||
-    task.at + context.epsilon < Number(state.traitProcReadyAt.impossibleOdds || 0)
+    // Integer clock keys allow the expiry instant without admitting hits just before it.
+    timeKey(task.at) < timeKey(Number(state.traitProcReadyAt.impossibleOdds || 0))
   ) {
     return;
   }
 
   const strike = effectByType(impossible, 'strike');
   if (strike?.type !== 'strike') return;
-  state.traitProcReadyAt.impossibleOdds = task.at + Number(impossible.triggerIntervalMs || 0) / 1000;
+  state.traitProcReadyAt.impossibleOdds = canonicalTime(task.at + Number(impossible.triggerIntervalMs || 0) / 1000);
   emitSkillDamage(context, {
     cause,
     at: task.at + Number(effectFirstAtMs(strike) || 0) / 1000,
     name: 'Impossible Odds',
     skillName: 'Impossible Odds',
+    triggeredBy: cause.skillName || cause.name || undefined,
     coefficient: strikeEffectCoefficient(strike),
     hits: 1,
     hitIndex: 1,

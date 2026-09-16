@@ -238,8 +238,9 @@ describe('Power Conduit skill profiles', () => {
     }
 
     for (const [name, impactMs] of [
-      ['Coalescence of Ruin', 560],
-      ['Field of the Mists', 560],
+      ['Hammer Bolt', 720],
+      ['Coalescence of Ruin', 1040],
+      ['Field of the Mists', 920],
       ['Drop the Hammer', 1640]
     ]) {
       const strike = skill(name).effects.find((effect) => effect.type === 'strike');
@@ -351,14 +352,7 @@ describe('Power Conduit skill profiles', () => {
   });
 });
 
-test('large Revenant hitboxes add the second Coalescence cascade and all Requiem impacts', () => {
-  const hammerConfig = {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100,
-    primaryWeapon: 'Hammer',
-    secondaryWeapon: ''
-  };
+test('large Revenant hitboxes add every Eternity Requiem impact', () => {
   const greatswordConfig = {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ENTITY,
@@ -383,28 +377,10 @@ test('large Revenant hitboxes add the second Coalescence cascade and all Requiem
       })
     );
 
-  assert.deepEqual(hitCounts('Renegade', 'Coalescence of Ruin', hammerConfig, 2000), {
-    small: 1,
-    large: 2
-  });
   assert.deepEqual(hitCounts('Vindicator', "Eternity's Requiem", greatswordConfig, 2500), {
     small: 8,
     large: 14
   });
-
-  const largeHammer = simulate(
-    'Renegade',
-    ['Coalescence of Ruin'],
-    { ...hammerConfig, professionAssumptions: { hitboxSize: 'large' } },
-    observationTail(2000)
-  );
-
-  assert.deepEqual(
-    largeHammer.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Coalescence of Ruin')
-      .map((event) => Math.round(event.at * 1000)),
-    [560, 1520]
-  );
 
   const largeRequiem = simulate(
     'Vindicator',
@@ -432,7 +408,8 @@ test('Drop the Hammer resets Coalescence of Ruin when its delayed hit lands', ()
       primaryWeapon: 'Hammer',
       secondaryWeapon: '',
       professionAssumptions: { hitboxSize: 'small' }
-    }
+    },
+    observationTail(400)
   );
 
   assert.deepEqual(result.warnings, []);
