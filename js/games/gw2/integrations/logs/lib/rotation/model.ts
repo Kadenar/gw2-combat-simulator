@@ -44,6 +44,7 @@ export interface ReconstructedRotationCommand {
   readonly interruptMs?: number;
   readonly initialStateDurationMs?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
+  readonly releaseAtCharges?: number;
 }
 
 export interface ReconstructedCombatStartCommand {

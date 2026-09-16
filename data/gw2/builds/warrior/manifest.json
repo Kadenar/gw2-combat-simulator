@@ -8,6 +8,13 @@
         "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
         "benchmarkDps": 41813,
         "upToDate": true
+      },
+      {
+        "label": "Condition (Sword / Pistol)",
+        "build": "data/gw2/builds/warrior/b-condi-bladesworn-sword-pistol.json",
+        "rotation": "data/gw2/rotations/warrior/r-condi-bladesworn-sword-pistol-bench.json",
+        "benchmarkDps": 42020,
+        "upToDate": true
       }
     ]
   },

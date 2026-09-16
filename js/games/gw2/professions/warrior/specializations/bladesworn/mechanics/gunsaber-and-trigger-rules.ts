@@ -6,11 +6,12 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
 import {
-  DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   maximumDragonCharges,
+  dragonChargeTickOffsetSeconds,
   requestedDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -30,6 +31,31 @@ export { bladeswornSkillMechanicHandlers };
 // Shared reason string so both the availability check and the charge-release
 // projection surface the same message in the UI.
 export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';
+
+const SHARP_AS_THE_WIND_VARIANTS = new Map<number, number>([
+  [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
+  [ID.STEEL_DIVIDE, ID.SHARP_STEEL_DIVIDE],
+  [ID.EXPLOSIVE_THRUST, ID.SHARP_EXPLOSIVE_THRUST],
+  [ID.BLOOMING_FIRE, ID.SHARP_BLOOMING_FIRE],
+  [ID.ARTILLERY_SLASH, ID.SHARP_ARTILLERY_SLASH],
+  [ID.CYCLONE_TRIGGER, ID.SHARP_CYCLONE_TRIGGER],
+  [ID.BREAK_STEP, ID.SHARP_BREAK_STEP],
+  [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE],
+  [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST],
+  [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH]
+]);
+const SHARP_AS_THE_WIND_PARENTS = new Map(
+  [...SHARP_AS_THE_WIND_VARIANTS].map(([parentId, variantId]) => [variantId, parentId])
+);
+
+/** Resolves either saved identity to the Gunsaber version selected by the active adept trait. */
+function resolveSharpAsTheWindSkillId(context: WarriorSchedulerContext, skillId: SkillId): SkillId {
+  const numericId = Number(skillId);
+  const parentId = SHARP_AS_THE_WIND_PARENTS.get(numericId) ?? numericId;
+  const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
+  if (!variantId) return skillId;
+  return hasTrait(context, TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
+}
 
 export const bladeswornSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
@@ -170,9 +196,11 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       const nextChargeAt =
         state.nextDragonChargeAt > context.start + context.epsilon
           ? state.nextDragonChargeAt
-          : context.start +
-            Number(
-              balanceProfileFromContext(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
+          : state.dragonTriggerStartedAt +
+            dragonChargeTickOffsetSeconds(
+              state.dragonChargeTickCount + 1,
+              maximumCharges,
+              state.dragonChargesPerInterval
             );
       // Even the next possible tick would land after the deadline — stop waiting.
       if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
@@ -246,5 +274,6 @@ export const bladeswornAttributeRules = Object.freeze({
   modifierRules
 });
 export const bladeswornCastRules = Object.freeze({
+  modifySkillId: resolveSharpAsTheWindSkillId,
   availability: { id: 'warrior.bladesworn', order: 20, handler: availability }
 });

@@ -204,6 +204,7 @@ function actionCommand(action: ResolvedAction): ReconstructedRotationCommand | R
     offset?: number;
     interruptMs?: number;
     doubleEdgeOutcome?: 'success' | 'backfire';
+    releaseAtCharges?: number;
   } = {
     name: action.name,
     skillId: action.skillId
@@ -216,6 +217,8 @@ function actionCommand(action: ResolvedAction): ReconstructedRotationCommand | R
   if (action.doubleEdgeOutcome != null) {
     command.doubleEdgeOutcome = action.doubleEdgeOutcome;
   }
+
+  if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
 
   return command;
 }

@@ -1754,11 +1754,10 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
     ['Swap Weapons']
   );
 
-  const html = weaponPaletteSectionHtml(['<div>W1</div>', '<div>W2</div>'], '<div>Act</div>', '<div>Legends</div>');
+  const html = weaponPaletteSectionHtml(['<div>W1</div>', '<div>W2</div>'], '<div>Act</div>');
 
   assert.match(html, /data-role="weapon-palette-section"/);
   assert.equal(html.indexOf('weapon-set-stack') < html.indexOf('Act'), true);
-  assert.equal(html.indexOf('Act') < html.indexOf('Legends'), true);
 });
 
 test('Engineer weapon swap stays visible as a state-gated kit exit', async () => {

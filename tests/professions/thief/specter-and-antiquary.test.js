@@ -1107,8 +1107,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
 
   assert.equal(picked.warnings.length, 0);
   assert.equal(picked.endState.profession.artifactUsesRemaining, 0);
-  // Spent artifacts stay listed (never concealed); paletteSkillAvailability is
-  // what greys them out, so a used artifact is disabled rather than removed.
+  // Spent artifacts stay listed; paletteSkillAvailability greys them out, so a used artifact is disabled.
   const spentContext = {
     specialization: 'Antiquary',
     professionState: picked.endState.profession,
@@ -1119,7 +1118,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
     thiefProfession.ui
       .paletteGroups(spentContext)
       .filter((group) => group.id.startsWith('thief-artifacts-'))
-      .every((group) => group.skillIds.length > 0 && !group.className.includes('pal-group-concealed')),
+      .every((group) => group.skillIds.length > 0),
     true
   );
   assert.equal(

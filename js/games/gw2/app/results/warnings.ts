@@ -3,6 +3,12 @@ import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';
 import { formatResultTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
+import {
+  createPaletteContext,
+  projectPalette,
+  rotationSelectedSlotSkills,
+  weaponSkills
+} from '#gw2/app/rotation/palette/model.js';
 
 export interface RotationWarningItem {
   readonly message: string;
@@ -44,11 +50,45 @@ export function rotationWarningItems(result: Gw2SimulationResult | null | undefi
   });
 }
 
+/** Flags equipped skills whose API-style cast time likely still needs simulator calibration. */
+function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarningItem[] {
+  const context = createPaletteContext(app);
+  const palette = projectPalette(app, context);
+  const equippedSkills = [
+    ...weaponSkills(app, 1),
+    ...weaponSkills(app, 2),
+    ...rotationSelectedSlotSkills(app),
+    ...palette.renderedProfessionGroups.flatMap((group) => group.skills),
+    ...palette.renderedLoadoutGroups.flatMap((group) => group.skills)
+  ];
+  const suspectSkills = [
+    ...new Set(
+      equippedSkills.flatMap((skill) => {
+        const castTimeMs = Number(skill.castTimeMs || 0);
+        return castTimeMs > 0 && Number.isFinite(castTimeMs) && castTimeMs % 40 !== 0
+          ? [`${skill.name} (${castTimeMs} ms)`]
+          : [];
+      })
+    )
+  ];
+  return suspectSkills.length
+    ? [
+        {
+          message: `These equipped skills have cast times that are not divisible by 40 ms and may be missing simulator implementation: ${suspectSkills.join(', ')}.`,
+          time: ''
+        }
+      ]
+    : [];
+}
+
 export function renderWarnings(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-warnings');
   if (!element) return;
   const details = element.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
   const wasOpen = details?.open ?? false;
-  const warnings = app.build.rotation.length && app.results ? rotationWarningItems(app.results) : [];
+  const warnings = [
+    ...equippedSkillCastTimeWarnings(app),
+    ...(app.build.rotation.length && app.results ? rotationWarningItems(app.results) : [])
+  ];
   mountRotationWarnings(element, warnings, { open: wasOpen });
 }

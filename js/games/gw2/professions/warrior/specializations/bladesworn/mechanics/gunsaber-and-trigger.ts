@@ -10,13 +10,13 @@ import {
 } from '#gw2/platform/scheduler/skill-events.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
-  DRAGON_CHARGE_INTERVAL_SECONDS,
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   dragonSlashCoefficient,
   dragonFlowPerInterval,
+  dragonChargeTickOffsetSeconds,
   maximumDragonCharges,
   projectDragonCharges,
   projectDragonFlow,
@@ -64,6 +64,7 @@ function clearDragonTriggerState(state: ReturnType<typeof bladeswornState.from>)
   state.dragonTriggerStartedAt = 0;
   state.dragonTriggerChargeDeadline = 0;
   state.nextDragonChargeAt = 0;
+  state.dragonChargeTickCount = 0;
   state.dragonCharges = 0;
   state.dragonChargesPerInterval = 1;
   state.dragonTriggerRotationIndex = -1;
@@ -90,16 +91,18 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
   const dragonTrigger = balanceProfileFromContext(context, PROFILE.dragonTrigger);
-  const chargeInterval = Number(dragonTrigger?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS);
   state.dragonTriggerChargeDeadline =
     context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS);
-  state.nextDragonChargeAt = context.effectiveEnd + chargeInterval;
   state.dragonCharges = 0;
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
   // so it only applies to the single Dragon Trigger entry it was active for.
   state.dragonChargesPerInterval =
     state.tacticalReloadUntil > 0 && state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
+  state.dragonChargeTickCount = 0;
+  state.nextDragonChargeAt =
+    context.effectiveEnd +
+    dragonChargeTickOffsetSeconds(1, maximumDragonCharges(context), state.dragonChargesPerInterval);
   state.dragonTriggerRotationIndex = context.commandIndex;
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = context.reservationId;
@@ -115,11 +118,11 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
   const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);
   const coefficient = dragonSlashCoefficient(minimum, maximum, charges, maximumCharges);
-  // Dragon Slash Force deals damage at the midpoint of its cast; all other
-  // Dragon Slash variants hit at cast end.
+  // Dragon Slash Force lands 720ms after release to match its observed damage packet;
+  // all other Dragon Slash variants hit at cast end.
   const impactAt =
-    skill.id === ID.DRAGON_SLASH_FORCE
-      ? context.start + (context.effectiveEnd - context.start) / 2
+    skill.id === ID.DRAGON_SLASH_FORCE || skill.id === ID.SHARP_DRAGON_SLASH_FORCE
+      ? context.start + 0.72
       : context.effectiveEnd;
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
   applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
@@ -160,6 +163,23 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     damageKind: 'explosion',
     dragonChargesSpent: charges
   });
+  const minimumBurningDuration = Number(skill.dragonSlashMinimumBurningDuration || 0);
+  const maximumBurningDuration = Number(skill.dragonSlashMaximumBurningDuration || 0);
+  if (minimumBurningDuration > 0 && maximumBurningDuration > 0) {
+    // Sharp as the Wind converts charge into both Burning intensity and duration on one linear scale.
+    emitSkillCondition(context, {
+      at: impactAt,
+      skillId: skill.id,
+      sourceId: skill.id,
+      skillName: skill.name,
+      source: 'Warrior',
+      actorType: 'player',
+      condition: 'Burning',
+      stacks: dragonSlashCoefficient(1, 20, charges, maximumCharges),
+      duration: dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges)
+    });
+  }
+
   applyDragonSlashTraits(context, skill, impactAt);
 
   clearDragonTriggerState(state);
@@ -169,6 +189,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
 // strike profile from the number of rounds committed.
 export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSkill): void {
   const charges = Math.max(1, Number(context.ammo?.charges || 1));
+  const sharpAsTheWind = skill.id === ID.SHARP_ARTILLERY_SLASH;
   recordBladeswornAmmoSpend(context, charges, charges >= Number(context.ammo?.maximum || skill.ammo || 0));
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
@@ -183,10 +204,37 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     skillName: skill.name,
     source: 'Warrior',
     actorType: 'player',
-    coefficient: Number(strike?.coefficient ?? (charges >= 2 ? 3 : 2)),
+    coefficient: sharpAsTheWind ? 2 : Number(strike?.coefficient ?? (charges >= 2 ? 3 : 2)),
     skillWeapon: 'Gunsaber',
-    damageKind: 'explosion'
+    damageKind: 'explosion',
+    projectile: sharpAsTheWind,
+    ...(sharpAsTheWind
+      ? {
+          comboFinishers: [
+            {
+              ownerId: 'warrior',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        }
+      : {})
   });
+  if (sharpAsTheWind) {
+    // The condition variant spends the same ammo pool while scaling its Bleeding payload by rounds consumed.
+    emitSkillCondition(context, {
+      at: context.effectiveEnd,
+      skillId: skill.id,
+      sourceId: skill.id,
+      skillName: skill.name,
+      source: 'Warrior',
+      actorType: 'player',
+      condition: 'Bleeding',
+      stacks: charges >= 2 ? 4 : 3,
+      duration: charges >= 2 ? 7 : 6
+    });
+  }
+
   emitSkillControl(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
@@ -194,7 +242,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     skillName: skill.name,
     source: 'Warrior',
     actorType: 'player',
-    controlKind: 'daze'
+    controlKind: sharpAsTheWind && charges >= 2 ? 'stun' : 'daze'
   });
 }
 
@@ -333,19 +381,20 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
   refreshDragonTriggerEntryProjection(context);
   const chargeThrough = Math.min(target, state.dragonTriggerChargeDeadline);
   const flowPerInterval = dragonFlowPerInterval(context);
-  const chargeInterval = Number(
-    balanceProfileFromContext(context, PROFILE.dragonTrigger)?.pulseInterval ?? DRAGON_CHARGE_INTERVAL_SECONDS
-  );
+  const maximumCharges = maximumDragonCharges(context);
   const ticks = projectDragonCharges({
     startTime: state.flowUpdatedAt,
     firstTickAt: state.nextDragonChargeAt,
     flow: state.flow,
     maximumFlow: state.maximumFlow,
     initialCharges: state.dragonCharges,
-    maximumCharges: maximumDragonCharges(context),
+    maximumCharges,
     chargesPerInterval: state.dragonChargesPerInterval,
     flowPerInterval,
-    intervalSeconds: chargeInterval,
+    initialTickIndex: state.dragonChargeTickCount + 1,
+    tickAt: (tickIndex) =>
+      state.dragonTriggerStartedAt +
+      dragonChargeTickOffsetSeconds(tickIndex, maximumCharges, state.dragonChargesPerInterval),
     flowRateSegments: dragonFlowRateSegments(context, state.flowUpdatedAt, chargeThrough),
     deadline: chargeThrough
   });
@@ -376,8 +425,12 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
       granted: tick.granted,
       deadline: state.dragonTriggerChargeDeadline
     });
-    state.nextDragonChargeAt += chargeInterval;
   }
+
+  state.dragonChargeTickCount += ticks.length;
+  state.nextDragonChargeAt =
+    state.dragonTriggerStartedAt +
+    dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, maximumCharges, state.dragonChargesPerInterval);
 
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
@@ -430,6 +483,8 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
 }
 
 export function useOverchargedCartridges(context: WarriorCastContext, _skill: WarriorSkill): void {
+  // The custom cartridge state must follow the skill's interrupt commit boundary.
+  if (context.action.cancelled) return;
   const castDuration = Math.max(0, context.fullEnd - context.start);
   activateOverchargedCartridges(context, context.start + castDuration * (420 / 900));
 }

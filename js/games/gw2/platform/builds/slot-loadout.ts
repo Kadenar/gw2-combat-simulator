@@ -89,7 +89,6 @@ export interface SlotLoadoutPaletteGroup {
   id: string;
   label: string;
   skillIds: number[];
-  reservedSkillIds: number[];
   active: boolean;
   color?: string;
   className?: string;
@@ -344,7 +343,6 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
       id: `${id}:${bar.id}`,
       label: bar.compactLabel,
       skillIds: [...bar.skillIds],
-      reservedSkillIds: [],
       active: bar.active
     }));
   }
