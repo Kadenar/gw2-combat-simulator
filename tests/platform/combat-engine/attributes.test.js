@@ -366,3 +366,97 @@ test('empty newer holders still consume considered-stack slots before contributi
   assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
   assert.equal(relativeAttribute(registry, player, player, 'power'), 1000);
 });
+
+test('value changes reuse attribute metadata while modifiers and conversions evaluate live predicates', (t) => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: {
+        permanent_unique_effects: [
+          {
+            ...trait([modifier({ weapon_set: 'set_2' })]),
+            attribute_conversions: [
+              { condition: { weapon_set: 'set_2' }, from: 'power', to: 'condition_damage', multiplier: 0.1 }
+            ]
+          }
+        ]
+      }
+    })
+  );
+  const modifiers = t.mock.method(registry.isAttributeModifier, 'forEach');
+  const conversions = t.mock.method(registry.isAttributeConversion, 'forEach');
+  registry.currentWeaponSet.emplaceOrReplace(player, 'set_2');
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  assert.equal(relativeAttribute(registry, player, target, 'condition_damage'), 200);
+  registry.currentWeaponSet.emplaceOrReplace(player, 'set_1');
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  assert.equal(relativeAttribute(registry, player, target, 'condition_damage'), 0);
+  assert.equal(modifiers.mock.callCount(), 0);
+  assert.equal(conversions.mock.callCount(), 0);
+});
+
+test('replacing skill-group predicates refreshes transitive attribute dependencies', () => {
+  const { registry, player, target } = setup(
+    encounter({
+      skills: [skill('Ready'), skill('Blocked')],
+      playerAttributes: [['max_health', 100]],
+      playerBuild: {
+        conditional_skill_groups: [{ skill_key: 'Selected', conditional_skill_keys: [{ skill_key: 'Ready' }] }],
+        permanent_unique_effects: [trait([modifier({ depends_on_skill_off_cooldown: 'Selected' })])]
+      }
+    })
+  );
+  const [groupEntity, group] = [...registry.isConditionalSkillGroup.entries()][0];
+  const member = group.conditionalSkillKeys[0];
+  const blocked = [...registry.isSkill.entries()].find(([, entry]) => entry.skillKey === 'Blocked')[0];
+  registry.cooldown.emplace(blocked, { duration: [100, 100], progress: [0, 0] });
+  registry.isConditionalSkillGroup.emplaceOrReplace(groupEntity, {
+    ...group,
+    conditionalSkillKeys: [
+      {
+        ...member,
+        condition: {
+          ...member.condition,
+          threshold: { thresholdType: 'lower_bound_inclusive', thresholdValue: 0.5, healthPctSubjectToThreshold: true }
+        }
+      },
+      { ...member, skillKey: 'Blocked' }
+    ]
+  });
+  calculateRelativeAttributes(registry);
+  assert.equal(registry.attributeDependencies.has('health'), true);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  registry.combatStats.emplaceOrReplace(player, { health: 1 });
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  registry.isConditionalSkillGroup.emplaceOrReplace(groupEntity, group);
+  calculateRelativeAttributes(registry);
+  assert.equal(registry.attributeDependencies.has('health'), false);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+});
+
+test('cached stack admission refreshes when caps or holder definitions change', () => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: {
+        permanent_unique_effects: [
+          { ...trait([modifier({})]), max_stored_stacks: 2, max_considered_stacks: 1 },
+          { ...trait([]), max_stored_stacks: 2, max_considered_stacks: 1 }
+        ]
+      }
+    })
+  );
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  const [holder, entries] = [...registry.isAttributeModifier.entries()].find(([, entries]) => entries.length > 0);
+  const effect = registry.owner.get(holder);
+  registry.isUniqueEffect.emplaceOrReplace(effect, { ...registry.isUniqueEffect.get(effect), maxConsideredStacks: 2 });
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  registry.isAttributeModifier.emplaceOrReplace(holder, [{ ...entries[0], addend: 500 }]);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1500);
+  registry.isAttributeModifier.remove(holder);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+});
