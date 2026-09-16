@@ -8,7 +8,11 @@ import {
   revenantCastRules
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { projectRevenantEndState, snapshotRevenantState } from '#gw2/professions/revenant/state.js';
+import {
+  emitRevenantStateSnapshot,
+  projectRevenantEndState,
+  snapshotRevenantState
+} from '#gw2/professions/revenant/state.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
@@ -47,6 +51,7 @@ import { spendRevenantEnergy } from '#gw2/professions/revenant/energy.js';
 import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
 import {
   ASSASSINS_PRESENCE_TASK,
   scheduleAssassinsPresence,
@@ -92,11 +97,15 @@ export const revenantSchedulerHooks = Object.freeze({
   onCastStart,
   onCastComplete,
   afterCast: afterRevenantCast,
-  /**
-   * Makes legend swap immediately available after a global cooldown reset.
-   */
+  /** Makes legend swap available and restores in-combat Energy after a global cooldown reset. */
   onCooldownReset: (context: RevenantSchedulerContext): void => {
-    professionCoreState(context).legendSwapReadyAt = context.state.time;
+    const state = professionCoreState(context);
+    state.legendSwapReadyAt = context.state.time;
+    if (!revenantCombatActive(context)) return;
+    state.energy = state.maximumEnergy;
+    state.energyUpdatedAt = context.state.time;
+    state.energyAccrual = undefined;
+    emitRevenantStateSnapshot(context, context.state.time, 'cooldown-reset');
   },
   onEventScheduled,
   taskHandlers: Object.freeze({
