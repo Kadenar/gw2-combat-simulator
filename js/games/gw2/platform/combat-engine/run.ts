@@ -23,7 +23,7 @@ import type {
 } from '#gw2/platform/combat-engine/types.js';
 
 /** Engine revision recorded on every run so a result can be reproduced later. */
-export const COMBAT_ENGINE_REVISION = 'phase-2-scoped-attributes-indexed-tick-hooks';
+export const COMBAT_ENGINE_REVISION = 'phase-2-scoped-attributes-indexed-lookups';
 
 /** The pinned upstream gw2combat commit this engine was ported from. */
 export const REFERENCE_REVISION = 'cc9a0d069350516b6daba7d80d4395f9004971d5';
