@@ -1,0 +1,44 @@
+{
+    "actors": [
+        {
+            "name": "player",
+            "build_path": "resources/build-cwb-pt-pp-skill-ticks.json",
+            "rotation_path": "resources/rotation-cwb-pt-pp.csv",
+            "team": 1
+        }, {
+            "name": "golem",
+            "build_path": "resources/build-golem-fractal-relic.json",
+            "team": 2
+        }
+    ],
+    "termination_conditions": [
+        {
+            "type": "DAMAGE",
+            "actor": "golem",
+            "damage": 4000000
+        }, {
+            "type": "TIME",
+            "time": 110000
+        }, {
+            "type": "ROTATION",
+            "actor": "player"
+        }
+    ],
+    "audit_configuration": {
+        "audits_to_perform": [
+            "ACTOR_CREATED",
+            "SKILL_CASTS",
+            "BUNDLES",
+            "EFFECT_APPLICATIONS",
+            "DAMAGE",
+            "COMBAT_STATS",
+            "EFFECT_EXPIRATION",
+            "ACTOR_DOWNSTATE"
+        ]
+    },
+    "require_afk_skills": false,
+    "audit_offset": 0,
+    "condition_tick_offset": 200,
+    "weapon_strength_mode": "MEAN",
+    "critical_strike_mode": "MEAN"
+}

@@ -1,0 +1,287 @@
+/**
+ * The combat loop.
+ *
+ * Ports `combat_loop.cpp`: an integer millisecond tick runs one fixed,
+ * reviewed system order (`TICK_ORDER` below, extracted from the pinned
+ * reference). Rotations and animations repeat until stable so instant-cast
+ * chains resolve within a tick. Termination conditions are checked before each
+ * tick in their configured order, a downed actor always ends the run, and a run
+ * that never meets its conditions fails at the tick limit instead of reporting
+ * a partial score.
+ */
+import { view, destroyEntity, isValidEntity } from '#gw2/platform/combat-engine/registry.js';
+import { audit } from '#gw2/platform/combat-engine/systems/audit.js';
+import { calculateRelativeAttributes } from '#gw2/platform/combat-engine/systems/attributes.js';
+import {
+  applyConditionDamage,
+  applyEffects,
+  applyStrikes,
+  bufferConditionDamage,
+  bufferDamageForExpiredEffects,
+  damageTaken,
+  dispatchEffects,
+  dispatchStrikes,
+  onStrikeHooks,
+  setupCombatStats,
+  updateCombatStats
+} from '#gw2/platform/combat-engine/systems/combat.js';
+import {
+  onAmmoGainedHooks,
+  onBegunCastingSkillsHooks,
+  onEveryTickHooks
+} from '#gw2/platform/combat-engine/systems/hooks.js';
+import { destroyActorsWithNoRotation, performRotations } from '#gw2/platform/combat-engine/systems/rotation.js';
+import {
+  cleanupSkillActions,
+  cleanupSkillTicksTracker,
+  performSkillTicks,
+  performSkills
+} from '#gw2/platform/combat-engine/systems/skills.js';
+import {
+  cleanupExpiredComponents,
+  progressAnimations,
+  progressCastingSkillTicks,
+  progressCastingSkills,
+  progressCooldowns,
+  progressDurations
+} from '#gw2/platform/combat-engine/systems/temporal.js';
+import type { DamageTotals } from '#gw2/platform/combat-engine/systems/audit.js';
+import type { Entity, Registry } from '#gw2/platform/combat-engine/registry.js';
+import type { TerminationReason } from '#gw2/platform/combat-engine/types.js';
+
+/** Default bounded-work protection: roughly 2.8 hours of simulated combat. */
+export const DEFAULT_TICK_LIMIT = 10_000_000;
+
+export class RunawayRunError extends Error {
+  readonly code = 'loop.tick-limit';
+}
+
+/** Recursively destroys entities whose owner chain reaches a destroyed entity. */
+function cleanOrphan(registry: Registry, entity: Entity, ownerEntity: Entity): void {
+  if (!isValidEntity(registry, ownerEntity)) {
+    destroyEntity(registry, entity);
+  } else if (registry.owner.has(ownerEntity)) {
+    cleanOrphan(registry, entity, registry.owner.get(ownerEntity));
+  }
+}
+
+function destroyMarkedEntities(registry: Registry): void {
+  let destroyed = false;
+  registry.destroyEntity.forEach((entity) => {
+    destroyEntity(registry, entity);
+    destroyed = true;
+  });
+  if (!destroyed) return;
+  registry.owner.forEach((entity, ownerEntity) => cleanOrphan(registry, entity, ownerEntity));
+}
+
+/** Clears per-tick markers and pipelines; finished-cast lists persist but are emptied. */
+function clearTemporaryComponents(registry: Registry): void {
+  for (const pool of [
+    registry.actorCreated,
+    registry.alreadyPerformedRotation,
+    registry.alreadyPerformedAnimation,
+    registry.alreadyFinishedCastingSkill,
+    registry.isAfk,
+    registry.equippedBundle,
+    registry.droppedBundle,
+    registry.relativeAttributes,
+    registry.incomingDamage,
+    registry.begunCastingSkills,
+    registry.animationExpired,
+    registry.cooldownExpired,
+    registry.durationExpired,
+    registry.ammoGained,
+    registry.outgoingStrikes,
+    registry.outgoingEffects,
+    registry.incomingStrikes,
+    registry.incomingEffects,
+    registry.combatStatsUpdated
+  ]) {
+    pool.clear();
+  }
+
+  registry.isSkillTrigger.forEach((_, trigger) => {
+    trigger.alreadyTriggered = false;
+  });
+  registry.finishedCastingSkills.forEach((_, skillEntities) => {
+    skillEntities.length = 0;
+  });
+}
+
+/** Actors neither owned nor casting accumulate idle time for the report. */
+function markAfkActors(registry: Registry): void {
+  view([registry.isActor], [registry.owner, registry.animation]).forEach((entity) => {
+    registry.isAfk.emplace(entity, true);
+  });
+}
+
+/** The reference per-tick system order. Changing a row changes fidelity and must be justified. */
+export const TICK_ORDER: readonly string[] = Object.freeze([
+  'setup-combat-stats',
+  'rotations-and-animations-until-stable',
+  'mark-afk-actors',
+  'progress-casting-skill-ticks',
+  'progress-casting-skills',
+  'progress-cooldowns',
+  'progress-durations',
+  'perform-skill-ticks',
+  'perform-skills',
+  'on-ammo-gained-hooks',
+  'on-begun-casting-skills-hooks',
+  'on-every-tick-hooks',
+  'relative-attributes-if-strikes',
+  'dispatch-strikes',
+  'apply-strikes',
+  'on-strike-hooks',
+  'relative-attributes-if-effects',
+  'dispatch-effects',
+  'apply-effects',
+  'buffer-expired-condition-damage',
+  'condition-tick-damage',
+  'update-combat-stats',
+  'cleanup-expired-components',
+  'destroy-actors-with-no-rotation',
+  'audit',
+  'cleanup-skill-ticks-tracker',
+  'cleanup-skill-actions',
+  'destroy-marked-entities',
+  'clear-temporary-components'
+]);
+
+/**
+ * Conditions pay whenever a step crosses a whole-second boundary of the offset
+ * condition clock. With 1 ms steps this is exactly the reference equality check;
+ * coarser steps pay on the step that contains the boundary.
+ */
+function crossedConditionTick(registry: Registry): boolean {
+  const offset = registry.encounter.conditionTickOffset;
+  const second = (tick: number) => Math.floor(((tick + offset) >>> 0) / 1000);
+  return second(registry.tick) !== second(registry.tick - registry.stepMs);
+}
+
+function tick(registry: Registry, damage: DamageTotals): void {
+  setupCombatStats(registry);
+  // Both systems run on every pass (the reference accumulates with `|=`), repeating until neither changes state.
+  while (true) {
+    const rotated = performRotations(registry);
+    const animated = progressAnimations(registry);
+    if (!rotated && !animated) break;
+  }
+
+  markAfkActors(registry);
+  progressCastingSkillTicks(registry);
+  progressCastingSkills(registry);
+  progressCooldowns(registry);
+  progressDurations(registry);
+  performSkillTicks(registry);
+  performSkills(registry);
+  onAmmoGainedHooks(registry);
+  onBegunCastingSkillsHooks(registry);
+  onEveryTickHooks(registry);
+
+  if (registry.outgoingStrikes.size > 0) calculateRelativeAttributes(registry);
+  dispatchStrikes(registry);
+  applyStrikes(registry);
+  onStrikeHooks(registry);
+
+  if (registry.outgoingEffects.size > 0) calculateRelativeAttributes(registry);
+  dispatchEffects(registry);
+  applyEffects(registry);
+
+  bufferDamageForExpiredEffects(registry);
+  if (crossedConditionTick(registry)) {
+    bufferConditionDamage(registry);
+    applyConditionDamage(registry);
+  }
+
+  updateCombatStats(registry);
+  cleanupExpiredComponents(registry);
+  destroyActorsWithNoRotation(registry);
+  audit(registry, damage);
+  cleanupSkillTicksTracker(registry);
+  cleanupSkillActions(registry);
+  destroyMarkedEntities(registry);
+  clearTemporaryComponents(registry);
+}
+
+function actorMatches(registry: Registry, entity: Entity, actor: string): boolean {
+  return actor === '' || registry.names.get(entity) === actor;
+}
+
+/** Returns the first satisfied stop reason, or null to keep simulating. */
+function terminationReason(registry: Registry): TerminationReason | null {
+  for (const entity of registry.isActor.entries()) {
+    if (registry.isDownstate.has(entity[0])) return 'downstate';
+  }
+
+  for (const condition of registry.encounter.terminationConditions) {
+    if (condition.type === 'TIME') {
+      if (registry.tick >= condition.time) return 'TIME';
+      continue;
+    }
+
+    if (condition.type === 'DAMAGE') {
+      for (const entity of view([registry.isActor, registry.staticAttributes, registry.combatStats]).entities()) {
+        if (registry.names.get(entity) !== condition.actor) continue;
+        if (damageTaken(registry, entity) >= condition.damage) return 'DAMAGE';
+      }
+
+      continue;
+    }
+
+    let outOfRotation = true;
+    let noActiveSkills = true;
+    for (const [entity] of registry.isActor.entries()) {
+      if (!actorMatches(registry, entity, condition.actor) || !registry.rotation.has(entity)) continue;
+      if (condition.type === 'ROTATION') {
+        if (!registry.noMoreRotation.has(entity) || registry.animation.has(entity)) {
+          outOfRotation = false;
+          break;
+        }
+
+        continue;
+      }
+
+      if (!registry.noMoreRotation.has(entity)) {
+        outOfRotation = false;
+        break;
+      }
+
+      if (
+        registry.skillsTicksTracker.has(entity) ||
+        registry.skillsActions.has(entity) ||
+        registry.finishedSkillsActions.has(entity) ||
+        registry.destroySkillsTicksTracker.has(entity)
+      ) {
+        noActiveSkills = false;
+        break;
+      }
+    }
+
+    if (outOfRotation && noActiveSkills) return condition.type;
+  }
+
+  return null;
+}
+
+/** Runs the encounter to termination and returns why it stopped. */
+export function runCombatLoop(
+  registry: Registry,
+  damage: DamageTotals,
+  tickLimit: number = DEFAULT_TICK_LIMIT
+): TerminationReason {
+  setupCombatStats(registry);
+  while (true) {
+    const reason = terminationReason(registry);
+    if (reason != null) return reason;
+    if (registry.tick >= tickLimit) {
+      throw new RunawayRunError(
+        `Run exceeded the ${tickLimit}-tick safety limit without meeting a termination condition.`
+      );
+    }
+
+    registry.tick += registry.stepMs;
+    tick(registry, damage);
+  }
+}
