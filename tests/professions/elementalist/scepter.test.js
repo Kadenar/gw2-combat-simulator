@@ -7,7 +7,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 
 test('Flamestrike interruptions retain only committed strike packets', () => {
-  // The staged commit behaves like a two-packet channel without making its 240 ms impact immediately cancellable.
+  // The first packet commits at 320 ms; the second, later packet only commits at 520 ms.
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
     specialization: 'Core',
@@ -16,7 +16,8 @@ test('Flamestrike interruptions retain only committed strike packets', () => {
     boons: { ...defaults.boons, quickness: false }
   });
   for (const [interruptAfterMs, expectedHits] of [
-    [400, 0],
+    [300, 0],
+    [401, 1],
     [440, 1],
     [480, 1],
     [520, 2]

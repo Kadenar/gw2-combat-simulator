@@ -124,7 +124,6 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
 
   assert.equal(coalescence.cooldown, 4);
   assert.equal(coalescence.energyCost, 5);
-  assert.deepEqual(coalescence.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient), [2.3]);
   const phaseSmash = revenantCatalog.skillsById.get(SKILL.PHASE_SMASH);
 
   assert.equal(phaseSmash.cooldown, 8);

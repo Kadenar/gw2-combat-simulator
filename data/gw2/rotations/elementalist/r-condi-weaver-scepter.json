@@ -1,437 +1,990 @@
 {
-  "metadata": {
-    "report": "https://dps.report/qcqm-20260813-042826_golem",
-    "benchmarkDurationSeconds": 90.535,
-    "benchmarkDamage": 3977301,
-    "benchmarkDps": 43931.08742475286,
-    "timingSource": "Elite Insights activation timings",
-    "note": "The hidden opener starts from Earth/Air and precasts Rock Barrier before Fire and Air attunements establish Air/Fire for Wildfire and Weave Self. The following Fire attunement establishes Fire/Air for Lightning Orb and Dragon's Tooth before the opening signets. Unravel activations occur at 17.965s, 47.921s, and 88.723s; Elite Insights' simultaneous Dual attunement records are the resulting fully attuned state changes, not duplicate rotation commands."
-  },
   "rotation": [
-    "Rock Barrier",
-    "Fire Attunement",
-    "Air Attunement",
-    "Wildfire",
-    "Weave Self",
-    "Fire Attunement",
-    "Lightning Orb",
-    "Dragon's Tooth",
-    "Signet of Fire",
     {
-      "name": "__combat_start",
-      "offset": 438
+      "type": "cast",
+      "skillId": 5695
     },
-    "Signet of Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 82
+      "type": "cast",
+      "skillId": 5492
     },
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 362
+      "type": "wait",
+      "durationMs": 3200
     },
     {
-      "name": "Hurl",
-      "offset": 119
+      "type": "cast",
+      "skillId": 5494
     },
-    "Fracturing Strike",
-    "Stone Shards",
     {
-      "name": "Fire Attunement",
-      "offset": 555
+      "type": "wait",
+      "durationMs": 3200
     },
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 600
+      "type": "cast",
+      "skillId": 29533
     },
-    "Dragon's Tooth",
-    "Dust Storm",
     {
-      "name": "Fire Attunement",
-      "offset": 322
+      "type": "combat-start",
+      "concurrentOffsetMs": 720
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
     {
-      "name": "Earth Attunement",
-      "offset": 198
+      "type": "cast",
+      "skillId": 43638
     },
-    "Rock Barrier",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 204
+      "type": "cast",
+      "skillId": 5492
     },
     {
-      "name": "Fire Attunement",
-      "offset": 519
+      "type": "cast",
+      "skillId": 5692
     },
-    "Dragon's Tooth",
-    "Signet of Fire",
-    "Flamestrike",
-    "Flamestrike",
-    "Signet of Earth",
-    "Fracturing Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 190
+      "type": "cast",
+      "skillId": 30795
     },
-    "Flamestrike",
-    "Phoenix",
-    "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 367
+      "type": "cast",
+      "skillId": 5542
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5571
     },
-    "Rock Barrier",
     {
-      "name": "Stone Shards",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
-    "Wildfire",
     {
-      "name": "Hurl",
-      "offset": 241
+      "type": "cast",
+      "skillId": 5675
     },
     {
-      "name": "Water Attunement",
-      "offset": 362
+      "type": "cast",
+      "skillId": 5508
     },
-    "Stone Tide",
     {
-      "name": "Unravel",
-      "offset": 243
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 560
     },
     {
-      "name": "Fire Attunement",
-      "offset": 239
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Signet of Fire",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 157
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
-    "Phoenix",
     {
-      "name": "Earth Attunement",
-      "offset": 279
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 38
+      "type": "cast",
+      "skillId": 42954
     },
-    "Rock Barrier",
     {
-      "name": "Hurl",
-      "offset": 836
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 1320
     },
-    "Stone Shards",
     {
-      "name": "Stone Shards",
-      "interruptMs": 403
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 560
     },
-    "Dust Storm",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 600
     },
-    "Signet of Earth",
-    "Dragon's Tooth",
-    "Fracturing Strike",
-    "Flamestrike",
     {
-      "name": "Fire Attunement",
-      "offset": 558
+      "type": "wait",
+      "durationMs": 40
     },
-    "Flamestrike",
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
     {
-      "name": "Flamestrike",
-      "interruptMs": 81
+      "type": "cast",
+      "skillId": 5692
     },
-    "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 284
+      "type": "cast",
+      "skillId": 30336
     },
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 196
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 121
+      "type": "cast",
+      "skillId": 5508
     },
-    "Rock Barrier",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 122
+      "type": "cast",
+      "skillId": 5508
     },
-    "Stone Shards",
     {
-      "name": "Fire Attunement",
-      "offset": 882
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 440
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 37
+      "type": "cast",
+      "skillId": 5675
     },
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
-    "Fracturing Strike",
-    "Signet of Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 201
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
-    "Flamestrike",
-    "Phoenix",
-    "Wildfire",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 285
+      "type": "cast",
+      "skillId": 5695
     },
-    "Rock Barrier",
-    "Signet of Fire",
     {
-      "name": "Hurl",
-      "offset": 164
+      "type": "cast",
+      "skillId": 5500
     },
-    "Stone Shards",
-    "Stone Shards",
     {
-      "name": "Water Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 200
     },
-    "Stone Tide",
-    "Dust Storm",
     {
-      "name": "Unravel",
-      "offset": 198
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 520
     },
     {
-      "name": "Fire Attunement",
-      "offset": 198
+      "type": "wait",
+      "durationMs": 40
     },
-    "Phoenix",
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 564
+      "type": "cast",
+      "skillId": 5692
     },
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 605
+      "type": "cast",
+      "skillId": 5542
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 159
+      "type": "cast",
+      "skillId": 5508
     },
-    "Rock Barrier",
-    "Signet of Earth",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 0
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 560
     },
-    "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 520
+      "type": "wait",
+      "durationMs": 40
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Fracturing Strike",
-    "Flamestrike",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Fire Attunement",
-      "offset": 42
+      "type": "cast",
+      "skillId": 5571
     },
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Wildfire",
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 82
+      "type": "cast",
+      "skillId": 42954
     },
-    "Rock Barrier",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 84
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 1001
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 520
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 201
+      "type": "cast",
+      "skillId": 5675
     },
-    "Signet of Fire",
-    "Signet of Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5692
     },
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 34
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
-    "Fracturing Strike",
-    "Dust Storm",
     {
-      "name": "Fire Attunement",
-      "offset": 521
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 82
+      "type": "cast",
+      "skillId": 5695
     },
-    "Phoenix",
-    "Flamestrike",
-    "Flamestrike",
-    "Dragon's Tooth",
-    "Weave Self",
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 163
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 160
     },
-    "Rock Barrier",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 201
+      "type": "cast",
+      "skillId": 29533
     },
     {
-      "name": "Water Attunement",
-      "offset": 601
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Ice Shards",
-      "interruptMs": 77
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 360
     },
-    "Stone Tide",
-    "Signet of Fire",
-    "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 39
+      "type": "cast",
+      "skillId": 46014
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 0
     },
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Fire Attunement",
-      "offset": 195
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
-    "Phoenix",
-    "Signet of Earth",
-    "Flamestrike",
     {
-      "name": "Earth Attunement",
-      "offset": 404
+      "type": "cast",
+      "skillId": 5508
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 79
+      "type": "cast",
+      "skillId": 5508
     },
-    "Rock Barrier",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 478
+      "type": "cast",
+      "skillId": 5508
     },
-    "Fracturing Strike",
     {
-      "name": "Hurl",
-      "offset": 281
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 320
     },
-    "Wildfire",
     {
-      "name": "Fire Attunement",
-      "offset": 477
+      "type": "cast",
+      "skillId": 5692
     },
-    "Dragon's Tooth",
-    "Flamestrike",
-    "Flamestrike",
     {
-      "name": "Fire Attunement",
-      "offset": 172
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 280
     },
-    "Flamestrike",
-    "Flamestrike",
-    "Phoenix",
-    "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 204
+      "type": "cast",
+      "skillId": 5542
     },
-    "Rock Barrier",
-    "Stone Shards",
     {
-      "name": "Hurl",
-      "offset": 160
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Air Attunement",
-      "offset": 556
+      "type": "cast",
+      "skillId": 5675
     },
     {
-      "name": "Lightning Strike",
-      "offset": 202
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
-    "Earthen Synergy",
-    "Dust Storm",
     {
-      "name": "Unravel",
-      "offset": 162
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 40
     },
     {
-      "name": "Fire Attunement",
-      "offset": 198
+      "type": "cast",
+      "skillId": 5695
     },
-    "Dragon's Tooth",
-    "Flamestrike"
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "wait",
+      "durationMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 42954
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": -1169
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 880
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 42954
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 1320
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 46014
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 40183
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5780
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 1320
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 42954
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 1000
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 42954
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 43638
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5500
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 600
+    },
+    {
+      "type": "cast",
+      "skillId": 5693,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 46014
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5538
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5571
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 42954
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 29533
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    },
+    {
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 5675
+    },
+    {
+      "type": "cast",
+      "skillId": 5542
+    },
+    {
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 1080
+    },
+    {
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 40794
+    },
+    {
+      "type": "cast",
+      "skillId": 30336
+    },
+    {
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 5692
+    },
+    {
+      "type": "cast",
+      "skillId": 5508
+    }
   ]
 }
