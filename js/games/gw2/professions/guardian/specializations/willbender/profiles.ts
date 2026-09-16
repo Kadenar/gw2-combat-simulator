@@ -64,7 +64,8 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     ]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.restorativeVirtues, 'Restorative Virtues', {
-    rechargeReduction: 0.25,
+    // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
+    rechargeReduction: 0.28,
     effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.holyReckoning, 'Holy Reckoning', {

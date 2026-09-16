@@ -221,7 +221,7 @@ function queueInFlightWeaponCooldownReduction(
     // In-flight skills are not in the cooldown controller yet, so project the same base-to-tracked conversion here.
     const reduction = Math.min(
       gw2TrackedRechargeReduction(
-        Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.25),
+        Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.28),
         context.hasBuff('alacrity', at) ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1
       ),
       available
@@ -238,7 +238,7 @@ function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: numb
   const weaponNames = activeWeaponNames(context);
   const activeIds = new Set<SkillId>([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   const rechargeReduction = Number(
-    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.25
+    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.28
   );
   let reducedBy = 0;
   for (const skillId of activeIds) {
