@@ -14,7 +14,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         ownerId: 'revenant',
         fieldType: 'Dark',
         duration: 6,
-        startMs: 920,
+        startMs: 680,
         startAnchor: 'castStart'
       }
     ],
