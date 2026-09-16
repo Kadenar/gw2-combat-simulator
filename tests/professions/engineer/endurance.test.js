@@ -95,4 +95,3 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap'
   advanceEngineerResources(permanent, 30);
   assert.equal(permanent.state.profession.core.endurance, 100);
 });
-
