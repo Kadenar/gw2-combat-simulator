@@ -5,7 +5,7 @@ import {
   type CompositeAction
 } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { beguilingHazeCastDuration } from '#gw2/professions/revenant/profession.js';
+import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 
 /** Combines Haze's launch and teleport and budgets the simulator's full main/follow-up cast without duplicate waits. */

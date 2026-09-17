@@ -1,30 +1,7 @@
 /** Owns Vindicator dodge attack skill fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
-
-export const VINDICATOR_AIRBORNE_MS = 600;
-export const VINDICATOR_LANDING_MS = 200;
-
-/** Replays a recorded jump from its endurance-spending input through the landing, including overlapping autos. */
-export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
-  id: 23275,
-  name: 'Dodge Jump',
-  displayName: 'Dodge + Landing',
-  icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
-  description:
-    '600 ms airborne dodge + 200 ms landing. Endurance is spent at takeoff; the selected dodge effect resolves on landing.',
-  type: 'Action',
-  slot: 'Action',
-  specialization: 'Vindicator',
-  handlerId: 'revenant.vindicator-jump',
-  castTimeMs: VINDICATOR_AIRBORNE_MS + VINDICATOR_LANDING_MS,
-  paletteAction: true,
-  hotkeyAction: 'dodge',
-
-  resourceCost: 50,
-  cooldown: 0,
-  effects: []
-});
+import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.

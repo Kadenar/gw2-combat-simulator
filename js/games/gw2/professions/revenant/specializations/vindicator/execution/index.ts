@@ -1,6 +1,6 @@
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
-import { VINDICATOR_AIRBORNE_MS } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import { VINDICATOR_AIRBORNE_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type { RevenantCastContext } from '#gw2/professions/revenant/types.js';
 import { completeVindicatorDodge } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 

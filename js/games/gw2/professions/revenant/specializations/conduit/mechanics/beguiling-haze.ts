@@ -4,19 +4,6 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-stat
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-
-/** Shares main-cast wind-up and follow-up timing between simulation and combat-log replay. */
-export function beguilingHazeCastDuration(
-  duration: number,
-  followUp: boolean,
-  followUpProfile: BalanceProfile,
-  mainExtensionProfile: BalanceProfile
-): number {
-  const profile = followUp ? followUpProfile : mainExtensionProfile;
-  const variantDuration = Number(profile.castTimeMs || 0) / 1000;
-  return followUp ? variantDuration : duration + variantDuration;
-}
 
 /** Consumes a follow-up charge or records the main cast that will arm them on completion. */
 export function beginBeguilingHaze(context: RevenantCastContext): boolean {
