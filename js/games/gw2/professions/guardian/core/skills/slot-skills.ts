@@ -8,7 +8,8 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: []
   },
   [ID.BANE_SIGNET]: {
-    castTimeMs: 500,
+    // Use the reviewed activation duration so damage and control resolve at cast completion.
+    castTimeMs: 880,
     effects: [
       {
         type: 'strike',
