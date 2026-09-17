@@ -1202,5 +1202,5 @@ test('Warrior is exposed through the shared application registry', async () => {
   const html = await readFile(new URL('../../../dist/site/warrior.html', import.meta.url), 'utf8');
 
   assert.match(html, /data-profession="warrior"/);
-  assert.match(html, /assets\/app-[^"']+\.js/);
+  assert.match(html, /assets\/entry-[^"']+\.js/);
 });

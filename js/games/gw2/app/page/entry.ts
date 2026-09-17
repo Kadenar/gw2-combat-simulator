@@ -8,10 +8,10 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
-import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/embed.js';
+import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/page/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/display-preferences.js';
-import { mountRotationWorkspace } from '#app/shell/workspace.js';
+import { mountRotationWorkspace } from '#app/shell/rotation-workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';
 import { getProfessionEntry, professionGroups, type ProfessionRegistryEntry } from '#gw2/app/profession-registry.js';

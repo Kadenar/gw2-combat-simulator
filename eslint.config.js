@@ -20,29 +20,15 @@ const professionBoundaryPattern = {
   message: 'Headless profession content must not depend on application or integration code.'
 };
 
-// Professions that adopted the layout in docs/architecture/PROFESSION-LAYOUT-PLAN.md. Code outside those
-// profession folders may import only their public entry points. Remove the list once every profession migrates.
-const MIGRATED_PROFESSIONS = [
-  'elementalist',
-  'engineer',
-  'guardian',
-  'mesmer',
-  'necromancer',
-  'ranger',
-  'revenant',
-  'thief',
-  'warrior'
+// Code outside a profession folder may import only its public entry points (docs/architecture/MODULES.md). The
+// shared professions/lib/ helpers are not a profession and stay importable.
+const professionPublicEntryPatterns = [
+  {
+    regex:
+      '^#gw2/professions/(?!lib/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)',
+    message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
+  }
 ];
-const migratedProfessionGroup = MIGRATED_PROFESSIONS.join('|');
-const professionPublicEntryPatterns = MIGRATED_PROFESSIONS.length
-  ? [
-      {
-        regex: `^#gw2/professions/(?:${migratedProfessionGroup})/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)`,
-        message:
-          'Import migrated professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
-      }
-    ]
-  : [];
 const moduleCompositionPattern = {
   regex: '^#gw2/professions/[^/]+/(?:profession|modules|definition)\\.js$|^#gw2/professions/.+/module\\.js$',
   message: 'Module manifests must not import the profession composition root or another module manifest.'
@@ -110,7 +96,7 @@ export default [
     }
   },
   {
-    files: ['js/app/github-pages-redirect.js', 'tests/browser/**/*.{js,mjs,cjs}'],
+    files: ['js/app/page/github-pages-redirect.js', 'tests/browser/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: globals.browser
     }
@@ -181,12 +167,47 @@ export default [
     }
   },
   {
-    files: ['js/app/shell/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    files: ['js/ui/rotation/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(
+        {
+          regex: '^#(?:app|gw2)/|(?:^|/)games/|platform/gw2',
+          message: 'Neutral UI modules must not depend on applications or games.'
+        },
+        {
+          regex: '^#ui/results/',
+          message: 'Neutral rotation UI must not depend on result views.'
+        }
+      )
+    }
+  },
+  {
+    files: [
+      'js/app/shell/**/*.{js,jsx,mjs,cjs,ts,tsx}',
+      'js/app/page/**/*.{js,jsx,mjs,cjs,ts,tsx}',
+      'js/app/entry.ts',
+      'js/app/bootstrap.ts'
+    ],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '^#gw2/|(?:^|/)games/|platform/gw2',
         message: 'The shared application shell must not depend on GW2 modules.'
       })
+    }
+  },
+  {
+    files: ['js/app/page/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(
+        {
+          regex: '^#gw2/|(?:^|/)games/|platform/gw2',
+          message: 'The shared application shell must not depend on GW2 modules.'
+        },
+        {
+          regex: '^#ui/|^#app/(?:game|shell)/',
+          message: 'Page integration modules must remain leaves without UI, game-boundary, or shell dependencies.'
+        }
+      )
     }
   },
   {
@@ -324,28 +345,22 @@ export default [
     }
   },
 
-  // Migrated module.ts files are manifests: they compose owner files and never import composition roots. The
-  // profession layout conformance test enforces that they declare nothing besides the module.
-  ...(MIGRATED_PROFESSIONS.length
-    ? [
-        {
-          files: MIGRATED_PROFESSIONS.map(
-            (profession) => `js/games/gw2/professions/${profession}/specializations/*/module.ts`
-          ),
-          rules: {
-            'no-restricted-imports': restrictedImports(professionBoundaryPattern, moduleCompositionPattern)
-          }
-        },
-        {
-          files: MIGRATED_PROFESSIONS.map((profession) => `js/games/gw2/professions/${profession}/core/module.ts`),
-          rules: {
-            'no-restricted-imports': restrictedImports(
-              professionBoundaryPattern,
-              coreSpecializationPattern,
-              moduleCompositionPattern
-            )
-          }
-        }
-      ]
-    : [])
+  // module.ts files are manifests: they compose owner files and never import composition roots. The profession
+  // layout conformance test enforces that they declare nothing besides the module.
+  {
+    files: ['js/games/gw2/professions/*/specializations/*/module.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, moduleCompositionPattern)
+    }
+  },
+  {
+    files: ['js/games/gw2/professions/*/core/module.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports(
+        professionBoundaryPattern,
+        coreSpecializationPattern,
+        moduleCompositionPattern
+      )
+    }
+  }
 ];

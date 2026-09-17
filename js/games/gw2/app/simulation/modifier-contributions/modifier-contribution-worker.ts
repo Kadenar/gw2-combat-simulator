@@ -1,4 +1,4 @@
-import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
+import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
 import { loadProfession } from '#gw2/app/profession-registry.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';

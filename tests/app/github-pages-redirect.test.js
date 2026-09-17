@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { runInNewContext } from 'node:vm';
 
-const redirectScript = readFileSync(new URL('../../js/app/github-pages-redirect.js', import.meta.url), 'utf8');
+const redirectScript = readFileSync(new URL('../../js/app/page/github-pages-redirect.js', import.meta.url), 'utf8');
 
 // Execute the deployed inline script with browser state to check opt-in, navigation, and ordinary redirects.
 test('GitHub Pages standalone opt-in depends only on the current URL', () => {

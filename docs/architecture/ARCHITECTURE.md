@@ -26,7 +26,7 @@ The simulator separates game-neutral infrastructure from GW2-specific platform, 
 js/
   kernel/          game-neutral clock, events, queues, randomness, observation
   ui/              game-neutral view models and DOM/rotation primitives
-  app/             game-neutral registry, bootstrap, worker harness, and shell
+  app/             game-neutral page entry, game boundary, host integration, and shell
   games/gw2/
     platform/      shared GW2 engine, combat, builds, equipment, and simulation
     professions/   profession-owned builds, skills, state, mechanics, and UI
@@ -135,9 +135,9 @@ The normal author workflow is:
 1. Author raw mechanics and feature behavior in the owning Core or elite directory.
 2. Build the slice's `data` with `createNativeModuleData()` and declare state, mechanics, and presentation with
    `defineNativeModule()`.
-3. Add the module to the profession's Core-first tuple in `modules.ts`.
-4. Export `assembleNativeApplicationCatalog(modules, options)` through the stable root `catalog.ts`; do not hand-build
-   runtime fragments.
+3. Add the module to the profession's Core-first tuple in `catalog.ts`.
+4. Assemble the catalog with `assembleNativeApplicationCatalog(modules, options)` in the root `catalog.ts`, which
+   `profession.ts` re-exports; do not hand-build runtime fragments.
 5. Keep browser persistence and rendering composition in `app/app-definition`, separate from the engine-facing
    definition.
 
@@ -154,10 +154,10 @@ Every native profession otherwise uses the same source roles:
   production does not expose a root skill-mechanics aggregate.
 - Triggered effects and state machines live in owner-local, concept-named `mechanics/*.ts` files (or a small
   `mechanics.ts`); families do not use mixed profession-wide runtime aggregates.
-- `catalog/module-data.ts` owns generated metadata, catalog transformations, and options used by module data selectors.
+- `data/module-data.ts` owns generated metadata, catalog transformations, and options used by module data selectors.
   Elementalist also privately combines owner-local mechanic fragments here to derive its catalog entries.
-- `catalog.ts` is a stable application-facing export of the catalog assembled from modules. Runtime modules do not
-  import it.
+- `catalog.ts` declares the module tuple and the catalog assembled from it; `profession.ts` re-exports both. Only
+  `build/` imports `catalog.js` directly, and runtime modules do not import it.
 - Owner-local `execution/` modules register `augmentSkill()` or `replaceSkill()` strategies for behavior that cannot be
   represented by declarative effects. Root handler aggregates are unnecessary because the application catalog is
   assembled from module contributions.

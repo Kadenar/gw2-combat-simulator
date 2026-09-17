@@ -1,5 +1,6 @@
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
-import { escapeHtml as esc, gw2ApiText } from '#gw2/app/shared/html.js';
+import { gw2ApiText } from '#gw2/app/shared/html.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup } from '#gw2/platform/engine/profession/types.js';

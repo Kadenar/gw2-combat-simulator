@@ -1,4 +1,4 @@
-import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
+import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { calculateRandomDistribution } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';

@@ -13,7 +13,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
   // Invalid syntax must be rejected wherever maintained JavaScript can live, including hidden source files.
   for (const filePath of [
     'eslint.config.js',
-    'js/app/github-pages-redirect.js',
+    'js/app/page/github-pages-redirect.js',
     'scripts/data/syntax-probe.mjs',
     'scripts/build/syntax-probe.mjs',
     'scripts/analysis/syntax-probe.mjs',

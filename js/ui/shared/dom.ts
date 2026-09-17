@@ -78,12 +78,3 @@ export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectE
 
   return element;
 }
-
-/**
- * Extracts a human-readable message from a thrown value.
- *
- * The error message, or the stringified value.
- */
-export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}

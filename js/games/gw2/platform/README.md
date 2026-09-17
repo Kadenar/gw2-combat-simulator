@@ -17,7 +17,7 @@ The GW2 platform is organized by ownership. Put a module in the narrowest domain
 | `skills/`                | Shared skill timing and recharge behavior                                               |
 
 Profession implementations live in `../professions/<profession>/`; their folder layout is described in
-[Profession layout plan](../../../../docs/architecture/PROFESSION-LAYOUT-PLAN.md).
+[Simulator modules](../../../../docs/architecture/MODULES.md#profession-modules).
 
 Optional patch-preview authoring, validation, and overlays belong in `../integrations/patches/`. See
 [Simulator modules](../../../../docs/architecture/MODULES.md#shared-guild-wars-2-platform) for the wider ownership map.

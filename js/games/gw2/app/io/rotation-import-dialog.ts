@@ -1,4 +1,4 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/io/files.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/io/logs/evtc-rotation-import.js';
 import {
@@ -17,7 +17,8 @@ import {
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
+import { errorMessage } from '#ui/shared/errors.js';
 
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';

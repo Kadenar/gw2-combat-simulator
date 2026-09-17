@@ -19,17 +19,16 @@ export interface NormalizedEventLogDescriptor extends EventLogDescriptor {
 export interface EventLogRow extends EventLogDescriptor {
   readonly at: number;
   readonly rowClassName?: string;
-  readonly phantasmClone?: boolean;
 }
 
-export interface EventLogFilter {
+export interface EventLogFilter<TRow extends EventLogRow = EventLogRow> {
   readonly id: string;
   readonly label: string;
-  readonly predicate?: (row: EventLogRow) => boolean;
+  readonly predicate?: (row: TRow) => boolean;
 }
 
-export interface EventLogMountOptions {
-  readonly filters?: readonly EventLogFilter[];
+export interface EventLogMountOptions<TRow extends EventLogRow = EventLogRow> {
+  readonly filters?: readonly EventLogFilter<TRow>[];
   readonly initiallyOpen?: boolean;
   readonly title?: string;
   readonly filename?: string;
@@ -123,16 +122,16 @@ function downloadCsv(rows: readonly EventLogRow[], filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function mountEventLog(
+export function mountEventLog<TRow extends EventLogRow>(
   container: HTMLElement | null | undefined,
-  rows: readonly EventLogRow[],
-  options: EventLogMountOptions = {}
+  rows: readonly TRow[],
+  options: EventLogMountOptions<TRow> = {}
 ): {
   readonly activeFilters: Set<string>;
   readonly render: () => void;
 } | null {
   if (!container) return null;
-  const resolvedRows = rows || [];
+  const resolvedRows: readonly TRow[] = rows || [];
   const filters = options.filters || [];
   const previousDetails = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
   const previousLog = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
@@ -155,7 +154,7 @@ export function mountEventLog(
   const title = options.title || 'Event Log';
   const filename = options.filename || 'event-log.csv';
 
-  const filteredRows = (): EventLogRow[] => {
+  const filteredRows = (): TRow[] => {
     const query = searchQuery.trim().toLowerCase();
     return resolvedRows.filter(
       (row) =>

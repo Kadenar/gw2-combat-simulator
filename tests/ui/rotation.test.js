@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chargeReleaseRowLabel } from '#ui/rotation/editors/charge-release-editor.js';
-import { validateDurationMs } from '#ui/rotation/editors/duration-editor.js';
-import { positionFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
+import { validateDurationMs } from '#ui/rotation/editing/duration-editor.js';
+import { positionFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import {
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
 } from '#ui/rotation/insertion-cursor.js';
-import { mountRotationWarnings } from '#ui/results/rotation-warnings.js';
+import { mountRotationWarnings } from '#ui/rotation/warnings.js';
 import { inertContainer } from '../helpers/dom.js';
 
 // Game-neutral rotation controls validate input and render accessible, escaped markup.
@@ -70,19 +69,6 @@ test('duration editor validates and rounds millisecond values', () => {
   assert.equal(validateDurationMs('Infinity').valid, false);
   assert.equal(validateDurationMs('0.9').valid, false);
   assert.equal(validateDurationMs('501', 1, 500).valid, false);
-});
-
-test('charge release rows expose time, Flow, and coefficient', () => {
-  assert.equal(
-    chargeReleaseRowLabel({
-      charges: 3,
-      at: 12.75,
-      delta: 0.75,
-      flowAfter: 7.5,
-      coefficient: 5.435
-    }),
-    '3 charges · 12.750s (+0.750s) · 7.50 Flow · 5.43 coefficient'
-  );
 });
 
 test('rotation insertion cursors validate positions and expose accessible gaps', () => {

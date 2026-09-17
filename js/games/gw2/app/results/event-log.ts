@@ -10,7 +10,8 @@ import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
-type OrderedEventLogRow = EventLogRow & { readonly order: number; readonly activationOrder: number };
+type Gw2EventLogRow = EventLogRow & { readonly phantasmClone?: boolean };
+type OrderedEventLogRow = Gw2EventLogRow & { readonly order: number; readonly activationOrder: number };
 
 /** Show recorded formula inputs at full clock precision; the log's activation grouping is not an execution trace. */
 function damageCalculationDetails(event: SimulationEvent): string[] {
@@ -50,7 +51,7 @@ export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: Gw2ApplicationBuild | null = null,
   profession: ProfessionAppContract | null = null
-): EventLogRow[] {
+): Gw2EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];
   // At equal times, finish each activation's effects and END before the next CAST,
   // while keeping instant casts before their own END and timestamps authoritative.

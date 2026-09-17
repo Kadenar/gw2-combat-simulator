@@ -552,11 +552,11 @@ test('patch authoring generates an overview and discards manual notes', () => {
 
 test('patch authoring UI uses an official source and read-only overview', async () => {
   const source = await readFile(
-    new URL('../../js/games/gw2/integrations/patches/app/render.ts', import.meta.url),
+    new URL('../../../js/games/gw2/integrations/patches/app/render.ts', import.meta.url),
     'utf8'
   );
   const simulatorSource = await readFile(
-    new URL('../../js/games/gw2/integrations/patches/view.ts', import.meta.url),
+    new URL('../../../js/games/gw2/integrations/patches/view.ts', import.meta.url),
     'utf8'
   );
 

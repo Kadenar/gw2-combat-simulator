@@ -1,5 +1,5 @@
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(

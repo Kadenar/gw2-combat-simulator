@@ -4,8 +4,8 @@ import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { mountRotationResults } from '#gw2/app/results/analysis-panel.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
-import { testProfession } from '../fixtures/profession.js';
-import { inertContainer } from '../helpers/dom.js';
+import { testProfession } from '../../fixtures/profession.js';
+import { inertContainer } from '../../helpers/dom.js';
 
 // Presentation rounds only the displayed rate and exposes the same accounting on hover and keyboard disclosure.
 test('APM renders next to duration with a tooltip and sustained peak details', () => {

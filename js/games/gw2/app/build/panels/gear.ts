@@ -15,7 +15,8 @@ import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { escapeHtml, groupedOptions, option } from '#gw2/app/shared/html.js';
+import { groupedOptions, option } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
 import {
   foodOptionLabel,

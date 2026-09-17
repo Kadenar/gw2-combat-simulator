@@ -1,5 +1,5 @@
 import { mountRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
-import { inertContainer } from '../helpers/dom.js';
+import { inertContainer } from '../../helpers/dom.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

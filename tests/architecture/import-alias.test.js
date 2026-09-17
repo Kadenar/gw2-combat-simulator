@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { navigationRoute } from '#app/embed.js';
+import { navigationRoute } from '#app/page/embed.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { escapeHtml } from '#ui/shared/html.js';

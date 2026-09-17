@@ -120,7 +120,7 @@ test('specialization filters come from unique manifest section names', () => {
 
 // Keep the editor contiguous; browser tests cover the dynamically mounted template dialog.
 test('shared template keeps build and simulation controls in one editor', () => {
-  const template = readFileSync(new URL('../../templates/profession.html', import.meta.url), 'utf8');
+  const template = readFileSync(new URL('../../../templates/profession.html', import.meta.url), 'utf8');
 
   assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);
   assert.doesNotMatch(template, /\n {6}<div class="simulation-workspace">/);
@@ -204,7 +204,7 @@ test('template actions load paired or partial state and support undo', async (t)
 
 test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
   const buildData = JSON.parse(
-    readFileSync(new URL('../../data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
+    readFileSync(new URL('../../../data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
   );
   const payloads = new Map([
     ['data/gw2/builds/mesmer/ambiguous-mirage.json', buildData],

@@ -18,9 +18,9 @@ import {
   SKILL_COLS,
   sortResultRows
 } from '#gw2/app/results/analysis-panel.js';
-import { inertContainer } from '../helpers/dom.js';
-import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
-import { simulateMesmer } from '../helpers/mesmer-simulation.js';
+import { inertContainer } from '../../helpers/dom.js';
+import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
+import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 

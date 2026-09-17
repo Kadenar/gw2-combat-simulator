@@ -1,3 +1,9 @@
+/** Stable address used by the shell, workers, and game registry. */
+export interface GameContentAddress {
+  readonly gameId: string;
+  readonly contentId: string;
+}
+
 /** Metadata the shared shell can render without loading game-owned code. */
 export interface PlayableContentEntry {
   readonly id: string;

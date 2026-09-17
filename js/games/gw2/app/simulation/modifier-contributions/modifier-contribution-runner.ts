@@ -3,7 +3,7 @@ import {
   modifierContributionWorkerCount,
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/game/worker-harness.js';
 import { analysisViewIsActive } from '#app/shell/result-view.js';
 import type {
   ModifierContribution,

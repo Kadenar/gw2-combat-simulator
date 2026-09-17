@@ -17,7 +17,7 @@ import { currentTimelineResults, timelineItem } from '#gw2/app/rotation/timeline
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
+import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
 function timelineFullCastMs(

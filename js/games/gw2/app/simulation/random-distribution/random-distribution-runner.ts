@@ -4,7 +4,7 @@ import {
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/game/worker-harness.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   RandomDistributionOutcome,

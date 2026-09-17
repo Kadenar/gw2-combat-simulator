@@ -1,4 +1,4 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
 
 const TUTORIAL_DIALOG_ID = 'simulator-tutorial-dialog';
 const DEFAULT_TUTORIAL_ID = 'quick-start';

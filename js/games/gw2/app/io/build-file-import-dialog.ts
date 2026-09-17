@@ -1,4 +1,4 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
 import {
   applyBuildFileImport,
   BUILD_FILE_IMPORT_ACCEPT,
@@ -13,7 +13,8 @@ import {
   renderImportNotices,
   requiredDialogPart
 } from '#gw2/app/io/import-dialog.js';
-import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
+import { errorMessage } from '#ui/shared/errors.js';
 
 import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/io/build-file-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

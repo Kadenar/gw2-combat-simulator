@@ -55,7 +55,7 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
 
 `data/gw2/builds/elementalist/manifest.json` is the supported preset inventory. Focused behavior, ownership, state, and
 UI tests live under `tests/professions/elementalist/`; saved-build simulations live under
-`tests/app/benchmarks/elementalist.test.js`.
+`tests/gw2/app/benchmarks/elementalist.test.js`.
 
 ## Modeling boundaries
 

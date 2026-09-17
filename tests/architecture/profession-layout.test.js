@@ -3,20 +3,12 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-// Professions that adopted docs/architecture/PROFESSION-LAYOUT-PLAN.md. Keep in sync with eslint.config.js.
-const MIGRATED_PROFESSIONS = [
-  'elementalist',
-  'engineer',
-  'guardian',
-  'mesmer',
-  'necromancer',
-  'ranger',
-  'revenant',
-  'thief',
-  'warrior'
-];
-
 const PROFESSIONS_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/professions');
+// Every folder except the shared lib/ helpers is a profession and follows the documented layout.
+const PROFESSIONS = readdirSync(PROFESSIONS_ROOT, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && entry.name !== 'lib')
+  .map((entry) => entry.name)
+  .sort();
 const ROOT_FILES = new Set(['profession.ts', 'catalog.ts', 'family-state.ts', 'family-presentation.ts', 'types.d.ts']);
 const REQUIRED_ROOT_FILES = ['profession.ts', 'catalog.ts', 'family-state.ts', 'types.d.ts'];
 const ROOT_FOLDERS = new Set(['app', 'build', 'data', 'core', 'specializations']);
@@ -48,7 +40,12 @@ function professionModules(profession) {
   ];
 }
 
-for (const profession of MIGRATED_PROFESSIONS) {
+// Guards the directory scan: an empty result would silently skip every layout check.
+test('the layout checks find the profession folders', () => {
+  assert.ok(PROFESSIONS.length > 0);
+});
+
+for (const profession of PROFESSIONS) {
   const root = path.join(PROFESSIONS_ROOT, profession);
 
   test(`${profession} root contains only the family files and module folders`, () => {

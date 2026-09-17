@@ -12,7 +12,7 @@ import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { openDurationEditor } from '#ui/rotation/editors/duration-editor.js';
+import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 type PaletteMouseEvent = MouseEvent & {

@@ -12,7 +12,7 @@ import { readFile } from 'node:fs/promises';
 
 import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 
-const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
+const repoUrl = (path) => new URL(`../../../../${path}`, import.meta.url);
 
 export function relativeError(actual, expected) {
   return Math.abs(actual / expected - 1);

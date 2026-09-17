@@ -1,6 +1,6 @@
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { getProfessionEntry } from '#gw2/app/profession-registry.js';
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/platform/equipment/icons.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';

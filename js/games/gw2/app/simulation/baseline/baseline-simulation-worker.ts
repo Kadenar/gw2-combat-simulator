@@ -1,4 +1,4 @@
-import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
+import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
 import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';

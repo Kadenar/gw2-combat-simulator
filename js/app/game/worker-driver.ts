@@ -1,4 +1,4 @@
-import type { GameContentAddress } from '#app/shell/types.js';
+import type { GameContentAddress } from '#app/game/contracts.js';
 
 /** Routes game worker imports separately from browser plug-ins so worker bundles exclude worker constructors. */
 export async function loadGameWorkerDriver({ gameId, contentId }: GameContentAddress): Promise<unknown | null> {

@@ -1,6 +1,6 @@
 import type { CastCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { mountFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
+import { mountFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 
 /**
  * Popover editor for a thief Double Edge cast, letting the author pin the risky

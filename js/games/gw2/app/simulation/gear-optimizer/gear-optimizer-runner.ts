@@ -1,4 +1,4 @@
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/game/worker-harness.js';
 import {
   OPTIMIZER_REQUIREMENTS,
   retainOptimizerCandidate,

@@ -56,7 +56,7 @@ import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/bui
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
+import { createDefaultConfig, simulateMesmer } from '../../helpers/mesmer-simulation.js';
 
 test('starting resource clamps cover every active resource view', () => {
   const app = {
@@ -935,7 +935,7 @@ test('the landing selector records supplied specialization artwork for every pro
 
 test('Mesmer default builds resolve without embedded rotations', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/mesmer/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/mesmer/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('mesmer');
   const presets = manifest.flatMap((section) => section.presets);
@@ -943,7 +943,7 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
   // Check every shipped build without freezing the preset catalog as new builds are added.
   assert.ok(presets.length > 0, 'Mesmer manifest must contain default builds');
   for (const preset of presets) {
-    const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+    const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
     const build = adapter.toApplicationBuild(saved);
 
     assert.equal(Object.hasOwn(saved, 'rotation'), false);
@@ -955,12 +955,12 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
 
 test('Revenant Power Renegade Greatsword default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const [preset] = renegade.presets;
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.label, 'Power (Greatsword - Sword/Sword)');
@@ -975,12 +975,12 @@ test('Revenant Power Renegade Greatsword default build resolves', async () => {
 
 test('Revenant Power Renegade Hammer default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Power Renegade (Hammer)');
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.build, 'data/gw2/builds/revenant/b-power-renegade-hammer.json');
@@ -996,7 +996,7 @@ test('Revenant Power Renegade Hammer default build resolves', async () => {
 
 test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const vindicator = manifest.find((section) => section.section === 'Vindicator');
@@ -1008,10 +1008,10 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
   );
   // Both presets load separate rotations without pinning their authored cast sequence.
   const [energySaved, hydroSaved, energyReplay, hydroReplay] = await Promise.all([
-    readFile(new URL(`../../${energyPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
-    readFile(new URL(`../../${hydroPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
-    readFile(new URL(`../../${energyPreset.rotation}`, import.meta.url), 'utf8').then(JSON.parse),
-    readFile(new URL(`../../${hydroPreset.rotation}`, import.meta.url), 'utf8').then(JSON.parse)
+    readFile(new URL(`../../../${energyPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
+    readFile(new URL(`../../../${hydroPreset.build}`, import.meta.url), 'utf8').then(JSON.parse),
+    readFile(new URL(`../../../${energyPreset.rotation}`, import.meta.url), 'utf8').then(JSON.parse),
+    readFile(new URL(`../../../${hydroPreset.rotation}`, import.meta.url), 'utf8').then(JSON.parse)
   ]);
   const energyBuild = adapter.toApplicationBuild(energySaved);
   const hydroBuild = adapter.toApplicationBuild(hydroSaved);
@@ -1066,12 +1066,12 @@ test('Revenant Power Vindicator Greatsword defaults resolve', async () => {
 
 test('Revenant Condition Renegade Shortbow default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Shortbow - Mace/Axe)');
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json');
@@ -1091,14 +1091,14 @@ test('Revenant Condition Renegade Shortbow default build resolves', async () => 
 
 test('Revenant Condition Renegade Spear default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const renegade = manifest.find((section) => section.section === 'Renegade');
   const preset = renegade.presets.find((candidate) => candidate.label === 'Condition (Mace/Axe - Spear)');
   const [saved, replay] = await Promise.all(
     [preset.build, preset.rotation].map((path) =>
-      readFile(new URL(`../../${path}`, import.meta.url), 'utf8').then(JSON.parse)
+      readFile(new URL(`../../../${path}`, import.meta.url), 'utf8').then(JSON.parse)
     )
   );
   const build = adapter.toApplicationBuild(saved);
@@ -1126,12 +1126,12 @@ test('Revenant Condition Renegade Spear default build resolves', async () => {
 
 test('Revenant Condition Quickness Herald default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const herald = manifest.find((section) => section.section === 'Herald');
   const preset = herald.presets.find((candidate) => candidate.label === 'Condition Quickness (Shortbow - Mace/Axe)');
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json');
@@ -1155,12 +1155,12 @@ test('Revenant Condition Quickness Herald default build resolves', async () => {
 
 test('Revenant Condition Conduit Mistfire default build resolves', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/revenant/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const conduit = manifest.find((section) => section.section === 'Conduit');
   const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Spear - Mace/Axe)');
-  const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+  const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 
   assert.equal(preset.build, 'data/gw2/builds/revenant/b-condi-conduit-mistfire.json');
@@ -1180,7 +1180,7 @@ test('Revenant Condition Conduit Mistfire default build resolves', async () => {
 
 test('Necromancer preset builds keep rotation data separate', async () => {
   const manifest = JSON.parse(
-    await readFile(new URL('../../data/gw2/builds/necromancer/manifest.json', import.meta.url), 'utf8')
+    await readFile(new URL('../../../data/gw2/builds/necromancer/manifest.json', import.meta.url), 'utf8')
   );
   const adapter = await loadProfessionAppAdapter('necromancer');
   const presets = manifest.flatMap((section) =>
@@ -1210,7 +1210,7 @@ test('Necromancer preset builds keep rotation data separate', async () => {
     ]
   );
   for (const preset of presets) {
-    const saved = JSON.parse(await readFile(new URL(`../../${preset.build}`, import.meta.url), 'utf8'));
+    const saved = JSON.parse(await readFile(new URL(`../../../${preset.build}`, import.meta.url), 'utf8'));
     const build = adapter.toApplicationBuild(saved);
 
     assert.equal(Object.hasOwn(saved, 'rotation'), false);
@@ -1220,7 +1220,7 @@ test('Necromancer preset builds keep rotation data separate', async () => {
     assert.equal(build.alternateWeapons.length, 2);
   }
 
-  const power = JSON.parse(await readFile(new URL(`../../${harbingerPresets[0].build}`, import.meta.url), 'utf8'));
+  const power = JSON.parse(await readFile(new URL(`../../../${harbingerPresets[0].build}`, import.meta.url), 'utf8'));
 
   assert.deepEqual(power.weapons, ['Greatsword', '']);
   assert.deepEqual(power.alternateWeapons, ['Spear', '']);

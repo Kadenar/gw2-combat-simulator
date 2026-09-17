@@ -1,4 +1,4 @@
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 // Share the comparison model without loading simulation code into the chart.
 import type {

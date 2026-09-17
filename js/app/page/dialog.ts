@@ -1,4 +1,4 @@
-import { trackEmbeddedViewport } from '#app/embed.js';
+import { trackEmbeddedViewport } from '#app/page/embed.js';
 
 const pendingDialogs = new WeakMap<HTMLDialogElement, () => void>();
 

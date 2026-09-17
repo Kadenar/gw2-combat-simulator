@@ -120,7 +120,8 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-
           npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-          --test-reporter-destination=dist/test-reports/app-ui.xml "tests/app/**/*.test.js" "tests/ui/**/*.test.js"
+          --test-reporter-destination=dist/test-reports/app-ui.xml "tests/app/**/*.test.js" "tests/gw2/app/**/*.test.js"
+          "tests/ui/**/*.test.js"
       - name: Test importers and log analysis
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: >-

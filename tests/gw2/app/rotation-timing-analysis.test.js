@@ -181,7 +181,7 @@ test('weapon duration honors a manifest starting on W2', () => {
 });
 
 test('loaded manifest rotations keep repeated weapon stays independent', async () => {
-  const repoUrl = (path) => new URL(`../../${path}`, import.meta.url);
+  const repoUrl = (path) => new URL(`../../../${path}`, import.meta.url);
   const manifest = JSON.parse(await readFile(repoUrl('data/gw2/builds/guardian/manifest.json'), 'utf8'));
   const preset = manifest
     .flatMap((section) => section.presets)

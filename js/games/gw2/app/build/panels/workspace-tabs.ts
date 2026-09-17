@@ -1,6 +1,6 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Edits the chosen tab in a modal without changing the active build or saving cancelled input. */

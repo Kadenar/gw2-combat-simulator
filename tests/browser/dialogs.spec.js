@@ -13,7 +13,7 @@ const launchers = [
 test('embedded viewport updates cannot reopen a closed dialog', async ({ page }) => {
   await page.goto('/');
   const reopened = await page.evaluate(async () => {
-    const { showDialog } = await import('/js/app/dialog.ts');
+    const { showDialog } = await import('/js/app/page/dialog.ts');
     document.documentElement.classList.add('embed');
     const NativeObserver = window.IntersectionObserver;
     let notify;

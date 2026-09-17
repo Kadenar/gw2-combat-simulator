@@ -1,7 +1,5 @@
 import { escapeHtml } from '#ui/shared/html.js';
 
-export { escapeHtml };
-
 export function gw2ApiText(value: unknown): string {
   return String(value ?? '')
     .replace(/<br\s*\/?>/gi, '\n')

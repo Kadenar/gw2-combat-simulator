@@ -7,8 +7,8 @@
  * the rest are its DOM helpers.
  */
 
-import { resetRotationWorkspace } from '#app/shell/workspace.js';
-import { navigationRoute } from '#app/embed.js';
+import { resetRotationWorkspace } from '#app/shell/rotation-workspace.js';
+import { navigationRoute } from '#app/page/embed.js';
 
 export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer';
 type SimulatorSection = 'professions' | SimulatorView;

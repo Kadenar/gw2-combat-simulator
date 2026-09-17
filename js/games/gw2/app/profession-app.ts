@@ -25,7 +25,7 @@ import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simula
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
-import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/workspace.js';
+import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/rotation-workspace.js';
 import type { ShellSession } from '#app/shell/types.js';
 
 import type { BuildTemplatePreset, BuildTemplateSelection, ProfessionAttributeData } from '#gw2/app/build/types.js';

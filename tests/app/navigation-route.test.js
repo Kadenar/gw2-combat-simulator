@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { navigationRoute } from '#app/embed.js';
+import { navigationRoute } from '#app/page/embed.js';
 
 // Internal links retain only the active modes, including when bookmarked or opened in another tab.
 test('navigation routes preserve standalone and embed flags without losing destination queries or hashes', () => {

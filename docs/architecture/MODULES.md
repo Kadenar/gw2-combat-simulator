@@ -13,7 +13,7 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 | ------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `js/kernel/`                          | Game-neutral clock, collections, randomness, event-stream, queue, and observation contracts |
 | `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
-| `js/app/`                             | Game-neutral registry, bootstrap, worker harness, and shell                                 |
+| `js/app/`                             | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell |
 | `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
 | `js/games/gw2/professions/`           | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
 | `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters          |
@@ -95,19 +95,34 @@ do not duplicate shared GW2 behavior inside individual professions.
 js/app/
 ```
 
-`js/app/` owns the game-neutral registry, bootstrap, worker harness, and shell. Game-specific browser behavior belongs
-under its game package; GW2 uses `js/games/gw2/app/`.
+`js/app/` owns the game-neutral page entry, the game plug-in boundary, page/host integration, and the shell.
+Game-specific browser behavior belongs under its game package; GW2 uses `js/games/gw2/app/`.
 
-## Main application files
+## Application folders
 
-| Module                              | Responsibility                                          |
-| ----------------------------------- | ------------------------------------------------------- |
-| `app.ts`                            | Browser entry point                                     |
-| `bootstrap.ts`                      | Resolves the active game and content and starts its app |
-| `game/registry.ts`                  | Validates and resolves game plug-ins                    |
-| `simulation/game-worker-harness.ts` | Routes worker requests by game and content              |
-| `shell/`                            | Neutral result contracts and workspace mounting         |
-| `embed.ts`                          | Embedded simulator entry/support                        |
+| Path           | Responsibility                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| `entry.ts`     | Page script: startup watchdog and bootstrap call                                                       |
+| `bootstrap.ts` | Resolves the active game and content and starts its app                                                |
+| `game/`        | Game plug-in boundary: contracts and `GameContentAddress`, registry, worker driver, and worker harness |
+| `page/`        | Host integration: iframe embed support, modal dismissal and embed-aware positioning, and hosting redirect |
+| `shell/`       | Result rendering, rotation workspace (config drawer, focus mode), and floating DPS badge               |
+
+### Dependency direction
+
+Non-type imports:
+
+| Folder            | May import                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| `js/ui/shared/`   | nothing in `#ui`, `#app`, or `#gw2`.                                                              |
+| `js/ui/results/`  | `js/ui/shared/`, other `js/ui/results/` files.                                                    |
+| `js/ui/rotation/` | `js/ui/shared/`, other `js/ui/rotation/` files. **Not** `js/ui/results/`.                         |
+| `js/app/page/`    | other `js/app/page/` files (`dialog.ts` → `embed.ts`). Nothing else in `#app`, `#ui`, or `#gw2`.  |
+| `js/app/game/`    | other `js/app/game/` files; lazy `import('#gw2/…')` only in `registry.ts` and `worker-driver.ts`. |
+| `js/app/shell/`   | `#ui`, `js/app/page/`, `js/app/game/contracts.d.ts` (types). No `#gw2`.                           |
+| `js/app/` root    | `js/app/page/`, `js/app/game/`.                                                                   |
+
+`shell/` → `game/` is type-only (`GameContentAddress`), so no module in `game/` ever loads shell code.
 
 `js/games/gw2/app/profession-app.ts` coordinates the current GW2 browser application.
 
@@ -232,7 +247,7 @@ These modules orchestrate simulation work around the shared engine. They should 
 
 Shared-code assessment:
 
-- Worker lifecycle is already extracted into `js/app/simulation/game-worker-harness.ts`. `ManagedWorkerBatch` owns
+- Worker lifecycle is already extracted into `js/app/game/worker-harness.ts`. `ManagedWorkerBatch` owns
   cancellation, stale-response filtering, and failure cleanup for modifiers, RNG, and the optimizer.
   `createGameWorkerEndpoint` shares driver loading, request IDs, progress envelopes, and error serialization for
   baseline, modifier, and RNG workers.
@@ -286,8 +301,15 @@ must not import application or game packages.
 js/ui/
 ```
 
-Neutral UI owns stable summary, breakdown, timeline, effect-lane, warning, state-snapshot, and extension-panel models.
-GW2 adapts its existing output through `js/games/gw2/app/results/view.ts`.
+| Path        | Responsibility                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| `results/`  | Shell-facing simulation view model and renderer, event log, and hit-timeline chart (model and view) |
+| `rotation/` | Rotation warnings, insertion cursor, ammo display, and floating/duration editors (`editing/`)      |
+| `shared/`   | DOM, HTML, error, and dropdown-search helpers                                                      |
+
+A `js/ui/` file lives in the folder with the same name as the `js/games/gw2/app/` folder that consumes it. GW2 adapts its
+existing output through `js/games/gw2/app/results/view.ts`. Neutral UI must not name GW2 skills, resources, or
+profession flags; those belong beside their GW2 consumer.
 
 ---
 
@@ -476,29 +498,55 @@ js/games/gw2/professions/warrior/
 ├── build/
 ├── data/
 ├── profession.ts
+├── catalog.ts
 ├── family-state.ts
 └── types.d.ts
 ```
 
-Profession folders are moving to the layout described in
-[PROFESSION-LAYOUT-PLAN.md](./PROFESSION-LAYOUT-PLAN.md). Until the plan's final step, professions it has not migrated
-yet still split `profession.ts` into `definition.ts`, `modules.ts`, and `catalog.ts`, keep `catalog/module-data.ts`, and
-name the family files `state.ts` and `presentation.ts`.
+Every profession uses the same layout:
 
-| Root file                | Owns                                                                                    |
-| ------------------------ | --------------------------------------------------------------------------------------- |
-| `profession.ts`          | Core-first module tuple, assembled catalog, native profession contract, integration exports |
-| `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state   |
-| `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                     |
-| `types.d.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types   |
+```text
+<profession>/
+  profession.ts            native profession contract; re-exports catalog.ts
+  catalog.ts               Core-first module tuple and assembled catalog
+  family-state.ts          helpers that combine Core and specialization state
+  family-presentation.ts   optional family-level presentation
+  types.d.ts               shared family types; composes module state types
+  app/app-definition.ts
+  build/
+  data/                    generated/static data, module-data.ts, and pure helpers shared with integrations
+  core/
+    module.ts              manifest only
+    state.ts               <Profession>CoreState next to its factory
+    execution/             skill handlers and scheduler hooks
+    mechanics/  skills/  traits/  presentation.ts  profiles.ts
+  specializations/<name>/
+    module.ts              manifest only
+    state.ts               <Name>State next to its factory
+    execution/             only when the module needs handlers or hooks
+    mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.d.ts for module-only skill fields]
+```
+
+| Root file                | Owns                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `profession.ts`          | Native profession contract (named and default export); re-exports the module tuple, catalog, and skill IDs   |
+| `catalog.ts`             | Core-first module tuple and assembled catalog. `build/` imports it; other outside code uses `profession.js` |
+| `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state                        |
+| `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                                          |
+| `types.d.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types                        |
+
+No other files belong at the profession root. `catalog.ts` stays separate from `profession.ts` because `profession.ts`
+imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
 
 Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` is a manifest: imports plus one exported
 `defineNativeModule(...)` call. Skill handler maps live in `execution/index.ts`, scheduler hooks in
 `execution/hooks.ts`, and each module's state interface in its `state.ts`.
 
-Code outside a migrated profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
-`build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Tests are exempt. `eslint.config.js` and
-`tests/architecture/profession-layout.test.js` enforce this for migrated professions.
+Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
+`build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
+never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
+`professions/lib/` helpers are not a profession. `eslint.config.js` and `tests/architecture/profession-layout.test.js`
+enforce this layout for every profession.
 
 The runtime composition is:
 
@@ -967,7 +1015,8 @@ A specialization may reuse Core helpers, but Core should not depend on specializ
 
 # `profession.ts`
 
-`profession.ts` assembles the profession. Each profession exposes one Core-first module tuple.
+`profession.ts` assembles the profession. Each profession exposes one Core-first module tuple, declared in `catalog.ts`
+and re-exported by `profession.ts`.
 
 Example:
 
@@ -983,8 +1032,8 @@ export const warriorNativeModules = Object.freeze([
 
 Core must be first.
 
-The same file assembles the catalog with `assembleNativeApplicationCatalog(<profession>NativeModules)` and creates and
-exports the native profession contract.
+`catalog.ts` also assembles the catalog with `assembleNativeApplicationCatalog(<profession>NativeModules, options)`.
+`profession.ts` creates and exports the native profession contract.
 
 Example:
 
@@ -1211,10 +1260,14 @@ See [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 js/ui/
 ```
 
-This layer contains reusable UI models and primitives that are independent of any game. GW2-specific presentation
-follows these owners:
+This layer contains reusable UI models and primitives that are independent of any game. A `js/ui/` file lives in the
+folder with the same name as the `js/games/gw2/app/` folder that consumes it. GW2-specific presentation follows the GW2
+owners below:
 
 ```text
+js/ui/results/              # Simulation view model, event log, and hit-timeline chart
+js/ui/rotation/             # Rotation warnings, insertion cursor, ammo display, and floating editors
+js/ui/shared/               # DOM, HTML, error, and dropdown-search helpers
 js/games/gw2/app/results/   # Result models, skill breakdown, charts, event logs, and shell adapter
 js/games/gw2/app/rotation/  # Palette, timeline, editing, warnings, and timeline timing analysis
 js/games/gw2/app/shared/    # Shared HTML, icon, and result clock helpers
@@ -1322,7 +1375,7 @@ defineNativeModule({
 Then add the module to:
 
 ```text
-js/games/gw2/professions/<profession>/profession.ts
+js/games/gw2/professions/<profession>/catalog.ts
 ```
 
 after Core.
@@ -1350,6 +1403,7 @@ js/games/gw2/professions/new-profession/
     core/
     specializations/
     profession.ts
+    catalog.ts
     family-state.ts
     types.d.ts
     build/
@@ -1383,6 +1437,7 @@ Examples:
 tests/platform/
 tests/professions/
 tests/app/
+tests/gw2/app/
 tests/architecture/
 tests/kernel/
 tests/ui/

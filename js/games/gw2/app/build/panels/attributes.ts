@@ -1,4 +1,4 @@
-import { escapeHtml as esc } from '#gw2/app/shared/html.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
 import {
   attributeEffectControls,

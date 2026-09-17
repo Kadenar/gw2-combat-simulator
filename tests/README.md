@@ -2,7 +2,10 @@
 
 Tests follow the same ownership boundaries as the source tree:
 
-- `app/` covers application composition and user-facing workflows.
+- `app/` covers the game-neutral `#app` layer: game registry, bootstrap, worker harness, page/host integration, and
+  shell.
+- `gw2/app/` covers GW2 application composition and user-facing workflows, plus the saved-preset benchmarks in
+  `gw2/app/benchmarks/`.
 - `architecture/` covers import aliases and cross-package dependency boundaries.
 - `kernel/` covers game-neutral runtime contracts, including event queue ordering.
 - `ui/` covers game-neutral presentation primitives, including rotation editors, insertion cursors, warnings, and ammo
@@ -22,8 +25,8 @@ Pages and release CI run each of the nine profession directories in a named step
 shared profession contracts step runs `tests/professions/*.test.js`. A failed step does not skip the remaining test
 groups, but any failed check still blocks deployment or release asset publication.
 
-GW2 palette, timeline, chart, result, and icon views belong in `app/`, even when their exported names describe shared
-UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without browser
+GW2 palette, timeline, chart, result, and icon views belong in `gw2/app/`, even when their exported names describe
+shared UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without browser
 nodes.
 
 Mesmer's `chronomancer.test.js`, `mirage.test.js`, `virtuoso.test.js`, and `troubadour.test.js` cover their

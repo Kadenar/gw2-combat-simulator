@@ -1,5 +1,5 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';

@@ -1,4 +1,4 @@
-import { enterRotationFocus } from '#app/shell/workspace.js';
+import { enterRotationFocus } from '#app/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/io/rotation-import-dialog.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';

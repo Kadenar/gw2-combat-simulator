@@ -1,4 +1,4 @@
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/app/results/charts/boon-generation.js';
 import {
   buildPhaseDpsSeries,
@@ -8,7 +8,8 @@ import {
   type ChartPoint,
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
-import { mountHitTimeline, filterHitsToPhase } from '#ui/results/charts/hit-timeline.js';
+import { filterHitsToPhase } from '#ui/results/charts/hit-timeline-model.js';
+import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
 export interface ChartHealthBreakpoint {

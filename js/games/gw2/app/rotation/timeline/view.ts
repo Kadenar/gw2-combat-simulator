@@ -10,7 +10,7 @@ import { renderTimingAnalysis } from '#gw2/app/rotation/timeline/timing/view.js'
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import { closeFloatingEditor } from '#ui/rotation/editors/floating-editor.js';
+import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import { mountRotationInsertionCursor } from '#ui/rotation/insertion-cursor.js';
 
 interface RetainedTimelineRow {

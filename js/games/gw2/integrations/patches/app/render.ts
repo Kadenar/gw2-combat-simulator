@@ -1,5 +1,5 @@
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringBalanceProfile,

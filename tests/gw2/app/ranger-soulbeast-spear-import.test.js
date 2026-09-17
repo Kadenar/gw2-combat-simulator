@@ -6,11 +6,11 @@ import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 
 test('Soulbeast spear diagnostic import loads and simulates with the requested equipment', async () => {
   const [savedBuild, savedRotation, adapter] = await Promise.all([
-    readFile(new URL('../../data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json', import.meta.url), 'utf8').then(
+    readFile(new URL('../../../data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json', import.meta.url), 'utf8').then(
       JSON.parse
     ),
     readFile(
-      new URL('../../data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json', import.meta.url),
+      new URL('../../../data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json', import.meta.url),
       'utf8'
     ).then(JSON.parse),
     loadProfessionAppAdapter('ranger')

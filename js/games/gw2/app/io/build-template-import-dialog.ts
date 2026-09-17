@@ -1,10 +1,11 @@
-import { bindDialog, showDialog } from '#app/dialog.js';
+import { bindDialog, showDialog } from '#app/page/dialog.js';
 import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from '#gw2/app/io/build-template-import.js';
-import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
+import { errorMessage } from '#ui/shared/errors.js';
 
 import type { BuildTemplateImportPreview } from '#gw2/app/io/build-template-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

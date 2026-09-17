@@ -1,5 +1,5 @@
 import { bootstrapGameApp } from '#app/bootstrap.js';
-import { isEmbedded, trackEmbeddedViewport } from '#app/embed.js';
+import { isEmbedded, trackEmbeddedViewport } from '#app/page/embed.js';
 
 // Starts the game and playable content declared by the simulator page after its shared markup is ready.
 window.addEventListener('DOMContentLoaded', () => {
