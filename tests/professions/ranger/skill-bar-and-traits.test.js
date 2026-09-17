@@ -11,10 +11,9 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { druidAttributeRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
 import { rangerCoreAttributeRules, rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
 import {

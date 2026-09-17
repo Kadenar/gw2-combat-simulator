@@ -1,6 +1,19 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
-import type { RangerConfig, RangerState, SoulbeastState } from '#gw2/professions/ranger/types.js';
+import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+
+export interface SoulbeastState {
+  beastmodeActive: boolean;
+  archetype: string;
+  oneWolfPackUntil: number;
+  oneWolfPackReadyAt: number;
+  goForTheEyesReadyAt: number;
+  goForTheThroatReadyAt: number;
+  bestialRageReadyAt: number;
+  essenceOfSpeedReadyAt: number;
+  vultureStanceReadyAt: number;
+  beastAbilityActivations: Record<string, boolean>;
+}
 
 // Soulbeast owns its public Beastmode and stance projection.
 export const SOULBEAST_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([

@@ -9,7 +9,7 @@ import { ENGINEER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/family
 import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/family-state.js';
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '#gw2/professions/guardian/family-state.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/family-state.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
 import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/state.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/state.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/state.js';

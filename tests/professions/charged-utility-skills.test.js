@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';

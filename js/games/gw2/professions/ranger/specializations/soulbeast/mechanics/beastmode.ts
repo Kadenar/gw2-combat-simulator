@@ -1,4 +1,4 @@
-import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/archetype-attributes.js';
+import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
