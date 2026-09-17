@@ -1,7 +1,7 @@
 import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/result-tables.js';
-import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/result-transform.js';
-import { timelineIdleTimeMetric } from '#gw2/app/rotation/timeline/timing/model.js';
+import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
+import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
+import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -84,7 +84,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
   return metrics;
 }
 
-export { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+export { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 /** Finds the active profession contribution for an internal effect kind. */
 function effectPresentation(

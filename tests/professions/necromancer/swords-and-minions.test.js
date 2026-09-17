@@ -1,8 +1,8 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
-import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';

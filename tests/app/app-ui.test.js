@@ -44,7 +44,8 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
-import { ACTION_ICONS, resolveProcIcon, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { ACTION_ICONS, resolveProcIcon } from '#gw2/app/shared/icons.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';

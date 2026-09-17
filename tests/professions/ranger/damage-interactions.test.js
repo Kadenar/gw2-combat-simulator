@@ -9,7 +9,7 @@ import {
   skillBreakdownRows,
   skillDamageKeyByIdentity,
   skillDamageIdentityKey
-} from '#gw2/app/results/result-tables.js';
+} from '#gw2/app/results/skill-breakdown.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const simulate = createProfessionSimulator(rangerProfession, {

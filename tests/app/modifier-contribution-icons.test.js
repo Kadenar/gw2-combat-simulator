@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { MODIFIER_EFFECT_ICONS, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 

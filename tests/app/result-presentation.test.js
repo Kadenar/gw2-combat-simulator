@@ -9,7 +9,7 @@ import {
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { eventLogCsv, mountEventLog } from '#gw2/app/results/event-log-view.js';
-import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
+import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import {
   dismissResultMetricDetails,
   modifierContributionsHtml,
@@ -17,11 +17,11 @@ import {
   nextResultSortState,
   SKILL_COLS,
   sortResultRows
-} from '#gw2/app/results/rotation-results.js';
+} from '#gw2/app/results/analysis-panel.js';
 import { inertContainer } from '../helpers/dom.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Pending comparisons occupy only their own section and never present old values as current.

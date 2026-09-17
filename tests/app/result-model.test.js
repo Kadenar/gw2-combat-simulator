@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
-import {
-  formatResultTimelineTime,
-  formatTimelineTime,
-  resultCombatReferenceMs
-} from '#gw2/app/rotation/timeline/timing/model.js';
-import { skillDamageIdentityKey } from '#gw2/app/results/result-tables.js';
+import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { skillDamageIdentityKey } from '#gw2/app/results/skill-breakdown.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,

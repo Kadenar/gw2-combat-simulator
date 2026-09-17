@@ -5,7 +5,7 @@ import test from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';

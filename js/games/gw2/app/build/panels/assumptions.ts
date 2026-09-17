@@ -1,5 +1,5 @@
 import { escapeHtml as esc, option } from '#gw2/app/shared/html.js';
-import { MODIFIER_EFFECT_ICONS } from '#gw2/app/rotation/shared/icons.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { isSimulationRandomnessControl } from '#gw2/platform/simulation/randomness.js';
 import {

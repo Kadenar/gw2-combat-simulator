@@ -5,7 +5,7 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountRotationResults } = await import('/js/games/gw2/app/results/rotation-results.ts');
+    const { mountRotationResults } = await import('/js/games/gw2/app/results/analysis-panel.ts');
     const { buildChartSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const chartSeries = buildChartSeries({
       dpsStartTime: 0.36,

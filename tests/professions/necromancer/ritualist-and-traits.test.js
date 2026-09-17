@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';

@@ -16,7 +16,7 @@ import {
   PLACEHOLDER_ICON,
   WAIT_ICON,
   resolveProcIcon
-} from '#gw2/app/rotation/shared/icons.js';
+} from '#gw2/app/shared/icons.js';
 import {
   continuumEndTimelineMarkers,
   formatConcurrentTimelineBadge,
@@ -45,12 +45,8 @@ import {
   timelineWeaponRows,
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
-import {
-  formatTimelineTime,
-  resultCombatReferenceMs,
-  weaponSetActiveSegments,
-  weaponSetDurationTotals
-} from '#gw2/app/rotation/timeline/timing/model.js';
+import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';

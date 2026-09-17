@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
