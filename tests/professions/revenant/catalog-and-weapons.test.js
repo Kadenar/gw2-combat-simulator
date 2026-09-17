@@ -70,7 +70,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
     [[1, 1]]
   );
   for (const [skillId, castTimeMs] of [
-    [SKILL.HEX_EATER_VORTEX, 526],
+    [SKILL.HEX_EATER_VORTEX, 520],
     [SKILL.FRIGID_BLITZ, 681],
     [SKILL.SEARING_FISSURE, 600],
     [SKILL.TEMPORAL_RIFT, 560],

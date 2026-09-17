@@ -81,12 +81,26 @@ function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning
     : [];
 }
 
+/** Flags equipped gear whose simulated behavior relies on unconfirmed game values. */
+function equippedGearWarnings(app: ProfessionAppState): RotationWarningItem[] {
+  return app.build.relic === 'Last Tyrant'
+    ? [
+        {
+          message:
+            "Relic of the Last Tyrant: the explosion's damage coefficient and the internal cooldown for gaining Tyrant's Fury stacks are unknown, so results may vary.",
+          time: ''
+        }
+      ]
+    : [];
+}
+
 export function renderWarnings(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-warnings');
   if (!element) return;
   const details = element.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
   const wasOpen = details?.open ?? false;
   const warnings = [
+    ...equippedGearWarnings(app),
     ...equippedSkillCastTimeWarnings(app),
     ...(app.build.rotation.length && app.results ? rotationWarningItems(app.results) : [])
   ];

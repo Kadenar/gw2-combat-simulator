@@ -6,138 +6,6 @@ import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/pr
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-const BEGUILING_HAZE_EFFECTS = Object.freeze([
-  {
-    type: 'strike',
-    name: 'Beguiling Haze',
-    actorType: 'player',
-    ticks: [{ atMs: 520, coefficient: 2.2 }],
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  }
-] as const);
-
-const HEX_EATER_VORTEX_EFFECTS = Object.freeze([
-  {
-    type: 'strike',
-    name: 'Hex-Eater Vortex',
-    actorType: 'player',
-    ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
-      atMs,
-      coefficient: 0.2
-    })),
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  },
-  {
-    type: 'condition',
-    name: 'Hex-Eater Vortex',
-    actorType: 'player',
-    ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
-      atMs,
-      condition: 'Torment',
-      stacks: 1,
-      duration: 1.5
-    })),
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  }
-] as const);
-
-const GLADIATORS_DEFENSE_EFFECTS = Object.freeze([
-  {
-    type: 'strike',
-    coefficient: 1.5,
-    hits: 1,
-    name: "Gladiator's Defense",
-    actorType: 'player'
-  },
-  {
-    type: 'condition',
-    condition: 'Weakness',
-    stacks: 1,
-    duration: 5,
-    actorType: 'player'
-  },
-  { type: 'boon', boon: 'resolution', duration: 3, stacks: 1 },
-  { type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
-] as const);
-
-const TWIN_MOON_SWEEP_EFFECTS = Object.freeze([
-  {
-    type: 'strike',
-    ticks: [{ atMs: 880, coefficient: 2.5 }],
-    name: 'Twin Moon Sweep — Player',
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    metadata: { affinityOnHit: true }
-  },
-  {
-    type: 'strike',
-    ticks: [{ atMs: 880, coefficient: 2.5 }],
-    name: 'Twin Moon Sweep — Fragment',
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  },
-  {
-    type: 'condition',
-    ticks: Array.from({ length: 2 }, (_, index) => ({
-      atMs: 880 + index * 0,
-      condition: 'Bleeding',
-      stacks: 2,
-      duration: 3
-    })),
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  },
-  {
-    type: 'boon',
-    boon: 'might',
-    stacks: 2,
-    duration: 8,
-    applications: 2,
-    intervalMs: 0,
-    atMs: 880,
-    timingAnchor: 'castStart',
-    timingScale: 'fixed'
-  },
-  {
-    type: 'condition',
-    ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    metadata: { legendId: LEGEND.ASSASSIN }
-  },
-  {
-    type: 'strike',
-    coefficient: 0.4,
-    hits: 2,
-    atMs: 1400,
-    name: 'Twin Moon Sweep — Shatter',
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    metadata: { legendId: LEGEND.DEMON }
-  },
-  {
-    type: 'condition',
-    ticks: Array.from({ length: 2 }, (_, index) => ({
-      atMs: 1400 + index * 0,
-      condition: 'Confusion',
-      stacks: 3,
-      duration: 3
-    })),
-    actorType: 'player',
-    timingAnchor: 'castStart',
-    timingScale: 'fixed',
-    metadata: { legendId: LEGEND.DEMON }
-  }
-] as const);
-
 export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BEGUILING_HAZE_ID_76805]: {
     // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
@@ -148,7 +16,16 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    effects: BEGUILING_HAZE_EFFECTS,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Beguiling Haze',
+        actorType: 'player',
+        ticks: [{ atMs: 520, coefficient: 2.2 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.TWIN_MOON_SWEEP]: {
@@ -167,7 +44,80 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: TWIN_MOON_SWEEP_EFFECTS,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Player',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { affinityOnHit: true }
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Fragment',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 880 + index * 0,
+          condition: 'Bleeding',
+          stacks: 2,
+          duration: 3
+        })),
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 2,
+        duration: 8,
+        applications: 2,
+        intervalMs: 0,
+        atMs: 880,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 2,
+        atMs: 1400,
+        name: 'Twin Moon Sweep — Shatter',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 1400 + index * 0,
+          condition: 'Confusion',
+          stacks: 3,
+          duration: 3
+        })),
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.DEMON }
+      }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
@@ -186,7 +136,80 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: TWIN_MOON_SWEEP_EFFECTS,
+    effects: [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Player',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { affinityOnHit: true }
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Fragment',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 880 + index * 0,
+          condition: 'Bleeding',
+          stacks: 2,
+          duration: 3
+        })),
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 2,
+        duration: 8,
+        applications: 2,
+        intervalMs: 0,
+        atMs: 880,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.ASSASSIN }
+      },
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 2,
+        atMs: 1400,
+        name: 'Twin Moon Sweep — Shatter',
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.DEMON }
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 1400 + index * 0,
+          condition: 'Confusion',
+          stacks: 3,
+          duration: 3
+        })),
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        metadata: { legendId: LEGEND.DEMON }
+      }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.BEGUILING_HAZE]: {
@@ -198,16 +221,51 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     ammo: 1,
     ammoRecharge: 10,
     energyCost: 20,
-    effects: BEGUILING_HAZE_EFFECTS,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Beguiling Haze',
+        actorType: 'player',
+        ticks: [{ atMs: 520, coefficient: 2.2 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.HEX_EATER_VORTEX]: {
     // Custom: Materializes affinity-dependent pulses and charge consumption; see `execution/entities.ts`.
     handlerId: 'revenant.hex-eater-vortex',
-    castTimeMs: 526,
+    castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
-    effects: HEX_EATER_VORTEX_EFFECTS,
+    // Keep each projectile's strike and Torment on the same fixed impact tick.
+    effects: [
+      {
+        type: 'strike',
+        name: 'Hex-Eater Vortex',
+        actorType: 'player',
+        ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
+          atMs,
+          coefficient: 0.2
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        name: 'Hex-Eater Vortex',
+        actorType: 'player',
+        ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
+          atMs,
+          condition: 'Torment',
+          stacks: 1,
+          duration: 1.5
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {
@@ -219,7 +277,24 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     defaultInterruptMs: 40,
     cooldown: 5,
     energyCost: 10,
-    effects: GLADIATORS_DEFENSE_EFFECTS,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        hits: 1,
+        name: "Gladiator's Defense",
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
+      },
+      { type: 'boon', boon: 'resolution', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
+    ],
     legendId: 'LegendaryEntity'
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
