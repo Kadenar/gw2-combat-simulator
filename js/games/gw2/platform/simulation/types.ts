@@ -1,4 +1,4 @@
-/** Owns the simulation/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type {
   NormalizedProfessionContract,
   ProfessionApplicationContract,

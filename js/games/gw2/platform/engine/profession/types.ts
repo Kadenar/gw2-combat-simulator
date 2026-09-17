@@ -337,7 +337,7 @@ export interface ProfessionModuleDefinition<TModuleState extends object = Schedu
   readonly ui?: Partial<ProfessionUiContract> & SchedulerRecord;
 }
 
-export interface ProfessionFamilyDefinition<TProfessionState extends object = SchedulerRecord> {
+export interface ProfessionFamilyDefinition<_TProfessionState extends object = SchedulerRecord> {
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;

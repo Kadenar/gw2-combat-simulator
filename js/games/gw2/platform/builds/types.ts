@@ -1,4 +1,4 @@
-/** Owns the builds/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';

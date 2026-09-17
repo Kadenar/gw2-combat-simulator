@@ -1,4 +1,4 @@
-/** Owns the combos/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the combos/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 

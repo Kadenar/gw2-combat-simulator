@@ -1,6 +1,6 @@
 /**
  * Owns cast-local interfaces shared by the Core Mesmer effect pipeline.
- * Catalog skill shapes live under `data/`; profession runtime interfaces live in the profession `types.d.ts`.
+ * Catalog skill shapes live under `data/`; profession runtime interfaces live in the profession `types.ts`.
  */
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

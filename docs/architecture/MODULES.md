@@ -119,7 +119,7 @@ Non-type imports:
 | `js/ui/rotation/` | `js/ui/shared/`, other `js/ui/rotation/` files. **Not** `js/ui/results/`.                         |
 | `js/app/page/`    | other `js/app/page/` files (`dialog.ts` → `embed.ts`). Nothing else in `#app`, `#ui`, or `#gw2`.  |
 | `js/app/game/`    | other `js/app/game/` files; lazy `import('#gw2/…')` only in `registry.ts` and `worker-driver.ts`. |
-| `js/app/shell/`   | `#ui`, `js/app/page/`, `js/app/game/contracts.d.ts` (types). No `#gw2`.                           |
+| `js/app/shell/`   | `#ui`, `js/app/page/`, `js/app/game/contracts.ts` (types). No `#gw2`.                           |
 | `js/app/` root    | `js/app/page/`, `js/app/game/`.                                                                   |
 
 `shell/` → `game/` is type-only (`GameContentAddress`), so no module in `game/` ever loads shell code.
@@ -139,7 +139,7 @@ The `js/games/gw2/app/` root holds only the composition root. Everything else li
 | `create-runtime.ts`      | Connects application builds to `simulateGw2()`                  |
 | `create-adapter.ts`      | Composes native profession browser adapters                     |
 | `capabilities.ts`        | GW2 application capability flags                               |
-| `types.d.ts`             | Application state contracts                                     |
+| `types.ts`             | Application state contracts                                     |
 
 | Folder        | Owns                                                                                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------ |
@@ -159,12 +159,12 @@ Non-type imports inside `js/games/gw2/app/` follow these rules:
 
 | Folder        | May import                                                                                                  |
 | ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `shared/`     | platform, `#ui`, `#kernel`, `app/types.d.ts`. **No other app folder.**                                      |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                      |
 | `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
 | `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionEndState`). |
-| `io/`         | `shared/`, `build/state/`, `build/types.d.ts`, integrations.                                                |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                |
 | `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint). |
-| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.d.ts`.                                  |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                  |
 | `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                    |
 | root          | anything.                                                                                                   |
 
@@ -239,7 +239,7 @@ random-distribution/
 relic-comparison/
 ```
 
-The root owns common config construction. `baseline/types.d.ts` retains baseline and patch-comparison
+The root owns common config construction. `baseline/types.ts` retains baseline and patch-comparison
 contracts; modifier, RNG, and relic request/result contracts live in their feature directories. Optimizer contracts
 remain beside their implementations. Consumers import the owning module directly, without compatibility re-exports.
 
@@ -344,8 +344,8 @@ Important modules include:
 | `profession/family.ts`                                                                    | Core + specialization contract composition         |
 | `profession/module.ts`                                                                    | Profession module composition                      |
 | `profession/ui-combinators.ts`                                                            | Composition helpers for profession UI slices       |
-| `events/types.d.ts`, `skills/types.d.ts`, `execution/types.d.ts`, `profession/types.d.ts` | Domain-owned engine contracts                      |
-| `types.d.ts`                                                                              | Type-only compatibility exports from those domains |
+| `events/types.ts`, `skills/types.ts`, `execution/types.ts`, `profession/types.ts` | Domain-owned engine contracts                      |
+| `types.ts`                                                                              | Type-only compatibility exports from those domains |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -400,7 +400,7 @@ and dispatch reactions. Query contracts live in `combat/query/combat-query.ts` a
 and validation live in `engine/events/events.ts`. Scheduled-stream contracts live with `scheduled-stream.ts`. Hit
 diagnostics, condition applications/private wakes, and mutable runtime types live with `hit-resolution.ts`,
 `condition-resolution.ts`, and `runtime-state.ts`. The shared event/result/reaction contracts remain in
-`resolver/types.d.ts`; fixed resolver wiring is composed in `resolve-timeline.ts`.
+`resolver/types.ts`; fixed resolver wiring is composed in `resolve-timeline.ts`.
 
 Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
 decoration and validation live under `js/games/gw2/integrations/patches/`.
@@ -500,7 +500,7 @@ js/games/gw2/professions/warrior/
 ├── profession.ts
 ├── catalog.ts
 ├── family-state.ts
-└── types.d.ts
+└── types.ts
 ```
 
 Every profession uses the same layout:
@@ -511,7 +511,7 @@ Every profession uses the same layout:
   catalog.ts               Core-first module tuple and assembled catalog
   family-state.ts          helpers that combine Core and specialization state
   family-presentation.ts   optional family-level presentation
-  types.d.ts               shared family types; composes module state types
+  types.ts               shared family types; composes module state types
   app/app-definition.ts
   build/
   data/                    generated/static data, module-data.ts, and pure helpers shared with integrations
@@ -524,7 +524,7 @@ Every profession uses the same layout:
     module.ts              manifest only
     state.ts               <Name>State next to its factory
     execution/             only when the module needs handlers or hooks
-    mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.d.ts for module-only skill fields]
+    mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.ts for module-only skill fields]
 ```
 
 | Root file                | Owns                                                                                                         |
@@ -533,7 +533,7 @@ Every profession uses the same layout:
 | `catalog.ts`             | Core-first module tuple and assembled catalog. `build/` imports it; other outside code uses `profession.js` |
 | `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state                        |
 | `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                                          |
-| `types.d.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types                        |
+| `types.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types                        |
 
 No other files belong at the profession root. `catalog.ts` stays separate from `profession.ts` because `profession.ts`
 imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
@@ -1405,7 +1405,7 @@ js/games/gw2/professions/new-profession/
     profession.ts
     catalog.ts
     family-state.ts
-    types.d.ts
+    types.ts
     build/
         build.ts
         attributes.ts

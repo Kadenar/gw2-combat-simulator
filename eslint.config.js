@@ -211,7 +211,7 @@ export default [
     }
   },
   {
-    files: ['js/app/**/*.d.ts'],
+    files: ['js/app/game/contracts.ts', 'js/app/shell/types.ts'],
     rules: {
       'no-restricted-imports': restrictedImports({
         regex: '^#gw2/|platform/gw2',

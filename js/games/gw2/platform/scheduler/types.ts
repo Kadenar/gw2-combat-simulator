@@ -1,4 +1,4 @@
-/** Owns the scheduler/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the scheduler/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type {
   ScheduledTask,
   SchedulerContext,

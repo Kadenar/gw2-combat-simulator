@@ -4,12 +4,14 @@ import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import type { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
 
-/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 

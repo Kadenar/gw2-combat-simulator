@@ -1,4 +1,4 @@
-/** Owns the simulation/config.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Owns the simulation/config.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
 import type { TransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
