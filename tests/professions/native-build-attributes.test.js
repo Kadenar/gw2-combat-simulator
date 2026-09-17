@@ -21,7 +21,7 @@ import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/st
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';

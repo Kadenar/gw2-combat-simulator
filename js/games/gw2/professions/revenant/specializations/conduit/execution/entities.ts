@@ -3,7 +3,7 @@
  * Handler registration lives in sibling `index.ts`.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {

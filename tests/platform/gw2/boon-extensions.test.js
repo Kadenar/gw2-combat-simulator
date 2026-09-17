@@ -12,7 +12,7 @@ import { heraldSchedulerHooks } from '#gw2/professions/revenant/specializations/
 import { REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';

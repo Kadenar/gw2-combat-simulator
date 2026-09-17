@@ -28,7 +28,7 @@ import {
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
+import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';

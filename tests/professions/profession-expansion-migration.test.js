@@ -10,7 +10,7 @@ import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalis
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '#gw2/professions/guardian/family-state.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/family-state.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
-import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/state.js';
+import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/family-state.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/family-state.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/family-state.js';
 import { professionRegistry } from '#gw2/app/profession/registry.js';

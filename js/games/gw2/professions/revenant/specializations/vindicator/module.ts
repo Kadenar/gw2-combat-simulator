@@ -1,18 +1,11 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import { performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import {
-  VINDICATOR_AIRBORNE_MS,
-  VINDICATOR_JUMP_SKILL
-} from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
-import {
-  performEnergyMeld,
-  completeVindicatorDodge
-} from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
+import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { performEnergyMeld } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
+import { vindicatorSkillHandlers } from '#gw2/professions/revenant/specializations/vindicator/execution/index.js';
 import {
   vindicatorAttributeRules,
   vindicatorCastRules,
@@ -22,23 +15,6 @@ import { vindicatorState } from '#gw2/professions/revenant/specializations/vindi
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import { VINDICATOR_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
-
-/** Applies Vindicator state changes after the native cast lifecycle completes. */
-const vindicatorSkillHandlers = new Map(
-  Object.entries(
-    Object.freeze({
-      // Spend endurance at takeoff; resolve the selected attack only when the full jump reaches its landing.
-      'revenant.vindicator-jump': replaceSkill<RevenantCastContext>({
-        beforeEffects: (context, skill) => performRevenantDodge(context, skill, 'dodge-jump'),
-        afterEffects: (context, skill) => {
-          // Takeoff still spends endurance, but cancellation prevents the landing package.
-          if (!context.action.cancelled)
-            completeVindicatorDodge(context, skill, context.start + VINDICATOR_AIRBORNE_MS / 1000);
-        }
-      })
-    })
-  )
-);
 
 export const vindicatorModule = defineNativeModule({
   id: 'Vindicator',

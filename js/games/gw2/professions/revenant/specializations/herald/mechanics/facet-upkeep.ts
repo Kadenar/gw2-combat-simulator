@@ -3,7 +3,7 @@ import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type {

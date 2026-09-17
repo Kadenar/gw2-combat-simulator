@@ -10,7 +10,7 @@ import {
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
@@ -20,9 +20,8 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-import { handleRevenantState } from '#gw2/professions/revenant/state.js';
+import { handleRevenantState } from '#gw2/professions/revenant/family-state.js';
 import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import {
   activeKallasFervorStacks,

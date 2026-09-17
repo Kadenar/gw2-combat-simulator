@@ -1,6 +1,6 @@
 /** Owns Beguiling Haze's cross-cast follow-up charges and main-cast recharge restoration. */
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';

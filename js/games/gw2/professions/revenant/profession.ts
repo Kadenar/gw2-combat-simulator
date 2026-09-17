@@ -4,9 +4,11 @@ import {
   migrateRevenantBuild,
   validateRevenantBuild
 } from '#gw2/professions/revenant/build/build.js';
-import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
+import { revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+
+export { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 
 export const revenantProfession = defineNativeProfession({
   id: 'revenant',
@@ -44,3 +46,11 @@ export const revenantProfession = defineNativeProfession({
 });
 
 export default revenantProfession;
+
+// Integration exports: log rotation reconstruction reads these without reaching into module internals.
+export { beguilingHazeCastDuration } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
+export { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
+export {
+  VINDICATOR_AIRBORNE_MS,
+  VINDICATOR_JUMP_SKILL
+} from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';

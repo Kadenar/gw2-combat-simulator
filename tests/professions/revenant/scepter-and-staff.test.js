@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
