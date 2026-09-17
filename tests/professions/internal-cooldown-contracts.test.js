@@ -10,7 +10,7 @@ import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { reactToEngineerCondition } from '#gw2/professions/engineer/core/traits/index.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';

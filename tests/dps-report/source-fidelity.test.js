@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { readDpsReportRotationData, readDpsReportRotationUrl } from '#gw2/app/build/io/dps-report-rotation-import.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
 import { previewRotationFile } from '#gw2/app/build/io/rotation-import-dialog.js';
 

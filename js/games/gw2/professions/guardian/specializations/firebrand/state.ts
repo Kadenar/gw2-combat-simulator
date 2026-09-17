@@ -4,11 +4,27 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import type {
-  GuardianConfig,
-  GuardianFirebrandState,
-  GuardianSchedulerContext
-} from '#gw2/professions/guardian/types.js';
+import type { GuardianConfig, GuardianSchedulerContext } from '#gw2/professions/guardian/types.js';
+
+export interface GuardianFirebrandState {
+  activeTome: string;
+  tomePages: number;
+  maximumTomePages: number;
+  tomePageInterval: number;
+  nextTomePageAt: number;
+  ashesCharges: number;
+  ashesBurnDuration: number;
+  ashesNextTriggerAt: number;
+  ashesExpiresAt: number;
+  nextCourageAegisAt: number;
+  tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
+  swiftScholarTome: string;
+  swiftScholarCount: number;
+  liberatorsVowReadyAt: number;
+  stalwartSpeedReadyAt: number;
+  quickfireReadyAt: number;
+  mantraRechargeReadyAt: Record<string, number>;
+}
 
 /** Normalizes page overrides against trait capacity and starts regeneration only below the cap. */
 function initialTomePageState(

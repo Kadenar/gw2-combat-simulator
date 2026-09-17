@@ -12,6 +12,21 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
+import type { GuardianCorePublicState, GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
+import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  GuardianCorePublicState,
+  GuardianCoreState,
+  GuardianDragonhunterState,
+  GuardianFirebrandState,
+  GuardianLuminaryState,
+  GuardianWillbenderState
+};
 
 export type GuardianSpecializationSelection = ProfessionTraitSelection;
 
@@ -35,96 +50,6 @@ export interface GuardianConfig extends Gw2Config {
   readonly initialEndurance?: number;
   readonly specialization?: string;
   readonly specializations?: readonly (string | { readonly name?: string })[];
-}
-
-export interface GuardianCoreState {
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  justiceActiveArmed: boolean;
-  justiceHitCount: number;
-  justiceActiveBurns: number;
-  justicePassiveBurns: number;
-  virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  lastVirtuePassiveWasReady: boolean;
-  autoattackChains: Record<string, SkillId>;
-  availableFlips: Record<string, number>;
-  symbolicAvengerExpirations: number[];
-  symbolIgnitionStartsAt: number;
-  symbolIgnitionUntil: number;
-  symbolIgnitionReadyAt: number;
-  symbolProjectileIgnitionReadyAt: number;
-  zealotsResolutionReadyAt: number;
-  resolutionUntil: number;
-  righteousNextMightAt: number;
-  furiousFocusReadyAt: number;
-  spearIlluminatedArmed: boolean;
-  spearIlluminatedUntil: number;
-  spearLuminanceUntil: number;
-}
-
-/** Compatibility mirrors are derived at output boundaries, never maintained in combat state. */
-export interface GuardianCorePublicState extends GuardianCoreState {
-  justiceArmed: boolean;
-  justiceBurns: number;
-  symbolicAvengerStacks: number;
-}
-
-export interface GuardianFirebrandState {
-  activeTome: string;
-  tomePages: number;
-  maximumTomePages: number;
-  tomePageInterval: number;
-  nextTomePageAt: number;
-  ashesCharges: number;
-  ashesBurnDuration: number;
-  ashesNextTriggerAt: number;
-  ashesExpiresAt: number;
-  nextCourageAegisAt: number;
-  tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  swiftScholarTome: string;
-  swiftScholarCount: number;
-  liberatorsVowReadyAt: number;
-  stalwartSpeedReadyAt: number;
-  quickfireReadyAt: number;
-  mantraRechargeReadyAt: Record<string, number>;
-}
-
-export interface GuardianLuminaryState {
-  radiantForge: boolean;
-  radiantForgeEndsAt: number;
-  radiantForgeEnteredAt: number;
-  radiantWeapon: string;
-  radiantWeaponsUsed: Record<string, boolean>;
-  glaringBurstSwordSlow: boolean;
-  empoweredArmamentsUntil: number;
-  piercingStanceUntil: number;
-  lightAuraUntil: number;
-  radiantJusticeArmed: boolean;
-  radiantResolveArmed: boolean;
-  radiantCourageSwordArmed: boolean;
-  radiantCourageShieldArmed: boolean;
-  effulgentActiveUntil: number;
-  effulgentStacks: number;
-}
-
-export interface GuardianDragonhunterState {
-  tetherUntil: number;
-  nextShieldOfCourageAegisAt: number;
-  heavyLightReadyAt: number;
-}
-
-export interface GuardianWillbenderState {
-  flameGeneration: number;
-  flameVirtue: GuardianVirtue | null;
-  pendingWeaponCooldownReduction: Record<string, number>;
-  justiceUntil: number;
-  resolveUntil: number;
-  courageUntil: number;
-  virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
-  lethalTempoStacks: number;
-  lethalTempoUntil: number;
-  triggeredVirtueEffects: number;
 }
 
 export interface GuardianState

@@ -1,13 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  augmentSkill,
-  onBuffApplied,
-  onResolvedDamage,
-  replaceSkill,
-  skillAvailability
-} from '#gw2/platform/profession-definition/mechanics.js';
-import { createGuardianModuleData } from '#gw2/professions/guardian/catalog/module-data.js';
-import { guardianTomeSkillHandlers } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import { onBuffApplied, onResolvedDamage, skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
+import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
+import { firebrandSkillHandlers } from '#gw2/professions/guardian/specializations/firebrand/execution/index.js';
 import {
   firebrandEventHandlers,
   firebrandEventReactions
@@ -21,16 +15,6 @@ import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializat
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-
-/** Schedules tome effects; shared-page spending runs through the cast-completion hook. */
-const firebrandSkillHandlers = Object.freeze({
-  'guardian.stow-tome': replaceSkill({
-    beforeEffects: guardianTomeSkillHandlers['guardian.stow-tome']
-  }),
-  'guardian.tome-page': augmentSkill({
-    beforeEffects: guardianTomeSkillHandlers['guardian.tome-page']
-  })
-});
 
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',

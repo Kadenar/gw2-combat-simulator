@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createGuardianModuleData } from '#gw2/professions/guardian/catalog/module-data.js';
+import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { willbenderSkillHandlers } from '#gw2/professions/guardian/specializations/willbender/execution/virtues.js';
 import { willbenderEventHandlers } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-effects.js';
 import {

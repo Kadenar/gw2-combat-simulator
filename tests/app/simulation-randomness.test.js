@@ -20,7 +20,7 @@ import {
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';

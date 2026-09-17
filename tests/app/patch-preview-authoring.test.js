@@ -26,7 +26,7 @@ import {
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { engineerProfession as baseEngineerProfession } from '#gw2/professions/engineer/profession.js';
-import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { necromancerProfession as baseNecromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession as baseRangerProfession } from '#gw2/professions/ranger/definition.js';

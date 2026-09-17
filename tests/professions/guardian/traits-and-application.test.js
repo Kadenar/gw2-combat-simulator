@@ -10,14 +10,13 @@ import {
   validateGuardianBuild
 } from '#gw2/professions/guardian/build/build.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
-import { projectGuardianEndState, snapshotGuardianState } from '#gw2/professions/guardian/state.js';
+import { projectGuardianEndState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
 import {
   handleVirtueActivation,
   reactToJusticeHitWithOptions

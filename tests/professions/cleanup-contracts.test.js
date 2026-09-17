@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import {
   createFirebrandState,
   initializeFirebrandBalanceState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/mantra-definitions.js';
+import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { updateFirebrandCastState } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import {
   advanceRadiantForgeState,

@@ -28,8 +28,7 @@ import { harbingerModule } from '#gw2/professions/necromancer/specializations/ha
 import { reaperModule } from '#gw2/professions/necromancer/specializations/reaper/module.js';
 import { ritualistModule } from '#gw2/professions/necromancer/specializations/ritualist/module.js';
 import { scourgeModule } from '#gw2/professions/necromancer/specializations/scourge/module.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { dragonhunterModule } from '#gw2/professions/guardian/specializations/dragonhunter/module.js';
 import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';

@@ -2,11 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const config = {

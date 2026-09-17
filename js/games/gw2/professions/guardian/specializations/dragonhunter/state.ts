@@ -1,5 +1,10 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { GuardianDragonhunterState } from '#gw2/professions/guardian/types.js';
+
+export interface GuardianDragonhunterState {
+  tetherUntil: number;
+  nextShieldOfCourageAegisAt: number;
+  heavyLightReadyAt: number;
+}
 
 export function createDragonhunterState(): GuardianDragonhunterState {
   return {

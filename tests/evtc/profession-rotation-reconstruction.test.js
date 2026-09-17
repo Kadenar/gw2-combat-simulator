@@ -8,7 +8,7 @@ import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotati
 import { missingInterruptCommitWarnings } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import {

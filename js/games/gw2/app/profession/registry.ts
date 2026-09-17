@@ -375,7 +375,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/guardian/definition.js');
+      const module = await import('#gw2/professions/guardian/profession.js');
       return module.guardianProfession;
     },
     loadAppAdapter: async () => {

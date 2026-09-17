@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill, onResolvedDamage, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import { createGuardianModuleData } from '#gw2/professions/guardian/catalog/module-data.js';
-import { guardianRadiantForgeSkillHandlers } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
+import { luminarySkillHandlers } from '#gw2/professions/guardian/specializations/luminary/execution/index.js';
 import {
   luminaryEventHandlers,
   luminaryEventReactions
@@ -19,19 +19,6 @@ import {
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { luminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
-
-/** Applies Radiant Forge state changes at each skill's required lifecycle phase. */
-const luminarySkillHandlers = Object.freeze({
-  'guardian.radiant-forge': replaceSkill({
-    beforeEffects: guardianRadiantForgeSkillHandlers['guardian.radiant-forge']
-  }),
-  'guardian.radiant-weapon': augmentSkill({
-    beforeEffects: guardianRadiantForgeSkillHandlers['guardian.radiant-weapon']
-  }),
-  'guardian.glaring-burst': replaceSkill({
-    beforeEffects: guardianRadiantForgeSkillHandlers['guardian.glaring-burst']
-  })
-});
 
 export const luminaryModule = defineNativeModule({
   id: 'Luminary',
