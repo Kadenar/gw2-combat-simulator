@@ -212,7 +212,7 @@ test('allied-only intensity grants extend each reached recipient once and exclud
 });
 
 test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
-  const { guardianProfession } = await import('#gw2/professions/guardian/definition.js');
+  const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
   const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
   const result = simulateGw2({
     profession: guardianProfession,
@@ -244,7 +244,7 @@ test('presentation projects authored audiences onto four allies without mutating
 });
 
 test('shared Firebrand generation uses metadata independently of the configured party size', async () => {
-  const { guardianProfession } = await import('#gw2/professions/guardian/definition.js');
+  const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
   const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
   const simulate = (count) =>
     simulateGw2({

@@ -1,5 +1,18 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { GuardianWillbenderState } from '#gw2/professions/guardian/types.js';
+import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
+
+export interface GuardianWillbenderState {
+  flameGeneration: number;
+  flameVirtue: GuardianVirtue | null;
+  pendingWeaponCooldownReduction: Record<string, number>;
+  justiceUntil: number;
+  resolveUntil: number;
+  courageUntil: number;
+  virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
+  lethalTempoStacks: number;
+  lethalTempoUntil: number;
+  triggeredVirtueEffects: number;
+}
 
 export function createWillbenderState(): GuardianWillbenderState {
   return {

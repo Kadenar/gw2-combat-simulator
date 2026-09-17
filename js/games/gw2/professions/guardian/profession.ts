@@ -4,8 +4,10 @@ import {
   migrateGuardianBuild,
   validateGuardianBuild
 } from '#gw2/professions/guardian/build/build.js';
-import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
+import { guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+
+export { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 
 export const guardianProfession = defineNativeProfession({
   id: 'guardian',

@@ -11,7 +11,7 @@ import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
 

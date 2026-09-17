@@ -7,7 +7,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';

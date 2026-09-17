@@ -52,7 +52,7 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';

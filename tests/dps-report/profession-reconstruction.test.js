@@ -3,8 +3,7 @@ import test from 'node:test';
 
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';

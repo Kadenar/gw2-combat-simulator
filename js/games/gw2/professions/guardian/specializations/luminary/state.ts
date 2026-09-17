@@ -1,5 +1,22 @@
-import type { GuardianLuminaryState } from '#gw2/professions/guardian/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface GuardianLuminaryState {
+  radiantForge: boolean;
+  radiantForgeEndsAt: number;
+  radiantForgeEnteredAt: number;
+  radiantWeapon: string;
+  radiantWeaponsUsed: Record<string, boolean>;
+  glaringBurstSwordSlow: boolean;
+  empoweredArmamentsUntil: number;
+  piercingStanceUntil: number;
+  lightAuraUntil: number;
+  radiantJusticeArmed: boolean;
+  radiantResolveArmed: boolean;
+  radiantCourageSwordArmed: boolean;
+  radiantCourageShieldArmed: boolean;
+  effulgentActiveUntil: number;
+  effulgentStacks: number;
+}
 
 export function createLuminaryState(): GuardianLuminaryState {
   return {

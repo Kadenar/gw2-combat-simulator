@@ -6,7 +6,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/guardian/build/build.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import type { GuardianApplicationBuild } from '#gw2/professions/guardian/types.js';
 
 // Exposes Guardian only through the shared browser application contract.

@@ -1,4 +1,38 @@
-import type { GuardianCoreState, GuardianCorePublicState, GuardianConfig } from '#gw2/professions/guardian/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
+
+export interface GuardianCoreState {
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  justiceActiveArmed: boolean;
+  justiceHitCount: number;
+  justiceActiveBurns: number;
+  justicePassiveBurns: number;
+  virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
+  lastVirtuePassiveWasReady: boolean;
+  autoattackChains: Record<string, SkillId>;
+  availableFlips: Record<string, number>;
+  symbolicAvengerExpirations: number[];
+  symbolIgnitionStartsAt: number;
+  symbolIgnitionUntil: number;
+  symbolIgnitionReadyAt: number;
+  symbolProjectileIgnitionReadyAt: number;
+  zealotsResolutionReadyAt: number;
+  resolutionUntil: number;
+  righteousNextMightAt: number;
+  furiousFocusReadyAt: number;
+  spearIlluminatedArmed: boolean;
+  spearIlluminatedUntil: number;
+  spearLuminanceUntil: number;
+}
+
+/** Compatibility mirrors are derived at output boundaries, never maintained in combat state. */
+export interface GuardianCorePublicState extends GuardianCoreState {
+  justiceArmed: boolean;
+  justiceBurns: number;
+  symbolicAvengerStacks: number;
+}
 
 // Create a complete Guardian core state with bounded resources and initialized
 // virtue, trait, symbol, and flip bookkeeping.

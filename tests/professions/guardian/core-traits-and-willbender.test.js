@@ -3,8 +3,7 @@ import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { guardianProfession } from '#gw2/professions/guardian/definition.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const config = {

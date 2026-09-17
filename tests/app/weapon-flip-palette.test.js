@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
