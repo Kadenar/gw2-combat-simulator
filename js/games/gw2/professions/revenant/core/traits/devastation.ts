@@ -15,12 +15,12 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
-  RevenantCoreState,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 interface BattleScarGrant {
   readonly at: number;

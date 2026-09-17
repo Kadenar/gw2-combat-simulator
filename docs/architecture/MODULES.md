@@ -345,7 +345,6 @@ Important modules include:
 | `profession/module.ts`                                                                    | Profession module composition                      |
 | `profession/ui-combinators.ts`                                                            | Composition helpers for profession UI slices       |
 | `events/types.ts`, `skills/types.ts`, `execution/types.ts`, `profession/types.ts` | Domain-owned engine contracts                      |
-| `types.ts`                                                                              | Type-only compatibility exports from those domains |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -533,7 +532,7 @@ Every profession uses the same layout:
 | `catalog.ts`             | Core-first module tuple and assembled catalog. `build/` imports it; other outside code uses `profession.js` |
 | `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state                        |
 | `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                                          |
-| `types.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types                        |
+| `types.ts`             | Build, config, runtime, context, and event types. Module-owned state types are imported from their `state.ts` |
 
 No other files belong at the profession root. `catalog.ts` stays separate from `profession.ts` because `profession.ts`
 imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.

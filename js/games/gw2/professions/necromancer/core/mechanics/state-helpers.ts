@@ -14,12 +14,12 @@ import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/famil
 import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';
 import type {
   NecromancerCastContext,
-  NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerResolverContext,
   NecromancerSchedulerContext,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 

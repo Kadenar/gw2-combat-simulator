@@ -25,24 +25,10 @@ import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-dat
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import type {
-  EngineerMechAttributes,
-  EngineerMechState,
-  MechanistState
-} from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { MechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { ScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  AmalgamState,
-  EngineerCoreState,
-  EngineerMechAttributes,
-  EngineerMechState,
-  HolosmithState,
-  MechanistState,
-  ScrapperState
-};
-
 export interface EngineerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
   assumptions?: ProfessionBuildAssumptions;

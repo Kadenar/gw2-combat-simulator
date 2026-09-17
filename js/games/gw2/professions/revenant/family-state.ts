@@ -27,8 +27,6 @@ import { baseRevenantEnergyCost } from '#gw2/professions/revenant/core/mechanics
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 import type {
-  HeraldState,
-  RenegadeState,
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantResolverContext,
@@ -37,6 +35,8 @@ import type {
   RevenantSkill,
   RevenantState
 } from '#gw2/professions/revenant/types.js';
+import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 

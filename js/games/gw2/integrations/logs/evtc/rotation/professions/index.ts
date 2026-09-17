@@ -157,8 +157,3 @@ export function reconstructProfessionActions(
       : {})
   }));
 }
-
-export type {
-  EvtcProfessionReconstructionContext,
-  EvtcRecordedRotationAction
-} from '#gw2/integrations/logs/evtc/rotation/professions/types.js';

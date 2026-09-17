@@ -5,11 +5,6 @@ import type {
   RelicComparisonModel,
   RelicComparisonPoint
 } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
-export type {
-  RelicComparisonModel,
-  RelicComparisonPoint
-} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
-
 export interface RelicComparisonChartOptions {
   /** Colour for the equipped (opponent) relic curve. */
   readonly opponentColor?: string;

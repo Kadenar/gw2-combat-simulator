@@ -18,27 +18,13 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type {
-  RevenantCoreState,
-  RevenantSelfCondition,
-  RevenantUpkeepState
-} from '#gw2/professions/revenant/core/state.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  ConduitState,
-  HeraldState,
-  RenegadeState,
-  RevenantCoreState,
-  RevenantSelfCondition,
-  RevenantUpkeepState,
-  VindicatorState
-};
-
 export interface RevenantSkill extends Skill {
   readonly affinityOnHit?: boolean;
   readonly consume?: boolean;

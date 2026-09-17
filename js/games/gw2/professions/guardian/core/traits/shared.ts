@@ -3,12 +3,12 @@ import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-met
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  GuardianCoreState,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 
 const TRAIT_BY_ID = new Map(
   SPECIALIZATIONS.flatMap((specialization) => [

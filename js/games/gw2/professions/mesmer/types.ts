@@ -21,11 +21,7 @@ import type {
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerAvailableFlip, MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
-import type {
-  MesmerChronomancerState,
-  MesmerContinuumAmmo,
-  MesmerContinuumSnapshot
-} from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
+import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
@@ -70,32 +66,6 @@ import type {
 } from '#gw2/professions/mesmer/data/types.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  MesmerAvailableFlip,
-  MesmerChronomancerState,
-  MesmerContinuumAmmo,
-  MesmerContinuumSnapshot,
-  MesmerCoreState,
-  MesmerMirageMirror,
-  MesmerMirageState,
-  MesmerResolverState,
-  MesmerTroubadourState,
-  MesmerVirtuosoState
-};
-
-export type {
-  MesmerPendingResource,
-  MesmerResourceCause,
-  MesmerResourceDefinition,
-  MesmerResourceSpendDetails
-} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-export type {
-  MesmerShatter,
-  MesmerShatterResolution,
-  MesmerShatterResolverRequest,
-  MesmerShatterTraitHit
-} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-
 export interface MesmerProfessionState
   extends MesmerCoreState, MesmerChronomancerState, MesmerMirageState, MesmerVirtuosoState, MesmerTroubadourState {}
 

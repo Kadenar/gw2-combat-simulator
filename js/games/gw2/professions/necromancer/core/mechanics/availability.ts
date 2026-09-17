@@ -8,11 +8,8 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  NecromancerPrecastContext,
-  NecromancerCoreState,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerPrecastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.DEATHLY_CLAWS,

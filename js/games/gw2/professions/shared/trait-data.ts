@@ -6,7 +6,7 @@ export interface ProfessionTraitSelection {
   readonly disabledMinorTraits?: readonly number[];
 }
 
-export interface ProfessionSpecialization<TTrait> {
+export interface ProfessionTraitSpecialization<TTrait> {
   readonly name: string;
   readonly elite?: boolean;
   readonly minorTraits: readonly TTrait[];
@@ -53,7 +53,7 @@ export function parseTraitChoices(value?: string | null): readonly number[] {
  * specialization metadata.
  */
 export function createProfessionTraitData<TTrait>(
-  catalogSpecializations: readonly ProfessionSpecialization<TTrait>[]
+  catalogSpecializations: readonly ProfessionTraitSpecialization<TTrait>[]
 ): ProfessionTraitData<TTrait>;
 
 /**
@@ -64,7 +64,7 @@ export function createProfessionTraitData<TTrait>(
  * such as tier, position, specialization, or stat annotations.
  */
 export function createProfessionTraitData<TSourceTrait, TTrait>(
-  catalogSpecializations: readonly ProfessionSpecialization<TSourceTrait>[],
+  catalogSpecializations: readonly ProfessionTraitSpecialization<TSourceTrait>[],
   options: ProfessionTraitDataOptions<TSourceTrait, TTrait>
 ): ProfessionTraitData<TTrait>;
 
@@ -73,7 +73,7 @@ export function createProfessionTraitData<TSourceTrait, TTrait>(
  * API traits into a profession-specific representation.
  */
 export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
-  catalogSpecializations: readonly ProfessionSpecialization<TSourceTrait>[],
+  catalogSpecializations: readonly ProfessionTraitSpecialization<TSourceTrait>[],
   options?: ProfessionTraitDataOptions<TSourceTrait, TTrait>
 ): ProfessionTraitData<TTrait> {
   const mapTrait = options?.mapTrait ? options.mapTrait : (trait: TSourceTrait) => trait as unknown as TTrait;

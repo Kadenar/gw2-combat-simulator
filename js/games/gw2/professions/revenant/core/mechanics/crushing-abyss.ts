@@ -7,12 +7,12 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantConfig,
-  RevenantCoreState,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 const RECHARGE_TASK = 'revenant.abyssal-raze-recharge';
 export const CRUSHING_GAIN_TASK = 'revenant.crushing-abyss-gain';

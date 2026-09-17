@@ -24,9 +24,9 @@ import type {
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
-  RevenantSkill,
-  RevenantUpkeepState
+  RevenantSkill
 } from '#gw2/professions/revenant/types.js';
+import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
 

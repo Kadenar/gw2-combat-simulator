@@ -28,9 +28,9 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
-  NecromancerSkill,
-  RitualistState
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import type { RitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import {
   RITUALIST_BALANCE_PROFILE_IDS as PROFILE,

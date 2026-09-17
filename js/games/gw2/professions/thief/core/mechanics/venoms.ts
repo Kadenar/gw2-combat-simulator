@@ -8,11 +8,11 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 import type { ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ThiefCastContext,
-  ThiefCoreState,
   ThiefResolverContext,
   ThiefResolverEvent,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
 interface VenomDefinition {
   readonly skillId: SkillId;

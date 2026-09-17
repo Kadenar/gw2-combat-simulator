@@ -3,7 +3,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import type { GuardianWillbenderState } from '#gw2/professions/guardian/types.js';
+import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
 /** Decodes the trait-dependent window once for independent scheduler and resolver state transitions. */
 export function lethalTempoParameters(context: unknown) {

@@ -1,16 +1,18 @@
 import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { EngineerCoreState, EngineerSchedulerContext, HolosmithState } from '#gw2/professions/engineer/types.js';
-import type { GuardianCoreState, GuardianFirebrandState } from '#gw2/professions/guardian/types.js';
+import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 
-import type { NecromancerCoreState, ScourgeState } from '#gw2/professions/necromancer/types.js';
-import type {
-  ConduitState,
-  RenegadeState,
-  RevenantCoreState,
-  VindicatorState
-} from '#gw2/professions/revenant/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';

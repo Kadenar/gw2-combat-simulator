@@ -14,14 +14,13 @@ import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resou
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  AntiquaryState,
-  ThiefArtifactSlot,
   ThiefCastContext,
   ThiefDoubleEdgeOutcome,
   ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
+import type { AntiquaryState, ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
@@ -32,7 +31,7 @@ interface ForgedSurferTaskPayload extends Record<string, unknown> {
   readonly skillId: SkillId;
 }
 
-interface SkrittScuffleTaskPayload {
+interface SkrittScuffleTaskPayload extends Record<string, unknown> {
   readonly expiresAt: number;
 }
 

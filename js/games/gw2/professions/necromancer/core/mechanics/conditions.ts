@@ -22,14 +22,13 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   NecromancerCastContext,
-  NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerQueryRuntime,
   NecromancerSchedulerContext,
-  NecromancerSelfCondition,
   NecromancerSimulationEvent,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 
 const CORRUPTION_SELF_CONDITIONS = Object.freeze({
   [ID.CONSUME_CONDITIONS]: Object.freeze({

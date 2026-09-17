@@ -3,10 +3,7 @@ import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profe
 import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import type {
-  AnyNativeModule,
-  NativeProfessionContract as StableNativeProfessionContract
-} from '#gw2/platform/profession-definition/module-types.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import {
   CURRENT_PATCH_ID,
   applyBalanceProfilePatch,
@@ -25,7 +22,7 @@ import {
 } from '#gw2/integrations/patches/authoring/fields.js';
 import type {
   NativePatchAuthoringMetadata,
-  NativeProfessionContract,
+  NativePatchAuthoringContract,
   NativePreviewModifierRuleTarget
 } from '#gw2/integrations/patches/authoring/module-types.js';
 import type {
@@ -235,9 +232,9 @@ export function withPatchPreview<
   TPresentation extends object = object,
   TSimulation extends object = object
 >(
-  family: StableNativeProfessionContract<TModules, TPresentation, TSimulation>,
+  family: NativeProfessionContract<TModules, TPresentation, TSimulation>,
   candidatePreview: PatchPreview | null | undefined
-): NativeProfessionContract<TModules, TPresentation, TSimulation> {
+): NativePatchAuthoringContract<TModules, TPresentation, TSimulation> {
   const definition = family.nativeDefinition;
   const modules = definition.modules as readonly AnyNativeModule[];
   const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
@@ -246,13 +243,13 @@ export function withPatchPreview<
   const modifierRules = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
-  let previewFamily: StableNativeProfessionContract<TModules, TPresentation, TSimulation> | null = null;
+  let previewFamily: NativeProfessionContract<TModules, TPresentation, TSimulation> | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
     previewFamily ||= defineStableNativeProfession({
       ...definition,
       modules: modulesWithModifierRules(modules, previewModifierRules.byModule) as TModules
-    }) as StableNativeProfessionContract<TModules, TPresentation, TSimulation>;
+    }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
     return previewFamily;
   };
 
@@ -321,5 +318,5 @@ export function withPatchPreview<
     validatePatch,
     resolveRuntime,
     previewModifierRuleTargets: previewModifierRules.targets
-  }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
+  }) as NativePatchAuthoringContract<TModules, TPresentation, TSimulation>;
 }

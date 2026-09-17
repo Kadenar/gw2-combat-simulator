@@ -4,12 +4,8 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ThiefCastContext,
-  ThiefCoreState,
-  ThiefPrecastContext,
-  ThiefSkill
-} from '#gw2/professions/thief/types.js';
+import type { ThiefCastContext, ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
 type TrapPreparedField = 'thousandNeedlesPrepared' | 'pitfallPrepared';
 type TrapArmedAtField = 'thousandNeedlesArmedAt' | 'pitfallArmedAt';

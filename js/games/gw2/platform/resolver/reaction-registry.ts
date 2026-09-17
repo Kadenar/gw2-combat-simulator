@@ -1,7 +1,6 @@
 import { createEventReactions } from '#gw2/platform/engine/profession/contract.js';
 
 import type {
-  Gw2ResolverReaction,
   Gw2ResolverReactionContributions,
   Gw2ResolverReactionRegistry,
   Gw2ResolverReactions,
@@ -67,12 +66,17 @@ export function createGw2ResolverReactionRegistry({
       return hooks.length ? [[stage, hooks]] : [];
     })
   );
-  const dispatchers = createEventReactions(sources);
+  const dispatchers = createEventReactions<
+    Gw2ResolverRuntime,
+    Gw2ResolverEvent,
+    Record<string, unknown>,
+    Record<string, unknown> | void
+  >(sources);
 
   return Object.freeze({
     dispatch(stage: Gw2ResolverStage, context: Gw2ResolverRuntime, event: Gw2ResolverEvent, details = {}) {
       assertStage(stage);
-      const dispatcher = dispatchers[stage] as Gw2ResolverReaction | undefined;
+      const dispatcher = dispatchers[stage];
       return dispatcher?.(context, event, details);
     }
   });

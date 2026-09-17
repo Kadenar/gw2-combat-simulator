@@ -5,10 +5,7 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
-import type {
-  AnyNativeModule,
-  NativeProfessionContract as StableNativeProfessionContract
-} from '#gw2/platform/profession-definition/module-types.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
 export interface NativePreviewModifierRuleTarget {
@@ -69,11 +66,11 @@ export interface NativePatchAuthoringMetadata {
   readonly modules: readonly NativePatchAuthoringModule[];
 }
 
-export type NativeProfessionContract<
+export type NativePatchAuthoringContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
   TSimulation extends object = object
-> = StableNativeProfessionContract<TModules, TPresentation, TSimulation> & {
+> = NativeProfessionContract<TModules, TPresentation, TSimulation> & {
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   /** Serializable live metadata consumed by the local patch authoring UI. */

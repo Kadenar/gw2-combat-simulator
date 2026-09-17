@@ -8,7 +8,8 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeState, thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { DaredevilState, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
+import type { ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
+import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { daredevilCastAvailability } from '#gw2/professions/thief/specializations/daredevil/mechanics/availability.js';
 import { updatePalmStrikeWindow } from '#gw2/professions/thief/specializations/daredevil/mechanics/palm-strike.js';
 import {

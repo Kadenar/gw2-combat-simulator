@@ -5,10 +5,3 @@ export interface DpsReportRotationOptions {
   readonly selectedSkillIds?: readonly number[];
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
-
-export type {
-  LogActionNormalizationContext as DpsReportProfessionReconstructionContext,
-  RecordedLogAction as DpsReportRecordedAction,
-  ResolvedLogAction as DpsReportResolvedAction,
-  LogActionNormalizer as DpsReportProfessionActionReconstructor
-} from '#gw2/integrations/logs/shared/rotation/normalization.js';

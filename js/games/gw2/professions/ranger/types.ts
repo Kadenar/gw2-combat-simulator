@@ -17,8 +17,6 @@ import type { SoulbeastState } from '#gw2/professions/ranger/specializations/sou
 import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type { DruidState, GaleshotState, RangerCoreState, RangerInitialUntamedState, SoulbeastState, UntamedState };
-
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
   assumptions?: RangerAssumptions;

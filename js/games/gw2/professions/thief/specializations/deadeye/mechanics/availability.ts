@@ -1,7 +1,8 @@
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefCoreState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
 interface DeadeyeAvailabilityContext {
   readonly state?: { readonly profession?: unknown };

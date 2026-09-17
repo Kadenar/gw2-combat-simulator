@@ -228,7 +228,7 @@ export interface Gw2RuntimeConditionEntry extends SchedulerRecord {
   readonly stacks: Gw2RuntimeConditionStack[];
 }
 
-export interface Gw2RuntimeStateLike extends SchedulerRecord {
+export interface Gw2RuntimeStateLike {
   readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
   readonly totals?: {
     readonly strike?: number;

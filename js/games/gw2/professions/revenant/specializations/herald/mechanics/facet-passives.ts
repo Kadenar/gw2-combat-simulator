@@ -24,12 +24,9 @@ import {
   HERALD_DRACONIC_ECHO_PROFILE_ID,
   HERALD_NATURE_ASSASSIN_PROFILE_ID
 } from '#gw2/professions/revenant/specializations/herald/profiles.js';
-import type {
-  HeraldState,
-  RevenantCoreState,
-  RevenantResolverContext,
-  RevenantResolverEvent
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantResolverContext, RevenantResolverEvent } from '#gw2/professions/revenant/types.js';
+import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 /** Active upkeep and retained passives share eligibility, but only upkeep drains Energy. */
 export function heraldFacetPassiveActive(

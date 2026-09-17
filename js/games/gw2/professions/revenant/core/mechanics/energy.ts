@@ -15,12 +15,12 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
  */
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import type {
-  RevenantCoreState,
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;

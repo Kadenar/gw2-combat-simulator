@@ -20,30 +20,13 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
-import type { ThiefCoreState, ThievesGuildState } from '#gw2/professions/thief/core/state.js';
-import type {
-  AntiquaryState,
-  ThiefAntiquarySummon,
-  ThiefArtifactSlot,
-  ThiefBackfireState
-} from '#gw2/professions/thief/specializations/antiquary/state.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { SpecterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  AntiquaryState,
-  DaredevilState,
-  DeadeyeState,
-  SpecterState,
-  ThiefAntiquarySummon,
-  ThiefArtifactSlot,
-  ThiefBackfireState,
-  ThiefCoreState,
-  ThievesGuildState
-};
-
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
 export interface ThiefBuild extends Gw2Build {

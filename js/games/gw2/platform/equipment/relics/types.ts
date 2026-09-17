@@ -22,7 +22,7 @@ export interface Gw2RelicState extends SchedulerRecord {
   expiresAt?: number;
 }
 
-export interface Gw2RelicRuntimeContext extends SchedulerRecord {
+export interface Gw2RelicRuntimeContext {
   readonly combatStartTime?: number | null;
   readonly relic?: Gw2RelicRuntime;
 }
@@ -33,7 +33,7 @@ export interface Gw2RelicMaterializerContext {
   emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
 }
 
-export interface Gw2RelicContext extends SchedulerRecord {
+export interface Gw2RelicContext {
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;

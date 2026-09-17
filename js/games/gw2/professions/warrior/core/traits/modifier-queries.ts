@@ -6,7 +6,8 @@ import { boonActive, eventSkill as gw2EventSkill } from '#gw2/platform/combat/qu
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorCoreState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 
 export type WarriorModifierAttributes = SchedulerRecord & {
   power: number;

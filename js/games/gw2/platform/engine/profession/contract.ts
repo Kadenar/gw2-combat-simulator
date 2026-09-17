@@ -21,7 +21,11 @@ interface OrderedHook {
   readonly index: number;
 }
 
-type EventReaction = (context: SchedulerRecord, event: SchedulerRecord, details?: SchedulerRecord) => unknown;
+type EventReaction<TContext, TEvent, TDetails, TResult> = (
+  context: TContext,
+  event: TEvent,
+  details?: TDetails
+) => TResult | undefined;
 type HookCategory = 'scheduler' | 'cast' | 'attribute' | 'resource';
 
 /**
@@ -189,16 +193,21 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
 /**
  * Normalizes resolver event reactions into deterministic per-event dispatchers.
  */
-export function createEventReactions(
+export function createEventReactions<
+  TContext = SchedulerRecord,
+  TEvent = SchedulerRecord,
+  TDetails extends object = SchedulerRecord,
+  TResult = unknown
+>(
   value: Readonly<Record<string, unknown>> | null | undefined
-): Readonly<Record<string, EventReaction>> {
-  const reactions: Record<string, EventReaction> = {};
+): Readonly<Record<string, EventReaction<TContext, TEvent, TDetails, TResult>>> {
+  const reactions: Record<string, EventReaction<TContext, TEvent, TDetails, TResult>> = {};
   for (const [eventType, handlers] of Object.entries(value || {})) {
     const hooks = orderedHooks(handlers, `eventReactions.${eventType}`);
-    reactions[eventType] = (context: SchedulerRecord, event: SchedulerRecord, details: SchedulerRecord = {}) => {
-      let result: unknown;
+    reactions[eventType] = (context: TContext, event: TEvent, details = {} as TDetails) => {
+      let result: TResult | undefined;
       for (const hook of hooks) {
-        const next = hook.handler(context, event, details);
+        const next = hook.handler(context, event, details) as TResult | undefined;
         if (next !== undefined) result = next;
       }
 

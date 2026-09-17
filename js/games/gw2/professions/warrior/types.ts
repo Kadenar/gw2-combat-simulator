@@ -18,8 +18,6 @@ import type { BladeswornState } from '#gw2/professions/warrior/specializations/b
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type { BerserkerState, BladeswornState, ParagonState, SpellbreakerState, WarriorCoreState };
-
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
   assumptions?: SchedulerRecord;

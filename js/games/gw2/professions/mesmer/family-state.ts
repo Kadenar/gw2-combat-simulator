@@ -4,7 +4,6 @@ import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
-  MesmerCoreState,
   MesmerEndState,
   MesmerProfessionState,
   MesmerProjectedFlip,
@@ -12,6 +11,7 @@ import type {
   MesmerSchedulerContext,
   MesmerStateSnapshot
 } from '#gw2/professions/mesmer/types.js';
+import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */

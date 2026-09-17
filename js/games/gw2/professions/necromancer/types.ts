@@ -13,33 +13,13 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
-import type {
-  NecromancerCoreState,
-  NecromancerSelfCondition,
-  NecromancerTasteForBloodApplication
-} from '#gw2/professions/necromancer/core/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
-import type {
-  NecromancerWeaponSpellRecipient,
-  NecromancerWeaponSpellState,
-  RitualistState
-} from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import type { RitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  HarbingerState,
-  NecromancerCoreState,
-  NecromancerSelfCondition,
-  NecromancerTasteForBloodApplication,
-  NecromancerWeaponSpellRecipient,
-  NecromancerWeaponSpellState,
-  ReaperState,
-  RitualistState,
-  ScourgeState
-};
-
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
   assumptions?: SchedulerRecord;

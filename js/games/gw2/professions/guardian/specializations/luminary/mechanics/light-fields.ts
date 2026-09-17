@@ -11,12 +11,12 @@ import { luminaryState } from '#gw2/professions/guardian/specializations/luminar
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianCastContext,
-  GuardianLuminaryState,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
+import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 
 const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
   GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,

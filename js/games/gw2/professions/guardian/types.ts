@@ -19,15 +19,6 @@ import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializa
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
-export type {
-  GuardianCorePublicState,
-  GuardianCoreState,
-  GuardianDragonhunterState,
-  GuardianFirebrandState,
-  GuardianLuminaryState,
-  GuardianWillbenderState
-};
-
 export interface GuardianBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
   assumptions?: { readonly quickness?: boolean };

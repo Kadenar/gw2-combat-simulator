@@ -33,14 +33,10 @@ import {
   missingInterruptCommitWarnings,
   referenceCastTimeMs
 } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import {
-  evtcRotationProfile,
-  type EvtcRotationProfessionProfile
-} from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import {
-  reconstructProfessionActions,
-  type EvtcRecordedRotationAction
-} from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
+import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type {
   ReconstructedCommand,
   ReconstructedCooldownResetCommand,
@@ -91,7 +87,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
 function applyObservedInterruptTiming(
   actions: readonly RecordedAction[],
   catalog: RotationCatalog | null,
-  profile: EvtcRotationProfessionProfile,
+  profile: RotationProfessionProfile,
   validatePackets: ReturnType<typeof createStrikePacketMatcher>
 ): RecordedAction[] {
   return actions.map((action) => {
@@ -166,7 +162,7 @@ function isDodgeName(name: string): boolean {
 function resolveAction(
   action: RecordedAction,
   catalog: RotationCatalog | null,
-  profile: EvtcRotationProfessionProfile
+  profile: RotationProfessionProfile
 ): ResolvedAction {
   if (action.rawName === 'Swap Weapons') {
     const skill = findNamedRotationSkill(profile.weaponSwap.name, catalog, profile);
@@ -299,7 +295,7 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
 /** Orchestrates player selection, recorded evidence, profession inference, and replay assembly. */
 export function reconstructWithProfile(
   log: ParsedEvtc,
-  profile: EvtcRotationProfessionProfile,
+  profile: RotationProfessionProfile,
   catalog: RotationCatalog | null = null,
   options: EvtcRotationOptions = {}
 ): RotationReconstructionBase<EvtcRotationPlayer, EvtcRotationAction> {

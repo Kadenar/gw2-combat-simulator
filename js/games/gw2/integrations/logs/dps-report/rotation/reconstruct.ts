@@ -32,11 +32,8 @@ import type {
 } from '#gw2/integrations/logs/dps-report/types.js';
 import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rotation/profiles.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
-import type {
-  DpsReportRecordedAction,
-  DpsReportResolvedAction,
-  DpsReportRotationOptions
-} from '#gw2/integrations/logs/dps-report/rotation/types.js';
+import type { DpsReportRotationOptions } from '#gw2/integrations/logs/dps-report/rotation/types.js';
+import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 
 function automaticProc(metadata: DpsReportSkillMetadata | null): boolean {
   return Boolean(metadata?.isTraitProc || metadata?.isUnconditionalProc || metadata?.isGearProc);
@@ -97,12 +94,8 @@ function castStatus(cast: DpsReportCast): RotationActionStatus {
   return 'completed';
 }
 
-function recordedActions(
-  report: ParsedDpsReport,
-  player: DpsReportPlayer,
-  phase: DpsReportPhase
-): DpsReportRecordedAction[] {
-  const actions: DpsReportRecordedAction[] = [];
+function recordedActions(report: ParsedDpsReport, player: DpsReportPlayer, phase: DpsReportPhase): RecordedLogAction[] {
+  const actions: RecordedLogAction[] = [];
 
   let eventIndex = 0;
   for (const group of player.rotation) {
@@ -134,7 +127,7 @@ function recordedActions(
 }
 
 function selectedSkillForAction(
-  action: DpsReportRecordedAction,
+  action: RecordedLogAction,
   profile: RotationProfessionProfile,
   catalog: RotationCatalog | null,
   selectedSkillIds: readonly number[] | undefined
@@ -151,11 +144,11 @@ function selectedSkillForAction(
 }
 
 function resolveAction(
-  action: DpsReportRecordedAction,
+  action: RecordedLogAction,
   profile: RotationProfessionProfile,
   catalog: RotationCatalog | null,
   selectedSkillIds: readonly number[] | undefined
-): DpsReportResolvedAction {
+): ResolvedLogAction {
   if (action.isSwap && normalized(action.rawName) === 'weapon swap') {
     const skill = findNamedRotationSkill(profile.weaponSwap.name, catalog, profile);
     return { ...action, skill, ...skillIdentity(skill, profile.weaponSwap) };
@@ -172,7 +165,7 @@ function resolveAction(
 }
 
 /** Preserves shortened inputs; the scheduler cancels damage unless explicit commit or per-packet rules permit it. */
-function observedInterruptMs(action: DpsReportResolvedAction): number | null {
+function observedInterruptMs(action: ResolvedLogAction): number | null {
   const sourceDurationMs = action.end - action.start;
   // Match EVTC imports by snapping channel and atomic cancellations to the same action grid.
   const interruptMs = quantizeGw2ActionTimingMs(sourceDurationMs);
@@ -180,9 +173,7 @@ function observedInterruptMs(action: DpsReportResolvedAction): number | null {
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
-function actionCommand(
-  action: DpsReportResolvedAction
-): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
+function actionCommand(action: ResolvedLogAction): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
   if (isMushroomKingsBlessing(action)) return { name: '__cooldown_reset' };
   const command: {
     name: string;
@@ -202,7 +193,7 @@ function actionCommand(
 }
 
 /** Keeps retained aftercast occupied in replay without encoding that same interval as a separate wait. */
-function replayActionEnd(action: DpsReportResolvedAction, completeReportedAftercast = false): number {
+function replayActionEnd(action: ResolvedLogAction, completeReportedAftercast = false): number {
   if (action.replayInterruptMs != null) return action.start + action.replayInterruptMs;
   if (retainsReplayCastLockout(action.skill, observedInterruptMs(action) ?? action.end - action.start)) {
     const runtimeDuration = referenceCastTimeMs(action.skill);
@@ -217,12 +208,12 @@ function replayActionEnd(action: DpsReportResolvedAction, completeReportedAfterc
   return runtimeDuration > 0 ? Math.max(action.end, action.start + runtimeDuration) : action.end;
 }
 
-function instantReplayAction(action: DpsReportResolvedAction): boolean {
+function instantReplayAction(action: ResolvedLogAction): boolean {
   return action.status === 'instant' || action.end <= action.start || Number(action.skill?.castTimeMs) === 0;
 }
 
 /** Uses weapon swaps, plus Forge entry for weapon skills, as cancellation boundaries even before commit. */
-function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsReportResolvedAction[] {
+function applyCastInterrupts(actions: readonly ResolvedLogAction[]): ResolvedLogAction[] {
   const replay = [...actions];
   for (let boundaryIndex = 0; boundaryIndex < replay.length; boundaryIndex += 1) {
     const boundary = replay[boundaryIndex];
@@ -247,16 +238,16 @@ function applyCastInterrupts(actions: readonly DpsReportResolvedAction[]): DpsRe
 }
 
 /** EI groups casts by skill; stable JSON traversal order is the only available tie policy. */
-function compareSimultaneousActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
+function compareSimultaneousActions(left: ResolvedLogAction, right: ResolvedLogAction): number {
   return left.eventIndex - right.eventIndex;
 }
 
-function compareResolvedActions(left: DpsReportResolvedAction, right: DpsReportResolvedAction): number {
+function compareResolvedActions(left: ResolvedLogAction, right: ResolvedLogAction): number {
   return left.start - right.start || compareSimultaneousActions(left, right);
 }
 
 function buildRotation(
-  actions: readonly DpsReportResolvedAction[],
+  actions: readonly ResolvedLogAction[],
   origin: number,
   combatStart: number,
   completeReportedAftercast: boolean

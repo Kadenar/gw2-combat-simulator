@@ -14,12 +14,12 @@ import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type {
   ThiefPrecastContext,
   ThiefCastContext,
-  ThiefCoreState,
   ThiefResourceContext,
   ThiefSchedulerContext,
   ThiefScheduledTask,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
 /** Restart the equipped signet's ten-second pulse after it becomes ready, including cooldown resets. */
 export function restartInfiltratorsSignetPassive(context: ThiefSchedulerContext): void {

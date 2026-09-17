@@ -15,12 +15,8 @@ import type {
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type {
-  RangerCoreState,
-  RangerSkill,
-  RangerUiContext,
-  RangerUiSelection
-} from '#gw2/professions/ranger/types.js';
+import type { RangerSkill, RangerUiContext, RangerUiSelection } from '#gw2/professions/ranger/types.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,

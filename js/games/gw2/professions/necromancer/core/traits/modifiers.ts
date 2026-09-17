@@ -17,11 +17,11 @@ import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/profession
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
-  NecromancerCoreState,
   NecromancerRechargeModifierContext,
   NecromancerSkill,
   NecromancerState
 } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 /** Reads Core Necromancer state from a resolver-side modifier context. */
 export function necromancerRuntimeCoreState(context: Gw2ModifierContext): Partial<NecromancerCoreState> {

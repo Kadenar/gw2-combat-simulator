@@ -16,12 +16,8 @@ import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/re
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  RenegadeState,
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 
 export interface BandTogetherState {
   readonly enhanced: boolean;

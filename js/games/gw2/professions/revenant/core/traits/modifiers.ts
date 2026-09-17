@@ -20,11 +20,11 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type {
   RevenantConfig,
-  RevenantCoreState,
   RevenantState,
   RevenantResolverContext,
   RevenantResolverEvent
 } from '#gw2/professions/revenant/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;

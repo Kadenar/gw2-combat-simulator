@@ -225,7 +225,7 @@ export function createGw2ResolverRuntimeState({
 /** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
-export interface Gw2ResolverRuntime extends Record<string, unknown> {
+export interface Gw2ResolverRuntime {
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
