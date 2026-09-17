@@ -13,8 +13,9 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
+  MesmerInstrument,
   MesmerRuntime,
-  MesmerInstrument
+  MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
@@ -29,7 +30,6 @@ import type {
   MesmerTraitDamage
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface SkillEffectControllerOptions {

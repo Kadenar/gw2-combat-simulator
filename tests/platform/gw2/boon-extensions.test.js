@@ -15,7 +15,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';

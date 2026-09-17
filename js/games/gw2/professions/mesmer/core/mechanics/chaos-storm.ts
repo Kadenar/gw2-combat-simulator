@@ -1,7 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SkillMechanicInvocation } from '#gw2/platform/engine/execution/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Alternates two and three whole Poison applications per completed storm, keeping each cast's pulses independent. */

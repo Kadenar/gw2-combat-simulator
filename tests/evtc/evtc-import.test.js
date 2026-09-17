@@ -205,7 +205,7 @@ test('requires an address when multiple players have equal action evidence', () 
 });
 
 test('a recorded Mirage dodge restores the state required to replay an ambush', async () => {
-  const { mesmerCatalog } = await import('#gw2/professions/mesmer/catalog.js');
+  const { mesmerCatalog } = await import('#gw2/professions/mesmer/profession.js');
   const { simulateMesmer } = await import('../helpers/mesmer-simulation.js');
   const fixture = log({
     agents: [{ ...log().agents[0], elite: 59 }],

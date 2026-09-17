@@ -1,11 +1,4 @@
 import type {
-  AmmoState,
-  CastCommand,
-  SchedulerContext,
-  SchedulerPolicy,
-  SchedulerRecord
-} from '#gw2/platform/engine/execution/types.js';
-import type {
   BalanceProfile,
   CanonicalCatalog,
   Skill,
@@ -19,11 +12,28 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import type {
-  MesmerProfessionState,
-  MesmerResolverState,
-  MesmerRuntimeState
-} from '#gw2/professions/mesmer/state/types.js';
+  AmmoState,
+  CastCommand,
+  ScheduledTask,
+  SchedulerContext,
+  SchedulerPolicy,
+  SchedulerRecord,
+  SchedulerState
+} from '#gw2/platform/engine/execution/types.js';
+import type { MesmerAvailableFlip, MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
 import type {
+  MesmerChronomancerState,
+  MesmerContinuumAmmo,
+  MesmerContinuumSnapshot
+} from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
+import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
+import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
+import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
+import type { MesmerVirtuosoExpectedProcCandidate } from '#gw2/professions/mesmer/specializations/virtuoso/types.js';
+import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type {
+  MesmerPendingResource,
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -59,13 +69,124 @@ import type {
   MesmerSkill
 } from '#gw2/professions/mesmer/data/types.js';
 
-export type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  MesmerAvailableFlip,
+  MesmerChronomancerState,
+  MesmerContinuumAmmo,
+  MesmerContinuumSnapshot,
+  MesmerCoreState,
+  MesmerMirageMirror,
+  MesmerMirageState,
+  MesmerResolverState,
+  MesmerTroubadourState,
+  MesmerVirtuosoState
+};
+
+export type {
+  MesmerPendingResource,
+  MesmerResourceCause,
+  MesmerResourceDefinition,
+  MesmerResourceSpendDetails
+} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 export type {
   MesmerShatter,
   MesmerShatterResolution,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+
+export interface MesmerProfessionState
+  extends MesmerCoreState, MesmerChronomancerState, MesmerMirageState, MesmerVirtuosoState, MesmerTroubadourState {}
+
+export interface MesmerRuntimeState {
+  core: MesmerCoreState;
+  specialization:
+    | { kind: 'Core'; state: Record<string, never> }
+    | { kind: 'Chronomancer'; state: MesmerChronomancerState }
+    | { kind: 'Mirage'; state: MesmerMirageState }
+    | { kind: 'Virtuoso'; state: MesmerVirtuosoState }
+    | { kind: 'Troubadour'; state: MesmerTroubadourState };
+}
+
+export interface MesmerStateSnapshot {
+  endurance?: number;
+  maximumEndurance?: number;
+  cloneCount: number;
+  numericResource: number;
+  instruments: [string, number][];
+  continuumActive: boolean;
+  counterspellAvailable: boolean;
+  availableFlips: [string, MesmerAvailableFlip][];
+  autoattackChains: [string, SkillId][];
+  bloodsongProgress: number;
+  sharperImagesProgress: number;
+  masterFencerProgress: number;
+  chaosStormCasts: number;
+  ineptitudeReadyAt: number;
+  clarityUntil: number;
+  ambushUntil: number;
+  mirrors: MesmerMirageMirror[];
+  riddleOfSandReady: boolean;
+  timeBombUntil: number;
+}
+
+export type MesmerState = SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, 'clones'>;
+
+export interface MesmerProjectedFlip {
+  readonly availableAt: number;
+  readonly expiresAt: number | null;
+  readonly remaining: number | null;
+  readonly persistent: boolean;
+}
+
+export interface MesmerEndState extends SchedulerRecord {
+  readonly endurance?: number;
+  readonly maximumEndurance?: number;
+  readonly resource: number;
+  readonly resourceDefinition: MesmerResourceDefinition;
+  readonly clarityRemaining: number;
+  readonly counterspellAvailable: boolean;
+  readonly availableAmbush: {
+    readonly name: string;
+    readonly source: string;
+    readonly expiresAt: number;
+    readonly remaining: number;
+  } | null;
+  readonly availableMirrors?: number;
+  readonly activeInstruments?: readonly MesmerProjectedInstrument[];
+  readonly availableFlips: Readonly<Record<string, MesmerProjectedFlip>>;
+  readonly autoattackChains: Readonly<Record<string, SkillId>>;
+  readonly continuumActive: boolean;
+  readonly continuumRemaining: number;
+}
+
+export interface MesmerSchedulerTaskPayloads {
+  readonly cloneAttack: { readonly cloneId: number };
+  readonly partyBuff: { readonly event: SimulationEventInput };
+  readonly resourceGain: MesmerPendingResource;
+  readonly expectedProc: MesmerExpectedProcCandidate;
+  readonly trackedHit: { readonly skillId: SkillId };
+  readonly virtuosoExpectedProc: MesmerVirtuosoExpectedProcCandidate;
+  readonly deadlyBladesCritical: { readonly eventOrder: number };
+  readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
+  readonly bladeSpend: {
+    readonly reservationId: string;
+    readonly sourceSkill: string;
+    readonly rotationIndex: number;
+  };
+  readonly continuumExpire: { readonly expiresAt: number };
+  readonly infiniteForge: SchedulerRecord;
+  readonly signetIllusionsPassive: SchedulerRecord;
+}
+
+export type MesmerSchedulerTask<TPayload extends keyof MesmerSchedulerTaskPayloads> = Omit<
+  ScheduledTask<MesmerSchedulerTaskPayloads[TPayload]>,
+  'payload'
+> & {
+  readonly payload: MesmerSchedulerTaskPayloads[TPayload];
+};
+
 export interface MesmerSpecializationSelection {
   readonly name: string;
   readonly traits?: string;

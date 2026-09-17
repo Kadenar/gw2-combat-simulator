@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createMesmerModuleData } from '#gw2/professions/mesmer/catalog/module-data.js';
+import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import {
   virtuosoAttributeRules,
   virtuosoCastRules,

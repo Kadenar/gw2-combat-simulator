@@ -1,15 +1,17 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
   MesmerCoreState,
   MesmerEndState,
   MesmerProfessionState,
   MesmerProjectedFlip,
+  MesmerRuntimeState,
+  MesmerSchedulerContext,
   MesmerStateSnapshot
-} from '#gw2/professions/mesmer/state/types.js';
+} from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
@@ -24,6 +26,21 @@ export function mesmerResourceProfileId(specialization: string): string {
   if (specialization === 'Virtuoso') return 'mesmer.virtuoso.resources';
   if (specialization === 'Troubadour') return 'mesmer.troubadour.resources';
   return 'mesmer.core.resources';
+}
+
+interface MesmerNumericResourceState {
+  numericResource: number;
+}
+
+/** Returns the active numeric resource state and rejects clone-owning Mesmer specializations. */
+export function mesmerNumericResourceState(state: SchedulerState<MesmerRuntimeState>): MesmerNumericResourceState {
+  const kind = state.profession.specialization.kind;
+  const active = readProfessionSpecializationState<MesmerNumericResourceState>(state.profession, kind);
+  if (typeof active?.numericResource !== 'number') {
+    throw new TypeError(`${kind} does not own a numeric Mesmer resource.`);
+  }
+
+  return active as MesmerNumericResourceState;
 }
 
 /** Aggregates Core and active-specialization state into the stable scheduler snapshot contract. */

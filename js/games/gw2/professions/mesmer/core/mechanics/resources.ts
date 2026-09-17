@@ -1,12 +1,13 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/state/resources.js';
+import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerRuntime
+  MesmerRuntime,
+  MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerClone,
@@ -19,7 +20,6 @@ import type {
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 interface ResourceControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

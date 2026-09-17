@@ -6,14 +6,13 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';

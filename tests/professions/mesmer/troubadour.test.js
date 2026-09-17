@@ -7,8 +7,7 @@ import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js'
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';

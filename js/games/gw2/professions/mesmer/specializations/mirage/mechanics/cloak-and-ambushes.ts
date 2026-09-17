@@ -15,8 +15,9 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
+  MesmerAmbushAttack,
   MesmerConfig,
-  MesmerAmbushAttack
+  MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerMirageCloakOptions,
@@ -28,7 +29,6 @@ import type {
   MesmerCloneAttack,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';

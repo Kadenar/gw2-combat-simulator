@@ -10,7 +10,7 @@ import {
   MESMER_DUPLICATE_SKILL_NAMES
 } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/catalog/skill-preparation.js';
+import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/data/skill-preparation.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 

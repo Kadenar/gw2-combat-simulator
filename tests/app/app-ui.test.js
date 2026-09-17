@@ -54,7 +54,7 @@ import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/bui
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
 
 test('starting resource clamps cover every active resource view', () => {
