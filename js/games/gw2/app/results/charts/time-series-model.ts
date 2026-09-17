@@ -1,6 +1,6 @@
 import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';

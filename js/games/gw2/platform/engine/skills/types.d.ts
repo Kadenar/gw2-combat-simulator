@@ -4,7 +4,7 @@ import type {
   SimulationActorType,
   EffectAudience,
   DamageEvent
-} from '#gw2/platform/engine/events/types.js';
+} from '#gw2/platform/engine/events/events.js';
 import type { SchedulerRecord, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 
 export type SkillId = string | number;

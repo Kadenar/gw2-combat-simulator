@@ -2,12 +2,8 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { onResolvedDamage, skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverEventHandlers,
-  Gw2ResolverReactions,
-  Gw2ResolverRuntime
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverEventHandlers, Gw2ResolverReactions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
 type Assert<T extends true> = T;

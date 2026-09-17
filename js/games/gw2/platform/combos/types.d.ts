@@ -1,6 +1,6 @@
 /** Owns the combos/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/types.js';
+import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 
 export type ComboFieldType =
   'Dark' | 'Ethereal' | 'Fire' | 'Ice' | 'Light' | 'Lightning' | 'Poison' | 'Smoke' | 'Water';

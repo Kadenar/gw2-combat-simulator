@@ -1,14 +1,14 @@
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */

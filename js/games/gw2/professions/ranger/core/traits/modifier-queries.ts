@@ -6,10 +6,10 @@ import {
   isDurationStackingBoon,
   isStandardBoon,
   remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+} from '#gw2/platform/combat/boons.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 
 export function rangerPetEvent(context: Gw2ModifierContext): boolean {
   // Pet modifiers require both canonical summon classification and Ranger-specific source ownership.

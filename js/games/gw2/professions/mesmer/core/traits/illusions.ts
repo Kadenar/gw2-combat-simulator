@@ -4,7 +4,7 @@ import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/bala
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerAddCondition,
   MesmerAddEvent,

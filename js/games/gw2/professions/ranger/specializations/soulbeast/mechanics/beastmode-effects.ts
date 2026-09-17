@@ -7,8 +7,8 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type {
   RangerResolverContext,

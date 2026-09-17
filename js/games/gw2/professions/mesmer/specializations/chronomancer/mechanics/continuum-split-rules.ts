@@ -2,7 +2,7 @@ import { chronomancerState } from '#gw2/professions/mesmer/specializations/chron
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -13,9 +13,9 @@ import {
   initializeChronomancerRuntime
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/runtime.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerPrecastContext,
   MesmerRechargeContext,

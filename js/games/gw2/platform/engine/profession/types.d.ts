@@ -18,7 +18,7 @@ import type {
   CastContext,
   AvailabilityResult
 } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 
 export interface ProfessionEventLogDescriptor {
   readonly type: string;

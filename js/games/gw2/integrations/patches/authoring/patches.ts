@@ -16,7 +16,7 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 export const CURRENT_PATCH_ID = 'current';
 

@@ -5,10 +5,11 @@ import type {
   SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 
 export interface WarriorBuild extends Gw2Build {

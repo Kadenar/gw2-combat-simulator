@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';

@@ -1,17 +1,30 @@
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
+import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
+import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-
+import type { Gw2EventDraft, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import type {
-  CreateGw2ResolverRuntimeStateOptions,
-  Gw2DamageBreakdownEntry,
+  Gw2ConditionResolution,
+  Gw2ResolvedConditionApplication,
+  Gw2ResolverConditionState
+} from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
+import type {
+  Gw2ConditionBreakdownEntry,
+  Gw2EnvironmentConditionBreakdownEntry,
+  Gw2EventQueue,
   Gw2ProcStep,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime
+  Gw2ResolverHelpers,
+  Gw2ResolverReactionRegistry,
+  Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
-import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
@@ -207,4 +220,91 @@ export function createGw2ResolverRuntimeState({
     }
   };
   return runtime;
+}
+
+/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+// Resolution consumes kernel randomness and generic records without execution dependencies.
+
+export interface Gw2ResolverRuntime extends Record<string, unknown> {
+  readonly reporting: boolean;
+  readonly damageDiagnostics: boolean;
+  config: Gw2Config;
+  traits: ReadonlySet<string | number>;
+  horizon: number;
+  query: Readonly<Gw2CombatQuery>;
+  helpers: Gw2ResolverHelpers;
+  queue: Gw2EventQueue;
+  warnings: string[];
+  breakdown: Map<string, Gw2DamageBreakdownEntry>;
+  conditions: Map<string, Gw2ConditionBreakdownEntry>;
+  environmentDamage: number;
+  environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
+  conditionState: Map<string, Gw2ResolverConditionState>;
+  conditionBufferAt?: number;
+  conditionBufferedAt?: number;
+  resolved: Gw2ResolverEvent[];
+  procSteps: Gw2ProcStep[];
+  procKeys: Set<string>;
+  boons: Map<string, Gw2TimedBuffApplication[]>;
+  totals: { strike: number; condition: number };
+  firstHitTime: number | null;
+  lastHitTime: number | null;
+  deathTime: number | null;
+  combatStartTime?: number | null;
+  activeWeaponSet: number;
+  combo: Gw2ComboRuntimeState;
+  relic: Gw2RelicRuntime;
+  precastRelics?: readonly Gw2RelicRuntime[];
+  profession: object;
+  sigil: {
+    severanceUntil: number;
+    criticalProgress: number;
+    readyAt: Map<string, number>;
+  };
+  food: { criticalProgress: number; readyAt: number };
+  random: Readonly<SimulationRandom>;
+  weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
+  weaponStrengthActivationOrder: number;
+  dispatchReaction(
+    stage: Gw2ResolverStage,
+    event: Gw2ResolverEvent,
+    details?: Record<string, unknown>
+  ): Record<string, unknown> | void;
+  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
+  recordProc(
+    type: string,
+    name: string,
+    at: number,
+    sourceSkill?: string,
+    detail?: string,
+    icon?: string,
+    cooldownReduction?: number | null,
+    expiresAt?: number | null,
+    effectState?: Gw2ProcStep['effectState']
+  ): void;
+  addBreakdown(
+    name: string,
+    damage: number,
+    type: 'strikeDamage' | 'conditionDamage',
+    hits?: number,
+    source?: Gw2ResolverEvent | null,
+    critical?: Gw2CriticalResult | null
+  ): void;
+  markDamageTime(at: number): void;
+}
+
+export interface CreateGw2ResolverRuntimeStateOptions {
+  readonly damageDiagnostics?: boolean;
+  readonly reporting?: boolean;
+  readonly config: Gw2Config;
+  readonly traits?: ReadonlySet<string | number>;
+  readonly horizon: number;
+  readonly query: Readonly<Gw2CombatQuery>;
+  readonly helpers: Gw2ResolverHelpers;
+  readonly queue: Gw2EventQueue;
+  readonly professionState?: object;
+  readonly warnings?: string[];
+  readonly applyCondition: Gw2ConditionResolution['applyCondition'];
+  readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
+  readonly reactions?: Gw2ResolverReactionRegistry;
 }

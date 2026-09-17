@@ -10,7 +10,7 @@ import {
   applySkillPatch,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

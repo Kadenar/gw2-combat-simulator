@@ -1,20 +1,14 @@
-import { applyAdditiveDamageBucket } from '#gw2/platform/combat/damage/modifier-buckets.js';
-
 import type {
-  Gw2AttributeModifierHook,
-  Gw2DamageBucketPolicies,
-  Gw2DamageBucketPolicy,
-  Gw2DamageModifierTarget,
-  Gw2ModifierContext,
-  Gw2ModifierHook,
-  Gw2ModifierHooks,
-  Gw2ModifierNumericResolver,
-  Gw2ModifierOperation,
-  Gw2ModifierRule,
-  Gw2ModifierTarget,
-  Gw2NormalizedModifierRule
-} from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+  Gw2CombatQuery,
+  Gw2ConditionSample,
+  Gw2CriticalChanceContributor,
+  Gw2QueryRuntime,
+  Gw2ResolvedStats
+} from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
@@ -425,15 +419,14 @@ function createAttributeHook(
  *
  * Every active `damage-additive` amount is summed into one outgoing-damage
  * bucket. Every active `multiply` factor is multiplied separately and applied
- * after the rebuilt bucket, regardless of rule order.
+ * after the shared bucket, regardless of rule order. Equipment inputs are already phase-selected.
  */
 function createDamageHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
   target: Gw2DamageModifierTarget,
   policy: Gw2DamageBucketPolicy
 ): Gw2ModifierHook {
-  const damageType = target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'condition' : 'strike';
-  return Object.freeze((context: Gw2ModifierContext, initialValue: number): number => {
+  const hook = (context: Gw2ModifierContext, initialValue: number): number => {
     let additiveBonus = 0;
     let multiplicativeFactor = 1;
     // All damage-additive rules share one GW2 bucket; true multipliers are
@@ -464,14 +457,16 @@ function createDamageHook(
       throw new TypeError(`Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`);
     }
 
-    return (
-      applyAdditiveDamageBucket(context, initialValue, {
-        damageType,
-        bonus: additiveBonus,
-        includeSigil
-      }) * multiplicativeFactor
-    );
-  });
+    const inputs = context.damageInputs;
+    const sigilBonus =
+      target === MODIFIER_TARGET.CONDITION_DAMAGE ? inputs?.conditionSigilBonus : inputs?.strikeSigilBonus;
+    // Combine eligible additions once; never undo a multiplier assembled by the query.
+    const outgoing =
+      1 + (includeSigil ? Number(sigilBonus || 0) : 0) + Number(inputs?.equipmentBonus || 0) + additiveBonus;
+    return initialValue * outgoing * multiplicativeFactor;
+  };
+
+  return Object.freeze(Object.assign(hook, { acceptsDamageInputs: true as const }));
 }
 
 /**
@@ -546,4 +541,106 @@ export function createModifierHooks({
 /** Compiles a family's merged rule list with the standard GW2 damage-bucket policies. */
 export function compileGw2ModifierRules(rules: readonly Gw2ModifierRule[]): Readonly<Gw2ModifierHooks> {
   return createModifierHooks({ rules });
+}
+
+export type Gw2ModifierTarget =
+  | 'criticalChance'
+  | 'criticalDamage'
+  | 'strikeDamage'
+  | 'conditionDamage'
+  | 'conditionDuration'
+  | 'attributePower'
+  | 'attributePrecision'
+  | 'attributeFerocity'
+  | 'attributeConditionDamage'
+  | 'attributeHealingPower'
+  | 'attributeVitality';
+
+export type Gw2DamageModifierTarget = 'strikeDamage' | 'conditionDamage';
+
+export type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
+
+export interface Gw2ModifierContext extends SchedulerRecord {
+  readonly config?: Gw2Config;
+  readonly time: number;
+  readonly event?: SimulationEvent | null;
+  readonly condition?: string | null;
+  readonly traits?: ReadonlySet<string | number>;
+  readonly query?: Readonly<Gw2CombatQuery>;
+  readonly timeline?: Readonly<Gw2TimelineIndex>;
+  readonly events?: readonly SimulationEvent[];
+  readonly runtime?: Gw2QueryRuntime | null;
+  readonly damageInputs?: Gw2DamageInputs;
+  readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
+  readonly conditionSample?: Gw2ConditionSample;
+}
+
+export type Gw2ModifierNumericResolver = (
+  context: Gw2ModifierContext,
+  target: Gw2ModifierTarget,
+  parameters: Readonly<Record<string, number>>
+) => number;
+
+export interface Gw2ModifierRule {
+  readonly id: string;
+  readonly label?: string;
+  readonly target: Gw2ModifierTarget | readonly Gw2ModifierTarget[];
+  readonly operation: Gw2ModifierOperation;
+  readonly amount?: number | Gw2ModifierNumericResolver;
+  readonly factor?: number | Gw2ModifierNumericResolver;
+  /** Named patchable inputs for resolver-backed amounts or factors. */
+  readonly parameters?: Readonly<Record<string, number>>;
+  readonly when?: (context: Gw2ModifierContext) => boolean;
+  /** Condition-damage predicate/value depend only on shared runtime state, never the application or condition type. */
+  readonly conditionSampleInvariant?: boolean;
+  readonly order?: number;
+}
+
+export interface Gw2NormalizedModifierRule {
+  readonly id: string;
+  readonly label: string | null;
+  readonly targets: readonly Gw2ModifierTarget[];
+  readonly operation: Gw2ModifierOperation;
+  readonly amount?: number | Gw2ModifierNumericResolver;
+  readonly factor?: number | Gw2ModifierNumericResolver;
+  readonly parameters: Readonly<Record<string, number>>;
+  readonly when: ((context: Gw2ModifierContext) => boolean) | null;
+  readonly order: number;
+  readonly declarationIndex: number;
+  readonly conditionSampleInvariant: boolean;
+}
+
+export type Gw2IncludeSigilPolicy = boolean | ((context: Gw2ModifierContext) => boolean);
+
+export interface Gw2DamageBucketPolicy {
+  readonly includeSigil: Gw2IncludeSigilPolicy;
+}
+
+export type Gw2DamageBucketPolicies = Partial<
+  Record<Gw2DamageModifierTarget, { readonly includeSigil?: Gw2IncludeSigilPolicy }>
+>;
+
+/** Equipment is selected by the query before pure modifier evaluation. */
+export interface Gw2DamageInputs {
+  readonly strikeSigilBonus?: number;
+  readonly conditionSigilBonus?: number;
+  readonly equipmentBonus?: number;
+}
+
+export type Gw2ModifierHook = ((context: Gw2ModifierContext, initialValue: number) => number) & {
+  readonly acceptsDamageInputs?: true;
+};
+
+export type Gw2AttributeModifierHook = (
+  context: Gw2ModifierContext,
+  initialValue: Gw2ResolvedStats
+) => Gw2ResolvedStats;
+
+export interface Gw2ModifierHooks {
+  readonly modifyAttributes: Gw2AttributeModifierHook;
+  readonly modifyCriticalChance: Gw2ModifierHook;
+  readonly modifyCriticalDamage: Gw2ModifierHook;
+  readonly modifyStrikeDamage: Gw2ModifierHook;
+  readonly modifyConditionDamage: Gw2ModifierHook;
+  readonly modifyConditionDuration: Gw2ModifierHook;
 }

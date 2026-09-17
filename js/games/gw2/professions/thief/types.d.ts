@@ -7,7 +7,7 @@ import type {
   SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   Gw2ApplicationBuild,
   Gw2Build,
@@ -16,7 +16,9 @@ import type {
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2HitResolutionContext, Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';

@@ -7,7 +7,8 @@ import type {
   SkillId,
   CanonicalCatalog
 } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent, SimulationEventInput, ScheduledEventStream } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
 
 export type ObservationPolicy =

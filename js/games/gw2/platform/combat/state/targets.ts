@@ -1,8 +1,8 @@
-/** Normalizes configured and runtime target conditions behind canonical stack queries. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
-import type { Gw2RuntimeConditionStack, Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+/** Normalizes configured and runtime target conditions behind canonical stack queries. */
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
 
@@ -203,4 +203,36 @@ export function targetHasCondition(
   runtime: Gw2RuntimeStateLike | null = null
 ): boolean {
   return targetConditionStacks(config, name, at, runtime) > 0;
+}
+
+export interface Gw2TargetConfig extends SchedulerRecord {
+  readonly conditions?: Readonly<Record<string, number | boolean>>;
+  readonly health?: number;
+  readonly startingHealthFraction?: number;
+  readonly armor?: number;
+  readonly moving?: boolean;
+  readonly confusionActivationsPerSecond?: number;
+  readonly disabled?: boolean;
+  readonly defianceBroken?: boolean;
+}
+
+export interface Gw2RuntimeConditionStack extends SchedulerRecord {
+  readonly appliedAt?: number;
+  readonly expiresAt?: number;
+  readonly removedAt?: number;
+  readonly weight?: number;
+  readonly stacks?: number;
+}
+
+export interface Gw2RuntimeConditionEntry extends SchedulerRecord {
+  readonly stacks: Gw2RuntimeConditionStack[];
+}
+
+export interface Gw2RuntimeStateLike extends SchedulerRecord {
+  readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
+  readonly totals?: {
+    readonly strike?: number;
+    readonly condition?: number;
+  };
+  readonly environmentDamage?: number;
 }

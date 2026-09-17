@@ -1,6 +1,6 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
@@ -13,7 +13,7 @@ import {
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type { NecromancerPrecastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';

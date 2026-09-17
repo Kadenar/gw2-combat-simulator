@@ -6,7 +6,7 @@ import {
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { EngineerSimulationEvent, EngineerSkill, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */

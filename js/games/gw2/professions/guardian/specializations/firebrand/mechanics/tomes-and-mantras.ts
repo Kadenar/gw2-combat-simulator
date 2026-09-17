@@ -1,6 +1,6 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import {
@@ -20,7 +20,7 @@ import {
   initializeFirebrandMantras
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
 import { initializeFirebrandBalanceState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {

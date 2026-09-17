@@ -254,10 +254,11 @@ boolean/message callbacks are derived. Event presenters return `{ type, descript
 deliberately suppresses an internal event and `undefined` requests the diagnostic fallback.
 
 Native-profession scalar combat bonuses are declared as per-effect rules in owner-local trait, skill, or mechanic
-modules. The shared `js/games/gw2/platform/combat/modifiers/rules.ts` adapter compiles those rules into the existing
-critical chance, critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar
-sequencing and the single GW2 outgoing additive-damage bucket rebuild; profession modules own predicates and runtime
-state. Ordered attribute conversions remain narrow imperative hooks.
+modules. The shared `js/games/gw2/platform/combat/modifiers.ts` adapter compiles those rules into the existing critical
+chance, critical damage, strike damage, condition damage, and condition duration hooks. It owns scalar sequencing and
+combines explicitly supplied equipment and profession additions once; profession modules own predicates and runtime
+state. Independent pet/mech owners exclude player Force and Bursting bonuses. Ordered attribute conversions remain
+narrow imperative hooks.
 
 ## Phase-explicit native helpers
 
@@ -370,6 +371,10 @@ fallback: event validation requires explicit actor ownership, and queries treat 
 Common types are `action`, `damage`, `condition`, `condition_tick`, `control`, `blind`, `weapon_set`, and `proc`. A
 profession adds a namespaced type such as `example.resource` by registering it in `resolverHooks.eventHandlers`.
 Duplicate registrations, missing required handlers, and unknown namespaced events throw explicit errors.
+
+The common event-name type derives from `COMMON_EVENT_TYPES` in `engine/events/events.ts`; damage and condition events
+retain their specific payload types. Shared boon queries select phase-visible history before delegating stack and
+duration-pool calculations to `combat/boons.ts`. Scheduler and resolver histories remain separate.
 
 Standard event types are owned by `js/games/gw2/platform/resolver`. A profession reacts through named resolution stages
 in `resolverHooks.eventReactions` without replacing the common handler:

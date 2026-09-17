@@ -13,8 +13,9 @@ import type {
   SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { TempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';

@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
-import {
-  applyBoonExtension,
-  boonApplicationsAt,
-  selfBoonIntervals
-} from '#gw2/platform/combat/state/boon-extensions.js';
+import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { applyBoonExtension, boonApplicationsAt, selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';

@@ -5,10 +5,10 @@ import {
   normalizeBoonDuration,
   recordBuffApplication,
   remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
-import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+} from '#gw2/platform/combat/boons.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 

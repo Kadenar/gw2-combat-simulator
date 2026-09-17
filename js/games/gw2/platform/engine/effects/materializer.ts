@@ -4,7 +4,7 @@
  * applications, resolving per-tick timing against the cast start or end. Cast
  * interruption and actual event emission remain scheduler concerns.
  */
-import type { EffectMetadata, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { EffectMetadata, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 

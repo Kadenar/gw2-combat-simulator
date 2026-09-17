@@ -1,4 +1,4 @@
-import type { EffectAudience, EffectMetadata } from '#gw2/platform/engine/events/types.js';
+import type { EffectAudience, EffectMetadata } from '#gw2/platform/engine/events/events.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);

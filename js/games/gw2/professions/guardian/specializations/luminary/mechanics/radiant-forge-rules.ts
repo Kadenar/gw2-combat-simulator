@@ -1,4 +1,4 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -16,8 +16,8 @@ import {
   observeLuminaryScheduledEvent,
   updateLuminaryTraitCastState
 } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type {
   GuardianPrecastContext,
   GuardianSchedulerContext,

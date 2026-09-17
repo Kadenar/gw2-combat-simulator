@@ -11,7 +11,7 @@ import {
   requireRevenantBalanceProfile as balanceProfile,
   requireRevenantEffect as profileEffect
 } from '#gw2/professions/revenant/core/traits/profile-access.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,

@@ -6,9 +6,9 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverReactions,
   Gw2ResolverEvent,
-  Gw2ResolverRuntime,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
   'aura.applied',

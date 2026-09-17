@@ -1,6 +1,6 @@
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
-import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,

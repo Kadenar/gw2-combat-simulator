@@ -1,6 +1,6 @@
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2CriticalResult } from '#gw2/platform/combat/query/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
@@ -10,7 +10,7 @@ import {
 } from '#gw2/platform/combat/critical-procs.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/numeric.js';
+import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';

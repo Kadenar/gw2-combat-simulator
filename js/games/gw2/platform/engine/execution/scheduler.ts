@@ -49,7 +49,7 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 interface CastReservation<TProfessionState extends object> {
   id: string;

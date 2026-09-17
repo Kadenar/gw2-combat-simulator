@@ -1,4 +1,4 @@
-import type { SimulationEventInput, SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 

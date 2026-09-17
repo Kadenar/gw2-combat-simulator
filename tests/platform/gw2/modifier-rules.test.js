@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
 function context({
   sigils = {
@@ -15,6 +15,10 @@ function context({
   return {
     active,
     time: 1,
+    damageInputs: {
+      strikeSigilBonus: sigils.strikeAdd ?? Number(sigils.strike || 1) - 1,
+      conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
+    },
     timeline: {
       activeSigilSetAt: () => sigils
     }
@@ -212,8 +216,8 @@ test('target arrays and functional amounts resolve for the active target', () =>
     ]
   });
 
-  assert.ok(Math.abs(hooks.modifyStrikeDamage(context(), 1.08) - 1.18) < 1e-12);
-  assert.ok(Math.abs(hooks.modifyConditionDamage(context(), 1.05) - 1.25) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage(context(), 1) - 1.18) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyConditionDamage(context(), 1) - 1.25) < 1e-12);
 });
 
 test('resolver-backed modifier rules receive frozen named parameters', () => {
@@ -263,7 +267,7 @@ test('inactive rules do not call their numeric resolver', () => {
   assert.equal(calls, 1);
 });
 
-test('damage rules rebuild one additive bucket before multiplication', () => {
+test('damage rules combine explicit equipment and profession additions before multiplication', () => {
   const hooks = createModifierHooks({
     rules: [
       {
@@ -287,7 +291,7 @@ test('damage rules rebuild one additive bucket before multiplication', () => {
     ]
   });
 
-  assert.ok(Math.abs(hooks.modifyStrikeDamage(context(), 1.08) - 1.38 * 1.5) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage(context(), 1) - 1.38 * 1.5) < 1e-12);
 });
 
 test('damage bucket policies can exclude the active sigil', () => {
@@ -307,16 +311,16 @@ test('damage bucket policies can exclude the active sigil', () => {
     }
   });
 
-  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...context(), illusion: true }, 1.08) - 1.1) < 1e-12);
-  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...context(), illusion: false }, 1.08) - 1.18) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...context(), illusion: true }, 1) - 1.1) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...context(), illusion: false }, 1) - 1.18) < 1e-12);
 
   const nourysContext = {
     ...context(),
-    damageAdditiveBonus: 0.25
+    damageInputs: { ...context().damageInputs, equipmentBonus: 0.25 }
   };
 
-  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: true }, 1.33) - 1.35) < 1e-12);
-  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: false }, 1.33) - 1.43) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: true }, 1) - 1.35) < 1e-12);
+  assert.ok(Math.abs(hooks.modifyStrikeDamage({ ...nourysContext, illusion: false }, 1) - 1.43) < 1e-12);
 });
 
 test('empty modifier sets preserve scalar and coherent damage inputs', () => {
@@ -324,8 +328,8 @@ test('empty modifier sets preserve scalar and coherent damage inputs', () => {
 
   assert.equal(hooks.modifyCriticalChance(context(), 0.5), 0.5);
   assert.equal(hooks.modifyConditionDuration(context(), 1.25), 1.25);
-  assert.equal(hooks.modifyStrikeDamage(context(), 1.08), 1.08);
-  assert.equal(hooks.modifyConditionDamage(context(), 1.05), 1.05);
+  assert.equal(hooks.modifyStrikeDamage(context(), 1), 1.08);
+  assert.equal(hooks.modifyConditionDamage(context(), 1), 1.05);
   assert.deepEqual(hooks.modifyAttributes(context(), { power: 1000 }), {
     power: 1000
   });
@@ -553,5 +557,5 @@ test('modifier bucket policies reject unsupported declarations and results', () 
     }
   });
 
-  assert.throws(() => hooks.modifyStrikeDamage(context(), 1.08), /strikeDamage/);
+  assert.throws(() => hooks.modifyStrikeDamage(context(), 1), /strikeDamage/);
 });

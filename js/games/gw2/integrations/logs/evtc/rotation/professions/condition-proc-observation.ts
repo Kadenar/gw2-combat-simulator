@@ -1,5 +1,5 @@
 import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 import {

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/state/boons.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import {
@@ -738,14 +738,9 @@ test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
     secondaryWeapon: 'Sword'
   });
 
-  // Live weapon-set queries resolve Force from the configured equipment.
-  destructiveWithForce.config.sigilSets = [
-    {
-      strike: 1.05,
-      strikeAdd: 0.05
-    }
-  ];
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(destructiveWithForce, 1.05), 1.125);
+  // Equipment selection supplies the evaluator with an explicit Force contribution.
+  destructiveWithForce.damageInputs = { strikeSigilBonus: 0.05 };
+  assert.equal(revenantAttributeRules.modifyStrikeDamage(destructiveWithForce, 1), 1.125);
 
   const scars = simulate('Core', ['Enchanted Daggers', 'Phase Traversal'], {
     selectedTraitIds: [TRAIT.BATTLE_SCARRED],

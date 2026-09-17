@@ -1,51 +1,39 @@
+import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  isDurationStackingBoon,
-  remainingDurationStackSeconds,
-  sumActiveStacks
-} from '#gw2/platform/combat/state/boons.js';
-import { criticalChance, criticalDamageMultiplier } from '#gw2/platform/combat/damage/calculations.js';
-import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+  criticalChance,
+  criticalDamageMultiplier,
+  gw2ConditionDurationMultiplier
+} from '#gw2/platform/combat/formulas.js';
+import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierHook } from '#gw2/platform/combat/modifiers.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
-import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
+import {
+  canonicalTargetConditionName,
+  createPermanentTargetConditionStacks,
+  runtimeTargetConditionStacks
+} from '#gw2/platform/combat/state/targets.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
+import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
+import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
   relicOutgoingDamageBonus
 } from '#gw2/platform/equipment/relics/query.js';
-import {
-  gw2ConditionDurationMultiplier,
-  gw2SigilSet,
-  gw2StatsForWeaponSet,
-  gw2StaticAttributes,
-  MIGHT_ATTRIBUTE_BONUS_PER_STACK
-} from '#gw2/platform/combat/query/runtime-rules.js';
-import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
-import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
-import {
-  canonicalTargetConditionName,
-  createPermanentTargetConditionStacks,
-  runtimeTargetConditionStacks
-} from '#gw2/platform/combat/state/targets.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import { gw2SigilSet, sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-
-import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
-import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
-import type {
-  Gw2CombatQuery,
-  Gw2ConditionSample,
-  Gw2CriticalChanceContributor,
-  Gw2QueryRuntime,
-  Gw2ResolvedStats
-} from '#gw2/platform/combat/query/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { roundEffectDuration } from '#gw2/platform/skills/timing.js';
 
 interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];
@@ -64,7 +52,7 @@ interface HookContextOptions {
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
   readonly runtime?: Gw2QueryRuntime | null;
-  readonly damageAdditiveBonus?: number;
+  readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
 }
@@ -221,26 +209,7 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   ): number | null => {
     if (!runtime) return null;
     const applications = runtime.boons?.get(kind) || [];
-    if (isDurationStackingBoon(kind)) {
-      const remaining = remainingDurationStackSeconds(applications, time, {
-        includes: (application) => buffMatchesAudience(application, audience, companionId),
-        maximum: durationStackingBoonCapSeconds(kind)
-      });
-      return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
-    }
-
-    return sumActiveStacks(
-      // Scheduler and resolver runtimes append applications in
-      // chronological event-queue order. The stop predicate depends on that
-      // ordering so future applications can terminate the scan.
-      applications,
-      (application) =>
-        buffMatchesAudience(application, audience, companionId) &&
-        isTimeInWindow(time, application.at, application.expiresAt),
-      (application) => Number(application.stacks || 1),
-      maximum,
-      (application) => canonicalTime(application.at) > canonicalTime(time)
-    );
+    return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId, ordered: true });
   };
 
   /** Uses chronological runtime state when present, otherwise scheduled state. */
@@ -365,11 +334,11 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       event = null,
       condition = null,
       runtime = null,
-      damageAdditiveBonus = 0,
+      damageInputs,
       conditionSample,
       criticalChanceContributors
     }: HookContextOptions = {}
-  ): SchedulerRecord => ({
+  ): Gw2ModifierContext => ({
     profession: activeProfession,
     config: activeConfigAt(time, runtime),
     time,
@@ -379,11 +348,11 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     actorType: event ? gw2EventActorType(event) : null,
     condition,
     traits,
-    query,
+    query: query ?? undefined,
     timeline,
     events,
     runtime,
-    damageAdditiveBonus,
+    damageInputs,
     conditionSample,
     criticalChanceContributors
   });
@@ -544,35 +513,43 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
     strikeMultiplier(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const relicBonus =
-        event?.summonUsesEquipmentModifiers === false
+        event.summonUsesEquipmentModifiers === false
           ? 0
           : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
-      if (event?.independentSummonStrike === true) {
-        const base =
-          (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-          Number(event.summonStrikeMultiplier ?? 1) *
-          (1 + relicBonus);
-        return event?.summonUsesProfessionModifiers === true
-          ? activeProfession.modifyStrikeDamage(hookContext(time, { event, runtime }), base)
+      const modifier = activeProfession.modifyStrikeDamage as Gw2ModifierHook;
+      const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
+      if (event.independentSummonStrike === true) {
+        // Independent profiles already apply their eligible relic bonus as a separate factor; only sigil leakage changes.
+        const base = vulnerability * Number(event.summonStrikeMultiplier ?? 1) * (1 + relicBonus);
+        return event.summonUsesProfessionModifiers === true
+          ? modifier(hookContext(time, { event, runtime }), base)
           : base;
       }
 
       const sigils = activeSigilSetAt(time, runtime);
+      const sigilFactor = event.summonUsesEquipmentModifiers === false ? 1 : Number(sigils.strike || 1);
+      const sigilBonus =
+        event.summonUsesEquipmentModifiers === false
+          ? 0
+          : Number.isFinite(Number(sigils.strikeAdd))
+            ? Number(sigils.strikeAdd)
+            : sigilFactor - 1;
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? Number(sigils.nightStrikeMultiplier || 1) : 1;
-      // Slaying equipment assumes a matching enemy; its multipliers stay outside the additive strike bucket.
       const utilityMultiplier = 1 + Number(UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
+      // Independent factors retain their established order; only additive equipment enters the shared bucket.
+      const equipmentFactor = modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus;
       const base =
-        (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        (Number(sigils.strike || 1) + relicBonus) *
+        vulnerability *
+        equipmentFactor *
         timeOfDayMultiplier *
         Number(sigils.strikeMultiplier || 1) *
         utilityMultiplier *
         Number(config.modifiers?.strike || 1);
-      return activeProfession.modifyStrikeDamage(
+      return modifier(
         hookContext(time, {
           event,
           runtime,
-          damageAdditiveBonus: relicBonus
+          damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus }
         }),
         base
       );
@@ -589,17 +566,26 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
       const sigils = activeSigilSetAt(time, runtime);
+      // Ordinary summon conditions use their player's bonuses; independent pet/mech owners never inherit Bursting.
+      const usesSigil = usesEquipmentModifiers && !(event?.actorType === 'summon' && event.independentConditionOwner);
+      const sigilFactor = usesSigil ? Number(sigils.condition || 1) : 1;
+      const sigilBonus = usesSigil
+        ? Number.isFinite(Number(sigils.conditionAdd))
+          ? Number(sigils.conditionAdd)
+          : sigilFactor - 1
+        : 0;
+      const modifier = activeProfession.modifyConditionDamage as Gw2ModifierHook;
       const base =
         (1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100) *
-        (usesEquipmentModifiers ? Number(sigils.condition || 1) + relicBonus : 1) *
+        (modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus) *
         Number(config.modifiers?.condition || 1);
-      return activeProfession.modifyConditionDamage(
+      return modifier(
         hookContext(time, {
           event,
           condition: name,
           runtime,
           conditionSample: sample,
-          damageAdditiveBonus: relicBonus
+          damageInputs: { conditionSigilBonus: sigilBonus, equipmentBonus: relicBonus }
         }),
         base
       );
@@ -663,4 +649,140 @@ export function createGw2CombatQuery<TProfessionState extends object = Scheduler
   });
   query = completedQuery;
   return completedQuery;
+}
+
+export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
+  readonly activeWeaponSet?: number;
+  readonly sigil?: { readonly severanceUntil?: number };
+  readonly relic?: Gw2RelicRuntime;
+  readonly profession?: object | null;
+}
+
+export interface Gw2CriticalChanceContributor {
+  readonly id: string;
+  readonly label: string;
+  readonly amount: number;
+}
+
+export interface Gw2CriticalResult {
+  chance: number;
+  damage: number;
+  didCrit?: boolean | null;
+  readonly chanceBeforeCap?: number;
+  readonly furyActive?: boolean;
+  readonly contributors?: readonly Gw2CriticalChanceContributor[];
+}
+
+/** Facts shared only while one condition-buffer pass observes an unchanged target/runtime state. */
+export interface Gw2ConditionSample {
+  readonly vulnerabilityStacks: number;
+  readonly modifierValues: Map<object, number | null>;
+}
+
+export interface Gw2CombatQuery {
+  statsAt(time: number, event?: SimulationEvent | null, runtime?: Gw2QueryRuntime | null): Gw2ResolvedStats;
+  mightStacksAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): number;
+  furyActiveAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): boolean;
+  vulnerabilityStacksAt(time: number, runtime?: Gw2QueryRuntime | null): number;
+  critical(event: SimulationEvent, time: number, runtime?: Gw2QueryRuntime | null): Gw2CriticalResult;
+  strikeMultiplier(event: SimulationEvent, time: number, runtime?: Gw2QueryRuntime | null): number;
+  conditionMultiplier(
+    name: string,
+    time: number,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null,
+    sample?: Gw2ConditionSample
+  ): number;
+  conditionDurationMultiplier(
+    name: string,
+    time: number,
+    stats?: Gw2ResolvedStats,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null
+  ): number;
+  conditionBaseDurationMultiplier(
+    name: string,
+    time: number,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null
+  ): number;
+  targetConditionStacks(condition: string, time: number, runtime?: Gw2QueryRuntime | null): number;
+  targetHasCondition(condition: string, time: number, runtime?: Gw2QueryRuntime | null): boolean;
+  readonly activeWeaponSetAt: Gw2TimelineIndex['activeWeaponSetAt'];
+  readonly activeSigilSetAt: Gw2TimelineIndex['activeSigilSetAt'];
+  readonly timedStacks: Gw2TimelineIndex['timedStacks'];
+  readonly timeline: Readonly<Gw2TimelineIndex>;
+}
+
+export interface Gw2ResolvedStats extends SchedulerRecord {
+  readonly power: number;
+  readonly precision: number;
+  readonly toughness: number;
+  readonly vitality: number;
+  readonly ferocity: number;
+  readonly conditionDamage: number;
+  readonly expertise: number;
+  readonly concentration: number;
+  readonly healingPower: number;
+  readonly boonDurationBonus: number;
+  readonly boonDurationBonuses: Readonly<Record<string, number>>;
+  readonly conditionDurationBonus: number;
+  readonly conditionDurationBonuses: Readonly<Record<string, number>>;
+}
+
+/** Snapshots natural condition duration at application time; each phase owns its stacks and observation window. */
+export function conditionApplicationDuration(
+  query: Readonly<Gw2CombatQuery>,
+  name: string,
+  event: SimulationEvent,
+  runtime: Gw2QueryRuntime
+): number {
+  const stats = query.statsAt(event.at, event, runtime);
+  const durationMultiplier = event.fixedDuration
+    ? 1
+    : query.conditionDurationMultiplier(name, event.at, stats, event, runtime);
+  const baseDurationMultiplier = event.fixedDuration
+    ? 1
+    : (query.conditionBaseDurationMultiplier?.(name, event.at, event, runtime) ?? 1);
+  const duration = Math.max(0, Number(event.duration || 0)) * baseDurationMultiplier * durationMultiplier;
+  return roundEffectDuration(duration);
+}
+
+/** Returns the configured attributes for a one-based weapon set. */
+export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2Stats {
+  const index = Number(weaponSet) === 2 ? 1 : 0;
+  return {
+    ...(config.attributes || {}),
+    ...(config.stats || {}),
+    ...(config.weaponSetStats?.[index] || {})
+  };
+}
+
+export function gw2StaticAttributes(
+  config: Gw2Config,
+  mightStacks: number | boolean | undefined = config.boons?.might,
+  weaponSet = config.startingWeaponSet
+): Gw2ResolvedStats {
+  const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
+  const stats = gw2StatsForWeaponSet(config, weaponSet);
+  return {
+    power: Number(stats.power || 0) + mightBonus,
+    precision: Number(stats.precision || 0),
+    toughness: Number(stats.toughness || 0),
+    vitality: Number(stats.vitality || 0),
+    ferocity: Number(stats.ferocity || 0),
+    conditionDamage: Number(stats.conditionDamage || 0) + mightBonus,
+    expertise: Number(stats.expertise || 0),
+    concentration: Number(stats.concentration || 0),
+    healingPower: Number(stats.healingPower || 0),
+    boonDurationBonus: Number(stats.boonDurationBonus || 0),
+    boonDurationBonuses: {
+      ...(stats.boonDurationBonuses || {})
+    },
+    conditionDurationBonus: Number(stats.conditionDurationBonus || 0),
+    conditionDurationBonuses: {
+      ...(stats.conditionDurationBonuses || {})
+    }
+  };
 }

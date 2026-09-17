@@ -3,7 +3,7 @@ import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';

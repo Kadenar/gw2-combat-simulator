@@ -1,26 +1,21 @@
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
-import { insertSorted } from '#kernel/core/collections.js';
-import { eventCausalOrder } from '#kernel/events/queue.js';
+import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
+  boonApplicationsAt,
+  buffApplicationStacks,
   buffMatchesAudience,
-  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
-  normalizeBoonDuration,
-  remainingDurationStackSeconds,
-  sumActiveStacks
-} from '#gw2/platform/combat/state/boons.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
-
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+  normalizeBoonDuration
+} from '#gw2/platform/combat/boons.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2BuffAudience } from '#gw2/platform/combat/state/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { insertSorted } from '#kernel/core/collections.js';
+import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
   readonly config?: Gw2Config;
@@ -168,35 +163,18 @@ export function createGw2TimelineIndex({
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
       const applications = boonApplicationsAt(events, String(kind).toLowerCase(), time, duration);
-      const includes = (application: (typeof applications)[number]) =>
-        buffMatchesAudience(application, audience, companionId);
-      if (isDurationStackingBoon(kind)) {
-        return remainingDurationStackSeconds(applications, time, {
-          includes,
-          maximum: durationStackingBoonCapSeconds(kind)
-        }) > 0
-          ? Math.min(1, Math.max(0, maximum))
-          : 0;
-      }
-
-      return sumActiveStacks(
-        applications,
-        (application) => includes(application) && isTimeInWindow(time, application.at, application.expiresAt),
-        (application) => application.stacks,
-        maximum
-      );
+      return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId });
     }
 
     const bucket = indexedBuffs.get(String(kind || '').toLowerCase());
     const applications =
       audience === 'summon-trait' ? bucket?.summonTrait : audience === 'summon' ? bucket?.summon : bucket?.all;
     if (isDurationStackingBoon(kind)) {
-      const remaining = remainingDurationStackSeconds(applications || [], time, {
-        includes: (event) => buffMatchesAudience(event, audience, companionId),
-        duration: (event) => Number(event.duration ?? duration),
-        maximum: durationStackingBoonCapSeconds(kind)
+      return buffApplicationStacks(applications || [], kind, time, maximum, {
+        audience,
+        companionId,
+        duration: (event) => Number(event.duration ?? duration)
       });
-      return remaining > 0 ? Math.min(1, Math.max(0, maximum)) : 0;
     }
 
     // The longest grant gives a monotonic expiry bound even when individual grants expire out of order.
@@ -211,20 +189,13 @@ export function createGw2TimelineIndex({
       else high = middle;
     }
 
-    let stacks = 0;
-    for (let index = low; index < history.length; index += 1) {
-      const event = history[index];
-      if (canonicalTime(event.at) > time) break;
-      // Explicit zero durations stay empty; omitted durations still use this query's fallback.
-      if (
-        buffMatchesAudience(event, audience, companionId) &&
-        isTimeInWindow(time, event.at, gw2EffectExpiresAt(event.at, Number(event.duration ?? duration)))
-      ) {
-        stacks += Number(event.stacks || 1);
-      }
-    }
-
-    return clamp(stacks, 0, maximum);
+    return buffApplicationStacks(history, kind, time, maximum, {
+      audience,
+      companionId,
+      duration: (event) => Number(event.duration ?? duration),
+      start: low,
+      ordered: true
+    });
   };
 
   const buffStacksAt = (
@@ -342,4 +313,23 @@ export function createGw2TimelineIndex({
     activeSigilSetAt,
     skillOnCooldownAt
   });
+}
+
+export interface Gw2TimelineIndex {
+  /** Invalidates indexed history after the source owner replaces an event. */
+  onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
+  buffStacksAt(
+    kind: string,
+    time: number,
+    duration: number,
+    maximum: number,
+    audience?: Gw2BuffAudience,
+    companionId?: string | null
+  ): number;
+  timedStacks(kind: string, time: number, duration: number, maximum: number): number;
+  timedActive(kind: string, time: number): boolean;
+  vigorActiveAt(time: number): boolean;
+  activeWeaponSetAt(time: number): number;
+  activeSigilSetAt(time: number): Gw2SigilSet;
+  skillOnCooldownAt(skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number): boolean;
 }

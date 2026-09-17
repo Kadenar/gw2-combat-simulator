@@ -17,9 +17,9 @@ import type {
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
-  Gw2ResolverReactionRegistry,
-  Gw2ResolverRuntime
+  Gw2ResolverReactionRegistry
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 export interface EnqueueGw2OwnedComboFinisherOptions {
   readonly ownerId: string;

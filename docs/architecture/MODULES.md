@@ -75,7 +75,7 @@ Use this table as the first place to look.
 | Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/lib/`                 |
 | EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
 | dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
-| gw2wingman log fetch/reshape (rules stay in `dps-report/`)             | `js/games/gw2/integrations/logs/wingman/`             |
+| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`             |
 | Upcoming balance changes                                              | Patch-preview system                                  |
 | Build migration/default/validation                                    | Profession `build/build.ts`                           |
 | New profession page/registry entry                                    | `js/games/gw2/app/profession/registry.ts`             |
@@ -323,15 +323,26 @@ Important modules include:
 | `simulation/simulate.ts`          | Canonical `simulateGw2()` entry point                                                   |
 | `engine/`                         | Runtime contracts, scheduler execution, cooldowns, effects, and profession composition  |
 | `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
-| `combat/modifiers/rules.ts`       | Declarative scalar modifier system                                                      |
+| `combat/modifiers.ts`             | Declarative scalar modifier system                                                      |
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
-| `combat/damage/calculations.ts`   | Strike and condition damage formulas                                                    |
+| `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
+| `combat/numeric.ts`               | Clamp, finite-number conversion, and half-even rounding                                 |
+| `combat/critical-procs.ts`        | Critical-proc progress, including the one-hit expected critical tracker                 |
+| `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
+| `skills/timing.ts`                | Effect duration rounding, absolute expiry, and skill timing                             |
 | `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
 | `equipment/sigils/rules.ts`       | Shared sigil behavior                                                                   |
 | `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
 | `combat/state/targets.ts`         | Target assumptions                                                                      |
 | `combat/state/traits.ts`          | Shared selected-trait lookup                                                            |
 | `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                    |
+
+Combat-query selects visible state and equipment, formulas and modifiers calculate, and resolver handlers commit effects
+and dispatch reactions. Query contracts live in `combat/query/combat-query.ts` and `timeline-index.ts`; event payloads
+and validation live in `engine/events/events.ts`. Scheduled-stream contracts live with `scheduled-stream.ts`. Hit
+diagnostics, condition applications/private wakes, and mutable runtime types live with `hit-resolution.ts`,
+`condition-resolution.ts`, and `runtime-state.ts`. The shared event/result/reaction contracts remain in
+`resolver/types.d.ts`; fixed resolver wiring is composed in `resolve-timeline.ts`.
 
 Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
 decoration and validation live under `js/games/gw2/integrations/patches/`.
@@ -1102,9 +1113,9 @@ Do not add dps.report-specific parsing logic to profession simulator modules.
 js/games/gw2/integrations/logs/wingman/
 ```
 
-Fetches a public gw2wingman `/log/<id>` link and reshapes gw2wingman's response (Elite Insights' HTML-embed log
-format, not dps.report's raw JSON) into the document `dps-report/parser.ts` validates, then hands off to the
-unchanged `dps-report/` reconstruction pipeline. It owns only that fetch and reshape step.
+Fetches a public gw2wingman `/log/<id>` link and reshapes gw2wingman's response (Elite Insights' HTML-embed log format,
+not dps.report's raw JSON) into the document `dps-report/parser.ts` validates, then hands off to the unchanged
+`dps-report/` reconstruction pipeline. It owns only that fetch and reshape step.
 
 Do not duplicate dps.report reconstruction rules here; add new rules to `dps-report/` so both adapters share them.
 

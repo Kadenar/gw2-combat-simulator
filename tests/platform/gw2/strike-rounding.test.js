@@ -2,6 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
+import { expectedCritMultiplier } from '#gw2/platform/combat/formulas.js';
+
+// Critical units remain fractions/factors, with the existing upper chance cap and no extra lower clamp.
+test('expected critical scaling uses fraction chance and factor damage', () => {
+  for (const [chance, damage, expected] of [
+    [0, 2, 1],
+    [0.5, 2, 1.5],
+    [1, 2.5, 2.5],
+    [2, 2.5, 2.5],
+    [-0.5, 2, 0.5]
+  ])
+    assert.equal(expectedCritMultiplier(chance, damage), expected);
+});
 
 // Use neutral stats and explicit packets to distinguish flooring from nearest rounding without a saved rotation.
 function resolve(events, { power = 1300, multiplier = 1, health = 0, output = 'detailed' } = {}) {

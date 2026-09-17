@@ -1,11 +1,11 @@
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
-import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
+import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export interface Gw2CombatObserver {

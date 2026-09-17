@@ -2,27 +2,24 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
-import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/numeric.js';
-import { gw2SigilSet } from '#gw2/platform/combat/query/runtime-rules.js';
+import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/critical-procs.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   isResolverCriticalSigil,
   isSigilInternalCooldownReady
 } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
-import type {
-  Gw2ConditionResolution,
-  Gw2ResolverEvent,
-  Gw2ResolverReactionContributions,
-  Gw2ResolverRuntime
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
 
 export const GW2_REACTION_ORDER = Object.freeze({

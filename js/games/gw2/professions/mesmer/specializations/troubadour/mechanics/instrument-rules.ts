@@ -1,7 +1,7 @@
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
@@ -16,9 +16,9 @@ import type {
   MesmerRechargeContext,
   MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

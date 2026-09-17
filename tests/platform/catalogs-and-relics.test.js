@@ -23,7 +23,7 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '#gw2/platform/combat/damage/stat-scaling.js';
+} from '#gw2/platform/combat/formulas.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';

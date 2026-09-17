@@ -1,17 +1,12 @@
-import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/damage/calculations.js';
-import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
-import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/formulas.js';
 import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
-
-import type {
-  Gw2HitResolution,
-  Gw2HitResolutionContext,
-  Gw2ResolverExtensions,
-  Gw2ResolverEvent,
-  Gw2ResolverRuntime
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2CriticalResult, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
-import type { Gw2DamageCalculation } from '#gw2/platform/engine/events/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 
 const STANDARD_TARGET_ARMOR = 2597;
 
@@ -29,7 +24,7 @@ interface ResolvedStrikeParts {
 export function createGw2HitResolution({
   strikeMultiplier: equipmentStrikeMultiplier = () => 1
 }: {
-  readonly strikeMultiplier?: Gw2ResolverExtensions['strikeMultiplier'];
+  readonly strikeMultiplier?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
 } = {}): Readonly<Gw2HitResolution> {
   // Remaining target health as a fraction, or null when the encounter has no
   // configured target health. Shared by every "target-health-below" gate.
@@ -107,7 +102,7 @@ export function createGw2HitResolution({
     power: number,
     critical: Gw2HitResolutionContext['critical']
   ): ResolvedStrikeParts {
-    const criticalMultiplier = expectedCritMultiplier(critical.chance * 100, critical.damage * 100);
+    const criticalMultiplier = expectedCritMultiplier(critical.chance, critical.damage);
     const outgoingMultiplier =
       ctx.query.strikeMultiplier(event, event.at, ctx) *
       (event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event));
@@ -251,4 +246,72 @@ export function createGw2HitResolution({
     buildHitResolutionContext,
     applyResolvedHit
   });
+}
+
+/** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
+
+/** Detached formula facts captured only for requested detailed damage diagnostics. */
+export interface Gw2DamageCalculation {
+  readonly phase: 'Sample' | 'Settle' | 'Ordinary';
+  readonly targetHealthBefore: number | null;
+  readonly targetHealthFractionBefore: number | null;
+  readonly power: number;
+  readonly precision?: number;
+  readonly ferocity?: number;
+  readonly coefficientMultiplier: number;
+  readonly baseDamage: number;
+  readonly criticalMultiplier: number;
+  readonly outgoingMultiplier: number;
+  readonly unroundedDamage: number;
+  readonly rounding: 'floor' | 'half-even';
+}
+/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+
+// Resolution consumes kernel randomness and generic records without execution dependencies.
+
+export interface Gw2DamageBreakdownEntry {
+  name: string;
+  sourceSkill: string;
+  parentSkill: string;
+  damageBreakdownName?: string;
+  icon: string;
+  skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
+  sourceId?: import('#gw2/platform/engine/skills/types.js').SkillId;
+  actorType?: SimulationActorType;
+  summonKind?: string;
+  source?: string;
+  damage: number;
+  strikeDamage: number;
+  conditionDamage: number;
+  hits: number;
+  casts?: number;
+  // Crit accounting is tracked only for strike hits. critHits is the expected
+  // (deterministic) or actual (stochastic) number of critical strikes;
+  // critEligibleHits is the number of strike hits those crits are drawn from.
+  critHits?: number;
+  critEligibleHits?: number;
+}
+
+export interface Gw2HitResolutionContext {
+  readonly coefficientMultiplier: number;
+  readonly unroundedDamage: number;
+  readonly stats: Gw2ResolvedStats;
+  readonly critical: Gw2CriticalResult;
+  // Whether this strike can crit at all (scaling strike, not flagged noCrit /
+  // canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
+  readonly critEligible: boolean;
+  readonly criticalMultiplier: number;
+  readonly outgoingMultiplier: number;
+  readonly weaponStrength: Gw2ResolvedWeaponStrength | null;
+  readonly baseDamage: number;
+  readonly damage: number;
+}
+
+export interface Gw2HitResolution {
+  buildHitResolutionContext(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2HitResolutionContext;
+  applyResolvedHit(
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    hit: Gw2HitResolutionContext
+  ): Gw2ResolverEvent;
 }

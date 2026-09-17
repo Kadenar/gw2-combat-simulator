@@ -3,10 +3,11 @@ import type { SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execu
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2CombatQuery } from '#gw2/platform/combat/query/types.js';
+import type { Gw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
-import type { Gw2RuntimeConditionEntry, Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 
 export interface MaterializerProfessionState extends SchedulerRecord {
   maximumEndurance?: number;

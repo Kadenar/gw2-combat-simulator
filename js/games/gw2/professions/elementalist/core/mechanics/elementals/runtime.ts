@@ -29,7 +29,7 @@ import {
 } from '#gw2/platform/scheduler/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import type {

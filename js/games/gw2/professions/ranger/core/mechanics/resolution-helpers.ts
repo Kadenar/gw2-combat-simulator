@@ -1,7 +1,7 @@
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/types.js';
+import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RangerResolverContext, RangerResolverEvent, RangerSkill } from '#gw2/professions/ranger/types.js';
 

@@ -1,10 +1,11 @@
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '#gw2/platform/combat/damage/stat-scaling.js';
-
-import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/types.js';
+} from '#gw2/platform/combat/formulas.js';
+import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2SigilCriticalContribution {
   readonly chance: number;
@@ -40,4 +41,9 @@ export function sigilCriticalContribution(
       }
     ]
   };
+}
+
+export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {
+  // Public weapon sets are one-based; storage is a zero-based array.
+  return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
 }

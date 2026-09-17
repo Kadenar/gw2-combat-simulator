@@ -1,7 +1,7 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -10,7 +10,7 @@ import {
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   NecromancerAmmoModifierContext,
   NecromancerRechargeModifierContext

@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
 
 /** A precast Frost Trap stays armed until combat instead of losing pulses before the target arrives. */

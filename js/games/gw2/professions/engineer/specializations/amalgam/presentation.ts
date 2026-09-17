@@ -14,7 +14,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type {
   EngineerResolverEvent,

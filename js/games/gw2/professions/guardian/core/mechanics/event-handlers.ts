@@ -1,4 +1,4 @@
-import type { DamageEvent, SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { DamageEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianEventContext,

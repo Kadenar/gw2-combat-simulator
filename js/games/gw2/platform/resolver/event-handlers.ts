@@ -1,17 +1,17 @@
+import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
-  Gw2ConditionResolution,
-  Gw2HitResolution,
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
   Gw2ResolverReaction,
-  Gw2ResolverReactionRegistry,
-  Gw2ResolverRuntime
+  Gw2ResolverReactionRegistry
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import {
   gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients
 } from '#gw2/platform/combat/state/allied-players.js';
-import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
 
@@ -24,7 +24,7 @@ interface CreateGw2ResolverEventHandlersOptions {
   readonly reactions: Gw2ResolverReactionRegistry;
 }
 
-import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 
 const noop: Gw2ResolverReaction = () => {};
 

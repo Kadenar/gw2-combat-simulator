@@ -1,12 +1,12 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.

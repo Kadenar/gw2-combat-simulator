@@ -3,7 +3,7 @@
  * packets before they join the canonical scheduler timeline.
  */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 
 // Preserve packets excluded by the configured hitbox as cancelled markers so

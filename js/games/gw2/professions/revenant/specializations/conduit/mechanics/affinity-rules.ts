@@ -1,6 +1,6 @@
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -40,7 +40,7 @@ import {
   modifyConduitRechargeDuration,
   observeConduitTraits
 } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type {
   RevenantCastContext,

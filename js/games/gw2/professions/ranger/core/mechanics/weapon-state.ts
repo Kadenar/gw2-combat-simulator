@@ -7,7 +7,7 @@ import type {
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
 import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';

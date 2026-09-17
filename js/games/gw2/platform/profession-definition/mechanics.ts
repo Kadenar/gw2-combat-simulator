@@ -12,7 +12,8 @@ import {
   type CriticalProcApplication,
   type CriticalProcMaterialization
 } from '#gw2/platform/combat/critical-procs.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 type OrderedEscapeHandler = Readonly<{
   id: string;

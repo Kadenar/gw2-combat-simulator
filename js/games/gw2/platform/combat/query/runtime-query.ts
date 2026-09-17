@@ -1,11 +1,5 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
-import { isTimeInWindow } from '#kernel/core/clock.js';
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  isDurationStackingBoon,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+import { buffApplicationStacks, isDurationStackingBoon } from '#gw2/platform/combat/boons.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -14,8 +8,8 @@ import {
 } from '#gw2/platform/combat/state/targets.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/state/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 
 interface RuntimeSkillEvent {
   readonly skillId?: SkillId | null;
@@ -67,19 +61,7 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
   if (!context.runtime) return Boolean(context.timeline?.timedActive(boon, context.time));
   const applications = context.runtime.boons?.get(boon) || [];
-  if (isDurationStackingBoon(boon)) {
-    return (
-      remainingDurationStackSeconds(applications, context.time, {
-        includes: (application) => buffMatchesAudience(application, 'all'),
-        maximum: durationStackingBoonCapSeconds(boon)
-      }) > 0
-    );
-  }
-
-  return applications.some(
-    (application) =>
-      buffMatchesAudience(application, 'all') && isTimeInWindow(context.time, application.at, application.expiresAt)
-  );
+  return buffApplicationStacks(applications, boon, context.time, 1) > 0;
 }
 
 /** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */
@@ -91,21 +73,8 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
   const schedulerState = context.state as { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
   const boons = context.runtime?.boons ?? schedulerState?.boons;
   const applications = boons?.get(boon) || [];
-  if (isDurationStackingBoon(boon)) {
-    const remaining = remainingDurationStackSeconds(applications, context.time, {
-      includes: (application) => buffMatchesAudience(application, 'all'),
-      maximum: durationStackingBoonCapSeconds(boon)
-    });
-    return clamp(remaining > 0 ? 1 : 0, 0, maximum);
-  }
-
-  const dynamic = applications
-    .filter(
-      (application) =>
-        buffMatchesAudience(application, 'all') && isTimeInWindow(context.time, application.at, application.expiresAt)
-    )
-    .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
-  return clamp(base + dynamic, 0, maximum);
+  const dynamic = buffApplicationStacks(applications, boon, context.time, Infinity);
+  return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);
 }
 
 /** Gives an installed query adapter precedence while retaining config/runtime condition fallback for partial contexts. */

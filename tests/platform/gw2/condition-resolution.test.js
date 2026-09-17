@@ -455,6 +455,34 @@ function resolveEnvironmentConditions({
   });
 }
 
+// One application exercises each target-dependent rate without depending on a saved rotation.
+test('condition samples use shared Torment and Confusion coefficients', () => {
+  for (const [condition, target, expected] of [
+    ['Torment', { moving: true }, 562],
+    ['Torment', { moving: false }, 842],
+    ['Confusion', { confusionActivationsPerSecond: 0 }, 468],
+    ['Confusion', { confusionActivationsPerSecond: 2 }, 1086]
+  ]) {
+    const result = resolveEnvironmentConditions({
+      target,
+      rotationEndTime: 1,
+      events: [
+        {
+          type: 'condition',
+          actorType: 'player',
+          at: 0,
+          source: 'Player',
+          sourceId: 'formula-probe',
+          condition,
+          stacks: 1,
+          duration: 1
+        }
+      ]
+    });
+    assert.equal(result.conditionDamage, expected, `${condition}: ${JSON.stringify(target)}`);
+  }
+});
+
 test('permanent damaging target conditions use environment formulas and diagnostics', () => {
   const result = resolveEnvironmentConditions({
     conditions: {

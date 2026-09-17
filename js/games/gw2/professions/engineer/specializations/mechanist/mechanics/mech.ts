@@ -22,7 +22,7 @@ import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializatio
 import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import { isStandardBoon } from '#gw2/platform/combat/state/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {

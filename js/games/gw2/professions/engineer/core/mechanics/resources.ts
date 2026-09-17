@@ -4,7 +4,7 @@ import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/state/boon-extensions.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 

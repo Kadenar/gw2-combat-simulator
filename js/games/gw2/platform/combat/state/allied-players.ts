@@ -5,7 +5,7 @@ import type {
   EffectAudience,
   ResolvedEffectAudience,
   SimulationEventInput
-} from '#gw2/platform/engine/events/types.js';
+} from '#gw2/platform/engine/events/events.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc

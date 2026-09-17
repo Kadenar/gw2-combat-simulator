@@ -162,11 +162,17 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
   // Recharge commitment also chains Core and elite contributions, but is invoked only for accepted casts.
   // Preparers and modifiers preserve the current value when a hook returns undefined.
   if (hookName === 'prepareEvent' || hookName === 'commitRechargeDuration' || hookName.startsWith('modify')) {
-    return (context: SchedulerRecord, initialValue: unknown) =>
+    const composed = (context: SchedulerRecord, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
       }, initialValue);
+    // Native damage rules consume explicit equipment inputs; ordinary profession hooks keep their numeric contract.
+    if (hooks.some(({ handler }) => 'acceptsDamageInputs' in handler && handler.acceptsDamageInputs === true)) {
+      return Object.assign(composed, { acceptsDamageInputs: true });
+    }
+
+    return composed;
   }
 
   return (context: SchedulerRecord, value: unknown) => {

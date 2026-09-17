@@ -7,9 +7,10 @@ import type {
 } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 
 export type RangerSpecializationSelection = ProfessionTraitSelection;
 

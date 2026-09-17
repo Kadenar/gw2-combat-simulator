@@ -7,7 +7,7 @@ import {
   readProfessionCoreState,
   readProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,8 +19,8 @@ import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type {
   RangerCastContext,
   RangerPrecastContext,
@@ -29,7 +29,7 @@ import type {
 } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.

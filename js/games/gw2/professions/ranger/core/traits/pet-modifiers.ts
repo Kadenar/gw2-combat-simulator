@@ -1,6 +1,6 @@
 /** Owns Ranger pet-audience attributes and rules so player modifier composition stays explicit. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -12,8 +12,8 @@ import {
   rangerPetEvent,
   rangerTargetImpaired
 } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 function activePetFamily(context: Gw2ModifierContext): string {
   const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;

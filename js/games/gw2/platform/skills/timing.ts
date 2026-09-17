@@ -1,3 +1,4 @@
+import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -73,4 +74,10 @@ export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: n
   if (!(baseMs > 0) || !(referenceMs > 0)) return Number(authoredMs);
   const baseTimelineMs = (Number(authoredMs) * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, Number(runtimeCastMs)) / baseMs);
+}
+
+/** Final effect durations use half-even whole milliseconds; expiration stays relative to the application time. */
+export function roundEffectDuration(duration: number): number {
+  if (!Number.isFinite(duration)) throw new RangeError('Effect duration must be finite.');
+  return roundHalfToEven(Math.max(0, duration) * 1000) / 1000;
 }

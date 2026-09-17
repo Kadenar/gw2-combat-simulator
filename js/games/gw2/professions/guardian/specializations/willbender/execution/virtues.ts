@@ -7,7 +7,7 @@ import {
   guardianVirtueSkillHandlers
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import type { GuardianCastContext, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { applyWillbenderVirtueActivationTraits } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 

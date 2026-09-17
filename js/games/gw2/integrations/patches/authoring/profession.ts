@@ -33,7 +33,7 @@ import type {
   PatchPreview,
   ProfessionPatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

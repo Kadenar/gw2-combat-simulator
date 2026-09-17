@@ -10,7 +10,7 @@ import type {
   ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);

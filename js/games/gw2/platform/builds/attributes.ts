@@ -12,7 +12,7 @@ import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
   criticalDamagePercentFromFerocity
-} from '#gw2/platform/combat/damage/stat-scaling.js';
+} from '#gw2/platform/combat/formulas.js';
 import {
   normalizeWeaponSigils,
   stackingSigilForBuild,
