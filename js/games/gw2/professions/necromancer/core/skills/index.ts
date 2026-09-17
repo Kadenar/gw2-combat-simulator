@@ -8,7 +8,11 @@
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/profession-skills.js';
 import { NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
-import { NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
+import {
+  NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,
+  NECROMANCER_AXE_EXTRA_SKILLS
+} from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
+import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import { NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/focus.js';
 import { NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/greatsword.js';
@@ -36,4 +40,5 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
   ...NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS
 });
 
-export { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/professions/necromancer/core/skills/actions.js';
+// Keep triggered axe identities in the catalog without exposing them as player inputs.
+export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([...CORE_ACTIONS, ...NECROMANCER_AXE_EXTRA_SKILLS]);

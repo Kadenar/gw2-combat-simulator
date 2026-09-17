@@ -1,48 +1,88 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GHASTLY_CLAWS]: {
     interruptMode: 'per-packet',
-    castTimeMs: 1440,
+    castTimeMs: 1520,
+    cooldown: 6,
+    lifeForcePerHit: 12 / 8,
     effects: [
       {
         type: 'strike',
-        // Round each original 180 ms pulse independently to 40 ms so spacing error does not accumulate.
-        ticks: [200, 360, 560, 720, 920, 1080, 1280, 1440].map((atMs) => ({ atMs, coefficient: 4.6 / 8 })),
+        // The supplied Quickness logs resolve eight individual hits; interruptions preserve only reached packets.
+        ticks: [320, 440, 600, 760, 920, 1040, 1200, 1360].map((atMs) => ({ atMs, coefficient: 4.6 / 8 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    lifeForceGain: 12
+    ]
   },
   [ID.RENDING_CLAWS]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 620,
+    // Each logged claw applies one Vulnerability stack at its own impact.
+    interruptMode: 'per-packet',
+    castTimeMs: 720,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.4,
-        hits: 2,
-        atMs: 0
+        ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'condition',
-        condition: 'Vulnerability',
-        duration: 7,
-        stacks: 2
+        ticks: [400, 640].map((atMs) => ({ atMs, condition: 'Vulnerability', duration: 7, stacks: 1 })),
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.UNHOLY_FEAST]: {
-    castTimeMs: 520,
+    // The impact precedes cast completion; its health-gated burst is scheduled from that impact.
+    castTimeMs: 920,
+    cooldown: 10,
+    interruptCommitMs: 720,
     effects: [
       {
         type: 'strike',
         coefficient: 2.5,
-        hits: 1
+        hits: 1,
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
+      {
+        type: 'condition',
+        condition: 'Crippled',
+        duration: 5,
+        stacks: 1,
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   }
 });
+
+// The log's separate burst identity is a triggered strike, with a fixed delay after Feast's qualifying impact.
+export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: ID.UNHOLY_BURST,
+    name: 'Unholy Burst',
+    type: 'Proc',
+    simulatorExcluded: true,
+    parentId: ID.UNHOLY_FEAST,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1.5,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        weapon: 'Axe'
+      }
+    ]
+  }
+]);

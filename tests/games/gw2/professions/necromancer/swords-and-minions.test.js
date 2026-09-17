@@ -1110,9 +1110,16 @@ test('Vampiric Presence uses its half-second interval and stronger Shroud siphon
   );
 
   // Only hits at least half a second after the preceding siphon may proc again.
+  const eligibleTimes = [];
+  for (const hit of base.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS
+  )) {
+    if (!eligibleTimes.length || hit.at - eligibleTimes.at(-1) >= 0.5) eligibleTimes.push(hit.at);
+  }
+
   assert.deepEqual(
-    baseSiphons.map((event) => Number(event.at.toFixed(2))),
-    [0.2, 0.72, 1.28]
+    baseSiphons.map((event) => event.at),
+    eligibleTimes
   );
   assert.equal(
     baseSiphons.every(

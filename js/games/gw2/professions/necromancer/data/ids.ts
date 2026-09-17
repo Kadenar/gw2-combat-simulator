@@ -116,6 +116,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   BLOOD_CURSE: 10698, // Blood Curse
   RENDING_CURSE: 10699, // Rending Curse
   UNHOLY_FEAST: 10701, // Unholy Feast
+  UNHOLY_BURST: 38767, // Unholy Feast's health-gated follow-up, observed in EVTC.
   NECROTIC_SLASH: 10702, // Necrotic Slash
   NECROTIC_STAB: 10703, // Necrotic Stab
   NECROTIC_BITE: 10704, // Necrotic Bite

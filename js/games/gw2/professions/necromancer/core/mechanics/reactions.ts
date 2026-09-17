@@ -12,6 +12,7 @@ import {
   reactToVampiricPresenceAlliedHit
 } from '#gw2/professions/necromancer/core/traits/index.js';
 import { resolveTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+import { reactToNecromancerAxeDamage } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 
 /**
  * Necromancer resolver-side handlers for profession state and summon events.
@@ -31,6 +32,12 @@ export const necromancerCoreResolverEventHandlers = Object.freeze({
  */
 export const necromancerCoreResolverEventReactions = Object.freeze({
   damage: Object.freeze([
+    // Skill-owned health and resource effects run on each resolved axe packet before trait reactions.
+    {
+      id: 'necromancer.core.axe-damage',
+      order: -10,
+      handler: reactToNecromancerAxeDamage
+    },
     {
       id: 'necromancer.core.damage',
       order: 0,
