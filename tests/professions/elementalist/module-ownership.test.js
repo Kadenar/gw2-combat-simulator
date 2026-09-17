@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { applyElementalistResolverBuff } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

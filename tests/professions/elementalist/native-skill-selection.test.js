@@ -3,8 +3,7 @@ import test from 'node:test';
 
 import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
 function weaverApp(selectedSkills = {}) {
   const defaults = elementalistProfession.createBuildDefaults();

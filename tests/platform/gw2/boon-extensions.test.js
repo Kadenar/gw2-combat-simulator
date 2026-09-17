@@ -14,7 +14,7 @@ import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';

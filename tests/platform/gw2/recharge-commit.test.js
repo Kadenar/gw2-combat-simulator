@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { projectThiefEndState, snapshotThiefState } from '#gw2/professions/thief/state.js';
