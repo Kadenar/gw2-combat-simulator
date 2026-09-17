@@ -6,8 +6,7 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '../helpers/evtc-fixture.js';

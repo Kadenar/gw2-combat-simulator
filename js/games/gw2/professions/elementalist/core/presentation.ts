@@ -32,7 +32,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   bindElementalistFamilyUiCatalog,
   elementalistAttunementResourceAnchor
-} from '#gw2/professions/elementalist/presentation.js';
+} from '#gw2/professions/elementalist/family-presentation.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',

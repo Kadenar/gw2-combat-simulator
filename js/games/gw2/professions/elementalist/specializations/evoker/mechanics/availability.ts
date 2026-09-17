@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 
 /**
  * Waits for in-flight familiar casts and charge grants; missing resources without
@@ -103,3 +104,13 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     ? { ready: true }
     : denyCast('elementalist.evoker-empowered', `${skill.name} is unavailable - requires three empowered charges.`);
 }
+
+/** Registers Evoker contributions while each callback remains with its familiar, resource, or trait owner. */
+export const evokerCastRules = Object.freeze({
+  availability: {
+    id: 'elementalist.evoker-availability',
+    order: 30,
+    handler: availability
+  },
+  commitRechargeDuration
+});

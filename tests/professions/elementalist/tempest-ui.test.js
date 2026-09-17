@@ -5,7 +5,7 @@ import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPaletteMarkup } from '../../helpers/palette.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
 const catalog = elementalistProfession.catalog;
 

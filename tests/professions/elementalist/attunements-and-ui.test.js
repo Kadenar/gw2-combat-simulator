@@ -8,8 +8,7 @@ import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 
 test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {

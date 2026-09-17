@@ -23,6 +23,9 @@ import type { WeaverState } from '#gw2/professions/elementalist/specializations/
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type { CatalystState, ElementalistCoreState, EvokerState, TempestState, WeaverState };
+
 /**
  * Live profession state during a run: always the core attunement/weapon state, plus the
  * state of whichever single elite specialization is equipped (none, for a Core build).

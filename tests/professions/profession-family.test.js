@@ -56,8 +56,7 @@ import { antiquaryModule as thiefAntiquaryModule } from '#gw2/professions/thief/
 import { daredevilModule as thiefDaredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { deadeyeModule as thiefDeadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
 import { specterModule as thiefSpecterModule } from '#gw2/professions/thief/specializations/specter/module.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';

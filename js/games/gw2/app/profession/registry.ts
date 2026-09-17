@@ -85,7 +85,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/elementalist/definition.js');
+      const module = await import('#gw2/professions/elementalist/profession.js');
       return module.elementalistProfession;
     },
     loadAppAdapter: async () => {
