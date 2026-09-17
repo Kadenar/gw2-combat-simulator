@@ -1,6 +1,6 @@
 import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
-import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
+import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
@@ -38,7 +38,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
           duration: Math.max(0, Number(result.duration || 0) - referenceSeconds),
           deathTime: result.deathTime == null ? null : Math.max(0, Number(result.deathTime) - referenceSeconds)
         };
-  const metrics = transformResultSummaryMetrics(normalizedResult);
+  const metrics = baseResultSummaryMetrics(normalizedResult);
 
   metrics.splice(1, 0, timelineIdleTimeMetric(result));
   // Keep input effort next to duration, using execution time rather than the resolver's DPS clock.

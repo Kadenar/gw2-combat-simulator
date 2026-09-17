@@ -30,7 +30,7 @@ export interface TargetHealthBreakpointSnapshot {
  * Kill time is optional because fixed-horizon simulations may never reach the
  * configured target health.
  */
-export function resultSummaryMetrics(
+export function baseResultSummaryMetrics(
   result: Gw2ResolverResult,
   locale: string | string[] | undefined = undefined
 ): ResultSummaryMetric[] {

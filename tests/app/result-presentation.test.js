@@ -9,7 +9,7 @@ import {
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
-import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
+import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import {
   dismissResultMetricDetails,
   modifierContributionsHtml,
@@ -163,7 +163,7 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
       Object.freeze({ type: 'damage', at: 0.75, damage: 7 })
     ])
   };
-  const metrics = resultSummaryMetrics(result);
+  const metrics = baseResultSummaryMetrics(result);
   const series = buildChartSeries(result, 500);
   assert.deepEqual(series.dps, [
     { t: 0, v: 0 },
@@ -173,7 +173,7 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
   ]);
   assert.equal(series.cumulativeDamage.at(-1).v, result.totalDamage);
   assert.equal(series.dps.at(-1).v, result.dps);
-  assert.deepEqual(resultSummaryMetrics(result), metrics);
+  assert.deepEqual(baseResultSummaryMetrics(result), metrics);
 });
 
 // Only chart preparation reads a relic's expiry; hidden-view creation must not visit that history.
@@ -312,7 +312,7 @@ test('target health breakpoints use environment damage for timing but player dam
 });
 
 test('summary metrics separate player attribution from right-grouped target damage', () => {
-  const metrics = resultSummaryMetrics({
+  const metrics = baseResultSummaryMetrics({
     duration: 2,
     deathTime: null,
     totalDamage: 100,
