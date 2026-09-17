@@ -11,3 +11,5 @@ reference-repos/Elementalist-Simulator/
 Thumbs.db
 AGENTS.md
 tmp/
+# Pinned C++ reference checkout built by scripts/analysis/gw2combat-reference/build-reference.mjs.
+reference-repos/gw2combat/

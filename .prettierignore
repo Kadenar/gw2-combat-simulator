@@ -9,3 +9,8 @@ package-lock.json
 dist/
 build/
 coverage/
+
+# Frozen byte-for-byte copies of the pinned gw2combat reference inputs.
+/tests/fixtures/gw2combat-reference/*.json
+/tests/fixtures/gw2combat-reference/*.csv
+!/tests/fixtures/gw2combat-reference/reference-results.json

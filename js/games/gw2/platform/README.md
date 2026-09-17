@@ -6,6 +6,7 @@ The GW2 platform is organized by ownership. Put a module in the narrowest domain
 | ------------------------ | --------------------------------------------------------------------------------------- |
 | `builds/`                | Build normalization, attributes, target conditions, and templates                       |
 | `combat/`                | Damage formulas, modifiers, queries, and combat state                                   |
+| `combat-engine/`         | gw2combat reference port (tick-based runtime); not yet routed to by the application     |
 | `combos/`                | Combo definitions, catalogs, and events                                                 |
 | `engine/`                | Runtime contracts, scheduler execution, cooldowns, effects, and profession composition  |
 | `equipment/`             | Gear, consumables, relics, sigils, and weapons                                          |

@@ -61,5 +61,20 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 - `node scripts/analysis/analyze-dps-report.mjs <report.html|dps.report URL>` inspects Elite Insights data embedded in a
   saved or remote report. Add `--summary`, `--player=<index|name|account>`, or `--phase=<index|name>` to narrow the
   output.
+- `node scripts/analysis/gw2combat-reference/build-reference.mjs` fetches the pinned gw2combat C++ reference into
+  `reference-repos/gw2combat/` and builds it. Windows uses the installed Visual Studio C++ x64 toolset (located with
+  `vswhere`); other platforms run upstream's `make`.
+- `npm run build:modules && node scripts/analysis/gw2combat-reference/compare-reference.mjs` compares the TypeScript
+  combat engine with that build on the frozen Willbender fixture. The deterministic check requires identical audit event
+  streams; the canonical check compares DPS distributions. Add `--runs=<n>` to change the sample size or
+  `--write-results` to refresh `tests/fixtures/gw2combat-reference/reference-results.json`. Generated inputs and audits
+  are written to `.scratch/gw2combat-reference/`.
+- `npm run build:modules && node scripts/analysis/gw2combat-reference/compare-examples.mjs --runs=10` checks the ten
+  additional frozen upstream examples against independent C++ DPS samples. Add `--write-results` to regenerate their 1
+  ms reference means and separately labeled 40 ms TypeScript baselines. See the
+  [example fixture notes](../tests/fixtures/gw2combat-reference/examples/README.md) for compatibility changes and
+  exclusions.
+- `node scripts/analysis/profile-combat-engine.mjs --example qfb --step-ms 40 --workload` measures one of those examples
+  and prints workload counts. Omit `--example` for the original deterministic Willbender fixture.
 
 Patch-preview commands are documented in [Patch preview](../docs/architecture/PATCH-PREVIEW.md).

@@ -215,6 +215,15 @@ export default [
     }
   },
 
+  // The migration's TypeScript combat engine is shared, profession-neutral
+  // runtime code: professions contribute content, never loop phases.
+  {
+    files: ['js/games/gw2/platform/combat-engine/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(engineBoundaryPattern)
+    }
+  },
+
   // The runtime engine is phase-oriented. Keep implementation details from
   // crossing between execution/scheduling and resolution.
   {
