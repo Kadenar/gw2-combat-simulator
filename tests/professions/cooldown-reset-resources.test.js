@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 
 // These focused rotations verify that the training-area command resets both standard recharge and profession resources.

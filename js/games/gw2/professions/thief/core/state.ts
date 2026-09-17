@@ -1,7 +1,55 @@
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import type { ThiefConfig, ThiefCoreState } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface ThievesGuildState extends SchedulerRecord {
+  readonly variant: string;
+  readonly expiresAt: number;
+}
+
+export interface ThiefCoreState {
+  initiative: number;
+  maximumInitiative: number;
+  initiativeUpdatedAt: number;
+  stealthStartedAt: number;
+  stealthUntil: number;
+  hiddenKillerUntil: number;
+  revealedUntil: number;
+  storedStolenSkillId: SkillId | null;
+  storedStolenSkillIds: SkillId[];
+  storedStolenSkillCount: number;
+  kneeling: boolean;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  maximumHealth: number;
+  leadAttacksStacks: number;
+  leadAttackExpirations: number[];
+  fluidStrikesUntil: number;
+  quickPocketsReadyAt: number;
+  spearChainStage: number;
+  spearPreviousSkillId: SkillId | null;
+  spearLastWasFinisher: boolean;
+  distractingThrowBuffUntil: number;
+  spinningAxeExpirations: number[];
+  venomChargeBatches: Record<string, { generation: number; charges: number; expiresAt: number }[]>;
+  venomAllyLastProcAt: Record<string, number>;
+  venomGeneration: number;
+  thousandNeedlesPrepared: boolean;
+  thousandNeedlesArmedAt: number;
+  pitfallPrepared: boolean;
+  pitfallArmedAt: number;
+  activeThievesGuild: ThievesGuildState | null;
+  assassinsSignetActiveUntil: number;
+  assassinsSignetPassiveDisabledUntil: number;
+  availableFlips: Record<string, number>;
+  autoattackChains: Record<string, SkillId>;
+  traitProcProgress: Record<string, number>;
+  traitProcReadyAt: Record<string, number>;
+}
 
 export const THIEF_BASE_HEALTH = 1645;
 

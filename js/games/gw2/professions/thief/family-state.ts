@@ -28,11 +28,16 @@ import {
   SPECTER_INACTIVE_STATE_DEFAULTS,
   SPECTER_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/thief/specializations/specter/state.js';
+import { ANTIQUARY_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
+import { DAREDEVIL_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
+import { DEADEYE_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
+import { SPECTER_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 import type {
   ThiefEndStateProjectionOptions,
   ThiefResolverContext,
   ThiefResolverEvent,
-  ThiefState
+  ThiefState,
+  ThiefSummonDefinition
 } from '#gw2/professions/thief/types.js';
 
 // The family projector composes each independently owned state slice into the stable public end-state contract.
@@ -142,4 +147,16 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
 
   // Reconcile grants and spending first; shared restoration then routes and detaches each field once.
   restoreFlatProfessionState(core, specialization, { ...incoming, ...preserved });
+}
+
+const SPECIALIZATION_THIEVES_GUILD_SUMMON: Readonly<Record<string, ThiefSummonDefinition>> = Object.freeze({
+  Antiquary: ANTIQUARY_THIEVES_GUILD_SUMMON,
+  Daredevil: DAREDEVIL_THIEVES_GUILD_SUMMON,
+  Deadeye: DEADEYE_THIEVES_GUILD_SUMMON,
+  Specter: SPECTER_THIEVES_GUILD_SUMMON
+});
+
+// Family-level dispatch selects a specialization-owned summon without leaking elite definitions into Core.
+export function thiefSpecializationGuildSummon(specialization: string): ThiefSummonDefinition | null {
+  return SPECIALIZATION_THIEVES_GUILD_SUMMON[specialization] || null;
 }

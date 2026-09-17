@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 
 const simulate = createProfessionSimulator(thiefProfession, {

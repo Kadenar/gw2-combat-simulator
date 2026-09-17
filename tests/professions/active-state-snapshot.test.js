@@ -9,7 +9,7 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { projectRangerEndState } from '#gw2/professions/ranger/family-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {

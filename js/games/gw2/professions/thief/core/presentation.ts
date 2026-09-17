@@ -5,7 +5,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';

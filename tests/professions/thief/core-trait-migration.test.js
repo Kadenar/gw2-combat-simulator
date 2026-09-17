@@ -6,7 +6,7 @@ import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import {
   applyStealCompletionTraits,
