@@ -69,5 +69,12 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   streams; the canonical check compares DPS distributions. Add `--runs=<n>` to change the sample size or
   `--write-results` to refresh `tests/fixtures/gw2combat-reference/reference-results.json`. Generated inputs and audits
   are written to `.scratch/gw2combat-reference/`.
+- `npm run build:modules && node scripts/analysis/gw2combat-reference/compare-examples.mjs --runs=10` checks the ten
+  additional frozen upstream examples against independent C++ DPS samples. Add `--write-results` to regenerate their 1
+  ms reference means and separately labeled 40 ms TypeScript baselines. See the
+  [example fixture notes](../tests/fixtures/gw2combat-reference/examples/README.md) for compatibility changes and
+  exclusions.
+- `node scripts/analysis/profile-combat-engine.mjs --example qfb --step-ms 40 --workload` measures one of those examples
+  and prints workload counts. Omit `--example` for the original deterministic Willbender fixture.
 
 Patch-preview commands are documented in [Patch preview](../docs/architecture/PATCH-PREVIEW.md).

@@ -1,0 +1,111 @@
+{
+  "referenceRevision": "cc9a0d069350516b6daba7d80d4395f9004971d5",
+  "engineRevision": "phase-2-cached-termination-attribute-metadata",
+  "generatedBy": "scripts/analysis/gw2combat-reference/compare-examples.mjs",
+  "platform": "win32-x64",
+  "seed": 1,
+  "dpsDefinition": "All audit damage divided by the actual completion tick in seconds.",
+  "step40Baseline": "Current TypeScript behavior; not a C++ or game-correctness reference.",
+  "examples": {
+    "cwb-pt-pp": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 44847.44246678228,
+        "standardDeviation": 95.21498189723519
+      },
+      "step40": {
+        "dps": 44828.59688196002
+      }
+    },
+    "cwb-pt-sp": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 45201.89639639652,
+        "standardDeviation": 18.90556395022842
+      },
+      "step40": {
+        "dps": 45256.39140271505
+      }
+    },
+    "cwb-sw-tor-sc-tor": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 5410.082000268853,
+        "standardDeviation": 28.29263268024214
+      },
+      "step40": {
+        "dps": 5445.810810810811
+      }
+    },
+    "dh-bgh": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 38240.11671148236,
+        "standardDeviation": 2.4444901240297017
+      },
+      "step40": {
+        "dps": 38248.0534351145
+      }
+    },
+    "dh-hl": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 36910.37801003728,
+        "standardDeviation": 2.908450919816
+      },
+      "step40": {
+        "dps": 36907.63351749539
+      }
+    },
+    "dh-virtues": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 41742.67795514498,
+        "standardDeviation": 2.7897652541808475
+      },
+      "step40": {
+        "dps": 41472.77155887231
+      }
+    },
+    "gs-slb": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 38537.38157174811,
+        "standardDeviation": 39.78714966743556
+      },
+      "step40": {
+        "dps": 38537.99462159033
+      }
+    },
+    "lb-axe-axe-slb": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 37664.330966907306,
+        "standardDeviation": 31.805502708484504
+      },
+      "step40": {
+        "dps": 37678.207298720794
+      }
+    },
+    "lb-sw-axe-slb": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 40487.1344615167,
+        "standardDeviation": 14.518602052775554
+      },
+      "step40": {
+        "dps": 40553.012535382106
+      }
+    },
+    "qfb": {
+      "reference": {
+        "runs": 10,
+        "meanDps": 40020.937500000684,
+        "standardDeviation": 3.1333653535449733
+      },
+      "step40": {
+        "dps": 39732.330154947085
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "base_class": "invalid",
+  "profession": "invalid",
+  "attributes": [
+    ["max_health", 4000000],
+    ["armor", 2597]
+  ],
+  "permanent_effects": [
+    "BURNING",
+    "BLEEDING",
+    "POISON",
+    "TORMENT",
+    "CONFUSION",
+    "CRIPPLED",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY",
+    "VULNERABILITY"
+  ]
+}

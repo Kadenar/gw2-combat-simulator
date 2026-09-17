@@ -1,0 +1,354 @@
+{
+  "referenceRevision": "cc9a0d069350516b6daba7d80d4395f9004971d5",
+  "examples": [
+    {
+      "id": "cwb-pt-pp",
+      "description": "Willbender: pistol/torch and pistol/pistol, legacy skill actions",
+      "build": "resources/build-cwb-pt-pp.json",
+      "rotation": "resources/rotation-cwb-pt-pp.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "cwb-pt-sp",
+      "description": "Willbender: pistol/torch and spear",
+      "build": "resources/build-cwb-pt-sp.json",
+      "rotation": "resources/rotation-cwb-pt-sp.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "cwb-sw-tor-sc-tor",
+      "description": "Willbender: short sword/torch and scepter/torch rotation",
+      "build": "resources/build-cwb-sw-tor-sc-tor.json",
+      "rotation": "resources/rotation-cwb-sw-tor-sc-tor.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "dh-bgh",
+      "description": "Dragonhunter: Big Game Hunter",
+      "build": "resources/build-dh-bgh.json",
+      "rotation": "resources/rotation-dh-bgh.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "dh-hl",
+      "description": "Dragonhunter: Heavy Light",
+      "build": "resources/build-dh-hl.json",
+      "rotation": "resources/rotation-dh-hl.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "dh-virtues",
+      "description": "Dragonhunter: Virtues, preserving the pinned parser quirks",
+      "build": "resources/build-dh-virtues.json",
+      "rotation": "resources/rotation-dh-virtues.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "gs-slb",
+      "description": "Soulbeast: greatsword",
+      "build": "resources/build-gs-slb.json",
+      "rotation": "resources/rotation-gs-slb.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "lb-axe-axe-slb",
+      "description": "Soulbeast: longbow and axe/axe",
+      "build": "resources/build-lb-axe-axe-slb.json",
+      "rotation": "resources/rotation-lb-axe-axe-slb.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "lb-sw-axe-slb",
+      "description": "Soulbeast: longbow and sword/axe",
+      "build": "resources/build-lb-sw-axe-slb.json",
+      "rotation": "resources/rotation-lb-sw-axe-slb.csv",
+      "target": "resources/build-golem.json"
+    },
+    {
+      "id": "qfb",
+      "description": "Quickness Firebrand: tomes, bundles, ammo, and the Mantra of Flame recipe",
+      "build": "resources/build-qfb.json",
+      "rotation": "resources/rotation-qfb.csv",
+      "target": "resources/build-golem.json"
+    }
+  ],
+  "files": {
+    "resources/build-cwb-pt-pp.json": {
+      "upstreamSha256": "a3ac4a8b4159ba71f4f4b71ba17c8c23edec500cc520e31e71b77a947af48a31",
+      "parsedSha256": "116897ef9a9a623c038c21c50624e92cc489738a8311cfe888c6fcdf6f5b8c47",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 16, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 18, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 18, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 19, "on_strike_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        }
+      ]
+    },
+    "resources/rotation-cwb-pt-pp.csv": {
+      "upstreamSha256": "8bd7200d3682795e02f5810163b44c47c07ded596f45380750357f181e6569c6",
+      "normalizedSha256": "5de17b870be52190ca391fb03bb3180048b63ec6e88f0e7bcfd1d080057fb00f"
+    },
+    "resources/build-golem.json": {
+      "upstreamSha256": "fb09f4f88529ce1eeee52819922bcc029b74390f1fe3f2d620fcdca54b87e345",
+      "parsedSha256": "841720f0c0acfade2a304f3c2d46a180450055e773e3b35f600d5e33a9b3e0e9"
+    },
+    "resources/build-cwb-pt-sp.json": {
+      "upstreamSha256": "02b75ad93a47f1420c413b229fba5bf27721e89979587e02d83b0bf428b284be",
+      "parsedSha256": "c1c1c1f288404db9fa97ed622f6c35b0654c0115adf74291a7e2f98efd5bf79a",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 16, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 18, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 18, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 19, "on_strike_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        }
+      ]
+    },
+    "resources/rotation-cwb-pt-sp.csv": {
+      "upstreamSha256": "edeac50e98a4932a65054f1a7deb43c44a43a0519313dfba791e8ac5d8ff2392",
+      "normalizedSha256": "58f40afc82ce2bde5870b8f6b1b421b9aa3edcf678cb63621f4b9034ca3e54ca"
+    },
+    "resources/build-cwb-sw-tor-sc-tor.json": {
+      "upstreamSha256": "d0e1afd8a815e4450adabc21862f741f38e653d7dc2097696c8c7c12cd1c05ab",
+      "parsedSha256": "9c234276fc3dc7ca9610a08019a270d430324b3ff0f2c44849019bca7125be8c",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 15, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 16, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 16, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        },
+        {
+          "path": ["skills", 17, "on_pulse_effect_applications", 1, "stacking_type"],
+          "value": "duration"
+        },
+        {
+          "path": ["skills", 18, "on_strike_effect_applications", 0, "stacking_type"],
+          "value": "replace"
+        }
+      ]
+    },
+    "resources/rotation-cwb-sw-tor-sc-tor.csv": {
+      "upstreamSha256": "4e36d9ba24a06ade92b64e4f0a9ecd42ec886b801fe7b9db0f42b150e362faad",
+      "normalizedSha256": "7a519996f3a695b34af13db26f68222483abd501ab644cab656789e61ae0902e"
+    },
+    "resources/build-dh-bgh.json": {
+      "upstreamSha256": "a9ff54a13ad59297912b1dc22a505a3f3e7484ae1cd97d30a1ba2de81c25ef30",
+      "parsedSha256": "376807d41afeb57498479e5fd5492378af847cea67ef7cbebafef7e0a7f4dc8a",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 7, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 22, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 25, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 27, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 30, "is_child_skill"],
+          "value": true
+        }
+      ]
+    },
+    "resources/rotation-dh-bgh.csv": {
+      "upstreamSha256": "8b7610e870a44e24b2efe88f4ace00f397f563e2de1974375d96163868a32b3c",
+      "normalizedSha256": "94a490b8ff1146b186f9c8b206e0cced8f927df946049f8a47e98c6a7ebc0b86"
+    },
+    "resources/build-dh-hl.json": {
+      "upstreamSha256": "880ca41a5d261e98673e84a351dea45bd9f657407d6c18ef35c9a9ffb7aae79c",
+      "parsedSha256": "338b244dc11371eb8023aa9e198c8a59c567da3f9115da05d0c49fd10d018c73",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 6, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 22, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 25, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 27, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 30, "is_child_skill"],
+          "value": true
+        }
+      ]
+    },
+    "resources/rotation-dh-hl.csv": {
+      "upstreamSha256": "00ed05cc8fbce3c4a7684d44c0f6401e6e032dffeaebb63b834f368ec0eafd03",
+      "normalizedSha256": "f6597b960ec4bf252c7a277da9eb42f1f3e146ca0ef405ac1a7ac68f41c2ffa1"
+    },
+    "resources/build-dh-virtues.json": {
+      "upstreamSha256": "81820db41ff06ef6a088c29d1ef6d9d36da0393764b8a19e8adc61e413befa66",
+      "parsedSha256": "a0e6adacd7e56c20b4e1181d5584b4c7dab0c577f0cdbfa0a583f82680c777ec",
+      "ignoredKeys": [
+        {
+          "path": ["counters", 0, "reset_at_value"],
+          "value": 3
+        },
+        {
+          "path": ["counters", 0, "increment_conditions"],
+          "value": [
+            {
+              "only_applies_on_strikes": true,
+              "depends_on_skill_off_cooldown": "Spear of Justice"
+            }
+          ]
+        },
+        {
+          "path": ["skills", 5, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 22, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 25, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 27, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 30, "is_child_skill"],
+          "value": true
+        },
+        {
+          "path": ["skills", 35, "is_child_skill"],
+          "value": "true"
+        },
+        {
+          "path": ["skills", 38, "is_child_skill"],
+          "value": "true"
+        },
+        {
+          "path": ["skills", 40, "is_child_skill"],
+          "value": "true"
+        }
+      ],
+      "replacements": [
+        {
+          "path": ["skills", 23, "weapon_type"],
+          "from": "GREATSWORD",
+          "to": "invalid"
+        }
+      ]
+    },
+    "resources/rotation-dh-virtues.csv": {
+      "upstreamSha256": "996c9e32350d54087e510d6833b48fe329e29e540eeab6ac7e25af07b9ee393c",
+      "normalizedSha256": "f4c0586b6682c2ccc68c391d7df31ba5e7832738ac899c99fd4d901ef35589ec"
+    },
+    "resources/build-gs-slb.json": {
+      "upstreamSha256": "c3f34d374228c9319d473e7ba577eb23c8cc1723338d8b891958ce6f968aa02e",
+      "parsedSha256": "bd31c34bcf59f4cfb755469f44d39bcc8d62ace63f8ee097329269ed2c809b6c"
+    },
+    "resources/rotation-gs-slb.csv": {
+      "upstreamSha256": "6edd1064ce08a0c3d81802407949b91ac8f68f008621dcbfa79b9afb7248e8a1",
+      "normalizedSha256": "3b2709c0d2aea267583dd0227de2bcc038730f774dcf9ccd0b97f4682a60459e"
+    },
+    "resources/build-lb-axe-axe-slb.json": {
+      "upstreamSha256": "7d37387a3cbe5b3f28718531b3fbaf780b15a404e8c98c47bb0e282397a4edba",
+      "parsedSha256": "d537401d100cc95bf0a21b058606c0436abfb87aeea6b16d3524e897a9e5ae61"
+    },
+    "resources/rotation-lb-axe-axe-slb.csv": {
+      "upstreamSha256": "da3ae2a564f368a18a1b7829d77c7cf6fcbaddf014148b08e3e5f2aafb3b4bf1",
+      "normalizedSha256": "114e5a3de128346f1897833b0569b67a654d8dcdbd28ee5a1ef84272a205d8e6"
+    },
+    "resources/build-lb-sw-axe-slb.json": {
+      "upstreamSha256": "bad3747e9971c62ea4f2286b4ad78c3beac211585aa8a7dff436cb3ea561be01",
+      "parsedSha256": "751890905ee730ce4c0d6c59c7756d7dcc346675995821029f62dd7b28088606"
+    },
+    "resources/rotation-lb-sw-axe-slb.csv": {
+      "upstreamSha256": "6e42958bfbba2edcd6c4f23f0a5d34a61d790d6cd8a02da494264382f88f5a0e",
+      "normalizedSha256": "860d4686fe5f1ef231ee1e1c7ea20639bdbcc1c3c999118611c3fe10dbb39748"
+    },
+    "resources/build-qfb.json": {
+      "upstreamSha256": "757bfb6798d39f9e6ee1395def2e8eb4ae5ddd485a2514f74fe5cdb5768433b2",
+      "parsedSha256": "6644c63ffd917cc424decc4bec53c603dd21b91cf4f4158b86d4fd3a69f54d4e",
+      "ignoredKeys": [
+        {
+          "path": ["skills", 6, "TODO"],
+          "value": "Code dormant justice into f1, then do an async skill which effect_removals it and implement negative conditions(?) to check for swift scholar"
+        }
+      ]
+    },
+    "resources/rotation-qfb.csv": {
+      "upstreamSha256": "f5a72a3f1c2b0214a58d0274ab44c93f100fd48839bea9a83e68dbc8ca15b8db",
+      "normalizedSha256": "49624ddb5f14decf37d5188d0c11f88a114f5c35f68bdba2070bfb336709f535"
+    },
+    "resources/recipes/mantra-of-flame.json": {
+      "upstreamSha256": "df701a59ea4c1693dc20ec20c2a2413dcf2f12dbd7f949a052a68f3456cd7f18",
+      "parsedSha256": "0b52602b458971126200c2b7158733c09e45ccffa35c7e070a6d33058ff92bda"
+    }
+  },
+  "excluded": [
+    {
+      "build": "resources/build-cfb.json",
+      "rotations": ["resources/rotation-cfb.csv", "resources/rotation-cfb-synced.csv"],
+      "reason": "Flame Rush is scheduled while Mantra of Flame is on cooldown. The standard rotation fails in both pinned C++ and TypeScript at 1 ms; the synced rotation also fails in TypeScript. No rotation or cooldown edits are applied."
+    }
+  ]
+}

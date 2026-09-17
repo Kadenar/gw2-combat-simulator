@@ -12,7 +12,7 @@
 import { roundHalfEven, roundHalfEvenDigits } from '#gw2/platform/combat-engine/numeric.js';
 import { maxConsideredStacks } from '#gw2/platform/combat-engine/effect-rules.js';
 import { independentConditionsSatisfied } from '#gw2/platform/combat-engine/queries.js';
-import { ALL_ATTRIBUTE_PAIRS, ownerOf, view } from '#gw2/platform/combat-engine/registry.js';
+import { ALL_ATTRIBUTE_PAIRS, view } from '#gw2/platform/combat-engine/registry.js';
 import type { Attribute, Condition } from '#gw2/platform/combat-engine/configuration.js';
 import type { Entity, Pool, Registry } from '#gw2/platform/combat-engine/registry.js';
 
@@ -66,30 +66,41 @@ const holderIndexes = new WeakMap<
   Pool<unknown>,
   {
     revision: number;
-    ownershipRevision: number;
-    effectRevision: number;
-    uniqueEffectRevision: number;
+    inputRevision: number;
     holders: { holder: Entity; ownerActor: Entity }[];
   }
 >();
 
 /** Cache target-independent stack admission and owners; live predicate inputs do not change this metadata. */
 function attributeHolders<T>(registry: Registry, pool: Pool<readonly T[]>) {
-  const cached = holderIndexes.get(pool);
-  // ponytail: any ownership/effect edit invalidates this list; narrow invalidation if rebuilds remain a bottleneck.
-  if (
-    cached?.revision === pool.revision &&
-    cached.ownershipRevision === registry.owner.revision &&
-    cached.effectRevision === registry.isEffect.revision &&
-    cached.uniqueEffectRevision === registry.isUniqueEffect.revision
-  )
-    return cached.holders;
+  let inputs = registry.attributeHolderInputs.get(pool);
+  if (!inputs) {
+    inputs = { revision: 0, holderRevision: -1, ownership: new Set(), stackOwners: new Set(), ownerLed: false };
+    registry.attributeHolderInputs.set(pool, inputs);
+  }
 
+  const cached = holderIndexes.get(pool);
+  // Holder-pool edits still rebuild the whole index; partition by owner if those rebuilds dominate.
+  if (cached?.revision === pool.revision && cached.inputRevision === inputs.revision) return cached.holders;
+
+  inputs.ownership.clear();
+  inputs.stackOwners.clear();
+  inputs.holderRevision = pool.revision;
+  inputs.ownerLed = registry.owner.size <= pool.size;
   const occurrences = new Map<string, number>();
   const holders: { holder: Entity; ownerActor: Entity }[] = [];
   view([registry.owner, pool]).forEach((holder) => {
     const holderOwner = registry.owner.get(holder);
-    const ownerActor = ownerOf(registry, holderOwner);
+    inputs.stackOwners.add(holderOwner);
+    let ownerActor = holderOwner;
+    // Watch every ancestor, including roots, even for empty or capped-out holders: they can affect later admission.
+    while (true) {
+      inputs.ownership.add(ownerActor);
+      const parent = registry.owner.tryGet(ownerActor);
+      if (parent === undefined) break;
+      ownerActor = parent;
+    }
+
     // Empty holders still consume a considered-stack slot in the original pool order.
     if (stackCapAllows(registry, occurrences, holderOwner, ownerActor) && pool.get(holder).length > 0) {
       holders.push({ holder, ownerActor });
@@ -97,9 +108,7 @@ function attributeHolders<T>(registry: Registry, pool: Pool<readonly T[]>) {
   });
   holderIndexes.set(pool, {
     revision: pool.revision,
-    ownershipRevision: registry.owner.revision,
-    effectRevision: registry.isEffect.revision,
-    uniqueEffectRevision: registry.isUniqueEffect.revision,
+    inputRevision: inputs.revision,
     holders
   });
   return holders;
