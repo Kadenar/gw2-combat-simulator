@@ -6,8 +6,7 @@ import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { recordWarriorAmmoSpend } from '#gw2/professions/warrior/ammunition.js';
-import { applyWarriorSkillResource } from '#gw2/professions/warrior/resources.js';
+import { applyWarriorSkillResource, recordWarriorAmmoSpend } from '#gw2/professions/warrior/family-state.js';
 import {
   applyWarriorBurstSpendTraits,
   applyRecklessDodge,

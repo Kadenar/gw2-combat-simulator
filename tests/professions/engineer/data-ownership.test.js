@@ -23,7 +23,7 @@ import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer
 import { MECHANIST_MECH_COMMAND_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-command-skills.js';
 import { MECHANIST_SIGNET_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 
 const KIT_SLUGS = new Map([
   ['Med Kit', 'med-kit'],

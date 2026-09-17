@@ -15,7 +15,7 @@ import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { gainWarriorAdrenaline } from '#gw2/professions/warrior/resources.js';
+import { gainWarriorAdrenaline } from '#gw2/professions/warrior/family-state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import {
   warriorActiveBuffStacks,

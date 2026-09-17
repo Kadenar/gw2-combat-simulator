@@ -1,11 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { createWarriorModuleData } from '#gw2/professions/warrior/catalog/module-data.js';
+import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
-import {
-  activateChant,
-  activateCommand
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
+import { paragonSkillHandlers } from '#gw2/professions/warrior/specializations/paragon/execution/index.js';
 import {
   paragonAttributeRules,
   paragonSchedulerHooks
@@ -14,12 +10,6 @@ import { paragonState } from '#gw2/professions/warrior/specializations/paragon/s
 import { paragonUi } from '#gw2/professions/warrior/specializations/paragon/presentation.js';
 import { paragonResolverEventHandlers } from '#gw2/professions/warrior/specializations/paragon/mechanics/chant-effects.js';
 import { PARAGON_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-
-/** Appends Paragon chant and command mechanics, including trait additions, to their native casts. */
-const paragonSkillHandlers = Object.freeze({
-  'warrior.chant': augmentSkillHandler(activateChant),
-  'warrior.command': augmentSkillHandler(activateCommand)
-});
 
 export const paragonModule = defineNativeModule({
   id: 'Paragon',

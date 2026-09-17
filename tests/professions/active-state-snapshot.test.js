@@ -10,7 +10,7 @@ import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { projectRangerEndState } from '#gw2/professions/ranger/state.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   return profession.ui.rotationStateSnapshot({ specialization, professionState, atSeconds, result });

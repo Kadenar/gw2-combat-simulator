@@ -1,6 +1,6 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/lib/rotation/rules/composites.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { dragonChargesForDurationMs } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { dragonChargesForDurationMs } from '#gw2/professions/warrior/profession.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 import type {
