@@ -115,15 +115,46 @@ under its game package; GW2 uses `js/games/gw2/app/`.
 
 ## Shared profession application composition
 
-Shared profession application composition spans `js/games/gw2/app/` and its `profession/` directory.
+The `js/games/gw2/app/` root holds only the composition root. Everything else lives in one folder per page area.
 
-| Module                   | Responsibility                                 |
-| ------------------------ | ---------------------------------------------- |
-| `profession/registry.ts` | Lazy registry of every profession              |
-| `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
-| `create-adapter.ts`      | Composes native profession browser adapters    |
+| Module                   | Responsibility                                                  |
+| ------------------------ | --------------------------------------------------------------- |
+| `profession-app.ts`      | Session class; implements `ShellSession`                        |
+| `profession-registry.ts` | Lazy registry of every profession                               |
+| `create-runtime.ts`      | Connects application builds to `simulateGw2()`                  |
+| `create-adapter.ts`      | Composes native profession browser adapters                     |
+| `capabilities.ts`        | GW2 application capability flags                               |
+| `types.d.ts`             | Application state contracts                                     |
+
+| Folder        | Owns                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `page/`       | Page chrome shared by the landing page and every profession page: `entry.ts` (the `<script>` in `index.html` and `templates/profession.html`), navigation, tutorial, icon fallback |
+| `shared/`     | Leaf helpers: HTML, icon constants, result clock formatting                                            |
+| `build/`      | Build editor, panels, and build state                                                                  |
+| `io/`         | Build and rotation import/export, with log importers under `io/logs/`                                  |
+| `rotation/`   | Rotation builder: palette, timeline, editing, state snapshot, comparison, warnings                     |
+| `results/`    | Result models, skill breakdown, summary metrics, charts, event log, and Analysis panel                 |
+| `simulation/` | Baseline simulation, gear optimizer, modifier contributions, RNG distribution, relic comparison        |
 
 The registry is also where a completely new profession would be exposed to the application.
+
+### Dependency direction
+
+Non-type imports inside `js/games/gw2/app/` follow these rules:
+
+| Folder        | May import                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.d.ts`. **No other app folder.**                                      |
+| `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionEndState`). |
+| `io/`         | `shared/`, `build/state/`, `build/types.d.ts`, integrations.                                                |
+| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint). |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.d.ts`.                                  |
+| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                    |
+| root          | anything.                                                                                                   |
+
+`rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
+load order is safe; don't add top-level code in either file that calls into the other.
 
 ---
 
@@ -134,17 +165,20 @@ Build authoring and persistence.
 Feature implementations, runners, workers, and feature-owned contracts live together:
 
 ```text
+editor.ts
+page-controls.ts
 state/persistence.ts
 state/skill-selection.ts
-io/files.ts
 panels/gear.ts
 panels/traits.ts
 panels/attributes.ts
 panels/skills.ts
 panels/assumptions.ts
+panels/metadata.ts
 panels/presets.ts
-page-controls.ts
 ```
+
+Build and rotation file, chat-code, and log import live in the sibling `js/games/gw2/app/io/` directory.
 
 This layer may translate a build into application state, but it should not implement profession combat mechanics.
 
@@ -158,16 +192,18 @@ Important modules include:
 
 | Module            | Responsibility                                               |
 | ----------------- | ------------------------------------------------------------ |
-| `index.ts`        | Rotation-builder orchestration                               |
+| `builder.ts`      | Rotation-builder render orchestration                        |
+| `comparison.ts`   | Reference-rotation comparison                                |
+| `context.ts`      | Cross-feature rotation context                               |
+| `hotkeys.ts`      | Rotation hotkeys (GW2 keybind import lives in integrations)  |
+| `warnings.ts`     | Rotation warnings strip                                      |
 | `editing/`        | Rotation mutations, history, and entry editors               |
-| `input/`          | Hotkeys and GW2 keybind import                               |
 | `palette/`        | Palette state, resources, rendering, and interaction         |
 | `timeline/`       | Timeline model, rendering, interaction, and display controls |
 | `state-snapshot/` | Insertion-aware state queries and active-state rendering     |
-| `shared/`         | Cross-feature context and icon helpers                       |
 
 Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here. Result
-models, tables, charts, event logs, and warnings live in the sibling `js/games/gw2/app/results/` directory.
+models, breakdowns, charts, and event logs live in the sibling `js/games/gw2/app/results/` directory.
 
 ---
 
@@ -179,16 +215,16 @@ Examples include:
 
 ```text
 config.ts
-types.d.ts
-baseline-simulation-runner.ts
-baseline-simulation-worker.ts
+settings.ts
+optimizer-view.ts
+baseline/
 gear-optimizer/
-modifiers/
+modifier-contributions/
 random-distribution/
 relic-comparison/
 ```
 
-The root owns common config construction and baseline execution. `types.d.ts` retains baseline and patch-comparison
+The root owns common config construction. `baseline/types.d.ts` retains baseline and patch-comparison
 contracts; modifier, RNG, and relic request/result contracts live in their feature directories. Optimizer contracts
 remain beside their implementations. Consumers import the owning module directly, without compatibility re-exports.
 
@@ -212,7 +248,7 @@ Shared-code assessment:
   layer. These shared pieces should stay outside individual feature directories.
 - Baseline and modifier requests share `deterministicSimulationConfig` in `config.ts`. The optimizer deliberately forces
   deterministic mode unconditionally, so it does not use the helper that only converts stochastic mode. Modifier
-  candidate enumeration and request assembly belong to `modifiers/request.ts`; one config policy preserves finite target
+  candidate enumeration and request assembly belong to `modifier-contributions/request.ts`; one config policy preserves finite target
   health for Eagle and removes the death cutoff for other modifier comparisons. The runtime supplies profession identity
   and config preparation, calculating each affected weapon set once per config.
 - No general analysis-runner superclass, batch partitioner, or statistics utility is needed. Similar timer cleanup and
@@ -1179,9 +1215,10 @@ This layer contains reusable UI models and primitives that are independent of an
 follows these owners:
 
 ```text
-js/games/gw2/app/results/              # Result models, tables, charts, event logs, warnings, and shell adapter
-js/games/gw2/app/rotation/             # Palette, timeline, editing, and timeline timing analysis
-js/games/gw2/app/presentation/shared/  # Shared HTML and icon fallback helpers
+js/games/gw2/app/results/   # Result models, skill breakdown, charts, event logs, and shell adapter
+js/games/gw2/app/rotation/  # Palette, timeline, editing, warnings, and timeline timing analysis
+js/games/gw2/app/shared/    # Shared HTML, icon, and result clock helpers
+js/games/gw2/app/page/      # Page entry, navigation, tutorial, and icon fallback
 ```
 
 The dependency direction should remain:
