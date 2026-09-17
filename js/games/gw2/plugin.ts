@@ -1,4 +1,4 @@
-import { getProfessionEntry, professionRegistry } from '#gw2/app/profession/registry.js';
+import { getProfessionEntry, professionRegistry } from '#gw2/app/profession-registry.js';
 import type { GamePlugin, PlayableContentPlugin } from '#app/game/contracts.js';
 import type { ProfessionApp } from '#gw2/app/profession-app.js';
 

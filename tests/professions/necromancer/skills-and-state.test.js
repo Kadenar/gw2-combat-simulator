@@ -2,7 +2,7 @@ import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';

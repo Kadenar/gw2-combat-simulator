@@ -5,7 +5,7 @@
  *   node scripts/patch-preview/patch-preview-report.mjs
  */
 
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 

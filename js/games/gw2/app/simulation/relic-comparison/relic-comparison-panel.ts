@@ -4,7 +4,7 @@ import {
   relicComparisonChartSvg
 } from '#gw2/app/simulation/relic-comparison/relic-comparison-chart.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
-import { escapeHtml, groupedOptions } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml, groupedOptions } from '#gw2/app/shared/html.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 
 export interface RelicComparisonPanelModel {

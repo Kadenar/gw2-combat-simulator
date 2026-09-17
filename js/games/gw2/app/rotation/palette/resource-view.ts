@@ -16,7 +16,7 @@ import type { ProfessionResourceView } from '#gw2/platform/engine/profession/typ
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import {
   activeSpecialization,
   paletteEndState,

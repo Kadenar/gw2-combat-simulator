@@ -21,7 +21,7 @@ import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timel
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { renderRotationComparison, renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/index.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/profession/navigation.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/workspace.js';
 import type { ShellSession } from '#app/shell/types.js';
 

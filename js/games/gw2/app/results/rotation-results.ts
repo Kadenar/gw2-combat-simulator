@@ -2,7 +2,7 @@ import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
 import { bindDialog, showDialog } from '#app/dialog.js';
-import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml } from '#gw2/app/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/result-tables.js';
 

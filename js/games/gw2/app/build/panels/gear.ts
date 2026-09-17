@@ -1,4 +1,4 @@
-import { getProfessionEntry } from '#gw2/app/profession/registry.js';
+import { getProfessionEntry } from '#gw2/app/profession-registry.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/platform/equipment/icons.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
@@ -15,7 +15,7 @@ import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { escapeHtml, groupedOptions, option } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml, groupedOptions, option } from '#gw2/app/shared/html.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
 import {
   foodOptionLabel,

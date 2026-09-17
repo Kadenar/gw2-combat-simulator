@@ -22,7 +22,7 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     if (data.kind === 'init') {
       activeId = data.requestId;
       const [{ loadProfessionAppAdapter }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
-        import('#gw2/app/profession/registry.js'),
+        import('#gw2/app/profession-registry.js'),
         import('#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js'),
         import('#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js')
       ]);

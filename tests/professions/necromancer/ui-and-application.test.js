@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';

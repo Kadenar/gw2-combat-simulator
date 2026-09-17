@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Short casts exercise profession reporting writers; exact parity covers every numeric score field.

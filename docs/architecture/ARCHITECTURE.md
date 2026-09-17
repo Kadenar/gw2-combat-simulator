@@ -524,7 +524,7 @@ defaults when unreadable, while explicit user imports preserve wrong-profession 
 - `thief`: native shared-engine implementation for initiative, stealth and revealed state, stolen skills, malice, Shadow
   Shroud, and Antiquary artifacts.
 
-`js/games/gw2/app/profession/registry.ts` is the application roster source of truth; documentation must not maintain a
+`js/games/gw2/app/profession-registry.ts` is the application roster source of truth; documentation must not maintain a
 separate profession count.
 
 ## Adding another profession
@@ -536,7 +536,7 @@ separate profession count.
 2. Register stable skill/trait IDs, namespaced custom event handlers, and only the standard event reactions the
    profession needs. Declare exact hand availability in `weaponHands` and register callable custom cast behavior in
    `skillHandlers`.
-3. Add the profession page and one lazy entry to `js/games/gw2/app/profession/registry.ts`, providing `loadProfession`
+3. Add the profession page and one lazy entry to `js/games/gw2/app/profession-registry.ts`, providing `loadProfession`
    and `loadAppAdapter` loaders.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm run check`.

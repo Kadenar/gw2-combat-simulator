@@ -2,7 +2,7 @@ import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';

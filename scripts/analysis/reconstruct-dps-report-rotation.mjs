@@ -17,7 +17,7 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,

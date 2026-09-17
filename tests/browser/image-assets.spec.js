@@ -4,8 +4,8 @@ import { expect, test } from '@playwright/test';
 test('local artwork aliases resolve to loadable images', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   const failures = await page.evaluate(async () => {
-    const { professionRegistry } = await import('/js/games/gw2/app/profession/registry.ts');
-    const tutorials = await import('/js/games/gw2/app/tutorial.ts');
+    const { professionRegistry } = await import('/js/games/gw2/app/profession-registry.ts');
+    const tutorials = await import('/js/games/gw2/app/page/tutorial.ts');
     const { WARRIOR_WEAPON_STOW } = await import('/js/games/gw2/professions/warrior/core/skills/actions.ts');
     const sources = professionRegistry.flatMap(({ specializationArtwork = [] }) =>
       specializationArtwork.flatMap(({ conceptArt, image }) => [conceptArt, image])

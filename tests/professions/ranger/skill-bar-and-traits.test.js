@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';

@@ -1,5 +1,5 @@
 /** Measure unique-stat preparation without simulating the enormous Cartesian products it replaces. */
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import {
   captureGearOptimizerRequest,
   createOptimizerSpace

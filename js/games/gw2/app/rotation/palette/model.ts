@@ -1,4 +1,4 @@
-import { gw2ApiText } from '#gw2/app/presentation/shared/html.js';
+import { gw2ApiText } from '#gw2/app/shared/html.js';
 import {
   rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
@@ -22,7 +22,7 @@ import type { PaletteSkillAvailability, ProfessionPaletteGroup } from '#gw2/plat
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-import { groupWeaponSkillsByAttunement } from '#gw2/app/profession/weapon-attunement-groups.js';
+import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';

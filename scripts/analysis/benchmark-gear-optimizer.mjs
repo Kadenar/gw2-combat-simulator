@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { cpus, totalmem } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { performance, PerformanceObserver } from 'node:perf_hooks';
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
 import {

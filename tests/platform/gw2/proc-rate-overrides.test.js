@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { procChanceFromContext } from '#gw2/platform/combat/state/balance-profiles.js';

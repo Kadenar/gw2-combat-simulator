@@ -129,7 +129,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = wr
         pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'integrations', 'patches', 'authoring', 'patches.js'))
           .href
       ),
-      import(pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'app', 'profession', 'registry.js')).href),
+      import(pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'app', 'profession-registry.js')).href),
       import(
         pathToFileURL(path.join(buildRoot, 'js', 'games', 'gw2', 'integrations', 'patches', 'active-profession.js'))
           .href

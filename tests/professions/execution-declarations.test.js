@@ -6,7 +6,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { professionRegistry } from '#gw2/app/profession/registry.js';
+import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 
 test('Unconditional replacement handlers declare replacement without a mode override', () => {
