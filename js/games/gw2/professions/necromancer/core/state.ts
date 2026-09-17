@@ -1,8 +1,66 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerConfig, NecromancerCoreState } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface NecromancerSelfCondition extends SchedulerRecord {
+  readonly condition: string;
+  readonly stacks: number;
+  readonly duration?: number;
+  readonly appliedAt: number;
+  readonly expiresAt: number;
+  readonly sourceSkillId?: SkillId;
+  readonly sourceSkillName?: string;
+}
+
+export interface NecromancerTasteForBloodApplication {
+  readonly at: number;
+  readonly expiresAt: number;
+  stacks: number;
+}
+
+export interface NecromancerCoreState {
+  lifeForce: number;
+  resource: number;
+  maximumLifeForce: number;
+  maximumHealth: number;
+  lifeForcePoolCapacity: number;
+  activeShroud: string;
+  activeShroudEntryId?: SkillId | null;
+  activeShroudExitId?: SkillId | null;
+  activeShroudProfileId?: string;
+  shroudEnteredAt: number;
+  lastResourceAt: number;
+  soulShards: number;
+  soulShardExpiries: number[];
+  carapaceExpiries: number[];
+  activeMinions: Record<string, number>;
+  minionGenerations: Record<string, number>;
+  minionAttackGenerations: Record<string, number>;
+  minionAttackAnchors: Record<string, number>;
+  minionAttackCycleOffsets: Record<string, number>;
+  availableFlips: Record<string, boolean | number | SchedulerRecord>;
+  autoattackChains: Record<string, SkillId>;
+  selfConditions: NecromancerSelfCondition[];
+  plagueSendingArmed: boolean;
+  plagueSendingEntrySkillId: SkillId | null;
+  lichEndsAt: number;
+  pendingShroudEntryId?: SkillId | null;
+  signetNextLifeForceAt: number;
+  vampirismNextAt: number;
+  targetChilledUntil: number;
+  targetControlledUntil: number;
+  dreadUntil: number;
+  fearOfDeathReadyAt: number;
+  vampiricPresenceReadyAt: number;
+  barbedPrecisionProgress: number;
+  spitefulFortitudeLifeForce: number;
+  traitProcReadyAt: Record<string, number>;
+  tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
+}
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([

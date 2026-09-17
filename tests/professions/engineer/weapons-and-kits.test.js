@@ -7,9 +7,8 @@ import {
   strikeEffectCoefficient,
   strikeEffectTicks
 } from '#gw2/platform/engine/effects/timelines.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 

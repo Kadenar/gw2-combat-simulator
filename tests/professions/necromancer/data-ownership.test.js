@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 
 import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_CORE_EXTRA_SKILLS } from '#gw2/professions/necromancer/core/skills/index.js';

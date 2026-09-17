@@ -11,8 +11,7 @@ import {
   migrateNecromancerBuild,
   validateNecromancerBuild
 } from '#gw2/professions/necromancer/build/build.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 

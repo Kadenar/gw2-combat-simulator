@@ -10,8 +10,7 @@ import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID

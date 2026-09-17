@@ -3,7 +3,22 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import type { EngineerConfig, HolosmithState } from '#gw2/professions/engineer/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+
+export interface HolosmithState {
+  heat: number;
+  maximumHeat: number;
+  heatUpdatedAt: number;
+  passiveHeatAt: number | null;
+  photonForgeActive: boolean;
+  forgeExitedAt: number | null;
+  overheated: boolean;
+  solarFocusingLensStacks: number;
+  solarFocusingLensReadyAt: number;
+  solarFocusingLensUntil: number;
+  enhancedCapacityMightReadyAt: number | null;
+  kitLockoutUntil: number;
+}
 
 // These fields advance only in the resolver; scheduler snapshots cannot restore them.
 export const HOLOSMITH_RESOLVER_STATE_KEYS = Object.freeze([

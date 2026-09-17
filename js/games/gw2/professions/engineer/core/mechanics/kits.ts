@@ -1,5 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { emitEngineerBarSwap } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 

@@ -3,7 +3,7 @@
  * The Core execution registry only assigns this persistent state behavior to scheduler phases.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 

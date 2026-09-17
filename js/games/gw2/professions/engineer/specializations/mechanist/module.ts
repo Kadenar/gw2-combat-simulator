@@ -1,12 +1,11 @@
 import {
   afterSkillEffects,
-  augmentSkill,
   onResolvedCriticalHit,
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createEngineerModuleData } from '#gw2/professions/engineer/catalog/module-data.js';
-import { activateOverclockSignet } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
+import { mechanistSkillHandlers } from '#gw2/professions/engineer/specializations/mechanist/execution/index.js';
 import {
   mechanistCriticalHitDefinitions,
   mechanistResolverEventReactions
@@ -21,11 +20,6 @@ import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializat
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
-
-/** Schedules Overclock after authored skill effects. */
-const mechanistSkillHandlers = Object.freeze({
-  'engineer.overclock-signet': augmentSkill({ afterEffects: activateOverclockSignet })
-});
 
 // Compose the mech's independent scheduler lane with resolver reactions for
 // hit-triggered traits; the engineer's own cast lane remains owned by Core.

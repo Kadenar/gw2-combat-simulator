@@ -18,7 +18,7 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
@@ -26,7 +26,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild } from '#gw2/professions/necromancer/build/build.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';

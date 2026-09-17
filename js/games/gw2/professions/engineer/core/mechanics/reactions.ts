@@ -4,7 +4,7 @@ import {
   handleElectricArtillery,
   handleLightningRodPulse
 } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
-import { handleEngineerState } from '#gw2/professions/engineer/state.js';
+import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 import {
   engineerCoreCriticalHitDefinitions,
   reactToEngineerCondition,

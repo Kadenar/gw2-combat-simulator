@@ -1,8 +1,19 @@
-import type { AmalgamState, EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface AmalgamState {
+  selectedMorphSkillIds: number[];
+  evolvedUntil: number;
+  willingHostUntil: number;
+  plasmaticStateUntil: number;
+  rapaciousUntil: number;
+  predatorUntil: number;
+  titanicUntil: number;
+  berserkerUntil: number;
+}
 
 /** Keeps legacy Evolve commands and both API IDs on the one action selected by Double Helix. */
 export function resolveAmalgamSkillId(traits: unknown, skillId: SkillId): SkillId {

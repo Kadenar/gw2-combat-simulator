@@ -1,6 +1,11 @@
-import type { ScourgeState } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+
+export interface ScourgeState {
+  shades: number[];
+  demonicLoreReadyAt: number;
+  nourishingAshesReadyAt: number;
+}
 
 /** Declares Scourge's public compatibility field and inactive value. */
 export const SCOURGE_PUBLIC_END_STATE_KEYS = Object.freeze([

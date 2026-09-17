@@ -9,7 +9,7 @@ import {
 } from '#gw2/app/build/io/build-template-import.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';

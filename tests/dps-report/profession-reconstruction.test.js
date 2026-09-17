@@ -7,7 +7,7 @@ import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';

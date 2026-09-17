@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';

@@ -10,7 +10,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
  * Handlers depend on this module; it must not depend on them.
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';
 import type {
   NecromancerCastContext,

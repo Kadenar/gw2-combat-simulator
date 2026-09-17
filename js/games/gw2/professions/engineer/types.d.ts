@@ -22,6 +22,26 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
+import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import type {
+  EngineerMechAttributes,
+  EngineerMechState,
+  MechanistState
+} from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { ScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  AmalgamState,
+  EngineerCoreState,
+  EngineerMechAttributes,
+  EngineerMechState,
+  HolosmithState,
+  MechanistState,
+  ScrapperState
+};
 
 export type EngineerSpecializationSelection = ProfessionTraitSelection;
 
@@ -55,80 +75,6 @@ export interface EngineerConfig extends Gw2Config {
 }
 
 export type EngineerEvolveAttributePool = Readonly<Gw2NumericAttributes>;
-
-export interface EngineerMechAttributes extends SchedulerRecord {
-  power: number;
-  precision: number;
-  toughness: number;
-  vitality: number;
-  ferocity: number;
-  conditionDamage: number;
-  expertise: number;
-  concentration: number;
-  healingPower: number;
-}
-
-export interface EngineerMechState extends SchedulerRecord {
-  enabled: boolean;
-  active: boolean;
-  commandSkillIds: SkillId[];
-  nextAttackAt: number | null;
-  busyUntil: number;
-  attributes: EngineerMechAttributes | null;
-}
-
-export interface EngineerCoreState {
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  activeKit: string;
-  availableFlips: Record<string, boolean>;
-  autoattackChains: Record<string, SkillId>;
-  focusedUntil: number;
-  lightningRodActivationId: string;
-  lightningRodChargeExpiries: number[];
-  healingTurretActivationId: string;
-  electricArtilleryAvailable: boolean;
-  electricArtilleryReadyAt: number;
-  electricArtilleryExpiresAt: number;
-  kineticCharges: number;
-  pendingMineFieldActivationIds: string[];
-  traitProcReadyAt: Record<string, number | boolean>;
-}
-
-export interface ScrapperState {
-  kineticAcceleratorsWhirlReadyAt: number;
-}
-
-export interface HolosmithState {
-  heat: number;
-  maximumHeat: number;
-  heatUpdatedAt: number;
-  passiveHeatAt: number | null;
-  photonForgeActive: boolean;
-  forgeExitedAt: number | null;
-  overheated: boolean;
-  solarFocusingLensStacks: number;
-  solarFocusingLensReadyAt: number;
-  solarFocusingLensUntil: number;
-  enhancedCapacityMightReadyAt: number | null;
-  kitLockoutUntil: number;
-}
-
-export interface MechanistState {
-  mech: EngineerMechState;
-}
-
-export interface AmalgamState {
-  selectedMorphSkillIds: number[];
-  evolvedUntil: number;
-  willingHostUntil: number;
-  plasmaticStateUntil: number;
-  rapaciousUntil: number;
-  predatorUntil: number;
-  titanicUntil: number;
-  berserkerUntil: number;
-}
 
 export interface EngineerState extends EngineerCoreState, ScrapperState, HolosmithState, MechanistState, AmalgamState {}
 

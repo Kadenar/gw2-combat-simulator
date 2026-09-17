@@ -10,7 +10,7 @@ import {
   handleNecromancerWeaponSpell
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { ritualistResolverEventReactions } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 
 test('Core and Reaper snapshots retain resolver clocks and carapace multiplicities', () => {
   // Scheduler snapshots update resources and Victory while leaving Nova progress and resolver effects intact.

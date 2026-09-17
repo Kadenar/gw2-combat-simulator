@@ -4,9 +4,8 @@ import { test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
@@ -22,7 +21,7 @@ import { createHolosmithState } from '#gw2/professions/engineer/specializations/
 import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-import { handleEngineerState } from '#gw2/professions/engineer/state.js';
+import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],

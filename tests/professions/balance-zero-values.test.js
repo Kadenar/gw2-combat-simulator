@@ -4,7 +4,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';

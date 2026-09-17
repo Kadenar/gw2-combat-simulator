@@ -1,5 +1,13 @@
-import type { HarbingerState, NecromancerConfig } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface HarbingerState {
+  nextBlightAt?: number;
+  blight: number;
+  blightExpiries: number[];
+  cascadingCorruptionStacks: number;
+  meltdownUntil: number;
+}
 
 /** Declares Harbinger's public compatibility fields and inactive values. */
 export const HARBINGER_PUBLIC_END_STATE_KEYS = Object.freeze([

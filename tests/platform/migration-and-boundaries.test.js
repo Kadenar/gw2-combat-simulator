@@ -183,8 +183,13 @@ test('native registry loaders do not pull another profession module graph', asyn
 
   // Trace eager imports only so optional dynamic integrations remain a lazy boundary.
   for (const entry of professionRegistry) {
+    // Professions migrated by PROFESSION-LAYOUT-PLAN.md expose profession.js instead of definition.js.
+    const professionEntry = await access(path.join(root, 'professions', entry.id, 'profession.ts')).then(
+      () => 'profession.js',
+      () => 'definition.js'
+    );
     const graph = await relativeStaticModuleGraph([
-      path.join(root, 'professions', entry.id, 'definition.js'),
+      path.join(root, 'professions', entry.id, professionEntry),
       path.join(root, 'professions', entry.id, 'app', 'app-definition.js')
     ]);
 

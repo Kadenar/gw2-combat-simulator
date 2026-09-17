@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
-import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/module.js';
+import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/execution/hooks.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],

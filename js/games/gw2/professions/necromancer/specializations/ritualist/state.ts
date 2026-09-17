@@ -1,6 +1,34 @@
-import type { RitualistState } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface NecromancerWeaponSpellRecipient extends SchedulerRecord {
+  stacks: number;
+  nextAt: number;
+}
+
+export interface NecromancerWeaponSpellState extends SchedulerRecord {
+  readonly skillId?: SkillId;
+  readonly skillName?: string;
+  readonly appliedAt?: number;
+  readonly expiresAt?: number;
+  readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
+}
+
+export interface RitualistState {
+  activeSpirits: Record<string, boolean>;
+  spiritGenerations: Record<string, number>;
+  spiritInitialUntil: Record<string, number>;
+  spiritBusyUntil: Record<string, number>;
+  spiritAutoAnchorAt: number;
+  resummonedSpiritAutoCycle: boolean;
+  weaponSpells: Record<string, NecromancerWeaponSpellState>;
+  soulTwistingAvailable: boolean;
+  pendingSoulTwistSkill?: SkillId | null;
+  painfulBondUntil: number;
+  painfulBondPulseAnchorAt: number;
+}
 
 /** Declares Ritualist's public compatibility fields and inactive values. */
 export const RITUALIST_PUBLIC_END_STATE_KEYS = Object.freeze([

@@ -13,7 +13,7 @@ import {
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
  * Harbinger blight skill handlers.
  *

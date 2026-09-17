@@ -20,6 +20,28 @@ const professionBoundaryPattern = {
   message: 'Headless profession content must not depend on application or integration code.'
 };
 
+// Professions that adopted the layout in docs/architecture/PROFESSION-LAYOUT-PLAN.md. Code outside those
+// profession folders may import only their public entry points. Remove the list once every profession migrates.
+const MIGRATED_PROFESSIONS = ['engineer', 'necromancer'];
+const migratedProfessionGroup = MIGRATED_PROFESSIONS.join('|');
+const professionPublicEntryPatterns = MIGRATED_PROFESSIONS.length
+  ? [
+      {
+        regex: `^#gw2/professions/(?:${migratedProfessionGroup})/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)`,
+        message:
+          'Import migrated professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
+      }
+    ]
+  : [];
+const moduleCompositionPattern = {
+  regex: '^#gw2/professions/[^/]+/(?:profession|modules|definition)\\.js$|^#gw2/professions/.+/module\\.js$',
+  message: 'Module manifests must not import the profession composition root or another module manifest.'
+};
+const coreSpecializationPattern = {
+  regex: '(^|/)specializations(/|$)',
+  message: 'Core profession modules must not depend on elite specialization content.'
+};
+
 // Flat config replaces overlapping rule arrays, so every boundary includes the shared alias restriction.
 function restrictedImports(...patterns) {
   return ['error', { patterns: [packageAliasPattern, ...patterns] }];
@@ -117,6 +139,13 @@ export default [
       'js/kernel/**/*.{js,jsx,mjs,cjs,ts,tsx}',
       'js/ui/**/*.{js,jsx,mjs,cjs,ts,tsx}'
     ],
+    ignores: ['js/games/gw2/professions/**'],
+    rules: {
+      'no-restricted-imports': restrictedImports(...professionPublicEntryPatterns)
+    }
+  },
+  {
+    files: ['js/games/gw2/professions/**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports()
     }
@@ -164,7 +193,7 @@ export default [
   {
     files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern)
+      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns)
     }
   },
 
@@ -199,7 +228,7 @@ export default [
   {
     files: ['js/games/gw2/platform/scheduler/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern, {
+      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns, {
         regex: '(^|/)(resolution|resolver)(/|$)',
         message: 'Execution modules must communicate with resolution through shared contracts and events.'
       })
@@ -208,7 +237,7 @@ export default [
   {
     files: ['js/games/gw2/platform/resolver/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern, {
+      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns, {
         regex: '(^|/)(execution|scheduler)(/|$)',
         message: 'Resolution modules must consume scheduled events without importing execution internals.'
       })
@@ -228,10 +257,7 @@ export default [
   {
     files: ['js/games/gw2/professions/**/core/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(professionBoundaryPattern, {
-        regex: '(^|/)specializations(/|$)',
-        message: 'Core profession modules must not depend on elite specialization content.'
-      })
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, coreSpecializationPattern)
     }
   },
 
@@ -268,17 +294,35 @@ export default [
       'js/games/gw2/professions/**/core/{mechanics,skills,traits,state}/**/*.{ts,tsx}'
     ],
     rules: {
-      'no-restricted-imports': restrictedImports(
-        professionBoundaryPattern,
+      'no-restricted-imports': restrictedImports(professionBoundaryPattern, coreSpecializationPattern, {
+        regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
+        message: 'Concept modules must contribute to module.ts without importing the composition root.'
+      })
+    }
+  },
+
+  // Migrated module.ts files are manifests: they compose owner files and never import composition roots. The
+  // profession layout conformance test enforces that they declare nothing besides the module.
+  ...(MIGRATED_PROFESSIONS.length
+    ? [
         {
-          regex: '(^|/)specializations(/|$)',
-          message: 'Core profession modules must not depend on elite specialization content.'
+          files: MIGRATED_PROFESSIONS.map(
+            (profession) => `js/games/gw2/professions/${profession}/specializations/*/module.ts`
+          ),
+          rules: {
+            'no-restricted-imports': restrictedImports(professionBoundaryPattern, moduleCompositionPattern)
+          }
         },
         {
-          regex: 'professions/[^/]+/(?:core|specializations/[^/]+)/module\\.js$',
-          message: 'Concept modules must contribute to module.ts without importing the composition root.'
+          files: MIGRATED_PROFESSIONS.map((profession) => `js/games/gw2/professions/${profession}/core/module.ts`),
+          rules: {
+            'no-restricted-imports': restrictedImports(
+              professionBoundaryPattern,
+              coreSpecializationPattern,
+              moduleCompositionPattern
+            )
+          }
         }
-      )
-    }
-  }
+      ]
+    : [])
 ];

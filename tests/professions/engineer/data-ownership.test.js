@@ -4,7 +4,7 @@ import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
 
 import { SKILLS as ELEMENTALIST_SKILLS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
@@ -22,7 +22,7 @@ import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializat
 import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
 import { MECHANIST_MECH_COMMAND_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-command-skills.js';
 import { MECHANIST_SIGNET_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 
 const KIT_SLUGS = new Map([

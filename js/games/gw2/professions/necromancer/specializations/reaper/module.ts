@@ -4,7 +4,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
-import { createNecromancerModuleData } from '#gw2/professions/necromancer/catalog/module-data.js';
+import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { reaperResolverEventReactions } from '#gw2/professions/necromancer/specializations/reaper/mechanics/shroud-effects.js';
 import {
   reaperAttributeRules,
