@@ -15,7 +15,7 @@ import {
   advanceRadiantForgeState,
   guardianRadiantForgeSkillHandlers
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { soulbeastAttributeRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';

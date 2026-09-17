@@ -1,8 +1,7 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 

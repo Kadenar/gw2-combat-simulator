@@ -10,11 +10,16 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import type { DruidState } from '#gw2/professions/ranger/specializations/druid/state.js';
+import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type { DruidState, GaleshotState, RangerCoreState, RangerInitialUntamedState, SoulbeastState, UntamedState };
 
 export type RangerSpecializationSelection = ProfessionTraitSelection;
-
-export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 
 export interface RangerBuild extends Gw2Build {
   specializations?: RangerSpecializationSelection[];
@@ -70,110 +75,6 @@ export interface RangerPetDefinition {
   readonly archetype: string;
   readonly skillIds: readonly SkillId[];
   readonly beastmodeSkillIds: readonly SkillId[];
-}
-
-export interface RangerCoreState {
-  activePet: string;
-  activePetSlot: 1 | 2;
-  petNames: [string, string];
-  activePetSkillIds: SkillId[];
-  petActive: boolean;
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  availableFlips: Record<string, number>;
-  stealthUntil: number;
-  revealedUntil: number;
-  autoattackChains: Record<string, SkillId>;
-  winterBiteReady: boolean;
-  tailWindReadyAt: number;
-  furiousGripReadyAt: number;
-  sharpenedEdgesProgress: number;
-  quickDrawReadyAt: number;
-  quickDrawUntil: number;
-  trapCrippleActivations: Record<string, boolean>;
-  pendingFrostTrapEvents: SimulationEventInput[];
-  bloodThirstCharges: number;
-  rejuvenationReadyAt: number;
-  childOfEarthReadyAt: number;
-  clarionBondReadyAt: number;
-  carnivoreReadyAt: number;
-  goForTheThroatPetReadyAt: number;
-  huntersGazeReadyAt: number;
-  playerOpeningStrikeReady: boolean;
-  petOpeningStrikeReady: boolean;
-  poisonMasterPetAttackReady: boolean;
-  poisonousStrikesCharges: number;
-  poisonousStrikesExpiresAt: number;
-  sharpeningStoneExpirations: number[];
-  petSwapCount: number;
-  petAutoGeneration: number;
-  petAutoNextAt: number;
-  petAutoBusyUntil: number;
-  petAutoCooldowns: Record<string, number>;
-  petAutoActivationUses: Record<string, number>;
-  petAutoActivationCounts: [number, number];
-  petAutoOpeningBasic: boolean;
-  petAutoTaskId: string;
-  petCommandReadyAt: number;
-  petCommandCooldowns: Record<string, number>;
-  petCommandDelays: Record<string, number>;
-}
-
-export interface DruidState {
-  astralForce: number;
-  maximumAstralForce: number;
-  celestialAvatarActive: boolean;
-  celestialAvatarEndsAt: number;
-  astralForceUpdatedAt: number;
-  naturalMenderReadyAt: number;
-}
-
-export interface SoulbeastState {
-  beastmodeActive: boolean;
-  archetype: string;
-  oneWolfPackUntil: number;
-  oneWolfPackReadyAt: number;
-  goForTheEyesReadyAt: number;
-  goForTheThroatReadyAt: number;
-  bestialRageReadyAt: number;
-  essenceOfSpeedReadyAt: number;
-  vultureStanceReadyAt: number;
-  beastAbilityActivations: Record<string, boolean>;
-}
-
-export interface UntamedState {
-  rangerUnleashed: boolean;
-  ambushReadyUntil: number;
-  unleashedPowerReadyAt: number;
-  letLooseReadyAt: number;
-  debilitatingBlowsReadyAt: number;
-  enhancingImpactReadyAt: number;
-  ferociousSymbiosisPlayerStacks: number;
-  ferociousSymbiosisPlayerUntil: number;
-  ferociousSymbiosisPlayerReadyAt: number;
-  ferociousSymbiosisPetStacks: number;
-  ferociousSymbiosisPetUntil: number;
-  ferociousSymbiosisPetReadyAt: number;
-  letLooseActivations: Record<string, boolean>;
-}
-
-export interface GaleshotState {
-  cycloneBowActive: boolean;
-  arrows: number;
-  maximumArrows: number;
-  arrowsUpdatedAt: number;
-  /** Accumulated recharge in baseline seconds, independent of the current Alacrity rate. */
-  arrowRechargeProgress: number;
-  windForce: number;
-  galeForceUntil: number;
-  mistralUntil: number;
-  wutheringWindReady: boolean;
-  wutheringWindReadyAt: number;
-  wutheringWindActivationIds: Record<string, boolean>;
-  thrillOfTheCatchReadyAt: number;
-  flockTogetherReadyAt: number;
-  missileHits: number;
 }
 
 export interface RangerState extends RangerCoreState {

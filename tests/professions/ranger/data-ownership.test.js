@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 
 import {
   RANGER_CORE_EXTRA_SKILLS,
