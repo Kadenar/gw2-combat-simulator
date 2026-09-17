@@ -4,9 +4,9 @@ import path from 'node:path';
 import test from 'node:test';
 
 const PROFESSIONS_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/professions');
-// Every folder except the shared lib/ helpers is a profession and follows the documented layout.
+// Every folder except the shared/ helpers is a profession and follows the documented layout.
 const PROFESSIONS = readdirSync(PROFESSIONS_ROOT, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory() && entry.name !== 'lib')
+  .filter((entry) => entry.isDirectory() && entry.name !== 'shared')
   .map((entry) => entry.name)
   .sort();
 const ROOT_FILES = new Set(['profession.ts', 'catalog.ts', 'family-state.ts', 'family-presentation.ts', 'types.d.ts']);

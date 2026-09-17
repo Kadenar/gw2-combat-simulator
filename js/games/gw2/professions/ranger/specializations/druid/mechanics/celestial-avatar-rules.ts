@@ -1,7 +1,7 @@
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

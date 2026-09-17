@@ -1,7 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
+import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type {

@@ -1,4 +1,4 @@
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/lib/rotation/profiles.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import type { EvtcRotationProfessionProfile } from '#gw2/integrations/logs/evtc/rotation/profile-contracts.js';
 export type {
   EvtcRotationActionIdentity,

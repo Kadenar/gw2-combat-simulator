@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
+import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { warriorEnduranceReadyAt } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';

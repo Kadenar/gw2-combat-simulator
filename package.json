@@ -23,7 +23,8 @@
       "types": "./js/app/*",
       "browser": "./js/app/*",
       "default": "./dist/js/app/*"
-    }
+    },
+    "#tests/*": "./tests/*"
   },
   "//": "Scripts are ordered by responsibility; test builds first, while check reuses its existing build for the Node suite.",
   "scripts": {

@@ -121,7 +121,7 @@ request to scaffold empty modules:
 | Reusable identity and presentation metadata | Existing profession catalogs/data, extracted from runtime assembly if necessary |
 | Engine selection and request/result conversion | Existing platform simulation and GW2 application boundaries |
 | Reference comparison tooling | `scripts/analysis/` |
-| Focused contracts | Existing `tests/platform/`, `tests/professions/`, `tests/gw2/app/`, and `tests/app/` ownership |
+| Focused contracts | Existing `tests/games/gw2/platform/`, `tests/games/gw2/professions/`, `tests/games/gw2/app/`, and `tests/app/` ownership |
 
 New runtime code must not import browser application modules. Profession implementations may import shared combat
 operations; shared combat code must not import profession implementations. Keep identity metadata independent of

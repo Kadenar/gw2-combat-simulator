@@ -6,7 +6,7 @@
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
-import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { denySkillCast } from '#gw2/professions/shared/availability.js';
 import { retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,

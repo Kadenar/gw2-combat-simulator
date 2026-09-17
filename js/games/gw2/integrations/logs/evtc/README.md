@@ -37,7 +37,7 @@ implementation is not a full EI parity certification; encounter logic and time-a
 
 ## Normalization and timing
 
-Shared `../lib/rotation/professions/` rules convert represented identities, chains and composites. Source actions remain
+Shared `../shared/rotation/professions/` rules convert represented identities, chains and composites. Source actions remain
 separate, including cast origin and EI rule provenance. Automatic procs do not become independent replay inputs.
 Read-only packet/proc observations remain available and never inject casts or simulator state.
 

@@ -1,7 +1,7 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';

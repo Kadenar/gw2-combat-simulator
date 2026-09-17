@@ -7,7 +7,7 @@
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import { denySkillCast } from '#gw2/professions/lib/availability.js';
+import { denySkillCast } from '#gw2/professions/shared/availability.js';
 import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,

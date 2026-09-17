@@ -1,7 +1,7 @@
 import {
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
-} from '#gw2/integrations/logs/lib/rotation/model.js';
+} from '#gw2/integrations/logs/shared/rotation/model.js';
 
 /** Explicit EI d7f186c instant finders; unsupported checker families are listed in the adapter README. */
 export interface EiInstantRule {

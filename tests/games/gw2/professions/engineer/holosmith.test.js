@@ -1,0 +1,1174 @@
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
+import { holosmithProfileStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
+import {
+  advancePhotonForgeState,
+  engineerPhotonForgeSkillHandlers,
+  handlePhotonForgeHeat
+} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
+
+const baseConfig = Object.freeze({
+  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedMorphSkillIds: [77103, 77203, 76954],
+  stats: {
+    power: 2000,
+    precision: 1500,
+    ferocity: 500,
+    conditionDamage: 1000,
+    expertise: 0,
+    vitality: 1000
+  },
+  target: {
+    armor: 2597,
+    conditions: { Vulnerability: 25 }
+  }
+});
+
+const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+
+test('a committed shortened Sun Ripper advances the sword chain to Gleam Saber', () => {
+  // Cancelling the landed middle attack's aftercast must not reject the recorded chain finisher.
+  const result = simulate('Holosmith', ['Sun Edge', { name: 'Sun Ripper', interruptMs: 440 }, 'Gleam Saber'], {
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Pistol'
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Gleam Saber'));
+});
+
+test('committed Refraction Cutter and Blowtorch retain lockout before the next weapon input', () => {
+  // Landed effects cannot let the next weapon attack start earlier than an uninterrupted parent cast.
+  const config = { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' };
+  for (const name of ['Refraction Cutter', 'Blowtorch']) {
+    const full = simulate('Holosmith', [name, 'Sun Edge'], config);
+    const shortened = simulate('Holosmith', [{ name, interruptMs: 360 }, 'Sun Edge'], config);
+    assert.deepEqual(shortened.warnings, []);
+    assert.ok(shortened.steps[0].end < full.steps[0].end);
+    assert.equal(shortened.steps[1].start, full.steps[1].start);
+  }
+});
+
+// Defensive self-burning must never enter the outgoing condition pipeline.
+test('Cauterize deals no outgoing damage on a clean target', () => {
+  const result = simulate('Holosmith', ['Cauterize', { type: 'wait', durationMs: 3000 }], {
+    selectedSkills: ['Coolant Blast'],
+    target: { conditions: {} }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.totalDamage, 0);
+});
+
+// Exercise the guaranteed-critical contract below the crit cap and the finisher in a live field.
+test('Holographic Shockwave guarantees a critical hit and blasts a fire field', () => {
+  const result = simulate(
+    'Holosmith',
+    ['Bomb Kit', 'Fire Bomb', 'Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Holographic Shockwave'],
+    { selectedSkills: ['Bomb Kit'], stats: { precision: 1000, ferocity: 0 } }
+  );
+  assert.deepEqual(result.warnings, []);
+  const strike = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Holographic Shockwave'
+  );
+  assert.equal(strike.criticalChance, 1);
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === 'combo' &&
+        event.skillName === 'Holographic Shockwave' &&
+        event.finisherType === 'Blast' &&
+        event.fieldType === 'Fire'
+    )
+  );
+});
+
+// Delayed packets cannot reserve charges ahead of earlier impacts or refill them through heat snapshots.
+test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => {
+  const result = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Corona Burst', 'Light Strike', { type: 'wait', durationMs: 2000 }],
+    { selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS] }
+  );
+  assert.deepEqual(result.warnings, []);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.deepEqual(
+    strikes.map((event) => [event.skillName, Boolean(event.solarFocusingLens)]),
+    [
+      ['Corona Burst', true],
+      ['Light Strike', true],
+      ['Corona Burst', false]
+    ]
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.name === 'Solar Focusing Lens — Burning' && event.type === 'condition')
+      .map((event) => event.at),
+    strikes.slice(0, 2).map((event) => event.at)
+  );
+  assert.equal(result.endState.profession.solarFocusingLensStacks, 0);
+});
+
+// Resolver-created strikes share the same charge budget as ordinary scheduled attacks.
+test('Solar Focusing Lens consumes charges on Laser Disk impacts', () => {
+  const result = simulate('Holosmith', ['Engage Photon Forge', 'Laser Disk', { type: 'wait', durationMs: 2000 }], {
+    selectedSkills: ['Laser Disk'],
+    selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
+  });
+  assert.deepEqual(result.warnings, []);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.ok(strikes.length > 2);
+  assert.ok(strikes.slice(0, 2).every((event) => event.solarFocusingLens));
+  assert.ok(strikes.slice(2).every((event) => !event.solarFocusingLens));
+  assert.equal(result.endState.profession.solarFocusingLensStacks, 0);
+});
+
+// Expired grants cannot enhance hits, while leaving Forge starts a fresh charge window.
+test('Solar Focusing Lens respects expiry and refreshes on Forge exit', () => {
+  const config = { selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS] };
+  const expired = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', { type: 'wait', durationMs: 5000 }, 'Light Strike'],
+    config
+  );
+  assert.deepEqual(expired.warnings, []);
+  assert.ok(
+    expired.resolvedEvents.filter((event) => event.type === 'damage').every((event) => !event.solarFocusingLens)
+  );
+  const refreshed = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Light Strike', 'Bright Slash', 'Deactivate Photon Forge', 'Sun Edge'],
+    config
+  );
+  assert.deepEqual(refreshed.warnings, []);
+  assert.ok(
+    refreshed.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Sun Edge')
+      .solarFocusingLens
+  );
+  assert.equal(refreshed.endState.profession.solarFocusingLensStacks, 1);
+});
+
+test('ECSU carries pulse readiness, resets at the threshold, and restarts on a discrete crossing', () => {
+  // Split advances must preserve the cadence; returning above the threshold grants an immediate pulse.
+  const config = { initialHeat: 101, selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT] };
+  const state = createHolosmithState(config);
+  const events = [];
+  const context = {
+    config,
+    epsilon: 1e-9,
+    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Holosmith', state } } },
+    events,
+    emit: (event) => {
+      events.push(event);
+      return event;
+    }
+  };
+  advancePhotonForgeState(context, 0.25);
+  assert.equal(state.enhancedCapacityMightReadyAt, 1);
+  advancePhotonForgeState(context, 1);
+  advancePhotonForgeState(context, 1);
+  state.heat = 100;
+  advancePhotonForgeState(context, 1.1);
+  assert.equal(state.enhancedCapacityMightReadyAt, null);
+
+  state.photonForgeActive = true;
+  handlePhotonForgeHeat(context, { at: 1.1, payload: { amount: 1 } });
+  assert.equal(state.enhancedCapacityMightReadyAt, 2.1);
+  advancePhotonForgeState(context, 2.1);
+  assert.deepEqual(
+    events.filter((event) => event.type === 'buff').map((event) => event.at),
+    [0, 1, 1.1, 2.1]
+  );
+
+  // Removing segment bookkeeping must retain normalization and its public state snapshot.
+  for (const [at, heat, expected] of [
+    [2.2, 200, 150],
+    [2.3, -1, 0]
+  ]) {
+    state.heat = heat;
+    advancePhotonForgeState(context, at);
+    assert.equal(state.heat, expected);
+    assert.equal(events.at(-1).state.heat, expected);
+  }
+});
+
+test('ECSU emits a due boundary pulse before same-time cooling drops heat to the threshold', () => {
+  // Cooling reaches 100 at four seconds; that boundary still belongs to the preceding high-heat interval.
+  const result = simulate('Holosmith', [{ type: 'wait', durationMs: 5000 }], {
+    initialHeat: 105,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+  const pulses = result.events.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  );
+  assert.ok(pulses.some((event) => event.at === 4));
+  assert.ok(pulses.every((event) => event.at <= 4));
+});
+
+test('Photon Forge heat generation and cooling use current piecewise rates', () => {
+  const beforeFirstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 99 }]);
+  const firstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }]);
+
+  // Forge heat is discrete: no passive gain occurs before 100 ms, then the base rate contributes 0.2%.
+  assert.equal(beforeFirstTick.endState.profession.heat, 0);
+  assert.equal(firstTick.endState.profession.heat, 0.2);
+
+  const preheatedGrace = simulate('Holosmith', [{ type: 'wait', durationMs: 3000 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(preheatedGrace.endState.profession.heat, 100);
+
+  const firstCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 3100 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  // The first cooling tick after the three-second delay loses 0.5 heat.
+  assert.equal(firstCoolingTick.endState.profession.heat, 99.5);
+
+  const preheatedCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 5200 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(preheatedCooling.endState.profession.heat, 89);
+
+  const beforeFastCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 8000 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(beforeFastCooling.endState.profession.heat, 75);
+
+  const firstFastCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 8100 }], {
+    initialHeat: 100,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  // After eight seconds, the fast phase loses 1 heat on each 100 ms tick.
+  assert.equal(firstFastCoolingTick.endState.profession.heat, 74);
+
+  const hot = simulate('Holosmith', [
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 5000 },
+    'Deactivate Photon Forge',
+    { type: 'wait', durationMs: 3100 }
+  ]);
+
+  assert.equal(hot.endState.profession.heat, 9.5);
+  assert.equal(hot.endState.profession.photonForgeActive, false);
+
+  const cooled = simulate('Holosmith', [
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 5000 },
+    'Deactivate Photon Forge',
+    { type: 'wait', durationMs: 11500 }
+  ]);
+
+  assert.equal(cooled.endState.profession.heat, 0);
+
+  const amplified = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }], {
+    selectedTraitIds: [TRAIT.LIGHT_DENSITY_AMPLIFIER]
+  });
+
+  assert.equal(amplified.endState.profession.heat, 0.3);
+});
+
+test('Holosmith Forge behavior follows skill IDs after display labels change', () => {
+  const state = createHolosmithState();
+  state.photonForgeActive = true;
+  const profession = { specialization: { kind: 'Holosmith', state } };
+  const engage = { ...engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE), name: 'Renamed forge entry' };
+
+  assert.equal(
+    holosmithCastAvailability(
+      { config: { specialization: 'Holosmith' }, state: { profession }, start: 0, epsilon: 1e-9 },
+      engage
+    ).code,
+    'engineer.forge-active'
+  );
+
+  const scheduled = [];
+  const corona = { ...engineerCatalog.skillsById.get(ID.CORONA_BURST), name: 'Renamed heat skill' };
+  engineerPhotonForgeSkillHandlers['engineer.corona-burst-heat'](
+    {
+      state: { profession },
+      start: 0,
+      effectiveEnd: 1.8,
+      fullEnd: 1.8,
+      epsilon: 1e-9,
+      tasks: { schedule: (task) => scheduled.push(task) }
+    },
+    corona
+  );
+  assert.equal(scheduled.length, 5);
+  assert.deepEqual(
+    scheduled.map((task) => task.payload.amount),
+    [2, 2, 2, 2, 2]
+  );
+});
+
+test('Engineer availability follows skill IDs after display labels change', () => {
+  const core = createEngineerCoreState();
+  const coreContext = {
+    config: { specialization: 'Core' },
+    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
+    start: 0,
+    epsilon: 1e-9
+  };
+
+  const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };
+  assert.equal(engineerCoreCastAvailability(coreContext, artillery).code, 'engineer.electric-artillery-inactive');
+
+  core.electricArtilleryAvailable = true;
+  const lightningRod = { ...engineerCatalog.skillsById.get(ID.LIGHTNING_ROD), name: 'Renamed rod' };
+  assert.equal(engineerCoreCastAvailability(coreContext, lightningRod).code, 'engineer.lightning-rod-active');
+
+  const mechanist = createMechanistState();
+  const mechanistContext = {
+    config: { specialization: 'Mechanist' },
+    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } } }
+  };
+  const command = { ...engineerCatalog.skillsById.get(ID.SPARK_REVOLVER), name: 'Renamed command' };
+  assert.equal(mechanistCastAvailability(mechanistContext, command).code, 'engineer.mech-command');
+});
+
+test('Corona Burst heat persists outside Forge without causing Overheat', () => {
+  const outside = simulate(
+    'Holosmith',
+    [
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 5500 },
+      'Corona Burst',
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 3000 }
+    ],
+    {
+      initialHeat: 135,
+      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+    }
+  );
+
+  assert.ok(
+    outside.events.some((event) => event.type === 'engineer.state' && Number(event.state?.heat || 0) >= 150 - 1e-9)
+  );
+  assert.ok(outside.endState.profession.heat <= 150);
+  assert.equal(outside.endState.profession.overheated, false);
+  assert.equal(outside.endState.profession.photonForgeActive, false);
+
+  const inside = simulate('Holosmith', ['Engage Photon Forge', 'Corona Burst', { type: 'wait', durationMs: 2000 }], {
+    initialHeat: 145,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(inside.endState.profession.heat, 150);
+  assert.equal(inside.endState.profession.overheated, true);
+  assert.equal(inside.endState.profession.photonForgeActive, true);
+});
+
+test('Photon Blitz gains two heat for each completed projectile', () => {
+  const partial = simulate('Holosmith', ['Engage Photon Forge', { name: 'Photon Blitz', interruptMs: 600 }]);
+
+  // Three projectile pulses add 6 heat while six passive ticks add another 1.2.
+  assert.equal(partial.endState.profession.heat, 7.2);
+  assert.equal(
+    partial.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Photon Blitz').length,
+    3
+  );
+
+  const full = simulate('Holosmith', ['Engage Photon Forge', 'Photon Blitz']);
+
+  // The full cast adds 16 projectile heat and 2.6 passive heat over its 1.32-second duration.
+  assert.equal(full.endState.profession.heat, 18.6);
+});
+
+test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
+  const result = simulate('Holosmith', [
+    'Engage Photon Forge',
+    { name: 'Light Strike', skillId: ID.LIGHT_STRIKE, interruptMs: 80 },
+    'Light Strike'
+  ]);
+  const lightStrikeSteps = result.steps.filter((step) => step.skill === 'Light Strike');
+  const lightStrikePackets = result.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(lightStrikeSteps.length, 2);
+  assert.equal(lightStrikeSteps[0].interrupted, true);
+  assert.ok(lightStrikeSteps.every((step) => step.invalid !== true));
+  assert.equal(lightStrikePackets.length, 1);
+  assert.equal(result.endState.profession.autoattackChains[ID.LIGHT_STRIKE], ID.BRIGHT_SLASH);
+});
+
+test('Photon Forge overheats at its trait-adjusted maximum', () => {
+  const core = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }], {
+    initialHeat: 90
+  });
+
+  assert.equal(core.endState.profession.heat, 100);
+  assert.equal(core.endState.profession.overheated, true);
+  assert.equal(core.endState.profession.photonForgeActive, true);
+
+  const enhanced = simulate('Holosmith', [], {
+    initialHeat: 149,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+
+  assert.equal(enhanced.endState.profession.maximumHeat, 150);
+  assert.equal(enhanced.endState.profession.heat, 149);
+
+  const fullyCooled = simulate(
+    'Holosmith',
+    [
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 6000 },
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 15520 }
+    ],
+    {
+      initialHeat: 90
+    }
+  );
+
+  assert.equal(fullyCooled.endState.profession.heat, 0);
+  assert.equal(fullyCooled.endState.profession.overheated, false);
+});
+
+test('explicit Overheat exits preserve cooling cadence and the pending Lens grant', () => {
+  // Both exits acknowledge the existing resource transition without restarting cooling or granting Lens twice.
+  const config = { initialHeat: 90, selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE, TRAIT.SOLAR_FOCUSING_LENS] };
+  const opener = ['Engage Photon Forge', { type: 'wait', durationMs: 6000 }];
+  const locked = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 4000 }], config);
+  for (const exit of ['Deactivate Photon Forge', 'Grenade Kit']) {
+    const exited = simulate('Holosmith', [...opener, exit, { type: 'wait', durationMs: 4000 }], config);
+    assert.deepEqual(exited.warnings, []);
+    assert.equal(exited.endState.profession.photonForgeActive, false);
+    assert.equal(exited.endState.profession.forgeExitedAt, locked.endState.profession.forgeExitedAt);
+    assert.equal(exited.endState.profession.heat, locked.endState.profession.heat);
+    assert.deepEqual(
+      exited.events
+        .filter((event) => event.type === 'engineer.solar-focusing-lens')
+        .map((event) => [event.at, event.stacks]),
+      locked.events
+        .filter((event) => event.type === 'engineer.solar-focusing-lens')
+        .map((event) => [event.at, event.stacks])
+    );
+  }
+
+  const cooled = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 20000 }, 'Photon Blitz'], config);
+  assert.equal(cooled.endState.profession.heat, 0);
+  assert.ok(cooled.steps.find((step) => step.skill === 'Photon Blitz').invalid);
+});
+
+test('Photon Forge waits for its resource tick before overheating at maximum heat', () => {
+  // A skill can fill the heat bar between resource ticks, leaving a short window
+  // for an already-authored tool-belt action before Overheat applies its cooldown.
+  const result = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', 'Holographic Shockwave', 'Grenade Barrage', { type: 'wait', durationMs: 1000 }],
+    {
+      initialHeat: 88.6,
+      selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+    }
+  );
+  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(barrage.start, 520);
+  assert.equal(overheat.at, 0.6);
+  assert.equal(result.endState.profession.photonForgeActive, true);
+});
+
+test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
+  // The second entry reaches maximum heat at 1.97s and overheats on that entry's
+  // next 100 ms resource tick at 2.05s instead of a simulation-global boundary.
+  const result = simulate(
+    'Holosmith',
+    [
+      { type: 'wait', durationMs: 250 },
+      'Engage Photon Forge',
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 1200 },
+      'Engage Photon Forge',
+      'Holographic Shockwave',
+      'Grenade Barrage'
+    ],
+    {
+      initialHeat: 90,
+      selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+    }
+  );
+  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(result.warnings.length, 0);
+  assert.equal(barrage.start, 1970);
+  assert.equal(overheat.at, 2.05);
+  assert.equal(result.endState.profession.photonForgeActive, true);
+});
+
+test('Photon Forge waits one more resource tick when passive heat fills the bar', () => {
+  // Ten ticks raise heat from 98 to 100; the following 100 ms tick observes the cap and overheats.
+  const result = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 2000 }], {
+    initialHeat: 98
+  });
+  const passiveHeat = result.events.find(
+    (event) => event.type === 'engineer.state' && event.reason === 'passive-heat' && event.state.heat === 100
+  );
+  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+
+  assert.equal(passiveHeat.at, 1);
+  assert.equal(passiveHeat.state.heat, 100);
+  assert.equal(overheat.at, 1.1);
+  assert.equal(result.endState.profession.photonForgeActive, true);
+});
+
+test('Photon Forge passive heat restarts its cadence on each entry', () => {
+  const result = simulate('Holosmith', [
+    { type: 'wait', durationMs: 250 },
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 150 },
+    'Deactivate Photon Forge',
+    { type: 'wait', durationMs: 250 },
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 100 }
+  ]);
+  const passiveHeatTimes = result.events
+    .filter((event) => event.type === 'engineer.state' && event.reason === 'passive-heat')
+    .map((event) => event.at);
+
+  // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
+  assert.deepEqual(passiveHeatTimes, [0.35, 1.35]);
+});
+
+test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
+  // Exhaustion is a resource transition; the explicit exit restores weapons without restarting cooling.
+  const result = simulate(
+    'Holosmith',
+    [
+      'Engage Photon Forge',
+      'Holographic Shockwave',
+      { type: 'wait', durationMs: 120 },
+      'Photon Blitz',
+      'Light Strike',
+      'Glue Shot',
+      'Deactivate Photon Forge',
+      'Glue Shot'
+    ],
+    { initialHeat: 90 }
+  );
+  assert.equal(
+    result.events.filter((event) => event.type === 'engineer.state' && event.reason === 'overheat').length,
+    1
+  );
+  for (const name of ['Photon Blitz', 'Light Strike']) {
+    assert.ok(result.steps.find((step) => step.skill === name).invalid);
+  }
+
+  const [blocked, ready] = result.steps.filter((step) => step.skill === 'Glue Shot');
+  assert.ok(blocked.invalid);
+  assert.equal(ready.invalid, undefined);
+  assert.equal(result.steps.find((step) => step.skill === 'Deactivate Photon Forge').invalid, undefined);
+  assert.equal(result.endState.profession.photonForgeActive, false);
+});
+
+test('an overheated Forge lane stays open until its authored exit', () => {
+  const rotation = [
+    'Engage Photon Forge',
+    { type: 'wait', durationMs: 6000 },
+    'Deactivate Photon Forge',
+    'Blunderbuss'
+  ];
+  const result = simulate('Holosmith', rotation, { initialHeat: 90 });
+  const transition = engineerProfession.ui.timelineWeaponLineTransition;
+  const rows = timelineWeaponRows(rotation, {
+    weaponSwapChangesSet: false,
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === 'string' ? entry : entry.name;
+      return transition({
+        entry: { name },
+        skill: engineerCatalog.skillsByName.get(name),
+        specialization: 'Holosmith',
+        ...current
+      });
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    rows.map((row) => row.weaponLine),
+    [null, 'Photon Forge', null]
+  );
+});
+
+test('Overheat delays its tool-belt minimum cooldown until the damage effect', () => {
+  // Passive heat fills the bar at 5.00s, Overheat starts at 5.10s, and its measured effect applies at 6.66s.
+  const timing = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6700 }], {
+    initialHeat: 90,
+    selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+  });
+  const overheat = timing.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const damageEffect = timing.events.find(
+    (event) => event.type === 'damage' && event.name === 'Photonic Blasting Module'
+  );
+
+  assert.equal(overheat.at, 5.1);
+  assert.equal(Math.round(damageEffect.at * 1000), 6660);
+
+  const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {
+    const result = simulate('Holosmith', rotation, {
+      initialHeat: 90,
+      selectedTraitIds
+    });
+
+    assert.equal(result.warnings.length, 0);
+    return result.steps.filter((step) => step.skill === 'Grenade Barrage').map((step) => step.start);
+  };
+
+  assert.deepEqual(
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6650 }, 'Grenade Barrage']),
+    [6650]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage']),
+    [21660]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts(
+      ['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage'],
+      [TRAIT.PHOTONIC_BLASTING_MODULE]
+    ),
+    [11660]
+  );
+  assert.deepEqual(
+    grenadeBarrageStarts([
+      'Grenade Barrage',
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 5000 },
+      'Grenade Barrage'
+    ]),
+    [0, 25680]
+  );
+});
+
+test('Holosmith offensive traits consume forge heat and attack charges', () => {
+  const laserBase = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
+    initialHeat: 50,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const laser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
+    initialHeat: 50,
+    stats: { precision: 1000, ferocity: 0 },
+    selectedTraitIds: [TRAIT.LASERS_EDGE]
+  });
+
+  // The 200 ms hit sees the completed 100 ms tick but resolves before the same-time second tick.
+  const laserEdgeFactor = 1 + 50.2 * 0.0015;
+  assertFlooredDamageMultiplier(laser.strikeDamage, laserBase.strikeDamage, laserEdgeFactor);
+  const glassLaser = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike'], {
+    initialHeat: 50,
+    stats: { precision: 1000, ferocity: 0 },
+    selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.LASERS_EDGE]
+  });
+
+  assertFlooredDamageMultiplier(glassLaser.strikeDamage, laserBase.strikeDamage, 1.07 * laserEdgeFactor);
+
+  const solar = simulate('Holosmith', ['Engage Photon Forge', 'Light Strike', 'Bright Slash'], {
+    stats: { precision: 1000, ferocity: 0 },
+    selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
+  });
+  const solarStrikes = solar.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.solarFocusingLens === true
+  );
+  const solarBurns = solar.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.name === 'Solar Focusing Lens — Burning'
+  );
+
+  assert.equal(solarStrikes.length, 2);
+  assert.equal(solarBurns.length, 2);
+  assert.ok(solarBurns.every((event) => event.stacks === 1 && event.duration === 3));
+  assert.equal(solar.endState.profession.solarFocusingLensStacks, 0);
+
+  const storm = simulate(
+    'Holosmith',
+    ['Engage Photon Forge', ID.LIGHT_STRIKE_STORM, ID.BRIGHT_SLASH_STORM, ID.FLASH_CUTTER_STORM],
+    {
+      selectedTraitIds: [TRAIT.CRYSTAL_CONFIGURATION_STORM]
+    }
+  );
+
+  assert.equal(storm.warnings.length, 0);
+  const stormPackets = storm.events.filter((event) => event.type === 'damage' && event.projectile === true);
+
+  assert.deepEqual(
+    stormPackets.map((event) => event.coefficient),
+    [1, 1, 0.8, 0.8]
+  );
+  assert.ok(stormPackets.every((event) => event.damageKind === 'explosion'));
+});
+
+test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () => {
+  const vented = simulate('Holosmith', ['Dodge'], {
+    initialHeat: 50,
+    selectedTraitIds: [TRAIT.THERMAL_RELEASE_VALVE]
+  });
+
+  assert.equal(vented.endState.profession.heat, 35);
+  const vent = vented.events.find((event) => event.type === 'damage' && event.name === 'Vent Exhaust');
+
+  assert.equal(vent.coefficient, 1.1);
+  assert.equal(vent.noCrit, true);
+  assert.equal(vent.canCrit, false);
+  assert.equal(vent.sourceId, ID.VENT_EXHAUST);
+  assert.equal(vent.triggeredBy, 'Dodge');
+  const ventProc = vented.procSteps.find((step) => step.skill === 'Vent Exhaust');
+
+  assert.equal(ventProc.type, 'skill_proc');
+  assert.equal(ventProc.sourceSkill, 'Dodge');
+  assert.equal(ventProc.icon, engineerCatalog.skillsById.get(ID.VENT_EXHAUST).icon);
+  assert.ok(vented.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
+  assert.ok(
+    vented.events.some(
+      (event) =>
+        event.type === 'condition' &&
+        event.name === 'Vent Exhaust — Burning' &&
+        event.stacks === 2 &&
+        event.duration === 6
+    )
+  );
+
+  const enhanced = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 3000 }], {
+    initialHeat: 99,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+  });
+  const mightPulses = enhanced.events.filter(
+    (event) => event.type === 'buff' && event.name === 'Enhanced Capacity Storage Unit — might'
+  );
+
+  assert.equal(mightPulses.length, 3);
+  assert.ok(mightPulses.every((event) => event.stacks === 2 && event.duration === 6));
+
+  const swordChain = ['Sun Edge', 'Sun Ripper', 'Gleam Saber'];
+  const tierBase = simulate('Holosmith', swordChain, {
+    initialHeat: 50,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const tiered = simulate('Holosmith', swordChain, {
+    initialHeat: 51,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const cappedSword = simulate('Holosmith', swordChain, {
+    initialHeat: 101,
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const enhancedSword = simulate('Holosmith', swordChain, {
+    initialHeat: 101,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    stats: { precision: 1000, ferocity: 0 }
+  });
+  const swordDamage = (result, name) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
+
+  for (const name of swordChain) {
+    assertFlooredDamageMultiplier(swordDamage(tiered, name), swordDamage(tierBase, name), 1.2);
+  }
+
+  assert.ok(Math.abs(swordDamage(cappedSword, 'Sun Edge') / swordDamage(tiered, 'Sun Edge') - 1) < 1e-12);
+  assert.ok(swordDamage(enhancedSword, 'Sun Edge') > swordDamage(tiered, 'Sun Edge'));
+
+  const swordTierRule = holosmithModifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
+  const swordTierFactor = (heat, selectedTraitIds = []) =>
+    holosmithProfileStrikeFactor(
+      {
+        config: { selectedTraitIds },
+        catalog: engineerCatalog
+      },
+      HOLOSMITH_BALANCE_PROFILE_IDS.swordHeatTier,
+      { heat, enhancedCapacitySelected: selectedTraitIds.includes(TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) }
+    );
+
+  assert.deepEqual(
+    [
+      swordTierFactor(50),
+      swordTierFactor(51),
+      swordTierFactor(101),
+      swordTierFactor(100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]),
+      swordTierFactor(101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT])
+    ],
+    [1, 1.2, 1.2, 1.2, 1.3]
+  );
+  assert.equal(
+    swordTierRule.factor({ event: { holosmithStrikeFactor: 1.3 } }, 'strikeDamage', swordTierRule.parameters),
+    1.3
+  );
+
+  const blasting = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 7600 }], {
+    initialHeat: 90,
+    selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+  });
+  const blast = blasting.events.find((event) => event.type === 'damage' && event.name === 'Photonic Blasting Module');
+
+  assert.equal(blast.coefficient, 5);
+  assert.equal(blast.explosion, true);
+  assert.equal(blast.comboFinishers[0].finisherType, 'Blast');
+  assert.equal(
+    blasting.events.some((event) => event.type === 'proc' && event.name === 'Overheat'),
+    false
+  );
+
+  const heatLocked = simulate(
+    'Holosmith',
+    [
+      'Engage Photon Forge',
+      { type: 'wait', durationMs: 1000 },
+      'Deactivate Photon Forge',
+      { type: 'wait', durationMs: 10000 }
+    ],
+    {
+      selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
+    }
+  );
+
+  assert.equal(heatLocked.endState.profession.heat, 2);
+});
+
+test('Prime Light Beam creates its damaging field only above 50 heat', () => {
+  const selectedSkills = ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Prime Light Beam'];
+  const cast = (initialHeat) =>
+    simulate('Holosmith', ['Engage Photon Forge', 'Prime Light Beam', { type: 'wait', durationMs: 9000 }], {
+      initialHeat,
+      selectedSkills
+    });
+  const beamDamage = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Prime Light Beam');
+  const beamBurning = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Prime Light Beam' && event.condition === 'Burning'
+    );
+
+  assert.equal(beamDamage(cast(0)).length, 1);
+  // Passive forge heat crosses 50 during this cast, but the activation was cold.
+  assert.equal(beamDamage(cast(49)).length, 1);
+  assert.equal(beamBurning(cast(49)).length, 0);
+  const hot = cast(60);
+
+  assert.equal(beamDamage(hot).length, 11);
+  assert.equal(beamBurning(hot).length, 10);
+  assert.ok(beamDamage(hot).every((event) => event.damageKind === 'explosion'));
+});
+
+test('Holosmith exceed packets use their heat tiers and conditions', () => {
+  const selectedSkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const run = (rotation, initialHeat, selectedTraitIds = []) =>
+    simulate('Holosmith', rotation, {
+      initialHeat,
+      selectedSkills,
+      selectedTraitIds,
+      stats: { precision: 1000, ferocity: 0 },
+      target: { conditions: {} }
+    });
+  const skillEvents = (result, type, skillName) =>
+    result.resolvedEvents.filter((event) => event.type === type && event.skillName === skillName);
+
+  const coldDisk = run(['Laser Disk', { type: 'wait', durationMs: 7000 }], 0);
+  const hotDisk = run(['Laser Disk', { type: 'wait', durationMs: 10000 }], 60);
+  const enhancedDisk = run(['Laser Disk', { type: 'wait', durationMs: 10000 }], 101, [
+    TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  ]);
+  const hotDiskDamage = skillEvents(hotDisk, 'damage', 'Laser Disk');
+  const enhancedDiskDamage = skillEvents(enhancedDisk, 'damage', 'Laser Disk');
+
+  assert.equal(skillEvents(coldDisk, 'damage', 'Laser Disk').length, 12);
+  assert.equal(hotDiskDamage.length, 18);
+  assert.equal(enhancedDiskDamage.length, 18);
+  assert.equal(skillEvents(hotDisk, 'condition', 'Laser Disk').length, 18);
+  assert.ok(hotDiskDamage.every((event) => event.coefficient === 0.5));
+  assert.ok(
+    skillEvents(hotDisk, 'condition', 'Laser Disk').every(
+      (event) => event.condition === 'Bleeding' && event.duration === 2
+    )
+  );
+  assert.ok(
+    enhancedDiskDamage.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35)
+  );
+
+  const coldWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 0);
+  const hotWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 60);
+  const enhancedWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 101, [
+    TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  ]);
+
+  assert.equal(skillEvents(coldWall, 'damage', 'Launch Wall').length, 1);
+  assert.equal(skillEvents(hotWall, 'damage', 'Launch Wall').length, 3);
+  assert.ok(
+    skillEvents(hotWall, 'damage', 'Launch Wall').every(
+      (event) => event.coefficient === 1.5 && event.damageKind === 'explosion'
+    )
+  );
+  assert.ok(
+    skillEvents(hotWall, 'condition', 'Launch Wall').every(
+      (event) => event.condition === 'Vulnerability' && event.stacks === 3 && event.duration === 5
+    )
+  );
+  assert.ok(
+    skillEvents(enhancedWall, 'damage', 'Launch Wall').every(
+      (event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35
+    )
+  );
+
+  const blades = (initialHeat, selectedTraitIds = []) =>
+    run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, selectedTraitIds);
+
+  for (const [label, heat, selectedTraitIds, expectedBlades] of [
+    ['cold', 0, [], 1],
+    ['hot', 60, [], 3],
+    ['capped-without-ecsu', 101, [], 3],
+    ['at-100-with-ecsu', 100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 3],
+    ['above-100-with-ecsu', 101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 5]
+  ]) {
+    const result = blades(heat, selectedTraitIds);
+    const bladeDamage = skillEvents(result, 'damage', 'Refraction Cutter').filter(
+      (event) => event.name === 'Refraction Cutter Blade'
+    );
+    const bladeBleeding = skillEvents(result, 'condition', 'Refraction Cutter').filter(
+      (event) => event.condition === 'Bleeding'
+    );
+
+    assert.equal(bladeDamage.length, expectedBlades, `${label}:blades`);
+    assert.equal(bladeBleeding.length, expectedBlades, `${label}:bleeding`);
+    assert.ok(
+      bladeDamage.every((event) => event.coefficient === 0.4 && event.comboFinishers?.[0]?.chance === 1),
+      `${label}:blade-facts`
+    );
+    assert.ok(
+      bladeBleeding.every((event) => event.stacks === 1 && event.duration === 4),
+      `${label}:bleeding-facts`
+    );
+  }
+
+  const beam = run(['Prime Light Beam', { type: 'wait', durationMs: 11000 }], 101, [
+    TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+  ]);
+  const field = skillEvents(beam, 'damage', 'Prime Light Beam').filter((event) => event.name === 'Field Damage');
+  const burning = skillEvents(beam, 'condition', 'Prime Light Beam');
+
+  assert.equal(field.length, 10);
+  assert.ok(field.every((event) => event.coefficient === 0.5 && event.damageKind === 'explosion'));
+  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.2));
+  assert.equal(burning.length, 10);
+  assert.ok(
+    burning.every((event) => event.condition === 'Burning' && event.duration === 3 && event.effectiveDuration === 4.5)
+  );
+
+  const cappedBeam = simulate('Holosmith', ['Prime Light Beam', { type: 'wait', durationMs: 11000 }], {
+    initialHeat: 101,
+    selectedSkills,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    stats: { expertise: 1500, precision: 1000, ferocity: 0 },
+    target: { conditions: {} }
+  });
+  const cappedBurning = skillEvents(cappedBeam, 'condition', 'Prime Light Beam');
+
+  // The ECSU-specific 50% is part of PLB's base duration, then the normal +100% cap applies.
+  assert.ok(cappedBurning.every((event) => event.effectiveDuration === 9));
+});
+
+test('Holosmith direct heat variants apply profile factors to their eligible packets', () => {
+  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills) => {
+    const result = simulate('Holosmith', [skillName, { type: 'wait', durationMs: 1000 }], {
+      initialHeat,
+      selectedTraitIds,
+      selectedSkills,
+      stats: { precision: 1000, ferocity: 0 }
+    });
+
+    return result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillName === skillName && event.name === skillName
+    );
+  };
+
+  const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+
+  const baseBladeBurst = packetFor('Blade Burst', 0, [], utilitySkills);
+  const baseParticleAccelerator = packetFor('Particle Accelerator', 0, [], utilitySkills);
+
+  for (const [heat, traits, bladeMultiplier, particleMultiplier] of [
+    [60, [], 1.25, 1.1],
+    [100, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 1.25, 1.1],
+    [101, [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT], 1.35, 1.35]
+  ]) {
+    assertFlooredDamageMultiplier(
+      packetFor('Blade Burst', heat, traits, utilitySkills).damage,
+      baseBladeBurst.damage,
+      bladeMultiplier
+    );
+    assertFlooredDamageMultiplier(
+      packetFor('Particle Accelerator', heat, traits, utilitySkills).damage,
+      baseParticleAccelerator.damage,
+      particleMultiplier
+    );
+  }
+});
+
+test('Holosmith heat-profile patches tune tier effects without changing heat topology', () => {
+  const runtime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
+  const catalog = applyBalanceProfilePatch(runtime.catalog, {
+    balanceProfiles: {
+      [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
+        fields: { enhancedStrikeFactor: { from: 1.35, to: 1.5 } }
+      },
+      [HOLOSMITH_BALANCE_PROFILE_IDS.primeLightBeamHeatTier]: {
+        fields: {
+          enhancedStrikeFactor: { from: 1.2, to: 1.4 },
+          enhancedConditionBaseDurationFactor: { from: 1.5, to: 2 }
+        }
+      }
+    }
+  });
+  const profession = Object.freeze({ ...runtime, catalog });
+  const patchedSimulation = (rotation) =>
+    simulateGw2({
+      profession,
+      rotation,
+      config: {
+        ...baseConfig,
+        specialization: 'Holosmith',
+        initialHeat: 101,
+        selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+        selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam']
+      }
+    });
+  const disk = patchedSimulation(['Laser Disk', { type: 'wait', durationMs: 10000 }]);
+  const diskPackets = disk.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Laser Disk'
+  );
+
+  assert.equal(disk.endState.profession.maximumHeat, 150);
+  assert.equal(diskPackets.length, 18);
+  assert.ok(diskPackets.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.5));
+
+  const beam = patchedSimulation(['Prime Light Beam', { type: 'wait', durationMs: 11000 }]);
+  const field = beam.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Prime Light Beam' && event.name === 'Field Damage'
+  );
+  const burning = beam.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Prime Light Beam'
+  );
+
+  assert.ok(field.every((event) => event.holosmithStrikeFactor === 1.4));
+  assert.ok(
+    burning.every((event) => event.holosmithConditionBaseDurationFactor === 2 && event.effectiveDuration === 6)
+  );
+});
+
+test('Relic of Fireworks accepts weapon-strength profession mechanics', () => {
+  const selectedSkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const result = simulate(
+    'Holosmith',
+    ['Blade Burst', 'Grenade Barrage', 'Static Shock', { type: 'wait', durationMs: 1000 }],
+    {
+      selectedSkills,
+      relic: 'Fireworks'
+    }
+  );
+  const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+
+  // Eligibility is per skill; packet timestamps can coalesce multiple qualifying strikes into one proc.
+  assert.deepEqual(
+    new Set(procs.map((step) => step.sourceSkill)),
+    new Set(['Blade Burst', 'Grenade Barrage', 'Static Shock'])
+  );
+
+  const utility = simulate('Holosmith', ['Laser Disk', { type: 'wait', durationMs: 1000 }], {
+    selectedSkills,
+    relic: 'Fireworks'
+  });
+
+  assert.equal(
+    utility.procSteps.some((step) => step.skill === 'Relic of Fireworks'),
+    false
+  );
+});
+
+test('Relic of Thorns adds +30 Condition Damage per stack to condition ticks', () => {
+  const rotation = ['Grenade Kit', 'Poison Grenade', 'Shrapnel Grenade', { type: 'wait', durationMs: 60000 }];
+  const withThorns = simulate('Amalgam', rotation, { relic: 'Thorns' });
+  const withStartingStacks = simulate('Amalgam', rotation, { relic: 'Thorns', initialThornsStacks: 5 });
+  const withoutRelic = simulate('Amalgam', rotation, { relic: '' });
+
+  // Thorns is a condition-damage attribute buff: strike output must be identical
+  // while condition ticks scale up with the ramping stacks.
+  assert.equal(withThorns.strikeDamage, withoutRelic.strikeDamage);
+  assert.ok(
+    withThorns.conditionDamage > withoutRelic.conditionDamage,
+    `expected Thorns to raise condition damage (${withThorns.conditionDamage} vs ${withoutRelic.conditionDamage})`
+  );
+  assert.ok(withStartingStacks.conditionDamage > withThorns.conditionDamage);
+
+  // Stacks ramp on the display timeline: first at 3s, one more every 5s, capped at 10.
+  const stackDetails = withThorns.procSteps
+    .filter((step) => step.skill === 'Relic of Thorns')
+    .map((step) => step.detail);
+
+  assert.equal(stackDetails[0], '1/10 stacks');
+  assert.equal(stackDetails.at(-1), '10/10 stacks');
+  assert.deepEqual(
+    withStartingStacks.procSteps
+      .filter((step) => step.skill === 'Relic of Thorns')
+      .slice(0, 2)
+      .map((step) => [step.start, step.detail]),
+    [
+      [0, '5/10 stacks'],
+      [3000, '6/10 stacks']
+    ]
+  );
+});
+
+test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
+  const result = simulate(
+    'Holosmith',
+    ['Grenade Kit', 'Poison Grenade', 'Freeze Grenade', { type: 'wait', durationMs: 2000 }],
+    {
+      selectedSkills: ['Grenade Kit'],
+      relic: 'Fireworks'
+    }
+  );
+
+  // Poison Grenade and Freeze Grenade both recharge in 20s but strike at bundle
+  // strength, so the kit must not trigger Fireworks.
+  assert.equal(
+    result.procSteps.some((step) => step.skill === 'Relic of Fireworks'),
+    false
+  );
+});
+
+// Restoring scheduler resources must not rewind trait clocks already advanced by the resolver.
+test('Engineer restoration preserves resolver-owned trait clocks', () => {
+  const engineer = {
+    profession: {
+      core: { endurance: 10, traitProcReadyAt: { thermalVisionUntil: 7 } },
+      specialization: { kind: 'Holosmith', state: { heat: 1 } }
+    }
+  };
+  handleEngineerState(engineer, {
+    state: { endurance: 20, heat: 2, traitProcReadyAt: { thermalVisionUntil: 1 } }
+  });
+  assert.equal(engineer.profession.core.endurance, 20);
+  assert.equal(engineer.profession.specialization.state.heat, 2);
+  assert.deepEqual(engineer.profession.core.traitProcReadyAt, { thermalVisionUntil: 7 });
+});

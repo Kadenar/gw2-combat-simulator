@@ -1,0 +1,1105 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  buildTimeSeries,
+  buildPhaseDpsSeries,
+  buildPhaseEffectSeries,
+  chartValueAt
+} from '#gw2/app/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
+import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
+import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
+import {
+  dismissResultMetricDetails,
+  modifierContributionsHtml,
+  mountRotationResults,
+  nextResultSortState,
+  SKILL_COLS,
+  sortResultRows
+} from '#gw2/app/results/analysis-panel.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+
+// Pending comparisons occupy only their own section and never present old values as current.
+test('modifier section shows pending, completed, empty, and failed states', () => {
+  const contributions = [{ name: 'Old modifier', dpsIncrease: 12, pctIncrease: 1 }];
+  const pending = modifierContributionsHtml({ contributions, contributionsStale: true });
+  assert.match(pending, /role="status">Calculating modifier contributions/);
+  assert.doesNotMatch(pending, /Old modifier|contrib-table/);
+  assert.match(modifierContributionsHtml({ contributions }), /Old modifier/);
+  assert.equal(modifierContributionsHtml({ contributions: [] }), '');
+  assert.match(modifierContributionsHtml({ contributionsError: 'Failed <request>' }), /Failed &lt;request&gt;/);
+});
+
+// GW2 results preserve chart projections, result controls, and escaped event-log rendering.
+test('shared chart lookup and series cover damage timing and configurable effects', () => {
+  assert.equal(chartValueAt([], 10), 0);
+  assert.equal(
+    chartValueAt(
+      [
+        { t: 0, v: 1 },
+        { t: 100, v: 4 }
+      ],
+      99
+    ),
+    1
+  );
+  assert.equal(
+    chartValueAt(
+      [
+        { t: 0, v: 1 },
+        { t: 100, v: 4 }
+      ],
+      100
+    ),
+    4
+  );
+
+  const series = buildTimeSeries(
+    {
+      duration: 9,
+      deathTime: 2,
+      dpsStartTime: 0.5,
+      resolvedEvents: [
+        { type: 'damage', at: 0.5, damage: 100 },
+        {
+          type: 'condition',
+          at: 1,
+          condition: 'burn',
+          duration: 2,
+          expiresAt: 2,
+          naturalExpiresAt: 3,
+          stacks: 3,
+          damage: 0,
+          damageTicks: [
+            { at: 1, damage: 50 },
+            { at: 2, damage: 250 }
+          ]
+        }
+      ],
+      events: [
+        {
+          type: 'buff',
+          at: 0,
+          kind: 'power',
+          duration: 2,
+          stacks: 2,
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            alliedPlayerCount: 0,
+            companionIds: [],
+            recipientCount: 1
+          }
+        }
+      ]
+    },
+    1000,
+    {
+      effectName: (value) => `Effect <${value}>`,
+      stackCaps: { 'Effect <burn>': 2 }
+    }
+  );
+
+  assert.equal(series.durationMs, 1500);
+  assert.equal(series.dps[0].v, 0);
+  assert.equal(series.dps[1].v, 150);
+  assert.equal(series.dps.at(-1).v, 400 / 1.5);
+  assert.equal(series.cumulativeDamage.at(-1).v, 400);
+  assert.equal(series.effects['Effect <burn>'][1].v, 2);
+  assert.equal(series.effects['Effect <burn>'].at(-1).v, 2);
+  assert.equal(series.effects['Effect <power>'][0].v, 2);
+  assert.deepEqual(series.effectTypes, {
+    'Effect <burn>': 'condition',
+    'Effect <power>': 'buff'
+  });
+});
+
+test('shared DPS charts start their sample grid at the first hit', () => {
+  const series = buildTimeSeries({
+    duration: 2,
+    dpsStartTime: 1.156,
+    resolvedEvents: [
+      { type: 'damage', at: 1.156, damage: 3567 },
+      { type: 'damage', at: 1.32, damage: 916 }
+    ]
+  });
+
+  assert.equal(series.durationMs, 844);
+  assert.deepEqual(series.dps.slice(0, 2), [
+    { t: 0, v: 0 },
+    { t: 250, v: 4483 / 0.25 }
+  ]);
+});
+
+// A sorted sweep must preserve inclusive sample boundaries, tick ownership, and the reporting window.
+test('DPS samples accumulate unordered hits and ticks without changing reporting metrics', () => {
+  const result = {
+    duration: 9,
+    dpsStartTime: 1,
+    deathTime: 2.1,
+    totalDamage: 212,
+    dps: 212 / 1.1,
+    resolvedEvents: Object.freeze([
+      Object.freeze({ type: 'damage', at: 2, damage: 20 }),
+      Object.freeze({
+        type: 'condition',
+        at: 1,
+        condition: 'Bleeding',
+        damage: 999,
+        damageTicks: Object.freeze([
+          Object.freeze({ at: 2.2, damage: 10000 }),
+          Object.freeze({ at: 1.5, damage: 30 }),
+          Object.freeze({ at: 1.25, damage: 10 }),
+          Object.freeze({ at: 2.1, damage: 40 })
+        ])
+      }),
+      Object.freeze({ type: 'damage', at: 1, damage: 100 }),
+      Object.freeze({ type: 'damage', at: 1.5, damage: 5 }),
+      Object.freeze({ type: 'damage', at: 0.75, damage: 7 })
+    ])
+  };
+  const metrics = baseResultSummaryMetrics(result);
+  const series = buildTimeSeries(result, 500);
+  assert.deepEqual(series.dps, [
+    { t: 0, v: 0 },
+    { t: 500, v: 152 / 0.5 },
+    { t: 1000, v: 172 },
+    { t: 1100, v: 212 / 1.1 }
+  ]);
+  assert.equal(series.cumulativeDamage.at(-1).v, result.totalDamage);
+  assert.equal(series.dps.at(-1).v, result.dps);
+  assert.deepEqual(baseResultSummaryMetrics(result), metrics);
+});
+
+// Only chart preparation reads a relic's expiry; hidden-view creation must not visit that history.
+test('Analysis charts are prepared only when the Analysis view is active', (t) => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (descriptor) Object.defineProperty(globalThis, 'document', descriptor);
+    else delete globalThis.document;
+  });
+  const document = {
+    body: { dataset: { simulatorView: 'workspace' } },
+    defaultView: { location: { hash: '#analysis' } }
+  };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
+  let chartReads = 0;
+  const app = {
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
+    results: {
+      duration: 1,
+      totalDamage: 100,
+      dps: 100,
+      procSteps: [
+        {
+          type: 'relic_proc',
+          skill: 'Test relic',
+          start: 0,
+          get expiresAt() {
+            chartReads++;
+            return 1000;
+          }
+        }
+      ]
+    }
+  };
+  for (const view of ['workspace', 'gear-optimizer', 'analysis', 'workspace', 'analysis']) {
+    document.body.dataset.simulatorView = view;
+    chartReads = 0;
+    const model = createGw2SimulationViewModel(app);
+    assert.equal(chartReads > 0, view === 'analysis');
+    const summary = inertContainer();
+    model.summary.panels[0].mount(summary);
+    assert.match(summary.innerHTML, /Player DPS/);
+    assert.match(summary.innerHTML, />100</);
+  }
+
+  // A direct #analysis load also prepares charts before navigation sets the body dataset.
+  delete document.body.dataset.simulatorView;
+  chartReads = 0;
+  createGw2SimulationViewModel(app);
+  assert.ok(chartReads > 0);
+});
+
+test('target health breakpoints use cumulative damage and individual condition ticks', () => {
+  const snapshots = targetHealthBreakpointSnapshots(
+    {
+      dpsStartTime: 0.5,
+      resolvedEvents: [
+        { type: 'damage', at: 0.5, damage: 100 },
+        {
+          type: 'condition',
+          at: 0.75,
+          damage: 350,
+          damageTicks: [
+            { at: 1, damage: 150 },
+            { at: 1.5, damage: 200 }
+          ]
+        },
+        { type: 'damage', at: 1.5, damage: 200 },
+        { type: 'damage', at: 2, damage: 200 }
+      ]
+    },
+    1000
+  );
+
+  assert.deepEqual(
+    snapshots.map((snapshot) => snapshot.healthPercent),
+    [80, 60, 40, 20]
+  );
+  assert.deepEqual(
+    snapshots.map((snapshot) => snapshot.elapsed),
+    [0.5, 1, 1, 1.5]
+  );
+  assert.deepEqual(
+    snapshots.map((snapshot) => snapshot.damage),
+    [250, 650, 650, 850]
+  );
+  assert.deepEqual(
+    snapshots.map((snapshot) => snapshot.dps),
+    [500, 650, 650, 850 / 1.5]
+  );
+  assert.deepEqual(
+    targetHealthBreakpointSnapshots(
+      {
+        dpsStartTime: 0,
+        resolvedEvents: [
+          { type: 'damage', at: 1, damage: 100 },
+          { type: 'damage', at: 2, damage: 100 }
+        ]
+      },
+      1000,
+      [80, 40, 20],
+      40
+    ).map(({ healthPercent, at }) => ({ healthPercent, at })),
+    [{ healthPercent: 20, at: 2 }]
+  );
+  assert.deepEqual(targetHealthBreakpointSnapshots({}, 0), []);
+});
+
+test('target health breakpoints use environment damage for timing but player damage for DPS', () => {
+  const snapshots = targetHealthBreakpointSnapshots(
+    {
+      dpsStartTime: 0.5,
+      resolvedEvents: [{ type: 'damage', at: 0.5, damage: 100 }],
+      environmentConditionBreakdown: [
+        {
+          name: 'Burning',
+          damageTicks: [{ at: 1, damage: 120 }]
+        }
+      ]
+    },
+    400,
+    [50]
+  );
+
+  assert.deepEqual(snapshots, [
+    {
+      healthPercent: 50,
+      at: 1,
+      elapsed: 0.5,
+      damage: 100,
+      dps: 200,
+      environmentDamage: 120,
+      targetDamage: 220
+    }
+  ]);
+});
+
+test('summary metrics separate player attribution from right-grouped target damage', () => {
+  const metrics = baseResultSummaryMetrics({
+    duration: 2,
+    deathTime: null,
+    totalDamage: 100,
+    dps: 50,
+    strikeDamage: 100,
+    conditionDamage: 0,
+    environmentDamage: 44,
+    environmentDps: 22,
+    environmentConditionBreakdown: [{ name: 'Bleeding', damage: 44 }]
+  });
+  const environment = metrics.find((metric) => metric.label === 'Environment Damage');
+
+  assert.equal(metrics.find((metric) => metric.label === 'Player Damage').value, '100');
+  assert.equal(metrics.find((metric) => metric.label === 'Player DPS').value, '50');
+  assert.equal(environment.value, '44');
+  assert.equal(environment.group, 'target');
+  assert.equal(metrics.find((metric) => metric.label === 'Target Damage').value, '144');
+  assert.deepEqual(environment.details, [
+    { label: 'Environment DPS', value: '22' },
+    { label: 'Bleeding', value: '44' }
+  ]);
+});
+
+test('phase DPS is recalculated from damage within the selected health range', () => {
+  assert.deepEqual(
+    buildPhaseDpsSeries(
+      [
+        { t: 0, v: 0 },
+        { t: 1000, v: 100 },
+        { t: 2000, v: 300 },
+        { t: 3000, v: 600 }
+      ],
+      1000,
+      3000,
+      100,
+      600
+    ),
+    [
+      { t: 0, v: 0 },
+      { t: 1000, v: 200 },
+      { t: 2000, v: 250 }
+    ]
+  );
+  assert.deepEqual(buildPhaseDpsSeries([], 1000, 1000, 100, 100), []);
+});
+
+test('phase effects are cropped and rebased to the selected health range', () => {
+  assert.deepEqual(
+    buildPhaseEffectSeries(
+      [
+        { t: 0, v: 0 },
+        { t: 500, v: 1 },
+        { t: 1500, v: 2 },
+        { t: 2500, v: 0 },
+        { t: 3000, v: 3 }
+      ],
+      1000,
+      3000
+    ),
+    [
+      { t: 0, v: 1 },
+      { t: 500, v: 2 },
+      { t: 1500, v: 0 },
+      { t: 2000, v: 3 }
+    ]
+  );
+  assert.deepEqual(buildPhaseEffectSeries([], 1000, 3000), []);
+  assert.deepEqual(buildPhaseEffectSeries([{ t: 0, v: 1 }], 1000, 1000), []);
+});
+
+test('shared chart markup escapes effect names and uses scoped roles without ids', () => {
+  const container = inertContainer();
+
+  mountTimeSeriesCharts(
+    container,
+    {
+      durationMs: 1000,
+      dps: [{ t: 0, v: 0 }],
+      effects: {
+        'Bad"><img src=x>': [{ t: 0, v: 1 }],
+        Quickness: [{ t: 0, v: 2.5 }],
+        Alacrity: [{ t: 0, v: 1.5 }],
+        Torment: [{ t: 0, v: 3 }]
+      },
+      effectTypes: {
+        Quickness: 'boon',
+        Alacrity: 'boon',
+        Torment: 'condition',
+        'Bad"><img src=x>': 'buff'
+      },
+      effectUnits: { Quickness: 's' },
+      cumulativeDamage: [
+        { t: 0, v: 0 },
+        { t: 1000, v: 1000 }
+      ]
+    },
+    {
+      targetDied: true,
+      healthBreakpoints: [
+        { healthPercent: 80, elapsed: 0.2, damage: 200 },
+        { healthPercent: 60, elapsed: 0.4, damage: 400 },
+        { healthPercent: 40, elapsed: 0.6, damage: 600 },
+        { healthPercent: 20, elapsed: 0.8, damage: 800 }
+      ]
+    }
+  );
+  assert.match(container.innerHTML, /data-role="dps-canvas"/);
+  assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
+  assert.match(container.innerHTML, /Quickness \(s\)/);
+  assert.deepEqual(
+    [...container.innerHTML.matchAll(/data-role="chart-toggle-group" data-effect-type="([^"]+)"/g)].map(
+      (match) => match[1]
+    ),
+    ['boon', 'condition', 'buff']
+  );
+  assert.equal(
+    container.innerHTML.indexOf('Alacrity'),
+    Math.min(container.innerHTML.indexOf('Alacrity'), container.innerHTML.indexOf('Quickness'))
+  );
+  assert.equal([...container.innerHTML.matchAll(/data-toggle-action="all"/g)].length, 3);
+  assert.equal([...container.innerHTML.matchAll(/data-toggle-action="none"/g)].length, 3);
+  assert.match(container.innerHTML, /data-role="chart-phase-toggles"/);
+  assert.match(container.innerHTML, /Chart range/);
+  assert.match(container.innerHTML, /data-role="effects-panel-title"/);
+  assert.match(container.innerHTML, /Full Fight/);
+  assert.deepEqual(
+    [...container.innerHTML.matchAll(/data-chart-phase="([^"]+)"/g)].map((match) => match[1]),
+    ['full', '100-80', '80-60', '60-40', '40-20', '20-0']
+  );
+  const finalPhaseButton = container.innerHTML.match(
+    /<button type="button"[\s\S]*?data-chart-phase="20-0"[\s\S]*?<\/button>/
+  );
+
+  assert.ok(finalPhaseButton);
+  assert.doesNotMatch(finalPhaseButton[0], /disabled/);
+  assert.doesNotMatch(container.innerHTML, /\sid="/);
+});
+
+// Mount the result flow so health metadata and completed-range controls are checked together.
+for (const [startingHealthPercent, targetDied] of [
+  [100, false],
+  [100, true],
+  [90, true],
+  [80, true],
+  [20, true]
+]) {
+  test(`chart health phases respect a ${startingHealthPercent}% start and target ${targetDied ? 'death' : 'survival'}`, () => {
+    const chartContainer = inertContainer();
+    const container = {
+      ...inertContainer(),
+      querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null)
+    };
+    const view = createGw2SimulationViewModel({
+      build: {
+        rotation: [{ type: 'cast', skillId: 'Strike' }],
+        targetHealth: 100,
+        targetStartingHealthPercent: startingHealthPercent
+      },
+      results: {
+        duration: 10,
+        dpsStartTime: 0,
+        deathTime: targetDied ? 10 : null,
+        totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
+        conditionDamage: 0,
+        resolvedEvents: [
+          { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
+          { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
+        ]
+      }
+    });
+    view.analysis.panels[0].mount(container);
+
+    const phaseEnabled = (id) => {
+      const button = chartContainer.innerHTML.match(new RegExp(`<button[^>]*data-chart-phase="${id}"[^>]*>`));
+      assert.ok(button, `Missing ${id} phase control`);
+      return !button[0].includes('disabled');
+    };
+
+    assert.equal(phaseEnabled('20-0'), targetDied);
+    assert.equal(phaseEnabled('100-80'), startingHealthPercent === 100);
+    assert.equal(phaseEnabled('80-60'), startingHealthPercent === 80);
+  });
+}
+
+test('chart canvases stay fluid when their initial container width is unavailable', () => {
+  const context = {
+    beginPath() {},
+    clearRect() {},
+    fillText() {},
+    lineTo() {},
+    moveTo() {},
+    restore() {},
+    save() {},
+    setLineDash() {},
+    setTransform() {},
+    stroke() {}
+  };
+  const parentElement = { clientWidth: 0 };
+  const canvas = () => ({
+    closest: () => null,
+    getContext: () => context,
+    parentElement,
+    style: {}
+  });
+  const dpsCanvas = canvas();
+  const effectsCanvas = canvas();
+  const canvases = new Map([
+    ['[data-role="dps-canvas"]', dpsCanvas],
+    ['[data-role="effects-canvas"]', effectsCanvas]
+  ]);
+  const container = {
+    innerHTML: '',
+    querySelector: (selector) => canvases.get(selector) || null,
+    querySelectorAll: () => []
+  };
+
+  mountTimeSeriesCharts(container, {
+    durationMs: 1000,
+    dps: [{ t: 0, v: 100 }],
+    effects: {}
+  });
+
+  assert.equal(dpsCanvas.width, 760);
+  assert.equal(effectsCanvas.width, 760);
+  assert.equal(dpsCanvas.style.width, '100%');
+  assert.equal(effectsCanvas.style.width, '100%');
+});
+
+test('result charts reuse the target-health DPS snapshot breakpoints', () => {
+  const chartContainer = inertContainer();
+  const container = {
+    innerHTML: '',
+    querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null),
+    querySelectorAll: () => []
+  };
+
+  mountRotationResults(container, {
+    breakpoints: [
+      { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
+      { healthPercent: 60, dps: 1400, elapsed: 2, damage: 2800 }
+    ],
+    chartSeries: {
+      durationMs: 3000,
+      dps: [{ t: 0, v: 0 }],
+      effects: {},
+      cumulativeDamage: [
+        { t: 0, v: 0 },
+        { t: 3000, v: 4000 }
+      ]
+    }
+  });
+
+  assert.match(chartContainer.innerHTML, /data-chart-phase="100-80"[\s\S]*?aria-pressed="false"/);
+  assert.match(chartContainer.innerHTML, /data-chart-phase="80-60"[\s\S]*?aria-pressed="false"/);
+});
+
+test('result sorting handles defaults, numeric directions, strings, and cycling', () => {
+  assert.deepEqual(
+    SKILL_COLS.map((column) => column.key),
+    ['name', 'strike', 'condition', 'total', 'dps', 'average', 'dct', 'casts', 'hits', 'critChance']
+  );
+  const rows = [
+    { name: 'Beta', total: 20, dps: 5 },
+    { name: 'Alpha', total: 10, dps: 8 }
+  ];
+  const columns = [
+    { key: 'name', numeric: false },
+    { key: 'dps', numeric: true }
+  ];
+
+  assert.deepEqual(
+    sortResultRows(rows, columns, null, null).map((row) => row.name),
+    ['Beta', 'Alpha']
+  );
+  assert.deepEqual(
+    sortResultRows(rows, columns, 'dps', 'asc').map((row) => row.name),
+    ['Beta', 'Alpha']
+  );
+  assert.deepEqual(
+    sortResultRows(rows, columns, 'dps', 'desc').map((row) => row.name),
+    ['Alpha', 'Beta']
+  );
+  assert.deepEqual(
+    sortResultRows(rows, columns, 'name', 'asc').map((row) => row.name),
+    ['Alpha', 'Beta']
+  );
+  assert.deepEqual(nextResultSortState(null, null, 'dps'), {
+    column: 'dps',
+    direction: 'desc'
+  });
+  assert.deepEqual(nextResultSortState('dps', 'desc', 'dps'), {
+    column: 'dps',
+    direction: 'asc'
+  });
+  assert.deepEqual(nextResultSortState('dps', 'asc', 'dps'), {
+    column: null,
+    direction: null
+  });
+});
+
+test('shared results render summaries, totals, contributions, and icons', () => {
+  const container = inertContainer();
+  const resolved = [];
+
+  mountRotationResults(
+    container,
+    {
+      metrics: [
+        { label: 'Player DPS', value: '1,234', className: 'dps' },
+        { label: 'Environment Damage', value: '50', className: 'environment', group: 'target' },
+        { label: 'Target Damage', value: '1,284', className: 'target-damage', group: 'target' }
+      ],
+      breakpoints: [{ healthPercent: 80, dps: 1234, elapsed: 3.25 }],
+      skillColumns: [
+        { key: 'name', label: 'Skill', numeric: false },
+        { key: 'total', label: 'Total', numeric: true }
+      ],
+      skillRows: [
+        { name: 'Low', total: 10 },
+        { name: 'High', total: 20 }
+      ],
+      conditions: [
+        { name: 'Weak <slow>', damage: 0, dps: 0, averageStacks: 0.5 },
+        { name: 'Burn <hot>', damage: 25, dps: 5, averageStacks: 1.25 }
+      ],
+      conditionTotal: { label: 'Total Conditions', damage: 25, dps: 5 },
+      contributions: [
+        {
+          name: 'Bonus',
+          dpsIncrease: 12,
+          pctIncrease: 1.5,
+          icon: 'bonus.png'
+        },
+        {
+          name: 'Noise',
+          dpsIncrease: -0.1,
+          pctIncrease: -0.001
+        },
+        {
+          name: 'Penalty',
+          dpsIncrease: -12,
+          pctIncrease: -1.5
+        }
+      ],
+      contributionsStale: false,
+      randomDistributionRequested: true,
+      randomDistribution: {
+        trials: 500,
+        mean: 1234,
+        p01: 1000,
+        p10: 1100,
+        p50: 1225,
+        p90: 1350,
+        p99: 1500,
+        explanation: {
+          cohortPercent: 10,
+          lowDpsMean: 1040,
+          highDpsMean: 1460,
+          drivers: [
+            {
+              id: 'critical:illusion',
+              label: 'Illusion critical hits',
+              category: 'critical',
+              unit: 'count',
+              lowAverage: 18.2,
+              overallAverage: 21.5,
+              highAverage: 25.4,
+              delta: 7.2,
+              correlation: 0.84,
+              estimatedDpsDelta: 360
+            }
+          ]
+        }
+      }
+    },
+    {
+      resolveSkillIcon: (row) => {
+        resolved.push(row.name);
+
+        return `icon-${row.name}.png`;
+      }
+    }
+  );
+
+  assert.match(container.innerHTML, /res-summary/);
+  assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
+  assert.match(container.innerHTML, /<details class="res-dps-snapshots">/);
+  assert.match(container.innerHTML, /DPS snapshots/);
+  assert.doesNotMatch(container.innerHTML, /res-breakpoints/);
+  assert.match(container.innerHTML, /80%<\/b> target health/);
+  assert.match(container.innerHTML, />1,234</);
+  assert.match(container.innerHTML, /at 3\.25s/);
+  assert.ok(container.innerHTML.indexOf('High') < container.innerHTML.indexOf('Low'));
+  assert.match(container.innerHTML, /Total Conditions/);
+  assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);
+  assert.doesNotMatch(container.innerHTML, /res-section-title"><svg/);
+  assert.ok(container.innerHTML.indexOf('Damage Breakdown') < container.innerHTML.indexOf('Conditions'));
+  assert.ok(container.innerHTML.indexOf('Damaging Conditions') < container.innerHTML.indexOf('Burn &lt;hot&gt;'));
+  assert.ok(container.innerHTML.indexOf('Burn &lt;hot&gt;') < container.innerHTML.indexOf('Other Conditions'));
+  assert.ok(container.innerHTML.indexOf('Other Conditions') < container.innerHTML.indexOf('Weak &lt;slow&gt;'));
+  assert.match(container.innerHTML, /\+12/);
+  assert.match(container.innerHTML, /\+1\.50%/);
+  assert.match(
+    container.innerHTML,
+    /Noise<\/span>\s*<span class="contrib-val">0<\/span>\s*<span class="contrib-pct">0\.00%/
+  );
+  assert.match(
+    container.innerHTML,
+    /Penalty<\/span>\s*<span class="contrib-val">-12<\/span>\s*<span class="contrib-pct">-1\.50%/
+  );
+  assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
+  assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
+  assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
+  assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
+  assert.match(container.innerHTML, /Randomized DPS range/);
+  assert.match(container.innerHTML, /Recalculate/);
+  assert.match(container.innerHTML, /500 simulations/);
+  assert.match(container.innerHTML, /Rare low outcome/);
+  assert.match(container.innerHTML, /About 1 in 100 runs are lower/);
+  assert.match(container.innerHTML, /Rare high outcome/);
+  assert.match(container.innerHTML, /About 1 in 100 runs are higher/);
+  assert.match(container.innerHTML, /1,100&ndash;1,350/);
+  assert.match(container.innerHTML, /What was different in the highest-DPS simulations\?/);
+  assert.match(container.innerHTML, /50 highest vs 50 lowest/);
+  assert.match(container.innerHTML, /The 50 highest-DPS simulations averaged 1,460 DPS/);
+  assert.match(container.innerHTML, /The 50 lowest-DPS simulations averaged 1,040 DPS/);
+  assert.match(container.innerHTML, /Illusion critical hits/);
+  assert.match(container.innerHTML, /Highest-DPS group: 25\.4 average per simulation/);
+  assert.match(container.innerHTML, /Lowest-DPS group: 18\.2 average per simulation/);
+  assert.match(container.innerHTML, /\+7\.2/);
+  assert.match(container.innerHTML, /difference/);
+  assert.match(container.innerHTML, /&asymp; \+360 DPS/);
+  assert.match(container.innerHTML, /estimated DPS difference/);
+  assert.match(container.innerHTML, /single-variable trend estimates/);
+  assert.match(container.innerHTML, /averages across each group/);
+  assert.match(container.innerHTML, /do not add them together/);
+  assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Randomized DPS range'));
+  assert.deepEqual(resolved, ['High', 'Low']);
+
+  assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test('modifier contribution errors are visible and escaped', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    contributionsError: 'Comparison <failed>'
+  });
+
+  assert.match(container.innerHTML, /Modifier Contributions/);
+  assert.match(container.innerHTML, /class="contrib-pending contrib-error"/);
+  assert.match(container.innerHTML, /Comparison &lt;failed&gt;/);
+  assert.doesNotMatch(container.innerHTML, /Comparison <failed>/);
+});
+
+test('summary metrics render a clickable and escaped contributor disclosure', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    metrics: [
+      {
+        label: 'Total Idle Time',
+        value: '650ms',
+        details: [
+          { label: 'Idle time between skills', value: '250ms' },
+          { label: "Skill cancelled '<Mind Stab>'", value: '400ms' }
+        ]
+      }
+    ]
+  });
+
+  assert.match(container.innerHTML, /<details class="res-metric-info">/);
+  assert.match(container.innerHTML, /aria-label="Show Total Idle Time breakdown"/);
+  assert.match(container.innerHTML, /Idle time between skills/);
+  assert.match(container.innerHTML, /Skill cancelled '&lt;Mind Stab&gt;'/);
+  assert.doesNotMatch(container.innerHTML, /Skill cancelled '<Mind Stab>'/);
+});
+
+test('summary metric disclosures stay open for internal clicks and dismiss on click away', () => {
+  const inside = {};
+  const outside = {};
+  const clickedDetails = { open: true, contains: (target) => target === inside };
+  const otherDetails = { open: true, contains: () => false };
+  const root = {
+    querySelectorAll: () => [clickedDetails, otherDetails]
+  };
+
+  dismissResultMetricDetails(root, inside);
+  assert.equal(clickedDetails.open, true);
+  assert.equal(otherDetails.open, false);
+
+  dismissResultMetricDetails(root, outside);
+  assert.equal(clickedDetails.open, false);
+});
+
+test('summary metric click-away dismissal binds before the native details click toggle', () => {
+  const eventTypes = [];
+  const ownerDocument = {
+    addEventListener: (type) => eventTypes.push(type),
+    querySelectorAll: () => []
+  };
+  const container = { ...inertContainer(), ownerDocument };
+
+  mountRotationResults(container, { metrics: [] });
+
+  assert.deepEqual(eventTypes, ['pointerdown']);
+});
+
+test('skill damage rows group player damage before owned entities', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    skillColumns: [
+      { key: 'name', label: 'Skill', numeric: false },
+      { key: 'strike', label: 'Strike', numeric: true },
+      {
+        key: 'condition',
+        label: 'Condition',
+        numeric: true,
+        className: 'condi'
+      },
+      { key: 'total', label: 'Total', numeric: true, className: 'total' },
+      { key: 'dps', label: 'DPS', numeric: true, className: 'dps' }
+    ],
+    skillRows: [
+      {
+        name: 'Player Low',
+        strike: 6,
+        condition: 4,
+        total: 10,
+        dps: 2,
+        group: 'Player'
+      },
+      {
+        name: 'Entity High',
+        strike: 75,
+        condition: 25,
+        total: 100,
+        dps: 20,
+        group: 'Entities'
+      },
+      {
+        name: 'Player High',
+        strike: 15,
+        condition: 5,
+        total: 20,
+        dps: 4,
+        group: 'Player'
+      },
+      {
+        name: 'Entity Low',
+        strike: 30,
+        condition: 20,
+        total: 50,
+        dps: 10,
+        group: 'Entities'
+      }
+    ]
+  });
+
+  const html = container.innerHTML;
+  const playerGroup = html.indexOf('data-skill-group="Player"');
+  const entityGroup = html.indexOf('data-skill-group="Entities"');
+
+  assert.ok(playerGroup >= 0);
+  assert.ok(entityGroup > playerGroup);
+  assert.ok(html.indexOf('Player High') < html.indexOf('Player Low'));
+  assert.ok(html.indexOf('Player Low') < entityGroup);
+  assert.ok(html.indexOf('Entity High') < html.indexOf('Entity Low'));
+  assert.match(html, /aria-label="Player Strike: 21">21</);
+  assert.match(html, /aria-label="Player Condition: 9">9</);
+  assert.match(html, /aria-label="Player Total: 30">30</);
+  assert.match(html, /aria-label="Player DPS: 6">6</);
+  assert.match(html, /aria-label="Entities Strike: 105">105</);
+  assert.match(html, /aria-label="Entities Condition: 45">45</);
+  assert.match(html, /aria-label="Entities Total: 150">150</);
+  assert.match(html, /aria-label="Entities DPS: 30">30</);
+});
+
+test('randomized DPS range waits for its calculate button', () => {
+  const runButton = {};
+  const container = {
+    ...inertContainer(),
+    querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null)
+  };
+  let runCount = 0;
+
+  mountRotationResults(
+    container,
+    {
+      metrics: [],
+      randomDistributionRequested: true,
+      randomDistributionTrials: 500
+    },
+    {
+      onRunRandomDistribution() {
+        runCount += 1;
+      }
+    }
+  );
+
+  assert.match(container.innerHTML, /weapon strength and supported random procs/);
+  assert.match(container.innerHTML, /500 simulations/);
+  assert.match(container.innerHTML, /Calculate range/);
+  assert.equal(typeof runButton.onclick, 'function');
+  runButton.onclick();
+  assert.equal(runCount, 1);
+});
+
+test('randomized DPS range renders completed simulations and percentage progress', () => {
+  const container = inertContainer();
+
+  mountRotationResults(container, {
+    metrics: [],
+    randomDistributionRequested: true,
+    randomDistributionStale: true,
+    randomDistributionTrials: 500,
+    randomDistributionProgress: {
+      completed: 125,
+      total: 500,
+      percent: 25
+    }
+  });
+
+  assert.match(container.innerHTML, /role="progressbar"/);
+  assert.match(container.innerHTML, /aria-valuenow="25"/);
+  assert.match(container.innerHTML, /style="width: 25%"/);
+  assert.match(container.innerHTML, /125 \/ 500 simulations \(25%\)/);
+});
+
+test('event log CSV escapes cells', () => {
+  const rows = [{ at: 0, type: 'action', description: 'CAST Quote "skill"' }];
+
+  assert.match(eventLogCsv(rows), /"CAST Quote ""skill"""/);
+});
+
+// Same-time rows follow activation order, including instant casts and derived hits with different names.
+test('event log finishes an activation before the next same-time cast', () => {
+  const rows = simulationEventLogRows({
+    events: [
+      { type: 'action', activationId: 'first', at: 0, endsAt: 0, name: 'Z' },
+      { type: 'action', activationId: 'second', at: 0, endsAt: 0, name: 'A' },
+      { type: 'action', activationId: 'third', at: 0, endsAt: 1, name: 'Z' },
+      { type: 'action', activationId: 'fourth', at: 1, endsAt: 2, name: 'B' },
+      { type: 'combat_start', at: 0 }
+    ],
+    resolvedEvents: [
+      { type: 'damage', activationId: 'third', at: 1, name: 'Derived hit', damage: 1 },
+      { type: 'damage', activationId: 'fourth', at: 1, name: 'Opening hit', damage: 1 },
+      { type: 'damage', activationId: 'first', at: 1.5, name: 'Delayed hit', damage: 1 }
+    ]
+  });
+
+  assert.deepEqual(
+    rows.map(({ at, description }) => [at, description]),
+    [
+      [0, 'COMBAT START'],
+      [0, 'CAST Z (0ms)'],
+      [0, 'END Z'],
+      [0, 'CAST A (0ms)'],
+      [0, 'END A'],
+      [0, 'CAST Z (1000ms)'],
+      [1, 'HIT Derived hit x1 -> 1 damage'],
+      [1, 'END Z'],
+      [1, 'CAST B (1000ms)'],
+      [1, 'HIT Opening hit x1 -> 1 damage'],
+      [1.5, 'HIT Delayed hit x1 -> 1 damage'],
+      [2, 'END B']
+    ]
+  );
+});
+
+test('event-log mounting filters rows, escapes descriptions, and configures filename', () => {
+  let html = '';
+  let mounted = false;
+  const container = {
+    get innerHTML() {
+      return html;
+    },
+    set innerHTML(value) {
+      html = value;
+      mounted = true;
+    },
+    querySelector(selector) {
+      if (!mounted && selector.includes('event-log-details')) return { open: true };
+
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (!mounted && selector.includes(':checked')) {
+        return [{ dataset: { filterId: 'kept' } }];
+      }
+
+      return [];
+    }
+  };
+
+  mountEventLog(
+    container,
+    [
+      { at: 0, type: 'one', description: 'Keep <safe>', details: ['Power <1000>'], keep: true },
+      { at: 1, type: 'two', description: 'Drop me', keep: false }
+    ],
+    {
+      filename: 'custom"name.csv',
+      filters: [
+        {
+          id: 'kept',
+          label: 'Kept only',
+          predicate: (row) => row.keep
+        }
+      ]
+    }
+  );
+
+  assert.match(html, /Keep &lt;safe&gt;/);
+  assert.match(html, /<details class="log-desc"><summary>Keep &lt;safe&gt;<\/summary>/);
+  assert.match(html, /<li>Power &lt;1000&gt;<\/li>/);
+  assert.doesNotMatch(html, /Drop me/);
+  assert.match(html, /data-filename="custom&quot;name\.csv"/);
+  assert.match(html, /log-filter-kept/);
+});
+
+// Calculation details retain microseconds and actual factors without changing rows from older results.
+test('event log exposes optional damage calculations at full simulation precision', () => {
+  const event = {
+    type: 'damage',
+    at: 0.600001,
+    source: 'Player',
+    sourceId: 'hit',
+    actorType: 'player',
+    name: 'Hit',
+    flatDamage: 10,
+    damage: 10,
+    criticalChance: 0
+  };
+  const result = { events: [], resolvedEvents: [event] };
+  assert.equal(simulationEventLogRows(result)[0].details, undefined);
+  const damageCalculation = {
+    phase: 'Ordinary',
+    targetHealthBefore: null,
+    targetHealthFractionBefore: null,
+    power: 1000,
+    coefficientMultiplier: 1,
+    baseDamage: 10,
+    criticalMultiplier: 1,
+    outgoingMultiplier: 1,
+    unroundedDamage: 10,
+    rounding: 'floor'
+  };
+  const row = simulationEventLogRows({ ...result, resolvedEvents: [{ ...event, damageCalculation }] })[0];
+  assert.ok(row.details.includes('Simulation time: 0.600001s; phase: Ordinary'));
+  assert.ok(row.details.includes('Target health before: unbounded; fraction: unbounded'));
+  assert.ok(row.details.includes('Unrounded damage: 10; rounding: floor; damage: 10'));
+  assert.ok(!row.details.some((detail) => detail.startsWith('Weapon strength:')));
+});
+
+test('event log distinguishes phantasm summon, attack, and clone conversion', () => {
+  const result = simulateMesmer(
+    ['Phantasmal Duelist', { name: '__wait', waitMs: 7000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol',
+      initialResource: 0
+    })
+  );
+  const log = simulationEventLogRows(result, null, mesmerProfession);
+
+  assert.ok(
+    log.some(
+      (event) => Math.abs(event.at - 0.56) < 0.00001 && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'
+    )
+  );
+  assert.ok(
+    log.some(
+      (event) =>
+        Math.abs(event.at - 2.8) < 0.00001 && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'
+    )
+  );
+  assert.ok(
+    log.some(
+      (event) =>
+        Math.abs(event.at - 3.36) < 0.00001 &&
+        event.description.includes('CLONE SPAWNED x1') &&
+        event.description.includes('Phantasmal Duelist phantasm conversion')
+    )
+  );
+  assert.match(eventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
+});

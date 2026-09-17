@@ -1,6 +1,6 @@
 import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
 import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metadata-types.js';
-import { createProfessionTraitData } from '#gw2/professions/lib/trait-data.js';
+import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js';
 
 export const {
   specializations: SPECIALIZATIONS,

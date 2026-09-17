@@ -1,12 +1,12 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /**
  * Revenant persisted-build definition.

@@ -2,8 +2,6 @@
 
 Date: 2026-09-14
 
-Source: [`EPSILON-TIMING-AUDIT.md`](EPSILON-TIMING-AUDIT.md)
-
 ## Objective
 
 Make every profession status lifetime follow one declared timing policy without changing unrelated cooldown, cast,

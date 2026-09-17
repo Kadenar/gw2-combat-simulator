@@ -21,11 +21,11 @@ const professionBoundaryPattern = {
 };
 
 // Code outside a profession folder may import only its public entry points (docs/architecture/MODULES.md). The
-// shared professions/lib/ helpers are not a profession and stay importable.
+// shared professions/shared/ helpers are not a profession and stay importable.
 const professionPublicEntryPatterns = [
   {
     regex:
-      '^#gw2/professions/(?!lib/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)',
+      '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|catalog[./]|state|presentation|modules|definition)',
     message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
   }
 ];

@@ -72,7 +72,7 @@ Use this table as the first place to look.
 | Game-neutral browser shell behavior                                   | `js/app/`                                             |
 | GW2 browser behavior                                                  | `js/games/gw2/app/`                                   |
 | Shared presentation/view-model behavior                               | `js/ui/`                                              |
-| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/lib/`                 |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`                 |
 | EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
 | dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
 | gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`             |
@@ -545,7 +545,7 @@ Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
 never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/lib/` helpers are not a profession. `eslint.config.js` and `tests/architecture/profession-layout.test.js`
+`professions/shared/` helpers are not a profession. `eslint.config.js` and `tests/architecture/profession-layout.test.js`
 enforce this layout for every profession.
 
 The runtime composition is:
@@ -1166,7 +1166,7 @@ Do not duplicate common gear/sigil/relic/weapon normalization inside individual 
 
 ```text
 js/games/gw2/integrations/logs/
-├── lib/
+├── shared/
 ├── evtc/
 ├── dps-report/
 └── wingman/
@@ -1434,17 +1434,14 @@ Tests should generally live near the subsystem they validate.
 Examples:
 
 ```text
-tests/platform/
-tests/professions/
 tests/app/
-tests/gw2/app/
+tests/games/gw2/app/
+tests/games/gw2/platform/
+tests/games/gw2/professions/
+tests/games/gw2/integrations/logs/
 tests/architecture/
 tests/kernel/
 tests/ui/
-tests/evtc/
-tests/dps-report/
-tests/wingman/
-tests/log-analyzer/
 tests/browser/
 tests/scripts/
 tests/typecheck/

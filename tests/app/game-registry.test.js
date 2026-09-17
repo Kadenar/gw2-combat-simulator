@@ -3,7 +3,7 @@ import test from 'node:test';
 import { bootstrapGameApp } from '#app/bootstrap.js';
 import { defineGameRegistry, loadGameContent } from '#app/game/registry.js';
 import { loadGameWorkerDriver } from '#app/game/worker-driver.js';
-import { createFakeGamePlugin } from '../fixtures/fake-game-plugin.js';
+import { createFakeGamePlugin } from '#tests/fixtures/fake-game-plugin.js';
 
 // Builds a game with no GW2 dependencies so registry and bootstrap behavior stay content-vocabulary neutral.
 function fakeRegistry(gameId = 'fake') {

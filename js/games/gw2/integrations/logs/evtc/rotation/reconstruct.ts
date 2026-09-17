@@ -1,4 +1,4 @@
-import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
+import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import {
@@ -27,7 +27,7 @@ import {
   recordedActionSkill,
   skillIdentity,
   type RotationCatalog
-} from '#gw2/integrations/logs/lib/rotation/catalog.js';
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import {
   createStrikePacketMatcher,
   missingInterruptCommitWarnings,
@@ -46,9 +46,9 @@ import type {
   ReconstructedCooldownResetCommand,
   ReconstructedRotationCommand,
   RotationReconstructionBase
-} from '#gw2/integrations/logs/lib/rotation/model.js';
-import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
+} from '#gw2/integrations/logs/shared/rotation/model.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 
 const TIMING_TOLERANCE_MS = 50;

@@ -1,5 +1,5 @@
-import { normalizeLogProfessionActions } from '#gw2/integrations/logs/lib/rotation/professions/index.js';
-import { recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { effectEvidence } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import type {
   EvtcProfessionReconstructionContext,

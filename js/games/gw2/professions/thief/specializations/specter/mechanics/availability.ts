@@ -1,6 +1,6 @@
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 

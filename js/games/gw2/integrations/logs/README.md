@@ -5,7 +5,7 @@ The adapters convert available cast evidence into simulator commands. Missing se
 - `evtc/` parses raw ArcDPS records and applies explicit Elite Insights cast finders.
 - `dps-report/` validates EI JSON and imports the selected player's supplied rotation intersecting the selected phase.
 - `wingman/` reshapes a gw2wingman log into the same document `dps-report/` validates, then reuses its rules unchanged.
-- `lib/rotation/` owns source-independent identities, represented composites, proc filtering and replay scheduling.
+- `shared/rotation/` owns source-independent identities, represented composites, proc filtering and replay scheduling.
 
 All three return source actions separately from normalized actions, commands, time origins and warnings. Source durations are
 retained; simulator conversion can quantize interruptions, encode overlaps and add ordinary waits using catalog timing.

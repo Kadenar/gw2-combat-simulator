@@ -5,8 +5,8 @@ import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { resolveMesmerSkillIdFromDuplicateName } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
-import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /**
  * Mesmer persisted-build definition.

@@ -132,7 +132,7 @@ The following skill-specific behaviors follow the pinned EI source directly:
   recovery leaves a single charge. Unresolved or contradictory histories remain ambiguous; source records and
   inference metadata are preserved.
 
-Shared normalization lives in `lib/rotation/professions/`. Source durations remain diagnostic evidence; simulator
+Shared normalization lives in `shared/rotation/professions/`. Source durations remain diagnostic evidence; simulator
 commands still use catalog timing, scheduler quantization, observed cancellation and ordinary waits. Reports with
 missing opening Forge entries require manual completion even when every supplied entry imports correctly.
 

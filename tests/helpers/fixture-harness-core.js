@@ -2,7 +2,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
-import { simulateMesmer } from './mesmer-simulation.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Fixtures use the same attribute calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);

@@ -1,4 +1,4 @@
-import { prepareSimulationConfig } from './simulation-config.js';
+import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 /** Creates the common profession test runner and preserves nested simulation config defaults. */

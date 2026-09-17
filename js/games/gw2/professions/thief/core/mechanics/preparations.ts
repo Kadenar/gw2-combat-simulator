@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {

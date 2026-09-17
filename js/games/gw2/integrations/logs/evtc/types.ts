@@ -1,4 +1,4 @@
-import type { RotationActionSummary, RotationPlayerIdentity } from '#gw2/integrations/logs/lib/rotation/model.js';
+import type { RotationActionSummary, RotationPlayerIdentity } from '#gw2/integrations/logs/shared/rotation/model.js';
 
 export const EVTC_STATE_CHANGE = Object.freeze({
   NONE: 0,

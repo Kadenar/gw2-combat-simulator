@@ -30,7 +30,7 @@ Each successful import returns this notice once, alongside independent unsupport
 
 `parser.ts` validates players, phases, metadata and casts; `url.ts` validates and retrieves public reports.
 `rotation/reconstruct.ts` owns selection, phase filtering and commands. Profession normalization lives in
-`../lib/rotation/professions/`; there is no separate report recovery layer.
+`../shared/rotation/professions/`; there is no separate report recovery layer.
 
 Reports produced by different EI versions or with different windows can contain different casts. Compare with EVTC only
 after matching parser version, player, origin and window. The raw adapter's supported finder coverage is documented in

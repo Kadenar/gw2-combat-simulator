@@ -18,7 +18,7 @@ import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   emitNuminousGift,

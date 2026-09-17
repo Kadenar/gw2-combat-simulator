@@ -1,8 +1,8 @@
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import type { GuardianCanonicalBuild } from '#gw2/professions/guardian/types.js';
-import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /**
  * Guardian persisted-build definition.

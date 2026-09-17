@@ -3,7 +3,7 @@ import { addAttribute } from '#gw2/platform/builds/attributes.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
-} from '#gw2/professions/lib/build-attributes.js';
+} from '#gw2/professions/shared/build-attributes.js';
 import type {
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,

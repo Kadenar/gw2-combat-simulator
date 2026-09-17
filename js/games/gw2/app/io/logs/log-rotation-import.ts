@@ -1,4 +1,4 @@
-import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface AppRotationPlayer {

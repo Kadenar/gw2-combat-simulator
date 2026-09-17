@@ -12,7 +12,7 @@ import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';

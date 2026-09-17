@@ -1,11 +1,11 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '#gw2/professions/lib/build-codec.js';
+import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '#gw2/professions/shared/build-codec.js';
 import { THIEF_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/assumptions.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /**
  * Thief persisted-build definition.

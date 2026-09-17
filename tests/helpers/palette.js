@@ -1,5 +1,5 @@
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { inertContainer } from './dom.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 
 /** Captures palette markup without binding DOM controls and restores the document even if rendering fails. */
 export function renderPaletteMarkup(app) {

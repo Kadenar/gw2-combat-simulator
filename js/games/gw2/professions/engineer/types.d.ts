@@ -21,7 +21,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';

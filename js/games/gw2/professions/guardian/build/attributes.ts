@@ -2,7 +2,7 @@ import { getActiveTraits } from '#gw2/professions/guardian/data/traits-data.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
-} from '#gw2/professions/lib/build-attributes.js';
+} from '#gw2/professions/shared/build-attributes.js';
 import type {
   Gw2CommonAttributeResult,
   Gw2BuildAttributeRuleContext,

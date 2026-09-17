@@ -1,7 +1,7 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';

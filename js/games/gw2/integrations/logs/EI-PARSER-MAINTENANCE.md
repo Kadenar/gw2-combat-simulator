@@ -78,8 +78,8 @@ the candidate commit.
 | Custom animated finders, Engineer kits, spawn and shatter helpers       | `evtc/rotation/ei-custom-casts.ts`, `ei-minions.ts`, and `professions/index.ts`: inspect separate custom paths rather than forcing them into the ordinary table. These filenames are under `evtc/rotation/`.                   |
 | Effect encoding, agent lifecycle, encounter boundaries                  | `evtc/rotation/effect-packets.ts`, `ei-inference.ts`, `players.ts`, `encounter.ts`, and `reconstruct.ts`: audit assumptions and document unsupported encounter/ownership behavior. These filenames are under `evtc/rotation/`. |
 | JSON actor/rotation builders and actor window filtering                 | `dps-report/parser.ts`, `types.ts`, and `rotation/reconstruct.ts`: schema validation, units, selected player/phase, crossing casts, accuracy, and stable timestamp ties. These filenames are under `dps-report/`.              |
-| Cast identity and origin classification                                 | `lib/rotation/catalog.ts`, `normalization.ts`, and `professions/`: aliases, represented composites, and proc filtering; never missing-input recovery. These filenames are under `lib/rotation/`.                               |
-| Simulator command conversion                                            | `lib/rotation/timeline.ts` and `timing.ts`: inspect only after source evidence agrees; catalog timing and cancellation quantization are separate from EI parsing. Both files are under `lib/rotation/`.                        |
+| Cast identity and origin classification                                 | `shared/rotation/catalog.ts`, `normalization.ts`, and `professions/`: aliases, represented composites, and proc filtering; never missing-input recovery. These filenames are under `shared/rotation/`.                               |
+| Simulator command conversion                                            | `shared/rotation/timeline.ts` and `timing.ts`: inspect only after source evidence agrees; catalog timing and cancellation quantization are separate from EI parsing. Both files are under `shared/rotation/`.                        |
 
 ## Compare evidence before replay
 
@@ -133,7 +133,7 @@ Run focused tests from the repository root after compiling the modules:
 
 ```powershell
 npm run build:modules
-node --test tests/evtc tests/dps-report tests/log-analyzer
+node --test tests/games/gw2/integrations/logs
 npm run typecheck
 ```
 

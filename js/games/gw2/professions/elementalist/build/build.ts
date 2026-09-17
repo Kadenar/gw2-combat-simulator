@@ -7,8 +7,8 @@
  */
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createCommonBuildDefaults } from '#gw2/professions/lib/build-defaults.js';
-import { createProfessionBuildCodec } from '#gw2/professions/lib/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';

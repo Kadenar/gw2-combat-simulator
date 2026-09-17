@@ -11,7 +11,7 @@ import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/plat
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { GuardianCorePublicState, GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';

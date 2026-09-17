@@ -18,7 +18,7 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/profession
 import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import { denySkillCast as deny } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type {

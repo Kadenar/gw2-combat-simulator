@@ -11,4 +11,4 @@ export type {
   RecordedLogAction as DpsReportRecordedAction,
   ResolvedLogAction as DpsReportResolvedAction,
   LogActionNormalizer as DpsReportProfessionActionReconstructor
-} from '#gw2/integrations/logs/lib/rotation/normalization.js';
+} from '#gw2/integrations/logs/shared/rotation/normalization.js';

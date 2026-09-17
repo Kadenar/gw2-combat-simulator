@@ -67,12 +67,12 @@ observation duration.
 
 ```text
 js/games/gw2/integrations/logs/
-├── lib/          Source-neutral reconstruction contracts and scheduling
+├── shared/       Source-neutral reconstruction contracts and scheduling
 ├── evtc/         Raw EVTC parsing, evidence inference, and reconstruction
 └── dps-report/   Elite Insights validation and supplied rotation conversion
 ```
 
-The EVTC adapter is under `js/games/gw2/integrations/logs/evtc/`. Shared logic belongs in `../lib/`; source-specific
+The EVTC adapter is under `js/games/gw2/integrations/logs/evtc/`. Shared logic belongs in `../shared/`; source-specific
 EVTC behavior remains in the adapter.
 
 ## Development tools

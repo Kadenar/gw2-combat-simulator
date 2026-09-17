@@ -38,7 +38,7 @@ import {
   HERALD_ELEVATED_COMPASSION_TASK,
   syncElevatedCompassion
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
-import { denySkillCast as denyRevenantSkill } from '#gw2/professions/lib/availability.js';
+import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
 import type { RevenantCastContext, RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import {
   heraldPassiveModifierRules,

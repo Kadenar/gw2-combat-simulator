@@ -12,7 +12,7 @@ import {
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
 
-import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 
 function addressHex(address: bigint): string {
   return `0x${address.toString(16)}`;

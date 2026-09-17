@@ -9,7 +9,7 @@ import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
 import {
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
-} from '#gw2/integrations/logs/lib/rotation/model.js';
+} from '#gw2/integrations/logs/shared/rotation/model.js';
 
 /** EI BuffGainCastFinder excludes snapshots and extensions; custom animated finders opt into snapshots explicitly. */
 export function isBuffApply(log: ParsedEvtc, event: ParsedEvtcEvent, initial = false): boolean {

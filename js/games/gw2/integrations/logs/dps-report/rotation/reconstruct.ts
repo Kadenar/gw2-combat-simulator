@@ -1,22 +1,22 @@
-import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/lib/rotation/model.js';
+import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import {
   actionKind,
   findNamedRotationSkill,
   normalizedName as normalized,
   recordedActionSkill,
   skillIdentity
-} from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import type { RotationCatalog } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
   ReconstructedCommand,
   ReconstructedCooldownResetCommand,
   ReconstructedRotationCommand,
   RotationActionStatus
-} from '#gw2/integrations/logs/lib/rotation/model.js';
-import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/lib/rotation/profiles.js';
-import { selectRotationPlayer } from '#gw2/integrations/logs/lib/rotation/selection.js';
-import { buildReplayTimeline } from '#gw2/integrations/logs/lib/rotation/timeline.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/lib/rotation/timing.js';
+} from '#gw2/integrations/logs/shared/rotation/model.js';
+import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
@@ -31,7 +31,7 @@ import type {
   ParsedDpsReport
 } from '#gw2/integrations/logs/dps-report/types.js';
 import { dpsReportRotationProfile } from '#gw2/integrations/logs/dps-report/rotation/profiles.js';
-import { normalizeLogProfessionActions } from '#gw2/integrations/logs/lib/rotation/professions/index.js';
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import type {
   DpsReportRecordedAction,
   DpsReportResolvedAction,

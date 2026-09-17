@@ -7,8 +7,8 @@
  * only the entries it owns. Combat behavior remains in each owner-local skill fragment.
  */
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
-import { defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/lib/catalog-data.js';
+import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import {
   SKILLS as ELEMENTALIST_API_SKILLS,
   SPECIALIZATIONS as ELEMENTALIST_API_SPECIALIZATIONS

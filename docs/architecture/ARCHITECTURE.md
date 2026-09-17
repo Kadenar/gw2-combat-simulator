@@ -85,7 +85,7 @@ and independent persisted builds.
 - `js/app` and `js/games/gw2/app` are composition roots for their respective neutral and GW2 browser concerns.
 
 ESLint enforces the configured import boundaries in `eslint.config.js`. Focused architecture contracts live under
-`tests/architecture/` and in `tests/platform/migration-and-boundaries.test.js`.
+`tests/architecture/` and in `tests/games/gw2/platform/migration-and-boundaries.test.js`.
 
 ## Declarative profession mechanics layout
 

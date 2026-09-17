@@ -1,7 +1,7 @@
 # Programmatic simulation API
 
 Use the simulator without opening or configuring the browser UI by calling `simulateGw2` directly. This is the same
-headless path used by profession tests such as `tests/professions/engineer/weapons-and-kits.test.js`.
+headless path used by profession tests such as `tests/games/gw2/professions/engineer/weapons-and-kits.test.js`.
 
 The usual programmatic call supplies these inputs:
 

@@ -1,6 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/lib/availability.js';
+import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';

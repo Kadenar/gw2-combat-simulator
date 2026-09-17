@@ -3,7 +3,7 @@ import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
-} from '#gw2/professions/lib/build-attributes.js';
+} from '#gw2/professions/shared/build-attributes.js';
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,

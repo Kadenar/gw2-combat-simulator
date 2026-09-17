@@ -3,9 +3,9 @@ import {
   firstStrikePacketOffsetMs,
   referenceCastTimeMs,
   strikePacketOffsets
-} from '#gw2/integrations/logs/lib/rotation/timing.js';
+} from '#gw2/integrations/logs/shared/rotation/timing.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
+import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
