@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { gw2BoonDurationMultiplier, gw2StaticAttributes } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
@@ -10,7 +11,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 // Final applications keep their rounded duration but expire on the next absolute 40 ms action tick.

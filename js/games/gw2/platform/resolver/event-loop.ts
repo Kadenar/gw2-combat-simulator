@@ -2,14 +2,14 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
+import { normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 
 import type {
   Gw2ResolverEvent,
   Gw2ResolverEventHandlers,
-  Gw2ResolverHandlerRegistry,
-  Gw2ResolverRuntime
+  Gw2ResolverHandlerRegistry
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 interface CreateGw2ResolverHandlerRegistryOptions {
   readonly commonHandlers?: Gw2ResolverEventHandlers;

@@ -1,160 +1,68 @@
-/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { StableEventQueue } from '#kernel/events/queue.js';
+import type { Gw2CombatQuery, Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import type { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
-import type { ScheduledEventStream, SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
-// Resolution consumes kernel randomness and generic records without execution dependencies.
-import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  Gw2CombatQuery,
-  Gw2CriticalChanceContributor,
-  Gw2CriticalResult,
-  Gw2ResolvedStats
-} from '#gw2/platform/combat/query/types.js';
-import type {
-  Gw2RuntimeConditionEntry,
-  Gw2RuntimeConditionStack,
-  Gw2TimedBuffApplication
-} from '#gw2/platform/combat/state/types.js';
-import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
-import type { Gw2EventDraft, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
-import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
+import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import type { StableEventQueue } from '#kernel/events/queue.js';
 
-export type Gw2ResolverEvent = SimulationEvent & {
-  readonly name?: string;
-  readonly skillName?: string;
-  readonly parentSkillName?: string;
-  readonly damageBreakdownName?: string;
-  readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
-  readonly icon?: string;
-  readonly kind?: string;
-  readonly duration?: number;
-  readonly stacks?: number;
-  readonly condition?: string;
-  readonly application?: Gw2ResolvedConditionApplication;
-  readonly conditionGroup?: Gw2ResolverConditionGroup;
-  readonly wakeToken?: number;
-  readonly fraction?: number;
-  readonly fixedDuration?: boolean;
-  readonly coefficient?: number;
-  readonly coefficientModifiers?: readonly {
-    readonly kind?: string;
-    readonly threshold?: number;
-    readonly multiplier?: number;
-  }[];
-  readonly flatDamage?: number;
-  readonly flatStrikeBase?: number;
-  readonly flatStrikePowerCoeff?: number;
-  readonly flatStrikeMultiplier?: number;
-  readonly flatStrikeHealthThreshold?: number;
-  readonly flatStrikeThresholdMultiplier?: number;
-  readonly summonDamagePerCoefficient?: number;
-  readonly summonBasePower?: number;
-  readonly summonBasePrecision?: number;
-  readonly summonBaseFerocity?: number;
-  readonly summonBaseConditionDamage?: number;
-  readonly summonBaseExpertise?: number;
-  readonly summonInheritsCriticalAttributes?: boolean;
-  readonly independentSummonStrike?: boolean;
-  readonly summonInheritsAttributes?: boolean;
-  readonly summonIgnoresBoons?: boolean;
-  readonly summonUsesMight?: boolean;
-  readonly summonUsesEquipmentModifiers?: boolean;
-  readonly summonUsesProfessionModifiers?: boolean;
-  readonly noCrit?: boolean;
-  readonly forceCrit?: boolean;
-  readonly canTriggerCriticalTraits?: boolean;
-  /**
-   * Resolver's derived verdict on whether the strike could crit: false for flat
-   * strikes and for `noCrit`/`canCrit:false` hits. Consumers should read this
-   * rather than re-deriving from the raw input flags.
-   */
-  readonly critEligible?: boolean;
-  readonly criticalChance?: number;
-  readonly criticalChanceBeforeCap?: number;
-  readonly criticalChanceContributors?: readonly Gw2CriticalChanceContributor[];
-  readonly criticalDamage?: number;
-  readonly didCrit?: boolean;
-  readonly hits?: number;
-  readonly weaponSet?: number;
-  readonly procType?: string;
-  readonly sourceSkill?: string;
-  readonly detail?: string;
-  readonly cooldownReduction?: number;
-  readonly activationId?: string;
-  readonly weaponStrength?: number;
-  readonly weaponStrengthProfileId?: string;
-  readonly resolvedWeaponStrength?: number;
-  readonly weaponStrengthSampled?: boolean;
-};
+/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
 
-export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
-  readonly name: string;
-  readonly condition: string;
-  readonly stacks: number;
-  readonly effectiveDuration: number;
-  readonly activeDuration: number;
-  readonly expiresAt: number;
-  readonly naturalExpiresAt: number;
-  removedAt?: number;
-  settledThrough: number;
-  bufferedRawDamage: number;
-  bufferedDurationUs: number;
-  damage: number;
-  damagingStackSeconds: number;
-  readonly damageTicks: Array<{
-    at: number;
-    damage: number;
-    fraction: number;
-  }>;
-};
+// Resolution consumes kernel randomness and generic records without execution dependencies.
 
-export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
-  appliedAt: number;
-  expiresAt: number;
-  weight: number;
-  application: Gw2ResolvedConditionApplication;
-}
-
-export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
-  stacks: Gw2ResolverConditionStack[];
-  groups?: Map<string | Gw2ResolvedConditionApplication, Gw2ResolverConditionGroup>;
-}
-
-/** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
-export interface Gw2ResolverConditionGroup {
-  readonly owner: string | Gw2ResolvedConditionApplication;
-  readonly condition: string;
-  nextPulseAt: number;
-  wakeToken: number;
-  wakeAt: number | null;
-  applications: Gw2ResolvedConditionApplication[];
-}
-
-export interface Gw2DamageBreakdownEntry {
-  name: string;
-  sourceSkill: string;
-  parentSkill: string;
-  damageBreakdownName?: string;
-  icon: string;
-  skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
-  sourceId?: import('#gw2/platform/engine/skills/types.js').SkillId;
-  actorType?: SimulationActorType;
-  summonKind?: string;
-  source?: string;
-  damage: number;
-  strikeDamage: number;
-  conditionDamage: number;
-  hits: number;
-  casts?: number;
-  // Crit accounting is tracked only for strike hits. critHits is the expected
-  // (deterministic) or actual (stochastic) number of critical strikes;
-  // critEligibleHits is the number of strike hits those crits are drawn from.
-  critHits?: number;
-  critEligibleHits?: number;
-}
+export type Gw2ResolverEvent = SimulationEvent &
+  Gw2ConditionWork & {
+    readonly damageBreakdownName?: string;
+    readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
+    readonly condition?: string;
+    readonly fraction?: number;
+    readonly fixedDuration?: boolean;
+    readonly coefficient?: number;
+    readonly coefficientModifiers?: readonly {
+      readonly kind?: string;
+      readonly threshold?: number;
+      readonly multiplier?: number;
+    }[];
+    readonly flatDamage?: number;
+    readonly flatStrikeBase?: number;
+    readonly flatStrikePowerCoeff?: number;
+    readonly flatStrikeMultiplier?: number;
+    readonly flatStrikeHealthThreshold?: number;
+    readonly flatStrikeThresholdMultiplier?: number;
+    readonly summonDamagePerCoefficient?: number;
+    readonly summonBasePower?: number;
+    readonly summonBasePrecision?: number;
+    readonly summonBaseFerocity?: number;
+    readonly summonBaseConditionDamage?: number;
+    readonly summonBaseExpertise?: number;
+    readonly summonInheritsCriticalAttributes?: boolean;
+    readonly independentSummonStrike?: boolean;
+    readonly summonInheritsAttributes?: boolean;
+    readonly summonIgnoresBoons?: boolean;
+    readonly summonUsesMight?: boolean;
+    readonly summonUsesEquipmentModifiers?: boolean;
+    readonly summonUsesProfessionModifiers?: boolean;
+    readonly noCrit?: boolean;
+    readonly forceCrit?: boolean;
+    readonly canTriggerCriticalTraits?: boolean;
+    /**
+     * Resolver's derived verdict on whether the strike could crit: false for flat
+     * strikes and for `noCrit`/`canCrit:false` hits. Consumers should read this
+     * rather than re-deriving from the raw input flags.
+     */
+    readonly critEligible?: boolean;
+    readonly criticalChance?: number;
+    readonly criticalChanceBeforeCap?: number;
+    readonly criticalChanceContributors?: readonly Gw2CriticalChanceContributor[];
+    readonly criticalDamage?: number;
+    readonly didCrit?: boolean;
+    readonly hits?: number;
+    readonly resolvedWeaponStrength?: number;
+    readonly weaponStrengthSampled?: boolean;
+  };
 
 export interface Gw2ConditionBreakdownEntry {
   name: string;
@@ -201,124 +109,6 @@ export interface Gw2ResolverHelpers extends Record<string, unknown> {
 
 export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
 
-export interface Gw2ResolverRuntime extends Record<string, unknown> {
-  readonly reporting: boolean;
-  readonly damageDiagnostics: boolean;
-  config: Gw2Config;
-  traits: ReadonlySet<string | number>;
-  horizon: number;
-  query: Readonly<Gw2CombatQuery>;
-  helpers: Gw2ResolverHelpers;
-  queue: Gw2EventQueue;
-  warnings: string[];
-  breakdown: Map<string, Gw2DamageBreakdownEntry>;
-  conditions: Map<string, Gw2ConditionBreakdownEntry>;
-  environmentDamage: number;
-  environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
-  conditionState: Map<string, Gw2ResolverConditionState>;
-  conditionBufferAt?: number;
-  conditionBufferedAt?: number;
-  resolved: Gw2ResolverEvent[];
-  procSteps: Gw2ProcStep[];
-  procKeys: Set<string>;
-  boons: Map<string, Gw2TimedBuffApplication[]>;
-  totals: { strike: number; condition: number };
-  firstHitTime: number | null;
-  lastHitTime: number | null;
-  deathTime: number | null;
-  combatStartTime?: number | null;
-  activeWeaponSet: number;
-  combo: Gw2ComboRuntimeState;
-  relic: Gw2RelicRuntime;
-  precastRelics?: readonly Gw2RelicRuntime[];
-  profession: object;
-  sigil: {
-    severanceUntil: number;
-    criticalProgress: number;
-    readyAt: Map<string, number>;
-  };
-  food: { criticalProgress: number; readyAt: number };
-  random: Readonly<SimulationRandom>;
-  weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
-  weaponStrengthActivationOrder: number;
-  dispatchReaction(
-    stage: Gw2ResolverStage,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): Record<string, unknown> | void;
-  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
-  recordProc(
-    type: string,
-    name: string,
-    at: number,
-    sourceSkill?: string,
-    detail?: string,
-    icon?: string,
-    cooldownReduction?: number | null,
-    expiresAt?: number | null,
-    effectState?: Gw2ProcStep['effectState']
-  ): void;
-  addBreakdown(
-    name: string,
-    damage: number,
-    type: 'strikeDamage' | 'conditionDamage',
-    hits?: number,
-    source?: Gw2ResolverEvent | null,
-    critical?: Gw2CriticalResult | null
-  ): void;
-  markDamageTime(at: number): void;
-}
-
-export interface Gw2HitResolutionContext {
-  readonly coefficientMultiplier: number;
-  readonly unroundedDamage: number;
-  readonly stats: Gw2ResolvedStats;
-  readonly critical: Gw2CriticalResult;
-  // Whether this strike can crit at all (scaling strike, not flagged noCrit /
-  // canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
-  readonly critEligible: boolean;
-  readonly criticalMultiplier: number;
-  readonly outgoingMultiplier: number;
-  readonly weaponStrength: Gw2ResolvedWeaponStrength | null;
-  readonly baseDamage: number;
-  readonly damage: number;
-}
-
-export interface Gw2HitResolution {
-  buildHitResolutionContext(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2HitResolutionContext;
-  applyResolvedHit(
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-    hit: Gw2HitResolutionContext
-  ): Gw2ResolverEvent;
-}
-
-export interface Gw2ConditionTickContribution {
-  readonly application: Gw2ResolvedConditionApplication;
-  readonly damage: number;
-  readonly rawDamage: number;
-  readonly fraction: number;
-  readonly perStack: number;
-  readonly stackSeconds: number;
-}
-
-/** An atomic owner packet rounds once and retains each application's raw contribution and allocated integer share. */
-export interface Gw2ConditionTickResult {
-  readonly condition: string;
-  readonly damage: number;
-  readonly contributions: readonly Gw2ConditionTickContribution[];
-}
-
-export interface Gw2ConditionResolution {
-  activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
-  applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
-  handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
-  handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
-  initializeEnvironment(context: Gw2ResolverRuntime): void;
-  startDamageClock(context: Gw2ResolverRuntime): void;
-  handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
-}
-
 export type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
 
 export type Gw2ResolverEventHandlers = Readonly<Record<string, Gw2ResolverEventHandler>>;
@@ -362,16 +152,6 @@ export interface Gw2ResolverReactionRegistry {
     event: Gw2ResolverEvent,
     details?: Record<string, unknown>
   ): Record<string, unknown> | void;
-}
-
-export interface Gw2ResolverExtensions {
-  readonly reactions: Gw2ResolverReactionRegistry;
-  readonly strikeMultiplier: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
-  readonly beforeResolveTimeline: (
-    context: Gw2ResolverRuntime,
-    events: readonly Gw2ResolverEvent[],
-    rotationEndTime: number
-  ) => void;
 }
 
 export interface Gw2ResolverResult extends Record<string, unknown> {
@@ -427,20 +207,4 @@ export interface ResolveGw2TimelineOptions {
   /** Focused resolver tests can supply combat facts independently of profession attributes. */
   readonly query?: Readonly<Gw2CombatQuery>;
   readonly helpers?: Gw2ResolverHelpers;
-}
-
-export interface CreateGw2ResolverRuntimeStateOptions {
-  readonly damageDiagnostics?: boolean;
-  readonly reporting?: boolean;
-  readonly config: Gw2Config;
-  readonly traits?: ReadonlySet<string | number>;
-  readonly horizon: number;
-  readonly query: Readonly<Gw2CombatQuery>;
-  readonly helpers: Gw2ResolverHelpers;
-  readonly queue: Gw2EventQueue;
-  readonly professionState?: object;
-  readonly warnings?: string[];
-  readonly applyCondition: Gw2ConditionResolution['applyCondition'];
-  readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
-  readonly reactions?: Gw2ResolverReactionRegistry;
 }

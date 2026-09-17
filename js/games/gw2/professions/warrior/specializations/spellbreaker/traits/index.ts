@@ -2,7 +2,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2RechargeRate } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorBoonRemovalCounts } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 

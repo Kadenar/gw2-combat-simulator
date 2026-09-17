@@ -1,11 +1,11 @@
 import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { boonActive, eventSkill as gw2EventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { WarriorCoreState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export type WarriorModifierAttributes = SchedulerRecord & {

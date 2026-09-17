@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -15,7 +15,7 @@ import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2
 import { necromancerCastRules } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   NecromancerCoreState,
   NecromancerRechargeModifierContext,

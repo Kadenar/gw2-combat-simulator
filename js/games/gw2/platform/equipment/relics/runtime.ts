@@ -16,7 +16,7 @@ import { missesTarget, targetHasCondition } from '#gw2/platform/combat/state/tar
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   Gw2RelicContext,
   Gw2RelicRule,

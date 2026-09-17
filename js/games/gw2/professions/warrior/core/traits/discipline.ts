@@ -4,7 +4,7 @@ import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/professions/warrior/resources.js';
@@ -14,7 +14,7 @@ import {
   warriorEventSkill,
   warriorTargetBoonCount
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,

@@ -19,6 +19,11 @@ The GW2 platform is organized by ownership. Put a module in the narrowest domain
 Optional patch-preview authoring, validation, and overlays belong in `../integrations/patches/`. See
 [Simulator modules](../../../../docs/architecture/MODULES.md#shared-guild-wars-2-platform) for the wider ownership map.
 
+`combat/numeric.ts` owns generic arithmetic. Critical progress belongs to `combat/critical-procs.ts`; whole-millisecond
+duration rounding and absolute effect expiry remain separate operations in `skills/timing.ts`. Condition coefficients
+live in `combat/formulas.ts`. Boon queries share stack/pool calculations in `combat/boons.ts` while selecting their own
+phase-visible histories.
+
 ## Placement Rules
 
 - Keep declaration files beside the domain that owns the declared contract.

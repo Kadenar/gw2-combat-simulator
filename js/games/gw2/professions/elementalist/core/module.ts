@@ -38,7 +38,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import { processFreshAirCandidates } from '#gw2/professions/elementalist/core/traits/index.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';

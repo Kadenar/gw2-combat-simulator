@@ -1,15 +1,14 @@
+import { normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from '#gw2/platform/engine/events/events.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalEvent } from '#kernel/events/queue.js';
+import { createEventStream } from '#kernel/events/stream.js';
 /**
  * Versioned scheduler-to-resolver handoff format. Builds the immutable,
  * validated event stream the scheduler emits and the resolver (and fixtures)
  * consume, and asserts an arbitrary value satisfies that contract before reuse.
  */
-import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from '#gw2/platform/engine/events/events.js';
-import { createEventStream } from '#kernel/events/stream.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { canonicalEvent } from '#kernel/events/queue.js';
-import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
-
-import type { Gw2ResolverHandoff, ScheduledEventStream, SimulationEvent } from '#gw2/platform/engine/events/types.js';
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];
@@ -89,4 +88,24 @@ export function assertScheduledEventStream(stream: unknown): ScheduledEventStrea
   if (candidate.resolutionEndTime !== undefined) timeKey(candidate.resolutionEndTime);
   if (candidate.resolverHandoff.combatStartTime != null) timeKey(candidate.resolverHandoff.combatStartTime);
   return candidate as ScheduledEventStream;
+}
+
+/** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
+
+/** Carries encounter boundaries and diagnostics; profession state is reconstructed from chronological events. */
+export interface Gw2ResolverHandoff {
+  readonly warnings?: readonly string[];
+  readonly hasExplicitCombatStart?: boolean;
+  readonly combatStartTime?: number | null;
+}
+
+export interface ScheduledEventStream {
+  readonly kind: 'gw2.simulation.events';
+  readonly version: 1;
+  readonly eventSchemaVersion: 1;
+  readonly source: string;
+  readonly rotationEndTime: number;
+  readonly resolutionEndTime?: number;
+  readonly events: readonly SimulationEvent[];
+  readonly resolverHandoff: Gw2ResolverHandoff;
 }

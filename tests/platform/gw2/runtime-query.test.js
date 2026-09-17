@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   activeBoonStacks,
   boonActive,
@@ -182,6 +182,55 @@ test('additive damage uses the live weapon set before and after a same-time swap
   assert.equal(query.conditionMultiplier('Burning', hit.at, hit, runtime), 1.2);
   assert.equal(query.strikeMultiplier(hit, hit.at), 1.2);
   assert.equal(query.conditionMultiplier('Burning', hit.at, hit), 1.2);
+});
+
+// Independent pet/mech owners keep profession bonuses while player sigils remain player-owned.
+test('Force and Bursting neither boost nor dilute independent companion damage', () => {
+  const profession = {
+    id: 'companion-sigil-test',
+    ...createModifierHooks({
+      rules: [
+        {
+          id: 'companion-bonus',
+          target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+          operation: 'damage-additive',
+          amount: 0.1
+        }
+      ]
+    })
+  };
+  const query = createGw2CombatQuery({
+    profession,
+    config: {
+      sigilSets: [{ strike: 1.05, strikeAdd: 0.05, condition: 1.05, conditionAdd: 0.05 }, {}]
+    }
+  });
+  for (const summonUsesEquipmentModifiers of [true, false]) {
+    const companion = {
+      actorType: 'summon',
+      independentSummonStrike: true,
+      independentConditionOwner: true,
+      summonUsesProfessionModifiers: true,
+      summonUsesEquipmentModifiers
+    };
+    for (const activeWeaponSet of [1, 2]) {
+      assert.equal(query.strikeMultiplier(companion, 0, { activeWeaponSet }), 1.1);
+      assert.equal(query.conditionMultiplier('Burning', 0, companion, { activeWeaponSet }), 1.1);
+    }
+  }
+
+  assert.ok(Math.abs(query.strikeMultiplier({ actorType: 'player' }, 0) - 1.15) < 1e-12);
+  assert.ok(Math.abs(query.conditionMultiplier('Burning', 0, { actorType: 'summon' }, {}) - 1.15) < 1e-12);
+  // Correcting sigil ownership must retain the independent profile's existing relic-factor stage.
+  const relic = { state: {}, rules: { outgoingDamageBonus: () => 0.25 } };
+  assert.equal(
+    query.strikeMultiplier(
+      { actorType: 'summon', independentSummonStrike: true, summonUsesProfessionModifiers: true },
+      0,
+      { relic }
+    ),
+    1.25 * 1.1
+  );
 });
 
 test('boon-dependent damage sees same-time buffs only after their live application', () => {

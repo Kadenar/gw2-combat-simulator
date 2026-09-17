@@ -8,22 +8,20 @@ import {
 } from '#gw2/platform/resolver/event-loop.js';
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { normalizeBoonDuration } from '#gw2/platform/combat/state/boons.js';
+import { normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
-import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
+import { recordPassiveRelicTimeline, relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
-import type { Gw2ResolverHandoff } from '#gw2/platform/engine/events/types.js';
+import type { Gw2ResolverHandoff } from '#gw2/platform/engine/events/scheduled-stream.js';
 
-import type {
-  Gw2ResolverEvent,
-  Gw2ResolverResult,
-  Gw2ResolverRuntime,
-  ResolveGw2TimelineOptions
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent, Gw2ResolverResult, ResolveGw2TimelineOptions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 interface CastCount {
   readonly name: string;
@@ -180,8 +178,9 @@ export function resolveGw2Timeline({
   };
   if (!profession?.id) throw new TypeError('GW2 timeline resolver requires a profession.');
   // Assemble common mechanics once so queries, handlers, and runtime callbacks share the same reactions.
-  const extensions = createGw2ResolverExtensions({
-    professionReactions: profession.eventReactions
+  const reactions = createGw2ResolverReactionRegistry({
+    professionReactions: profession.eventReactions,
+    contributions: createGw2EquipmentReactionContributions()
   });
   const resolvedTimelineEvents: Gw2ResolverEvent[] = [];
   const query =
@@ -193,12 +192,12 @@ export function resolveGw2Timeline({
       resolvedTimelineEvents,
       traits
     });
-  const hits = createGw2HitResolution({ strikeMultiplier: extensions.strikeMultiplier });
-  const conditions = createGw2ConditionResolution({ config, reactions: extensions.reactions });
+  const hits = createGw2HitResolution({ strikeMultiplier: relicStrikeMultiplier });
+  const conditions = createGw2ConditionResolution({ config, reactions: reactions });
   const commonHandlers = createGw2ResolverEventHandlers({
     hitResolution: hits,
     conditions,
-    reactions: extensions.reactions
+    reactions: reactions
   });
   const resolutionEndTime = Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime);
   const queue = new StableEventQueue(scheduled.events as Gw2ResolverEvent[], { phaseFor: gw2ResolverPhase });
@@ -225,7 +224,7 @@ export function resolveGw2Timeline({
     warnings: [...(handoff.warnings || [])],
     applyCondition: conditions.applyCondition,
     onFirstDamage: conditions.startDamageClock,
-    reactions: extensions.reactions
+    reactions: reactions
   });
   if (handoff.hasExplicitCombatStart) {
     ctx.combatStartTime = handoff.combatStartTime;
@@ -234,7 +233,7 @@ export function resolveGw2Timeline({
   // Ambient target conditions join the queue only after the explicit combat
   // boundary is known, so they cannot create a player combat-start window.
   conditions.initializeEnvironment(ctx);
-  extensions.beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
+  recordPassiveRelicTimeline(ctx, scheduled.events, resolutionEndTime);
 
   for (const event of scheduled.events) {
     if (event.type === 'proc') {

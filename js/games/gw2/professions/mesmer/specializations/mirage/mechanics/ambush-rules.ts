@@ -1,10 +1,10 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+} from '#gw2/platform/combat/boons.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import {
   advanceEndurance,
@@ -14,7 +14,7 @@ import {
 } from '#gw2/platform/combat/resources/endurance.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 
@@ -24,9 +24,9 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillMechanicTrigger } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { MesmerCastContext, MesmerPrecastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

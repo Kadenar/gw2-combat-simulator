@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeState, thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { DaredevilState, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { daredevilCastAvailability } from '#gw2/professions/thief/specializations/daredevil/mechanics/availability.js';
 import { updatePalmStrikeWindow } from '#gw2/professions/thief/specializations/daredevil/mechanics/palm-strike.js';

@@ -2,7 +2,7 @@ import type {
   SimulationActorType,
   SimulationEventBase,
   SimulationEventInput
-} from '#gw2/platform/engine/events/types.js';
+} from '#gw2/platform/engine/events/events.js';
 
 type Assert<T extends true> = T;
 type Equal<Left, Right> =

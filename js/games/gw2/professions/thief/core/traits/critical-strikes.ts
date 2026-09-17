@@ -5,19 +5,19 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { applyBoonExtension } from '#gw2/platform/combat/state/boon-extensions.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+} from '#gw2/platform/combat/boons.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import type { ThiefSchedulerContext, ThiefSimulationEvent, ThiefScheduledTask } from '#gw2/professions/thief/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
-import type { EffectAudience } from '#gw2/platform/engine/events/types.js';
+import type { EffectAudience } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type {

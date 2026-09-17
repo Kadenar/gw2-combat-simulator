@@ -1,10 +1,12 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2DamageCalculation } from '#gw2/platform/resolver/hit-resolution.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+
 /**
  * Canonical event schema shared by the platform scheduler and resolver.
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
-import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
 
@@ -41,8 +43,8 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'cooldown_snapshot',
   'self_condition',
   'peitha'
-]);
-const COMMON_EVENT_TYPE_SET = new Set(COMMON_EVENT_TYPES);
+] as const);
+const COMMON_EVENT_TYPE_SET: ReadonlySet<string> = new Set(COMMON_EVENT_TYPES);
 
 /**
  * Verifies that an arbitrary value satisfies the shared event contract.
@@ -164,3 +166,172 @@ export function createEvent(event: unknown): Readonly<SimulationEvent> {
   );
   return Object.freeze(normalized as unknown as SimulationEvent);
 }
+
+/** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
+
+export type SimulationActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
+
+export type EffectRecipientScope = 'self' | 'party' | 'summons';
+
+/** Selects the canonical recipient group for one positive effect. */
+export interface EffectAudience {
+  readonly recipients: EffectRecipientScope;
+  readonly affectsSelf?: boolean;
+  readonly maximumRecipients?: number;
+  readonly eligibleCompanionIds?: readonly string[];
+}
+
+/** Records the recipients selected after player-first audience resolution. */
+export interface ResolvedEffectAudience {
+  readonly includesSelf: boolean;
+  readonly includesSummons: boolean;
+  readonly alliedPlayerCount: number;
+  readonly companionIds: readonly string[];
+  readonly recipientCount: number;
+}
+
+/** Closed vocabulary of subsystem-owned annotations preserved as one nested object. */
+export interface EffectMetadata {
+  /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
+  readonly procCount?: number;
+  readonly activeSpirits?: number;
+  readonly affinityOnHit?: boolean;
+  readonly anguishConditionalDamage?: boolean;
+  readonly blightEmpowered?: boolean;
+  readonly dhuumfireDuration?: number;
+  readonly dhuumfireInterval?: number;
+  readonly engineerMech?: boolean;
+  readonly evtcSkillId?: SkillId;
+  readonly hitboxIndex?: number;
+  readonly largeHitboxOnly?: boolean;
+  readonly legendId?: string;
+  readonly necromancerBlight?: number;
+  readonly necromancerShroudSkillOne?: boolean;
+  readonly packetKind?: string;
+  readonly radiantWeapon?: string;
+  readonly smallHitboxCap?: number;
+  readonly spirit?: string;
+  readonly spiritAttackType?: string;
+  readonly trigger?: string;
+}
+
+/** Derive the shared vocabulary while keeping damage and condition payloads discriminated. */
+export type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'damage' | 'condition'>;
+
+export type CustomSimulationEventType = `${string}.${string}`;
+
+export interface SimulationEventBase<TType extends string = string> {
+  readonly schemaVersion?: 1;
+  readonly type: TType;
+  readonly at: number;
+  readonly source: string;
+  readonly sourceId: SkillId;
+  /** Explicit actor ownership is required before scheduling or resolving an event. */
+  readonly actorType: SimulationActorType;
+  readonly ownerActorType?: SimulationActorType;
+  readonly summonKind?: string;
+  /** Pets and mech keep their own condition rounding; other summons share the player packet. */
+  readonly independentConditionOwner?: boolean;
+  readonly name?: string;
+  readonly skillName?: string;
+  readonly parentSkillName?: string;
+  readonly skillId?: SkillId | null;
+  readonly icon?: string;
+  readonly kind?: string;
+  readonly duration?: number;
+  readonly stacks?: number;
+  readonly weaponSet?: number;
+  readonly procType?: string;
+  readonly sourceSkill?: string;
+  readonly detail?: string;
+  readonly triggeredBy?: string;
+  /** The action's skill grants an evade window, independently of ordinary dodge actions. */
+  readonly evades?: boolean;
+  readonly activationId?: string;
+  /** Monotone identity assigned when the scheduler emits the event. */
+  readonly eventOrder?: number;
+  /** Same-timestamp position of an event derived from another scheduled event. */
+  readonly causalOrder?: number;
+  readonly weaponStrengthProfileId?: string;
+  readonly weaponStrength?: number;
+  readonly cooldownReduction?: number;
+  readonly audience?: EffectAudience;
+  readonly resolvedAudience?: ResolvedEffectAudience;
+  readonly metadata?: EffectMetadata;
+  readonly damageCalculation?: Gw2DamageCalculation;
+  readonly [field: string]: unknown;
+}
+
+export type DamageEvent = SimulationEventBase<'damage'> &
+  (
+    | {
+        readonly coefficient: number;
+      }
+    | {
+        readonly coefficient?: number;
+        readonly flatDamage: number;
+      }
+    | {
+        readonly coefficient?: number;
+        readonly flatStrikeBase: number;
+      }
+    | {
+        readonly coefficient?: number;
+        readonly flatStrikePowerCoeff: number;
+      }
+  ) & {
+    readonly coefficientModifiers?: ReadonlyArray<{
+      readonly kind: 'target-health-below';
+      readonly threshold: number;
+      readonly multiplier: number;
+    }>;
+    readonly hits?: number;
+    readonly canCrit?: boolean;
+    readonly forceCrit?: boolean;
+    readonly canTriggerCriticalSigils?: boolean;
+    readonly canTriggerCriticalTraits?: boolean;
+    readonly didCrit?: boolean;
+  };
+
+export interface ConditionEvent extends SimulationEventBase<'condition'> {
+  readonly condition: string;
+  readonly stacks: number;
+  readonly duration: number;
+}
+
+/** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
+export interface BuffEvent extends SimulationEventBase<'buff'> {
+  readonly fixedDuration?: boolean;
+  readonly schedulerBoonPrediction?: boolean;
+}
+
+export interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
+  readonly duration: number;
+  readonly extensionAudience?: 'self' | 'all';
+  readonly excludedKind?: string;
+}
+
+export type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
+
+/** Environment ticks and direct condition packets carry data only; mutable owner wakes belong to condition resolution. */
+export interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
+  readonly condition?: string;
+  readonly fraction?: number;
+  readonly damage?: number;
+}
+
+export type CommonSimulationEvent =
+  | BuffEvent
+  | BoonExtensionEvent
+  | WeaponSetEvent
+  | ConditionTickEvent
+  | SimulationEventBase<
+      Exclude<CommonSimulationEventType, 'buff' | 'boon_extension' | 'weapon_set' | 'condition_tick'>
+    >;
+
+export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;
+
+export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent;
+
+/** Input constructors share the envelope; runtime validation still owns external acceptance. */
+export type SimulationEventInput = SimulationEventBase;

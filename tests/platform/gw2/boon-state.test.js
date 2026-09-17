@@ -10,7 +10,7 @@ import {
   recordBuffApplication,
   remainingDurationStackSeconds,
   standardBoonPresentation
-} from '#gw2/platform/combat/state/boons.js';
+} from '#gw2/platform/combat/boons.js';
 
 // Floating-point sums cannot keep summon boons active at their exact canonical expiry.
 test('summon intensity boons exclude canonical expiry and preserve the preceding microsecond', () => {

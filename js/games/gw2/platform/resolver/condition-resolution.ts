@@ -1,31 +1,19 @@
+import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
+import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
+import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
+import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
+import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
 import { canonicalEvent } from '#kernel/events/queue.js';
-import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
-import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
-import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
-import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-
-import type {
-  Gw2ConditionResolution,
-  Gw2ConditionTickResult,
-  Gw2ResolvedConditionApplication,
-  Gw2ResolverConditionGroup,
-  Gw2ResolverConditionStack,
-  Gw2ResolverConditionState,
-  Gw2ResolverEvent,
-  Gw2ResolverReactionRegistry,
-  Gw2ResolverRuntime
-} from '#gw2/platform/resolver/types.js';
-import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
 interface CreateGw2ConditionResolutionOptions {
   readonly reactions: Gw2ResolverReactionRegistry;
   readonly config?: Gw2ResolverRuntime['config'];
 }
-
-const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
-const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
 
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
@@ -63,14 +51,16 @@ export function createGw2ConditionResolution({
     // Torment switches formula entirely for a moving target. Confusion keeps
     // its passive tick and adds configured activation damage as an average rate.
     if (name === 'Torment' && ctx.config.target?.moving) {
-      return MOVING_TORMENT.base + MOVING_TORMENT.scaling * conditionDamage;
+      const formula = CONDITION_FORMULAS.Torment;
+      return formula.base + formula.scaling * conditionDamage;
     }
 
     let rate = conditionTickDamage(name, conditionDamage);
     if (name === 'Confusion') {
+      const formula = CONDITION_FORMULAS.Confusion;
       rate +=
         Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
-        (CONFUSION_ACTIVATION.base + CONFUSION_ACTIVATION.scaling * conditionDamage);
+        (formula.activationBase + formula.activationScaling * conditionDamage);
     }
 
     return rate;
@@ -476,4 +466,82 @@ export function createGw2ConditionResolution({
     initializeEnvironment,
     handleEnvironmentConditionTick
   });
+}
+
+/** Owns the resolver/types.d.ts contracts so type dependencies follow their runtime feature boundaries. */
+// Resolution consumes kernel randomness and generic records without execution dependencies.
+
+export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
+  readonly name: string;
+  readonly condition: string;
+  readonly stacks: number;
+  readonly effectiveDuration: number;
+  readonly activeDuration: number;
+  readonly expiresAt: number;
+  readonly naturalExpiresAt: number;
+  removedAt?: number;
+  settledThrough: number;
+  bufferedRawDamage: number;
+  bufferedDurationUs: number;
+  damage: number;
+  damagingStackSeconds: number;
+  readonly damageTicks: Array<{
+    at: number;
+    damage: number;
+    fraction: number;
+  }>;
+};
+
+export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
+  appliedAt: number;
+  expiresAt: number;
+  weight: number;
+  application: Gw2ResolvedConditionApplication;
+}
+
+export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
+  stacks: Gw2ResolverConditionStack[];
+  groups?: Map<string | Gw2ResolvedConditionApplication, Gw2ResolverConditionGroup>;
+}
+
+/** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
+export interface Gw2ResolverConditionGroup {
+  readonly owner: string | Gw2ResolvedConditionApplication;
+  readonly condition: string;
+  nextPulseAt: number;
+  wakeToken: number;
+  wakeAt: number | null;
+  applications: Gw2ResolvedConditionApplication[];
+}
+
+export interface Gw2ConditionTickContribution {
+  readonly application: Gw2ResolvedConditionApplication;
+  readonly damage: number;
+  readonly rawDamage: number;
+  readonly fraction: number;
+  readonly perStack: number;
+  readonly stackSeconds: number;
+}
+
+/** An atomic owner packet rounds once and retains each application's raw contribution and allocated integer share. */
+export interface Gw2ConditionTickResult {
+  readonly condition: string;
+  readonly damage: number;
+  readonly contributions: readonly Gw2ConditionTickContribution[];
+}
+
+export interface Gw2ConditionResolution {
+  activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
+  applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication | null;
+  handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
+  handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
+  initializeEnvironment(context: Gw2ResolverRuntime): void;
+  startDamageClock(context: Gw2ResolverRuntime): void;
+  handleEnvironmentConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
+}
+/** Resolver-private references never belong to the persisted or worker event payload contract. */
+export interface Gw2ConditionWork {
+  readonly application?: Gw2ResolvedConditionApplication;
+  readonly conditionGroup?: Gw2ResolverConditionGroup;
+  readonly wakeToken?: number;
 }

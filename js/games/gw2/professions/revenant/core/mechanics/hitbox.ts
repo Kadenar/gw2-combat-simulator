@@ -1,5 +1,5 @@
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 
 /** Filters packets that only intersect large targets while preserving them as diagnostic markers. */

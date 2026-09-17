@@ -12,7 +12,7 @@ import type {
   SimulationActorType,
   SimulationEvent,
   SimulationEventInput
-} from '#gw2/platform/engine/events/types.js';
+} from '#gw2/platform/engine/events/events.js';
 import type { SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 

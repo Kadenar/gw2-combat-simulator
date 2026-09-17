@@ -1,6 +1,6 @@
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { gw2EffectiveCooldown, gw2RechargeRate } from '#gw2/platform/combat/query/runtime-rules.js';
+import { gw2EffectiveCooldown, gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerMaximumAmmoContext, MesmerRechargeContext } from '#gw2/professions/mesmer/types.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';

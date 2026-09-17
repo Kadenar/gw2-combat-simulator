@@ -5,7 +5,7 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverExtensions } from '#gw2/platform/resolver/extensions.js';
+import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { testProfession } from '../../fixtures/profession.js';
@@ -55,7 +55,7 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
 // Generic buffs share the stage with boons but must not activate relic boon rules.
 test('relic boon reactions accept standard boons and ignore generic buffs', () => {
   const seen = [];
-  const { reactions } = createGw2ResolverExtensions();
+  const reactions = createGw2ResolverReactionRegistry({ contributions: createGw2EquipmentReactionContributions() });
   const context = { relic: { state: {}, rules: { boon: (_ctx, _state, event) => seen.push(event) } } };
   const boon = { type: 'buff', at: 0, kind: 'might' };
   const legacyBoon = { type: 'buff', at: 0, boon: 'fury' };
@@ -114,11 +114,12 @@ test('condition stage runs once after state and ticks, including profession and 
       }
     }
   };
-  const extensions = createGw2ResolverExtensions({
-    professionReactions
+  const reactions = createGw2ResolverReactionRegistry({
+    professionReactions,
+    contributions: createGw2EquipmentReactionContributions()
   });
   const conditions = createGw2ConditionResolution({
-    reactions: extensions.reactions,
+    reactions: reactions,
     config: { target: { conditions: { Bleeding: 1 } } }
   });
   const queue = new StableEventQueue();

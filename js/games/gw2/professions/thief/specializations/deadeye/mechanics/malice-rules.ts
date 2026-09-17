@@ -1,8 +1,8 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -15,8 +15,8 @@ import {
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { deadeyeTaskHandlers } from '#gw2/professions/thief/specializations/deadeye/mechanics/task-handlers.js';
 import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 

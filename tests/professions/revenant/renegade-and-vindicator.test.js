@@ -631,17 +631,10 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
 
   additiveContext.config.boons.fury = true;
   additiveContext.config.secondaryWeapon = 'Sword';
-  additiveContext.timeline = {
-    activeSigilSetAt: () => ({
-      strike: 1.05,
-      strikeAdd: 0.05,
-      condition: 1.05,
-      conditionAdd: 0.05
-    })
-  };
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(additiveContext, 1.05), 1.475);
+  additiveContext.damageInputs = { strikeSigilBonus: 0.05, conditionSigilBonus: 0.05 };
+  assert.equal(revenantAttributeRules.modifyStrikeDamage(additiveContext, 1), 1.475);
   additiveContext.condition = 'Burning';
-  assert.ok(Math.abs(revenantAttributeRules.modifyConditionDamage(additiveContext, 1.05) - 1.375) < 1e-12);
+  assert.ok(Math.abs(revenantAttributeRules.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
 });
 
 test('Renegade critical traits and Blood Fury use their supplied intervals', () => {

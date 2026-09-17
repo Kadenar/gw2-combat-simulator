@@ -21,7 +21,8 @@ import type {
   NativeResolverMechanic,
   NativeSchedulerMechanic
 } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import {
   createGw2AutoattackChainMechanics,
   type Gw2AutoattackChainOptions

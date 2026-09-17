@@ -1,4 +1,4 @@
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/types.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 /** Historical build bonuses subtracted during runtime reconciliation, independent of balance overrides. */
 export const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<

@@ -30,6 +30,17 @@ const baseConfig = Object.freeze({
 
 const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
+// A real mech command must retain its Force Signet bonus when only the player's Force sigil changes.
+test('Jade Mortar does not inherit Force or lose part of its signet bonus', () => {
+  const damage = (sigils) =>
+    simulate('Mechanist', ['Jade Mortar'], {
+      selectedSkills: ['Force Signet'],
+      sigilSets: [sigils],
+      target: { conditions: {} }
+    }).resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Jade Mortar').damage;
+  assert.equal(damage({ strike: 1.05, strikeAdd: 0.05 }), damage({ strike: 1, strikeAdd: 0 }));
+});
+
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }

@@ -3,9 +3,9 @@ import {
   balanceProfileFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/query/runtime-rules.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { activeBoonStacks, engineerEvent, eventSkill } from '#gw2/professions/engineer/core/traits/query-helpers.js';
@@ -28,9 +28,9 @@ import type {
   EngineerRechargeContext,
   EngineerSchedulerContext
 } from '#gw2/professions/engineer/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 /** Applies mech cast traits after the skill's effects have been emitted. */
 export const mechanistAfterCast = Object.freeze({

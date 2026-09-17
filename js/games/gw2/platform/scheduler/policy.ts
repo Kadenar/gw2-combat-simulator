@@ -1,4 +1,4 @@
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Shared Guild Wars 2 scheduling rules used by `simulateGw2`.
  *
@@ -18,7 +18,7 @@ import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
  * `intervalTimingScale: "fixed"`.
  */
 import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/state/boon-extensions.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
@@ -28,30 +28,23 @@ import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.j
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 import {
-  durationStackingBoonCapSeconds,
+  buffApplicationStacks,
   isDurationStackingBoon,
   isStandardBoon,
-  normalizeBoonDuration,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/state/boons.js';
+  normalizeBoonDuration
+} from '#gw2/platform/combat/boons.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
-import {
-  gw2BoonDurationMultiplier,
-  gw2SigilSet,
-  gw2StatsForWeaponSet
-} from '#gw2/platform/combat/query/runtime-rules.js';
-import {
-  gw2EffectExpiresAt,
-  projectCastRelativeEffectTimingMs,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/skills/timing.js';
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
+import { gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
+import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { Gw2CombatQuery } from '#gw2/platform/combat/query/types.js';
+import type { Gw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
@@ -124,42 +117,23 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
   if (context.events.some((event) => event.type === 'boon_extension') && isStandardBoon(normalized)) {
-    const applications = boonApplicationsAt(context.events, normalized, canonicalTime(at)).filter(
-      (application) => application.resolvedAudience.includesSummons
-    );
-    return isDurationStackingBoon(normalized)
-      ? remainingDurationStackSeconds(applications, canonicalTime(at), {
-          maximum: durationStackingBoonCapSeconds(normalized)
-        }) > 0
-      : applications.some((application) => canonicalTime(application.expiresAt) > canonicalTime(at));
-  }
-
-  if (isDurationStackingBoon(normalized)) {
+    const applications = boonApplicationsAt(context.events, normalized, canonicalTime(at));
     return (
-      remainingDurationStackSeconds(context.events, canonicalTime(at), {
-        duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
-        includes: (event) =>
-          event.type === 'buff' &&
-          String(event.kind || '').toLowerCase() === normalized &&
-          event.resolvedAudience?.includesSummons === true &&
-          Number(event.stacks || 1) > 0,
-        maximum: durationStackingBoonCapSeconds(normalized)
+      buffApplicationStacks(applications, normalized, at, 1, {
+        includes: (application) => application.resolvedAudience.includesSummons
       }) > 0
     );
   }
 
-  return context.events.some(
-    (event) =>
-      event.type === 'buff' &&
-      String(event.kind || '').toLowerCase() === normalized &&
-      event.resolvedAudience?.includesSummons === true &&
-      Number(event.stacks || 1) > 0 &&
-      // Summon intensity boons use the same canonical, half-open lifetime as player and resolver queries.
-      isTimeInWindow(
-        at,
-        event.at,
-        gw2EffectExpiresAt(event.at, Math.max(0, Number(normalizeBoonDuration(event).duration || 0)))
-      )
+  return (
+    buffApplicationStacks(context.events, normalized, at, 1, {
+      duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
+      includes: (event) =>
+        event.type === 'buff' &&
+        String(event.kind || '').toLowerCase() === normalized &&
+        event.resolvedAudience?.includesSummons === true &&
+        Number(event.stacks || 1) > 0
+    }) > 0
   );
 }
 
@@ -347,44 +321,16 @@ export function createGw2SchedulerPolicy(
       // Configured duration presence is fixed even with extensions; intensity stacks still need replay.
       if (configuredStacks > 0 && isDurationStackingBoon(kind)) return 1;
       if (context.eventsOfType('boon_extension').length > 0 && isStandardBoon(kind)) {
-        const extended = boonApplicationsAt(context.events, kind, canonicalTime(at)).filter(
-          (application) => application.resolvedAudience.includesSelf
-        );
-        if (isDurationStackingBoon(kind)) {
-          return remainingDurationStackSeconds(extended, canonicalTime(at), {
-            maximum: durationStackingBoonCapSeconds(kind)
-          }) > 0
-            ? 1
-            : 0;
-        }
-
-        return (
-          configuredStacks +
-          extended
-            .filter((application) => canonicalTime(application.expiresAt) > canonicalTime(at))
-            .reduce((sum, application) => sum + application.stacks, 0)
-        );
+        const extended = boonApplicationsAt(context.events, kind, canonicalTime(at));
+        return configuredStacks + buffApplicationStacks(extended, kind, at, Infinity);
       }
 
-      // Keep scheduler events unrounded for later effect modifiers; availability reads their final rounded lifetimes.
-      if (!isDurationStackingBoon(kind)) {
-        return (
-          configuredStacks +
-          applications.reduce((total, input) => {
-            const event = normalizeBoonDuration(input);
-            return isTimeInWindow(at, event.at, gw2EffectExpiresAt(event.at, Number(event.duration || 0)))
-              ? total + Number(event.stacks || 1)
-              : total;
-          }, 0)
-        );
-      }
-
-      return remainingDurationStackSeconds(applications, canonicalTime(at), {
-        duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
-        maximum: durationStackingBoonCapSeconds(kind)
-      }) > 0
-        ? 1
-        : 0;
+      // Scheduler history is already audience-selected; normalize grants only when reading their lifetime.
+      const dynamic = buffApplicationStacks(applications, kind, at, Infinity, {
+        includes: () => true,
+        duration: (event) => Number(normalizeBoonDuration(event).duration || 0)
+      });
+      return (isDurationStackingBoon(kind) ? 0 : configuredStacks) + dynamic;
     },
 
     castDuration(context, skill, baseDuration) {

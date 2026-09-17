@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { conditionApplicationDuration } from '#gw2/platform/combat/query/condition-duration.js';
-import { recordBuffApplication } from '#gw2/platform/combat/state/boons.js';
+import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';

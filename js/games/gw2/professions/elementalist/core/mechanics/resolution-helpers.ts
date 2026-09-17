@@ -2,7 +2,8 @@
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import type { Gw2ResolverEvent, Gw2ResolverRuntime } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
 /** Returns the best available display name for the skill behind a resolver event. */
 export function elementalistSourceSkill(event: Gw2ResolverEvent): string {

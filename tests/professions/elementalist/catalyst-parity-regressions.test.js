@@ -2,7 +2,7 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks } from '#gw2/platform/combat/modifiers/rules.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import {

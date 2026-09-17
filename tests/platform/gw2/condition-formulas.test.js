@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { conditionTickDamage } from '#gw2/platform/combat/damage/condition-formulas.js';
+import { conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 
 test('condition damage uses the canonical combat-domain formulas', () => {
   // One row per formula branch keeps coefficients, aliases, and edge behavior explicit.

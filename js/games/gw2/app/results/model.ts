@@ -2,9 +2,9 @@ import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '#gw2/a
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/result-tables.js';
 import { resultSummaryMetrics as transformResultSummaryMetrics } from '#gw2/app/results/result-transform.js';
 import { timelineIdleTimeMetric } from '#gw2/app/rotation/timeline/timing/model.js';
-import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/state/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(

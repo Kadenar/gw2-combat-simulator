@@ -1,4 +1,4 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers/rules.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -18,7 +18,7 @@ import {
   initializePhotonForgeHeat,
   triggerThermalReleaseValve
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers/types.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Handles post-cast kit transitions and triggers Thermal Release Valve at synthetic dodge start. */
