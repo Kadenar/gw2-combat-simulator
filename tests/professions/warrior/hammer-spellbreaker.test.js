@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 

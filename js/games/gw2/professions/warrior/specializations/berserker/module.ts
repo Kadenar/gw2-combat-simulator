@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createWarriorModuleData } from '#gw2/professions/warrior/catalog/module-data.js';
+import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import { berserkerSkillHandlers } from '#gw2/professions/warrior/specializations/berserker/execution/index.js';
 import {

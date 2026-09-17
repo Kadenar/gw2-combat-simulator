@@ -11,6 +11,14 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type { BerserkerState, BladeswornState, ParagonState, SpellbreakerState, WarriorCoreState };
 
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -27,99 +35,6 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
 export interface WarriorConfig extends Gw2Config {
   readonly specialization?: string;
   readonly initialResource?: number;
-}
-
-export interface WarriorCoreState {
-  adrenaline: number;
-  resource: number;
-  maximumAdrenaline: number;
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  autoattackChains: Record<string, SkillId>;
-  availableFlips: Record<string, number | boolean | SchedulerRecord>;
-  burstPowerExpiries: number[];
-  signetMasteryExpiries: number[];
-  signetOfRageNextAt: number;
-  targetControlledUntil: number;
-  soldierFocusReadyAt: number;
-  empowerAlliesNextAt: number;
-  burstHitActivations: Record<string, boolean>;
-  burstPrecisionDurations: Record<string, number>;
-  traitProcReadyAt: Record<string, number>;
-  armsCriticalProgress: number;
-  axeMasteryProgress: number;
-  forcefulGreatswordProgress: number;
-  bloodlustProgress: number;
-  furiousSurgeExpiries: number[];
-}
-
-export interface BerserkerState {
-  berserkActive: boolean;
-  berserkUntil: number;
-  fireAuraUntil: number;
-  kingOfFiresReadyAt: number;
-  kingOfFiresCriticalProgress: number;
-}
-
-export interface SpellbreakerState {
-  attackerInsightExpiries: number[];
-  fullCounterActiveUntil: number;
-  magebaneTetherUntil: number;
-  magebaneTetherReadyAt: number;
-}
-
-export interface BladeswornState {
-  flow: number;
-  maximumFlow: number;
-  flowUpdatedAt: number;
-  flowStabilizerWindows: Array<{
-    startedAt: number;
-    expiresAt: number;
-  }>;
-  traitPositiveFlowStartedAt: number;
-  traitPositiveFlowUntil: number;
-  gunsaberSwapTraitReadyAt: number;
-  gunsaberActive: boolean;
-  dragonTriggerActive: boolean;
-  dragonTriggerStartedAt: number;
-  dragonTriggerChargeDeadline: number;
-  nextDragonChargeAt: number;
-  dragonChargeTickCount: number;
-  dragonCharges: number;
-  dragonChargesPerInterval: number;
-  dragonTriggerRotationIndex: number;
-  dragonTriggerFlowSpent: number;
-  dragonTriggerEventActivationId: string;
-  tacticalReloadUntil: number;
-  overchargedCartridgeWindows: Array<{
-    startedAt: number;
-    expiresAt: number;
-    damageBonus: number;
-    burningDuration: number;
-    supercharged: boolean;
-  }>;
-  fierceAsFireExpiries: number[];
-  gunsAndGloryUntil: number;
-  ammoRoundsSpentByActivation: Record<string, number>;
-  ammoStartedFullByActivation: Record<string, boolean>;
-  dragonAdrenalineSpentByActivation: Record<string, number>;
-}
-
-export interface ParagonState {
-  motivation: number;
-  maximumMotivation: number;
-  activeRefrainId: SkillId | null;
-  nextRefrainAt: number;
-  inspiringImplementsReadyAt: number;
-  callToActionActivated: boolean;
-  commandEchoSequence: number;
-  pendingCommandEchoes: Array<{
-    id: number;
-    skillId: SkillId;
-    dueAt: number;
-    repeats: number;
-  }>;
 }
 
 export interface WarriorState

@@ -1,5 +1,22 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { ParagonState, WarriorState } from '#gw2/professions/warrior/types.js';
+import type { WarriorState } from '#gw2/professions/warrior/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface ParagonState {
+  motivation: number;
+  maximumMotivation: number;
+  activeRefrainId: SkillId | null;
+  nextRefrainAt: number;
+  inspiringImplementsReadyAt: number;
+  callToActionActivated: boolean;
+  commandEchoSequence: number;
+  pendingCommandEchoes: Array<{
+    id: number;
+    skillId: SkillId;
+    dueAt: number;
+    repeats: number;
+  }>;
+}
 
 /** Declares Paragon's public compatibility fields and inactive values. */
 export const PARAGON_PUBLIC_END_STATE_KEYS = Object.freeze([

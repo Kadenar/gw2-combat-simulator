@@ -33,7 +33,7 @@ import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { reactToThiefCoreBuff } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { createSpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';

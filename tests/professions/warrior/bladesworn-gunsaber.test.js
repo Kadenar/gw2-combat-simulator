@@ -3,9 +3,8 @@ import test from 'node:test';
 
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 
 function simulate(rotation) {
   return simulateGw2({

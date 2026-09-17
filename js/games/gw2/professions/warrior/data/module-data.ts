@@ -1,19 +1,10 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import {
-  createFlipParentMap,
-  createSpecializationSkillIds,
-  defineProfessionWeapons
-} from '#gw2/professions/lib/catalog-data.js';
+import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/lib/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/lib/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
-import { WARRIOR_CORE_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/index.js';
-import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
-import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
-import { BLADESWORN_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
 
@@ -66,15 +57,6 @@ const generated: readonly Skill[] = Object.freeze(
   })
 );
 
-const SPECIALIZATION_MECHANICS = Object.freeze({
-  Berserker: BERSERKER_SKILL_MECHANICS,
-  Spellbreaker: SPELLBREAKER_SKILL_MECHANICS,
-  Bladesworn: BLADESWORN_SKILL_MECHANICS,
-  Paragon: PARAGON_SKILL_MECHANICS
-});
-
-const SPECIALIZATION_ONLY_SKILLS = createSpecializationSkillIds(SPECIALIZATION_MECHANICS);
-
 const WEAPON_DATA = defineProfessionWeapons({
   Axe: 'mh+oh',
   Dagger: 'mh+oh',
@@ -124,7 +106,8 @@ export function createWarriorModuleData(
     extraSkills,
     traits: TRAITS as readonly CatalogEntity[],
     specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
+    // Every skill a specialization module declares mechanics for is exclusive to that specialization.
+    specializationOnlySkillIds: id === 'Core' ? [] : Object.keys(skillMechanics).map(Number),
     ...(id === 'Core'
       ? {
           skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides
@@ -134,5 +117,3 @@ export function createWarriorModuleData(
     ...(autoattackChains ? { autoattackChains } : {})
   });
 }
-
-export { WARRIOR_CORE_SKILL_MECHANICS };

@@ -1,4 +1,31 @@
-import type { WarriorConfig, WarriorCoreState } from '#gw2/professions/warrior/types.js';
+import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface WarriorCoreState {
+  adrenaline: number;
+  resource: number;
+  maximumAdrenaline: number;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  autoattackChains: Record<string, SkillId>;
+  availableFlips: Record<string, number | boolean | SchedulerRecord>;
+  burstPowerExpiries: number[];
+  signetMasteryExpiries: number[];
+  signetOfRageNextAt: number;
+  targetControlledUntil: number;
+  soldierFocusReadyAt: number;
+  empowerAlliesNextAt: number;
+  burstHitActivations: Record<string, boolean>;
+  burstPrecisionDurations: Record<string, number>;
+  traitProcReadyAt: Record<string, number>;
+  armsCriticalProgress: number;
+  axeMasteryProgress: number;
+  forcefulGreatswordProgress: number;
+  bloodlustProgress: number;
+  furiousSurgeExpiries: number[];
+}
 
 /** Declares the Core fields exposed by every Warrior end-state projection. */
 export const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([

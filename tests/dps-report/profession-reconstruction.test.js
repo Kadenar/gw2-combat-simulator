@@ -10,7 +10,7 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';

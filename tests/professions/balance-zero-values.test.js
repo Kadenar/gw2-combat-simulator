@@ -7,7 +7,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';

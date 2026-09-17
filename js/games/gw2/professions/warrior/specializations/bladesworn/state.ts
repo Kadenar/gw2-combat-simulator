@@ -1,5 +1,42 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { BladeswornState, WarriorConfig } from '#gw2/professions/warrior/types.js';
+import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
+
+export interface BladeswornState {
+  flow: number;
+  maximumFlow: number;
+  flowUpdatedAt: number;
+  flowStabilizerWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+  }>;
+  traitPositiveFlowStartedAt: number;
+  traitPositiveFlowUntil: number;
+  gunsaberSwapTraitReadyAt: number;
+  gunsaberActive: boolean;
+  dragonTriggerActive: boolean;
+  dragonTriggerStartedAt: number;
+  dragonTriggerChargeDeadline: number;
+  nextDragonChargeAt: number;
+  dragonChargeTickCount: number;
+  dragonCharges: number;
+  dragonChargesPerInterval: number;
+  dragonTriggerRotationIndex: number;
+  dragonTriggerFlowSpent: number;
+  dragonTriggerEventActivationId: string;
+  tacticalReloadUntil: number;
+  overchargedCartridgeWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+    damageBonus: number;
+    burningDuration: number;
+    supercharged: boolean;
+  }>;
+  fierceAsFireExpiries: number[];
+  gunsAndGloryUntil: number;
+  ammoRoundsSpentByActivation: Record<string, number>;
+  ammoStartedFullByActivation: Record<string, boolean>;
+  dragonAdrenalineSpentByActivation: Record<string, number>;
+}
 
 /** Declares Bladesworn's public compatibility fields and inactive values. */
 export const BLADESWORN_PUBLIC_END_STATE_KEYS = Object.freeze([

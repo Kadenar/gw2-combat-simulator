@@ -32,7 +32,7 @@ import { necromancerProfession as baseNecromancerProfession } from '#gw2/profess
 import { rangerProfession as baseRangerProfession } from '#gw2/professions/ranger/profession.js';
 import { revenantProfession as baseRevenantProfession } from '#gw2/professions/revenant/definition.js';
 import { thiefProfession as baseThiefProfession } from '#gw2/professions/thief/profession.js';
-import { warriorProfession as baseWarriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession as baseWarriorProfession } from '#gw2/professions/warrior/profession.js';
 
 const elementalistProfession = withActivePatchPreview(baseElementalistProfession);
 const engineerProfession = withActivePatchPreview(baseEngineerProfession);
