@@ -29,9 +29,7 @@ export function downloadJson(filename: string, payload: unknown): void;
 export function downloadJson(choices: readonly JsonExportChoice[]): void;
 export function downloadJson(filenameOrChoices: string | readonly JsonExportChoice[], payload?: unknown): void {
   const choices =
-    typeof filenameOrChoices === 'string'
-      ? [{ label: '', filename: filenameOrChoices, payload }]
-      : filenameOrChoices;
+    typeof filenameOrChoices === 'string' ? [{ label: '', filename: filenameOrChoices, payload }] : filenameOrChoices;
   if (!choices.length) throw new Error('No export choices provided.');
   let selected = choices[0]!;
 
