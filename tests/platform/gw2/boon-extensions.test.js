@@ -3,7 +3,7 @@ import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { applyBoonExtension, boonApplicationsAt, selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-strikes.js';
@@ -139,7 +139,7 @@ test('extensions preserve past duration and intensity observations across recipi
     );
   }
 
-  const chart = buildChartSeries({ duration: 15, dpsStartTime: 0, resolvedEvents: events }, 1000, {
+  const chart = buildTimeSeries({ duration: 15, dpsStartTime: 0, resolvedEvents: events }, 1000, {
     durationStackCaps: { fury: 30 }
   });
   assert.equal(chartValueAt(chart.effects.fury, 2000), 8);
