@@ -16,6 +16,8 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
 const base = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
@@ -222,11 +224,44 @@ test('Assassin Nature procs only on eligible resolved strikes while its passive 
   assert.equal(emitted.length, 2);
 });
 
+// The same live attributes feed skills, traits, equipment, and resolver-created combo boons.
+test('Nature changes passive with the active legend without adding Concentration or exceeding 120 percent', () => {
+  const core = createRevenantCoreState(base);
+  core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
+  const state = createHeraldState();
+  const context = {
+    config: base,
+    time: 2,
+    event: { actorType: 'effect' },
+    runtime: { profession: { core, specialization: { kind: 'Herald', state } } }
+  };
+  const attributes = { concentration: 1500, boonDurationBonus: 25 };
+  for (const legend of [LEGEND.DRAGON, LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.CENTAUR, LEGEND.DWARF]) {
+    core.activeLegendId = legend;
+    const stats = modifyHeraldPassiveAttributes(context, attributes);
+    assert.equal(stats.concentration, 1500);
+    assert.equal(stats.boonDurationBonus, 25);
+    assert.equal(
+      gw2BoonDurationMultiplier('might', stats, { boonDurationBonus: 10 }),
+      legend === LEGEND.DRAGON ? 2.2 : 2
+    );
+    const resolver = { config: {}, query: { statsAt: () => stats } };
+    assert.equal(gw2ResolverBoonDuration(resolver, { at: 2 }, 'might', 10), legend === LEGEND.DRAGON ? 22 : 20);
+  }
+
+  core.activeUpkeeps = [];
+  core.activeLegendId = LEGEND.DRAGON;
+  assert.equal(gw2BoonDurationMultiplier('might', modifyHeraldPassiveAttributes(context, attributes)), 2);
+});
+
 test('Nature adds outgoing Assassin damage only while its passive is available', () => {
   const enabled = simulate('Herald', ['Facet of Nature', 'Preparation Thrust']);
   const disabled = simulate('Herald', ['Preparation Thrust']);
   const consumed = simulate('Herald', ['Facet of Nature', 'True Nature', 'Preparation Thrust']);
   const swapped = simulate('Herald', ['Facet of Nature', 'Swap Legends', 'Preparation Thrust']);
+  const entered = simulate('Herald', ['Facet of Nature', 'Swap Legends', 'Preparation Thrust'], {
+    startingLegend: LEGEND.DRAGON
+  });
   const siphons = (result) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.lifeSiphon && event.skillId === SKILL.FACET_OF_NATURE
@@ -235,10 +270,12 @@ test('Nature adds outgoing Assassin damage only while its passive is available',
   assert.equal(siphons(enabled).length, 1);
   assert.ok(siphons(enabled)[0].damage > 0);
   assert.equal(siphons(disabled).length, 0);
-  // The consume's own strike precedes teardown; subsequent attacks must lose the passive.
+  // Consuming ends the passive; entering Assassin enables it without a second activation.
   assert.equal(
     siphons(consumed).some((event) => event.triggeredBy === 'Preparation Thrust'),
     false
   );
   assert.equal(siphons(swapped).length, 0);
+  assert.deepEqual(entered.warnings, []);
+  assert.equal(siphons(entered).length, 1);
 });

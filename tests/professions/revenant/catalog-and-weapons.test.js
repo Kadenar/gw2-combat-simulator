@@ -91,7 +91,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
     [SKILL.ELEMENTAL_BLAST, 480],
     [SKILL.BURST_OF_STRENGTH, 840],
     [SKILL.CHAOTIC_RELEASE, 600],
-    [SKILL.TRUE_NATURE_ID_51696, 480]
+    [SKILL.TRUE_NATURE_DRAGON, 480]
   ]) {
     const skill = revenantCatalog.skillsById.get(skillId);
 

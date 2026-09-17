@@ -165,8 +165,9 @@ function handleSharedEmpowerment(context: RevenantSchedulerContext, task: Revena
 function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   scheduleSharedEmpowerment(context, event);
 
-  if (event.type === 'proc' && event.skillId === ID.TRUE_NATURE_ID_51696 && event.procType === 'boon-extension') {
-    const extension = Math.max(0, Number(event.duration || 0));
+  if (event.type === 'proc' && event.skillId === ID.TRUE_NATURE_DRAGON && event.procType === 'boon-extension') {
+    // Core Value improves the flat extension, which never scales with boon duration.
+    const extension = Math.max(0, Number(event.duration || 0)) + (hasTrait(context.config, TRAIT.CORE_VALUE) ? 1 : 0);
     // Both phases consume the extension at resolution time; prior applications remain immutable.
     if (extension > 0)
       context.emitDerived(event, {

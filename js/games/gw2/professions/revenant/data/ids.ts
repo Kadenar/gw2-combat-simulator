@@ -89,11 +89,11 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   ORDERS_FROM_ABOVE: 45537, // Orders from Above
   BREAKRAZORS_BASTION: 45686, // Breakrazor's Bastion
   SOULCLEAVES_SUMMIT: 45773, // Soulcleave's Summit
-  TRUE_NATURE: 51667, // True Nature
-  TRUE_NATURE_ID_51675: 51675, // True Nature
-  TRUE_NATURE_ID_51696: 51696, // True Nature
-  TRUE_NATURE_ID_51713: 51713, // True Nature
-  TRUE_NATURE_ID_51714: 51714, // True Nature
+  TRUE_NATURE_ASSASSIN: 51667, // True Nature Assassin
+  TRUE_NATURE_DWARF: 51675, // True Nature Dwarf
+  TRUE_NATURE_DRAGON: 51696, // True Nature Dragon
+  TRUE_NATURE_CENTAUR: 51713, // True Nature Centaur
+  TRUE_NATURE_DEMON: 51714, // True Nature Demon
   ANCIENT_ECHO: 55029, // Ancient Echo
   MIST_SLASH: 62688, // Mist Slash
   MIST_UNLEASHED: 62692, // Mist Unleashed

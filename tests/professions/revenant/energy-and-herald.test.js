@@ -1073,7 +1073,7 @@ test('Herald palette replaces active facets with their consume skills', () => {
         [SKILL.ELEMENTAL_BLAST]: true,
         [SKILL.GAZE_OF_DARKNESS]: true,
         [SKILL.CHAOTIC_RELEASE]: true,
-        [SKILL.TRUE_NATURE_ID_51696]: true
+        [SKILL.TRUE_NATURE_DRAGON]: true
       }
     }
   };
@@ -1093,11 +1093,11 @@ test('Herald palette replaces active facets with their consume skills', () => {
   // The UI declares the complete tile family; the shared projector chooses the live legend variant.
   assert.deepEqual(profession.skillIds, [
     SKILL.FACET_OF_NATURE,
-    SKILL.TRUE_NATURE,
-    SKILL.TRUE_NATURE_ID_51675,
-    SKILL.TRUE_NATURE_ID_51696,
-    SKILL.TRUE_NATURE_ID_51713,
-    SKILL.TRUE_NATURE_ID_51714
+    SKILL.TRUE_NATURE_ASSASSIN,
+    SKILL.TRUE_NATURE_DWARF,
+    SKILL.TRUE_NATURE_DRAGON,
+    SKILL.TRUE_NATURE_CENTAUR,
+    SKILL.TRUE_NATURE_DEMON
   ]);
   assert.equal(
     professionGroups.some((group) => group.id === 'revenant-facet-consumes'),
@@ -1162,7 +1162,7 @@ test('Herald facets expose and consume their active flips', () => {
 });
 
 test('Facet of Nature exposes the consume variant for the active legend', () => {
-  const result = simulate('Herald', ['Facet of Nature', { skillId: SKILL.TRUE_NATURE_ID_51696 }], {
+  const result = simulate('Herald', ['Facet of Nature', { skillId: SKILL.TRUE_NATURE_DRAGON }], {
     selectedLegends: [LEGEND.DRAGON, LEGEND.DEMON],
     startingLegend: LEGEND.DRAGON
   });
@@ -1170,19 +1170,128 @@ test('Facet of Nature exposes the consume variant for the active legend', () => 
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.events.find((event) => event.type === 'action' && event.skillName === 'True Nature')?.skillId,
-    SKILL.TRUE_NATURE_ID_51696
+    SKILL.TRUE_NATURE_DRAGON
+  );
+});
+
+// Swaps must preserve only the cross-legend facet, its drain, and the correct consume action.
+test('Nature survives swaps into every legend and switches its consume without retaining other facets', () => {
+  for (const [legend, consumeId] of [
+    [LEGEND.ASSASSIN, SKILL.TRUE_NATURE_ASSASSIN],
+    [LEGEND.DWARF, SKILL.TRUE_NATURE_DWARF],
+    [LEGEND.DRAGON, SKILL.TRUE_NATURE_DRAGON],
+    [LEGEND.CENTAUR, SKILL.TRUE_NATURE_CENTAUR],
+    [LEGEND.DEMON, SKILL.TRUE_NATURE_DEMON]
+  ]) {
+    const startingLegend = legend === LEGEND.DRAGON ? LEGEND.ASSASSIN : LEGEND.DRAGON;
+    const config = { selectedLegends: [startingLegend, legend], startingLegend, boons: {} };
+    const rotation = [
+      '__combat_start',
+      ...(startingLegend === LEGEND.DRAGON ? ['Facet of Darkness'] : []),
+      'Facet of Nature',
+      'Swap Legends',
+      { type: 'wait', durationMs: 2000 }
+    ];
+    const active = simulate('Herald', rotation, config);
+    assert.deepEqual(active.warnings, [], legend);
+    assert.deepEqual(
+      active.endState.profession.activeUpkeeps.map((upkeep) => upkeep.skillId),
+      [SKILL.FACET_OF_NATURE]
+    );
+    assert.deepEqual(active.endState.profession.availableFlips, { [consumeId]: true });
+    assert.equal(active.endState.profession.energy, 56);
+
+    const consumed = simulate('Herald', [...rotation, { skillId: consumeId }], config);
+    assert.deepEqual(consumed.warnings, [], legend);
+    assert.deepEqual(consumed.endState.profession.activeUpkeeps, []);
+    assert.deepEqual(consumed.endState.profession.availableFlips, {});
+    const effects = consumed.events.filter((event) => event.skillId === consumeId && event.type === 'buff');
+    assert.deepEqual(
+      effects.map((event) => [event.kind, event.stacks, event.duration]),
+      legend === LEGEND.DWARF ? [['stability', 2, 4]] : []
+    );
+    const consumeStep = consumed.steps.find((step) => step.skillId === consumeId);
+    assert.equal(consumed.endState.cooldowns['Facet of Nature'].readyAt, consumeStep.end + 20000);
+  }
+});
+
+// The consume samples the active weapon set instead of the generic profession-skill strength.
+test('Assassin True Nature strikes with a 1.0 coefficient and the equipped weapon strength', () => {
+  for (const swap of [false, true]) {
+    const result = simulate(
+      'Herald',
+      ['Facet of Nature', ...(swap ? ['Swap Weapons'] : []), { skillId: SKILL.TRUE_NATURE_ASSASSIN }],
+      {
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        weaponSet2Primary: 'Greatsword',
+        startingWeaponSet: 1,
+        randomness: { mode: 'deterministic' }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const hit = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillId === SKILL.TRUE_NATURE_ASSASSIN
+    );
+    assert.equal(hit.coefficient, 1);
+    assert.equal(hit.weaponStrengthProfileId, swap ? 'weapon.greatsword' : 'weapon.sword');
+    assert.equal(hit.resolvedWeaponStrength, swap ? 1100 : 1000);
+    assert.ok(hit.damage > 0);
+  }
+});
+
+test('Dragon Nature scales skill and trait boons up to 120 percent bonus duration', () => {
+  for (const [concentration, multiplier] of [
+    [0, 1.2],
+    [1500, 2.2],
+    [3000, 2.2]
+  ]) {
+    const result = simulate('Herald', ['Facet of Nature', 'Facet of Strength', { type: 'wait', durationMs: 3100 }], {
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      selectedTraitIds: [TRAIT.SHARED_EMPOWERMENT],
+      stats: { concentration },
+      allies: { count: 4 }
+    });
+    assert.deepEqual(result.warnings, []);
+    const boon = (skillId) => result.events.find((event) => event.type === 'buff' && event.skillId === skillId);
+    assert.equal(boon(SKILL.FACET_OF_STRENGTH).duration, Number((12 * multiplier).toFixed(3)));
+    assert.equal(boon(TRAIT.SHARED_EMPOWERMENT).duration, Number((8 * multiplier).toFixed(3)));
+  }
+});
+
+test('Core Value extends allied boons by three seconds without duration scaling', () => {
+  const result = simulate(
+    'Herald',
+    ['Facet of Darkness', { type: 'wait', durationMs: 3100 }, 'Facet of Nature', { skillId: SKILL.TRUE_NATURE_DRAGON }],
+    {
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      selectedTraitIds: [TRAIT.CORE_VALUE],
+      stats: { concentration: 1500 },
+      allies: { count: 4 }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const extension = result.events.find((event) => event.type === 'boon_extension');
+  assert.equal(extension.duration, 3);
+  assert.equal(extension.resolvedAudience.alliedPlayerCount, 4);
+  const original = boonApplicationsAt(
+    result.events.filter((event) => event.type !== 'boon_extension'),
+    'fury',
+    extension.at
+  );
+  const extended = boonApplicationsAt(result.events, 'fury', extension.at);
+  assert.equal(
+    remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
+    remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 3
   );
 });
 
 test('Dragon True Nature extends active allied boons by two seconds', () => {
   const result = simulate(
     'Herald',
-    [
-      'Facet of Darkness',
-      { type: 'wait', durationMs: 3100 },
-      'Facet of Nature',
-      { skillId: SKILL.TRUE_NATURE_ID_51696 }
-    ],
+    ['Facet of Darkness', { type: 'wait', durationMs: 3100 }, 'Facet of Nature', { skillId: SKILL.TRUE_NATURE_DRAGON }],
     {
       selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DRAGON,
@@ -1190,9 +1299,7 @@ test('Dragon True Nature extends active allied boons by two seconds', () => {
       stats: { concentration: 0 }
     }
   );
-  const extension = result.events.find(
-    (event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_ID_51696
-  );
+  const extension = result.events.find((event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_DRAGON);
 
   assert.deepEqual(result.warnings, []);
   const original = boonApplicationsAt(
@@ -1214,10 +1321,10 @@ test('True Nature variants share their twenty-second parent cooldown across lege
     'Herald',
     [
       'Facet of Nature',
-      { skillId: SKILL.TRUE_NATURE },
+      { skillId: SKILL.TRUE_NATURE_ASSASSIN },
       'Swap Legends',
       'Facet of Nature',
-      { skillId: SKILL.TRUE_NATURE_ID_51696 }
+      { skillId: SKILL.TRUE_NATURE_DRAGON }
     ],
     {
       selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
@@ -1231,11 +1338,11 @@ test('True Nature variants share their twenty-second parent cooldown across lege
   assert.deepEqual(result.warnings, []);
   assert.equal(facetSteps[1].start, firstTrueNature.end + 20000);
   for (const skillId of [
-    SKILL.TRUE_NATURE,
-    SKILL.TRUE_NATURE_ID_51675,
-    SKILL.TRUE_NATURE_ID_51696,
-    SKILL.TRUE_NATURE_ID_51713,
-    SKILL.TRUE_NATURE_ID_51714
+    SKILL.TRUE_NATURE_ASSASSIN,
+    SKILL.TRUE_NATURE_DWARF,
+    SKILL.TRUE_NATURE_DRAGON,
+    SKILL.TRUE_NATURE_CENTAUR,
+    SKILL.TRUE_NATURE_DEMON
   ]) {
     assert.equal(revenantCatalog.skillsById.get(skillId).cooldown, 20);
   }

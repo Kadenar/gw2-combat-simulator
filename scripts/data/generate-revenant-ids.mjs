@@ -5,8 +5,16 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { declaration, stableEntries } from './lib/generator-utils.mjs';
 
+// Disambiguate Nature by legend so regenerating API IDs preserves readable mechanic references.
+const skillNames = {
+  51667: 'True Nature Assassin',
+  51675: 'True Nature Dwarf',
+  51696: 'True Nature Dragon',
+  51713: 'True Nature Centaur',
+  51714: 'True Nature Demon'
+};
 const skills = stableEntries([
-  ...SKILLS.map((skill) => [skill.name, skill.id]),
+  ...SKILLS.map((skill) => [skillNames[skill.id] ?? skill.name, skill.id]),
   ...REVENANT_SUPPLEMENTAL_SKILLS.map((skill) => [skill.name, skill.id])
 ]);
 const traits = stableEntries(

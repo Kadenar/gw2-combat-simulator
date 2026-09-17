@@ -260,14 +260,14 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     facet: true,
     pulseInterval: 3,
     upkeepConsumeByLegendId: {
-      LegendaryAssassin: ID.TRUE_NATURE,
-      LegendaryDwarf: ID.TRUE_NATURE_ID_51675,
-      LegendaryDragon: ID.TRUE_NATURE_ID_51696,
-      LegendaryCentaur: ID.TRUE_NATURE_ID_51713,
-      LegendaryDemon: ID.TRUE_NATURE_ID_51714
+      LegendaryAssassin: ID.TRUE_NATURE_ASSASSIN,
+      LegendaryDwarf: ID.TRUE_NATURE_DWARF,
+      LegendaryDragon: ID.TRUE_NATURE_DRAGON,
+      LegendaryCentaur: ID.TRUE_NATURE_CENTAUR,
+      LegendaryDemon: ID.TRUE_NATURE_DEMON
     }
   },
-  [ID.TRUE_NATURE]: {
+  [ID.TRUE_NATURE_ASSASSIN]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -275,18 +275,20 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
+    // Assassin's consume strikes with the currently equipped weapon's strength.
     effects: [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1,
         name: 'True Nature (assassin)',
-        actorType: 'player'
+        actorType: 'player',
+        weaponStrengthSource: 'equipped'
       }
     ],
     consume: true
   },
-  [ID.TRUE_NATURE_ID_51675]: {
+  [ID.TRUE_NATURE_DWARF]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -299,12 +301,13 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         type: 'boon',
         boon: 'stability',
         duration: 4,
-        stacks: 2
+        stacks: 2,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
     consume: true
   },
-  [ID.TRUE_NATURE_ID_51696]: {
+  [ID.TRUE_NATURE_DRAGON]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -326,7 +329,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     ],
     consume: true
   },
-  [ID.TRUE_NATURE_ID_51713]: {
+  [ID.TRUE_NATURE_CENTAUR]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -337,7 +340,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     effects: [],
     consume: true
   },
-  [ID.TRUE_NATURE_ID_51714]: {
+  [ID.TRUE_NATURE_DEMON]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -345,14 +348,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 10,
-        stacks: 5
-      }
-    ],
+    // Demon's condition transfer has no simulated effect; consuming still ends the upkeep.
+    effects: [],
     consume: true
   },
   [ID.LEGENDARY_DRAGON_STANCE]: {

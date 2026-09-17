@@ -85,14 +85,23 @@ export const heraldPassiveModifierRules: readonly Gw2ModifierRule[] = [
   }
 ];
 
-/** Nature's Draconic Echo bonus enters ordinary boon-duration scaling and its normal cap. */
+/** Dragon Nature adds duration after the normal cap without changing Concentration; Echo stays capped. */
 export function modifyHeraldPassiveAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-  if (!draconicEchoActive(context, ID.FACET_OF_NATURE)) return attributes;
+  const core = revenantRuntimeCoreState(context);
+  const state = revenantRuntimeSpecializationState(context, 'Herald') as Partial<HeraldState>;
+  if (!heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, context.time)) return attributes;
+  const active = core.activeUpkeeps?.some(
+    (upkeep) => upkeep.skillId === ID.FACET_OF_NATURE && Number(upkeep.startsAt || 0) <= context.time
+  );
+  const legend = active ? core.activeLegendId : state.lingeringFacets?.[ID.FACET_OF_NATURE]?.legendId;
   return {
     ...attributes,
+    uncappedBoonDurationBonus: Number(attributes.uncappedBoonDurationBonus || 0) + (legend === LEGEND.DRAGON ? 20 : 0),
     boonDurationBonus:
       Number(attributes.boonDurationBonus || 0) +
-      balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'boonDurationBonus', 10)
+      (hasTrait(context, TRAIT.DRACONIC_ECHO)
+        ? balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'boonDurationBonus', 10)
+        : 0)
   };
 }
 
