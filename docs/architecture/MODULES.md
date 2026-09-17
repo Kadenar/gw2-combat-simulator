@@ -436,9 +436,33 @@ js/games/gw2/professions/warrior/
 │   ├── spellbreaker/
 │   ├── bladesworn/
 │   └── paragon/
-├── modules.ts
-└── definition.ts
+├── app/
+├── build/
+├── data/
+├── profession.ts
+├── family-state.ts
+└── types.d.ts
 ```
+
+Profession folders are moving to the layout described in
+[PROFESSION-LAYOUT-PLAN.md](./PROFESSION-LAYOUT-PLAN.md). Until the plan's final step, professions it has not migrated
+yet still split `profession.ts` into `definition.ts`, `modules.ts`, and `catalog.ts`, keep `catalog/module-data.ts`, and
+name the family files `state.ts` and `presentation.ts`.
+
+| Root file                | Owns                                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `profession.ts`          | Core-first module tuple, assembled catalog, native profession contract, integration exports |
+| `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state   |
+| `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                     |
+| `types.d.ts`             | Build, config, runtime, context, and event types; re-exports module-owned state types   |
+
+Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` is a manifest: imports plus one exported
+`defineNativeModule(...)` call. Skill handler maps live in `execution/index.ts`, scheduler hooks in
+`execution/hooks.ts`, and each module's state interface in its `state.ts`.
+
+Code outside a migrated profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
+`build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Tests are exempt. `eslint.config.js` and
+`tests/architecture/profession-layout.test.js` enforce this for migrated professions.
 
 The runtime composition is:
 
@@ -905,9 +929,9 @@ A specialization may reuse Core helpers, but Core should not depend on specializ
 
 ---
 
-# `modules.ts`
+# `profession.ts`
 
-Each profession exposes one Core-first module tuple.
+`profession.ts` assembles the profession. Each profession exposes one Core-first module tuple.
 
 Example:
 
@@ -923,13 +947,8 @@ export const warriorNativeModules = Object.freeze([
 
 Core must be first.
 
-This file should contain composition only.
-
----
-
-# `definition.ts`
-
-`definition.ts` creates and exports the native profession contract.
+The same file assembles the catalog with `assembleNativeApplicationCatalog(<profession>NativeModules)` and creates and
+exports the native profession contract.
 
 Example:
 
@@ -980,12 +999,12 @@ This layer owns things such as:
 - adapter construction;
 - browser-facing profession behavior.
 
-Keep it separate from the engine-facing `definition.ts`.
+Keep it separate from the engine-facing `profession.ts`.
 
 This separation allows:
 
 ```ts
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 ```
 
 to work for headless simulation without loading browser UI/storage code.
@@ -1266,7 +1285,7 @@ defineNativeModule({
 Then add the module to:
 
 ```text
-js/games/gw2/professions/<profession>/modules.ts
+js/games/gw2/professions/<profession>/profession.ts
 ```
 
 after Core.
@@ -1293,21 +1312,17 @@ At a high level:
 js/games/gw2/professions/new-profession/
     core/
     specializations/
-    modules.ts
-    definition.ts
-    catalog.ts
-    catalog/
-        module-data.ts
+    profession.ts
+    family-state.ts
+    types.d.ts
     build/
         build.ts
         attributes.ts
     data/
+        module-data.ts
         ... generated/static inputs
-    state.ts
     app/
 ```
-
-Use `state/` only when the family projection has multiple substantive files.
 
 Then register it in:
 
@@ -1372,7 +1387,7 @@ When deciding where new code belongs, follow these principles:
 3. **Move code to `js/games/gw2/platform/` only when it represents reusable Guild Wars 2 behavior.**
 4. **Move code to `js/games/gw2/platform/engine/` only when it is shared by profession runtimes.**
 5. **Keep browser concerns in `app`.**
-6. **Keep `module.ts`, `modules.ts`, and `definition.ts` focused on composition.**
+6. **Keep `module.ts` and `profession.ts` focused on composition.**
 7. **Prefer descriptive files over oversized generic files.**
 8. **Do not create empty files merely to satisfy a folder convention.**
 9. **Do not duplicate an existing source of truth.**
