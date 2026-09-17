@@ -146,7 +146,7 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
   // Forward active build mechanics when the full app adapter is available;
   // lightweight parser consumers can still use the build's resource default.
   const reconstructionOptions = appLogReconstructionOptions(app, {
-    initialTomePages: (
+    initialResource: (
       app.build as ProfessionAppState['build'] & {
         readonly initialTomePages?: number;
       }
