@@ -1,6 +1,7 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
@@ -176,11 +177,6 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
   sigils?: string[];
 }
 
-export interface Gw2BuildValidationResult {
-  readonly valid: boolean;
-  readonly errors: string[];
-}
-
 export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly saved: SchedulerRecord;
   readonly defaults: TBuild;
@@ -268,7 +264,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
 
 export interface Gw2BuildCodec<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   migrateBuild(candidate: unknown): TBuild;
-  validateBuild(build: unknown): Gw2BuildValidationResult;
+  validateBuild(build: unknown): BuildValidationResult;
   toApplicationBuild(candidate: unknown): Gw2ApplicationBuild;
 }
 

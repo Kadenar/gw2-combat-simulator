@@ -10,12 +10,10 @@ export type ObservationPolicy =
   | { readonly kind: 'tail'; readonly durationMs: number }
   | { readonly kind: 'absolute'; readonly endTimeMs: number };
 
-export type NormalizedObservationPolicy = ObservationPolicy;
-
 /** Validates and freezes the caller-owned resolver observation policy. */
 export function normalizeObservationPolicy(
   policy: ObservationPolicy | null | undefined = undefined
-): NormalizedObservationPolicy {
+): ObservationPolicy {
   if (policy == null) return Object.freeze({ kind: 'rotation' });
   if (typeof policy !== 'object' || Array.isArray(policy)) {
     throw new TypeError('Observation policy must be an object.');
@@ -47,7 +45,7 @@ export function normalizeObservationPolicy(
 }
 
 /** Resolves a normalized policy after the entered command timeline is known. */
-export function observationEndTime(policy: NormalizedObservationPolicy, rotationEndTime: number): number {
+export function observationEndTime(policy: ObservationPolicy, rotationEndTime: number): number {
   const normalizedRotationEnd = Number(rotationEndTime);
   if (!Number.isFinite(normalizedRotationEnd) || normalizedRotationEnd < 0) {
     throw new TypeError('Rotation end time must be a non-negative finite number.');

@@ -1,6 +1,4 @@
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-
-export type Gw2EventActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
+import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 
 // Ownership controls which effects may trigger player-only procs. It is
 // intentionally independent from display-oriented source labels.
@@ -16,10 +14,10 @@ export const GW2_EVENT_ACTOR_TYPES = Object.freeze({
 const ACTOR_TYPES: ReadonlySet<string> = new Set(Object.values(GW2_EVENT_ACTOR_TYPES));
 
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
-export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
+export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): SimulationActorType {
   const explicit = String(event?.actorType || '');
   if (ACTOR_TYPES.has(explicit)) {
-    return explicit as Gw2EventActorType;
+    return explicit as SimulationActorType;
   }
 
   return GW2_EVENT_ACTOR_TYPES.UNKNOWN;
@@ -35,10 +33,10 @@ export function isGw2PlayerActorEvent(event: Partial<SimulationEventInput> | nul
  * Resolves whose outgoing modifiers an event inherits. Events without an
  * explicit owner retain their actor ownership.
  */
-export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | null | undefined): Gw2EventActorType {
+export function gw2EventOwnerActorType(event: Partial<SimulationEventInput> | null | undefined): SimulationActorType {
   const explicit = String(event?.ownerActorType || '');
   if (ACTOR_TYPES.has(explicit)) {
-    return explicit as Gw2EventActorType;
+    return explicit as SimulationActorType;
   }
 
   return gw2EventActorType(event);

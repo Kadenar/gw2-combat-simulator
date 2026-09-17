@@ -10,13 +10,7 @@ import type {
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
-
-export type ObservationPolicy =
-  | { readonly kind: 'rotation' }
-  | { readonly kind: 'tail'; readonly durationMs: number }
-  | { readonly kind: 'absolute'; readonly endTimeMs: number };
-
-export type NormalizedObservationPolicy = ObservationPolicy;
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
 /** Runtime input supplied when a declarative skill mechanic reaches its scheduled timestamp. */
 export interface SkillMechanicInvocation<TProfessionState extends object = SchedulerRecord> {
@@ -225,7 +219,7 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   readonly warnings: string[];
   readonly epsilon: number;
   readonly schedulerPolicy: SchedulerPolicy<TProfessionState>;
-  readonly observationPolicy: NormalizedObservationPolicy;
+  readonly observationPolicy: ObservationPolicy;
   observationEndTime: number | null;
   readonly inFlight: Map<SkillId, Set<string>>;
   hasExplicitCombatStart: boolean;

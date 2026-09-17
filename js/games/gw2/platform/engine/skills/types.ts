@@ -9,12 +9,6 @@ import type { SchedulerRecord, SkillHandlerStrategy } from '#gw2/platform/engine
 
 export type SkillId = string | number;
 
-export interface CatalogSkill {
-  readonly id: SkillId;
-  readonly name: string;
-  readonly [field: string]: unknown;
-}
-
 export type SkillHandlerMode = 'augment' | 'replace';
 
 export type SkillInterruptMode = 'commit' | 'per-packet';
@@ -138,7 +132,7 @@ export interface CustomEffect extends SkillEffectBase {
 
 export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | BlindEffect | StatusEffect | CustomEffect;
 
-export interface Skill extends CatalogSkill {
+export interface Skill extends CatalogEntity {
   /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */
   readonly autoattack?: boolean;
   /** Imported state reconstruction executes for playback but never represents a player input. */
@@ -249,7 +243,7 @@ export interface Skill extends CatalogSkill {
  * trait effects, mechanic limits, and skill-state variants out of the skill
  * catalog while retaining the same declarative effect vocabulary.
  */
-export interface BalanceProfile extends CatalogSkill {
+export interface BalanceProfile extends CatalogEntity {
   readonly profileKind: 'trait' | 'mechanic' | 'skill-variant';
   /** Opts this profession-owned proc into shared build overrides without changing its trigger or effects. */
   readonly procRate?: {
@@ -328,7 +322,7 @@ export interface CatalogEntity {
 }
 
 export interface CatalogLookup {
-  readonly skills?: readonly CatalogSkill[];
-  readonly skillsById?: ReadonlyMap<SkillId, CatalogSkill>;
-  readonly skillsByName?: ReadonlyMap<string, CatalogSkill>;
+  readonly skills?: readonly CatalogEntity[];
+  readonly skillsById?: ReadonlyMap<SkillId, CatalogEntity>;
+  readonly skillsByName?: ReadonlyMap<string, CatalogEntity>;
 }

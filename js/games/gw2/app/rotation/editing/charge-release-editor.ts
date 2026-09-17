@@ -1,4 +1,4 @@
-import { mountFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
+import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -23,11 +23,6 @@ export interface ChargeReleaseEditorOptions {
   readonly onApply: (releaseAtCharges: number | undefined) => void;
 }
 
-export interface ChargeReleaseEditorHandle {
-  readonly element: HTMLElement;
-  close(): void;
-}
-
 function seconds(value: number): string {
   return `${value.toFixed(3)}s`;
 }
@@ -40,7 +35,7 @@ export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow): string {
   );
 }
 
-export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): ChargeReleaseEditorHandle {
+export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingEditorHandle {
   const editor = document.createElement('div');
   editor.className = 'rotation-charge-release-editor';
   editor.setAttribute('role', 'dialog');
@@ -178,7 +173,7 @@ export function openDragonSlashReleaseEditor(options: {
   readonly insertionIndex: number;
   readonly currentReleaseAtCharges?: number | null;
   readonly onApply: (releaseAtCharges: number | undefined) => void;
-}): ChargeReleaseEditorHandle {
+}): FloatingEditorHandle {
   const rawProjection = options.app.profession.ui.chargeReleaseProjection({
     events: options.app.results?.events || [],
     insertionIndex: options.insertionIndex,

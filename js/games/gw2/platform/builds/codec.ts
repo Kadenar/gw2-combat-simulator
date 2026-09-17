@@ -21,9 +21,9 @@ import type {
   Gw2BuildInfusion,
   Gw2BuildSpecialization,
   Gw2BuildValidationOptions,
-  Gw2BuildValidationResult,
   Gw2CanonicalBuild
 } from '#gw2/platform/builds/types.js';
+import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
 
 const SLOT_TYPES = Object.freeze({
   Heal: 'Heal',
@@ -216,7 +216,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     return migrated;
   }
 
-  function validateBuild(build: unknown): Gw2BuildValidationResult {
+  function validateBuild(build: unknown): BuildValidationResult {
     const common = validateCommonBuild(build, options);
     if (!build || typeof build !== 'object' || Array.isArray(build)) {
       return common;
@@ -767,7 +767,7 @@ function isSkillId(value: unknown): value is SkillId {
 function validateCommonBuild(
   build: unknown,
   { professionId, schemaVersion, catalog, slotLoadout = null }: Gw2BuildValidationOptions
-): Gw2BuildValidationResult {
+): BuildValidationResult {
   const errors: string[] = [];
   if (!build || typeof build !== 'object' || Array.isArray(build)) {
     return { valid: false, errors: ['Build must be an object.'] };

@@ -11,7 +11,11 @@ import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform
 import { createEvent } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
-import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
+import {
+  normalizeObservationPolicy,
+  observationEndTime,
+  type ObservationPolicy
+} from '#kernel/execution/observation.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
@@ -27,7 +31,6 @@ import type {
   CastContext,
   CastLifecycleContext,
   CooldownController,
-  ObservationPolicy,
   ScheduledTask,
   ScheduledTaskHandler,
   ScheduledTaskInput,

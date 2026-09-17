@@ -7,9 +7,9 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
 import { WAIT_ICON } from '#gw2/app/shared/icons.js';
-import { clearTimelineDropIndicators, type RotationDragState } from '#gw2/app/rotation/timeline/interactions.js';
+import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
-import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
+import type { ProfessionAppState, ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
@@ -307,7 +307,7 @@ function paletteDragAnchor(name: string): HTMLElement | null {
 export function resolvePaletteDrop(
   app: ProfessionAppState,
   name: string,
-  drag: RotationDragState | null | undefined,
+  drag: ProfessionRotationDragState | null | undefined,
   insertAt: number
 ): RotationCommand | RotationCommand[] | null {
   const parsedSkillId = Number(drag?.skillId);

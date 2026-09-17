@@ -1,11 +1,5 @@
-/** The shared state fields required by standard GW2 endurance arithmetic. */
+/** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 export interface Gw2EnduranceState {
-  readonly endurance: number;
-  readonly enduranceUpdatedAt: number;
-}
-
-/** A pure endurance result that callers can copy into their profession-owned state. */
-export interface Gw2EnduranceUpdate {
   readonly endurance: number;
   readonly enduranceUpdatedAt: number;
 }
@@ -27,7 +21,7 @@ export function advanceEndurance(
   at: number,
   regenerationPerSecond: number,
   maximumEndurance: number
-): Gw2EnduranceUpdate {
+): Gw2EnduranceState {
   if (at <= state.enduranceUpdatedAt) {
     return {
       endurance: state.endurance,
@@ -52,7 +46,7 @@ export function spendEndurance(
   amount: number,
   at: number,
   maximumEndurance: number
-): Gw2EnduranceUpdate {
+): Gw2EnduranceState {
   return {
     endurance: cappedEndurance(state.endurance - Math.max(0, amount), maximumEndurance),
     enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
@@ -65,7 +59,7 @@ export function grantEndurance(
   amount: number,
   at: number,
   maximumEndurance: number
-): Gw2EnduranceUpdate {
+): Gw2EnduranceState {
   return {
     endurance: cappedEndurance(state.endurance + Math.max(0, amount), maximumEndurance),
     enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
@@ -90,7 +84,7 @@ export function advanceEnduranceIntervals(
   state: Gw2EnduranceState,
   intervals: Iterable<Gw2EnduranceInterval>,
   maximumEndurance: number
-): Gw2EnduranceUpdate {
+): Gw2EnduranceState {
   let current = { endurance: state.endurance, enduranceUpdatedAt: state.enduranceUpdatedAt };
   for (const interval of intervals) {
     const start = Math.max(current.enduranceUpdatedAt, interval.start);

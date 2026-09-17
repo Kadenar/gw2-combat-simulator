@@ -1,26 +1,19 @@
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-
-export interface RotationDragState extends SchedulerRecord {
-  readonly source?: string;
-  readonly index?: number;
-  readonly name?: string;
-  readonly skillId?: SkillId;
-}
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionRotationDragState } from '#gw2/app/types.js';
 
 export interface TimelineInteractionOptions {
   readonly rotation: RotationCommand[];
   /** Rejects indexed gestures when retained DOM belongs to an older build. */
   readonly canInteract?: () => boolean;
-  readonly getDragState: () => RotationDragState | null | undefined;
-  readonly setDragState: (value: RotationDragState | null) => void;
+  readonly getDragState: () => ProfessionRotationDragState | null | undefined;
+  readonly setDragState: (value: ProfessionRotationDragState | null) => void;
   /** Applies a timeline drag through the application-owned rotation editing layer. */
   readonly moveEntry: (fromIndex: number, toIndex: number) => boolean;
   /** Applies one resolved palette item or macro through the application-owned editing layer. */
   readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => boolean;
   readonly resolvePaletteEntry?: (
     name: string,
-    drag: RotationDragState | null | undefined,
+    drag: ProfessionRotationDragState | null | undefined,
     insertAt: number
   ) => RotationCommand | RotationCommand[] | null | undefined;
   readonly onChanged?: () => void;

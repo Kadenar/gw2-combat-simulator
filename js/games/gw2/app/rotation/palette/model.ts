@@ -13,7 +13,12 @@ import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSlotLoadoutContext } from '#gw2/app/build/types.js';
-import type { PaletteSkillAvailability, ProfessionPaletteGroup } from '#gw2/platform/engine/profession/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionPaletteControl,
+  ProfessionPaletteGroup,
+  ProfessionPaletteStatusIcon
+} from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -589,25 +594,6 @@ export function paletteSkillIsInstant(
   );
 }
 
-export interface PaletteStatusIconView {
-  readonly icon: string;
-  readonly label: string;
-  readonly title?: string;
-}
-
-export interface PaletteControlView {
-  readonly id: string;
-  readonly label: string;
-  readonly icon?: string;
-  readonly title?: string;
-  readonly color?: string;
-  readonly className?: string;
-  readonly active?: boolean;
-  readonly pressed?: boolean;
-  readonly muted?: boolean;
-  readonly badge?: string;
-}
-
 export interface PaletteSkillView extends SchedulerRecord {
   readonly name?: string;
   readonly skillId?: SkillId | null;
@@ -631,8 +617,8 @@ export interface PaletteGroupView {
   readonly color?: string;
   readonly className?: string;
   readonly skills?: readonly PaletteSkillView[];
-  readonly controls?: readonly PaletteControlView[];
-  readonly statusIcon?: PaletteStatusIconView;
+  readonly controls?: readonly ProfessionPaletteControl[];
+  readonly statusIcon?: ProfessionPaletteStatusIcon;
 }
 
 export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };

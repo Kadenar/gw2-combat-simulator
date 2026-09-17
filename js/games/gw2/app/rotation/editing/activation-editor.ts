@@ -1,7 +1,8 @@
 /** Validates activation timing and mounts the rotation activation editor. */
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
-import { mountFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
+import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
+import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
 
 const ACTIVATION_INTERRUPT_INTERVAL_MS = 20;
 
@@ -21,14 +22,6 @@ export interface ActivationEditorOptions {
   readonly offTarget?: boolean;
   readonly onApply: (timingMs: number | null, offTarget: boolean) => void;
 }
-
-export interface ActivationEditorHandle {
-  readonly element: HTMLElement;
-  close(): void;
-}
-
-export type ActivationInterruptValidation =
-  { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
 
 /** Suggests the latest valid GW2 action tick before the cast completes. */
 export function suggestedActivationInterruptMs(
@@ -88,7 +81,7 @@ export function activationDamageCommitWarning(
 export function validateActivationInterruptMs(
   rawValue: string | number,
   fullCastMs: number | null | undefined = null
-): ActivationInterruptValidation {
+): DurationValidation {
   const parsed = Number(rawValue);
   if (!Number.isFinite(parsed) || parsed < ACTIVATION_INTERRUPT_INTERVAL_MS) {
     return {
@@ -127,7 +120,7 @@ export function validateActivationInterruptMs(
 export function validateActivationConcurrentOffsetMs(
   rawValue: string | number,
   minimumMs: number | null = 0
-): ActivationInterruptValidation {
+): DurationValidation {
   const parsed = Number(rawValue);
   const normalizedMinimum = minimumMs == null ? null : Math.round(Number(minimumMs) || 0);
   if (
@@ -157,7 +150,7 @@ export function validateActivationConcurrentOffsetMs(
   return { valid: true, value: parsed };
 }
 
-export function openActivationEditor(options: ActivationEditorOptions): ActivationEditorHandle {
+export function openActivationEditor(options: ActivationEditorOptions): FloatingEditorHandle {
   // Instant casts edit their offset into the previous cast; cast-bar skills keep the interruption workflow.
   const behavior = options.behavior || 'interrupt';
   const isConcurrentBehavior = behavior === 'concurrent';

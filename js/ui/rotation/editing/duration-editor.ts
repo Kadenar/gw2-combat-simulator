@@ -1,4 +1,4 @@
-import { mountFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
+import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 
 export interface DurationEditorOptions {
   readonly anchor: HTMLElement;
@@ -10,11 +10,6 @@ export interface DurationEditorOptions {
   readonly minimumMs?: number;
   readonly maximumMs?: number | null;
   readonly onApply: (durationMs: number) => void;
-}
-
-export interface DurationEditorHandle {
-  readonly element: HTMLElement;
-  close(): void;
 }
 
 export type DurationValidation =
@@ -46,7 +41,7 @@ export function validateDurationMs(
   return { valid: true, value };
 }
 
-export function openDurationEditor(options: DurationEditorOptions): DurationEditorHandle {
+export function openDurationEditor(options: DurationEditorOptions): FloatingEditorHandle {
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor rotation-duration-editor';
   editor.setAttribute('role', 'dialog');

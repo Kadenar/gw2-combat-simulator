@@ -9,7 +9,6 @@ import {
   weaponPaletteRows,
   weaponSkills,
   type PaletteContext,
-  type PaletteControlView,
   type PaletteGroupView,
   type PaletteSkillView,
   type RenderedPaletteGroup
@@ -19,6 +18,7 @@ import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } f
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
+  ProfessionPaletteControl,
   ProfessionPaletteGroup,
   ProfessionPaletteSkillRenderOptions
 } from '#gw2/platform/engine/profession/types.js';
@@ -89,7 +89,7 @@ export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
   });
 }
 
-function paletteControlHtml(view: PaletteControlView): string {
+function paletteControlHtml(view: ProfessionPaletteControl): string {
   const classes = [
     'pal-control',
     view.className || '',

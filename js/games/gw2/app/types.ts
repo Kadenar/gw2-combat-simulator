@@ -2,7 +2,8 @@
 import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord, RotationCommand, ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerRecord, RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   PatchComparison,
   BaselineSimulationOutput,

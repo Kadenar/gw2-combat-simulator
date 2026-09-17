@@ -5,12 +5,12 @@ import type {
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
 import type {
-  ObservationPolicy,
   SchedulerContext,
   SchedulerRecord,
   SchedulerState,
   SchedulerStep
 } from '#gw2/platform/engine/execution/types.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   Gw2ResolverEventHandlers,
   Gw2ResolverReactions,

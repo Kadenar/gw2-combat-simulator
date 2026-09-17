@@ -1,11 +1,9 @@
 /** Converts GW2's exported keybind XML into rotation-builder hotkey bindings. */
-import type { RotationHotkeyAction, RotationHotkeyBindings } from '#gw2/app/rotation/hotkeys.js';
-
-export interface Gw2HotkeyImportResult {
-  bindings: Partial<RotationHotkeyBindings>;
-  importedActions: RotationHotkeyAction[];
-  skippedActions: RotationHotkeyAction[];
-}
+import type {
+  RotationHotkeyAction,
+  RotationHotkeyBindings,
+  RotationHotkeyImportResult
+} from '#gw2/app/rotation/hotkeys.js';
 
 const ACTION_BY_GW2_ID: Readonly<Record<string, RotationHotkeyAction>> = Object.freeze({
   '17': 'weapon-swap',
@@ -180,7 +178,7 @@ function bindingForAttributes(attributes: Record<string, string>): string | null
 /**
  * Imports only simulator combat actions, preferring GW2's primary supported binding and falling back to its secondary one.
  */
-export function parseGw2HotkeyBindingsXml(xml: string): Gw2HotkeyImportResult {
+export function parseGw2HotkeyBindingsXml(xml: string): RotationHotkeyImportResult {
   if (!/<InputBindings(?:\s|>)/i.test(xml) || !/<\/InputBindings\s*>/i.test(xml)) {
     throw new Error('This is not a Guild Wars 2 InputBindings XML file.');
   }

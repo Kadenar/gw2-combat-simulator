@@ -8,7 +8,7 @@ import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';

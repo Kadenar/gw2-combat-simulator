@@ -1,6 +1,6 @@
 import type { CastCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { mountFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
+import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 
 /**
  * Popover editor for a thief Double Edge cast, letting the author pin the risky
@@ -16,11 +16,6 @@ export interface DoubleEdgeEditorOptions {
   readonly icon?: string;
   readonly outcome?: DoubleEdgeOutcome | null;
   readonly onApply: (outcome: DoubleEdgeOutcome) => void;
-}
-
-export interface DoubleEdgeEditorHandle {
-  readonly element: HTMLElement;
-  close(): void;
 }
 
 export type ConfigurableDoubleEdgeSkill = Skill & {
@@ -42,7 +37,7 @@ export function doubleEdgeOutcomeLabel(outcome: unknown): string {
 /**
  * Builds and mounts the Double Edge popover while native dismissal owns its lifecycle.
  */
-export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): DoubleEdgeEditorHandle {
+export function openDoubleEdgeEditor(options: DoubleEdgeEditorOptions): FloatingEditorHandle {
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor rotation-double-edge-editor';
   editor.setAttribute('role', 'dialog');

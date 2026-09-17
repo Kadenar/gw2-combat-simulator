@@ -11,6 +11,7 @@ import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/me
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -26,15 +27,6 @@ interface ContinuumControllerOptions {
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
 }
 
-export interface ContinuumController {
-  beginContinuumSplit(
-    skill: MesmerSkill,
-    at: number,
-    spendDetails?: MesmerResourceSpendDetails
-  ): MesmerShatterResolution;
-  restoreContinuum(at: number, reason: string): void;
-}
-
 export function createContinuumController({
   state,
   unaffectedCooldownIds,
@@ -47,7 +39,7 @@ export function createContinuumController({
   durationPerSource,
   bonusDuration = 0,
   scheduleExpiry = null
-}: ContinuumControllerOptions): ContinuumController {
+}: ContinuumControllerOptions): MesmerContinuumController {
   // Restore the captured Continuum Split resources and cooldowns exactly once,
   // then invalidate the active snapshot and emit its exit reason.
   const restoreContinuum = (at: number, reason: string) => {
