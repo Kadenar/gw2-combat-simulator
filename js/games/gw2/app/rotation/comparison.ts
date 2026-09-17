@@ -1,5 +1,5 @@
 import { enterRotationFocus } from '#app/shell/workspace.js';
-import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { bindRotationImportDialog } from '#gw2/app/io/rotation-import-dialog.js';
 import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
 import { paletteEndState } from '#gw2/app/rotation/shared/context.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';

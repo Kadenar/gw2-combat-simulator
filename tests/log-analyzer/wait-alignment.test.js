@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation-import.js';
+import { readDpsReportRotationData } from '#gw2/app/io/logs/dps-report-rotation-import.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';

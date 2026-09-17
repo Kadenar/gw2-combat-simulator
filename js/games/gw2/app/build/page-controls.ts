@@ -1,6 +1,6 @@
-import { bindBuildFileImportDialog } from '#gw2/app/build/io/build-file-import-dialog.js';
-import { downloadJson, getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/build/io/files.js';
-import { bindRotationImportDialog } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { bindBuildFileImportDialog } from '#gw2/app/io/build-file-import-dialog.js';
+import { downloadJson, getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/io/files.js';
+import { bindRotationImportDialog } from '#gw2/app/io/rotation-import-dialog.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';

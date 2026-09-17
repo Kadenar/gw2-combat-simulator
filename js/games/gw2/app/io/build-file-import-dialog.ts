@@ -3,8 +3,8 @@ import {
   applyBuildFileImport,
   BUILD_FILE_IMPORT_ACCEPT,
   previewBuildFileImport
-} from '#gw2/app/build/io/build-file-import.js';
-import { readJsonFile } from '#gw2/app/build/io/files.js';
+} from '#gw2/app/io/build-file-import.js';
+import { readJsonFile } from '#gw2/app/io/files.js';
 import {
   bindImportFileSources,
   createImportPreviewController,
@@ -12,10 +12,10 @@ import {
   importDropZoneHtml,
   renderImportNotices,
   requiredDialogPart
-} from '#gw2/app/build/io/import-dialog.js';
+} from '#gw2/app/io/import-dialog.js';
 import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 
-import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/build/io/build-file-import.js';
+import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/io/build-file-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
@@ -109,9 +109,20 @@ function createDialog(document: Document): BuildFileImportDialogElements {
 function buildSummary(document: Document, build: Gw2ApplicationBuild): HTMLElement {
   const weaponSet = (weapons: readonly string[]): string => weapons.filter(Boolean).join(' + ');
   const rows: [string, string][] = [
-    ['Specializations', build.specializations.map(({ name }) => name).filter(Boolean).join(' · ')],
+    [
+      'Specializations',
+      build.specializations
+        .map(({ name }) => name)
+        .filter(Boolean)
+        .join(' · ')
+    ],
     ['Weapons', [weaponSet(build.weapons), weaponSet(build.alternateWeapons)].filter(Boolean).join(' / ')],
-    ['Skills', SKILL_SLOTS.map((slot) => build.selectedSkills[slot]).filter(Boolean).join(' · ')],
+    [
+      'Skills',
+      SKILL_SLOTS.map((slot) => build.selectedSkills[slot])
+        .filter(Boolean)
+        .join(' · ')
+    ],
     ['Rune · Relic', [build.rune, build.relic].filter(Boolean).join(' · ')]
   ];
   const list = document.createElement('dl');

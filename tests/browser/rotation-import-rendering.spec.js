@@ -9,7 +9,7 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
   await page.waitForFunction(() => window.professionApp?.simulationStatus === 'idle');
   await page.evaluate(async (skillId) => {
     const { previewRotationFile, applyRotationImportPreview } =
-      await import('/js/games/gw2/app/build/io/rotation-import-dialog.ts');
+      await import('/js/games/gw2/app/io/rotation-import-dialog.ts');
     const file = new File([JSON.stringify([{ type: 'cast', skillId }])], 'rotation.json', {
       type: 'application/json'
     });

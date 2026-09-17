@@ -1,6 +1,6 @@
 import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import { bindDialog, showDialog } from '#app/dialog.js';
-import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/build/io/files.js';
+import { fetchJsonAsset, getRotationItems, loadPresetBundle } from '#gw2/app/io/files.js';
 import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';

@@ -9,8 +9,8 @@ import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evt
 import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
-import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/io/logs/log-rotation-import.js';
+import type { RotationImportObservation } from '#gw2/app/io/types.js';
 
 export interface ImportedEvtcRotation {
   readonly rotation: readonly RotationCommand[];

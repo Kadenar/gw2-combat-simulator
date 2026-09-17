@@ -215,7 +215,7 @@ Keep actionable warnings for unsupported skills, malformed/incomplete evidence, 
 Avoid duplicating the generic opener warning across application and adapter layers. Native saved-rotation imports do
 not receive this notice.
 
-Application entry points are `js/games/gw2/app/build/io/evtc-rotation-import.ts`, `dps-report-rotation-import.ts`, and
+Application entry points are `js/games/gw2/app/io/logs/evtc-rotation-import.ts`, `dps-report-rotation-import.ts`, and
 `rotation-import-dialog.ts`.
 
 ## Pinned EI references

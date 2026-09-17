@@ -1,11 +1,11 @@
 import { bindDialog, showDialog } from '#app/dialog.js';
-import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/build/io/files.js';
-import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/build/io/evtc-rotation-import.js';
+import { fetchJsonAsset, getRotationItems, readJsonFile } from '#gw2/app/io/files.js';
+import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/io/logs/evtc-rotation-import.js';
 import {
   readDpsReportRotationData,
   readDpsReportRotationUrl,
   readWingmanRotationUrl
-} from '#gw2/app/build/io/dps-report-rotation-import.js';
+} from '#gw2/app/io/logs/dps-report-rotation-import.js';
 import {
   bindImportFileSources,
   createImportPreviewController,
@@ -13,7 +13,7 @@ import {
   importDropZoneHtml,
   renderImportNotices,
   requiredDialogPart
-} from '#gw2/app/build/io/import-dialog.js';
+} from '#gw2/app/io/import-dialog.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
@@ -22,7 +22,7 @@ import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationImportObservation } from '#gw2/app/build/io/rotation-import-model.js';
+import type { RotationImportObservation } from '#gw2/app/io/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
@@ -149,7 +149,10 @@ export interface ManifestBuildEntry {
 }
 
 // Keyed by the template list itself: re-rendering templates replaces the array, which invalidates the cache.
-const manifestBuildCache = new WeakMap<readonly BuildTemplatePreset[], Promise<readonly (ManifestBuildEntry | null)[]>>();
+const manifestBuildCache = new WeakMap<
+  readonly BuildTemplatePreset[],
+  Promise<readonly (ManifestBuildEntry | null)[]>
+>();
 
 /**
  * Fetches the build of every preset that has a rotation, once per template list.
@@ -404,11 +407,7 @@ export function bindRotationImportDialog(
   };
 
   const selectFile = (file: File): void => {
-    void importer.load(
-      () => previewRotationFile(file, app),
-      `Reading ${file.name}…`,
-      `Could not import ${file.name}.`
-    );
+    void importer.load(() => previewRotationFile(file, app), `Reading ${file.name}…`, `Could not import ${file.name}.`);
   };
 
   const selectReport = async (): Promise<void> => {
