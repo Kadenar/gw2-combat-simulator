@@ -230,7 +230,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/ranger/definition.js');
+      const module = await import('#gw2/professions/ranger/profession.js');
       return module.rangerProfession;
     },
     loadAppAdapter: async () => {

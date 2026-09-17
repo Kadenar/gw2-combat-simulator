@@ -4,7 +4,9 @@ import {
   migrateRangerBuild,
   validateRangerBuild
 } from '#gw2/professions/ranger/build/build.js';
-import { rangerNativeModules } from '#gw2/professions/ranger/modules.js';
+import { rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
+
+export { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 
 export const rangerProfession = defineNativeProfession({
   id: 'ranger',

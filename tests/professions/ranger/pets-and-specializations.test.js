@@ -19,10 +19,9 @@ import {
   migrateRangerBuild,
   validateRangerBuild
 } from '#gw2/professions/ranger/build/build.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
@@ -43,7 +42,7 @@ import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/speciali
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { soulbeastCastRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
 import { untamedCastRules } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
-import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
+import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 const baseConfig = Object.freeze({

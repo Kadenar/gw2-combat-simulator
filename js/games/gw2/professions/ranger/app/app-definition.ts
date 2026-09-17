@@ -4,7 +4,7 @@ import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import type { RangerApplicationBuild } from '#gw2/professions/ranger/types.js';
 
 // Exposes Ranger only through the shared browser application contract.

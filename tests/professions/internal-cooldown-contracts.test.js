@@ -19,7 +19,7 @@ import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/st
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { scourgeSchedulerHooks } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
 import { createScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { reactToSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';

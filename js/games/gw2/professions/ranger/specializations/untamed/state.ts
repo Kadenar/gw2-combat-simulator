@@ -1,5 +1,23 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { RangerConfig, RangerState, UntamedState } from '#gw2/professions/ranger/types.js';
+import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+
+export type RangerInitialUntamedState = 'Pet' | 'Ranger';
+
+export interface UntamedState {
+  rangerUnleashed: boolean;
+  ambushReadyUntil: number;
+  unleashedPowerReadyAt: number;
+  letLooseReadyAt: number;
+  debilitatingBlowsReadyAt: number;
+  enhancingImpactReadyAt: number;
+  ferociousSymbiosisPlayerStacks: number;
+  ferociousSymbiosisPlayerUntil: number;
+  ferociousSymbiosisPlayerReadyAt: number;
+  ferociousSymbiosisPetStacks: number;
+  ferociousSymbiosisPetUntil: number;
+  ferociousSymbiosisPetReadyAt: number;
+  letLooseActivations: Record<string, boolean>;
+}
 
 // Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.
 export const UNTAMED_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([

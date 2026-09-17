@@ -1,5 +1,55 @@
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import type { RangerConfig, RangerCoreState, RangerState } from '#gw2/professions/ranger/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+
+export interface RangerCoreState {
+  activePet: string;
+  activePetSlot: 1 | 2;
+  petNames: [string, string];
+  activePetSkillIds: SkillId[];
+  petActive: boolean;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  availableFlips: Record<string, number>;
+  stealthUntil: number;
+  revealedUntil: number;
+  autoattackChains: Record<string, SkillId>;
+  winterBiteReady: boolean;
+  tailWindReadyAt: number;
+  furiousGripReadyAt: number;
+  sharpenedEdgesProgress: number;
+  quickDrawReadyAt: number;
+  quickDrawUntil: number;
+  trapCrippleActivations: Record<string, boolean>;
+  pendingFrostTrapEvents: SimulationEventInput[];
+  bloodThirstCharges: number;
+  rejuvenationReadyAt: number;
+  childOfEarthReadyAt: number;
+  clarionBondReadyAt: number;
+  carnivoreReadyAt: number;
+  goForTheThroatPetReadyAt: number;
+  huntersGazeReadyAt: number;
+  playerOpeningStrikeReady: boolean;
+  petOpeningStrikeReady: boolean;
+  poisonMasterPetAttackReady: boolean;
+  poisonousStrikesCharges: number;
+  poisonousStrikesExpiresAt: number;
+  sharpeningStoneExpirations: number[];
+  petSwapCount: number;
+  petAutoGeneration: number;
+  petAutoNextAt: number;
+  petAutoBusyUntil: number;
+  petAutoCooldowns: Record<string, number>;
+  petAutoActivationUses: Record<string, number>;
+  petAutoActivationCounts: [number, number];
+  petAutoOpeningBasic: boolean;
+  petAutoTaskId: string;
+  petCommandReadyAt: number;
+  petCommandCooldowns: Record<string, number>;
+  petCommandDelays: Record<string, number>;
+}
 
 export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
   const selected = String(slot === 2 ? config.selectedPet2 || 'Lynx' : config.selectedPet || 'Pig');
