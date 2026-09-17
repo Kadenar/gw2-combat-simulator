@@ -14,7 +14,7 @@ import {
   revenantRuntimeCoreState,
   revenantTimedBuff
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-skills.js';
+import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,

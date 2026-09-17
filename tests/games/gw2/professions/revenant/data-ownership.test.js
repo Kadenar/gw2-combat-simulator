@@ -14,8 +14,6 @@ import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/speciali
 import { CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/cosmic-wisdom-skills.js';
 import { CONDUIT_ENTITY_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import { CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/release-potential-skills.js';
-import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
-import { HERALD_BASE_SKILL_MECHANICS as HERALD_FACET_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/facet-skills.js';
 import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
 import { RENEGADE_ORDER_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/order-skills.js';
 import { RENEGADE_WARBAND_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
@@ -52,7 +50,6 @@ test('Revenant Core moved skill families compose without duplicates', () => {
 });
 
 test('Revenant specialization skill families compose without duplicates or omissions', () => {
-  assert.equal(HERALD_BASE_SKILL_MECHANICS, HERALD_FACET_SKILL_MECHANICS);
   assertComposedCatalog(RENEGADE_BASE_SKILL_MECHANICS, [
     RENEGADE_WARBAND_SKILL_MECHANICS,
     RENEGADE_ORDER_SKILL_MECHANICS
