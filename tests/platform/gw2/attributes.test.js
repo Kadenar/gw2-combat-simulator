@@ -16,12 +16,12 @@ import {
   mergeModifierContributions,
   modifierContributionWorkerCount,
   partitionModifierComparisons
-} from '#gw2/app/simulation/modifiers/modifier-contributions.js';
+} from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/stats.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
-import { createModifierContributionRequest } from '#gw2/app/simulation/modifiers/request.js';
+import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);

@@ -36,7 +36,7 @@ C++ build, measured performance baseline, and complete mechanic inventory remain
 - [The current pipeline](../../js/games/gw2/platform/simulation/pipeline.ts) schedules a rotation and then resolves
   its events. Optional refinement passes feed resolved information back into scheduling.
 - [The clock contract](SIMULATION-EVENT-CLOCK.md) uses event-driven progression and microsecond canonical precision.
-- [The baseline worker](../../js/games/gw2/app/simulation/baseline-simulation-worker.ts) already isolates expensive
+- [The baseline worker](../../js/games/gw2/app/simulation/baseline/baseline-simulation-worker.ts) already isolates expensive
   computation from the browser editor. Other simulation callers include the optimizer, RNG distribution, modifier
   contributions, relic comparison, patch comparison, and rotation prefix previews.
 - [Palette state](../../js/games/gw2/app/rotation/context.ts) depends on simulation state at the insertion

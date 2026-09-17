@@ -1,6 +1,6 @@
 import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
-import { createModifierContributionRequest } from '#gw2/app/simulation/modifiers/request.js';
-import { calculateContributionComparisons } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
+import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution
@@ -9,13 +9,16 @@ import { relicComparisonAvailable } from '#gw2/app/simulation/relic-comparison/r
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline-simulation.js';
+import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
-import type { ModifierContributionRequest, ProfessionModifier } from '#gw2/app/simulation/modifiers/types.js';
+import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
+import type {
+  ModifierContributionRequest,
+  ProfessionModifier
+} from '#gw2/app/simulation/modifier-contributions/types.js';
 import type {
   RandomDistributionJobRequest,
   RandomDistributionOptions,

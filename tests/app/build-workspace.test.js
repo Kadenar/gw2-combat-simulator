@@ -18,8 +18,8 @@ import {
 } from '#gw2/app/build/state/workspace.js';
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/panels/presets.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 
 function storage(t, initial = {}) {

@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { createBuildTab } from '#gw2/app/build/state/workspace.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#app/simulation/game-worker-harness.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';

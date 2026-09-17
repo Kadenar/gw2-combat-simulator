@@ -2,11 +2,14 @@ import {
   mergeModifierContributions,
   modifierContributionWorkerCount,
   partitionModifierComparisons
-} from '#gw2/app/simulation/modifiers/modifier-contributions.js';
+} from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
 import { analysisViewIsActive } from '#app/shell/result-view.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
-import type { ModifierContribution, ModifierContributionRequest } from '#gw2/app/simulation/modifiers/types.js';
+import type {
+  ModifierContribution,
+  ModifierContributionRequest
+} from '#gw2/app/simulation/modifier-contributions/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
