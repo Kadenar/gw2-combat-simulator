@@ -5,7 +5,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
-import { createRangerModuleData } from '#gw2/professions/ranger/catalog/module-data.js';
+import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastSkillHandlers } from '#gw2/professions/ranger/specializations/soulbeast/execution/index.js';
 import {
   soulbeastAttributeRules,

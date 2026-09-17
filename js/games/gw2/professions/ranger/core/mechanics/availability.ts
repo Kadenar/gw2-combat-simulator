@@ -4,10 +4,7 @@ import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/l
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
-import {
-  isRangerHammerVariant,
-  normalizeRangerHammerSkillIds
-} from '#gw2/professions/ranger/core/mechanics/hammer-variants.js';
+import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import {

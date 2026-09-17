@@ -1,4 +1,4 @@
-import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/archetype-attributes.js';
+import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import {
   createBuildAttributeContext,

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { enterAvatar } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { galeshotModifierRules } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';

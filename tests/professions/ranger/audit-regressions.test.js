@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
-import { rangerProfession } from '#gw2/professions/ranger/definition.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';

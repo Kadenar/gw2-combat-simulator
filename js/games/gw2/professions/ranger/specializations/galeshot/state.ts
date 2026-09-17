@@ -1,5 +1,23 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { GaleshotState, RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+
+export interface GaleshotState {
+  cycloneBowActive: boolean;
+  arrows: number;
+  maximumArrows: number;
+  arrowsUpdatedAt: number;
+  /** Accumulated recharge in baseline seconds, independent of the current Alacrity rate. */
+  arrowRechargeProgress: number;
+  windForce: number;
+  galeForceUntil: number;
+  mistralUntil: number;
+  wutheringWindReady: boolean;
+  wutheringWindReadyAt: number;
+  wutheringWindActivationIds: Record<string, boolean>;
+  thrillOfTheCatchReadyAt: number;
+  flockTogetherReadyAt: number;
+  missileHits: number;
+}
 
 // Galeshot owns its public Cyclone Bow and wind-resource projection.
 export const GALESHOT_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
