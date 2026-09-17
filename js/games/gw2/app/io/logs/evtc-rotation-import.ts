@@ -1,12 +1,8 @@
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import type {
-  EngineerSerratedSteelObservation,
-  EngineerShrapnelObservation
-} from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
-import type { NecromancerBarbedPrecisionObservation } from '#gw2/integrations/logs/evtc/rotation/professions/necromancer/barbed-precision-observation.js';
 import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
-import type { WarriorBloodlustObservation } from '#gw2/integrations/logs/evtc/rotation/professions/warrior/bloodlust-observation.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/io/logs/log-rotation-import.js';
@@ -53,7 +49,7 @@ function procImportObservation(
   ];
 }
 
-function bloodlustImportObservation(result: WarriorBloodlustObservation | null): RotationImportObservation[] {
+function bloodlustImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
   return procImportObservation(
     result,
     'Bloodlust proc rate',
@@ -77,7 +73,7 @@ function shrapnelImportObservation(result: EngineerShrapnelObservation | null): 
   );
 }
 
-function serratedSteelImportObservation(result: EngineerSerratedSteelObservation | null): RotationImportObservation[] {
+function serratedSteelImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
   return procImportObservation(
     result,
     'Serrated Steel proc rate',
@@ -101,9 +97,7 @@ function sharperImagesImportObservation(result: MesmerSharperImagesObservation |
   ];
 }
 
-function barbedPrecisionImportObservation(
-  result: NecromancerBarbedPrecisionObservation | null
-): RotationImportObservation[] {
+function barbedPrecisionImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {
   return procImportObservation(
     result,
     'Barbed Precision proc rate',

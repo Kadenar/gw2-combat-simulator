@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-export type EngineerApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly EngineerApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 6,
     name: 'Explosives',

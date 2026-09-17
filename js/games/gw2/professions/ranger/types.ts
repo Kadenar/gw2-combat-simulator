@@ -19,10 +19,8 @@ import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/r
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export type { DruidState, GaleshotState, RangerCoreState, RangerInitialUntamedState, SoulbeastState, UntamedState };
 
-export type RangerSpecializationSelection = ProfessionTraitSelection;
-
 export interface RangerBuild extends Gw2Build {
-  specializations?: RangerSpecializationSelection[];
+  specializations?: ProfessionTraitSelection[];
   assumptions?: RangerAssumptions;
   selectedPet?: string;
   selectedPet2?: string;
@@ -123,7 +121,6 @@ export type RangerSchedulerContext = SchedulerContext<RangerRuntimeState> & {
 export type RangerCastContext = CastLifecycleContext<RangerRuntimeState> & {
   readonly config: RangerConfig;
 };
-export type RangerPrecastContext = RangerCastContext;
 export type RangerResolverContext = Gw2ResolverRuntime & {
   config: RangerConfig;
   profession: RangerRuntimeState;

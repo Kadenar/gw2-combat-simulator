@@ -34,8 +34,6 @@ interface PhotonForgeHeatPayload extends SchedulerRecord {
   readonly persistsOutsideForge: boolean;
 }
 
-interface PhotonForgePassiveHeatPayload extends SchedulerRecord {}
-
 interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
   readonly seconds: number;
 }
@@ -297,7 +295,7 @@ export function initializePhotonForgeHeat(context: EngineerSchedulerContext): vo
 /** Processes one validated passive heat or cooling tick and schedules the next tick when needed. */
 export function handlePhotonForgePassiveHeat(
   context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<PhotonForgePassiveHeatPayload>
+  task: EngineerScheduledTask<SchedulerRecord>
 ): void {
   const state = holosmithState.from(context);
   if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;

@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export type RangerApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly RangerApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 5,
     name: 'Druid',

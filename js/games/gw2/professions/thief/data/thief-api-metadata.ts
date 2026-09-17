@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export type ThiefApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly ThiefApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 7,
     name: 'Daredevil',

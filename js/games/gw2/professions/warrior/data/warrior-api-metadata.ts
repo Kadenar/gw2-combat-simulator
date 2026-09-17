@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export type WarriorApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly WarriorApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 4,
     name: 'Strength',

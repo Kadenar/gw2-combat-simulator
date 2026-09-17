@@ -21,12 +21,7 @@ import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type {
-  RangerCastContext,
-  RangerPrecastContext,
-  RangerSchedulerContext,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -173,7 +168,7 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
   return result;
 }
 
-export function soulbeastCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+export function soulbeastCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill

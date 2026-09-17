@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-export type ElementalistApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly ElementalistApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 17,
     name: 'Water',

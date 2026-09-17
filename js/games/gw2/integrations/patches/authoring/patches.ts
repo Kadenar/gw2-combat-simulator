@@ -113,8 +113,6 @@ export interface SkillPatchEdit {
 }
 
 /** Patches a non-skill balance profile using the same numeric/effect grammar. */
-export type BalanceProfilePatchEdit = SkillPatchEdit;
-
 export interface ModifierRulePatchEdit {
   /** Direct numeric rule declarations. Resolver-backed fields use parameters. */
   readonly amount?: NumEdit;
@@ -125,7 +123,7 @@ export interface ModifierRulePatchEdit {
 
 export interface ProfessionPatchPreview {
   readonly skills?: Readonly<Record<string, SkillPatchEdit>>;
-  readonly balanceProfiles?: Readonly<Record<string, BalanceProfilePatchEdit>>;
+  readonly balanceProfiles?: Readonly<Record<string, SkillPatchEdit>>;
   readonly modifierRules?: Readonly<Record<string, ModifierRulePatchEdit>>;
   /** Deterministic summaries generated from skills and modifierRules. */
   readonly overview?: readonly PatchOverviewEntry[];
@@ -569,7 +567,7 @@ const MECHANIST_PROFILE_FIELD_RENAMES: Readonly<Record<string, Readonly<Record<s
 };
 
 /** Preserves old sparse edits without mutating inputs or silently overriding a second spelling. */
-function migrateBalanceProfileFields(key: string, edit: BalanceProfilePatchEdit): BalanceProfilePatchEdit {
+function migrateBalanceProfileFields(key: string, edit: SkillPatchEdit): SkillPatchEdit {
   const names: Readonly<Record<string, string>> = {
     'Jade Mech Attribute Inheritance': 'engineer.mechanist.mech',
     'Jade Buster Cannon': '63095'
@@ -591,7 +589,7 @@ function migrateBalanceProfileFields(key: string, edit: BalanceProfilePatchEdit)
 }
 
 /** Produces an immutable patched balance profile using the shared sparse patch grammar. */
-function patchBalanceProfile(profile: BalanceProfile, edit: BalanceProfilePatchEdit): BalanceProfile {
+function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit): BalanceProfile {
   const clone = structuredClone(profile) as BalanceProfile;
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
@@ -785,7 +783,7 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   const normalized = structuredClone(preview);
   const profiles = normalized.professions?.engineer?.balanceProfiles;
   if (profiles) {
-    const mutableProfiles = profiles as Record<string, BalanceProfilePatchEdit>;
+    const mutableProfiles = profiles as Record<string, SkillPatchEdit>;
     for (const [key, edit] of Object.entries(profiles)) {
       mutableProfiles[key] = migrateBalanceProfileFields(key, edit);
     }

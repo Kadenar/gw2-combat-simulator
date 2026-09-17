@@ -255,7 +255,7 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     assert.match(source, /warrior\/core\/ and warrior\/specializations\//);
     assert.doesNotMatch(source, /warrior\/mechanics\//);
     assert.match(source, /import type \{ Gw2ApiSpecialization \}/);
-    assert.match(source, /export const SPECIALIZATIONS: readonly WarriorApiSpecialization\[]/);
+    assert.match(source, /export const SPECIALIZATIONS: readonly Gw2ApiSpecialization\[]/);
     assert.match(source, /export const SKILLS: readonly WarriorSkill\[]/);
 
     const thiefRequests = [];

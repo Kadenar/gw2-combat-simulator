@@ -8,8 +8,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 
-export type TimelineRotationEntry = RotationCommand;
-
 export interface TimelineCastOrdinal {
   readonly matchingIndex: number;
   readonly matchingTotal: number;
@@ -21,7 +19,7 @@ export interface TimelineRow {
   readonly weaponSet: number;
   readonly weaponLine: string | null;
   readonly skills: Array<{
-    readonly entry: TimelineRotationEntry;
+    readonly entry: RotationCommand;
     readonly index: number;
   }>;
 }
@@ -333,7 +331,7 @@ export function formatInterruptTimelineBadge(interruptMs: unknown, timestamp: un
   return `✂${Number(interruptMs)}ms${time ? `\n${time}` : ''}`;
 }
 
-export function rotationEntryName(entry: TimelineRotationEntry): string {
+export function rotationEntryName(entry: RotationCommand): string {
   // Preserve the established UI action keys while deriving them from canonical command discriminants.
   if (entry.type === 'cast') return String(entry.skillId);
   if (entry.type === 'wait') return '__wait';
@@ -342,7 +340,7 @@ export function rotationEntryName(entry: TimelineRotationEntry): string {
 }
 
 export function timelineRows(
-  rotation: readonly TimelineRotationEntry[] = [],
+  rotation: readonly RotationCommand[] = [],
   {
     startingWeaponSet = 1,
     startingWeaponLine = null,
@@ -352,10 +350,10 @@ export function timelineRows(
   }: {
     readonly startingWeaponSet?: number;
     readonly startingWeaponLine?: string | null;
-    readonly isWeaponSwap?: (entry: TimelineRotationEntry) => boolean;
-    readonly isWeaponSetRefresh?: (entry: TimelineRotationEntry) => boolean;
+    readonly isWeaponSwap?: (entry: RotationCommand) => boolean;
+    readonly isWeaponSetRefresh?: (entry: RotationCommand) => boolean;
     readonly weaponLineTransition?: (
-      entry: TimelineRotationEntry,
+      entry: RotationCommand,
       current: { weaponSet: number; weaponLine: string | null },
       index: number
     ) => string | null | undefined;

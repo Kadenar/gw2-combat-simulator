@@ -28,10 +28,8 @@ export type {
   GuardianWillbenderState
 };
 
-export type GuardianSpecializationSelection = ProfessionTraitSelection;
-
 export interface GuardianBuild extends Gw2Build {
-  specializations?: GuardianSpecializationSelection[];
+  specializations?: ProfessionTraitSelection[];
   assumptions?: { readonly quickness?: boolean };
 }
 

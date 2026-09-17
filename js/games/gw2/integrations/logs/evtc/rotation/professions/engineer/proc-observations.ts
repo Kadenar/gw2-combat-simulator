@@ -42,8 +42,6 @@ export interface EngineerShrapnelObservation {
   readonly matchedCrippledDurationsMs: readonly number[];
 }
 
-export type EngineerSerratedSteelObservation = CriticalBleedingProcObservation;
-
 function isExplosionSkill(skill: Skill): boolean {
   return Boolean(
     EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
@@ -140,7 +138,7 @@ export function analyzeEngineerSerratedSteelObservation(
   playerAddress: bigint,
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
-): EngineerSerratedSteelObservation | null {
+): CriticalBleedingProcObservation | null {
   return analyzeCriticalBleedingProcObservation(
     log,
     playerAddress,

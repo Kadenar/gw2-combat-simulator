@@ -10,7 +10,7 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { WarriorSpecializationSelection } from '#gw2/professions/warrior/data/traits-data.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 // Apply selected signets, weapon-sensitive traits, duration bonuses, and ordered
 // Warrior conversions to the shared build-time attribute result.
@@ -19,7 +19,7 @@ export function applyWarriorBuildAttributeRules(
   { build, weaponSet, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as WarriorSpecializationSelection[],
+    specializations: (build.specializations || []) as ProfessionTraitSelection[],
     selectedSkills,
     disabledTrait,
     getActiveTraits

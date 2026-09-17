@@ -13,12 +13,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type {
-  RangerCastContext,
-  RangerPrecastContext,
-  RangerSchedulerContext,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {
   advanceDruidState,
@@ -215,7 +210,7 @@ export const druidSchedulerHooks = Object.freeze({
   }
 });
 
-export function druidCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+export function druidCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = druidState.from(context);
   if (skill.celestialAvatarSkill && !state.celestialAvatarActive) {
     return deny(skill, 'ranger.avatar-inactive', 'enter Celestial Avatar first.');

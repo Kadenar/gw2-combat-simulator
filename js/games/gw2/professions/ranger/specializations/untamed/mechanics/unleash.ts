@@ -8,18 +8,13 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type {
-  RangerCastContext,
-  RangerPrecastContext,
-  RangerSchedulerContext,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
-export function untamedCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+export function untamedCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = untamedState.from(context);
   if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');

@@ -39,8 +39,6 @@ export type {
   VindicatorState
 };
 
-export type RevenantSpecializationSelection = ProfessionTraitSelection;
-
 export interface RevenantSkill extends Skill {
   readonly affinityOnHit?: boolean;
   readonly consume?: boolean;
@@ -66,7 +64,7 @@ export interface RevenantSkill extends Skill {
 
 export interface RevenantBuild extends Gw2Build {
   assumptions?: ProfessionBuildAssumptions;
-  specializations?: RevenantSpecializationSelection[];
+  specializations?: ProfessionTraitSelection[];
   selectedLegends?: string[];
   startingLegend?: string;
   initialEnergy?: number;

@@ -230,8 +230,6 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly conversionTimes?: readonly number[];
 };
 
-export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;
-
 export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerRuntimeState> {
   critical(context: SchedulerContext<MesmerRuntimeState>, event: SimulationEvent): Gw2CriticalResult;
   isCombatActive(): boolean;
@@ -244,7 +242,7 @@ export type MesmerSchedulerContext = Omit<
   'config' | 'catalog' | 'schedulerPolicy'
 > & {
   readonly config: MesmerConfig;
-  readonly catalog: MesmerCatalog;
+  readonly catalog: CanonicalCatalog<MesmerSkill>;
   readonly schedulerPolicy: MesmerSchedulerPolicy;
   mesmerRuntime?: MesmerRuntime;
 };

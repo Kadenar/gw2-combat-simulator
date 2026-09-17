@@ -46,11 +46,9 @@ export type {
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
-export interface ThiefSpecializationSelection extends Gw2BuildSpecialization {}
-
 export interface ThiefBuild extends Gw2Build {
   assumptions?: ProfessionBuildAssumptions;
-  specializations?: ThiefSpecializationSelection[];
+  specializations?: Gw2BuildSpecialization[];
   selectedSkills?: Record<string, string>;
   selectedDodge?: ThiefDodge;
   initialInitiative?: number;

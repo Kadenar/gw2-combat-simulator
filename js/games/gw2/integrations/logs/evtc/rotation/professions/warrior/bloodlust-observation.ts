@@ -7,8 +7,6 @@ import {
   type CriticalBleedingProcObservation
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
-export type WarriorBloodlustObservation = CriticalBleedingProcObservation;
-
 /**
  * Compares ArcDPS critical-result packets with duration-matched Bleeding applications.
  * EVTC does not name the originating trait, so this remains explicit diagnostic evidence rather than rotation input.
@@ -18,6 +16,6 @@ export function analyzeWarriorBloodlustObservation(
   playerAddress: bigint,
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
-): WarriorBloodlustObservation | null {
+): CriticalBleedingProcObservation | null {
   return analyzeCriticalBleedingProcObservation(log, playerAddress, catalog, config, TRAIT.BLOODLUST, 'Bloodlust');
 }

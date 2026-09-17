@@ -10,7 +10,7 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { NecromancerSpecializationSelection } from '#gw2/professions/necromancer/data/traits-data.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 /** Applies Necromancer flat bonuses, ordered conversions, durations, and critical chance at build time. */
 export function applyNecromancerBuildAttributeRules(
@@ -18,7 +18,7 @@ export function applyNecromancerBuildAttributeRules(
   { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
-    specializations: (build.specializations || []) as NecromancerSpecializationSelection[],
+    specializations: (build.specializations || []) as ProfessionTraitSelection[],
     selectedSkills,
     disabledTrait,
     getActiveTraits

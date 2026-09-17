@@ -17,7 +17,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { WarriorSpecializationSelection } from '#gw2/professions/warrior/data/traits-data.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type {
   WarriorSimulationEvent,
   WarriorSkill,
@@ -182,7 +182,7 @@ function warriorEventLogRow(
 
 /** True when the build has the Arms trait Signet Mastery selected. */
 function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
-  return getActiveTraits((context.build?.specializations || []) as WarriorSpecializationSelection[]).some(
+  return getActiveTraits((context.build?.specializations || []) as ProfessionTraitSelection[]).some(
     (trait) => Number(trait.id) === TRAIT.SIGNET_MASTERY
   );
 }

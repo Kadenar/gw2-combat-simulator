@@ -6,9 +6,7 @@ import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/a
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export type MesmerApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly MesmerApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 10,
     name: 'Domination',

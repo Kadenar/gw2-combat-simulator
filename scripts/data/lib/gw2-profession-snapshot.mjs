@@ -349,9 +349,7 @@ export function serializeProfessionSnapshot({ professionName, snapshotDate, spec
     `import type { Gw2ApiSpecialization } from "#gw2/platform/profession-definition/api-metadata-types.js";`,
     `import type { ${professionName}Skill } from "#gw2/professions/${id}/types.js";`,
     '',
-    `export type ${professionName}ApiSpecialization = Gw2ApiSpecialization;`,
-    '',
-    `export const SPECIALIZATIONS: readonly ${professionName}ApiSpecialization[] = ${JSON.stringify(specializations, null, 2)};`,
+    `export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = ${JSON.stringify(specializations, null, 2)};`,
     `export const SKILLS: readonly ${professionName}Skill[] = ${JSON.stringify(skills, null, 2)};`,
     ''
   ].join('\n');

@@ -7,15 +7,13 @@ import {
   type CriticalBleedingProcObservation
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 
-export type NecromancerBarbedPrecisionObservation = CriticalBleedingProcObservation;
-
 /** Compares Necromancer critical packets with profile-duration Barbed Precision Bleeding applications. */
 export function analyzeNecromancerBarbedPrecisionObservation(
   log: ParsedEvtc,
   playerAddress: bigint,
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config
-): NecromancerBarbedPrecisionObservation | null {
+): CriticalBleedingProcObservation | null {
   return analyzeCriticalBleedingProcObservation(
     log,
     playerAddress,

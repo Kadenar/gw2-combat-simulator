@@ -14,7 +14,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { RangerCastContext, RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import {
@@ -128,7 +128,7 @@ export const galeshotSchedulerHooks = Object.freeze({
 
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.
-export function galeshotCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+export function galeshotCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');

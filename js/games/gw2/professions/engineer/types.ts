@@ -43,10 +43,8 @@ export type {
   ScrapperState
 };
 
-export type EngineerSpecializationSelection = ProfessionTraitSelection;
-
 export interface EngineerBuild extends Gw2Build {
-  specializations?: EngineerSpecializationSelection[];
+  specializations?: ProfessionTraitSelection[];
   assumptions?: ProfessionBuildAssumptions;
   initialHeat?: number;
   selectedMorphSkillIds?: number[];

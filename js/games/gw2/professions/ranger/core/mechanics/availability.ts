@@ -3,7 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type { RangerPrecastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -14,7 +14,7 @@ import {
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
-export function rangerCoreCastAvailability(context: RangerPrecastContext, skill: RangerSkill): AvailabilityResult {
+export function rangerCoreCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const selection = selectedSlotSkillAvailability(context, skill);
   if (selection) return selection;
   const state = professionCoreState(context);

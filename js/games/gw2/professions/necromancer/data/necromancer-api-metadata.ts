@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export type NecromancerApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly NecromancerApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 53,
     name: 'Spite',

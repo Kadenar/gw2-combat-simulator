@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-export type RevenantApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly RevenantApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 3,
     name: 'Invocation',

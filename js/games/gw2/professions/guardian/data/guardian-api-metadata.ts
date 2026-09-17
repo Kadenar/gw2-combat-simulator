@@ -5,9 +5,7 @@
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-export type GuardianApiSpecialization = Gw2ApiSpecialization;
-
-export const SPECIALIZATIONS: readonly GuardianApiSpecialization[] = [
+export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [
   {
     id: 42,
     name: 'Zeal',
