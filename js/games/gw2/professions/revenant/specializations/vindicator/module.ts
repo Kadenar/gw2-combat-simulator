@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { performEnergyMeld } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';

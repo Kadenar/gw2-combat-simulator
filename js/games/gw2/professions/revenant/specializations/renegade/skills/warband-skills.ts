@@ -4,14 +4,7 @@
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
-
-export const RENEGADE_ENHANCED_SKILL_BY_ID: Readonly<Record<number, SkillId>> = Object.freeze({
-  [ID.ICERAZORS_IRE]: ID.ICERAZORS_IRE_ID_72359,
-  [ID.RAZORCLAWS_RAGE]: ID.RAZORCLAWS_RAGE_ID_72363,
-  [ID.DARKRAZORS_DARING]: ID.DARKRAZORS_DARING_ID_72366,
-  [ID.BREAKRAZORS_BASTION]: ID.BREAKRAZORS_BASTION_ID_72389
-});
+import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 const BASE_RAZORCLAW_EFFECTS = Object.freeze([
   {

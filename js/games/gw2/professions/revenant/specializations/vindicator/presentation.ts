@@ -1,6 +1,6 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type {
   ProfessionPaletteActionIdentity,
   ProfessionUiContract,

@@ -9,11 +9,13 @@ import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/prof
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import {
+  dragonChargeTickOffsetSeconds,
+  dragonChargesForDurationMs
+} from '#gw2/professions/warrior/data/dragon-charges.js';
+import {
   DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_FLOW_COST,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
-  dragonChargeTickOffsetSeconds,
-  dragonChargesForDurationMs,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -226,6 +228,7 @@ test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', 
       maximumCharges: 10,
       chargesPerInterval: 1,
       flowPerInterval: 5,
+      tickAt: (tickIndex) => tickIndex * 0.25,
       flowRateSegments: [],
       deadline: 2.5,
       ...overrides

@@ -1,5 +1,5 @@
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { beguilingHazeCastDuration } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
+import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,

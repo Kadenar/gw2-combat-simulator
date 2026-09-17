@@ -22,6 +22,3 @@ export const warriorProfession = defineNativeProfession({
 });
 
 export default warriorProfession;
-
-// Integration exports: helpers that log integrations share with the simulation.
-export { dragonChargesForDurationMs } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';

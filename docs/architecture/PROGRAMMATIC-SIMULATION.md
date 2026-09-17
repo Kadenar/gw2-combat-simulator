@@ -52,7 +52,7 @@ Create `run-engineer.mjs` in the repository root:
 import { prepareSimulationConfig } from './tests/helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
@@ -130,7 +130,7 @@ Use the same aliases in headless scripts kept inside the repository:
 
 ```js
 import { simulateGw2 } from '#gw2/platform/index.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 ```
 
 Build before running so Node executes the current compiled modules.

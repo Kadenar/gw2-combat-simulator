@@ -1,4 +1,4 @@
-import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/profession.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/lib/rotation/catalog.js';
 
 import type {

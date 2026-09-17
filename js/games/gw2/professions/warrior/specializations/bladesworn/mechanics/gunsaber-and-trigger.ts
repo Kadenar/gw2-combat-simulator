@@ -9,6 +9,7 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   DRAGON_TRIGGER_DURATION_SECONDS,
@@ -16,7 +17,6 @@ import {
   dragonChargesToAdrenalineSpent,
   dragonSlashCoefficient,
   dragonFlowPerInterval,
-  dragonChargeTickOffsetSeconds,
   maximumDragonCharges,
   projectDragonCharges,
   projectDragonFlow,
