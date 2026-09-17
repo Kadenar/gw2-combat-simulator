@@ -2,23 +2,6 @@ import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusio
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export interface MesmerMirageMirror {
-  availableAt: number;
-  expiresAt: number;
-  source: string;
-}
-
-export interface MesmerMirageState {
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  ambushUntil: number;
-  ambushSource: string;
-  cloneAmbushUntil: number;
-  riddleOfSandReady: boolean;
-  mirrors: MesmerMirageMirror[];
-}
-
 export interface MesmerMirageCloakOptions {
   readonly duration?: number;
   readonly grantCloneCloak?: boolean;

@@ -22,7 +22,7 @@ const professionBoundaryPattern = {
 
 // Professions that adopted the layout in docs/architecture/PROFESSION-LAYOUT-PLAN.md. Code outside those
 // profession folders may import only their public entry points. Remove the list once every profession migrates.
-const MIGRATED_PROFESSIONS = ['elementalist', 'engineer', 'guardian', 'necromancer', 'ranger', 'revenant', 'thief', 'warrior'];
+const MIGRATED_PROFESSIONS = ['elementalist', 'engineer', 'guardian', 'mesmer', 'necromancer', 'ranger', 'revenant', 'thief', 'warrior'];
 const migratedProfessionGroup = MIGRATED_PROFESSIONS.join('|');
 const professionPublicEntryPatterns = MIGRATED_PROFESSIONS.length
   ? [

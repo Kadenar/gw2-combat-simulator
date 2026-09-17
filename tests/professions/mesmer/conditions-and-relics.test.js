@@ -8,8 +8,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 

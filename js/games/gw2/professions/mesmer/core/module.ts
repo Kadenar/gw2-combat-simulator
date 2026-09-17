@@ -1,33 +1,15 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedBlind, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
-import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import { createMesmerModuleData } from '#gw2/professions/mesmer/catalog/module-data.js';
-import {
-  advanceMesmerScheduler,
-  handleCloneAttackTask,
-  handleExpectedProcTask,
-  handlePartyBuffTask,
-  handleResourceGainTask,
-  handleTrackedHitTask,
-  initializeMesmerScheduler,
-  observeMesmerEvent
-} from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
+import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
-import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerCastRules } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
-import {
-  handleSignetIllusionsPassiveTask,
-  mesmerCoreSignetSkillMechanicHandlers
-} from '#gw2/professions/mesmer/core/mechanics/signets.js';
-import { handleChaoticInterruptionTask } from '#gw2/professions/mesmer/core/traits/index.js';
+import { mesmerCoreSignetSkillMechanicHandlers } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { mesmerCoreRifleSkillMechanicHandlers } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { mesmerCoreAttributeRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { projectMesmerEndState, snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
+import { projectMesmerEndState, snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
@@ -35,38 +17,7 @@ import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesme
 import { mesmerCoreSkillHandlers } from '#gw2/professions/mesmer/core/execution/index.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
-
-/** Assembles the Core Mesmer scheduler hooks while each behavior remains with its owning concept. */
-const mesmerCoreSchedulerHooks = Object.freeze({
-  prepareEvent: {
-    id: 'mesmer.boon-companion-candidates',
-    order: 5,
-    // Shared boon preparation snapshots active clones before player-first target selection.
-    handler: (context: MesmerSchedulerContext, event: SimulationEventInput) => {
-      const prepared = prepareGw2BuffCompanionCandidates(
-        event,
-        professionCoreState(context).clones.map((clone) => `mesmer.clone:${clone.id}`)
-      );
-      // Blade identity belongs to the Mesmer skill even when the shared scheduler owns its packets.
-      const skill = context.catalog.skillsById.get(prepared.skillId ?? '');
-      return prepared.type === 'damage' && skill?.blade ? { ...prepared, blade: true } : prepared;
-    }
-  },
-  initialize: initializeMesmerScheduler,
-  advance: advanceMesmerScheduler,
-  onCastStart: startMesmerCast,
-  onCastComplete: completeMesmerCast,
-  onEventScheduled: observeMesmerEvent,
-  taskHandlers: Object.freeze({
-    'mesmer.clone-attack': handleCloneAttackTask,
-    'mesmer.party-buff': handlePartyBuffTask,
-    'mesmer.resource-gain': handleResourceGainTask,
-    'mesmer.expected-proc': handleExpectedProcTask,
-    'mesmer.tracked-hit': handleTrackedHitTask,
-    'mesmer.chaotic-interruption': handleChaoticInterruptionTask,
-    'mesmer.signet-illusions-passive': handleSignetIllusionsPassiveTask
-  })
-});
+import { mesmerCoreSchedulerHooks } from '#gw2/professions/mesmer/core/execution/hooks.js';
 
 export const mesmerCoreModule = defineNativeModule({
   id: 'Core',

@@ -27,7 +27,7 @@ import {
 import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession as baseEngineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/profession.js';
-import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession as baseNecromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession as baseRangerProfession } from '#gw2/professions/ranger/profession.js';
 import { revenantProfession as baseRevenantProfession } from '#gw2/professions/revenant/profession.js';

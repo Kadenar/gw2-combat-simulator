@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 

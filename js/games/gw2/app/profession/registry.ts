@@ -133,7 +133,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/mesmer/definition.js');
+      const module = await import('#gw2/professions/mesmer/profession.js');
       return module.mesmerProfession;
     },
     loadAppAdapter: async () => {

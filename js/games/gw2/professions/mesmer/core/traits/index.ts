@@ -1,6 +1,6 @@
 /** Public dispatcher for imperative Core Mesmer trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import {
   triggerChaoticInterruption,
@@ -13,7 +13,6 @@ import {
   type MesmerDuelingCriticalContext
 } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { triggerMaimTheDisillusioned, type MesmerMaimContext } from '#gw2/professions/mesmer/core/traits/illusions.js';
-import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
 export { scheduleBountifulBlades, triggerDazzling } from '#gw2/professions/mesmer/core/traits/domination.js';
 export {

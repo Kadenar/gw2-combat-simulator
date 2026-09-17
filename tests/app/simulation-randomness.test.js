@@ -22,7 +22,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild } from '#gw2/professions/necromancer/build/build.js';

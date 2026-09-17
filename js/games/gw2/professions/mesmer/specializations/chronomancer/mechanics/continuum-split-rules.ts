@@ -19,9 +19,9 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerPrecastContext,
   MesmerRechargeContext,
-  MesmerSchedulerContext
+  MesmerSchedulerContext,
+  MesmerSchedulerTask
 } from '#gw2/professions/mesmer/types.js';
-import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

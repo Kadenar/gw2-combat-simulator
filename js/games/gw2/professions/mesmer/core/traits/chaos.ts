@@ -12,10 +12,10 @@ import type {
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerRuntime,
+  MesmerRuntimeState,
   MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
