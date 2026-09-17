@@ -7,13 +7,13 @@ import {
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
   ROTATION_TIMELINE_SIZE_OPTIONS
-} from '#gw2/app/rotation/timeline/size.js';
+} from '#gw2/app/rotation/timeline/display-preferences.js';
 import {
   normalizeRotationProcOverlayVisibility,
   readStoredRotationProcOverlayVisibility,
   ROTATION_PROC_OVERLAY_STORAGE_KEYS,
   storeRotationProcOverlayVisibility
-} from '#gw2/app/rotation/timeline/proc-overlays.js';
+} from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   isSimulationConfigVisible,

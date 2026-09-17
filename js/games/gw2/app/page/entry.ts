@@ -10,7 +10,7 @@
 
 import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#app/embed.js';
 import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
-import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/size.js';
+import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/display-preferences.js';
 import { mountRotationWorkspace } from '#app/shell/workspace.js';
 import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';

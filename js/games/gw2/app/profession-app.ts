@@ -18,10 +18,11 @@ import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear
 import { renderRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
+import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
-import { renderRotationComparison, renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/index.js';
+import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
+import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/workspace.js';
 import type { ShellSession } from '#app/shell/types.js';

@@ -1,15 +1,13 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderRotationHistoryControls } from '#gw2/app/rotation/editing/history.js';
-import { mountRotationHotkeys } from '#gw2/app/rotation/input/hotkeys.js';
+import { mountRotationHotkeys } from '#gw2/app/rotation/hotkeys.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderEventLog } from '#gw2/app/results/simulation-event-log.js';
-import { renderWarnings } from '#gw2/app/results/warnings.js';
+import { renderWarnings } from '#gw2/app/rotation/warnings.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
-
-export { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 
 export function renderRotationBuilder(app: ProfessionAppState): void {
   renderRotationEditor(app);

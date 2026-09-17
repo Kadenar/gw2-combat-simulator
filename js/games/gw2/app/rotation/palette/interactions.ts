@@ -1,7 +1,10 @@
 import { createRotationItem, insertRotationItems, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { activationDamageCommitMs, openActivationEditor } from '#gw2/app/rotation/editing/activation-editor.js';
-import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release.js';
-import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '#gw2/app/rotation/editing/double-edge.js';
+import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release-editor.js';
+import {
+  hasConfigurableDoubleEdgeOutcome,
+  openDoubleEdgeEditor
+} from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
 import { WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
 import { clearTimelineDropIndicators, type RotationDragState } from '#gw2/app/rotation/timeline/interactions.js';

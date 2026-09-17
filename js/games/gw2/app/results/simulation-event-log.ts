@@ -5,7 +5,7 @@ import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#gw2/app/results/event-log-view.js';
 import type { EventLogRow } from '#gw2/app/results/event-log-view.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import { professionEndState } from '#gw2/app/rotation/shared/context.js';
+import { professionEndState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';

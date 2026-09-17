@@ -21,7 +21,7 @@ import {
   rotationUtilityHotkeyAction,
   saveRotationHotkeyBindings,
   saveRotationHotkeysEnabled
-} from '#gw2/app/rotation/input/hotkeys.js';
+} from '#gw2/app/rotation/hotkeys.js';
 import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '#gw2/integrations/keybinds/parser.js';
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 

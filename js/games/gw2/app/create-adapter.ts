@@ -3,7 +3,7 @@ import { createDefaultTargetConditions as createSharedDefaultTargetConditions } 
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { renderRotationBuilder } from '#gw2/app/rotation/index.js';
+import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';

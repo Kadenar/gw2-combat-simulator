@@ -4,8 +4,11 @@ import {
   openActivationEditor,
   suggestedActivationInterruptMs
 } from '#gw2/app/rotation/editing/activation-editor.js';
-import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release.js';
-import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '#gw2/app/rotation/editing/double-edge.js';
+import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release-editor.js';
+import {
+  hasConfigurableDoubleEdgeOutcome,
+  openDoubleEdgeEditor
+} from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
