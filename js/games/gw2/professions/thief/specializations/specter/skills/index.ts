@@ -38,7 +38,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   [ID.ETERNAL_NIGHT]: {
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/execution/index.ts`.
     handlerId: 'thief.shadow-shroud-skill',
-    castTimeMs: 740,
+    // The supplied log retains the 360/680 ms impacts within a 760 ms activation.
+    castTimeMs: 760,
     cooldown: 8,
     initiativeCost: 0,
     effects: [
@@ -119,21 +120,25 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
   [ID.DAWNS_REPOSE]: {
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/execution/index.ts`.
     handlerId: 'thief.shadow-shroud-skill',
-    castTimeMs: 520,
+    // The leap hits at 800 ms and finishes its activation at 960 ms in the supplied log.
+    castTimeMs: 960,
     cooldown: 8,
     initiativeCost: 0,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        ticks: [{ atMs: 800, coefficient: 1 }],
         name: "Dawn's Repose",
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'control',
         actorType: 'player',
+        atMs: 800,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         controlKind: 'fear'
       }
     ],

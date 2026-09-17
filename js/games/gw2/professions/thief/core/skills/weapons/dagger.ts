@@ -85,16 +85,17 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     requiredOffHand: 'Dagger'
   },
   [ID.DANCING_DAGGER]: {
-    castTimeMs: 500,
+    // The supplied log places the projectile hit and both conditions at 280 ms within a 480 ms activation.
+    castTimeMs: 480,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.9 }],
+        ticks: [{ atMs: 280, coefficient: 0.9 }],
         name: 'Dancing Dagger',
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
           {
@@ -107,16 +108,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 3 }],
+        ticks: [{ atMs: 280, condition: 'Crippled', stacks: 1, duration: 3 }],
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 6 }],
+        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 6 }],
         actorType: 'player',
-        timingAnchor: 'castEnd',
+        timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ]
