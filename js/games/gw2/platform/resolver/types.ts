@@ -99,7 +99,7 @@ export interface Gw2ProcStep {
   effectState?: { readonly stacks: number; readonly maximumStacks: number };
 }
 
-export interface Gw2ResolverHelpers extends Record<string, unknown> {
+export interface Gw2ResolverHelpers {
   conditionName(value: unknown): string;
   readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/skills/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
@@ -156,7 +156,7 @@ export interface Gw2ResolverReactionRegistry {
   ): Record<string, unknown> | void;
 }
 
-export interface Gw2ResolverResult extends Record<string, unknown> {
+export interface Gw2ResolverResult {
   readonly duration: number;
   readonly combatStartTime: number | null;
   readonly hasExplicitCombatStart: boolean;

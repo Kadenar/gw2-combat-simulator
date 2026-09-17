@@ -32,7 +32,7 @@ interface ForgedSurferTaskPayload extends Record<string, unknown> {
   readonly skillId: SkillId;
 }
 
-interface SkrittScuffleTaskPayload extends Record<string, unknown> {
+interface SkrittScuffleTaskPayload {
   readonly expiresAt: number;
 }
 
