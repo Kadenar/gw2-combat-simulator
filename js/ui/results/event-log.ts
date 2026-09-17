@@ -1,5 +1,5 @@
 /** Renders and exports generic event-log rows without simulation-specific knowledge. */
-import { escapeHtml } from '#gw2/app/shared/html.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface EventLogDescriptor {
   readonly type: string;

@@ -2,8 +2,8 @@
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#gw2/app/results/event-log-view.js';
-import type { EventLogRow } from '#gw2/app/results/event-log-view.js';
+import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#ui/results/event-log.js';
+import type { EventLogRow } from '#ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { professionEndState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';

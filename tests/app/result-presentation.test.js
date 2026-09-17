@@ -8,7 +8,7 @@ import {
 } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
-import { eventLogCsv, mountEventLog } from '#gw2/app/results/event-log-view.js';
+import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 import { resultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import {
   dismissResultMetricDetails,
