@@ -10,12 +10,12 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/options.js';
-import { getBuildExportPayload, getBuildWithRotationExportPayload, getRotationItems } from '#gw2/app/build/io/files.js';
+import { getBuildExportPayload, getBuildWithRotationExportPayload, getRotationItems } from '#gw2/app/io/files.js';
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
-import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/build/io/build-file-import.js';
-import { loadManifestBuilds } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/io/build-file-import.js';
+import { loadManifestBuilds } from '#gw2/app/io/rotation-import-dialog.js';
 import { groupedOptions, option } from '#gw2/app/shared/html.js';
 import { loadProfessionAppAdapter, professionOptions, professionRegistry } from '#gw2/app/profession-registry.js';
 import {

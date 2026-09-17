@@ -15,7 +15,7 @@ test('transition delay preferences are global and imported waits overlap them', 
   await expect(page.locator('#simulation-weaponSwapMs')).toHaveValue('100');
   await page.evaluate(async () => {
     const { previewRotationFile, applyRotationImportPreview } =
-      await import('/js/games/gw2/app/build/io/rotation-import-dialog.ts');
+      await import('/js/games/gw2/app/io/rotation-import-dialog.ts');
     const app = window.professionApp;
     const rotation = ['Swap Weapons', { name: '__wait', waitMs: 80 }, 'Swap Weapons'];
     const file = new File([JSON.stringify(rotation)], 'rotation.json', { type: 'application/json' });

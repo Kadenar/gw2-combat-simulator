@@ -5,7 +5,7 @@ import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/build/io/log-rotation-import.js';
+import { appLogReconstructionOptions, selectActiveBuildLogPlayer } from '#gw2/app/io/logs/log-rotation-import.js';
 
 export interface ImportedDpsReportRotation {
   readonly rotation: readonly RotationCommand[];

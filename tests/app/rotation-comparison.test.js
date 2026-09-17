@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ProfessionApp } from '#gw2/app/profession-app.js';
-import { manifestRotationMatchesBuild } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { manifestRotationMatchesBuild } from '#gw2/app/io/rotation-import-dialog.js';
 import {
   rotationComparisonMetrics,
   rotationComparisonMetricsFromSeries,

@@ -6,7 +6,7 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from '#gw2/app/build/io/build-template-import.js';
+} from '#gw2/app/io/build-template-import.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
@@ -101,7 +101,7 @@ test('GW2 contributes build-code controls that use a review dialog instead of br
   const pageControls = readFileSync(new URL('../../js/games/gw2/app/build/page-controls.ts', import.meta.url), 'utf8');
   const buildEditor = readFileSync(new URL('../../js/games/gw2/app/build-editor.ts', import.meta.url), 'utf8');
   const dialog = readFileSync(
-    new URL('../../js/games/gw2/app/build/io/build-template-import-dialog.ts', import.meta.url),
+    new URL('../../js/games/gw2/app/io/build-template-import-dialog.ts', import.meta.url),
     'utf8'
   );
 

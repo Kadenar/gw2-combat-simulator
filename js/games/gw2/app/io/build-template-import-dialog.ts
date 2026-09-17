@@ -3,10 +3,10 @@ import {
   applyBuildTemplatePreview,
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
-} from '#gw2/app/build/io/build-template-import.js';
+} from '#gw2/app/io/build-template-import.js';
 import { ensureDocumentStyles, errorMessage } from '#ui/shared/dom.js';
 
-import type { BuildTemplateImportPreview } from '#gw2/app/build/io/build-template-import.js';
+import type { BuildTemplateImportPreview } from '#gw2/app/io/build-template-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BuildTemplateDialogElements {

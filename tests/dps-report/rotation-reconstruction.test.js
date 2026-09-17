@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { readDpsReportRotationData } from '#gw2/app/build/io/dps-report-rotation-import.js';
-import { applyRotationImportPreview, previewDpsReportUrl } from '#gw2/app/build/io/rotation-import-dialog.js';
+import { readDpsReportRotationData } from '#gw2/app/io/logs/dps-report-rotation-import.js';
+import { applyRotationImportPreview, previewDpsReportUrl } from '#gw2/app/io/rotation-import-dialog.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';

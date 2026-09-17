@@ -1,4 +1,4 @@
-import { bindBuildTemplateImportDialog } from '#gw2/app/build/io/build-template-import-dialog.js';
+import { bindBuildTemplateImportDialog } from '#gw2/app/io/build-template-import-dialog.js';
 import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
 import { renderAttributes } from '#gw2/app/build/panels/attributes.js';
 import { renderGear } from '#gw2/app/build/panels/gear.js';
