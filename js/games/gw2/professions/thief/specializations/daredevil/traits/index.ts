@@ -1,4 +1,4 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';

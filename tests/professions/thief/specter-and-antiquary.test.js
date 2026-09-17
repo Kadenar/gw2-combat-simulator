@@ -9,18 +9,17 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/weapon-matching.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/family-presentation.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { createAntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { handleThiefState } from '#gw2/professions/thief/state.js';
+import { handleThiefState } from '#gw2/professions/thief/family-state.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const baseConfig = Object.freeze({

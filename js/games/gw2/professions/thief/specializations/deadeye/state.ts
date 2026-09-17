@@ -2,7 +2,19 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
-import type { DeadeyeState, ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+
+export interface DeadeyeState extends ThiefStealthAttackChargeState {
+  markedTargetId: string | null;
+  markExpiresAt: number;
+  markGeneration: number;
+  malice: number;
+  maximumMalice: number;
+  maliceCriticalProgress: number;
+  maliceResolvedActivations: Record<string, boolean>;
+  maleficentSevenTriggered: boolean;
+  deadeyeRelicUntil: number;
+}
 
 export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   const traits = selectedThiefTraits(config);

@@ -6,7 +6,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 const config = {
   specialization: 'Core',

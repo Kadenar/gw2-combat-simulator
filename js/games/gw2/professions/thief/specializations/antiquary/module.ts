@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
-import { createThiefModuleData } from '#gw2/professions/thief/catalog/module-data.js';
+import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { antiquarySkillHandlers } from '#gw2/professions/thief/specializations/antiquary/execution/index.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import {

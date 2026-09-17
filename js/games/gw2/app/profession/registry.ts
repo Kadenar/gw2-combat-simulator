@@ -278,7 +278,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/thief/definition.js');
+      const module = await import('#gw2/professions/thief/profession.js');
       return module.thiefProfession;
     },
     loadAppAdapter: async () => {

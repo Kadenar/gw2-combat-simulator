@@ -5,8 +5,8 @@ import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { projectThiefEndState, snapshotThiefState } from '#gw2/professions/thief/state.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { projectThiefEndState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
 
 // Small authored skills isolate reservation ownership from profession damage and cast timing data.
 function commitmentScheduler(ammo = false) {

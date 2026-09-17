@@ -5,7 +5,7 @@ import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { recordPassiveRelicTimeline } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 // Isolate dodge starts from follow-up packets, precombat actions and the exact ICD boundary.
 test('Mirage follows executed rotation dodges with a one-second ICD', () => {

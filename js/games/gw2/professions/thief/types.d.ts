@@ -20,6 +20,29 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
+import type { ThiefCoreState, ThievesGuildState } from '#gw2/professions/thief/core/state.js';
+import type {
+  AntiquaryState,
+  ThiefAntiquarySummon,
+  ThiefArtifactSlot,
+  ThiefBackfireState
+} from '#gw2/professions/thief/specializations/antiquary/state.js';
+import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import type { SpecterState } from '#gw2/professions/thief/specializations/specter/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  AntiquaryState,
+  DaredevilState,
+  DeadeyeState,
+  SpecterState,
+  ThiefAntiquarySummon,
+  ThiefArtifactSlot,
+  ThiefBackfireState,
+  ThiefCoreState,
+  ThievesGuildState
+};
 
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
@@ -61,135 +84,14 @@ export interface ThiefConfig extends Gw2Config {
   readonly deterministicChoices?: ThiefDeterministicChoices;
 }
 
-export interface ThievesGuildState extends SchedulerRecord {
-  readonly variant: string;
-  readonly expiresAt: number;
-}
-
-export interface ThiefCoreState {
-  initiative: number;
-  maximumInitiative: number;
-  initiativeUpdatedAt: number;
-  stealthStartedAt: number;
-  stealthUntil: number;
-  hiddenKillerUntil: number;
-  revealedUntil: number;
-  storedStolenSkillId: SkillId | null;
-  storedStolenSkillIds: SkillId[];
-  storedStolenSkillCount: number;
-  kneeling: boolean;
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  maximumHealth: number;
-  leadAttacksStacks: number;
-  leadAttackExpirations: number[];
-  fluidStrikesUntil: number;
-  quickPocketsReadyAt: number;
-  spearChainStage: number;
-  spearPreviousSkillId: SkillId | null;
-  spearLastWasFinisher: boolean;
-  distractingThrowBuffUntil: number;
-  spinningAxeExpirations: number[];
-  venomChargeBatches: Record<string, { generation: number; charges: number; expiresAt: number }[]>;
-  venomAllyLastProcAt: Record<string, number>;
-  venomGeneration: number;
-  thousandNeedlesPrepared: boolean;
-  thousandNeedlesArmedAt: number;
-  pitfallPrepared: boolean;
-  pitfallArmedAt: number;
-  activeThievesGuild: ThievesGuildState | null;
-  assassinsSignetActiveUntil: number;
-  assassinsSignetPassiveDisabledUntil: number;
-  availableFlips: Record<string, number>;
-  autoattackChains: Record<string, SkillId>;
-  traitProcProgress: Record<string, number>;
-  traitProcReadyAt: Record<string, number>;
-}
-
-export interface DaredevilState {
-  enduranceCapacityBonus: number;
-  selectedDodge: ThiefDodge;
-  boundingDamageUntil: number;
-  lotusConditionDamageUntil: number;
-  palmStrikeUntil: number;
-  weakeningStrikeReady: boolean;
-  /** Distinguish fresh dodge grants from snapshots of an already consumed proc. */
-  weakeningStrikeGeneration: number;
-  weakeningStrikeExpiresAt: number;
-}
-
+// Shared by Core stealth attacks, Deadeye, and Antiquary.
 export interface ThiefStealthAttackChargeState {
   stealthAttackCharges: number;
   stealthAttackExpiresAt: number;
 }
 
-export interface DeadeyeState extends ThiefStealthAttackChargeState {
-  markedTargetId: string | null;
-  markExpiresAt: number;
-  markGeneration: number;
-  malice: number;
-  maximumMalice: number;
-  maliceCriticalProgress: number;
-  maliceResolvedActivations: Record<string, boolean>;
-  maleficentSevenTriggered: boolean;
-  deadeyeRelicUntil: number;
-}
-
-export interface SpecterState {
-  shadowShroudExitReadyAt: number;
-  shadowForce: number;
-  maximumShadowForce: number;
-  shadowForcePoolCapacity: number;
-  shadowShroudActive: boolean;
-  shadowForceUpdatedAt: number;
-  darkSentryReadyAtByAlly: Record<string, number>;
-}
-
 export type ThiefArtifactKind = 'offensive' | 'defensive';
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
-
-export interface ThiefArtifactSlot extends SchedulerRecord {
-  readonly kind: ThiefArtifactKind;
-  readonly skillId: SkillId;
-}
-
-export interface ThiefBackfireState extends SchedulerRecord {
-  readonly activeUntil: number;
-  readonly skillName: string;
-}
-
-export interface ThiefAntiquarySummon extends SchedulerRecord {
-  readonly skillId: SkillId;
-  readonly name: string;
-  readonly expiresAt: number;
-}
-
-export interface AntiquaryState extends ThiefStealthAttackChargeState {
-  initiativePipRows: number;
-  artifactSlots: ThiefArtifactSlot[];
-  artifactUsesRemaining: number;
-  scoundrelsLuck: number;
-  scoundrelsLuckReadyAt: number;
-  improvisationReadyAt: number;
-  backfireState: Record<string, ThiefBackfireState>;
-  initiativeSpentSincePilfer: number;
-  activeAntiquarySummons: ThiefAntiquarySummon[];
-  nextSkrittScufflePilferAt: number;
-  antiquaryDamageUntil: number;
-  combatHighExpiresAt: number;
-  combatHighStacks: number;
-  mistburnCharges: number;
-  mistburnExpiresAt: number;
-  mistburnGeneration: number;
-  kryptisDamageUntil: number;
-  chakInitiativeRefundUntil: number;
-  holoUtilityCooldownReductionExpirations: number[];
-  forgedSurferGeneration: number;
-  forgedSurferBombDropUntil: number;
-  forgedSurferMaximumBombHits: number;
-  canachCoinIndex: number;
-}
 
 export interface ThiefState extends ThiefCoreState, DaredevilState, DeadeyeState, SpecterState, AntiquaryState {}
 

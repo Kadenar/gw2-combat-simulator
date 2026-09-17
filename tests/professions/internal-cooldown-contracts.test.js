@@ -29,7 +29,7 @@ import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js
 import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { observeRenegadeTraits } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { reactToThiefCoreBuff } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';

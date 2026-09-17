@@ -1,4 +1,4 @@
-import { handleThiefState } from '#gw2/professions/thief/state.js';
+import { handleThiefState } from '#gw2/professions/thief/family-state.js';
 import {
   reactToThiefCoreBuff,
   reactToThiefCoreCondition,

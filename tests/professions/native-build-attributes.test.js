@@ -25,7 +25,7 @@ import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

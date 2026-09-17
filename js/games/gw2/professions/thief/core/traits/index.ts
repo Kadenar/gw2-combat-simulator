@@ -1,4 +1,4 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/professions/thief/core/traits/acrobatics.js';

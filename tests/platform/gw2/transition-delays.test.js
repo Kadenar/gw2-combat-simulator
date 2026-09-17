@@ -11,7 +11,7 @@ import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/ap
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 // Small casts isolate input scheduling from profession damage or saved-rotation timing.
 const catalog = createCanonicalCatalog({

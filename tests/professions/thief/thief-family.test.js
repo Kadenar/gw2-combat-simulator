@@ -4,12 +4,10 @@ import test from 'node:test';
 
 import { composeSkillMechanics } from '../../helpers/skill-mechanics.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
-import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {
@@ -169,7 +167,7 @@ test('Thief modules own vertical source slices', () => {
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
   assert.equal(existsSync(new URL('../../../js/games/gw2/professions/thief/core/events.ts', import.meta.url)), false);
-  assert.equal(existsSync(new URL('../../../js/games/gw2/professions/thief/state.ts', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../../../js/games/gw2/professions/thief/family-state.ts', import.meta.url)), true);
   assert.equal(
     existsSync(new URL('../../../js/games/gw2/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)),
     false

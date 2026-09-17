@@ -1,4 +1,4 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -8,7 +8,7 @@ import {
   completeStealthAttack as completeBaseStealthAttack
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type {
   ThiefCastContext,
   ThiefPrecastContext,
@@ -16,19 +16,7 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 
-const SPEAR_LEAD_SKILLS = new Set<number>([ID.MANTIS_STING, ID.UNSUSPECTING_STRIKE]);
-const SPEAR_FOLLOW_UP_SKILLS = new Set<number>([ID.ENTANGLING_ASP, ID.VAMPIRIC_SLASH]);
-const SPEAR_FINISHER_SKILLS = new Set<number>([ID.FALLING_SPIDER, ID.SHATTERING_ASSAULT]);
 const SPEAR_STEALTH_SKILLS = new Set<number>([ID.ASHEN_ASSAULT]);
-const SPEAR_CHAIN_STAGE_BY_SKILL = new Map<number, number>([
-  ...[...SPEAR_LEAD_SKILLS].map((skillId) => [skillId, 0] as const),
-  ...[...SPEAR_FOLLOW_UP_SKILLS].map((skillId) => [skillId, 1] as const),
-  ...[...SPEAR_FINISHER_SKILLS].map((skillId) => [skillId, 2] as const)
-]);
-
-export function spearChainStageForSkill(skillId: SkillId): number | null {
-  return SPEAR_CHAIN_STAGE_BY_SKILL.get(Number(skillId)) ?? null;
-}
 
 export function prepareSpearChainSkill(
   context: ThiefPrecastContext,
