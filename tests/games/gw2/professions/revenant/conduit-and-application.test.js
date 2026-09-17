@@ -596,13 +596,13 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
     anguish.steps
       .filter((step) => ['Call to Anguish', 'Unyielding Impact'].includes(step.skill))
       .map((step) => step.start),
-    [0, 820]
+    [0, 800]
   );
   assert.deepEqual(
     anguish.events
       .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
       .map((event) => Number(event.state.energy.toFixed(9))),
-    [0, 3.1]
+    [0, 3]
   );
 
   const normalEmbrace = simulate('Core', ['Embrace the Darkness'], {

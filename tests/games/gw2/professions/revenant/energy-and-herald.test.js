@@ -1114,7 +1114,7 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
   };
   const armed = simulate('Core', ['Call to Anguish'], config);
 
-  assert.equal(armed.steps[0].fullCastMs, 820);
+  assert.equal(armed.steps[0].fullCastMs, 800);
   const context = {
     specialization: 'Core',
     build: { ...baseConfig, ...config },

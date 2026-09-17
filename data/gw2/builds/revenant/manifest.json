@@ -108,7 +108,7 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39874,
+        "benchmarkDps": 39451,
         "upToDate": true
       }
     ]

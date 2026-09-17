@@ -83,9 +83,9 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryDemon'
   },
   [ID.CALL_TO_ANGUISH]: {
-    // Call to Anguish commits at 800 ms, preserving its impact effects after interruption.
+    // Call to Anguish completes on its 800 ms impact, which also commits its effects.
     interruptCommitMs: 800,
-    castTimeMs: 820,
+    castTimeMs: 800,
     cooldown: 3,
     energyCost: 30,
     effects: [
@@ -179,7 +179,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     legendId: 'LegendaryAssassin'
   },
   [ID.UNYIELDING_IMPACT]: {
-    castTimeMs: 920,
+    // The reviewed activation ends after the existing 560 ms impact packets.
+    castTimeMs: 680,
     cooldown: 0,
     energyCost: 5,
     effects: [

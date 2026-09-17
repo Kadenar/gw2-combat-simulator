@@ -71,7 +71,7 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
   );
   for (const [skillId, castTimeMs] of [
     [SKILL.HEX_EATER_VORTEX, 520],
-    [SKILL.FRIGID_BLITZ, 681],
+    [SKILL.FRIGID_BLITZ, 1000],
     [SKILL.SEARING_FISSURE, 600],
     [SKILL.TEMPORAL_RIFT, 560],
     [SKILL.ECHOING_ERUPTION, 960],
@@ -80,11 +80,11 @@ test('Revenant catalog retains reviewed timing and packet mechanics', () => {
     [SKILL.MANIFEST_TOXIN, 560],
     [SKILL.ABYSSAL_RAZE, 600],
     [SKILL.ABYSSAL_BLOT, 800],
-    [SKILL.CALL_TO_ANGUISH, 820],
+    [SKILL.CALL_TO_ANGUISH, 800],
     [SKILL.RELEASE_POTENTIAL_MESMER, 440],
     [SKILL.EMBRACE_THE_DARKNESS, 440],
     [SKILL.BANISH_ENCHANTMENT, 440],
-    [SKILL.UNYIELDING_IMPACT, 920],
+    [SKILL.UNYIELDING_IMPACT, 680],
     [SKILL.ABYSSAL_STRIKE, 520],
     [SKILL.ABYSSAL_BLITZ, 520],
     [SKILL.ABYSSAL_FORCE, 520],
