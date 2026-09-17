@@ -430,6 +430,22 @@ after attribute metadata caching (19% less time overall). Deterministic fixture 
 measurements from the same profiling script, not a guarantee for other encounters. Focused tests cover cache reuse,
 definition and cap changes, transitive skill-group dependencies, and termination ordering/membership.
 
+Revision `phase-2-targeted-attribute-metadata` gives each modifier/conversion holder index its own structural input
+revision. Ownership changes invalidate it only for its holders or their ancestors; effect and unique-effect changes
+invalidate it only on immediate stack-cap parents. Empty and capped-out holders remain tracked. Pool clear operations
+invalidate conservatively, and ownership-led views preserve their swap-and-pop order and leading-pool transitions.
+Attribute-value dirty markers and live predicate evaluation remain unchanged.
+
+At 40 ms, the original fixture's holder metadata rebuilds fell from 1,952 to 1,261 per index, while attribute-value
+recalculations remained at 1,985. An interleaved comparison (three warmups and seven measured runs per implementation)
+measured medians of 273 to 264 ms for the original fixture and 134 to 118 ms for Quickness Firebrand. Most other full
+examples improved by 0–5%; the short sword/torch example went from 4.40 to 4.53 ms. DPS remained identical before and
+after at both 1 ms and 40 ms across all eleven examples. These are local measurements, not guaranteed speedups.
+
+This removes unrelated ownership/effect churn, but holder-pool edits still rebuild the index and dependency analysis.
+Further gains require addressing those edits or value invalidation; this change alone does not reach the 200 ms target
+for the slower Willbender examples.
+
 ### Phase 3 — Existing UI integration for that build
 
 Add temporary whole-run selection at the common simulation boundary, then trace every caller to ensure it uses it. Adapt

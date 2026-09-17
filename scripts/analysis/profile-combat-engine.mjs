@@ -10,14 +10,18 @@ import { createRegistry, Pool } from '#gw2/platform/combat-engine/registry.js';
 import { createRandomSource } from '#gw2/platform/combat-engine/rng.js';
 import { setupEncounter } from '#gw2/platform/combat-engine/systems/setup.js';
 import { loadReferenceEncounter } from '../../tests/fixtures/gw2combat-reference/reference-encounter.js';
+import { loadExampleEncounter } from '../../tests/fixtures/gw2combat-reference/example-encounters.js';
 
 // Keep the same requested step for timing, CPU samples, and workload counts so coarse-step runs are comparable.
 const { values: options } = parseArgs({
-  options: { 'step-ms': { type: 'string', default: '1' }, workload: { type: 'boolean' } }
+  options: { 'step-ms': { type: 'string', default: '1' }, workload: { type: 'boolean' }, example: { type: 'string' } }
 });
 const stepMs = Number(options['step-ms']);
 assert.ok(Number.isSafeInteger(stepMs) && stepMs > 0, '--step-ms must be a positive integer');
-const encounter = prepareEncounter(loadReferenceEncounter({ deterministic: true }));
+// Additional examples retain their authored proc chances with a fixed engine seed; the default remains deterministic.
+const encounter = prepareEncounter(
+  options.example ? loadExampleEncounter(options.example) : loadReferenceEncounter({ deterministic: true })
+);
 const run = () => {
   const result = runCombatEngine({ encounter, output: 'score', seed: 1, stepMs });
   if (!result.ok) throw new Error(result.message);
@@ -114,14 +118,16 @@ if (options.workload) {
   let attributeRebuilds = 0;
   const metadata = [
     { name: 'dependencies', inputs: ['isAttributeModifier', 'isAttributeConversion', 'isConditionalSkillGroup'] },
-    { name: 'modifier holders', inputs: ['isAttributeModifier', 'owner', 'isEffect', 'isUniqueEffect'] },
-    { name: 'conversion holders', inputs: ['isAttributeConversion', 'owner', 'isEffect', 'isUniqueEffect'] }
+    { name: 'modifier holders', inputs: ['isAttributeModifier'], holderPool: registry.isAttributeModifier },
+    { name: 'conversion holders', inputs: ['isAttributeConversion'], holderPool: registry.isAttributeConversion }
   ].map((entry) => ({ ...entry, previous: [], rebuilds: 0, holderUnchanged: 0 }));
   const clearAttributes = registry.relativeAttributes.clear;
   registry.relativeAttributes.clear = function () {
     attributeRebuilds += 1;
     for (const entry of metadata) {
       const revisions = entry.inputs.map((name) => registry[name].revision);
+      // Holder indexes now observe only relevant ancestor/cap mutations, separately from their own pool revision.
+      if (entry.holderPool) revisions.push(registry.attributeHolderInputs.get(entry.holderPool)?.revision ?? 0);
       if (revisions.some((revision, index) => revision !== entry.previous[index])) {
         entry.rebuilds += 1;
         if (entry.name !== 'dependencies' && revisions[0] === entry.previous[0]) entry.holderUnchanged += 1;

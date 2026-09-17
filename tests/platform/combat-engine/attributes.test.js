@@ -460,3 +460,121 @@ test('cached stack admission refreshes when caps or holder definitions change', 
   calculateRelativeAttributes(registry);
   assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
 });
+
+test('unrelated effect and ownership churn retains holder metadata while predicates stay live', (t) => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: { permanent_unique_effects: [trait([modifier({ effect_on_target: 'BURNING' })])] }
+    })
+  );
+  const modifiers = t.mock.method(registry.isAttributeModifier, 'forEach');
+  const conversions = t.mock.method(registry.isAttributeConversion, 'forEach');
+  const burning = addEffectToActor(registry, 'BURNING', target, player, '', 100, 1);
+  const unrelated = createEntity(registry);
+  registry.owner.emplace(unrelated, player);
+  registry.owner.emplaceOrReplace(unrelated, target);
+  const unique = [...registry.isUniqueEffect.entries()][0][1];
+  registry.isUniqueEffect.emplace(unrelated, unique);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  destroyEntity(registry, burning);
+  destroyEntity(registry, unrelated);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  assert.equal(modifiers.mock.callCount(), 0);
+  assert.equal(conversions.mock.callCount(), 0);
+});
+
+test('holder metadata follows ancestor reassignment and admits holders that gain ownership', () => {
+  for (const name of ['isAttributeModifier', 'isAttributeConversion']) {
+    const { registry, player, target } = setup(encounter());
+    const holder = createEntity(registry);
+    const parent = createEntity(registry);
+    const ancestor = createEntity(registry);
+    registry.owner.emplace(parent, ancestor);
+    registry.owner.emplace(ancestor, player);
+    const condition = { not: [], or: [], and: [] };
+    const entry =
+      name === 'isAttributeModifier'
+        ? { condition, attribute: 'power', multiplier: 1, addend: 100 }
+        : { condition, from: 'power', to: 'power', multiplier: 0, addend: 100 };
+    registry[name].emplace(holder, [entry]);
+    markAttributesDirty(registry);
+    calculateRelativeAttributes(registry);
+    assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+    registry.owner.emplace(holder, parent);
+    calculateRelativeAttributes(registry);
+    assert.equal(relativeAttribute(registry, player, target, 'power'), 1100);
+    registry.owner.emplaceOrReplace(ancestor, target);
+    calculateRelativeAttributes(registry);
+    assert.equal(relativeAttribute(registry, player, 0, 'power'), 1000);
+    assert.equal(relativeAttribute(registry, target, 0, 'power'), 1100);
+    registry.owner.remove(holder);
+    calculateRelativeAttributes(registry);
+    assert.equal(relativeAttribute(registry, target, 0, 'power'), 1000);
+  }
+});
+
+test('stack metadata tracks empty holders and effect component removal and clearing', () => {
+  const { registry, player, target } = setup(
+    encounter({
+      playerBuild: {
+        permanent_unique_effects: [
+          { ...trait([modifier({})]), max_stored_stacks: 2, max_considered_stacks: 1 },
+          { ...trait([]), max_stored_stacks: 2, max_considered_stacks: 1 }
+        ]
+      }
+    })
+  );
+  const [newer, unique] = [...registry.isUniqueEffect.entries()][0];
+  registry.isUniqueEffect.emplaceOrReplace(newer, { ...unique, uniqueEffectKey: 'Different' });
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  registry.isUniqueEffect.emplaceOrReplace(newer, unique);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  registry.isUniqueEffect.clear();
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  const parents = [...registry.isAttributeModifier.entries()].map(([entity]) => registry.owner.get(entity));
+  for (const parent of parents) registry.isEffect.emplace(parent, { effect: 'FURY', groupedWithNumStacks: 1 });
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 1000);
+  registry.isEffect.remove(newer);
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+  registry.isEffect.clear();
+  calculateRelativeAttributes(registry);
+  assert.equal(relativeAttribute(registry, player, target, 'power'), 2000);
+});
+
+test('ownership-led holder views preserve swap-and-pop order and leading-pool changes', () => {
+  const registry = createRegistry(prepareEncounter(encounter()), createRandomSource(1), false);
+  const actor = createEntity(registry);
+  registry.isActor.emplace(actor, true);
+  registry.staticAttributes.emplace(actor, new Map([['power', 1000]]));
+  const unrelated = createEntity(registry);
+  const add = createEntity(registry);
+  const multiply = createEntity(registry);
+  const orphan = createEntity(registry);
+  const condition = { not: [], or: [], and: [] };
+  registry.owner.emplace(unrelated, actor);
+  registry.owner.emplace(add, actor);
+  registry.owner.emplace(multiply, actor);
+  registry.isAttributeModifier.emplace(add, [{ condition, attribute: 'power', multiplier: 1, addend: 100 }]);
+  registry.isAttributeModifier.emplace(multiply, [{ condition, attribute: 'power', multiplier: 2, addend: 0 }]);
+  registry.isAttributeModifier.emplace(orphan, []);
+  const power = () => {
+    calculateRelativeAttributes(registry);
+    return relativeAttribute(registry, actor, actor, 'power');
+  };
+
+  assert.equal(power(), 2100);
+  registry.owner.remove(unrelated);
+  assert.equal(power(), 2200);
+  registry.owner.emplace(unrelated, actor);
+  registry.owner.emplace(createEntity(registry), actor);
+  assert.equal(power(), 2100);
+  registry.owner.clear();
+  assert.equal(power(), 1000);
+});

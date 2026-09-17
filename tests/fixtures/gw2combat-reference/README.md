@@ -3,6 +3,9 @@
 Frozen inputs from [Mk-Chan/gw2combat](https://github.com/Mk-Chan/gw2combat) used to check the TypeScript combat engine
 against the C++ reference. See the [migration plan](../../../docs/architecture/GW2COMBAT-TYPESCRIPT-MIGRATION.md).
 
+Ten additional build/rotation pairs, with their own provenance, compatibility notes and 1 ms/40 ms DPS baselines, are
+documented in [examples/README.md](examples/README.md). The original fixture below remains unchanged.
+
 ## Provenance
 
 - Revision: `cc9a0d069350516b6daba7d80d4395f9004971d5` (2025-12-14)

@@ -291,6 +291,15 @@ export type RelativeAttributes = Map<Entity, Map<Attribute, number>>;
 
 export type AttributeDependency = 'health' | 'counter' | 'cooldown' | 'random';
 
+/** Structural inputs observed by one attribute-holder index; value predicates have separate dirty markers. */
+export interface AttributeHolderInputs {
+  revision: number;
+  holderRevision: number;
+  readonly ownership: Set<Entity>;
+  readonly stackOwners: Set<Entity>;
+  ownerLed: boolean;
+}
+
 export interface Registry {
   tick: number;
   /** Simulated milliseconds per loop step; the reference uses 1. */
@@ -303,6 +312,7 @@ export interface Registry {
   /** Dirty actor rows/columns, or ALL_ATTRIBUTE_PAIRS for inputs that cannot be localized. */
   readonly recalculateAttributes: Pool<Tag>;
   readonly attributeDependencies: Set<AttributeDependency>;
+  readonly attributeHolderInputs: Map<Pool<unknown>, AttributeHolderInputs>;
 
   readonly isActor: Pool<Tag>;
   readonly actorCreated: Pool<Tag>;
@@ -397,6 +407,17 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
   const pool = <T>() => new Pool<T>();
   const recalculateAttributes = new Pool<Tag>();
   const attributeDependencies = new Set<AttributeDependency>();
+  const attributeHolderInputs = new Map<Pool<unknown>, AttributeHolderInputs>();
+  // Only effect components on a holder's immediate parent participate in considered-stack admission.
+  const stackInput = <T>() =>
+    new Pool<T>((entity) => {
+      for (const [holders, inputs] of attributeHolderInputs) {
+        if (inputs.holderRevision !== holders.revision) continue;
+        if (entity === undefined || inputs.stackOwners.has(entity)) inputs.revision += 1;
+      }
+
+      markAttributesDirty(registry, entity);
+    });
   const attributeInput = <T>(dependency?: AttributeDependency) =>
     new Pool<T>((entity) => {
       if (dependency === undefined || attributeDependencies.has(dependency)) {
@@ -413,6 +434,7 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     afkTicksByActor: new Map(),
     recalculateAttributes,
     attributeDependencies,
+    attributeHolderInputs,
     isActor: new Pool((entity) => {
       if (entity === undefined || registry.staticAttributes.has(entity)) markAttributesDirty(registry);
     }),
@@ -458,6 +480,20 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     incomingDamage: pool(),
     bufferedConditionDamage: pool(),
     owner: new Pool((entity, previous) => {
+      for (const [holders, inputs] of attributeHolderInputs) {
+        // A changed holder pool already requires rebuilding; its old dependency set needs no further notifications.
+        if (inputs.holderRevision !== holders.revision) continue;
+        // Ownership can change an ancestor, admit an ownerless holder, or change the view's leading pool/order.
+        if (
+          entity === undefined ||
+          holders.has(entity) ||
+          inputs.ownership.has(entity) ||
+          inputs.ownerLed ||
+          registry.owner.size <= holders.size
+        )
+          inputs.revision += 1;
+      }
+
       if (entity !== undefined && registry.staticAttributes.has(entity)) markAttributesDirty(registry);
       else markAttributesDirty(registry, entity);
       if (typeof previous === 'number') markAttributesDirty(registry, previous);
@@ -471,9 +507,9 @@ export function createRegistry(encounter: Encounter, random: RandomSource, detai
     alreadyFinishedCastingSkill: pool(),
     isConditionalSkillGroup: attributeInput(),
     isPartOfConditionalSkillGroup: pool(),
-    isEffect: attributeInput(),
+    isEffect: stackInput(),
     isDamagingEffect: pool(),
-    isUniqueEffect: attributeInput(),
+    isUniqueEffect: stackInput(),
     sourceActor: attributeInput(),
     sourceSkill: pool(),
     duration: pool(),
