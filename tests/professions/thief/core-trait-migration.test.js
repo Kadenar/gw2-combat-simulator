@@ -2,7 +2,8 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { buildChartSeries, chartValueAt } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 

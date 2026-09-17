@@ -1,4 +1,4 @@
-import { skillBreakdownRows } from '#gw2/app/results/model.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { escapeHtml } from '#gw2/app/shared/html.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
