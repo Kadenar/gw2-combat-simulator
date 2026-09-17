@@ -163,6 +163,7 @@ body[data-profession] .simulator-view-tabs {
 
 .simulator-view-tab {
   display: flex;
+  gap: 6px;
   min-height: 34px;
   padding: 6px 14px;
   align-items: center;
@@ -183,11 +184,37 @@ body[data-profession] .simulator-view-tabs {
     color 0.15s ease;
 }
 
+/* Icons inherit each tab's active and hover color while staying out of its accessible name. */
+.simulator-view-tab svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @media (max-width: 600px) {
+  body[data-profession] .simulator-view-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   body[data-profession] .simulator-view-tab {
+    flex-direction: column;
+    gap: 1px;
     padding: 6px 4px;
     font-size: 10px;
     letter-spacing: 0;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  body[data-profession] .simulator-view-tab svg {
+    width: 12px;
+    height: 12px;
+    flex-basis: 12px;
   }
 }
 

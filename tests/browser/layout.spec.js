@@ -807,7 +807,10 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     )
     .toBe(true);
 
+  const modeButtons = page.locator('.rotation-builder-controls > :is(.rotation-focus-toggle, [data-rotation-compare])');
+  await expect(modeButtons).toHaveText(['Focus', 'Compare']);
   await page.getByRole('button', { name: 'Compare' }).click();
+  await expect(modeButtons).toHaveText(['Exit focus', 'Exit compare']);
   await expect(page.locator('body')).toHaveAttribute('data-rotation-comparison', '');
   await expect(page.getByRole('heading', { name: 'Current — Editing' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Reference — Read only' })).toBeVisible();
@@ -961,7 +964,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   }
 
   await page.locator('#rotation-comparison-skills > summary').click();
-  await page.getByRole('button', { name: 'Exit comparison' }).click();
+  await page.getByRole('button', { name: 'Exit compare' }).click();
   await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
   await expect(page.locator('body')).toHaveAttribute('data-rotation-focus', '');
   await expect(page.locator('#rotation-palette')).toBeVisible();
@@ -1024,7 +1027,7 @@ test('rotation comparison links scrolling in both directions across unequal view
   expect(await current.evaluate((element) => element.scrollTop)).toBe(315);
 
   const detachedReference = await reference.elementHandle();
-  await page.getByRole('button', { name: 'Exit comparison' }).click();
+  await page.getByRole('button', { name: 'Exit compare' }).click();
   await current.evaluate((element) => element.dispatchEvent(new Event('scroll')));
   expect(await detachedReference.evaluate((element) => element.scrollTop)).toBe(0);
   await detachedReference.dispose();

@@ -120,6 +120,7 @@ function formatPercent(value: number | null): string {
   return value == null || !Number.isFinite(value) ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
 }
 
+/** Reuses one stable Compare control so entering comparison mode never reorders the heading actions. */
 function comparisonHeadingButtons(app: ProfessionAppState): void {
   const controls = document.querySelector<HTMLElement>('.rotation-builder-controls');
   if (!controls) return;
@@ -134,27 +135,12 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
     controls.insertBefore(compareButton, controls.querySelector('.simulation-config-open-button'));
   }
 
-  compareButton.hidden = Boolean(app.rotationComparison);
-  compareButton.disabled = !currentIsFresh(app);
-  compareButton.setAttribute('aria-pressed', String(Boolean(app.rotationComparison)));
-  compareButton.onclick = () => app.startRotationComparison();
-
-  let exitButton = controls.querySelector<HTMLButtonElement>('[data-rotation-comparison-exit]');
-  if (!app.rotationComparison) {
-    exitButton?.remove();
-    return;
-  }
-
-  if (!exitButton) {
-    exitButton = document.createElement('button');
-    exitButton.type = 'button';
-    exitButton.className = 'btn btn-io rotation-comparison-exit-button';
-    exitButton.dataset.rotationComparisonExit = '';
-    exitButton.textContent = 'Exit comparison';
-    controls.insertBefore(exitButton, controls.querySelector('.rotation-focus-toggle'));
-  }
-
-  exitButton.onclick = () => app.exitRotationComparison();
+  const comparing = Boolean(app.rotationComparison);
+  compareButton.disabled = !comparing && !currentIsFresh(app);
+  compareButton.setAttribute('aria-pressed', String(comparing));
+  compareButton.textContent = comparing ? 'Exit compare' : 'Compare';
+  compareButton.title = comparing ? 'Exit rotation comparison' : 'Open rotation comparison';
+  compareButton.onclick = comparing ? () => app.exitRotationComparison() : () => app.startRotationComparison();
 }
 
 function removeComparisonView(): void {

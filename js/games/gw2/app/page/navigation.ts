@@ -21,6 +21,14 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   'gear-optimizer': '#gear-optimizer'
 };
 
+// Decorative section icons make the compact tabs easier to scan without changing their text labels.
+const NAVIGATION_ICONS: Readonly<Record<SimulatorSection, string>> = {
+  professions: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
+  workspace: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M9 9h12"/></svg>`,
+  analysis: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/></svg>`,
+  'gear-optimizer': `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7m0-4V3m8 18v-4m0-4V3m8 18v-9m0-4V3M1 14h6m2 3h6m2-5h6"/></svg>`
+};
+
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
@@ -38,12 +46,21 @@ export function simulatorViewHref(pathname: string, view: SimulatorSection): str
 
 export const SIMULATOR_VIEW_CHANGE_EVENT = 'simulator-viewchange';
 
-/** Creates a tab anchor, tagging it with `data-simulator-view` when a view is given. */
-function createNavigationLink(root: Document, label: string, href: string, view?: SimulatorView): HTMLAnchorElement {
+/** Creates an icon-and-label tab anchor, tagging it with `data-simulator-view` when a view is given. */
+function createNavigationLink(
+  root: Document,
+  section: SimulatorSection,
+  label: string,
+  href: string,
+  view?: SimulatorView
+): HTMLAnchorElement {
   const link = root.createElement('a');
   link.className = 'simulator-view-tab';
   link.href = href;
-  link.textContent = label;
+  link.innerHTML = NAVIGATION_ICONS[section];
+  const text = root.createElement('span');
+  text.textContent = label;
+  link.append(text);
   if (view) link.dataset.simulatorView = view;
   return link;
 }
@@ -156,6 +173,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
     const view = section === 'professions' ? undefined : section;
     const link = createNavigationLink(
       root,
+      section,
       section === 'professions'
         ? 'Professions'
         : section === 'workspace'

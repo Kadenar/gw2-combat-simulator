@@ -354,12 +354,12 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   gap: 20px;
   padding: 20px;
 }
+/* Grid spacing and legends separate optimizer groups without card-like section frames. */
 .optimizer-section {
   min-width: 0;
   padding: 14px;
   margin: 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 0;
 }
 .optimizer-section > legend {
   padding: 0 6px;
@@ -384,17 +384,17 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
-/* Native disclosure keeps slot constraints compact until needed, using the existing panel controls. */
-.optimizer-forced-slots {
+/* Native disclosures keep optional optimizer controls compact until needed. */
+.optimizer-disclosure {
   grid-column: 1 / -1;
 }
-.optimizer-forced-slots > summary {
+.optimizer-disclosure > summary {
   cursor: pointer;
   color: var(--text);
   font-size: 11px;
   font-weight: 600;
 }
-.optimizer-forced-slots[open] > summary {
+.optimizer-disclosure[open] > summary {
   margin-bottom: 14px;
 }
 .optimizer-forced-grid {

@@ -253,29 +253,26 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const slots = optimizerSlots(build, app.adapter);
     // Seed actual choices so adding alternatives preserves the equipped options in the search.
     const prefixes = [...new Set(slots.map((slot) => slotPrefix(build, slot) || build.gear[`Weapon${slot.at(-1)}`]))];
-    const sigils = [build.weapons, build.alternateWeapons]
-      .flatMap((weapons, set) =>
-        !optimizerWeaponSets(build, app.adapter).includes(set)
-          ? []
-          : [
-              `<fieldset class="optimizer-section"><legend>Weapon set ${set + 1}<span>${weapons.filter(Boolean).map(escapeHtml).join(' / ')}</span></legend><div class="optimizer-pair">${[
-                0, 1
-              ]
-                .map((slot) => {
-                  const key = `sigil${set + 1}-${slot + 1}`;
-                  return candidatePicker(
-                    key,
-                    `Set ${set + 1} sigil ${slot + 1}`,
-                    SIGIL_NAMES,
-                    [build.weaponSigils[set][slot]],
-                    0,
-                    sigilOptionLabel
-                  );
-                })
-                .join('')}</div></fieldset>`
-            ]
-      )
-      .join('');
+    // Keep sections keyed by weapon set so Consumables can sit between the primary and optional alternate set.
+    const weaponSetSections = [build.weapons, build.alternateWeapons].map((weapons, set) =>
+      !optimizerWeaponSets(build, app.adapter).includes(set)
+        ? ''
+        : `<fieldset class="optimizer-section"><legend>Weapon set ${set + 1}<span>${weapons.filter(Boolean).map(escapeHtml).join(' / ')}</span></legend><div class="optimizer-pair">${[
+            0, 1
+          ]
+            .map((slot) => {
+              const key = `sigil${set + 1}-${slot + 1}`;
+              return candidatePicker(
+                key,
+                `Set ${set + 1} sigil ${slot + 1}`,
+                SIGIL_NAMES,
+                [build.weaponSigils[set][slot]],
+                0,
+                sigilOptionLabel
+              );
+            })
+            .join('')}</div></fieldset>`
+    );
     panel.querySelector('[data-role="optimizer-controls"]')!.innerHTML = `<div class="optimizer-columns">
       <fieldset class="optimizer-section optimizer-prefixes"><legend>Equipment stats</legend>
         ${candidatePicker('prefixes', 'Prefixes', PREFIXES, prefixes, 3, prefixOptionLabel, 'Keep all current prefixes')}
@@ -284,24 +281,25 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         ${candidatePicker('rune', 'Rune sets', ['', ...RUNE_NAMES], [build.rune || ''], 0, runeOptionLabel)}
         ${candidatePicker('relic', 'Relics', ['', ...app.relicNames], [build.relic || ''], 0, relicOptionLabel)}
       </div></fieldset>
-      ${sigils}
+      ${weaponSetSections[0]}
       <fieldset class="optimizer-section"><legend>Consumables</legend><div class="optimizer-pair">
         ${candidatePicker('food', 'Food', ['', ...FOOD_NAMES], [build.food || ''], 3, foodOptionLabel)}
         ${candidatePicker('utility', 'Utility', ['', ...UTILITY_NAMES], [build.utility || ''], 3, utilityOptionLabel)}
       </div></fieldset>
+      ${weaponSetSections[1]}
       <fieldset class="optimizer-section"><legend>Infusions</legend><div class="optimizer-infusion-row">
         ${candidatePicker('infusionStats', 'Infusion stats', INFUSION_STATS, [...new Set(build.infusions.filter((entry) => entry.count).map((entry) => entry.stat))], 2, undefined, 'Choose stats to change the infusion total')}
         <label class="optimizer-infusion-count">Total slots<input name="infusionCount" aria-label="Total infusions" type="number" min="0" max="18" step="1" value="${build.infusions.reduce((sum, entry) => sum + entry.count, 0)}"></label>
       </div></fieldset>
-      <fieldset class="optimizer-section"><legend>Requirements (optional)</legend>
+      <details class="optimizer-section optimizer-disclosure"><summary>Requirements (optional)</summary>
         <div class="optimizer-pair">${Object.entries(OPTIMIZER_REQUIREMENTS)
           .map(
             ([key, label]) =>
               `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Duration') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
           )
           .join('')}</div>
-      </fieldset>
-      <details class="optimizer-section optimizer-forced-slots"><summary>Force slots</summary>
+      </details>
+      <details class="optimizer-section optimizer-disclosure optimizer-forced-slots"><summary>Force slots</summary>
         <p>Choose a stat prefix to require it in that slot for every result.</p>
         <div class="optimizer-forced-grid">${slots
           .map((slot) => {
@@ -310,7 +308,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
               ? `Set ${slot.startsWith('Alternate') ? 2 : 1} ${SLOT_LABELS[slot].toLowerCase()}`
               : ({ Chest: 'Coat', Leggins: 'Leggings', Back: 'Back item' } as Record<string, string>)[slot] ||
                 slot.replace(/(\d)$/, ' $1');
-            return `<label class="optimizer-infusion-count">${escapeHtml(label)}<select name="force-${slot}" data-forced-slot="${slot}"><option value="">No force</option>${PREFIXES.map((prefix) => `<option value="${escapeHtml(prefix)}">${escapeHtml(prefixOptionLabel(prefix))}</option>`).join('')}</select></label>`;
+            return `<label class="optimizer-infusion-count">${escapeHtml(label)}<select name="force-${slot}" data-forced-slot="${slot}"><option value="">Any prefix</option>${PREFIXES.map((prefix) => `<option value="${escapeHtml(prefix)}">${escapeHtml(prefixOptionLabel(prefix))}</option>`).join('')}</select></label>`;
           })
           .join('')}</div>
         <button type="button" data-clear-forced-slots>Clear forced slots</button>

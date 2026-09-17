@@ -78,7 +78,6 @@
   padding: 0;
   display: grid;
   place-items: center;
-  border-left: 1px solid var(--border);
 }
 
 .build-tab-menu-trigger:hover,
@@ -1273,7 +1272,7 @@ body[data-profession] #app {
   display: none;
 }
 
-/* Keep each trinket's caption below its icon so three slots fit in the equipment column. */
+/* Keep three compact trinket columns while shortening prefixes that do not fit. */
 .trinket-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1284,6 +1283,12 @@ body[data-profession] #app {
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 4px;
+}
+
+.trinket-grid .gear-equipped-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #equipment-info {
