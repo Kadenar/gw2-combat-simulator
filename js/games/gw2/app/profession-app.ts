@@ -16,6 +16,7 @@ import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-opt
 import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-panel.js';
 import { renderGearOptimizerView } from '#gw2/app/simulation/optimizer-view.js';
 import { renderRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
+import { renderModifierContributions } from '#gw2/app/results/view.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
@@ -135,7 +136,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.currentTemplate = null;
     this.templateUndoBuild = null;
     this.modifierContributionRunner = adapter.capabilities.modifierContributions
-      ? new ModifierContributionRunner(this)
+      ? new ModifierContributionRunner(this, () => renderModifierContributions(this))
       : NOOP_FEATURE;
     this.randomDistributionRunner = adapter.capabilities.randomDistribution
       ? new RandomDistributionRunner(this)

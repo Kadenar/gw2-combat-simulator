@@ -5,7 +5,6 @@ import {
 } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#app/simulation/game-worker-harness.js';
 import { analysisViewIsActive } from '#app/shell/result-view.js';
-import { renderModifierContributions } from '#gw2/app/results/view.js';
 import type {
   ModifierContribution,
   ModifierContributionRequest
@@ -24,12 +23,14 @@ export class ModifierContributionRunner {
   requestId: number;
   isRunning = false;
   private readonly batch: ManagedWorkerBatch<ModifierContributionWorkerMessage>;
+  readonly onUpdate: () => void;
 
-  constructor(app: ProfessionAppState) {
+  constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
     this.app = app;
     this.timer = null;
     this.batch = new ManagedWorkerBatch();
     this.requestId = 0;
+    this.onUpdate = onUpdate;
   }
 
   /** Stops work owned by the outgoing tab before another result becomes active. */
@@ -65,7 +66,7 @@ export class ModifierContributionRunner {
       app.results.modifierContributionsStale = false;
       app.results.modifierContributionsError =
         error instanceof Error ? error.message : String(error || 'Modifier contribution calculation failed.');
-      renderModifierContributions(app);
+      this.onUpdate();
     };
 
     // A new schedule owns a fresh batch, terminating and invalidating any prior pool.
@@ -73,7 +74,7 @@ export class ModifierContributionRunner {
 
     app.results.modifierContributionsStale = true;
     app.results.modifierContributionsError = '';
-    renderModifierContributions(app);
+    this.onUpdate();
     let request: ModifierContributionRequest;
     try {
       request = app.adapter.modifierContributionRequest(app);
@@ -89,7 +90,7 @@ export class ModifierContributionRunner {
       app.results.contributions = contributions;
       app.results.modifierContributionsStale = false;
       app.results.modifierContributionsError = '';
-      renderModifierContributions(app);
+      this.onUpdate();
     };
 
     const calculateContributions = (): void => {
