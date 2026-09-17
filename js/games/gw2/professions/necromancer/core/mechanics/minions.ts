@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
  * Minion summon and command handlers.
  *

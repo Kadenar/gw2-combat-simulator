@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { projectRangerEndState } from '#gw2/professions/ranger/state.js';
 import { revenantProfession } from '#gw2/professions/revenant/definition.js';

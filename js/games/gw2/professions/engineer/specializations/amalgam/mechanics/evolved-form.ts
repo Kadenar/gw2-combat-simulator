@@ -6,7 +6,7 @@ import {
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

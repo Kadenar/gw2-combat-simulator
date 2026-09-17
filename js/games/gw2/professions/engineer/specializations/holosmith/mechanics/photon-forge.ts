@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';

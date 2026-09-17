@@ -1,12 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerNativeModules } from '#gw2/professions/engineer/modules.js';
+import { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import { necromancerNativeModules } from '#gw2/professions/necromancer/modules.js';
+import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';

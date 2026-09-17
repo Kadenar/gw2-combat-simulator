@@ -181,7 +181,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/necromancer/definition.js');
+      const module = await import('#gw2/professions/necromancer/profession.js');
       return module.necromancerProfession;
     },
     loadAppAdapter: async () => {
@@ -326,7 +326,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/engineer/definition.js');
+      const module = await import('#gw2/professions/engineer/profession.js');
       return module.engineerProfession;
     },
     loadAppAdapter: async () => {

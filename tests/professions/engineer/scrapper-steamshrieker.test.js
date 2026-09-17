@@ -4,7 +4,7 @@ import test from 'node:test';
 import { resolveProcIcon } from '#gw2/app/rotation/shared/icons.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const scrapperConfig = Object.freeze({
   specialization: 'Scrapper',

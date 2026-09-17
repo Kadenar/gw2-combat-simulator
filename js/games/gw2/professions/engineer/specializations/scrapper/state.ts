@@ -1,5 +1,8 @@
-import type { ScrapperState } from '#gw2/professions/engineer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface ScrapperState {
+  kineticAcceleratorsWhirlReadyAt: number;
+}
 
 /** Creates Scrapper's whirl-only Kinetic Accelerators cooldown state. */
 export function createScrapperState(): ScrapperState {

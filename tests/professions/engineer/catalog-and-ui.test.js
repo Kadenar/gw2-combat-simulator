@@ -22,10 +22,9 @@ import {
   toApplicationBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/index.js';

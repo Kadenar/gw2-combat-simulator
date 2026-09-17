@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
@@ -15,7 +15,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';

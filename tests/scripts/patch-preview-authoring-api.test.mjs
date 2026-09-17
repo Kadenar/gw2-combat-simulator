@@ -9,7 +9,7 @@ import {
 } from '../../scripts/patch-preview/patch-preview-authoring-api.mjs';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 // Saving an older preview rewrites both its controls and generated description to the canonical field name.
 test('patch authoring migrates saved Mechanist fields before generating overview prose', () => {

@@ -6,8 +6,10 @@ import {
   validateNecromancerBuild
 } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { necromancerNativeModules } from '#gw2/professions/necromancer/modules.js';
+import { necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 import { observeNecromancerAutoattackTransition } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
+
+export { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 
 export const necromancerProfession = defineNativeProfession({
   id: 'necromancer',

@@ -8,9 +8,9 @@ import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 
 // Small casts isolate input scheduling from profession damage or saved-rotation timing.

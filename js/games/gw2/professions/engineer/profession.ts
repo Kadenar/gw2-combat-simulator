@@ -4,8 +4,14 @@ import {
   migrateEngineerBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
-import { engineerNativeModules } from '#gw2/professions/engineer/modules.js';
-import { engineerFamilyUi } from '#gw2/professions/engineer/presentation.js';
+import { engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
+import { engineerFamilyUi } from '#gw2/professions/engineer/family-presentation.js';
+
+export {
+  ENGINEER_GENERATED_SKILL_IDS,
+  engineerCatalog,
+  engineerNativeModules
+} from '#gw2/professions/engineer/catalog.js';
 
 export const engineerProfession = defineNativeProfession({
   id: 'engineer',

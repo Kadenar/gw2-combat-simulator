@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
-import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { createNecromancerModuleData } from '#gw2/professions/necromancer/catalog/module-data.js';
+import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
+import { harbingerSkillHandlers } from '#gw2/professions/necromancer/specializations/harbinger/execution/index.js';
 import { harbingerResolverEventReactions } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight-effects.js';
 import {
   harbingerAttributeRules,
@@ -11,22 +11,7 @@ import {
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { harbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
-import { necromancerBlightSkillHandlers } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
-import { darkBarrage } from '#gw2/professions/necromancer/specializations/harbinger/execution/dark-barrage.js';
-import { darkBarrageHandlerMode } from '#gw2/professions/necromancer/specializations/harbinger/traits/index.js';
 import { HARBINGER_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-
-/** Materializes Harbinger skills whose runtime state replaces declarative packets. */
-const harbingerSkillHandlers = new Map([
-  ['necromancer.elixir', replaceSkillHandler(necromancerBlightSkillHandlers['necromancer.elixir'])],
-  ['necromancer.blight-skill', replaceSkillHandler(necromancerBlightSkillHandlers['necromancer.blight-skill'])],
-  [
-    'necromancer.dark-barrage',
-    augmentSkillHandler(darkBarrage, {
-      resolveMode: darkBarrageHandlerMode
-    })
-  ]
-]);
 
 export const harbingerModule = defineNativeModule({
   id: 'Harbinger',

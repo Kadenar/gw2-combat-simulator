@@ -13,6 +13,32 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
+import type {
+  NecromancerCoreState,
+  NecromancerSelfCondition,
+  NecromancerTasteForBloodApplication
+} from '#gw2/professions/necromancer/core/state.js';
+import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
+import type {
+  NecromancerWeaponSpellRecipient,
+  NecromancerWeaponSpellState,
+  RitualistState
+} from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  HarbingerState,
+  NecromancerCoreState,
+  NecromancerSelfCondition,
+  NecromancerTasteForBloodApplication,
+  NecromancerWeaponSpellRecipient,
+  NecromancerWeaponSpellState,
+  ReaperState,
+  RitualistState,
+  ScourgeState
+};
 
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
@@ -37,109 +63,6 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
-}
-
-export interface NecromancerSelfCondition extends SchedulerRecord {
-  readonly condition: string;
-  readonly stacks: number;
-  readonly duration?: number;
-  readonly appliedAt: number;
-  readonly expiresAt: number;
-  readonly sourceSkillId?: SkillId;
-  readonly sourceSkillName?: string;
-}
-
-export interface NecromancerWeaponSpellRecipient extends SchedulerRecord {
-  stacks: number;
-  nextAt: number;
-}
-
-export interface NecromancerWeaponSpellState extends SchedulerRecord {
-  readonly skillId?: SkillId;
-  readonly skillName?: string;
-  readonly appliedAt?: number;
-  readonly expiresAt?: number;
-  readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
-}
-
-export interface NecromancerTasteForBloodApplication {
-  readonly at: number;
-  readonly expiresAt: number;
-  stacks: number;
-}
-
-export interface NecromancerCoreState {
-  lifeForce: number;
-  resource: number;
-  maximumLifeForce: number;
-  maximumHealth: number;
-  lifeForcePoolCapacity: number;
-  activeShroud: string;
-  activeShroudEntryId?: SkillId | null;
-  activeShroudExitId?: SkillId | null;
-  activeShroudProfileId?: string;
-  shroudEnteredAt: number;
-  lastResourceAt: number;
-  soulShards: number;
-  soulShardExpiries: number[];
-  carapaceExpiries: number[];
-  activeMinions: Record<string, number>;
-  minionGenerations: Record<string, number>;
-  minionAttackGenerations: Record<string, number>;
-  minionAttackAnchors: Record<string, number>;
-  minionAttackCycleOffsets: Record<string, number>;
-  availableFlips: Record<string, boolean | number | SchedulerRecord>;
-  autoattackChains: Record<string, SkillId>;
-  selfConditions: NecromancerSelfCondition[];
-  plagueSendingArmed: boolean;
-  plagueSendingEntrySkillId: SkillId | null;
-  lichEndsAt: number;
-  pendingShroudEntryId?: SkillId | null;
-  signetNextLifeForceAt: number;
-  vampirismNextAt: number;
-  targetChilledUntil: number;
-  targetControlledUntil: number;
-  dreadUntil: number;
-  fearOfDeathReadyAt: number;
-  vampiricPresenceReadyAt: number;
-  barbedPrecisionProgress: number;
-  spitefulFortitudeLifeForce: number;
-  traitProcReadyAt: Record<string, number>;
-  tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
-}
-
-export interface ReaperState {
-  chillingNovaProgress: number;
-  chillingNovaReadyAt: number;
-  chillingVictoryReadyAt: number;
-}
-
-export interface ScourgeState {
-  shades: number[];
-  demonicLoreReadyAt: number;
-  nourishingAshesReadyAt: number;
-}
-
-export interface HarbingerState {
-  nextBlightAt?: number;
-  blight: number;
-  blightExpiries: number[];
-  cascadingCorruptionStacks: number;
-  meltdownUntil: number;
-}
-
-export interface RitualistState {
-  activeSpirits: Record<string, boolean>;
-  spiritGenerations: Record<string, number>;
-  spiritInitialUntil: Record<string, number>;
-  spiritBusyUntil: Record<string, number>;
-  spiritAutoAnchorAt: number;
-  resummonedSpiritAutoCycle: boolean;
-  weaponSpells: Record<string, NecromancerWeaponSpellState>;
-  soulTwistingAvailable: boolean;
-  pendingSoulTwistSkill?: SkillId | null;
-  painfulBondUntil: number;
-  painfulBondPulseAnchorAt: number;
 }
 
 export interface NecromancerState

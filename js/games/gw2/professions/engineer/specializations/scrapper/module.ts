@@ -5,7 +5,7 @@ import {
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createEngineerModuleData } from '#gw2/professions/engineer/catalog/module-data.js';
+import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import {
   scrapperResolverEventHandlers,
   scrapperResolverEventReactions

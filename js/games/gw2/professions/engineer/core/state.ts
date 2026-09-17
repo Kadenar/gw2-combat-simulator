@@ -1,6 +1,25 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import type { EngineerConfig, EngineerCoreState } from '#gw2/professions/engineer/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+
+export interface EngineerCoreState {
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  activeKit: string;
+  availableFlips: Record<string, boolean>;
+  autoattackChains: Record<string, SkillId>;
+  focusedUntil: number;
+  lightningRodActivationId: string;
+  lightningRodChargeExpiries: number[];
+  healingTurretActivationId: string;
+  electricArtilleryAvailable: boolean;
+  electricArtilleryReadyAt: number;
+  electricArtilleryExpiresAt: number;
+  kineticCharges: number;
+  pendingMineFieldActivationIds: string[];
+  traitProcReadyAt: Record<string, number | boolean>;
+}
 
 // Core owns the stable public fields that exist for every Engineer runtime.
 export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([

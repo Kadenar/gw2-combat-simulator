@@ -1,12 +1,10 @@
-import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
+import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/model.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-import { assertRoundedDamageMultiplier } from '../../helpers/rounded-damage.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.

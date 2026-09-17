@@ -3,7 +3,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
  * Shroud entry/exit and Lich Form handlers.
  *

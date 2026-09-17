@@ -5,7 +5,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
-import { createNecromancerModuleData } from '#gw2/professions/necromancer/catalog/module-data.js';
+import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import {
   necromancerCoreAttributeRules,
   necromancerCoreCastRules
@@ -15,7 +15,7 @@ import {
   necromancerCoreResolverEventReactions
 } from '#gw2/professions/necromancer/core/mechanics/reactions.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { projectNecromancerEndState, snapshotNecromancerState } from '#gw2/professions/necromancer/state.js';
+import { projectNecromancerEndState, snapshotNecromancerState } from '#gw2/professions/necromancer/family-state.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
@@ -24,47 +24,9 @@ import {
 import { necromancerCoreSkillHandlers } from '#gw2/professions/necromancer/core/execution/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { NecromancerSchedulerContext } from '#gw2/professions/necromancer/types.js';
-import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
-import {
-  advanceNecromancerState,
-  resetNecromancerResources
-} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { necromancerMinionTaskHandlers } from '#gw2/professions/necromancer/core/mechanics/minions.js';
-import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import {
-  necromancerGreatswordSkillMechanicHandlers,
-  necromancerGreatswordTaskHandlers
-} from '#gw2/professions/necromancer/core/execution/greatsword.js';
-import { necromancerSpearTaskHandlers } from '#gw2/professions/necromancer/core/execution/spear.js';
-import { necromancerSwordTaskHandlers } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
-import {
-  applyNecromancerAfterCastTraits,
-  applyNecromancerCastStartTraits
-} from '#gw2/professions/necromancer/core/traits/index.js';
-
-/** Registers ordered Core Necromancer hooks while behavior remains with its resource, condition, weapon, or trait owner. */
-const necromancerSchedulerHooks = Object.freeze({
-  prepareEvent: {
-    id: 'necromancer.boon-companion-candidates',
-    order: 5,
-    handler: (context: NecromancerSchedulerContext, event: SimulationEventInput) =>
-      prepareGw2BuffCompanionCandidates(event, necromancerActiveBoonCompanionIds(context))
-  },
-  advance: advanceNecromancerState,
-  onCastStart: applyNecromancerCastStartTraits,
-  afterCast: applyNecromancerAfterCastTraits,
-  onCooldownReset: resetNecromancerResources,
-  onEventScheduled: observeNecromancerPlagueSendingEvent,
-  taskHandlers: Object.freeze({
-    ...necromancerSwordTaskHandlers,
-    ...necromancerGreatswordTaskHandlers,
-    ...necromancerSpearTaskHandlers,
-    ...necromancerMinionTaskHandlers
-  })
-});
+import { necromancerGreatswordSkillMechanicHandlers } from '#gw2/professions/necromancer/core/execution/greatsword.js';
+import { necromancerSchedulerHooks } from '#gw2/professions/necromancer/core/execution/hooks.js';
 
 export const necromancerCoreModule = defineNativeModule({
   id: 'Core',

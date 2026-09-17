@@ -19,9 +19,9 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
-import { engineerProfession } from '#gw2/professions/engineer/definition.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/definition.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 
