@@ -1,5 +1,9 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/types.js';
+
+export interface MesmerVirtuosoState {
+  numericResource: number;
+  bloodsongProgress: number;
+}
 
 // Infinite Forge timing belongs to recurring scheduler tasks, not specialization state.
 export function createVirtuosoState(): MesmerVirtuosoState {

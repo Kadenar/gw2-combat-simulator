@@ -1,31 +1,6 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-export interface MesmerContinuumAmmo {
-  charges: number;
-  maximum: number;
-  rechargeDuration: number;
-  nextRechargeRemaining: number | null;
-  lockoutRemaining: number;
-}
-
-export interface MesmerContinuumSnapshot {
-  splitId: SkillId;
-  splitReady: number | undefined;
-  openAt: number;
-  remainingCooldowns: Map<SkillId, number>;
-  ammo: Map<SkillId, MesmerContinuumAmmo>;
-  autoattackChains: Record<string, SkillId>;
-  expiresAt: number;
-}
-
-export interface MesmerChronomancerState {
-  continuum: MesmerContinuumSnapshot | null;
-  timeBombUntil: number;
-}
 
 export interface MesmerContinuumController {
   beginContinuumSplit(

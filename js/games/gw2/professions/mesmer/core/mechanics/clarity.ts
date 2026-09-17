@@ -3,8 +3,12 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
-import type { MesmerAddEvent, MesmerRuntime, MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
+import type {
+  MesmerAddEvent,
+  MesmerHandlerContext,
+  MesmerRuntime,
+  MesmerRuntimeState
+} from '#gw2/professions/mesmer/types.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 
 const CLARITY_DURATION = 15;

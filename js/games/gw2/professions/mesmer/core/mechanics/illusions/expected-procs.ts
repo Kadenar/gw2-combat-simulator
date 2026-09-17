@@ -4,14 +4,14 @@ import type {
   MesmerAddTraitProc,
   MesmerConfig,
   MesmerEmitDerivedEvent,
-  MesmerRuntime
+  MesmerRuntime,
+  MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import type {
   MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 interface ExpectedProcTrackerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;

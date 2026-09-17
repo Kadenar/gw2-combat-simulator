@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 

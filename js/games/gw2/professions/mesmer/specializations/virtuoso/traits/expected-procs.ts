@@ -5,9 +5,8 @@ import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-f
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/professions/mesmer/types.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
-import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 import type { MesmerVirtuosoExpectedProcCandidate } from '#gw2/professions/mesmer/specializations/virtuoso/types.js';
 
 const PROC_PROGRESS_TOLERANCE = 1e-9;

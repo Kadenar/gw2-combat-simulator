@@ -4,7 +4,7 @@ import test from 'node:test';
 import { elementalistNativeModules } from '#gw2/professions/elementalist/modules.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
-import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
+import { mesmerNativeModules } from '#gw2/professions/mesmer/profession.js';
 import { necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
 import { rangerNativeModules } from '#gw2/professions/ranger/modules.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';

@@ -10,7 +10,7 @@ import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/state/index.js';
+import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import {
   MESMER_CORE_CLONE_ATTACKS,

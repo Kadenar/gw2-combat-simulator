@@ -1,6 +1,22 @@
 import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/types.js';
+
+export interface MesmerMirageMirror {
+  availableAt: number;
+  expiresAt: number;
+  source: string;
+}
+
+export interface MesmerMirageState {
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  ambushUntil: number;
+  ambushSource: string;
+  cloneAmbushUntil: number;
+  riddleOfSandReady: boolean;
+  mirrors: MesmerMirageMirror[];
+}
 
 export function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
   return {
