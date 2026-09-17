@@ -1,49 +1,57 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CHOP]: {
-    castTimeMs: 167,
+    interruptCommitMs: 440,
+    castTimeMs: 520,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.7,
-        hits: 1
+        ticks: [{ atMs: 240, coefficient: 0.7 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
   [ID.DOUBLE_CHOP]: {
-    castTimeMs: 167,
+    castTimeMs: 760,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.45,
-        hits: 1,
+        ticks: [{ atMs: 240, coefficient: 0.45 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: 'Double Chop — First Chop Damage'
       },
       {
         type: 'strike',
-        coefficient: 1.05,
-        hits: 1,
+        ticks: [{ atMs: 560, coefficient: 1.05 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: 'Double Chop — Second Chop Damage'
       }
     ]
   },
   [ID.TRIPLE_CHOP]: {
-    castTimeMs: 1000,
+    castTimeMs: 1280,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 2,
-        atMs: 0
+        ticks: [
+          { atMs: 280, coefficient: 0.75 },
+          { atMs: 600, coefficient: 0.75 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'strike',
-        coefficient: 1.6,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 1.6 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         name: 'Triple Chop — Final chop damage.'
       }
     ]
@@ -66,27 +74,31 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 0.85,
-        hits: 1
+        ticks: [{ atMs: 280, coefficient: 0.85, projectile: true }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 4
+        duration: 4,
+        atMs: 280,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
   [ID.WHIRLING_AXE]: {
     interruptMode: 'per-packet',
     cooldown: 15,
-    castTimeMs: 2500,
+    castTimeMs: 2720,
     dualWieldCastTimeMs: 2040,
     effects: [
       {
         type: 'strike',
         ticks: Array.from({ length: 15 }, (_, index) => ({
-          atMs: quantizeGw2ActionTimingMs(300 + index * 150),
+          atMs: 320 + index * 160,
           coefficient: 0.5592
         })),
         timingAnchor: 'castStart',
@@ -104,15 +116,14 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.DUAL_STRIKE]: {
     cooldown: 12,
-    castTimeMs: 500,
+    castTimeMs: 560,
     dualWieldCastTimeMs: 400,
-
     effects: [
       {
         type: 'strike',
         coefficient: 2.35,
         hits: 2,
-        atMs: 360,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -121,7 +132,9 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         boon: 'quickness',
         duration: 2,
         stacks: 1,
-        atMs: 360,
+        applications: 2,
+        intervalMs: 0,
+        atMs: 400,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -134,9 +147,12 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     effects: [
       {
         type: 'strike',
-        coefficient: 1.76,
-        hits: 2,
-        atMs: 0,
+        ticks: [
+          { atMs: 200, coefficient: 0.88 },
+          { atMs: 360, coefficient: 0.88 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -150,13 +166,23 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         type: 'boon',
         boon: 'fury',
         duration: 2,
-        stacks: 1
+        stacks: 1,
+        applications: 2,
+        intervalMs: 160,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 3,
-        duration: 8
+        duration: 8,
+        applications: 2,
+        intervalMs: 160,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

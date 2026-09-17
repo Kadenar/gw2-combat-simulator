@@ -2,26 +2,6 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.SILENCER]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.7,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: 'stun'
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    adrenalineGain: 10,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
   [ID.EARTHSHAKER_ID_40601]: {
     skillWeapon: 'Hammer',
     cooldown: 8,
@@ -60,95 +40,27 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 667
   },
   [ID.SKULL_CRACK_ID_41110]: {
+    // Spellbreaker's level-one variant shares the mace burst's cast and impact timing.
+    skillWeapon: 'Mace',
+    cooldown: 8,
     effects: [
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
-        controlKind: 'stun'
+        controlKind: 'daze',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ],
-    castTimeMs: 333,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
-  [ID.BOON_CRUSHER]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 2,
-        atMs: 0
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
-  [ID.FORCEFUL_SHOT_ID_41330]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.25,
-        hits: 1
-      }
-    ],
-    castTimeMs: 1167,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
-  [ID.WOUNDING_STRIKE]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 2,
-        duration: 8
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 5,
-        duration: 8
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
-  [ID.WHIRLING_STRIKE_ID_41746]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: 'stun'
-      }
-    ],
-    castTimeMs: 500,
+    castTimeMs: 560,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -222,25 +134,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     castTimeMs: 167
   },
-  [ID.FLEETING_STABILITY]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: 'stun'
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
   [ID.EVISCERATE_ID_43566]: {
     castTimeMs: 0,
     effects: [
@@ -273,25 +166,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     // Custom: Spends adrenaline and opens the Full Counter trigger window; see `spellbreaker/execution/index.ts`.
     handlerId: 'warrior.full-counter'
   },
-  [ID.DISSONANCE]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.5,
-        hits: 1
-      },
-      {
-        type: 'control',
-        controlKind: 'stun'
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     comboFields: [
       {
@@ -322,21 +196,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       }
     ],
     castTimeMs: 1000
-  },
-  [ID.MAGEHUNTER_STRIKE]: {
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      }
-    ],
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
     effects: [

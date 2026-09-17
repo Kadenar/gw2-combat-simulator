@@ -1,41 +1,53 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MACE_SMASH]: {
-    castTimeMs: 333,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
-        hits: 1
+        hits: 1,
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.MACE_BASH]: {
-    castTimeMs: 333,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
         coefficient: 0.8,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.PULVERIZE]: {
-    castTimeMs: 500,
+    castTimeMs: 920,
     effects: [
       {
         type: 'strike',
         coefficient: 1.6,
-        hits: 1
+        hits: 1,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Weakness',
         stacks: 1,
-        duration: 5
+        duration: 5,
+        atMs: 520,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -54,7 +66,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'strike',
         ticks: [
           { atMs: 440, coefficient: 1.25 },
-          { atMs: 480, coefficient: 1.25 }
+          { atMs: 520, coefficient: 1.25 }
         ],
         timingAnchor: 'castStart',
         timingScale: 'cast',
@@ -78,37 +90,34 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.POMMEL_BASH]: {
-    castTimeMs: 333,
+    cooldown: 10,
+    castTimeMs: 440,
     effects: [
       {
         type: 'strike',
         coefficient: 0.4,
-        hits: 1
+        hits: 1,
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
-        controlKind: 'daze'
+        controlKind: 'daze',
+        atMs: 200,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.COUNTERBLOW]: {
-    castTimeMs: 333,
-    adrenalineGain: 5,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 8
-      }
-    ]
+    // Like Illusionary Counter, the block arms a separate attack and can release its channel early.
+    cooldown: 7,
+    castTimeMs: 1960,
+    defaultInterruptMs: 200,
+    interruptCommitMs: 80,
+    handlerId: 'warrior.counterblow',
+    effects: []
   },
   [ID.CRUSHING_BLOW]: {
     castTimeMs: 560,
@@ -139,7 +148,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.TACTICAL_BLOW]: {
-    castTimeMs: 333,
+    castTimeMs: 480,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
@@ -147,13 +156,19 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         coefficient: 2,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 5,
-        duration: 8
+        duration: 8,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

@@ -1181,14 +1181,25 @@ test("Berserker's Power retains applications beyond its visible stack cap", () =
 });
 
 test('Eviscerate damage scales with adrenaline spent', () => {
-  // Higher resource tiers select stronger burst damage without pinning balance values.
   const coefficients = [10, 20, 30].map((initialResource) => {
     const result = simulate('Core', [ID.EVISCERATE], { initialResource });
     assert.deepEqual(result.warnings, []);
     return result.events.find((event) => event.type === 'damage').coefficient;
   });
-  assert.ok(coefficients[0] < coefficients[1]);
-  assert.ok(coefficients[1] < coefficients[2]);
+  const eviscerate = warriorCatalog.skillsById.get(ID.EVISCERATE);
+
+  assert.deepEqual(coefficients, [2, 2.5, 3]);
+  assert.equal(eviscerate.cooldown, 8);
+  assert.equal(eviscerate.comboFinishers[0].finisherType, 'Leap');
+  assert.deepEqual(
+    eviscerate.effects.find((effect) => effect.type === 'boon'),
+    {
+      type: 'boon',
+      boon: 'might',
+      duration: 5,
+      stacks: 5
+    }
+  );
 });
 
 test('Warrior is exposed through the shared application registry', async () => {

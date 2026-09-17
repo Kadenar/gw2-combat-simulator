@@ -12,6 +12,16 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
   const selection = selectedSlotSkillAvailability(context, skill);
   if (selection) return selection;
   const state = professionCoreState(context);
+  // Tactical Blow is a one-use follow-up to a live Counterblow channel, not a standalone attack.
+  if (skill.id === ID.TACTICAL_BLOW && Number(state.availableFlips[ID.TACTICAL_BLOW] || 0) <= context.start) {
+    return {
+      ready: false,
+      retryAt: null,
+      reason: 'Tactical Blow requires an active Counterblow.',
+      code: 'warrior.counterblow'
+    };
+  }
+
   if (skill.id === ID.DODGE) {
     return state.endurance + context.epsilon >= 50
       ? { ready: true }

@@ -6,6 +6,13 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.EVISCERATE]: {
     // The API omits the burst's weapon; axe critical traits still apply to this strike.
     skillWeapon: 'Axe',
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Leap',
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     cooldown: 8,
     castTimeMs: 0,
     adrenalineCost: 10,
@@ -29,7 +36,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.ARCING_SLICE]: {
-    castTimeMs: 333,
+    cooldown: 8,
+    castTimeMs: 480,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -99,7 +107,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    castTimeMs: 833,
+    // Kill Shot lands before its measured animation ends; tier scaling preserves this packet.
+    cooldown: 8,
+    castTimeMs: 1160,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -110,12 +120,18 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 2.25,
         hits: 1,
-        name: 'Kill Shot — Level 1 Damage'
+        name: 'Kill Shot — Level 1 Damage',
+        atMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.SKULL_CRACK]: {
-    castTimeMs: 333,
+    // The burst's daze and damage share the observed impact before the animation ends.
+    skillWeapon: 'Mace',
+    cooldown: 8,
+    castTimeMs: 560,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -125,22 +141,17 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1
-      }
-    ]
-  },
-  [ID.WHIRLING_STRIKE]: {
-    castTimeMs: 500,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
-    effects: [
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
       {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1
+        type: 'control',
+        controlKind: 'daze',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -162,22 +173,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'warrior.combustive-shot',
     effects: []
   },
-  [ID.FORCEFUL_SHOT]: {
-    castTimeMs: 1167,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.25,
-        hits: 1,
-        name: 'Forceful Shot — Level 1 Damage'
-      }
-    ]
-  },
   [ID.BREACHING_STRIKE]: {
     // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
     interruptCommitMs: 760,
@@ -190,7 +185,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     cooldown: 8,
-    castTimeMs: 842,
+    castTimeMs: 840,
 
     adrenalineCost: 10,
     burstTier: 1,
@@ -202,7 +197,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         ticks: [{ atMs: 760, coefficient: 2.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'custom',
@@ -210,6 +206,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 760,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         event: {
           attemptedBoonRemovals: 2
         }

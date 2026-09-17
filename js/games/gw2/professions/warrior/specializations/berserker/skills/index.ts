@@ -423,54 +423,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource'
   },
-  [ID.BURNING_SHACKLES]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.75,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 10
-      }
-    ],
-    castTimeMs: 1167,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
-  [ID.WILD_WHIRL]: {
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6
-      },
-      {
-        type: 'control',
-        controlKind: 'pull'
-      }
-    ],
-    castTimeMs: 500,
-    adrenalineCost: 10,
-    burstTier: 1,
-    burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
-  },
   [ID.SLICING_MAELSTROM]: {
     cooldown: 5,
     effects: [

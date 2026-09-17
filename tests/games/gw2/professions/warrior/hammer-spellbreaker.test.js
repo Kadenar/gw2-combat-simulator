@@ -49,7 +49,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     [ID.FOCUSED_SLASH, 360, 280],
     [ID.KEEN_STRIKE, 440, 280],
     [ID.DISRUPTING_STAB, 440, 160],
-    [69297, 842, 760]
+    [69297, 840, 760]
   ]) {
     const canonicalSkillId = canonicalGw2SkillId(skillId);
     const skill = warriorCatalog.skillsById.get(canonicalSkillId);
@@ -98,7 +98,7 @@ test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () =>
     tremor.events
       .filter((event) => event.type === 'damage')
       .map((event) => Math.round((event.at - tremorAction.at) * 1000)),
-    [440, 480]
+    [440, 520]
   );
   assert.equal(strike(ID.STAGGERING_BLOW).comboFinishers[0].finisherType, 'Whirl');
   assert.equal(strike(ID.EARTHSHAKER).comboFinishers[0].finisherType, 'Blast');

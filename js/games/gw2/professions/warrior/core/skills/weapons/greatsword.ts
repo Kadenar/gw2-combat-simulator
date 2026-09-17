@@ -8,40 +8,49 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.8,
-        hits: 1
+        ticks: [{ atMs: 400, coefficient: 0.8 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 1,
-        duration: 8
+        duration: 8,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.GREATSWORD_SLICE]: {
-    castTimeMs: 333,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.05,
-        hits: 1
+        ticks: [{ atMs: 400, coefficient: 1.05 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 1,
-        duration: 8
+        duration: 8,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.BRUTAL_STRIKE]: {
-    castTimeMs: 333,
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1
+        ticks: [{ atMs: 440, coefficient: 1.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

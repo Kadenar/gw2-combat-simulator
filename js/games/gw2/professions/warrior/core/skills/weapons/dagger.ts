@@ -50,14 +50,16 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.WASTRELS_RUIN]: {
+    interruptCommitMs: 400,
     cooldown: 12,
-    castTimeMs: 400,
+    castTimeMs: 440,
     dualWieldCastTimeMs: 320,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1
+        ticks: [{ atMs: 400, coefficient: 1.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   },
@@ -81,26 +83,33 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]
   },
   [ID.HUSHBLADE]: {
+    interruptCommitMs: 440,
     ammo: 2,
     ammoRecharge: 12,
     cooldown: 12,
     ammoCastLockout: 1,
-    castTimeMs: 500,
+    castTimeMs: 520,
     dualWieldCastTimeMs: 400,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1
+        ticks: [{ atMs: 440, coefficient: 1.5 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'control',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
         controlKind: 'daze'
       }
     ]
   },
   [ID.AURA_SLICER]: {
-    castTimeMs: 750,
+    // Aura Slicer ignores Quickness and Dual Wielding, so its observed timing stays fixed.
+    interruptCommitMs: 760,
+    castTimeMs: 840,
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -113,14 +122,18 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.8,
-        hits: 1
+        ticks: [{ atMs: 760, coefficient: 1.8 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Slow',
         stacks: 1,
-        duration: 1.5
+        duration: 1.5,
+        atMs: 760,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   }

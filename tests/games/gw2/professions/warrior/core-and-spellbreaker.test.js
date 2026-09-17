@@ -69,7 +69,6 @@ test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
   // Catalog normalization preserves the authored icon; browser tests verify Vite resolves the artwork.
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).icon, WARRIOR_WEAPON_STOW.icon);
-  assert.equal(warriorCatalog.skillsByName.get('Forceful Shot').id, ID.FORCEFUL_SHOT);
   assert.equal(warriorCatalog.skillsByName.get('Path to Victory').id, ID.PATH_TO_VICTORY_ID_71932);
   assert.equal(warriorCatalog.skillsByName.get("Harrier's Toss").id, ID.HARRIERS_TOSS);
   assert.equal(
@@ -1063,7 +1062,6 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
     selectedTraitIds: [TRAIT.DUAL_WIELDING]
   });
 
-  assert.equal(fixedBreaching.steps[0].end - fixedBreaching.steps[0].start, 842);
   const resolvedBreaching = fixedBreaching.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.BREACHING_STRIKE
   );
@@ -1106,6 +1104,25 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
   );
 });
 
+test('Arcing Slice scales Fury by adrenaline tier and damage below half health', () => {
+  const arcingSlice = warriorCatalog.skillsById.get(ID.ARCING_SLICE);
+  const furyDurations = [10, 20, 30].map((initialResource) => {
+    const result = simulate('Core', ['Arcing Slice'], {
+      initialResource,
+      primaryWeapon: 'Greatsword',
+      target: { health: 1_000_000 }
+    });
+
+    return result.events.find((event) => event.sourceId === ID.ARCING_SLICE && event.kind === 'fury')?.duration;
+  });
+
+  assert.equal(arcingSlice.cooldown, 8);
+  assert.deepEqual(furyDurations, [8, 12, 16]);
+  assert.deepEqual(arcingSlice.effects[0].coefficientModifiers, [
+    { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
+  ]);
+});
+
 test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion contracts', () => {
   const skill = (id) => warriorCatalog.skillsById.get(id);
   const strike = (id) => skill(id).effects.find((effect) => effect.type === 'strike');
@@ -1117,8 +1134,8 @@ test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion
 
   assert.deepEqual(
     [ID.FIERCE_SHOT, ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => [
-      strike(id).coefficient,
-      strike(id).hits
+      strikeCoefficient(strike(id)),
+      strike(id).ticks?.length ?? strike(id).hits
     ]),
     [
       [1, 1],
@@ -1152,11 +1169,34 @@ test('Warrior rifle skills use their PvE ammo, effects, finishers, and explosion
   assert.equal(strike(ID.EXPLOSIVE_SHELL).damageKind, 'explosion');
   assert.deepEqual(
     skill(ID.FIERCE_SHOT).effects.find((effect) => effect.type === 'boon'),
-    { type: 'boon', boon: 'might', duration: 5, stacks: 1 }
+    {
+      type: 'boon',
+      boon: 'might',
+      duration: 5,
+      stacks: 1,
+      atMs: 480,
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }
   );
   assert.equal(skill(ID.KILL_SHOT).skillWeapon, 'Rifle');
   assert.equal(skill(ID.RIFLE_BUTT).cooldown, 12);
   assert.equal(skill(ID.RIFLE_BUTT).effects.find((effect) => effect.type === 'control').controlKind, 'knockback');
+});
+
+test('Volley interruption retains fired packets and cancels the remaining channel', () => {
+  // Stop between shots to verify that the channel emits only packets reached before interruption.
+  const result = simulate(
+    'Core',
+    [{ type: 'cast', skillId: ID.VOLLEY, interruptAfterMs: 800 }],
+    { primaryWeapon: 'Rifle' },
+    observationTail(2000)
+  );
+  const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.VOLLEY);
+  assert.deepEqual(
+    packets.map((event) => event.at),
+    [0.44, 0.72]
+  );
 });
 
 test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {

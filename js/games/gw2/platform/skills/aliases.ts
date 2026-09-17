@@ -11,9 +11,7 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   42041: 14396, // Kill Shot
   14512: 14387, // Earthshaker
   14520: 14506, // Combustive Shot
-  14469: 14544, // Forceful Shot
   14545: 14375, // Arcing Slice
-  14549: 14443, // Whirling Strike
   30435: 30185, // Berserk
   69297: 45252, // Breaching Strike
   69433: 45252, // Breaching Strike

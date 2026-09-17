@@ -5,20 +5,8 @@ import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalo
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
-
-const WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS = new Set<SkillId>([
-  14443, // Whirling Strike
-  30989, // Burning Shackles
-  31048, // Wild Whirl
-  39972, // Silencer
-  41283, // Boon Crusher
-  41543, // Wounding Strike
-  43488, // Fleeting Stability
-  44397, // Dissonance
-  46044 // Magehunter Strike
-]);
 
 const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))),
@@ -47,11 +35,6 @@ const generated: readonly Skill[] = Object.freeze(
       cooldown: gw2BaseRecharge(skill),
       ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       flipParentId: flipParentById.get(skill.id) ?? null,
-      ...(WARRIOR_UNREACHABLE_PROFESSION_SKILL_IDS.has(skill.id)
-        ? {
-            patchAuthoringExcluded: true
-          }
-        : {}),
       effects: []
     };
   })

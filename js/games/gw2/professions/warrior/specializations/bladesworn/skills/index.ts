@@ -189,7 +189,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         damageKind: 'explosion'
       }
     ],
-    castTimeMs: 439,
+    castTimeMs: 440,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber'
   },

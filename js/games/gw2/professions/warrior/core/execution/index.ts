@@ -24,13 +24,15 @@ function afterResourceSkill(
   context: WarriorCastContext,
   skill: WarriorSkill
 ): { spent: number; berserkersPowerGranted: boolean } {
+  // Attempting the manual counter consumes the armed flip, including interrupted attacks.
+  if (skill.id === ID.TACTICAL_BLOW) delete professionCoreState(context).availableFlips[ID.TACTICAL_BLOW];
   const spent = applyWarriorSkillResource(context, skill);
   applyWarriorBurstSpendTraits(context, skill, spent);
   return { spent, berserkersPowerGranted: false };
 }
 
-// Use the adrenaline snapshot captured before effects to grant first-hit traits
-// once and replace tiered Eviscerate and Kill Shot packets with their correct values.
+// Use the pre-effect adrenaline snapshot for first-hit traits, tiered packets,
+// and Arcing Slice's tier-scaled Fury duration.
 function adjustResourceSkillEffect(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -57,6 +59,10 @@ function adjustResourceSkillEffect(
       stacks: Number(bleeding?.stacks ?? tier * 3),
       duration: Number(bleeding?.duration ?? event.duration)
     });
+  }
+
+  if (skill.id === ID.ARCING_SLICE && event.type === 'buff' && event.kind === 'fury') {
+    context.replaceEvent(event, { duration: Number(event.duration) * [1, 1.5, 2][burstTier(context, spent) - 1] });
   }
 
   if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
@@ -223,6 +229,12 @@ function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): 
 }
 
 export const warriorCoreSkillHandlers = Object.freeze({
+  'warrior.counterblow': augmentSkillHandler((context: WarriorCastContext) => {
+    // Keep the manual attack available only within the original block channel, even when released early.
+    if (!context.action.cancelled) {
+      professionCoreState(context).availableFlips[ID.TACTICAL_BLOW] = context.fullEnd;
+    }
+  }),
   'warrior.resource': augmentSkillHandler(afterResourceSkill, {
     afterEffect: adjustResourceSkillEffect
   }),

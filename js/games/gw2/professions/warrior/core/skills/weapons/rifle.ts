@@ -1,4 +1,4 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Rifle packets use close-range cast-start offsets so projectile travel does not inflate their timing. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -12,16 +12,22 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingAnchor: 'castEnd'
       }
     ],
-    castTimeMs: 333,
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'control',
-        controlKind: 'knockback'
+        controlKind: 'knockback',
+        atMs: 440,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -34,13 +40,21 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    castTimeMs: 1667,
+    interruptMode: 'per-packet',
+    castTimeMs: 1760,
     effects: [
       {
         type: 'strike',
-        coefficient: 4,
-        hits: 5,
-        atMs: 0
+        // The fifth close-range packet is inferred from the complete, more distant cast.
+        ticks: [
+          { atMs: 440, coefficient: 0.8 },
+          { atMs: 720, coefficient: 0.8 },
+          { atMs: 1000, coefficient: 0.8 },
+          { atMs: 1320, coefficient: 0.8 },
+          { atMs: 1600, coefficient: 0.8 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -55,41 +69,56 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    castTimeMs: 500,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1
+        hits: 1,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.EXPLOSIVE_SHELL]: {
-    castTimeMs: 500,
+    castTimeMs: 560,
     effects: [
       {
         type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        damageKind: 'explosion'
+        damageKind: 'explosion',
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 5
+        duration: 5,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 10,
-        duration: 10
+        duration: 10,
+        atMs: 480,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
