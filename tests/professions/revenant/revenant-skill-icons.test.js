@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 

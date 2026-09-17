@@ -5,7 +5,7 @@ import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { refineNecromancerSchedulerConfig } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';

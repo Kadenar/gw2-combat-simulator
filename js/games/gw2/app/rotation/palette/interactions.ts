@@ -6,7 +6,7 @@ import {
   openDoubleEdgeEditor
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
-import { WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { clearTimelineDropIndicators, type RotationDragState } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';

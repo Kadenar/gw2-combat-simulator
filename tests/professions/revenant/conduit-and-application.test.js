@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
-import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,

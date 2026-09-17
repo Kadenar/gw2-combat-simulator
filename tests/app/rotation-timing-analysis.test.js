@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { formatTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
+import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
 import {
   skillTimingAnalyses,
   stateTimingAnalysis,

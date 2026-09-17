@@ -1,6 +1,6 @@
 import { escapeHtml as esc } from '#gw2/app/shared/html.js';
-import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/rotation/timeline/timing/model.js';
-import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { skillTimingAnalyses, stateTimingAnalysis } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';

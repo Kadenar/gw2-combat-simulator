@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resultSummaryMetrics } from '#gw2/app/results/model.js';
-import { mountRotationResults } from '#gw2/app/results/rotation-results.js';
+import { mountRotationResults } from '#gw2/app/results/analysis-panel.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
 import { testProfession } from '../fixtures/profession.js';

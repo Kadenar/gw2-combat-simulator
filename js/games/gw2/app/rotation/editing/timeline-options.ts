@@ -11,7 +11,7 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
-import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, timelineItem } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

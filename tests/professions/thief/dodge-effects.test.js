@@ -6,7 +6,7 @@ import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
-import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 
 const simulate = createProfessionSimulator(thiefProfession, {
   target: { armor: 2597, conditions: {} },

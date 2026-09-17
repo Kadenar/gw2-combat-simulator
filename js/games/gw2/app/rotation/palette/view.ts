@@ -15,7 +15,7 @@ import {
   type RenderedPaletteGroup
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {

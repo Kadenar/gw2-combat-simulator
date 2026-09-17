@@ -51,7 +51,7 @@ Create `run-engineer.mjs` in the repository root:
 ```js
 import { prepareSimulationConfig } from './tests/helpers/simulation-config.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
@@ -321,7 +321,7 @@ longer than `duration`.
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 
 ```js
-import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 
 console.table(resultSummaryMetrics(result));

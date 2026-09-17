@@ -5,7 +5,7 @@ import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 const query = {
   statsAt: () => ({

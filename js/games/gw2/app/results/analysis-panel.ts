@@ -4,7 +4,7 @@ import { mountHitTimeline } from '#ui/results/charts/hit-timeline.js';
 import { bindDialog, showDialog } from '#app/dialog.js';
 import { escapeHtml } from '#gw2/app/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import type { SkillBreakdownRow } from '#gw2/app/results/result-tables.js';
+import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;

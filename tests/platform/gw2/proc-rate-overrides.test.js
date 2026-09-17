@@ -5,7 +5,7 @@ import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/plat
 import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { procChanceFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 // Exercise each execution path with minimal opportunities, including Core traits under elite specializations.
 const cases = [

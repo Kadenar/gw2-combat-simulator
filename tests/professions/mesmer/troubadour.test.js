@@ -10,7 +10,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 // A launched Drum wave keeps its damage and disable proc, with distinct breakdown attribution.
 test('committed Drum interruptions preserve separate Syncopate and delayed-wave rows', () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resolveProcIcon } from '#gw2/app/rotation/shared/icons.js';
+import { resolveProcIcon } from '#gw2/app/shared/icons.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';

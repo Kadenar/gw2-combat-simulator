@@ -1,17 +1,18 @@
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import {
   mountRotationResults,
   modifierContributionsHtml,
   SKILL_COLS,
   type RotationResultsModel,
   type RotationResultsOptions
-} from '#gw2/app/results/rotation-results.js';
-import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
+} from '#gw2/app/results/analysis-panel.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
-import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
+import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 
