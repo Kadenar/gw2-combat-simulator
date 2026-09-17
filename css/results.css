@@ -360,143 +360,242 @@
   gap: 7px;
 }
 
-.rng-distribution-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-}
-
-.rng-distribution-stat {
-  display: flex;
-  flex-direction: column;
-  padding: 9px 10px;
+/* Keep the distribution readable as a shared scale, with local scrolling on narrow screens. */
+.rng-range-panel,
+.rng-explanation {
+  padding: 12px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
-.rng-distribution-stat > span {
-  color: var(--text-dim);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+.rng-chart-scroll,
+.rng-table-scroll {
+  overflow-x: auto;
 }
 
-.rng-distribution-stat strong {
-  color: var(--text-bright);
-  font-size: 16px;
+.rng-range-chart {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  overflow: visible;
   font-variant-numeric: tabular-nums;
+  text-anchor: middle;
 }
 
-.rng-distribution-stat small {
-  color: var(--text-dim);
-  font-size: 9px;
+.rng-axis {
+  stroke: var(--border-light);
+  stroke-width: 1;
 }
 
-.rng-distribution-stat.rng-unlucky strong {
+.rng-axis-label,
+.rng-marker-label {
+  fill: var(--text-dim);
+  font-size: 10px;
+}
+
+.rng-marker-label {
+  fill: currentColor;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rng-marker-value {
+  fill: currentColor;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rng-marker-stem {
+  stroke: currentColor;
+  opacity: 0.5;
+}
+
+.rng-range-chart circle {
+  fill: currentColor;
+}
+
+.rng-tail,
+.rng-negative {
   color: #e58b70;
 }
 
-.rng-distribution-stat.rng-lucky strong {
+.rng-likely,
+.rng-positive {
+  color: color-mix(in srgb, var(--health) 65%, white);
+}
+
+.rng-median {
+  color: var(--text);
+}
+
+.rng-expected {
   color: var(--health);
+}
+
+.rng-expected .rng-marker-value {
+  font-size: 17px;
+}
+
+.rng-range-line,
+.rng-range-glow {
+  stroke: var(--health);
+  stroke-width: 2;
+}
+
+.rng-range-glow {
+  stroke-width: 12;
+  opacity: 0.35;
+  filter: blur(6px);
+}
+
+.rng-range-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  width: fit-content;
+  margin: 8px auto 0;
+  padding: 7px 20px;
+  color: var(--text);
+  font-size: 11px;
+  background: color-mix(in srgb, var(--health) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--health) 35%, var(--border));
+  border-radius: 5px;
+}
+
+.rng-range-summary strong {
+  color: color-mix(in srgb, var(--health) 70%, white);
+  font-size: 14px;
+}
+
+.rng-raw-data > summary {
+  width: fit-content;
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.rng-raw-data[open] > summary {
+  margin-bottom: 10px;
+}
+
+.rng-chart-scroll:focus-visible,
+.rng-table-scroll:focus-visible,
+.rng-raw-data > summary:focus-visible {
+  outline: 2px solid var(--health);
+  outline-offset: 2px;
 }
 
 .rng-explanation {
   margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
 }
 
 .rng-explanation-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
 }
 
-.rng-explanation-heading strong {
+.rng-explanation-heading h4 {
+  margin: 0;
   color: var(--text-bright);
-  font-size: 11px;
+  font-size: 15px;
 }
 
 .rng-explanation-heading span,
 .rng-explanation > p {
   color: var(--text-dim);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .rng-explanation > p {
-  margin: 3px 0 8px;
+  margin: 5px 0 10px;
 }
 
-.rng-driver-list {
-  display: grid;
-  gap: 5px;
+.rng-explanation .rng-table-scroll {
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
-.rng-driver {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  padding: 7px 9px;
-  background: var(--bg-panel-alt);
-  border-radius: 5px;
-}
-
-.rng-driver-label {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 1px;
-}
-
-.rng-driver-label strong {
-  overflow: hidden;
-  color: var(--text);
-  font-size: 10px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rng-driver-label small {
-  color: var(--text-dim);
-  font-size: 9px;
-}
-
-.rng-driver-delta,
-.rng-driver-impact {
-  display: flex;
-  flex: none;
-  align-items: end;
-  flex-direction: column;
-  gap: 0;
+.rng-driver-table,
+.rng-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
-.rng-driver-delta small,
-.rng-driver-impact small {
-  color: var(--text-dim);
-  font-size: 9px;
+.rng-driver-table {
+  min-width: 640px;
 }
 
-.rng-driver-delta strong,
-.rng-driver-impact strong {
-  min-width: 62px;
-  color: var(--health);
-  font-size: 12px;
+.rng-driver-table th,
+.rng-driver-table td,
+.rng-data-table th,
+.rng-data-table td {
+  padding: 7px 9px;
   text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.rng-driver-table th:first-child,
+.rng-data-table th:first-child {
+  text-align: left;
+}
+
+.rng-driver-table thead,
+.rng-data-table thead {
+  color: var(--text-dim);
+  background: var(--bg-panel);
+}
+
+.rng-driver-table th,
+.rng-data-table th {
+  font-weight: 500;
+}
+
+.rng-driver-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.rng-driver-table th:last-child {
+  width: 30%;
+  text-align: left;
+}
+
+.rng-driver-impact {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .rng-driver-impact strong {
-  min-width: 94px;
-  color: var(--text-bright);
+  min-width: 86px;
+  white-space: nowrap;
+}
+
+.rng-impact-track {
+  flex: 1;
+  height: 10px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rng-impact-track > span {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  border-radius: inherit;
 }
 
 .rng-explanation > .rng-explanation-note {
-  margin: 7px 0 0;
+  margin: 10px 0 0;
+  line-height: 1.5;
 }
 
 .rng-distribution-status {
@@ -564,12 +663,6 @@
 }
 
 @media (max-width: 620px) {
-  .rng-driver {
-    align-items: start;
-    flex-direction: column;
-    gap: 3px;
-  }
-
   .rng-driver-delta,
   .rng-driver-impact {
     align-items: baseline;
