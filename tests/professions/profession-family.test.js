@@ -50,8 +50,7 @@ import { conduitModule } from '#gw2/professions/revenant/specializations/conduit
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 import { vindicatorModule } from '#gw2/professions/revenant/specializations/vindicator/module.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { antiquaryModule as thiefAntiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { daredevilModule as thiefDaredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';

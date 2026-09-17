@@ -1,4 +1,4 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -12,7 +12,6 @@ import type {
   ThiefSummonDefinition,
   ThiefSummonStrike
 } from '#gw2/professions/thief/types.js';
-import { thiefSpecializationGuildSummon } from '#gw2/professions/thief/thieves-guild.js';
 
 interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly attack: ThiefSummonStrike;

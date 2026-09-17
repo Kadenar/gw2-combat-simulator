@@ -3,9 +3,8 @@ import test from 'node:test';
 import { applyDaredevilDodge } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
 import { createDaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 

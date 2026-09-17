@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { applyWeakeningStrike } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
-import { createThiefModuleData } from '#gw2/professions/thief/catalog/module-data.js';
+import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import {
   daredevilAttributeRules,
   daredevilCastRules,

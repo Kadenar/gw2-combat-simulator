@@ -1,7 +1,9 @@
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/weapon-matching.js';
-import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/family-presentation.js';
+import { thiefNativeModules } from '#gw2/professions/thief/catalog.js';
+
+export { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/catalog.js';
 
 export const thiefProfession = defineNativeProfession({
   id: 'thief',

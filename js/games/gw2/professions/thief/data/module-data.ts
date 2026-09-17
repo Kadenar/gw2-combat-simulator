@@ -6,7 +6,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-m
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/thief/data/traits-data.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 

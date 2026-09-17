@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 

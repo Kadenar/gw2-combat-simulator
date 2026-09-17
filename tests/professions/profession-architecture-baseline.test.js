@@ -8,7 +8,7 @@ import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
 import { necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
 import { rangerNativeModules } from '#gw2/professions/ranger/modules.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
-import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
+import { thiefNativeModules } from '#gw2/professions/thief/profession.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
 
 const PROFESSION_MODULES = Object.freeze({

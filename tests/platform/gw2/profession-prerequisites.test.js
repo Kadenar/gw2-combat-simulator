@@ -22,7 +22,7 @@ import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 
 test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {

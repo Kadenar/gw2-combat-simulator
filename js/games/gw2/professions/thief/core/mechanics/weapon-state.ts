@@ -1,11 +1,12 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
-import { spearChainStageForSkill, updateSpearChainState } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
+import { updateSpearChainState } from '#gw2/professions/thief/core/mechanics/spear-chain.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ThiefCastContext,

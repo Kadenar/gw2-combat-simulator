@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onConditionApplied } from '#gw2/platform/profession-definition/mechanics.js';
-import { createThiefModuleData } from '#gw2/professions/thief/catalog/module-data.js';
+import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { specterSkillHandlers } from '#gw2/professions/thief/specializations/specter/execution/index.js';
 import {
   specterAttributeRules,
