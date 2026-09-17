@@ -35,8 +35,7 @@ import { dragonhunterModule } from '#gw2/professions/guardian/specializations/dr
 import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
 import { luminaryModule } from '#gw2/professions/guardian/specializations/luminary/module.js';
 import { willbenderModule } from '#gw2/professions/guardian/specializations/willbender/module.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { chronomancerModule } from '#gw2/professions/mesmer/specializations/chronomancer/module.js';
 import { mirageModule } from '#gw2/professions/mesmer/specializations/mirage/module.js';

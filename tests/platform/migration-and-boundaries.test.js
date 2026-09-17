@@ -9,11 +9,10 @@ import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { professionRegistry } from '#gw2/app/profession/registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { createDefaultConfig, simulateMesmer } from '../helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '#gw2/professions/mesmer/state/index.js';
+import { snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
 
 async function relativeStaticModuleGraph(entryFiles) {
   const visited = new Set();

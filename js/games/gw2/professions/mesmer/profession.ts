@@ -4,9 +4,11 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/catalog/module-data.js';
-import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';
+import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/data/module-data.js';
+import { mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+
+export { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 
 export const mesmerProfession = defineNativeProfession({
   id: 'mesmer',

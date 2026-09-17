@@ -5,7 +5,7 @@ import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persisten
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 

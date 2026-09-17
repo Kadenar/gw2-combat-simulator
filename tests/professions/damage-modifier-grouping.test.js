@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/ids.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';

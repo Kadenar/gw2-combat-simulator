@@ -5,7 +5,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * Returns: consumeResources, currentResource, handleShatter, triggerShatterTraits.
  * Profession action controller
  */
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/state/resources.js';
+import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
@@ -15,6 +15,7 @@ import type {
   MesmerCastContext,
   MesmerProfessionActionController,
   MesmerRuntime,
+  MesmerRuntimeState,
   MesmerShatterResolver
 } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -23,7 +24,6 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

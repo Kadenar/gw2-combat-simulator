@@ -22,7 +22,7 @@ import { inertContainer } from '../helpers/dom.js';
 import { defaultSimulationConfig } from '../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../helpers/mesmer-simulation.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Pending comparisons occupy only their own section and never present old values as current.
 test('modifier section shows pending, completed, empty, and failed states', () => {

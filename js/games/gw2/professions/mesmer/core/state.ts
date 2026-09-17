@@ -1,5 +1,36 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
-import type { MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/state/types.js';
+
+export interface MesmerAvailableFlip {
+  readonly availableAt: number;
+  readonly expiresAt: number;
+  readonly persistent?: boolean;
+}
+
+/** Core owns state present for every specialization runtime. */
+export interface MesmerCoreState {
+  clones: MesmerClone[];
+  pendingResources: MesmerPendingResource[];
+  trackedSkillHits: Record<string, number[]>;
+  traitReadyAt: Record<string, number>;
+  mimicUntil: number;
+  counterspellAvailable: boolean;
+  availableFlips: Record<string, MesmerAvailableFlip>;
+  autoattackChains: Record<string, SkillId>;
+  sharperImagesProgress: number;
+  masterFencerProgress: number;
+  chaosStormCasts: number;
+  ineptitudeReadyAt: number;
+  clarityUntil: number;
+  hasExplicitCombatStart: boolean;
+  combatStartTime: number;
+}
+
+export interface MesmerResolverState {
+  ineptitudeReadyAt: number;
+}
 
 /** Creates state owned by every Mesmer build, excluding active-specialization fields. */
 export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): MesmerCoreState {

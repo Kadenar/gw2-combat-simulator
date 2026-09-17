@@ -1,6 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import { createMesmerModuleData } from '#gw2/professions/mesmer/catalog/module-data.js';
+import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import {
   mirageAttributeRules,
   mirageCastRules,
@@ -13,28 +12,9 @@ import {
   MESMER_MIRAGE_EXTRA_SKILLS,
   MESMER_MIRAGE_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { mesmerReplaceProfile, scheduleProfileControls } from '#gw2/professions/mesmer/core/execution/index.js';
-import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mirageControllerFor } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
+import { mesmerReplaceProfile } from '#gw2/professions/mesmer/core/execution/index.js';
 import { MIRAGE_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
-import type { MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-// Ambush packets register at cast start so overlapping actions observe them chronologically.
-const mesmerAmbushProfile = replaceSkill<MesmerHandlerContext>({
-  beforeEffects: (context, skill) => {
-    // An uncommitted ambush must leave its cloak window available for the next weapon's ambush.
-    if (context.action.cancelled) return;
-    withMesmerCastEmission(context, skill as MesmerSkill, () =>
-      mirageControllerFor(context.mesmerRuntime).executePlayerAmbush(
-        skill as MesmerSkill,
-        context.fullEnd,
-        context.start
-      )
-    );
-  },
-  afterEffects: scheduleProfileControls
-});
+import { mesmerAmbushProfile } from '#gw2/professions/mesmer/specializations/mirage/execution/index.js';
 
 export const mirageModule = defineNativeModule({
   id: 'Mirage',

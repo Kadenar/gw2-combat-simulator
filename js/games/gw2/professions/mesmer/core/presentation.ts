@@ -15,8 +15,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
-import type { MesmerProfessionState } from '#gw2/professions/mesmer/state/types.js';
+import type { MesmerProfessionState, MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
 
 export interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';

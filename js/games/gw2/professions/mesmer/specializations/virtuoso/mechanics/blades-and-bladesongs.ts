@@ -8,7 +8,11 @@ import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime
 import { initializeVirtuosoRuntime } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type {
+  MesmerPrecastContext,
+  MesmerSchedulerContext,
+  MesmerSchedulerTask
+} from '#gw2/professions/mesmer/types.js';
 
 import {
   handleDeadlyBladesCriticalTask,
@@ -20,8 +24,6 @@ import {
   observeVirtuosoExpectedProcEvent
 } from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
-import type { MesmerPrecastContext } from '#gw2/professions/mesmer/types.js';
-import type { MesmerSchedulerTask } from '#gw2/professions/mesmer/state/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

@@ -6,8 +6,7 @@ import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import { simulateMesmer } from '../../helpers/mesmer-simulation.js';
 import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Mirage tests cover endurance, cloak, ambushes, mirrors, and specialization traits.
 test('Mirage dodge spends 50 endurance and waits for continuous regeneration', () => {
