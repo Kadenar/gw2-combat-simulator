@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvingDamage, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
+import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { renegadeSkillHandlers } from '#gw2/professions/revenant/specializations/renegade/execution/index.js';
 import { revenantRenegadeEventReactions } from '#gw2/professions/revenant/specializations/renegade/mechanics/reactions.js';
 import {

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 
 // These focused rotations verify that the training-area command resets both standard recharge and profession resources.
 test('cooldown reset refills shared life force for every Necromancer specialization', () => {

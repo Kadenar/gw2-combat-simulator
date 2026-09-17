@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/catalog/module-data.js';
+import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { conduitSkillHandlers } from '#gw2/professions/revenant/specializations/conduit/execution/index.js';
 import {
   conduitAttributeRules,

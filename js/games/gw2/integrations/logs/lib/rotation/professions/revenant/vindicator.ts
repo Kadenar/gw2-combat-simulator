@@ -1,8 +1,5 @@
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/lib/rotation/catalog.js';
-import {
-  VINDICATOR_AIRBORNE_MS,
-  VINDICATOR_JUMP_SKILL
-} from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
+import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/profession.js';
 import type {
   LogActionNormalizationContext,
   RecordedLogAction

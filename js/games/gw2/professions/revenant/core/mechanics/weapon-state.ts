@@ -1,6 +1,6 @@
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 /**
  * Revenant temporary weapon and flip state. The shared GW2 controller owns
  * canonical autoattack chains; this module owns Imperial Guard, True Strike,

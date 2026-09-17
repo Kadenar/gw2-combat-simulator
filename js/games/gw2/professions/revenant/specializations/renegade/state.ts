@@ -1,5 +1,19 @@
-import type { RenegadeState } from '#gw2/professions/revenant/types.js';
+import type { RevenantChargeState, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface RenegadeState {
+  bandTogetherReady: boolean;
+  bandTogetherExpiresAt: number;
+  kallasFervor: RevenantTimedStack[];
+  kallasFervorMaximumStacks: number;
+  renegadeCriticalProgress: number;
+  razorclawsRage: RevenantChargeState;
+  endlessEnmityReadyAt: number;
+  bloodFuryReadyAt: number;
+  /** Scheduler-owned deadline for Brutal Momentum's Vigor reaction. */
+  brutalMomentumReadyAt: number;
+  soulcleaveReadyAt: number;
+}
 
 export const RENEGADE_PUBLIC_END_STATE_KEYS: readonly (keyof RenegadeState)[] = Object.freeze([
   'bandTogetherReady',

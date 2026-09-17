@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 
 // Results inherit catalog artwork so asset updates do not require a second list of URLs.

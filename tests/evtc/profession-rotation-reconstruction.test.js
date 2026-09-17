@@ -6,7 +6,7 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import { missingInterruptCommitWarnings } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { agentOwners, eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';

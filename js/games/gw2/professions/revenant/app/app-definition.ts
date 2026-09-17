@@ -6,7 +6,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import type { RevenantApplicationBuild } from '#gw2/professions/revenant/types.js';
 
 // Exposes Revenant only through the shared browser application contract.
