@@ -2,7 +2,7 @@
   "source": {
     "log": "condi herald sb bench.zevtc",
     "benchmarkDurationSeconds": 125.932,
-    "notes": "Pre-combat Spiritcrush; Facet heal/utilities and Facet of Nature begin active."
+    "notes": "Pre-combat Spiritcrush; Facet heal/utilities begin active. Nature starts in the later Dragon phase so its persistent upkeep does not exhaust Energy during the opening Demon phase."
   },
   "rotation": [
     {
@@ -24,10 +24,6 @@
     {
       "type": "cast",
       "skillId": 27760
-    },
-    {
-      "type": "cast",
-      "skillId": 29371
     },
     {
       "type": "cast",

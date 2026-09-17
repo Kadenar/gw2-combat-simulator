@@ -226,7 +226,7 @@ function extend(profession, events, at) {
     };
     heraldSchedulerHooks.onEventScheduled.handler(context, {
       type: 'proc',
-      skillId: REVENANT_SKILL_IDS.TRUE_NATURE_ID_51696,
+      skillId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
       procType: 'boon-extension',
       at,
       duration: 2
@@ -316,9 +316,9 @@ for (const name of ['Thief', 'Ranger', 'Herald']) {
         type: 'proc',
         at: 1,
         source: 'revenant',
-        sourceId: REVENANT_SKILL_IDS.TRUE_NATURE_ID_51696,
+        sourceId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
         actorType: 'player',
-        skillId: REVENANT_SKILL_IDS.TRUE_NATURE_ID_51696,
+        skillId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
         procType: 'boon-extension',
         duration: 2
       });

@@ -11,15 +11,15 @@ export const HERALD_MECHANICS = freeze({
     [ID.FACET_OF_DARKNESS]: ID.GAZE_OF_DARKNESS,
     [ID.FACET_OF_CHAOS]: ID.CHAOTIC_RELEASE,
     // FACET_OF_NATURE is a special case: the actual consume ID depends on the active legend (see trueNatureConsumeByLegendId).
-    [ID.FACET_OF_NATURE]: ID.TRUE_NATURE
+    [ID.FACET_OF_NATURE]: ID.TRUE_NATURE_ASSASSIN
   }),
   // Facet of Nature has five distinct True Nature skill IDs, one per active legend, while all variants share the parent Facet cooldown.
   trueNatureConsumeByLegendId: freeze({
-    [LEGEND.ASSASSIN]: ID.TRUE_NATURE,
-    [LEGEND.DWARF]: ID.TRUE_NATURE_ID_51675,
-    [LEGEND.DRAGON]: ID.TRUE_NATURE_ID_51696,
-    [LEGEND.CENTAUR]: ID.TRUE_NATURE_ID_51713,
-    [LEGEND.DEMON]: ID.TRUE_NATURE_ID_51714
+    [LEGEND.ASSASSIN]: ID.TRUE_NATURE_ASSASSIN,
+    [LEGEND.DWARF]: ID.TRUE_NATURE_DWARF,
+    [LEGEND.DRAGON]: ID.TRUE_NATURE_DRAGON,
+    [LEGEND.CENTAUR]: ID.TRUE_NATURE_CENTAUR,
+    [LEGEND.DEMON]: ID.TRUE_NATURE_DEMON
   }),
   // Reverse lookup used by consumeRevenantFacet to find the parent upkeep skill that must be torn down; all True Nature variants map back to the same FACET_OF_NATURE upkeep.
   facetSkillByConsumeId: freeze({
@@ -28,10 +28,10 @@ export const HERALD_MECHANICS = freeze({
     [ID.ELEMENTAL_BLAST]: ID.FACET_OF_ELEMENTS,
     [ID.GAZE_OF_DARKNESS]: ID.FACET_OF_DARKNESS,
     [ID.CHAOTIC_RELEASE]: ID.FACET_OF_CHAOS,
-    [ID.TRUE_NATURE]: ID.FACET_OF_NATURE,
-    [ID.TRUE_NATURE_ID_51675]: ID.FACET_OF_NATURE,
-    [ID.TRUE_NATURE_ID_51696]: ID.FACET_OF_NATURE,
-    [ID.TRUE_NATURE_ID_51713]: ID.FACET_OF_NATURE,
-    [ID.TRUE_NATURE_ID_51714]: ID.FACET_OF_NATURE
+    [ID.TRUE_NATURE_ASSASSIN]: ID.FACET_OF_NATURE,
+    [ID.TRUE_NATURE_DWARF]: ID.FACET_OF_NATURE,
+    [ID.TRUE_NATURE_DRAGON]: ID.FACET_OF_NATURE,
+    [ID.TRUE_NATURE_CENTAUR]: ID.FACET_OF_NATURE,
+    [ID.TRUE_NATURE_DEMON]: ID.FACET_OF_NATURE
   })
 });

@@ -12,6 +12,8 @@ export interface Gw2Stats extends SchedulerRecord {
   readonly concentration?: number;
   readonly healingPower?: number;
   readonly boonDurationBonus?: number;
+  /** Flat percentage points added after applying the normal boon-duration cap. */
+  readonly uncappedBoonDurationBonus?: number;
   readonly boonDurationBonuses?: Readonly<Record<string, number>>;
   readonly conditionDurationBonus?: number;
   readonly conditionDurationBonuses?: Readonly<Record<string, number>>;

@@ -32,10 +32,19 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
       ? Number(chargedMists.resourceGain || 0)
       : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;
-  // Retire every departing upkeep owner before a later activation can reuse the same skill ID.
-  for (const active of state.activeUpkeeps) context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
-  state.activeUpkeeps = [];
   clearRevenantLegendFlips(context);
+  // Cross-legend upkeeps keep draining Energy and expose the destination legend's consume.
+  state.activeUpkeeps = state.activeUpkeeps.filter((active) => {
+    const upkeep = context.catalog.skillsById.get(active.skillId) as RevenantSkill | undefined;
+    const consumeId = upkeep?.upkeepConsumeByLegendId?.[state.activeLegendId];
+    if (consumeId != null) {
+      state.availableFlips[consumeId] = true;
+      return true;
+    }
+
+    context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
+    return false;
+  });
   context.emit({
     type: 'sigil_swap',
     at,

@@ -414,7 +414,7 @@ export interface Gw2TimedBuffApplication {
 /** Power and Condition Damage granted by one stack of Might. */
 export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
 
-/** Calculates the capped duration multiplier for a boon. */
+/** Cap ordinary bonuses before adding effects that explicitly exceed the boon-duration cap. */
 export function gw2BoonDurationMultiplier(boon: string, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
   const canonicalBoon = boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
   const bonus =
@@ -422,5 +422,5 @@ export function gw2BoonDurationMultiplier(boon: string, stats: Gw2Stats, sigils:
     Number(stats.boonDurationBonus || 0) / 100 +
     Number(stats.boonDurationBonuses?.[boon] || stats.boonDurationBonuses?.[canonicalBoon] || 0) / 100 +
     Number(sigils.boonDurationBonus || 0) / 100;
-  return clamp(1 + bonus, 1, 2);
+  return clamp(1 + bonus, 1, 2) + Math.max(0, Number(stats.uncappedBoonDurationBonus || 0)) / 100;
 }
