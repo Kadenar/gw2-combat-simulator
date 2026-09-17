@@ -3,10 +3,9 @@ import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface NecromancerSelfCondition extends SchedulerRecord {
+export interface NecromancerSelfCondition {
   readonly condition: string;
   readonly stacks: number;
   readonly duration?: number;
@@ -42,7 +41,8 @@ export interface NecromancerCoreState {
   minionAttackGenerations: Record<string, number>;
   minionAttackAnchors: Record<string, number>;
   minionAttackCycleOffsets: Record<string, number>;
-  availableFlips: Record<string, boolean | number | SchedulerRecord>;
+  /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
+  availableFlips: Record<string, number>;
   autoattackChains: Record<string, SkillId>;
   selfConditions: NecromancerSelfCondition[];
   plagueSendingArmed: boolean;

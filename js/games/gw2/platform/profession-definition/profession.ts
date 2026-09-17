@@ -1,14 +1,20 @@
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ProfessionFamilyDefinition,
+  ProfessionAttributeRuleDefinition,
+  ProfessionCastRuleDefinition,
+  ProfessionSchedulerHookDefinition,
   ProfessionModuleCatalogFragment,
   ProfessionModuleDefinition,
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import type {
   AnyNativeModule,
@@ -125,8 +131,8 @@ export function defineNativeModule<
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
   THandlerContext extends object = never,
-  TModifierEscape extends object = object,
-  TCastRulesEscape extends object = object,
+  TModifierEscape extends ProfessionAttributeRuleDefinition = object,
+  TCastRulesEscape extends ProfessionCastRuleDefinition = object,
   TSchedulerHooksEscape extends object = object,
   TResolverHooksEscape extends object = object,
   TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
@@ -188,7 +194,14 @@ export function defineNativeModule<
   });
 }
 
-function appendOrderedHook(target: SchedulerRecord, name: string, declaration: NativeSchedulerMechanic): void {
+function appendOrderedHook(
+  target: {
+    -readonly [K in NativeSchedulerMechanic['hook']]?: (ProfessionCastRuleDefinition &
+      ProfessionSchedulerHookDefinition)[K];
+  },
+  name: NativeSchedulerMechanic['hook'],
+  declaration: NativeSchedulerMechanic
+): void {
   const existing = target[name];
   target[name] = [
     ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
@@ -210,9 +223,11 @@ function compileNativeModule(
   const mechanics = module.mechanics || {};
   const execution = mechanics.execution || {};
   const resolution = mechanics.resolution || {};
-  const castRules = { ...((execution.castRules || {}) as SchedulerRecord) };
-  const schedulerHooks: SchedulerRecord = {
-    ...((execution.hooks || {}) as SchedulerRecord),
+  const castRules: ProfessionCastRuleDefinition = { ...((execution.castRules || {}) as ProfessionCastRuleDefinition) };
+  const schedulerHooks: {
+    -readonly [K in keyof ProfessionSchedulerHookDefinition]: ProfessionSchedulerHookDefinition[K];
+  } = {
+    ...((execution.hooks || {}) as ProfessionSchedulerHookDefinition),
     ...(execution.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: execution.skillMechanicHandlers })
   };
   const availability = execution.availability;
@@ -248,9 +263,9 @@ function compileNativeModule(
     });
   }
 
-  const resolverHooks = { ...((resolution.hooks || {}) as SchedulerRecord) };
+  const resolverHooks = { ...((resolution.hooks || {}) as UnvalidatedFields) };
   const reactions = {
-    ...((resolverHooks.eventReactions || {}) as SchedulerRecord)
+    ...((resolverHooks.eventReactions || {}) as UnvalidatedFields)
   };
   let requiresCriticalFacts = false;
   for (const declaration of (resolution.reactions || []) as NativeResolvedReaction<
@@ -278,7 +293,7 @@ function compileNativeModule(
       {
         id: `${module.id}.resolved-critical-facts`,
         order: -1000,
-        handler(context: SchedulerRecord) {
+        handler(context: UnvalidatedFields) {
           const policy = context.schedulerPolicy as { requireCriticalFacts?: () => void } | undefined;
           policy?.requireCriticalFacts?.();
         }
@@ -310,12 +325,12 @@ function compileNativeModule(
     id: module.id,
     catalog: fragment,
     resources: {
-      createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => SchedulerRecord,
+      createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => UnvalidatedFields,
       // Resolver state defaults to the scheduler state so simple modules share one state object.
       createResolverState: module.state.resolver || module.state.scheduler,
       ...(module.state.project == null ? {} : { projectEndState: module.state.project })
     },
-    attributeRules: modifiers as SchedulerRecord | undefined,
+    attributeRules: modifiers as ProfessionAttributeRuleDefinition | undefined,
     castRules,
     schedulerHooks,
     resolverHooks,
@@ -327,10 +342,11 @@ function compileNativeModule(
 export function defineNativeProfession<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object
+  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
+  TBuild extends Gw2Build = Gw2Build
 >(
-  definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation>
-): NativeProfessionContract<TModules, TPresentation, TSimulation> {
+  definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation, TBuild>
+): NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> {
   if (!definition || typeof definition !== 'object') {
     throw new TypeError('A native profession definition is required.');
   }
@@ -339,7 +355,7 @@ export function defineNativeProfession<
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   const core = modules[0];
-  const engineDefinition: ProfessionFamilyDefinition<NativeProfessionRuntimeState<TModules>> = {
+  const engineDefinition: ProfessionFamilyDefinition<NativeProfessionRuntimeState<TModules>, TBuild> = {
     id: definition.id,
     name: definition.name,
     catalog: assembly.catalog,
@@ -357,7 +373,7 @@ export function defineNativeProfession<
         .map((module) => [module.id, compileNativeModule(module, assembly.catalog, assembly.fragments.get(module.id)!)])
     ),
     ui: definition.presentation as Partial<ProfessionUiContract> | undefined,
-    simulation: definition.simulation as SchedulerRecord | null | undefined
+    simulation: definition.simulation
   };
   const family = defineProfessionFamily(engineDefinition);
 
@@ -365,5 +381,5 @@ export function defineNativeProfession<
     ...family,
     nativeDefinition: Object.freeze({ ...definition }),
     specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
-  }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
+  }) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
 }

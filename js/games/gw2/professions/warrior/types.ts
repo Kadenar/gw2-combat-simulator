@@ -1,10 +1,6 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastLifecycleContext,
-  SchedulerContext,
-  SchedulerRecord,
-  SchedulerState
-} from '#gw2/platform/engine/execution/types.js';
+import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -20,19 +16,16 @@ import type { ParagonState } from '#gw2/professions/warrior/specializations/para
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  assumptions?: SchedulerRecord;
   initialResource?: number;
   selectedSkills?: Record<string, string>;
 }
 
 export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
-  assumptions: SchedulerRecord;
   initialResource: number;
 }
 
 export interface WarriorConfig extends Gw2Config {
   readonly specialization?: string;
-  readonly initialResource?: number;
 }
 
 export interface WarriorState
@@ -77,13 +70,12 @@ export interface WarriorSkill extends Skill {
   readonly dragonSlashMaximumBurningDuration?: number;
 }
 
-export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> &
-  SchedulerRecord & {
-    readonly catalog: CanonicalCatalog<WarriorSkill>;
-    readonly config: WarriorConfig;
-    /** Lets trait initialization request GW2 critical facts when the policy provides them. */
-    readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'requireCriticalFacts'>>;
-  };
+export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> & {
+  readonly catalog: CanonicalCatalog<WarriorSkill>;
+  readonly config: WarriorConfig;
+  /** Lets trait initialization request GW2 critical facts when the policy provides them. */
+  readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'requireCriticalFacts'>>;
+};
 
 export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
   readonly catalog: CanonicalCatalog<WarriorSkill>;
@@ -113,16 +105,16 @@ export interface WarriorEndStateProjectionOptions {
   readonly resolverState?: Partial<WarriorState> | null;
 }
 
-export interface WarriorUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+export interface WarriorUiContext extends Omit<
+  ProfessionUiCallbackContext<WarriorRuntimeState | Partial<WarriorState>>,
+  'build'
+> {
   readonly config?: WarriorConfig;
-  readonly build?: WarriorBuild;
+  readonly build?: WarriorBuild | null;
   readonly state?: {
     readonly profession?: WarriorRuntimeState | Partial<WarriorState>;
   };
-  readonly professionState?: WarriorRuntimeState | Partial<WarriorState>;
-  readonly initialResource?: number;
-  readonly activeWeaponSet?: number;
-  /** Simulation time (seconds) of the rotation point being inspected. */
-  readonly atSeconds?: number;
 }
+
+/** UI slice whose callbacks read Warrior end-state projections. */
+export type WarriorUiSlice = Partial<ProfessionUiContract<WarriorRuntimeState | Partial<WarriorState>>>;

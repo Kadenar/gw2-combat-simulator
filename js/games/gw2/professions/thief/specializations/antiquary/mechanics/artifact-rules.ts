@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { antiquaryState, type AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -69,7 +69,8 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     amount: 0.1,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      Number(thiefRuntimeSpecializationState(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
+      Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) >
+        context.time
   },
   {
     id: 'thief.combat-high-strike',
@@ -86,7 +87,8 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         Math.ceil(
           Math.max(
             0,
-            Number(thiefRuntimeSpecializationState(context, 'Antiquary').combatHighExpiresAt || 0) - context.time
+            Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpiresAt || 0) -
+              context.time
           ) / parameters.stackInterval
         )
       ) * parameters.damagePerStack,
@@ -107,7 +109,8 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         Math.ceil(
           Math.max(
             0,
-            Number(thiefRuntimeSpecializationState(context, 'Antiquary').combatHighExpiresAt || 0) - context.time
+            Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpiresAt || 0) -
+              context.time
           ) / parameters.stackInterval
         )
       ) * parameters.damagePerStack,
@@ -120,7 +123,8 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     factor: 1.15,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      Number(thiefRuntimeSpecializationState(context, 'Antiquary').kryptisDamageUntil || 0) > context.time
+      Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').kryptisDamageUntil || 0) >
+        context.time
   },
   {
     id: 'thief.meticulous-custodian-artifact-strike',

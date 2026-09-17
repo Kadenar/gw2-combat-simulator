@@ -13,7 +13,7 @@ import type {
   ThiefSummonStrike
 } from '#gw2/professions/thief/types.js';
 
-interface ThievesGuildTaskPayload extends Record<string, unknown> {
+interface ThievesGuildTaskPayload {
   readonly attack: ThiefSummonStrike;
   readonly expiresAt: number;
   readonly profile: ThiefSummonAttack;
@@ -146,10 +146,7 @@ export function handleThievesGuildAttack(
   }
 }
 
-export function expireThievesGuild(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<Record<string, unknown>>
-): void {
+export function expireThievesGuild(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
   const state = professionCoreState(context);
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
     state.activeThievesGuild = null;

@@ -1,14 +1,13 @@
 /** Defines build presets, loadout views, and selection contracts shared by the build editor and professions. */
 import type { Gw2FinalizedAttributeResult, Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, CanonicalCatalog, SkillId, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { ProfessionPaletteGroup } from '#gw2/platform/engine/profession/types.js';
 
 export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];
 }
 
-export interface BuildTemplatePreset extends SchedulerRecord {
+export interface BuildTemplatePreset {
   readonly label: string;
   readonly build: string;
   readonly rotation?: string;
@@ -40,8 +39,8 @@ export interface ProfessionSpecialization extends CatalogEntity {
   readonly majorTraits: readonly (readonly ProfessionSpecializationTrait[])[];
 }
 
-export interface ProfessionSlotLoadout extends SchedulerRecord {
-  readonly startingKey: string;
+export interface ProfessionSlotLoadout {
+  readonly startingKey: 'startingLegend';
   readonly palettePlacement?: string;
   normalizeBuild(
     build: Gw2ApplicationBuild,
@@ -51,7 +50,7 @@ export interface ProfessionSlotLoadout extends SchedulerRecord {
       readonly professionState?: unknown;
       readonly catalog: CanonicalCatalog;
     }
-  ): Partial<Gw2ApplicationBuild> & SchedulerRecord;
+  ): Partial<Gw2ApplicationBuild>;
   selectedSkillIds(context: {
     readonly build: Gw2ApplicationBuild;
     readonly specialization: string;

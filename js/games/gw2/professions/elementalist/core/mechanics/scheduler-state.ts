@@ -5,7 +5,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRechargeQuery, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -61,13 +61,8 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
     state.rockBarrierExpiresAt = 0;
     const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
-      context.state.cooldowns.set(
-        root.id,
-        expiresAt +
-          context.rechargeDurationFor(root, expiresAt, {
-            rockBarrierRelease: true
-          })
-      );
+      const releaseQuery: ElementalistRechargeQuery = { rockBarrierRelease: true };
+      context.state.cooldowns.set(root.id, expiresAt + context.rechargeDurationFor(root, expiresAt, releaseQuery));
       resetAutoattackChains(context, [root.id]);
     }
   }

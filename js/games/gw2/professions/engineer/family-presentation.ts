@@ -1,9 +1,7 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EngineerSkill, EngineerUiContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerSkill, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.RADIANT_ARC_ID_69565,
@@ -26,6 +24,6 @@ function engineerWeaponSkillMatchesSet(
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
 
-export const engineerFamilyUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const engineerFamilyUi: EngineerUiSlice = Object.freeze({
   weaponSkillMatchesSet: engineerWeaponSkillMatchesSet
 });

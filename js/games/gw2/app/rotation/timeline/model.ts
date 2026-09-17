@@ -1,5 +1,5 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationCommand, SchedulerRecord, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
@@ -768,7 +768,7 @@ export function timelineStepsWithChargeFills(
   });
 }
 
-export type TimelineItem = SchedulerRecord & {
+export type TimelineItem = {
   command: RotationCommand;
   type: RotationCommand['type'];
   name: string;

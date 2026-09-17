@@ -1,11 +1,13 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
-  CastLifecycleContext,
-  SchedulerContext,
-  SchedulerRecord,
-  SchedulerState
-} from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+  Gw2ApplicationBuild,
+  Gw2Build,
+  Gw2CanonicalBuild,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -19,15 +21,11 @@ import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/r
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
-  assumptions?: RangerAssumptions;
+  assumptions?: ProfessionBuildAssumptions;
   selectedPet?: string;
   selectedPet2?: string;
   selectedHammerSkillIds?: number[];
   initialUntamedState?: RangerInitialUntamedState;
-}
-
-export interface RangerAssumptions extends Record<string, unknown> {
-  readonly targetDefiant?: boolean;
 }
 
 export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
@@ -58,8 +56,8 @@ export interface RangerConfig extends Gw2Config {
   readonly selectedPet2?: string;
   readonly selectedHammerSkillIds?: readonly number[];
   readonly initialUntamedState?: RangerInitialUntamedState;
-  readonly assumptions?: RangerAssumptions;
-  readonly professionAssumptions?: RangerAssumptions;
+  readonly assumptions?: ProfessionBuildAssumptions;
+  readonly professionAssumptions?: ProfessionBuildAssumptions;
 }
 
 export interface RangerPetDefinition {
@@ -148,21 +146,29 @@ export interface RangerSkill extends Skill {
   readonly missileHits?: number;
 }
 
-export interface RangerUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+/** Modifier context whose config is the Ranger's, so rules can read its pet selection. */
+export interface RangerModifierContext extends Gw2ModifierContext {
   readonly config?: RangerConfig;
-  readonly catalog?: CanonicalCatalog;
+}
+
+export interface RangerUiContext extends Omit<
+  ProfessionUiCallbackContext<RangerRuntimeState | Partial<RangerState>>,
+  'build'
+> {
+  readonly config?: RangerConfig;
   readonly state?: {
     readonly profession?: RangerRuntimeState | Partial<RangerState>;
   };
-  readonly professionState?: RangerRuntimeState | Partial<RangerState>;
-  readonly build?: RangerBuild;
+  readonly build?: RangerBuild | null;
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
   readonly selectedPet2?: string;
 }
 
-export interface RangerUiSelection extends SchedulerRecord {
+/** UI slice whose callbacks read Ranger end-state projections. */
+export type RangerUiSlice = Partial<ProfessionUiContract<RangerRuntimeState | Partial<RangerState>>>;
+
+export interface RangerUiSelection {
   readonly key?: string;
   readonly index?: number;
   readonly skillId?: SkillId;

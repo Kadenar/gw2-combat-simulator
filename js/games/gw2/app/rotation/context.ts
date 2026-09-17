@@ -1,4 +1,14 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+/** Shared projection fields consumed by rotation views; professions own the remaining state. */
+export interface RotationProfessionState {
+  readonly primaryAttunement?: string;
+  readonly resource?: number;
+  readonly resourceDefinition?: { readonly maximum?: number };
+  readonly availableFlips?: Readonly<Record<string, number | boolean | object>>;
+  readonly autoattackChains?: Readonly<Record<string, SkillId>>;
+  readonly availableAmbush?: { readonly name?: string } | null;
+}
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
@@ -15,9 +25,9 @@ const paletteStateCache = new WeakMap<
 
 export const seconds = (ms: number): string => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 
-export const professionEndState = (result: ProfessionAppResult | null | undefined): SchedulerRecord =>
+export const professionEndState = (result: ProfessionAppResult | null | undefined): RotationProfessionState =>
   result?.endState?.profession && typeof result.endState.profession === 'object'
-    ? (result.endState.profession as SchedulerRecord)
+    ? (result.endState.profession as RotationProfessionState)
     : {};
 
 export function paletteEndState(app: ProfessionAppState): RotationEndState | null {
@@ -42,9 +52,9 @@ export function paletteEndState(app: ProfessionAppState): RotationEndState | nul
   return state;
 }
 
-export const paletteProfessionState = (app: ProfessionAppState): SchedulerRecord => {
+export const paletteProfessionState = (app: ProfessionAppState): RotationProfessionState => {
   const profession = paletteEndState(app)?.profession;
-  return profession && typeof profession === 'object' ? (profession as SchedulerRecord) : {};
+  return profession && typeof profession === 'object' ? (profession as RotationProfessionState) : {};
 };
 
 export const activeSpecialization = (app: ProfessionAppState): string => app.adapter.eliteSpecialization(app.build);

@@ -4,7 +4,7 @@ import { escapeHtml as esc } from '#ui/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/build/types.js';
@@ -40,10 +40,10 @@ export function skillBarDisplaySkill(
   selected: Skill | null | undefined
 ): Skill | null | undefined {
   if (!selected) return selected;
-  const professionState = app.results?.endState?.profession as SchedulerRecord | undefined;
+  const professionState = app.results?.endState?.profession as RotationProfessionState | undefined;
   const availableFlips = professionState?.availableFlips;
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
-  const flips = availableFlips as Record<string, unknown>;
+  const flips = availableFlips;
   const visited = new Set<number>();
   let current = selected;
   let display = selected;
@@ -206,7 +206,8 @@ export function renderSkills(app: ProfessionAppState): void {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener('click', (event) => {
         event.stopPropagation();
-        const key = slot.dataset.selectionKey;
+        // Array fallback selectors are emitted only for these authored skill-ID fields.
+        const key = slot.dataset.selectionKey as 'selectedHammerSkillIds' | 'selectedMorphSkillIds' | undefined;
         const index = Number(slot.dataset.selectionIndex);
         const rawSkillId = item.dataset.skillId;
         const skillId = Number(rawSkillId);

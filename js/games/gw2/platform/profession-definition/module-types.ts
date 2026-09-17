@@ -6,9 +6,15 @@ import type {
   SkillFragment,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionBuildDefinition, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionBuildDefinition,
+  ProfessionFamilyContract,
+  ProfessionAttributeRuleDefinition,
+  ProfessionCastRuleDefinition
+} from '#gw2/platform/engine/profession/types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionContract, Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -95,7 +101,7 @@ export interface NativeSchedulerMechanic {
 /** Scheduler-owned behavior exposed by one canonical profession-content module. */
 export interface NativeExecutionMechanicsDefinition<
   THandlerContext extends object,
-  TCastRulesEscape extends object,
+  TCastRulesEscape extends ProfessionCastRuleDefinition,
   TSchedulerHooksEscape extends object,
   TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
 > {
@@ -126,8 +132,8 @@ export interface NativeResolutionMechanicsDefinition<
 }
 
 export interface NativeMechanicsDefinition<
-  TModifierEscape extends object,
-  TCastRulesEscape extends object,
+  TModifierEscape extends ProfessionAttributeRuleDefinition,
+  TCastRulesEscape extends ProfessionCastRuleDefinition,
   TSchedulerHooksEscape extends object,
   TResolverHooksEscape extends object,
   TReactions extends readonly NativeResolverMechanic[],
@@ -154,8 +160,8 @@ export interface NativeModuleDefinition<
   TProjectOptions extends object,
   TProjectedState extends object,
   THandlerContext extends object,
-  TModifierEscape extends object,
-  TCastRulesEscape extends object,
+  TModifierEscape extends ProfessionAttributeRuleDefinition,
+  TCastRulesEscape extends ProfessionCastRuleDefinition,
   TSchedulerHooksEscape extends object,
   TResolverHooksEscape extends object,
   TReactions extends readonly NativeResolverMechanic[],
@@ -184,8 +190,8 @@ export interface NativeModule<
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
   THandlerContext extends object = object,
-  TModifierEscape extends object = object,
-  TCastRulesEscape extends object = object,
+  TModifierEscape extends ProfessionAttributeRuleDefinition = object,
+  TCastRulesEscape extends ProfessionCastRuleDefinition = object,
   TSchedulerHooksEscape extends object = object,
   TResolverHooksEscape extends object = object,
   TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
@@ -266,12 +272,13 @@ export type NativeSpecializationId<TModules extends readonly AnyNativeModule[]> 
 export interface NativeProfessionDefinition<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object
+  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
+  TBuild extends Gw2Build = Gw2Build
 > {
   readonly id: string;
   readonly name: string;
   readonly modules: TModules;
-  readonly build?: ProfessionBuildDefinition;
+  readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly presentation?: TPresentation;
   readonly simulation?: TSimulation | null;
   readonly catalog?: NativeCatalogOptions;
@@ -282,12 +289,15 @@ export interface NativeProfessionDefinition<
 export type NativeProfessionContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object
+  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
+  TBuild extends Gw2Build = Gw2Build
 > = ProfessionFamilyContract<
   NativeProfessionRuntimeState<TModules>,
-  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>
+  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>, TBuild>,
+  TSimulation,
+  TBuild
 > & {
   readonly specializationIds: readonly NativeSpecializationId<TModules>[];
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
-  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TSimulation>>;
+  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TSimulation, TBuild>>;
 };

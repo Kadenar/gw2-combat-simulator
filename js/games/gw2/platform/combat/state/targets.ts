@@ -1,5 +1,4 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 /** Normalizes configured and runtime target conditions behind canonical stack queries. */
@@ -205,18 +204,32 @@ export function targetHasCondition(
   return targetConditionStacks(config, name, at, runtime) > 0;
 }
 
-export interface Gw2TargetConfig extends SchedulerRecord {
+export interface Gw2TargetConfig {
   readonly conditions?: Readonly<Record<string, number | boolean>>;
   readonly health?: number;
   readonly startingHealthFraction?: number;
+  /** Remaining health as a fraction of maximum, when a caller configures it directly. */
+  readonly healthFraction?: number;
   readonly armor?: number;
+  readonly count?: number;
   readonly moving?: boolean;
+  /** A defiant golem never rotates, so it also stands in for flanking and behind-the-target bonuses. */
+  readonly defiant?: boolean;
+  readonly distance?: number;
+  readonly nearby?: boolean;
+  readonly boonless?: boolean;
+  /** Boons the target carries; professions read either the list or the plain count. */
+  readonly boons?: Readonly<Record<string, number | boolean>> | readonly string[];
+  readonly boonCount?: number;
+  /** Whether the target is casting; drives interrupt and activation-dependent rules. */
+  readonly activatingSkills?: boolean;
   readonly confusionActivationsPerSecond?: number;
   readonly disabled?: boolean;
+  readonly controlled?: boolean;
   readonly defianceBroken?: boolean;
 }
 
-export interface Gw2RuntimeConditionStack extends SchedulerRecord {
+export interface Gw2RuntimeConditionStack {
   readonly appliedAt?: number;
   readonly expiresAt?: number;
   readonly removedAt?: number;
@@ -224,7 +237,7 @@ export interface Gw2RuntimeConditionStack extends SchedulerRecord {
   readonly stacks?: number;
 }
 
-export interface Gw2RuntimeConditionEntry extends SchedulerRecord {
+export interface Gw2RuntimeConditionEntry {
   readonly stacks: Gw2RuntimeConditionStack[];
 }
 

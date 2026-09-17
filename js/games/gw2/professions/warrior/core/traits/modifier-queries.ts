@@ -4,12 +4,12 @@ import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { boonActive, eventSkill as gw2EventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/equipment/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 
-export type WarriorModifierAttributes = SchedulerRecord & {
+export type WarriorModifierAttributes = Gw2MutableStats & {
   power: number;
   precision: number;
   ferocity: number;

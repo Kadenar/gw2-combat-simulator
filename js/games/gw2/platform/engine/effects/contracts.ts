@@ -1,5 +1,5 @@
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { EffectAudience, EffectMetadata } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);
 const AUDIENCE_FIELDS = new Set(['recipients', 'affectsSelf', 'maximumRecipients', 'eligibleCompanionIds']);
@@ -34,7 +34,7 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
     throw new TypeError('Effect audience must be an object.');
   }
 
-  const audience = value as SchedulerRecord;
+  const audience = value as UnvalidatedFields;
   const unknownFields = Object.keys(audience).filter((field) => !AUDIENCE_FIELDS.has(field));
   if (unknownFields.length) {
     throw new TypeError(
@@ -83,7 +83,7 @@ export function normalizeEffectMetadata(value: unknown): EffectMetadata | undefi
     throw new TypeError('Effect metadata must be an object.');
   }
 
-  const metadata = value as SchedulerRecord;
+  const metadata = value as UnvalidatedFields;
   const unknownFields = Object.keys(metadata).filter((field) => !METADATA_FIELDS.has(field));
   if (unknownFields.length) {
     throw new TypeError(

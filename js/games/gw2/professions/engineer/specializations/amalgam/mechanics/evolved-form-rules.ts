@@ -1,3 +1,4 @@
+import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -15,7 +16,7 @@ import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/enginee
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   EngineerEvolveAttributePool,
   EngineerMaximumAmmoContext,
@@ -56,7 +57,7 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 ] as const);
 
 /** Limits Morph-only modifiers to eligible player strike packets from Morph skills. */
-function morphStrike(context: Gw2ModifierContext): boolean {
+function morphStrike(context: EngineerModifierContext): boolean {
   return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
 }
 
@@ -102,7 +103,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 ]);
 
 /** Applies Evolve and Titanic bonuses before finalizing Sharpshooter's replacement attribute. */
-function modifyAmalgamAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)

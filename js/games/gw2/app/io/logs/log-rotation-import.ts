@@ -1,4 +1,5 @@
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface AppRotationPlayer {
@@ -13,13 +14,14 @@ interface AppRotationPlayer {
 export interface AppLogReconstructionOptions {
   readonly selectedSkillNames: readonly string[];
   readonly selectedSkillIds: readonly number[];
-  readonly professionConfig: Readonly<Record<string, unknown>>;
+  /** Build-derived profession config the reconstruction replays with; profession fields included. */
+  readonly professionConfig: Readonly<Gw2Config>;
 }
 
 /** Builds the source-neutral catalog and profession inputs used by every application log importer. */
 export function appLogReconstructionOptions(
   app: ProfessionAppState,
-  fallbackProfessionConfig: Readonly<Record<string, unknown>> = {}
+  fallbackProfessionConfig: Gw2Config = {}
 ): AppLogReconstructionOptions {
   return {
     selectedSkillNames: Object.values(app.build.selectedSkills || {}),

@@ -1,3 +1,4 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type {
   BalanceProfile,
   CanonicalCatalog,
@@ -17,7 +18,6 @@ import type {
   ScheduledTask,
   SchedulerContext,
   SchedulerPolicy,
-  SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
 import type { MesmerAvailableFlip, MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
@@ -27,7 +27,18 @@ import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializati
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
 import type { MesmerVirtuosoExpectedProcCandidate } from '#gw2/professions/mesmer/specializations/virtuoso/types.js';
-import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type {
+  MesmerAttackStatus,
+  MesmerCloneAttack,
+  MesmerCloneAttackScheduler,
+  MesmerDestroyClone,
+  MesmerExpectedProcCandidate,
+  MesmerExpectedProcTracker,
+  MesmerPhantasmAttackTiming,
+  MesmerPhantasmPolicy,
+  MesmerResourceController,
+  MesmerTraitDamage
+} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
   MesmerPendingResource,
   MesmerResourceDefinition,
@@ -39,17 +50,6 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type {
-  MesmerAttackStatus,
-  MesmerCloneAttack,
-  MesmerCloneAttackScheduler,
-  MesmerDestroyClone,
-  MesmerExpectedProcTracker,
-  MesmerPhantasmAttackTiming,
-  MesmerPhantasmPolicy,
-  MesmerResourceController,
-  MesmerTraitDamage
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
   MesmerActiveEmission,
   MesmerCastDetails,
@@ -110,7 +110,7 @@ export interface MesmerProjectedFlip {
   readonly persistent: boolean;
 }
 
-export interface MesmerEndState extends SchedulerRecord {
+export interface MesmerEndState {
   readonly endurance?: number;
   readonly maximumEndurance?: number;
   readonly resource: number;
@@ -146,8 +146,8 @@ export interface MesmerSchedulerTaskPayloads {
     readonly rotationIndex: number;
   };
   readonly continuumExpire: { readonly expiresAt: number };
-  readonly infiniteForge: SchedulerRecord;
-  readonly signetIllusionsPassive: SchedulerRecord;
+  readonly infiniteForge: object;
+  readonly signetIllusionsPassive: object;
 }
 
 export type MesmerSchedulerTask<TPayload extends keyof MesmerSchedulerTaskPayloads> = Omit<
@@ -164,11 +164,6 @@ export interface MesmerSpecializationSelection {
 
 export interface MesmerBuild extends Gw2Build {
   specializations?: MesmerSpecializationSelection[];
-  assumptions?: SchedulerRecord & {
-    readonly fury?: boolean;
-    readonly alacrity?: boolean;
-    readonly regeneration?: boolean;
-  };
   initialResource?: number;
 }
 
@@ -276,15 +271,17 @@ export interface MesmerRuntime {
   skillEffects: MesmerSkillEffectController;
 }
 
-export interface MesmerUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+/** UI callbacks read both live state and the named public projection fields. */
+export type MesmerUiState = Partial<MesmerProfessionState> & Partial<Omit<MesmerEndState, keyof MesmerProfessionState>>;
+
+export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<MesmerUiState>, 'build'> {
   readonly config?: Partial<MesmerConfig>;
-  readonly build?: Partial<MesmerBuild>;
-  readonly catalog?: CanonicalCatalog;
-  readonly state?: { readonly profession?: Partial<MesmerProfessionState> };
-  readonly professionState?: Partial<MesmerProfessionState>;
-  readonly value?: number;
+  readonly build?: Partial<MesmerBuild> | null;
+  readonly state?: { readonly profession?: MesmerUiState };
 }
+
+/** UI slice whose callbacks read Mesmer end-state projections. */
+export type MesmerUiSlice = Partial<ProfessionUiContract<Partial<MesmerProfessionState>>>;
 
 export interface MesmerAmbushStrike {
   readonly coefficient?: number;
@@ -386,14 +383,14 @@ export interface MesmerProfessionActionController {
 export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventInput) => unknown;
 export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;
 
-export interface MesmerRechargeContext extends SchedulerRecord {
+export interface MesmerRechargeContext {
   readonly skill: MesmerSkill;
   readonly config: MesmerConfig;
   readonly ammoCastLockout?: boolean;
   readonly mesmerRuntime?: MesmerRuntime;
 }
 
-export interface MesmerMaximumAmmoContext extends SchedulerRecord {
+export interface MesmerMaximumAmmoContext {
   readonly skill: MesmerSkill;
   readonly mesmerRuntime?: MesmerRuntime;
 }

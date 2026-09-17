@@ -7,16 +7,15 @@ import type {
   Gw2BuildAttributeRuleContext,
   Gw2AttributeEffect,
   Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { EngineerBuild } from '#gw2/professions/engineer/types.js';
+import type { EngineerBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 /** Applies Engineer trait bonuses and exposes the pre-profession conversion pool used by Amalgam. */
 export function applyEngineerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext
-): Gw2FinalizedAttributeResult {
+): EngineerFinalizedAttributeResult {
   const engineerBuild = build as EngineerBuild;
   const { conversionPool: commonConversionPool } = common.commonContext;
 

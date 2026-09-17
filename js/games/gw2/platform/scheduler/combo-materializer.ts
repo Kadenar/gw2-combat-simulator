@@ -1,3 +1,4 @@
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import {
@@ -12,7 +13,7 @@ import {
 } from '#gw2/platform/combos/events.js';
 import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 
-import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   ComboEvent,
@@ -24,12 +25,13 @@ import type {
   ComboFinisherType
 } from '#gw2/platform/combos/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
 
 const COMBO_TASK_PRIORITY = -59;
 
-interface OwnedFieldDescriptor extends SchedulerRecord {
+interface OwnedFieldDescriptor extends UnvalidatedFields {
   readonly ownerId: string;
   readonly fieldType: ComboFieldType;
   readonly startMs: number;
@@ -39,7 +41,7 @@ interface OwnedFieldDescriptor extends SchedulerRecord {
   readonly ownerActorType?: SimulationActorType;
 }
 
-interface OwnedFinisherDescriptor extends SchedulerRecord {
+interface OwnedFinisherDescriptor extends UnvalidatedFields {
   readonly ownerId: string;
   readonly finisherType: ComboFinisherType;
   readonly fieldSelectionAnchor?: ComboFieldSelectionAnchor;
@@ -60,7 +62,7 @@ function fieldDescriptors<TProfessionState extends object>(
       ? skill.comboFields
       : [];
   return descriptors
-    .filter((raw): raw is SchedulerRecord => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
+    .filter((raw): raw is UnvalidatedFields => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
     .filter((raw) => String(raw.ownerId || '').length > 0)
     .map((raw) => ({
       ...raw,
@@ -79,13 +81,13 @@ function fieldDescriptors<TProfessionState extends object>(
     }));
 }
 
-function hasEffectFinishers(effects: readonly SchedulerRecord[] | undefined): boolean {
+function hasEffectFinishers(effects: readonly UnvalidatedFields[] | undefined): boolean {
   return Boolean(
     effects?.some(
       (effect) =>
         Array.isArray(effect.comboFinishers) ||
         (Array.isArray(effect.ticks) &&
-          effect.ticks.some((tick) => Array.isArray((tick as SchedulerRecord).comboFinishers)))
+          effect.ticks.some((tick) => Array.isArray((tick as UnvalidatedFields).comboFinishers)))
     )
   );
 }
@@ -95,12 +97,12 @@ function finisherDescriptors<TProfessionState extends object>(
   event: SimulationEvent
 ): readonly OwnedFinisherDescriptor[] {
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId);
-  let descriptors: readonly Readonly<SchedulerRecord>[] = [];
+  let descriptors: readonly Readonly<UnvalidatedFields>[] = [];
   if (Array.isArray(event.comboFinishers)) {
     descriptors = event.comboFinishers;
   } else if (
     Array.isArray(skill?.comboFinishers) &&
-    !hasEffectFinishers(skill.effects as readonly SchedulerRecord[] | undefined)
+    !hasEffectFinishers(skill.effects as readonly UnvalidatedFields[] | undefined)
   ) {
     const sourceMatches = event.sourceId === skill.id;
     const actionWithoutStrikes = event.type === 'action' && !skill.effects?.some((effect) => effect.type === 'strike');
@@ -111,7 +113,7 @@ function finisherDescriptors<TProfessionState extends object>(
   }
 
   return descriptors
-    .filter((raw): raw is SchedulerRecord => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
+    .filter((raw): raw is UnvalidatedFields => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
     .filter((raw) => String(raw.ownerId || '').length > 0)
     .map((raw) => ({
       ...raw,
@@ -404,7 +406,7 @@ export function createGw2ComboMaterializer(
       produceGw2OwnedComboEvents(context, event);
     },
 
-    handleTask(context: SchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+    handleTask(context: SchedulerContext, task: ScheduledTask<MaterializeEventTaskPayload>): void {
       const event = context.eventByOrder(Number(task.payload?.eventOrder));
       if (!event) throw new TypeError('Combo materializer task requires a scheduled event.');
       if (event.type === 'combo_field') {

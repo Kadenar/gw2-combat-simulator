@@ -18,7 +18,6 @@ import {
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
   HOLOSMITH_HEAT
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -27,14 +26,14 @@ import type {
 } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
-interface PhotonForgeHeatPayload extends SchedulerRecord {
+interface PhotonForgeHeatPayload {
   readonly skillId: string | number;
   readonly skillName: string;
   readonly amount: number;
   readonly persistsOutsideForge: boolean;
 }
 
-interface PhotonForgeOverheatPenaltyPayload extends SchedulerRecord {
+interface PhotonForgeOverheatPenaltyPayload {
   readonly seconds: number;
 }
 
@@ -295,7 +294,7 @@ export function initializePhotonForgeHeat(context: EngineerSchedulerContext): vo
 /** Processes one validated passive heat or cooling tick and schedules the next tick when needed. */
 export function handlePhotonForgePassiveHeat(
   context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<SchedulerRecord>
+  task: EngineerScheduledTask<object>
 ): void {
   const state = holosmithState.from(context);
   if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;

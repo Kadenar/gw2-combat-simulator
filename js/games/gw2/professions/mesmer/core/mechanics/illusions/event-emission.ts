@@ -6,7 +6,6 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -34,7 +33,7 @@ function ownership(actorType: SimulationActorType | undefined, summonKind: Mesme
 }
 
 /** Removes authoring controls after they have been converted to standard helper arguments. */
-function supplementalFields(source: SchedulerRecord, fields: readonly string[]): SchedulerRecord {
+function supplementalFields<T extends object>(source: T, fields: readonly (keyof T)[]): Partial<T> {
   const result = { ...source };
   for (const field of fields) delete result[field];
   return result;

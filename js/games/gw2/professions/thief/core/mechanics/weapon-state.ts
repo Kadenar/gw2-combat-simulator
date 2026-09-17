@@ -125,7 +125,10 @@ export function observeThiefAxe(context: ThiefSchedulerContext, event: ThiefSimu
 }
 
 /** Keep the six newest axes for ten seconds, sharing one pool across both weapon sets. */
-export function materializeThiefAxe(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+export function materializeThiefAxe(
+  context: ThiefSchedulerContext,
+  task: ThiefScheduledTask<{ readonly eventOrder: ThiefSimulationEvent['eventOrder'] }>
+): void {
   const event = context.eventByOrder(Number(task.payload.eventOrder));
   if (!event || event.cancelled === true) return;
   const state = professionCoreState(context);

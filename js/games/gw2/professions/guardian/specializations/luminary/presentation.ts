@@ -13,7 +13,6 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,
@@ -29,7 +28,7 @@ const LUMINARY_INTERNAL_EVENT_TYPES = new Set([
 ]);
 
 function luminaryEventLogRow(
-  _context: SchedulerRecord,
+  _context: GuardianUiContext,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   // null = suppress this event from the log entirely (internal bookkeeping

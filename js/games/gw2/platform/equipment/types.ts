@@ -1,7 +1,6 @@
 /** Owns the equipment/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
-export interface Gw2Stats extends SchedulerRecord {
+export interface Gw2Stats {
   readonly power?: number;
   readonly precision?: number;
   readonly toughness?: number;
@@ -20,7 +19,10 @@ export interface Gw2Stats extends SchedulerRecord {
   readonly criticalChanceBonus?: number;
 }
 
-export interface Gw2SigilSet extends SchedulerRecord {
+/** A mutable working copy of combat attributes, as profession modifier rules build them. */
+export type Gw2MutableStats = { -readonly [Key in keyof Gw2Stats]: Gw2Stats[Key] };
+
+export interface Gw2SigilSet {
   readonly names?: readonly string[];
   readonly boonDurationBonus?: number;
   readonly criticalChanceBonus?: number;
@@ -53,7 +55,7 @@ export interface Gw2ResolvedWeaponStrength {
   readonly sampled: boolean;
 }
 
-export interface Gw2SigilProc extends SchedulerRecord {
+export interface Gw2SigilProc {
   readonly trigger: string;
   readonly cooldown: number;
   readonly effect: string;

@@ -9,12 +9,13 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionModuleDefinition } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionModuleDefinition, ProfessionHook } from '#gw2/platform/engine/profession/types.js';
+import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { toEntries } from '#kernel/core/collections.js';
 
-export interface NamedModule<TModuleState extends object = SchedulerRecord> {
+export interface NamedModule<TModuleState extends object = object> {
   readonly name: string;
   readonly module: ProfessionModuleDefinition<TModuleState>;
 }
@@ -24,7 +25,7 @@ export function assertModuleDefinition(definition: unknown): void {
     throw new TypeError('A profession module must be an object.');
   }
 
-  const candidate = definition as SchedulerRecord;
+  const candidate = definition as UnvalidatedFields;
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Profession module id is required.');
   }
@@ -33,7 +34,7 @@ export function assertModuleDefinition(definition: unknown): void {
 /**
  * Declares one independently composable profession mechanics fragment.
  */
-export function defineProfessionModule<TProfessionState extends object = SchedulerRecord>(
+export function defineProfessionModule<TProfessionState extends object = object>(
   definition: ProfessionModuleDefinition<TProfessionState>
 ): Readonly<ProfessionModuleDefinition<TProfessionState>> {
   assertModuleDefinition(definition);
@@ -170,29 +171,41 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
   return catalog;
 }
 
-function hookValues(
-  modules: readonly NamedModule<object>[],
-  container: keyof ProfessionModuleDefinition<any>,
-  name: string
-): unknown[] {
+function hookValues<
+  TContainer extends 'attributeRules' | 'castRules' | 'schedulerHooks',
+  TName extends Exclude<
+    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
+    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
+  > &
+    string
+>(modules: readonly NamedModule<object>[], container: TContainer, name: TName): ProfessionHook[] {
   return modules.flatMap((entry) => {
-    const source = entry.module[container] as SchedulerRecord | undefined;
+    const source = entry.module[container] as
+      Pick<NonNullable<ProfessionModuleDefinition[TContainer]>, TName> | undefined;
     const value = source?.[name];
-    return value == null ? [] : Array.isArray(value) ? value : [value];
+    return (value == null ? [] : Array.isArray(value) ? value : [value]) as ProfessionHook[];
   });
 }
 
-export function composeHookContainer(
+/** Retains only the requested hook slots; runtime normalization still validates each contributed handler. */
+export function composeHookContainer<
+  TContainer extends 'attributeRules' | 'castRules' | 'schedulerHooks',
+  TName extends Exclude<
+    keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
+    'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
+  > &
+    string
+>(
   modules: readonly NamedModule<object>[],
-  container: keyof ProfessionModuleDefinition<any>,
-  names: readonly string[]
-): SchedulerRecord {
+  container: TContainer,
+  names: readonly TName[]
+): Partial<Record<TName, ProfessionHook[]>> {
   return Object.fromEntries(
     names.flatMap((name) => {
       const values = hookValues(modules, container, name);
       return values.length ? [[name, values]] : [];
     })
-  );
+  ) as Partial<Record<TName, ProfessionHook[]>>;
 }
 
 export function mergeHandlerRegistries(
@@ -240,11 +253,7 @@ export function composeEventReactions(modules: readonly NamedModule<object>[]): 
   );
 }
 
-function createStateFragment(
-  entry: NamedModule<object>,
-  config: Readonly<SchedulerConfig>,
-  resolver: boolean
-): SchedulerRecord {
+function createStateFragment(entry: NamedModule<object>, config: Readonly<SchedulerConfig>, resolver: boolean): object {
   const resources = entry.module.resources;
   const factory = resolver
     ? resources?.createResolverState || resources?.createProfessionState
@@ -254,14 +263,10 @@ function createStateFragment(
     throw new TypeError(`${entry.name} state factory must return an object.`);
   }
 
-  return fragment as SchedulerRecord;
+  return fragment;
 }
 
-function createComposedState(
-  core: SchedulerRecord,
-  specializationKind: string,
-  specializationState: SchedulerRecord
-): object {
+function createComposedState(core: object, specializationKind: string, specializationState: object): object {
   for (const property of Reflect.ownKeys(core)) {
     if (property === 'core' || property === 'specialization') {
       throw new TypeError(`Core state fragment uses reserved key ${String(property)}.`);

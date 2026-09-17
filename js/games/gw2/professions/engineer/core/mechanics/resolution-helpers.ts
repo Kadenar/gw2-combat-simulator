@@ -5,7 +5,6 @@ import {
   type EnqueueGw2OwnedComboFinisherOptions
 } from '#gw2/platform/resolver/combo-resolution.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
@@ -43,7 +42,11 @@ interface ApplyConditionOptions {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
-  readonly metadata?: SchedulerRecord;
+  /** These flags are spread onto derived conditions to preserve duration and companion ownership. */
+  readonly metadata?: {
+    readonly fixedDuration?: boolean;
+    readonly engineerMech?: boolean;
+  };
 }
 
 /** Resolves an event's skill ID to Engineer-specific catalog metadata. */

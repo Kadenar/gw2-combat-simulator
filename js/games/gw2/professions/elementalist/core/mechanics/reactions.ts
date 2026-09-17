@@ -6,7 +6,6 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,7 +15,11 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistResolverEvent } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistResolverEvent,
+  ElementalistState
+} from '#gw2/professions/elementalist/types.js';
 import { PERSISTING_FLAMES_FIELD_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { isElementalistAttunement, type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
@@ -52,7 +55,10 @@ export function applyElementalistResolverAttunement(
   if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
   core.attunementEnteredAt = event.at;
 
-  const specialization = context.profession.specialization.state as SchedulerRecord;
+  // Object.hasOwn checks this optional owned field, but does not narrow the specialization union.
+  const specialization = context.profession.specialization.state as Partial<
+    Pick<ElementalistState, 'secondaryAttunement'>
+  >;
   if (Object.hasOwn(specialization, 'secondaryAttunement')) {
     specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
       ? event.secondaryAttunement

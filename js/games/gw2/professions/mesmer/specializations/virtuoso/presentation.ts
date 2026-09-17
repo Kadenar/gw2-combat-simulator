@@ -1,13 +1,8 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEffectPresentation,
-  ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { PaletteSkillAvailability, ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerUiContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const VIRTUOSO_MECHANIC_SKILLS = Object.freeze([
   ID.BLADESONG_HARMONY,
@@ -33,7 +28,7 @@ function virtuosoPaletteSkillAvailability(context: MesmerUiContext, skill: Skill
     return { available: true, message: '' };
   }
 
-  const state = (context.professionState || context.state?.profession || {}) as SchedulerRecord;
+  const state = context.professionState || context.state?.profession || {};
   const available = Number(state.resource ?? Infinity) >= 1;
   return {
     available,
@@ -41,7 +36,7 @@ function virtuosoPaletteSkillAvailability(context: MesmerUiContext, skill: Skill
   };
 }
 
-export const virtuosoUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const virtuosoUi: MesmerUiSlice = Object.freeze({
   // Deadly Blades is binary even when repeated critical hits overlap its duration.
   effectPresentations: () => [...VIRTUOSO_EFFECT_PRESENTATIONS],
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, VIRTUOSO_MECHANIC_SKILLS, 'blades'),

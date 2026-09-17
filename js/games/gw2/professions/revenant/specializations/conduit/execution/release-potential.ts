@@ -26,7 +26,6 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 function effectiveAffinity(context: RevenantSchedulerContext): number {
@@ -45,14 +44,7 @@ function targetsHit(context: RevenantCastContext, maximum = 5): number {
     1,
     Math.min(
       maximum,
-      Math.trunc(
-        Number(
-          (context.command as unknown as SchedulerRecord).targetsHit ??
-            context.config.targetsHit ??
-            context.config.targetCount ??
-            1
-        )
-      )
+      Math.trunc(Number(context.command.targetsHit ?? context.config.targetsHit ?? context.config.targetCount ?? 1))
     )
   );
 }

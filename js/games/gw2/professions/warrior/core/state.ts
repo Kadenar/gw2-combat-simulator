@@ -1,5 +1,4 @@
 import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface WarriorCoreState {
@@ -10,7 +9,7 @@ export interface WarriorCoreState {
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   autoattackChains: Record<string, SkillId>;
-  availableFlips: Record<string, number | boolean | SchedulerRecord>;
+  availableFlips: Record<string, number>;
   burstPowerExpiries: number[];
   signetMasteryExpiries: number[];
   signetOfRageNextAt: number;

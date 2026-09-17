@@ -7,11 +7,11 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type { ProfessionUiContract, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
-import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
-export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
+export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
   resourceViews: warriorAdrenalineResourceViews,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>

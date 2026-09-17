@@ -133,7 +133,10 @@ function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: Rev
   });
 }
 
-function handleSharedEmpowerment(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
+function handleSharedEmpowerment(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ readonly eventOrder: number }>
+): void {
   const cause = context.eventByOrder(Number(task.payload?.eventOrder));
   if (!cause || !isInternalCooldownReady(task.at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
   const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);

@@ -6,7 +6,6 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   RevenantScheduledTask,
   RevenantSchedulerContext,
@@ -19,7 +18,7 @@ type RevenantMechanicContext = RevenantSchedulerContext & {
   readonly skill?: RevenantSkill;
 };
 
-interface ConduitAffinityTaskPayload extends SchedulerRecord {
+interface ConduitAffinityTaskPayload {
   readonly amount: number;
 }
 

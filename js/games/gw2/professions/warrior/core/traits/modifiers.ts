@@ -1,3 +1,4 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -18,12 +19,11 @@ import {
   warriorStrengthModifierRules,
   warriorTacticsModifierRules
 } from '#gw2/professions/warrior/core/traits/index.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
-function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   result.power = Number(result.power || 0);
@@ -133,6 +133,7 @@ function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: War
 
 const DUAL_WIELD_OFFHANDS = new Set(['Axe', 'Dagger', 'Mace', 'Sword']);
 const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
+  ID.EVISCERATE,
   ID.AURA_SLICER,
   ID.KICK,
   ID.BULLS_CHARGE,

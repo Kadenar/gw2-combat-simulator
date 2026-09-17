@@ -8,7 +8,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantResolverContext, RevenantResolverEvent, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -73,7 +72,7 @@ function reactToDamage(context: RevenantResolverContext, event: RevenantResolver
   }
 }
 
-function modifyLifeSiphon(context: RevenantResolverContext, event: RevenantResolverEvent): SchedulerRecord | undefined {
+function modifyLifeSiphon(context: RevenantResolverContext, event: RevenantResolverEvent) {
   // Replace the Core-only result with the combined additive life-steal bonus, preserving any independent multiplier.
   const coreBonus = revenantLifeSiphonBonus(context, event);
   if (coreBonus == null) return;

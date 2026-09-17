@@ -1,19 +1,20 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface NecromancerWeaponSpellRecipient extends SchedulerRecord {
+export interface NecromancerWeaponSpellRecipient {
   stacks: number;
   nextAt: number;
 }
 
-export interface NecromancerWeaponSpellState extends SchedulerRecord {
+export interface NecromancerWeaponSpellState {
   readonly skillId?: SkillId;
   readonly skillName?: string;
   readonly appliedAt?: number;
   readonly expiresAt?: number;
   readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
+  /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
+  readonly alliesReceiveFullBenefit?: boolean;
 }
 
 export interface RitualistState {

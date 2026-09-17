@@ -1,16 +1,16 @@
+import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /**
  * Profession state ownership helpers. Keeps Core and active-specialization
  * state explicitly separated while providing stable public projections.
  */
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 /**
  * Flattens Core plus the active specialization solely for stable public
  * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function flattenProfessionState<TState extends object = SchedulerRecord>(professionState: unknown): TState {
+export function flattenProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
   if (!professionState || typeof professionState !== 'object') return {} as TState;
-  const runtime = professionState as SchedulerRecord;
+  const runtime = professionState as UnvalidatedFields;
   const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
   if (
     runtime.core &&
@@ -19,8 +19,8 @@ export function flattenProfessionState<TState extends object = SchedulerRecord>(
     typeof specialization.state === 'object'
   ) {
     return {
-      ...(runtime.core as SchedulerRecord),
-      ...(specialization.state as SchedulerRecord)
+      ...(runtime.core as UnvalidatedFields),
+      ...(specialization.state as UnvalidatedFields)
     } as TState;
   }
 
@@ -28,15 +28,15 @@ export function flattenProfessionState<TState extends object = SchedulerRecord>(
 }
 
 /** Flattens and deeply clones a family runtime at the scheduler/resolver boundary. */
-export function snapshotProfessionState<TState extends object = SchedulerRecord>(professionState: unknown): TState {
+export function snapshotProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
   return structuredClone(flattenProfessionState<TState>(professionState));
 }
 
 /** Restores flat snapshot fields to the specialization that declares them, otherwise Core. */
 export function restoreFlatProfessionState(coreState: object, specializationState: object, snapshot: unknown): void {
   if (!snapshot || typeof snapshot !== 'object') return;
-  const core = coreState as SchedulerRecord;
-  const specialization = specializationState as SchedulerRecord;
+  const core = coreState as DynamicFields;
+  const specialization = specializationState as DynamicFields;
   for (const [key, value] of Object.entries(snapshot)) {
     const owner = Object.hasOwn(specialization, key) ? specialization : core;
     owner[key] = structuredClone(value);
@@ -44,24 +44,24 @@ export function restoreFlatProfessionState(coreState: object, specializationStat
 }
 
 /** Reads Core state from either the nested family runtime or its legacy flat compatibility shape. */
-export function readProfessionCoreState<TCoreState extends object = SchedulerRecord>(
+export function readProfessionCoreState<TCoreState extends object = DynamicFields>(
   professionState: unknown
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
-  const state = professionState as SchedulerRecord;
+  const state = professionState as UnvalidatedFields;
   if (!Object.hasOwn(state, 'core')) return state as Partial<TCoreState>;
   return state.core && typeof state.core === 'object' ? (state.core as Partial<TCoreState>) : {};
 }
 
 /** Reads one active specialization without exposing another specialization's state shape. */
-export function readProfessionSpecializationState<TState extends object = SchedulerRecord>(
+export function readProfessionSpecializationState<TState extends object = DynamicFields>(
   professionState: unknown,
   expectedKind: string
 ): Partial<TState> | undefined {
   if (!professionState || typeof professionState !== 'object') return undefined;
-  const state = professionState as SchedulerRecord;
+  const state = professionState as UnvalidatedFields;
   if (!Object.hasOwn(state, 'specialization')) return state as Partial<TState>;
-  const specialization = state.specialization as SchedulerRecord | undefined;
+  const specialization = state.specialization as UnvalidatedFields | undefined;
   if (
     !specialization ||
     specialization.kind !== expectedKind ||
@@ -79,15 +79,15 @@ export function projectPublicProfessionState<TState extends object, TKey extends
   flatState: TState,
   keys: readonly TKey[],
   defaults?: Readonly<Partial<TState>>
-): SchedulerRecord & Pick<TState, TKey> {
-  const state = flatState as SchedulerRecord;
-  const fallback = (defaults || {}) as SchedulerRecord;
+): UnvalidatedFields & Pick<TState, TKey> {
+  const state = flatState as UnvalidatedFields;
+  const fallback = (defaults || {}) as UnvalidatedFields;
   return Object.fromEntries(
     keys.map((key) => {
       const name = String(key);
       return [name, structuredClone(Object.hasOwn(state, name) ? state[name] : fallback[name])];
     })
-  ) as SchedulerRecord & Pick<TState, TKey>;
+  ) as UnvalidatedFields & Pick<TState, TKey>;
 }
 
 type ProfessionStateContext<TRuntimeState> = {

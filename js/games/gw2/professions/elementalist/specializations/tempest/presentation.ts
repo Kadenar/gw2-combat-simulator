@@ -1,10 +1,10 @@
+import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 /**
  * Tempest UI contract: groups the four overloads on the rotation palette, and
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import type { PaletteSkillAvailability, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { PaletteSkillAvailability } from '#gw2/platform/engine/profession/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
@@ -13,10 +13,10 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
 
 // Editor-side preview of the scheduler's overload gate: non-overload skills always pass, an
 // overload requires its own attunement, and an entered attunement must have dwelled long enough.
-function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
+function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
   if (!skill.overload) return { available: true, message: '' };
-  const state = (context.professionState as SchedulerRecord | undefined) || {};
-  const build = context.build as SchedulerRecord | undefined;
+  const state = context.professionState || {};
+  const build = context.build;
   const primaryAttunement = String(state.primaryAttunement || build?.startAttunement || 'Fire');
   if (skill.attunement !== primaryAttunement) {
     return {
@@ -31,9 +31,9 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 
   // Mirror scheduler dwell rules so the palette exposes singularity as a
   // visible temporary lockout, including trait and Alacrity adjustments.
-  const assumptions = build?.assumptions as SchedulerRecord | undefined;
-  const config = context.config as SchedulerRecord | undefined;
-  const boons = config?.boons as SchedulerRecord | undefined;
+  const assumptions = build?.assumptions;
+  const config = context.config;
+  const boons = config?.boons;
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
       ? balanceProfileValueFromContext(context, PROFILE.overloads, 'durationMultiplier', 4)
@@ -49,7 +49,7 @@ function overloadPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 }
 
 /** Presentation fragment the Tempest module contributes to the elementalist UI contract. */
-export const tempestUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const tempestUi: ElementalistUiSlice = Object.freeze({
   paletteGroups: () => [
     {
       id: 'elementalist-tempest-overloads',

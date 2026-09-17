@@ -13,7 +13,7 @@ import type { NormalizedProfessionContract } from '#gw2/platform/engine/professi
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
 /** Runtime input supplied when a declarative skill mechanic reaches its scheduled timestamp. */
-export interface SkillMechanicInvocation<TProfessionState extends object = SchedulerRecord> {
+export interface SkillMechanicInvocation<TProfessionState extends object = object> {
   readonly context: SchedulerContext<TProfessionState>;
   readonly skill: Skill;
   readonly trigger: SkillMechanicTrigger;
@@ -23,15 +23,13 @@ export interface SkillMechanicInvocation<TProfessionState extends object = Sched
   readonly activationId: string;
 }
 
-export type SkillMechanicTriggerHandler<TProfessionState extends object = SchedulerRecord> = (
+export type SkillMechanicTriggerHandler<TProfessionState extends object = object> = (
   invocation: SkillMechanicInvocation<TProfessionState>
 ) => unknown;
 
-export type SchedulerRecord = Record<string, unknown>;
+export type SkillHandlerPhase<TContext extends object = object> = (context: TContext, skill: Skill) => unknown;
 
-export type SkillHandlerPhase<TContext extends object = SchedulerRecord> = (context: TContext, skill: Skill) => unknown;
-
-export interface SkillHandlerStrategy<TContext extends object = SchedulerRecord> {
+export interface SkillHandlerStrategy<TContext extends object = object> {
   readonly mode: SkillHandlerMode;
   readonly resolveMode?: (context: TContext, skill: Skill) => SkillHandlerMode;
   readonly beforeEffects?: SkillHandlerPhase<TContext>;
@@ -57,7 +55,7 @@ export interface AmmoState {
   lockoutReadyAt?: number;
 }
 
-export interface SchedulerState<TProfessionState = SchedulerRecord> {
+export interface SchedulerState<TProfessionState = object> {
   time: number;
   cooldowns: Map<SkillId, number>;
   ammo: Map<SkillId, AmmoState>;
@@ -92,6 +90,12 @@ export type ScheduledTaskHandler<TContext = unknown, TPayload = unknown> = (
   task: ScheduledTask<TPayload>
 ) => unknown;
 
+/**
+ * Registry entry for one task type. The module that schedules a task type also owns its handler and payload shape, so
+ * registries erase the payload type and dispatch hands each handler the payload scheduled under its type.
+ */
+export type RegisteredTaskHandler<TContext> = ScheduledTaskHandler<TContext, never>;
+
 export interface TaskQueue<TContext = unknown, TPayload = unknown> {
   schedule(task: ScheduledTaskInput<TPayload>): string;
   cancel(id: string | number): void;
@@ -116,7 +120,31 @@ export type AvailabilityResult =
       code: string;
     }>;
 
-export interface SchedulerConfig extends SchedulerRecord {
+/**
+ * What a recharge query carries into the profession and policy recharge rules beyond the scheduler context: the skill
+ * being queried, when it is queried, and the cast timings when the query comes from a completing cast. Professions add
+ * their own query flags on top of this.
+ */
+export interface RechargeQueryDetails {
+  readonly skill?: Skill;
+  /** Query time in simulation seconds. */
+  readonly at?: number;
+  /** Cast start for cast-bound queries; the query time otherwise. */
+  readonly start?: number;
+  readonly fullEnd?: number;
+  readonly effectiveEnd?: number;
+  readonly rechargeDuration?: number;
+  /** Queries the post-cast ammo lockout instead of the per-charge recharge. */
+  readonly ammoCastLockout?: boolean;
+}
+
+/** Scheduler context of one recharge query. */
+export type RechargeContext<TProfessionState extends object = object> = SchedulerContext<TProfessionState> &
+  RechargeQueryDetails;
+
+export interface SchedulerConfig {
+  /** Active elite specialization, or "Core"; module composition resolves the runtime from it. */
+  readonly specialization?: string;
   readonly boons?: Readonly<Record<string, boolean | number>>;
 }
 
@@ -133,13 +161,13 @@ export interface CooldownController {
 }
 
 export interface SchedulerTaskAccess {
-  schedule(task: ScheduledTaskInput<SchedulerRecord>): string;
+  schedule(task: ScheduledTaskInput<object>): string;
   cancel(id: string | number): void;
   cancelOwner(ownerId: string | number): void;
   nextAt(type?: string): number;
 }
 
-export interface SchedulerPolicy<TProfessionState extends object = SchedulerRecord> {
+export interface SchedulerPolicy<TProfessionState extends object = object> {
   /** Earliest next input after transition recovery, independent of each skill's cast lane. */
   readonly inputReadyAt?: (context: SchedulerContext<TProfessionState>, at: number) => number;
   readonly initialWeaponSet?: (input: {
@@ -158,12 +186,12 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     duration: number
   ) => number | undefined;
   readonly rechargeDuration?: (
-    context: SchedulerContext<TProfessionState> & SchedulerRecord,
+    context: RechargeContext<TProfessionState>,
     skill: Skill,
     duration: number
   ) => number | undefined;
   readonly rechargeReduction?: (
-    context: SchedulerContext<TProfessionState> & SchedulerRecord,
+    context: RechargeContext<TProfessionState>,
     skill: Skill,
     reduction: number
   ) => number | undefined;
@@ -173,13 +201,12 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     maximum: number
   ) => number | undefined;
   readonly effectTiming?: (
-    context: SchedulerContext<TProfessionState> &
-      SchedulerRecord & {
-        skill: Skill;
-        start: number;
-        fullEnd: number;
-        effectiveEnd: number;
-      },
+    context: SchedulerContext<TProfessionState> & {
+      skill: Skill;
+      start: number;
+      fullEnd: number;
+      effectiveEnd: number;
+    },
     skill: Skill,
     effect: SkillEffect
   ) => SkillEffect | undefined;
@@ -205,12 +232,10 @@ export interface SchedulerPolicy<TProfessionState extends object = SchedulerReco
     replacement: SimulationEvent
   ) => void;
   readonly advance?: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
-  readonly taskHandlers?: Readonly<
-    Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>>
-  >;
+  readonly taskHandlers?: Readonly<Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>>>;
 }
 
-export interface SchedulerContext<TProfessionState extends object = SchedulerRecord> {
+export interface SchedulerContext<TProfessionState extends object = object> {
   readonly profession: NormalizedProfessionContract<TProfessionState>;
   readonly config: SchedulerConfig;
   readonly catalog: CanonicalCatalog;
@@ -228,7 +253,7 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   cooldownController: CooldownController;
   castDurationFor(context: CastContext<TProfessionState>, skill: Skill): number;
   /** Queries persistent recharge without reserving or consuming next-cast benefits. */
-  rechargeDurationFor(skill: Skill, at?: number, details?: SchedulerRecord): number;
+  rechargeDurationFor<TDetails extends RechargeQueryDetails>(skill: Skill, at?: number, details?: TDetails): number;
   maximumAmmoFor(skill: Skill): number;
   createActivationId(kind?: 'effect' | 'summon-attack' | string): string;
   advanceTo(at: number): void;
@@ -236,22 +261,21 @@ export interface SchedulerContext<TProfessionState extends object = SchedulerRec
   eventByOrder(order: number): SimulationEvent | undefined;
   emit(event: SimulationEventInput): SimulationEvent;
   /** Applies updates to the current version of a scheduled event, preserving its eventOrder identity. */
-  replaceEvent(event: SimulationEvent, updates: SchedulerRecord): SimulationEvent;
+  replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventInput>): SimulationEvent;
   emitDerived(cause: SimulationEvent, event: SimulationEventInput): SimulationEvent;
   buffStacks(kind: string, at?: number): number;
   hasBuff(kind: string, at?: number): boolean;
 }
 
-export type CastContext<TProfessionState extends object = SchedulerRecord> = SchedulerContext<TProfessionState> &
-  SchedulerRecord & {
-    readonly command: CastCommand;
-    readonly commandIndex: number;
-    readonly skill: Skill;
-    readonly start: number;
-    readonly ammo: AmmoState | null;
-  };
+export type CastContext<TProfessionState extends object = object> = SchedulerContext<TProfessionState> & {
+  readonly command: CastCommand;
+  readonly commandIndex: number;
+  readonly skill: Skill;
+  readonly start: number;
+  readonly ammo: AmmoState | null;
+};
 
-export type CastLifecycleContext<TProfessionState extends object = SchedulerRecord> = CastContext<TProfessionState> & {
+export type CastLifecycleContext<TProfessionState extends object = object> = CastContext<TProfessionState> & {
   readonly action: SimulationEvent;
   readonly fullEnd: number;
   readonly effectiveEnd: number;
@@ -283,7 +307,7 @@ export interface SchedulerStep {
   readonly invalidReason?: string;
 }
 
-export interface SchedulerRunResult<TProfessionState extends object = SchedulerRecord> {
+export interface SchedulerRunResult<TProfessionState extends object = object> {
   readonly context: SchedulerContext<TProfessionState>;
   readonly state: SchedulerState<TProfessionState>;
   readonly events: readonly SimulationEvent[];
@@ -293,7 +317,7 @@ export interface SchedulerRunResult<TProfessionState extends object = SchedulerR
   readonly stream: ScheduledEventStream;
 }
 
-export interface Scheduler<TProfessionState extends object = SchedulerRecord> {
+export interface Scheduler<TProfessionState extends object = object> {
   readonly state: SchedulerState<TProfessionState>;
   readonly events: SimulationEvent[];
   readonly warnings: string[];

@@ -8,11 +8,10 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/type
 import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 // Populated lazily at bind time from the catalog; can't be a const because the catalog isn't available at module load.
 let beastmodeSkillIds = new Set<SkillId>();
@@ -91,12 +90,12 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
     : [];
 }
 
-export const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const soulbeastUi: RangerUiSlice = Object.freeze({
   paletteGroups,
   paletteSkillAvailability: availability,
   rotationStateSnapshot: soulbeastStateSnapshot,
   // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
-  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
     SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
 });
 

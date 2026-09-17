@@ -13,7 +13,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
@@ -22,7 +21,8 @@ import type {
   WarriorSimulationEvent,
   WarriorSkill,
   WarriorState,
-  WarriorUiContext
+  WarriorUiContext,
+  WarriorUiSlice
 } from '#gw2/professions/warrior/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -242,7 +242,7 @@ function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEf
   ];
 }
 
-export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
+export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: warriorCoreEffectPresentations,
   eventLogRow: warriorEventLogRow,

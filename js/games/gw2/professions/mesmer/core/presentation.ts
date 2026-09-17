@@ -10,12 +10,15 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerProfessionState, MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
+import type {
+  MesmerUiState,
+  MesmerResolverEvent,
+  MesmerUiContext,
+  MesmerUiSlice
+} from '#gw2/professions/mesmer/types.js';
 
 export interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';
@@ -25,15 +28,12 @@ export interface MesmerUiResourceDefinition {
   readonly pipStyle?: string;
 }
 
-type MesmerUiState = Partial<MesmerProfessionState> & { readonly resource?: number };
-
 export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
-export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState & SchedulerRecord {
-  return flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState &
-    SchedulerRecord;
+export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
+  return flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
 }
 
 /** Converts the projected millisecond Clarity duration into an active-state timer. */
@@ -114,7 +114,7 @@ const MESMER_EVENT_ROWS: Readonly<Record<string, (event: MesmerResolverEvent) =>
   });
 
 export function mesmerEventLogRow(
-  _context: SchedulerRecord,
+  _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
   const present = MESMER_EVENT_ROWS[event?.type];
@@ -124,7 +124,7 @@ export function mesmerEventLogRow(
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
-function mesmerCoreEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-compounding-power',
@@ -150,7 +150,7 @@ function mesmerCoreEffectPresentations(context: SchedulerRecord): ProfessionEffe
   ];
 }
 
-export const mesmerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,

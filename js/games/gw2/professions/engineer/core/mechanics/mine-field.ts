@@ -7,7 +7,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/index.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ConditionEffect, ConditionTick } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -19,7 +19,7 @@ function emitMineField(
   activationId: string
 ): void {
   // Precast fields keep their authored packet profile but move every mine to the combat boundary.
-  const strike = skill.effects?.find((effect) => effect.type === 'strike') as SchedulerRecord | undefined;
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
   if (strike) {
     emitSkillDamage(context, skill, {
       at,
@@ -28,13 +28,17 @@ function emitMineField(
       hits: Number(strike.hits || 1),
       name: String(strike.name || skill.name),
       actorType: 'player',
-      metadata: strike.metadata as SchedulerRecord | undefined
+      metadata: strike.metadata
     });
   }
 
-  const condition = skill.effects?.find((effect) => effect.type === 'condition') as SchedulerRecord | undefined;
-  const applications = Array.isArray(condition?.ticks) ? condition.ticks : condition ? [condition] : [];
-  for (const application of applications as SchedulerRecord[]) {
+  const condition = skill.effects?.find((effect) => effect.type === 'condition');
+  const applications: readonly (ConditionTick | ConditionEffect)[] = Array.isArray(condition?.ticks)
+    ? condition.ticks
+    : condition
+      ? [condition]
+      : [];
+  for (const application of applications) {
     emitSkillCondition(context, skill, {
       at,
       activationId,
@@ -67,7 +71,7 @@ export function duplicateGadgeteerMine(
   if (skill.id !== ID.DETONATE || event.type !== 'damage' || !hasTrait(context.config, TRAIT.GADGETEER)) return;
   // The added mine needs a separate combo attempt while sharing the original Detonate activation.
   const comboFinishers = Array.isArray(event.comboFinishers)
-    ? (event.comboFinishers as SchedulerRecord[]).map((finisher) => ({
+    ? (event.comboFinishers as readonly object[]).map((finisher) => ({
         ...finisher,
         attemptGroup: 'gadgeteer-mine'
       }))

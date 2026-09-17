@@ -1,10 +1,9 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import type { ProfessionUiContract, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RevenantUiContext } from '#gw2/professions/revenant/types.js';
+import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 // Bridges the string-keyed legend map to skill IDs; the legend map returns names, not IDs.
 const RELEASE_ID_BY_NAME: Readonly<Record<string, SkillId>> = Object.freeze({
@@ -31,7 +30,7 @@ function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshot
     : [];
 }
 
-export const conduitUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const conduitUi: RevenantUiSlice = Object.freeze({
   rotationStateSnapshot: conduitStateSnapshot,
   paletteGroups: (context: RevenantUiContext) => {
     // Release Potential variant depends on the currently active legend, so the palette rebuilds on legend swap.

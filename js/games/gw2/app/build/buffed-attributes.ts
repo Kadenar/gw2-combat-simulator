@@ -9,6 +9,7 @@ import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/bui
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
@@ -63,7 +64,9 @@ export function calculateBuffedAttributes(
   );
   const targetHealth = Number(values.targetHealth ?? 100) / 100;
   const targetConditions: Record<string, number> = {};
-  const queryConfig: Gw2Config = {
+  // Profession preview controls write their own build selections into the query config.
+  type PreviewQueryConfig = Gw2Config & { evokerElement?: string | number };
+  const queryConfig: PreviewQueryConfig = {
     ...config,
     startingWeaponSet: weaponSet,
     stats: { ...config.stats, ...activeStats },
@@ -180,7 +183,7 @@ export function calculateBuffedAttributes(
   };
 
   for (const name of PRIMARY_ATTRIBUTES) {
-    set(name, Number(stats[name[0].toLowerCase() + name.slice(1).replaceAll(' ', '')]));
+    set(name, Number(stats[(name[0].toLowerCase() + name.slice(1).replaceAll(' ', '')) as Gw2NumericStatKey]));
   }
 
   set('Critical Chance', (critical.chanceBeforeCap ?? critical.chance) * 100);

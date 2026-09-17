@@ -6,7 +6,6 @@
  * expose, so the shape a consumer sees does not change with the equipped elite spec.
  */
 import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/core/state.js';
 import {
   CATALYST_PUBLIC_END_STATE_KEYS,
@@ -43,7 +42,10 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Elementalist
 /** Projects the family aggregate while preserving the established public result shape. */
 export function projectElementalistEndState({
   schedulerState
-}: ElementalistEndStateProjectionOptions): SchedulerRecord {
+}: ElementalistEndStateProjectionOptions): Pick<
+  ElementalistState,
+  (typeof ELEMENTALIST_PUBLIC_END_STATE_KEYS)[number]
+> {
   const state = snapshotProfessionState<ElementalistState>(schedulerState.profession);
   // Waiting without another strike must still remove expired enchantments from the public result.
   if (schedulerState.profession.specialization.kind === 'Evoker') {

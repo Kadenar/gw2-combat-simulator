@@ -29,7 +29,7 @@ export function advanceScheduledCriticalProc<TProfessionState extends object>(
   opportunities = 1
 ): CriticalProcApplication | null {
   const policy = context.schedulerPolicy as unknown as Gw2SchedulerPolicy;
-  const chance = Number(policy.critical(context as SchedulerContext, event)?.chance || 0);
+  const chance = Number(policy.critical(context, event)?.chance || 0);
   const stochastic =
     (context.config as { readonly randomness?: { readonly mode?: string } }).randomness?.mode === 'stochastic';
 

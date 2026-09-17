@@ -4,7 +4,7 @@
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -61,7 +61,7 @@ function afterGraspingDarknessEffect(
 // Applies the life-force gain deferred from a committed Grasping Darkness hit.
 function handleGraspingDarknessLifeForce(
   context: NecromancerSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>
+  task: ScheduledTask<{ readonly lifeForceGain: number }>
 ): void {
   gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'grasping-darkness-hit');
 }
@@ -83,7 +83,10 @@ function afterNightfallEffect(
 }
 
 // Applies the life-force gain deferred from one committed Nightfall pulse.
-function handleNightfallLifeForce(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handleNightfallLifeForce(
+  context: NecromancerSchedulerContext,
+  task: ScheduledTask<{ readonly lifeForceGain: number }>
+): void {
   gainNecromancerLifeForce(context, Number(task.payload?.lifeForceGain || 0), task.at, 'nightfall-pulse');
 }
 

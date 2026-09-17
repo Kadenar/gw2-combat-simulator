@@ -1,3 +1,4 @@
+import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 /**
  * Renders normalized profession resource views in the rotation builder.
  *
@@ -12,8 +13,7 @@
  * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
  * density can follow the resource shape without specialization selectors.
  */
-import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionResourceView, ProfessionResourceViewContext } from '#gw2/platform/engine/profession/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -59,7 +59,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
     value: displayMode === 'pips' ? Math.floor(value) : value,
     startMaximum: Math.max(0, Number(view.startMaximum ?? maximum)),
     canStart: view.canStart !== false,
-    buildKey: String(view.buildKey || 'initialResource'),
+    buildKey: String(view.buildKey || 'initialResource') as keyof Gw2BuildResources,
     step: Math.max(0.01, Number(view.step || 1)),
     // Dense resources default to a bar; small discrete resources use pips.
     displayMode,
@@ -82,7 +82,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
  */
 export function resourceDisplayViews(
   profession: ProfessionAppContract,
-  context: SchedulerRecord
+  context: ProfessionResourceViewContext
 ): ProfessionResourceView[] {
   const views = profession.ui.resourceViews(context);
   if (!Array.isArray(views)) {
@@ -414,10 +414,12 @@ export function renderStartResource(app: ProfessionAppState): void {
   const bindStartControls = (): void => {
     element.querySelectorAll<HTMLElement>('.start-state-btn').forEach((button) => {
       button.addEventListener('click', () => {
-        const key = button.dataset.startControlKey;
+        // Start controls emit string-valued build selections owned by their profession.
+        const key = button.dataset.startControlKey as
+          'startAttunement' | 'secondaryAttunement' | 'initialUntamedState' | undefined;
         const value = button.dataset.startControlValue;
         if (!key || value == null) return;
-        app.build[key] = value;
+        (app.build as Record<typeof key, string>)[key] = value;
         app.changed();
       });
     });
@@ -465,14 +467,15 @@ export function renderStartResource(app: ProfessionAppState): void {
   element.querySelectorAll<HTMLElement>('.resource-pip').forEach((button) => {
     button.addEventListener('click', () => {
       const count = Number(button.dataset.count);
-      const key = button.dataset.resourceKey || 'initialResource';
+      // Resource keys are emitted from the typed profession resource definitions above.
+      const key = (button.dataset.resourceKey || 'initialResource') as keyof Gw2BuildResources;
       app.build[key] = count === app.build[key] ? count - 1 : count;
       app.changed();
     });
   });
   element.querySelectorAll<HTMLInputElement>('input[data-resource-key]').forEach((input) => {
     input.addEventListener('change', () => {
-      const key = input.dataset.resourceKey || 'initialResource';
+      const key = (input.dataset.resourceKey || 'initialResource') as keyof Gw2BuildResources;
       app.build[key] = Math.max(Number(input.min || 0), Math.min(Number(input.max), Number(input.value) || 0));
       app.changed();
     });

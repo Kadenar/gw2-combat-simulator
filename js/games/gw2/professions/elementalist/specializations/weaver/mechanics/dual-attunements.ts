@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -260,7 +260,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       rechargeDuration: elementalistAttunementRechargeDuration(context, baseRecharge)
     });
     // Claim the transition so Core does not also run its single-attunement swap.
-    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
+    context.elementalistAttunementHandled = true;
   }
 
   applyWeaverPistolState(context, skill);

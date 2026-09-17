@@ -11,8 +11,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2ApplicationBuild, UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
 
 import type {
   ElementalistApplicationBuild,
@@ -159,8 +158,8 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
 });
 
 // Treats anything that is not a plain object as an empty record.
-function record(value: unknown): SchedulerRecord {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as SchedulerRecord) : {};
+function record(value: unknown): UnvalidatedBuildRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as UnvalidatedBuildRecord) : {};
 }
 
 /** Upgrades any stored or partial build to the current canonical shape, filling defaults. */

@@ -20,11 +20,11 @@ import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/s
 
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
-interface LarcenousTormentTaskPayload extends Record<string, unknown> {
+interface LarcenousTormentTaskPayload {
   readonly stacks: number;
 }
 
-interface DarkSentryTaskPayload extends Record<string, unknown> {
+interface DarkSentryTaskPayload {
   readonly maximumRecipients?: number;
   readonly allyIndices?: readonly number[];
 }

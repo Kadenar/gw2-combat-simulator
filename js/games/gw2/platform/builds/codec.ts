@@ -11,7 +11,7 @@ import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/n
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+
 import type {
   Gw2ApplicationBuild,
   Gw2BuildCodec,
@@ -21,7 +21,8 @@ import type {
   Gw2BuildInfusion,
   Gw2BuildSpecialization,
   Gw2BuildValidationOptions,
-  Gw2CanonicalBuild
+  Gw2CanonicalBuild,
+  UnvalidatedBuildRecord
 } from '#gw2/platform/builds/types.js';
 import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
 
@@ -250,7 +251,10 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 function validateExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild>(
   descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
 ): void {
-  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+  for (const [field, descriptor] of Object.entries(descriptors) as [
+    Extract<keyof TBuild, string>,
+    Gw2BuildExtraFieldDescriptor
+  ][]) {
     if (!descriptor || !['number', 'integer', 'enum'].includes(descriptor.type)) {
       throw new TypeError(`Extra build field ${field} requires a supported descriptor type.`);
     }
@@ -279,25 +283,39 @@ function validateExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild>(
  */
 function normalizeExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   build: TBuild,
-  saved: SchedulerRecord,
+  saved: UnvalidatedBuildRecord,
   defaults: TBuild,
   descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
 ): TBuild {
-  const normalized: SchedulerRecord = { ...build };
-  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+  // Descriptor keys belong to TBuild; normalization restores each declared numeric or enum field.
+  const normalized = { ...build };
+  for (const [field, descriptor] of Object.entries(descriptors) as [
+    Extract<keyof TBuild, string>,
+    Gw2BuildExtraFieldDescriptor
+  ][]) {
     const configuredDefault = descriptor.defaultValue ?? defaults[field];
     const value = saved[field] ?? configuredDefault;
     if (descriptor.type === 'number') {
-      normalized[field] = boundedNumber(value, Number(configuredDefault), descriptor.minimum, descriptor.maximum);
+      normalized[field] = boundedNumber(
+        value,
+        Number(configuredDefault),
+        descriptor.minimum,
+        descriptor.maximum
+      ) as TBuild[typeof field];
     } else if (descriptor.type === 'integer') {
-      normalized[field] = boundedInteger(value, Number(configuredDefault), descriptor.minimum, descriptor.maximum);
+      normalized[field] = boundedInteger(
+        value,
+        Number(configuredDefault),
+        descriptor.minimum,
+        descriptor.maximum
+      ) as TBuild[typeof field];
     } else {
       const fallback = enumValue(configuredDefault, descriptor.values, descriptor.values[0]);
-      normalized[field] = enumValue(value, descriptor.values, fallback);
+      normalized[field] = enumValue(value, descriptor.values, fallback) as TBuild[typeof field];
     }
   }
 
-  return normalized as TBuild;
+  return normalized;
 }
 
 /**
@@ -309,7 +327,10 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   descriptors: Gw2BuildExtraFieldDescriptors<TBuild>
 ): string[] {
   const errors: string[] = [];
-  for (const [field, descriptor] of Object.entries(descriptors) as [string, Gw2BuildExtraFieldDescriptor][]) {
+  for (const [field, descriptor] of Object.entries(descriptors) as [
+    Extract<keyof TBuild, string>,
+    Gw2BuildExtraFieldDescriptor
+  ][]) {
     const value = build[field];
     let valid = false;
     if (descriptor.type === 'enum') {
@@ -336,11 +357,11 @@ function validateExtraBuildFields<TBuild extends Gw2CanonicalBuild>(
   return errors;
 }
 
-function isPlainObject(value: unknown): value is SchedulerRecord {
+function isPlainObject(value: unknown): value is UnvalidatedBuildRecord {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function plainObject(value: unknown): SchedulerRecord {
+function plainObject(value: unknown): UnvalidatedBuildRecord {
   return isPlainObject(value) ? value : {};
 }
 
@@ -451,7 +472,7 @@ function normalizeSpecializations(
 
 // Older builds stored skill IDs instead of names. Canonicalize numeric aliases
 // before catalog lookup so deleted compatibility records still migrate.
-function selectedSkillsFromLegacy(saved: SchedulerRecord, catalog: CanonicalCatalog): Record<string, string> {
+function selectedSkillsFromLegacy(saved: UnvalidatedBuildRecord, catalog: CanonicalCatalog): Record<string, string> {
   const result: Record<string, string> = {};
   const skills = (Array.isArray(saved.selectedSkillIds) ? saved.selectedSkillIds : [])
     .map((id) =>
@@ -487,7 +508,7 @@ function selectableSlotSkill(
 }
 
 function normalizeSelectedSkills(
-  saved: SchedulerRecord,
+  saved: UnvalidatedBuildRecord,
   defaults: Gw2CanonicalBuild,
   catalog: CanonicalCatalog,
   specializations: readonly Gw2BuildSpecialization[]
@@ -564,14 +585,14 @@ function migrateVersionedBuild(
   }: {
     readonly professionId: string;
     readonly schemaVersion: number;
-    readonly migrations: Readonly<Record<number, (saved: SchedulerRecord) => SchedulerRecord>>;
+    readonly migrations: Readonly<Record<number, (saved: UnvalidatedBuildRecord) => UnvalidatedBuildRecord>>;
   }
-): SchedulerRecord {
+): UnvalidatedBuildRecord {
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
     return {};
   }
 
-  const candidateBuild = candidate as SchedulerRecord;
+  const candidateBuild = candidate as UnvalidatedBuildRecord;
   // A missing profession field is treated as matching (e.g. very old saves);
   // a present but wrong profession is a hard error to prevent silent data corruption.
   if (candidateBuild.profession && candidateBuild.profession !== professionId) {
@@ -676,20 +697,20 @@ function validateSpecializations(
   }
 }
 
-function validCanonicalMilliseconds(command: SchedulerRecord, field: string): boolean {
+function validCanonicalMilliseconds(command: UnvalidatedBuildRecord, field: string): boolean {
   if (!Object.hasOwn(command, field)) return true;
   const value = Number(command[field]);
   return Number.isFinite(value) && value >= 0;
 }
 
 /** Allows any finite number (including negative) — used for combat-start concurrentOffsetMs. */
-function validCanonicalOffset(command: SchedulerRecord, field: string): boolean {
+function validCanonicalOffset(command: UnvalidatedBuildRecord, field: string): boolean {
   if (!Object.hasOwn(command, field)) return true;
   return Number.isFinite(Number(command[field]));
 }
 
 /** Field is optional; when present must be an integer ≥ 1 (used for releaseAtCharges). */
-function validCanonicalPositiveInteger(command: SchedulerRecord, field: string): boolean {
+function validCanonicalPositiveInteger(command: UnvalidatedBuildRecord, field: string): boolean {
   if (!Object.hasOwn(command, field)) return true;
   const value = Number(command[field]);
   return Number.isInteger(value) && value >= 1;
@@ -701,7 +722,7 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
     return;
   }
 
-  const candidate = command as SchedulerRecord;
+  const candidate = command as UnvalidatedBuildRecord;
   // Accept every canonical command emitted by migration while keeping cast-only payloads guarded below.
   if (!['cast', 'wait', 'combat-start', 'cooldown-reset'].includes(String(candidate.type))) {
     errors.push('rotation contains an invalid canonical command.');

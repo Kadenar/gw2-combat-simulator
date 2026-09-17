@@ -2,11 +2,9 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
 import type {
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
-  ProfessionUiContract
+  ProfessionEventLogDescriptor
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 interface TroubadourUiState {
   readonly activeInstruments?: readonly {
@@ -33,7 +31,7 @@ const TROUBADOUR_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] =
 ]);
 
 function troubadourEventLogRow(
-  _context: SchedulerRecord,
+  _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
   if (event?.type !== 'mesmer.instrument') return undefined;
@@ -47,7 +45,7 @@ function troubadourEventLogRow(
   };
 }
 
-export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const troubadourUi: MesmerUiSlice = Object.freeze({
   // Altered Chord remains a binary effect when its activation window is refreshed.
   effectPresentations: () => [...TROUBADOUR_EFFECT_PRESENTATIONS],
   eventLogRow: troubadourEventLogRow,

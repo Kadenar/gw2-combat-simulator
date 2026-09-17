@@ -9,7 +9,6 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
@@ -22,7 +21,7 @@ export interface MesmerSkillResource {
   readonly [field: string]: unknown;
 }
 
-export interface MesmerMechanic extends SchedulerRecord {
+export interface MesmerMechanic {
   readonly chaosStormPoison?: ConditionEffect;
 }
 
@@ -43,7 +42,7 @@ export type MesmerDamageGroup = Partial<MesmerStrikeEffect> & {
   readonly type?: 'strike';
 };
 
-export interface MesmerConditionApplication extends SchedulerRecord {
+export interface MesmerConditionApplication {
   readonly name: string;
   readonly duration: number;
   readonly stacks?: number;
@@ -56,7 +55,43 @@ export interface MesmerConditionApplication extends SchedulerRecord {
   readonly summonKind?: MesmerSummonKind;
 }
 
-export interface MesmerEventExtra extends SchedulerRecord {
+/** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */
+export interface MesmerEventExtra {
+  readonly cloneId?: number;
+  readonly skillName?: string;
+  readonly detail?: string;
+  readonly procType?: string;
+  readonly sourceSkill?: string;
+  readonly icon?: string;
+  readonly blade?: boolean;
+  readonly count?: number;
+  readonly multiplier?: number;
+  readonly amount?: number;
+  readonly value?: number;
+  readonly resource?: string;
+  readonly reason?: string;
+  readonly rotationIndex?: number | null;
+  readonly created?: readonly { readonly id: number; readonly weapon: string }[];
+  readonly conversionTimes?: readonly number[];
+  readonly repeat?: boolean;
+  readonly complete?: boolean;
+  readonly summonOwner?: string;
+  readonly cooldowns?: Readonly<Record<string, number>>;
+  readonly targetSkillId?: SkillId;
+  readonly targetSkillName?: string;
+  readonly reduction?: number;
+  readonly kind?: string;
+  readonly duration?: number;
+  readonly stacks?: number;
+  readonly priority?: number;
+  readonly audience?: { readonly recipients: string; readonly maximumRecipients?: number };
+  readonly weaponStrength?: number;
+  readonly damageBreakdownName?: string;
+  readonly controlKind?: string;
+  readonly persistsAfterInterrupt?: boolean;
+  readonly instrument?: string;
+  readonly expiresAt?: number;
+
   readonly name?: string;
   readonly parentSkillName?: string;
   readonly source?: string;

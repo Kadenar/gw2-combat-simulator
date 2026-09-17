@@ -2,10 +2,9 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface ThievesGuildState extends SchedulerRecord {
+export interface ThievesGuildState {
   readonly variant: string;
   readonly expiresAt: number;
 }

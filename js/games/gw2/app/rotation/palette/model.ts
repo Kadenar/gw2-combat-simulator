@@ -15,11 +15,17 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionSlotLoadoutContext } from '#gw2/app/build/types.js';
 import type {
   PaletteSkillAvailability,
+  ProfessionPaletteContext,
   ProfessionPaletteControl,
   ProfessionPaletteGroup,
+  ProfessionPaletteSkillEntry,
   ProfessionPaletteStatusIcon
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AmmoState } from '#gw2/platform/engine/execution/types.js';
+import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
+
+/** Ammo may arrive as scheduler seconds or an already projected millisecond countdown. */
+type PaletteAmmo = Partial<AmmoState> & { readonly nextChargeAt?: number; readonly remaining?: number };
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
@@ -29,7 +35,7 @@ import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-c
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
-  readonly skillEntries: SchedulerRecord[];
+  readonly skillEntries: ProfessionPaletteSkillEntry[];
   readonly color: string;
   readonly className: string;
   readonly stackId: string;
@@ -51,7 +57,10 @@ const PALETTE_ACTION_ORDER = new Map<string, number>([
  * Normalizes profession-owned palette declarations into isolated app view
  * models so generic renderers cannot mutate catalog-owned definitions.
  */
-export function paletteView(profession: ProfessionAppContract, context: SchedulerRecord): NormalizedPaletteGroup[] {
+export function paletteView(
+  profession: ProfessionAppContract,
+  context: ProfessionPaletteContext
+): NormalizedPaletteGroup[] {
   const groups = profession.ui.paletteGroups(context);
   if (!Array.isArray(groups)) {
     throw new TypeError('paletteGroups must return an array.');
@@ -180,7 +189,11 @@ interface WeaponPaletteRow {
   readonly skills: Skill[];
 }
 
-function paletteFlipAvailable(skill: Skill, availableFlips: SchedulerRecord, at: number): boolean {
+function paletteFlipAvailable(
+  skill: Skill,
+  availableFlips: NonNullable<RotationProfessionState['availableFlips']>,
+  at: number
+): boolean {
   const value = availableFlips[skill.id] ?? availableFlips[skill.name];
   return typeof value === 'number' ? value > at : Boolean(value);
 }
@@ -294,7 +307,7 @@ function paletteFlipFamilies(
   return { familyIdBySkillId, membersByFamilyId };
 }
 
-function paletteProjectionContext(app: ProfessionAppState): SchedulerRecord {
+function paletteProjectionContext(app: ProfessionAppState): ProfessionPaletteContext {
   const endState = paletteEndState(app);
   return {
     specialization: app.adapter ? activeSpecialization(app) : '',
@@ -307,7 +320,11 @@ function paletteProjectionContext(app: ProfessionAppState): SchedulerRecord {
   };
 }
 
-function paletteCandidateAvailable(app: ProfessionAppState, context: SchedulerRecord, skill: Skill): boolean | null {
+function paletteCandidateAvailable(
+  app: ProfessionAppState,
+  context: ProfessionPaletteContext,
+  skill: Skill
+): boolean | null {
   const availability = app.profession.ui?.paletteSkillAvailability;
   return typeof availability === 'function' ? availability(context, skill).available : null;
 }
@@ -336,13 +353,13 @@ function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
 export function displayedSkillTiles(
   app: ProfessionAppState,
   skills: readonly Skill[],
-  context: SchedulerRecord = paletteProjectionContext(app)
+  context: ProfessionPaletteContext = paletteProjectionContext(app)
 ): Skill[] {
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
   const availableFlips =
     professionState.availableFlips && typeof professionState.availableFlips === 'object'
-      ? (professionState.availableFlips as SchedulerRecord)
+      ? professionState.availableFlips
       : {};
   const at = Number(endState?.time || 0) / 1000;
   const catalogSkills = app.skills || app.activeCatalog?.skills || app.profession.catalog.skills || skills;
@@ -350,7 +367,7 @@ export function displayedSkillTiles(
   const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, skillById);
   const autoattackChains =
     professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
-      ? (professionState.autoattackChains as SchedulerRecord)
+      ? professionState.autoattackChains
       : {};
   const grouped = new Map<string, { readonly skill: Skill; readonly index: number }[]>();
 
@@ -430,7 +447,7 @@ export function displayedWeaponSkills(
   app: ProfessionAppState,
   skills: readonly Skill[],
   weaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1),
-  paletteContext: SchedulerRecord = paletteProjectionContext(app)
+  paletteContext: ProfessionPaletteContext = paletteProjectionContext(app)
 ): Skill[] {
   const endState = paletteEndState(app);
   const professionState = paletteProfessionState(app);
@@ -452,7 +469,7 @@ export function displayedWeaponSkills(
 
   const isWeaponOneReplacement = (skill: Skill): boolean => skill.slot === 'Weapon_1' && isReplacementAttack(skill);
   const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
-  const availableAmbushName = String((professionState.availableAmbush as SchedulerRecord | undefined)?.name || '');
+  const availableAmbushName = String(professionState.availableAmbush?.name || '');
   const activeReplacement =
     weaponSet === activeWeaponSet
       ? projected.find((skill) => {
@@ -484,7 +501,7 @@ export function displayedWeaponSkills(
 export function weaponPaletteRows(
   app: ProfessionAppState,
   activeWeaponSet = 1,
-  context?: SchedulerRecord
+  context?: ProfessionPaletteContext
 ): WeaponPaletteRow[] {
   const rows = [1, 2]
     .map((weaponSet) => ({
@@ -517,8 +534,7 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
   const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
   const professionState = paletteProfessionState(app);
   const autoattackChains = professionState.autoattackChains;
-  const chainState =
-    autoattackChains && typeof autoattackChains === 'object' ? (autoattackChains as SchedulerRecord) : {};
+  const chainState = autoattackChains && typeof autoattackChains === 'object' ? autoattackChains : {};
   return (
     weaponSkills(app, activeWeaponSet).find(
       (skill) => skill.slot === 'Weapon_1' && !skill.ambush && autoattackChainSkillAvailable(skill, chainState)
@@ -529,7 +545,7 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
 export function paletteActionSkills(
   app: ProfessionAppState,
   specialization = activeSpecialization(app),
-  context?: SchedulerRecord
+  context?: ProfessionPaletteContext
 ): Skill[] {
   const professionState = paletteProfessionState(app);
   const actions = uniqueByName(
@@ -582,7 +598,7 @@ export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
 
 export function paletteSkillIsInstant(
   app: ProfessionAppState,
-  context: SchedulerRecord,
+  context: ProfessionPaletteContext,
   skill: Skill | null | undefined,
   name = skill?.name || ''
 ): boolean {
@@ -594,7 +610,7 @@ export function paletteSkillIsInstant(
   );
 }
 
-export interface PaletteSkillView extends SchedulerRecord {
+export interface PaletteSkillView {
   readonly name?: string;
   readonly skillId?: SkillId | null;
   readonly hotkeyAction?: string;
@@ -622,7 +638,7 @@ export interface PaletteGroupView {
 }
 
 export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
-export type PaletteContext = ProfessionSlotLoadoutContext & SchedulerRecord;
+export type PaletteContext = ProfessionSlotLoadoutContext & ProfessionPaletteContext;
 
 /** Builds the current context once for every palette render or interaction projection. */
 export function createPaletteContext(app: ProfessionAppState): PaletteContext {
@@ -648,14 +664,14 @@ function currentCooldown(
   return paletteEndState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
 }
 
-function currentAmmo(app: ProfessionAppState, skill: Skill): SchedulerRecord | null {
+function currentAmmo(app: ProfessionAppState, skill: Skill): PaletteAmmo | null {
   const endState = paletteEndState(app);
   const ammoBySkillId = endState?.ammoBySkillId;
   // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
   const rawAmmo =
     ammoBySkillId && typeof ammoBySkillId === 'object' ? ammoBySkillId[String(skill.id)] : endState?.ammo?.[skill.name];
   if (!rawAmmo || typeof rawAmmo !== 'object') return null;
-  const ammo = rawAmmo as SchedulerRecord;
+  const ammo = rawAmmo as PaletteAmmo;
   if (ammo.remaining != null) return ammo;
   // Scheduler ammo uses `nextRechargeAt` in seconds, while UI projections may
   // already expose `nextChargeAt` in milliseconds. Normalize both to UI time.
@@ -758,7 +774,7 @@ export function paletteSkillView(
 /** Projects groups and availability once so every palette layout uses the same live state. */
 export function projectPalette(app: ProfessionAppState, paletteContext: PaletteContext) {
   const spec = paletteContext.specialization;
-  const professionState = paletteContext.professionState as SchedulerRecord;
+  const professionState = paletteContext.professionState as RotationProfessionState;
   const professionGroups = paletteView(app.profession, paletteContext);
   const loadoutGroups = app.adapter.slotLoadout?.paletteGroups(paletteContext) || [];
   const renderGroups = (groups: readonly ProfessionPaletteGroup[]): RenderedPaletteGroup[] =>
@@ -817,12 +833,12 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
 
   const availableAmbush =
     professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
-      ? (professionState.availableAmbush as SchedulerRecord)
+      ? professionState.availableAmbush
       : null;
 
   const autoattackChains =
     professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
-      ? (professionState.autoattackChains as SchedulerRecord)
+      ? professionState.autoattackChains
       : {};
   const loadoutUnavailableMessage = (skill: Skill): string =>
     app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';

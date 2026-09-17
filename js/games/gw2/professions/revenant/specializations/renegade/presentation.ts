@@ -3,13 +3,8 @@ import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balan
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type {
-  ProfessionEffectPresentation,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RevenantSkill, RevenantUiContext } from '#gw2/professions/revenant/types.js';
+import type { ProfessionEffectPresentation, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
 function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
@@ -43,7 +38,7 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
 }
 
 /** Publishes Renegade effect presentation from the same patchable cap used by its mechanics. */
-function renegadeEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+function renegadeEffectPresentations(context: RevenantUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'revenant-kallas-fervor',
@@ -54,7 +49,7 @@ function renegadeEffectPresentations(context: SchedulerRecord): ProfessionEffect
   ];
 }
 
-export const renegadeUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const renegadeUi: RevenantUiSlice = Object.freeze({
   effectPresentations: renegadeEffectPresentations,
   rotationStateSnapshot: renegadeStateSnapshot,
   paletteGroups: () => [

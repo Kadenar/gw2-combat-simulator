@@ -28,7 +28,7 @@ import {
   gw2SchedulerBoonDuration
 } from '#gw2/platform/scheduler/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -63,7 +63,7 @@ export {
 
 // Payload carried by every elemental scheduler task. The two generation stamps are the
 // staleness guard; `impact`/`hitIndex` identify which hit of an action is landing.
-interface ElementalTaskPayload extends SchedulerRecord {
+interface ElementalTaskPayload {
   readonly summonGeneration: number;
   readonly actionGeneration?: number;
   readonly activationId?: string;
@@ -357,7 +357,7 @@ function startStomp(context: ElementalistSchedulerContext, at: number): void {
 // Damage metadata marking an elemental strike as independent: it uses the profile's
 // own base attributes (not inherited player stats or profession modifiers) and a
 // fixed 5% crit / 150% crit damage, so its numbers are self-contained.
-function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, baseDamage: number): SchedulerRecord {
+function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, baseDamage: number) {
   const profile = elementalRuntimeProfile(element);
   return {
     independentSummonStrike: true,
@@ -386,7 +386,7 @@ function emitStrike(
   hitIndex: number,
   totalHits: number,
   coefficient = 1,
-  fields: SchedulerRecord = {}
+  fields: { readonly summonUsesEquipmentModifiers?: boolean } = {}
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;

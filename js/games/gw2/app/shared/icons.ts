@@ -1,4 +1,3 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -65,7 +64,7 @@ export function resolveRelicIcon(label: unknown): string {
     ?.replace(/[._-]+/g, ' ')
     .trim()
     .toLowerCase();
-  const relicData = RELIC_DATA as Readonly<Record<string, SchedulerRecord>>;
+  const relicData = RELIC_DATA;
   for (const [name, relic] of Object.entries(relicData)) {
     if (
       relic.icon &&

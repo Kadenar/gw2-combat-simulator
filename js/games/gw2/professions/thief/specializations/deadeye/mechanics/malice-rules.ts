@@ -14,6 +14,7 @@ import {
   updateDeadeyeCastState
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { deadeyeTaskHandlers } from '#gw2/professions/thief/specializations/deadeye/mechanics/task-handlers.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -52,7 +53,7 @@ function activeBoonCount(context: Gw2ModifierContext): number {
 }
 
 function markedTarget(context: Gw2ModifierContext): boolean {
-  const state = thiefRuntimeSpecializationState(context, 'Deadeye');
+  const state = thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye');
   return Boolean(state.markedTargetId) && Number(state.markExpiresAt || Infinity) > context.time;
 }
 
@@ -134,7 +135,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       context.config?.relic === 'Deadeye' &&
-      Number(thiefRuntimeSpecializationState(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
+      Number(thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye').deadeyeRelicUntil || 0) > context.time
   },
   {
     id: 'thief.malicious-stealth-attack',

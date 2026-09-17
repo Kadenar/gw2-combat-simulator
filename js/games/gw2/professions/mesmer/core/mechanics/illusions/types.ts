@@ -1,4 +1,3 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 
@@ -79,9 +78,10 @@ export interface MesmerResourceController {
 
 export type MesmerExpectedProcCandidate = {
   readonly type: 'hit';
+  readonly cloneId?: SimulationEvent['cloneId'];
   readonly at: number;
   readonly event: SimulationEvent;
-} & SchedulerRecord;
+};
 
 export interface MesmerExpectedProcTracker {
   process(candidate: MesmerExpectedProcCandidate): void;

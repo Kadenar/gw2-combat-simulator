@@ -18,11 +18,11 @@ import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, PLACEHOLDER_ICON, WAIT_ICON } f
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
+  ProfessionPaletteContext,
   ProfessionPaletteControl,
   ProfessionPaletteGroup,
   ProfessionPaletteSkillRenderOptions
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export function paletteSkillHtml(view: PaletteSkillView = {}): string {
@@ -312,7 +312,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     ? `<div class="profession-palette-stack utility-palette-group" data-role="utility-palette-stack">${utilitySkillsHtml}${utilityProfessionGroups.map(renderProfessionGroup).join('')}</div>`
     : utilitySkillsHtml;
 
-  const paletteWeaponSkills = (skills: readonly Skill[], context: SchedulerRecord = {}): Skill[] =>
+  const paletteWeaponSkills = (skills: readonly Skill[], context: ProfessionPaletteContext = {}): Skill[] =>
     app.profession.ui.paletteWeaponSkills({ ...paletteContext, ...context }, skills);
   // Custom weapon layouts still receive generic availability, tooltip, and
   // interaction markup instead of rebuilding those policies themselves.

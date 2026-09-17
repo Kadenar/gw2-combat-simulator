@@ -1,3 +1,4 @@
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -19,7 +20,6 @@ import {
   targetHealthFraction
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { EngineerRechargeContext } from '#gw2/professions/engineer/types.js';
 
@@ -246,8 +246,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
 ]);
 
 /** Applies Core Engineer's static and runtime-dependent attribute changes to a fresh attribute snapshot. */
-function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = { ...attributes };
+function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified: Gw2MutableStats = { ...attributes };
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
@@ -303,7 +303,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: S
  */
 export function applyEngineerSharpshooterConditionDamage(
   context: Gw2ModifierContext,
-  attributes: SchedulerRecord
+  attributes: Gw2MutableStats
 ): void {
   if (
     !hasTrait(context, TRAIT.SHARPSHOOTER) ||

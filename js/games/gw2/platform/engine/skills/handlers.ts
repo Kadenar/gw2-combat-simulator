@@ -5,7 +5,7 @@
  * replacing handlers own emission while retaining effects as canonical profile
  * metadata; a mode resolver supports skills whose profile changes at runtime.
  */
-import type { SchedulerRecord, SkillHandlerPhase, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerPhase, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillHandlerMode } from '#gw2/platform/engine/skills/types.js';
 
 type SkillHandlerOptions<TContext extends object> = Omit<
@@ -54,13 +54,13 @@ function assertMode(mode: unknown, handlerId: string): SkillHandlerMode {
 }
 
 /** Validates and freezes authored handlers using the catalog's normalization rules. */
-export function skillHandler<TContext extends object = SchedulerRecord>(
+export function skillHandler<TContext extends object = object>(
   options: SkillHandlerOptions<TContext> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
   return normalizeSkillHandler<TContext>('<unregistered>', options);
 }
 
-export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
+export function augmentSkillHandler<TContext extends object = object>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
@@ -71,7 +71,7 @@ export function augmentSkillHandler<TContext extends object = SchedulerRecord>(
   });
 }
 
-export function replaceSkillHandler<TContext extends object = SchedulerRecord>(
+export function replaceSkillHandler<TContext extends object = object>(
   beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode' | 'beforeEffects'> = {}
 ): Readonly<SkillHandlerStrategy<TContext>> {
@@ -85,7 +85,7 @@ export function replaceSkillHandler<TContext extends object = SchedulerRecord>(
 /**
  * Validates a registered strategy while retaining its callable phases.
  */
-export function normalizeSkillHandler<TContext extends object = SchedulerRecord>(
+export function normalizeSkillHandler<TContext extends object = object>(
   handlerId: string,
   value: unknown
 ): Readonly<SkillHandlerStrategy<TContext>> {
@@ -94,7 +94,7 @@ export function normalizeSkillHandler<TContext extends object = SchedulerRecord>
   }
 
   assertFields(value, handlerId);
-  const candidate = value as Partial<SkillHandlerStrategy<TContext>> & SchedulerRecord;
+  const candidate = value as Partial<SkillHandlerStrategy<TContext>>;
   const mode = assertMode(candidate.mode, handlerId);
   if (candidate.resolveMode != null && typeof candidate.resolveMode !== 'function') {
     throw new TypeError(`Skill handler ${handlerId} resolveMode must be a function.`);
@@ -117,7 +117,7 @@ export function normalizeSkillHandler<TContext extends object = SchedulerRecord>
   return Object.freeze(strategy);
 }
 
-export function resolveSkillHandlerMode<TContext extends object = SchedulerRecord>(
+export function resolveSkillHandlerMode<TContext extends object = object>(
   strategy: SkillHandlerStrategy<TContext> | null | undefined,
   context: TContext,
   skill: Skill

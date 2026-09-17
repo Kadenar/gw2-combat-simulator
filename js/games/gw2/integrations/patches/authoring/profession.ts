@@ -1,6 +1,7 @@
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
@@ -230,11 +231,12 @@ function modulesWithModifierRules(
 export function withPatchPreview<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object
+  TSimulation extends object = object,
+  TBuild extends Gw2Build = Gw2Build
 >(
-  family: NativeProfessionContract<TModules, TPresentation, TSimulation>,
+  family: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>,
   candidatePreview: PatchPreview | null | undefined
-): NativePatchAuthoringContract<TModules, TPresentation, TSimulation> {
+): NativePatchAuthoringContract<TModules, TPresentation, TSimulation, TBuild> {
   const definition = family.nativeDefinition;
   const modules = definition.modules as readonly AnyNativeModule[];
   const preview = candidatePreview ? validatePatchPreview(candidatePreview) : null;
@@ -243,13 +245,13 @@ export function withPatchPreview<
   const modifierRules = modules.flatMap((module) => [...nativeModuleModifierRules(module)]);
   const patchAuthoring = createPatchAuthoringMetadata(definition.id, definition.name, modules, assembly.fragments);
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
-  let previewFamily: NativeProfessionContract<TModules, TPresentation, TSimulation> | null = null;
+  let previewFamily: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> | null = null;
   const familyForPreview = () => {
     if (!previewModifierRules.targets.length) return family;
     previewFamily ||= defineStableNativeProfession({
       ...definition,
       modules: modulesWithModifierRules(modules, previewModifierRules.byModule) as TModules
-    }) as NativeProfessionContract<TModules, TPresentation, TSimulation>;
+    }) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
     return previewFamily;
   };
 
@@ -285,7 +287,7 @@ export function withPatchPreview<
     return true;
   };
 
-  const resolveRuntime = (config: Readonly<SchedulerConfig> = {}) => {
+  const resolveRuntime = (config: Readonly<Gw2Config> = {}) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     const runtime =
       patchId === CURRENT_PATCH_ID ? family.resolveRuntime(config) : familyForPreview().resolveRuntime(config);
@@ -318,5 +320,5 @@ export function withPatchPreview<
     validatePatch,
     resolveRuntime,
     previewModifierRuleTargets: previewModifierRules.targets
-  }) as NativePatchAuthoringContract<TModules, TPresentation, TSimulation>;
+  }) as NativePatchAuthoringContract<TModules, TPresentation, TSimulation, TBuild>;
 }

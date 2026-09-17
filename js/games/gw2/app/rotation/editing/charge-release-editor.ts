@@ -1,5 +1,5 @@
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -134,7 +134,7 @@ function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate) => {
     if (!candidate || typeof candidate !== 'object') return [];
-    const row = candidate as SchedulerRecord;
+    const row = candidate as UnvalidatedFields;
     const charges = Number(row.charges);
     const at = Number(row.at);
     const delta = Number(row.delta);
@@ -179,7 +179,7 @@ export function openDragonSlashReleaseEditor(options: {
     insertionIndex: options.insertionIndex,
     skill: options.skill
   });
-  const projection = rawProjection && typeof rawProjection === 'object' ? (rawProjection as SchedulerRecord) : {};
+  const projection = rawProjection && typeof rawProjection === 'object' ? (rawProjection as UnvalidatedFields) : {};
   return openChargeReleaseEditor({
     anchor: options.anchor,
     skillName: String(options.skill.displayName || options.skill.name),

@@ -9,15 +9,14 @@ import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
-  ProfessionResourceView,
-  ProfessionUiContract
+  ProfessionResourceView
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   NecromancerSimulationEvent,
   NecromancerSkill,
   NecromancerState,
-  NecromancerUiContext
+  NecromancerUiContext,
+  NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -329,7 +328,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 }
 
 /** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
-export const necromancerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const necromancerCoreUi: NecromancerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Core owns both labels because the effects remain available across Necromancer specializations.
   effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],

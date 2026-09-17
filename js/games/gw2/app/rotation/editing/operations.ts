@@ -1,4 +1,4 @@
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand, CastCommand, WaitCommand } from '#gw2/platform/engine/execution/types.js';
 
 /**
  * Owns mutations of the user-authored rotation so shared timeline renderers
@@ -37,18 +37,23 @@ export function moveRotationEntry(rotation: RotationCommand[], fromIndex: number
  * are set/overwritten; keys mapped to undefined are deleted. Does not mutate
  * the input `entry`.
  */
-export function updateRotationEntry(entry: RotationCommand, changes: SchedulerRecord = {}): RotationCommand {
+type RotationEntryChanges = Partial<Omit<CastCommand, 'type' | 'skillId'> & Pick<WaitCommand, 'durationMs'>>;
+export function updateRotationEntry(entry: RotationCommand, changes: RotationEntryChanges = {}): RotationCommand {
   // Canonical commands always remain objects; undefined changes remove optional command settings.
-  const updated: SchedulerRecord = { ...entry };
-  for (const [key, value] of Object.entries(changes || {})) {
+  const updated = { ...entry };
+  for (const [key, value] of Object.entries(changes || {}) as Array<
+    [keyof RotationEntryChanges, RotationEntryChanges[keyof RotationEntryChanges]]
+  >) {
     if (value === undefined) {
-      delete updated[key];
+      delete (updated as RotationEntryChanges)[key];
     } else {
-      updated[key] = value;
+      (updated as { -readonly [Key in keyof RotationEntryChanges]: RotationEntryChanges[keyof RotationEntryChanges] })[
+        key
+      ] = value;
     }
   }
 
-  return updated as unknown as RotationCommand;
+  return updated;
 }
 
 /**

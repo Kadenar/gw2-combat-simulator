@@ -9,7 +9,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -110,9 +110,7 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
   };
 }
 
-export function rangerPetCombatMetadata(
-  context?: RangerSchedulerContext | RangerResolverContext
-): Readonly<SchedulerRecord> {
+export function rangerPetCombatMetadata(context?: RangerSchedulerContext | RangerResolverContext) {
   const attributes = rangerPetAttributes(context);
   return {
     weaponStrength: undefined,
@@ -150,11 +148,11 @@ export function prepareRangerPetEvent(
     : { ...event, summonOwner: rangerPetCompanionId(context), independentConditionOwner: true };
 }
 
-interface PetAutoTaskPayload extends SchedulerRecord {
+interface PetAutoTaskPayload {
   readonly generation: number;
 }
 
-interface PetAutoEffectTaskPayload extends SchedulerRecord {
+interface PetAutoEffectTaskPayload {
   readonly event: SimulationEventInput;
 }
 

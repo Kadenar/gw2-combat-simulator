@@ -1,5 +1,5 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#ui/results/event-log.js';
@@ -90,9 +90,7 @@ export function simulationEventLogRows(
       specialization
     }) || [];
   const resourceDefinition =
-    endState.resourceDefinition && typeof endState.resourceDefinition === 'object'
-      ? (endState.resourceDefinition as SchedulerRecord)
-      : {};
+    endState.resourceDefinition && typeof endState.resourceDefinition === 'object' ? endState.resourceDefinition : {};
   const maximumResource = Number(resourceDefinition.maximum || 0);
   const push = (
     event: SimulationEvent,
@@ -179,7 +177,7 @@ export function simulationEventLogRows(
         const reason = event.reason ? ` [${event.reason}]` : '';
         const created = (Array.isArray(event.created) ? event.created : [])
           .map((rawClone: unknown) => {
-            const clone = rawClone && typeof rawClone === 'object' ? (rawClone as SchedulerRecord) : {};
+            const clone = rawClone && typeof rawClone === 'object' ? (rawClone as UnvalidatedFields) : {};
             return `Clone #${String(clone.id ?? '')}${clone.weapon ? ` [${String(clone.weapon)}]` : ''}`;
           })
           .join(', ');

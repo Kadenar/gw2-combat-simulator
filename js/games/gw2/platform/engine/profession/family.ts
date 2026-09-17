@@ -5,12 +5,15 @@
 import type {
   NormalizedProfessionContract,
   ProfessionDefinition,
+  ProfessionAttributeRuleDefinition,
+  ProfessionSchedulerHookDefinition,
+  ProfessionSimulationDefinition,
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
   ProfessionModuleDefinition,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 import {
   ATTRIBUTE_HOOK_NAMES,
   CAST_HOOK_NAMES,
@@ -35,7 +38,7 @@ import { composeModuleUi, createProfessionFamilyUi, singleOwnerValue } from '#gw
  * The compiler is single-owner (normally Core) so GW2 damage buckets are
  * compiled once after Core and active-specialization declarations are merged.
  */
-function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): SchedulerRecord {
+function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): ProfessionAttributeRuleDefinition {
   const result = composeHookContainer(modules, 'attributeRules', ATTRIBUTE_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
     const value = entry.module.attributeRules?.modifierRules;
@@ -62,20 +65,22 @@ function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): S
   }
 
   for (const name of ATTRIBUTE_HOOK_NAMES) {
-    const hook = (compiled as SchedulerRecord)[name];
+    const hook = compiled[name];
     if (hook == null) continue;
-    result[name] = [...((result[name] as unknown[] | undefined) || []), hook];
+    result[name] = [...(result[name] || []), hook];
   }
 
   return result;
 }
 
-function composeRuntimeDefinition<TProfessionState extends object>(
-  definition: ProfessionFamilyDefinition<TProfessionState>,
+function composeRuntimeDefinition<TProfessionState extends object, TBuild extends object>(
+  definition: ProfessionFamilyDefinition<TProfessionState, TBuild>,
   modules: readonly NamedModule[]
-): ProfessionDefinition<TProfessionState> {
+): ProfessionDefinition<TProfessionState, TBuild> {
   const genericModules = modules as readonly NamedModule<object>[];
-  const schedulerHooks = composeHookContainer(genericModules, 'schedulerHooks', SCHEDULER_HOOK_NAMES);
+  const schedulerHooks: {
+    -readonly [K in keyof ProfessionSchedulerHookDefinition]: ProfessionSchedulerHookDefinition[K];
+  } = composeHookContainer(genericModules, 'schedulerHooks', SCHEDULER_HOOK_NAMES);
   schedulerHooks.taskHandlers = mergeHandlerRegistries(
     genericModules,
     (module) => module.schedulerHooks?.taskHandlers,
@@ -122,9 +127,16 @@ function composeRuntimeDefinition<TProfessionState extends object>(
  * Creates a full application-facing profession catalog with a cached
  * core-plus-one-specialization simulation resolver.
  */
-export function defineProfessionFamily<TProfessionState extends object = SchedulerRecord>(
-  definition: ProfessionFamilyDefinition<TProfessionState>
-): Readonly<ProfessionFamilyContract<TProfessionState>> {
+export function defineProfessionFamily<TProfessionState extends object = object, TBuild extends object = object>(
+  definition: ProfessionFamilyDefinition<TProfessionState, TBuild>
+): Readonly<
+  ProfessionFamilyContract<
+    TProfessionState,
+    NormalizedProfessionContract<TProfessionState, object, object, TBuild>,
+    ProfessionSimulationDefinition,
+    TBuild
+  >
+> {
   assertDefinition(definition);
   assertModuleDefinition(definition.core);
   if (definition.core.id !== 'Core') {
@@ -178,10 +190,10 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
     ui: applicationUi,
     simulation: definition.simulation
   });
-  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState>>>();
+  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>>>();
   const resolveRuntime = (
     config: Readonly<SchedulerConfig> = {}
-  ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
+  ): Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>> => {
     const specialization = String(config.specialization || 'Core').trim() || 'Core';
     if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
@@ -213,7 +225,14 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
     migrateBuild: applicationSurface.migrateBuild,
     validateBuild: applicationSurface.validateBuild,
     resolveRuntime
-  }) as Readonly<ProfessionFamilyContract<TProfessionState>>;
+  }) as Readonly<
+    ProfessionFamilyContract<
+      TProfessionState,
+      NormalizedProfessionContract<TProfessionState, object, object, TBuild>,
+      ProfessionSimulationDefinition,
+      TBuild
+    >
+  >;
 }
 
 /**
@@ -221,7 +240,7 @@ export function defineProfessionFamily<TProfessionState extends object = Schedul
  * runtime contracts pass through unchanged.
  */
 export function resolveProfessionRuntime<
-  TProfessionState extends object = SchedulerRecord,
+  TProfessionState extends object = object,
   TRuntime extends NormalizedProfessionContract<TProfessionState, object, object> =
     NormalizedProfessionContract<TProfessionState>
 >(

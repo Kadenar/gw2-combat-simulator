@@ -8,19 +8,15 @@ import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ProfessionSkillBarGroup,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionSkillBarGroup, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
-  EngineerUiSelection
+  EngineerUiSelection,
+  EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
 
 let engineerSkills: readonly EngineerSkill[] = [];
@@ -190,7 +186,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 }
 
 /** Supplies Amalgam-specific skill-bar, palette, snapshot, and event-log presentation behavior. */
-export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const amalgamUi: EngineerUiSlice = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
   assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,

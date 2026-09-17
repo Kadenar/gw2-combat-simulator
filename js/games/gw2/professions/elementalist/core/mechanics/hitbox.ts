@@ -2,7 +2,6 @@
  * Core Elementalist prepareEvent hooks: last-chance rewrites applied to outgoing
  * packets before they join the canonical scheduler timeline.
  */
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 
@@ -13,7 +12,7 @@ export function prepareElementalistHitboxEvent(
   event: SimulationEventInput
 ): SimulationEventInput {
   const preparedEvent = event;
-  const professionAssumptions = (context.config.professionAssumptions || {}) as SchedulerRecord;
+  const professionAssumptions = context.config.professionAssumptions || {};
   const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');
   if (hitboxSize !== 'small') return preparedEvent;
   const hitIndex = Number(preparedEvent.metadata?.hitboxIndex || 0);

@@ -1,3 +1,4 @@
+import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -19,8 +20,8 @@ import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
@@ -29,7 +30,7 @@ import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
 // Config/timeline are checked first because runtime may not be populated during attribute pre-computation.
-function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
+function activeBuff(context: RangerModifierContext, kind: string): boolean {
   if (context.config?.boons?.[kind]) return true;
   if (context.timeline?.timedActive(kind, context.time)) return true;
   return (context.runtime?.boons?.get(kind) || []).some(
@@ -40,13 +41,13 @@ function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
 
 // Oppressive Superiority activates when the target's HP fraction is below the player's HP fraction —
 // playerHealthFraction defaults to 1 (full HP) if unset, making the condition always false unless configured.
-function oppressiveSuperiorityActive(context: Gw2ModifierContext): boolean {
+function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
   return (
     hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) && targetHealthFraction(context) < playerHealthFraction(context)
   );
 }
 
-function beastmodeActive(context: Gw2ModifierContext): boolean {
+function beastmodeActive(context: RangerModifierContext): boolean {
   return Boolean(
     readProfessionSpecializationState<{ beastmodeActive?: boolean }>(context.runtime?.profession, 'Soulbeast')
       ?.beastmodeActive
@@ -64,9 +65,9 @@ const PACK_ALPHA_RUNTIME_ATTRIBUTES = Object.freeze([
 // Resolve the merged pet archetype's live attribute contribution, including
 // trait adjustments, without mutating the shared base stats.
 function soulbeastArchetypeAttributes(
-  context: Gw2ModifierContext,
+  context: RangerModifierContext,
   archetype: string
-): Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>> {
+): Readonly<Partial<Record<Gw2NumericStatKey, number>>> {
   switch (archetype) {
     case 'Stout':
       return {
@@ -95,7 +96,7 @@ function soulbeastArchetypeAttributes(
   }
 }
 
-function petArchetype(context: Gw2ModifierContext, active: boolean): string {
+function petArchetype(context: RangerModifierContext, active: boolean): string {
   const configured = active
     ? readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
       context.config?.selectedPet
@@ -104,11 +105,11 @@ function petArchetype(context: Gw2ModifierContext, active: boolean): string {
 }
 
 /** Reconciles Soulbeast merge attributes against the calculator's static merged baseline. */
-function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+function modifySoulbeastAttributes(context: RangerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const result = { ...attributes };
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   const merged = beastmodeActive(context);
-  const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
+  const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
 
@@ -126,7 +127,7 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
     for (const [attribute, amount] of Object.entries(
       soulbeastArchetypeAttributes(context, petArchetype(context, true))
     )) {
-      adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
+      adjust(attribute as Gw2NumericStatKey, Number(amount));
     }
   } else if (staticRulesApplied && !merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
@@ -138,18 +139,18 @@ function modifySoulbeastAttributes(context: Gw2ModifierContext, attributes: Gw2R
     for (const [attribute, amount] of Object.entries(
       SOULBEAST_ARCHETYPE_ATTRIBUTES[petArchetype(context, false)] || {}
     )) {
-      adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
+      adjust(attribute as Gw2NumericStatKey, -Number(amount));
     }
   } else if (staticRulesApplied && merged) {
     const configuredArchetype = petArchetype(context, false);
     const activeArchetype = petArchetype(context, true);
 
     for (const [attribute, amount] of Object.entries(SOULBEAST_ARCHETYPE_ATTRIBUTES[configuredArchetype] || {})) {
-      adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
+      adjust(attribute as Gw2NumericStatKey, -Number(amount));
     }
 
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, activeArchetype))) {
-      adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
+      adjust(attribute as Gw2NumericStatKey, Number(amount));
     }
 
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {

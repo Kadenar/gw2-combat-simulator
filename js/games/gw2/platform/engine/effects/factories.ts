@@ -1,17 +1,16 @@
 import type { ConditionEffect, ConditionTick, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 
 const TIMELINE_RESERVED_OPTIONS = new Set(['type', 'ticks']);
 
 /** Keeps caller metadata while protecting the canonical effect fields owned by each timeline factory. */
-function withoutTimelineFields(options: Readonly<SchedulerRecord>): SchedulerRecord {
+function withoutTimelineFields<T extends object>(options: T): Partial<T> {
   return Object.fromEntries(
     Object.entries(options).filter(([key, value]) => !TIMELINE_RESERVED_OPTIONS.has(key) && value != null)
-  );
+  ) as Partial<T>;
 }
 
 /** Describes a strike timeline where each hit owns its timing and coefficient. */
-export const strikeTimeline = (ticks: readonly StrikeTick[], options: Readonly<SchedulerRecord> = {}): StrikeEffect =>
+export const strikeTimeline = (ticks: readonly StrikeTick[], options: Partial<StrikeEffect> = {}): StrikeEffect =>
   ({
     type: 'strike',
     ticks,
@@ -21,7 +20,7 @@ export const strikeTimeline = (ticks: readonly StrikeTick[], options: Readonly<S
 /** Describes a timeline where each condition application owns its timing and payload. */
 export const conditionTimeline = (
   ticks: readonly ConditionTick[],
-  options: Readonly<SchedulerRecord> = {}
+  options: Partial<ConditionEffect> = {}
 ): ConditionEffect =>
   ({
     type: 'condition',

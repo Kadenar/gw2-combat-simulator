@@ -11,11 +11,10 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/professions/guardian/types.js';
 
 function willbenderEventLogRow(
-  _context: SchedulerRecord,
+  _context: GuardianUiContext,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   if (event.type.startsWith('guardian.willbender-')) return null; // null = explicitly suppress; internal scheduler events should not appear in the log
@@ -54,7 +53,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
 }
 
 /** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
-function willbenderEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEffectPresentation[] {
   return [
     ...[
       ['justice', 'Rushing Justice'],

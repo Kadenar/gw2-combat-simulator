@@ -5,7 +5,7 @@
  * autoattack chain carryover across attunement swaps, and the Aerial Agility flip
  * window.
  */
-import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -154,7 +154,10 @@ function clearAerialAgilityCarryover(state: ElementalistCoreState): void {
 }
 
 /** Expires only the Aerial Agility stage that originally opened this five-second window. */
-function expireAerialAgilityFlip(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function expireAerialAgilityFlip(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<{ readonly expectedSkillId: number }>
+): void {
   const expectedSkillId = Number(task.payload?.expectedSkillId);
   const state = professionCoreState(context) as ElementalistCoreState;
   if (Number(state.autoattackChains[ID.AERIAL_AGILITY]) !== expectedSkillId) return;

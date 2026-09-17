@@ -7,7 +7,7 @@ import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/ski
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
@@ -50,11 +50,11 @@ export const weaverSkillHandlers = Object.freeze({
 /** Resolves one Primordial Stance pulse against the attunements live at its timestamp. */
 export function handlePrimordialStanceTick(
   context: ElementalistSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>
+  task: ScheduledTask<{ readonly sourceId: Skill['id'] }>
 ): void {
   const core = professionCoreState(context);
   const state = weaverState.from(context);
-  const sourceId = (task.payload?.sourceId || 'primordial-stance') as Skill['id'];
+  const sourceId = task.payload?.sourceId || 'primordial-stance';
   const attunements = state.secondaryAttunement
     ? [core.primaryAttunement, state.secondaryAttunement]
     : [core.primaryAttunement];

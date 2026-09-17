@@ -1,4 +1,4 @@
-import type { ScheduledTask, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +7,7 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/comb
 import { materializeBoonRelics, materializeConditionRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2TriggerMaterializer } from '#gw2/platform/scheduler/types.js';
+import type { Gw2TriggerMaterializer, MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { createGw2CombatObserver } from '#gw2/platform/scheduler/combat-observer.js';
 import { hasStochasticCriticalFood, resolveCriticalTrigger } from '#gw2/platform/scheduler/critical-facts.js';
@@ -160,7 +160,7 @@ export function createGw2TriggerMaterializer(
         payload: { eventOrder: event.eventOrder }
       });
     },
-    handleTask(context, task: ScheduledTask<SchedulerRecord>) {
+    handleTask(context, task: ScheduledTask<MaterializeEventTaskPayload>) {
       const event = context.eventByOrder(Number(task.payload?.eventOrder));
       if (!event) throw new TypeError('Materializer task requires a scheduled event.');
       processEvent(context, event);

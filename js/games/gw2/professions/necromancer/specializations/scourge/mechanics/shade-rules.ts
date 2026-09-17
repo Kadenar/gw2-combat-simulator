@@ -1,3 +1,4 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -9,7 +10,7 @@ import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   NecromancerAmmoModifierContext,
@@ -27,7 +28,7 @@ import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mech
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Apply Scourge's static conversion and live-shade attribute bonuses from their authoritative inputs.
-function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.FELL_BEACON)) {
     // Fell Beacon converts 7% of condition damage into expertise; must use raw

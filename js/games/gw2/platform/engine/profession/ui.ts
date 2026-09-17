@@ -5,10 +5,17 @@
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
+  ProfessionChargeReleaseContext,
+  ProfessionEventLogContext,
   ProfessionModuleDefinition,
+  ProfessionPaletteActionIdentity,
+  ProfessionPaletteContext,
+  ProfessionPaletteGroup,
+  ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
 import {
   everyUiSlice,
@@ -16,6 +23,8 @@ import {
   mergeUiList,
   someUiSlice
 } from '#gw2/platform/engine/profession/ui-combinators.js';
+
+type UiCallbackName = keyof ProfessionUiContract;
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
   'effectPresentations',
@@ -25,8 +34,15 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
   'startControls',
   'targetHealthThresholds',
   'rotationStateSnapshot'
-]);
-const UI_SINGLE_CALLBACK_NAMES = Object.freeze(['weaponSkillMatchesSet']);
+] as const satisfies readonly UiCallbackName[]);
+const UI_SINGLE_CALLBACK_NAMES = Object.freeze(['weaponSkillMatchesSet'] as const satisfies readonly UiCallbackName[]);
+
+/** Selection fields composition reads from an arbitrary callback context before choosing slices. */
+interface UiSelectionCandidate {
+  readonly specialization?: unknown;
+  readonly config?: { readonly specialization?: unknown } | null;
+  readonly build?: { readonly specialization?: unknown } | null;
+}
 
 export function singleOwnerValue(
   modules: readonly NamedModule<object>[],
@@ -44,12 +60,13 @@ export function singleOwnerValue(
 export function composeModuleUi(
   modules: readonly NamedModule<object>[],
   familyUi: Partial<ProfessionUiContract> | undefined = undefined
-): Partial<ProfessionUiContract> & SchedulerRecord {
-  const ui: SchedulerRecord = {};
-  const slices = modules.map((entry) => entry.module.ui).filter((slice) => slice != null) as UiSlice[];
+): UiSlice {
+  // Callbacks are composed by name, so the slice under construction is a dynamic record until it is returned.
+  const ui: Record<string, unknown> = {};
+  const slices = modules.map((entry) => entry.module.ui).filter((slice): slice is UiSlice => slice != null);
   // Only callbacks whose policy gives the active elite precedence use this.
   const reversed = slices.slice().reverse();
-  const owns = (name: string): boolean => slices.some((slice) => typeof slice[name] === 'function');
+  const owns = (name: UiCallbackName): boolean => slices.some((slice) => typeof slice[name] === 'function');
 
   ui.assumptionControls = Object.freeze(slices.flatMap((slice) => slice.assumptionControls || []));
   for (const name of UI_LIST_CALLBACK_NAMES) {
@@ -86,9 +103,12 @@ export function composeModuleUi(
 
   for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
     if (!owns(name)) continue;
-    ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) =>
+    ui[name] = (context: ProfessionPaletteContext, skills: readonly Skill[]) =>
       slices.reduce(
-        (current, slice) => (typeof slice[name] === 'function' ? slice[name](context, current) : current),
+        (current, slice) => {
+          const project = slice[name];
+          return typeof project === 'function' ? project(context, current) : current;
+        },
         [...skills]
       );
   }
@@ -126,7 +146,7 @@ export function composeModuleUi(
   }
 
   for (const name of UI_SINGLE_CALLBACK_NAMES) {
-    const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
+    const familyCallback = familyUi?.[name];
     const callback = familyCallback ?? singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
     if (callback != null) ui[name] = callback;
   }
@@ -142,10 +162,10 @@ export function composeModuleUi(
     ui.weaponSwapChangesSet = weaponSwapChangesSet;
   }
 
-  return ui;
+  return ui as UiSlice;
 }
 
-type UiSlice = Partial<ProfessionUiContract> & SchedulerRecord;
+type UiSlice = Partial<ProfessionUiContract>;
 
 export interface ProfessionFamilyUiDefinition {
   readonly catalog: CanonicalCatalog;
@@ -156,33 +176,33 @@ export interface ProfessionFamilyUiDefinition {
 
 function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== 'object') return 'Core';
-  const candidate = context as SchedulerRecord;
-  const config = candidate.config as SchedulerRecord | undefined;
-  const build = candidate.build as SchedulerRecord | undefined;
+  const candidate = context as UiSelectionCandidate;
+  const config = candidate.config;
+  const build = candidate.build;
   return String(candidate.specialization || config?.specialization || build?.specialization || 'Core').trim() || 'Core';
 }
 
 function explicitUiSpecialization(context: unknown): string | null {
   if (!context || typeof context !== 'object') return null;
-  const candidate = context as SchedulerRecord;
-  const config = candidate.config as SchedulerRecord | undefined;
-  const build = candidate.build as SchedulerRecord | undefined;
+  const candidate = context as UiSelectionCandidate;
+  const config = candidate.config;
+  const build = candidate.build;
   const value = candidate.specialization ?? config?.specialization ?? build?.specialization;
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
 
-function normalizedCoreUiContext(context: unknown): SchedulerRecord {
+function normalizedCoreUiContext(context: unknown): object {
   if (!context || typeof context !== 'object') {
     return { specialization: 'Core', config: { specialization: 'Core' } };
   }
 
-  const candidate = context as SchedulerRecord;
+  const candidate = context as UiSelectionCandidate;
   return {
     ...candidate,
     specialization: 'Core',
     config: {
-      ...((candidate.config as SchedulerRecord | undefined) || {}),
+      ...(candidate.config || {}),
       specialization: 'Core'
     }
   };
@@ -192,7 +212,7 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
   const keys = new Set<string>();
   return values.filter((value, index) => {
     if (!value || typeof value !== 'object') return true;
-    const candidate = value as SchedulerRecord;
+    const candidate = value as { readonly id?: unknown };
     const key = candidate.id == null ? '' : String(candidate.id);
     if (!key) return true;
     if (keys.has(key)) {
@@ -211,8 +231,8 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
     ? values
         .map((value, index) => ({ value, index }))
         .sort((left, right) => {
-          const leftOrder = Number((left.value as SchedulerRecord | null)?.order ?? 0);
-          const rightOrder = Number((right.value as SchedulerRecord | null)?.order ?? 0);
+          const leftOrder = Number((left.value as { readonly order?: unknown } | null)?.order ?? 0);
+          const rightOrder = Number((right.value as { readonly order?: unknown } | null)?.order ?? 0);
           return leftOrder - rightOrder || left.index - right.index;
         })
         .map(({ value }) => value)
@@ -223,13 +243,13 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
 
   const groups = orderedValues;
   const anchorIndexes = groups.flatMap((value, index) =>
-    value && typeof value === 'object' && (value as SchedulerRecord).resourceAnchor ? [index] : []
+    value && typeof value === 'object' && (value as ProfessionPaletteGroup).resourceAnchor ? [index] : []
   );
   if (anchorIndexes.length > 1) {
     const firstIndex = anchorIndexes[0];
     const lastIndex = anchorIndexes.at(-1) as number;
-    const first = groups[firstIndex] as SchedulerRecord;
-    const last = groups[lastIndex] as SchedulerRecord;
+    const first = groups[firstIndex] as ProfessionPaletteGroup;
+    const last = groups[lastIndex] as ProfessionPaletteGroup;
     groups[firstIndex] = {
       ...first,
       skillIds: last.skillIds,
@@ -259,27 +279,24 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name)
   );
-  const active = (context: unknown): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
+  const active = (context: unknown): { readonly context: unknown; readonly slices: UiSlice[] } => {
     const requested = uiSpecialization(context);
     const specialization = definition.specializations[requested];
     if (specialization && eliteNames.has(requested)) {
       return {
-        context: context as SchedulerRecord,
+        context,
         slices: [definition.core, specialization]
       };
     }
 
     return {
-      context: requested === 'Core' ? (context as SchedulerRecord) : normalizedCoreUiContext(context),
+      context: requested === 'Core' ? context : normalizedCoreUiContext(context),
       slices: [definition.core]
     };
   };
 
   const allSlices = [definition.core, ...Object.values(definition.specializations)];
-  const scalarSlices = (
-    context: unknown,
-    skill?: Skill
-  ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
+  const scalarSlices = (context: unknown, skill?: Skill): { readonly context: unknown; readonly slices: UiSlice[] } => {
     if (explicitUiSpecialization(context)) {
       const selected = active(context);
       return {
@@ -292,23 +309,24 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     const specialization = definition.specializations[skillSpecialization];
     if (specialization && eliteNames.has(skillSpecialization)) {
       return {
-        context: context as SchedulerRecord,
+        context,
         slices: [definition.core, specialization, family]
       };
     }
 
     return {
-      context: context as SchedulerRecord,
+      context,
       slices: [...allSlices, family]
     };
   };
 
-  const ui: SchedulerRecord = {
+  // Callbacks are composed by name, so the slice under construction is a dynamic record until it is returned.
+  const ui: Record<string, unknown> = {
     assumptionControls: Object.freeze(
       deduplicateUiEntries(
         [...(family.assumptionControls || []), ...allSlices.flatMap((slice) => slice.assumptionControls || [])],
         'assumptionControls'
-      ) as SchedulerRecord[]
+      ) as ProfessionAssumptionControl[]
     )
   };
 
@@ -331,10 +349,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.eventLogRow = (
-    context: SchedulerRecord,
-    event: Parameters<NonNullable<ProfessionUiContract['eventLogRow']>>[1]
-  ) => {
+  ui.eventLogRow = (context: ProfessionEventLogContext, event: SimulationEvent) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices, family],
@@ -345,8 +360,8 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.chargeReleaseProjection = (context: SchedulerRecord) => {
-    const selected = scalarSlices(context, context.skill as Skill);
+  ui.chargeReleaseProjection = (context: ProfessionChargeReleaseContext) => {
+    const selected = scalarSlices(context, context.skill);
     return firstUiMatch(
       selected.slices,
       'chargeReleaseProjection',
@@ -356,7 +371,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {
+  ui.isPaletteSkillInstant = (context: ProfessionPaletteContext, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return someUiSlice(
       selected.slices,
@@ -366,7 +381,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.isSlotSkillSelectable = (context: SchedulerRecord, skill: Skill) => {
+  ui.isSlotSkillSelectable = (context: ProfessionPaletteContext, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return everyUiSlice(
       selected.slices,
@@ -377,16 +392,21 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   };
 
   for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
-    ui[name] = (context: SchedulerRecord, skills: readonly Skill[]) => {
+    ui[name] = (context: ProfessionPaletteContext, skills: readonly Skill[]) => {
       const selected = active(context);
+      // Core normalization keeps the caller's palette fields, so the selected context is still a palette context.
+      const selectedContext = selected.context as ProfessionPaletteContext;
       return [...selected.slices, family].reduce(
-        (current, slice) => (typeof slice[name] === 'function' ? slice[name](selected.context, current) : current),
+        (current, slice) => {
+          const project = slice[name];
+          return typeof project === 'function' ? project(selectedContext, current) : current;
+        },
         [...skills]
       );
     };
   }
 
-  ui.renderWeaponPalette = (context: SchedulerRecord) => {
+  ui.renderWeaponPalette = (context: ProfessionPaletteContext) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices.slice().reverse(), family],
@@ -397,10 +417,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.resolvePaletteAction = (
-    context: SchedulerRecord,
-    action: Parameters<ProfessionUiContract['resolvePaletteAction']>[1]
-  ) => {
+  ui.resolvePaletteAction = (context: ProfessionPaletteContext, action: ProfessionPaletteActionIdentity) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices.slice().reverse(), family],
@@ -411,7 +428,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     ) as ReturnType<ProfessionUiContract['resolvePaletteAction']>;
   };
 
-  ui.updatePaletteControl = (context: SchedulerRecord, controlId: string) => {
+  ui.updatePaletteControl = (context: ProfessionPaletteContext, controlId: string) => {
     const selected = active(context);
     return someUiSlice(
       [...selected.slices.slice().reverse(), family],
@@ -421,7 +438,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.updateSkillBarSelection = (context: SchedulerRecord, selection: SchedulerRecord) => {
+  ui.updateSkillBarSelection = (context: ProfessionPaletteContext, selection: ProfessionSkillBarSelectionChange) => {
     const selected = active(context);
     return someUiSlice(
       [...selected.slices.slice().reverse(), family],
@@ -432,7 +449,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   };
 
   for (const name of ['timelineWeaponLineTransition', 'timelineSkillIcon'] as const) {
-    ui[name] = (context: SchedulerRecord) => {
+    ui[name] = (context: ProfessionPaletteContext) => {
       const selected = active(context);
       return firstUiMatch(
         [...selected.slices.slice().reverse(), family],

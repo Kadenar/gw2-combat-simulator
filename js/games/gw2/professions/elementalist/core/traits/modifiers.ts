@@ -1,3 +1,5 @@
+import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
 /**
  * Core Elementalist damage and attribute modifiers.
  *
@@ -13,13 +15,12 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 // Modifier contexts reach core state through the runtime profession snapshot.
-function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> {
+function coreState(context: ElementalistModifierContext): Partial<ElementalistCoreState> {
   return readProfessionCoreState<ElementalistCoreState>(context.runtime?.profession);
 }
 
@@ -27,24 +28,24 @@ function coreState(context: Gw2ModifierContext): Partial<ElementalistCoreState> 
  * The attunements considered active for modifier purposes. Core has only the
  * primary; Weaver extends the returned set with its secondary attunement.
  */
-export function elementalistAttunements(context: Gw2ModifierContext): Set<string> {
+export function elementalistAttunements(context: ElementalistModifierContext): Set<string> {
   const state = coreState(context);
   return new Set([state.primaryAttunement].filter((value): value is ElementalistAttunement => value != null));
 }
 
 // Before any attunement swap is recorded, fall back to the build's start attunement.
-function primaryAttunement(context: Gw2ModifierContext): ElementalistAttunement | string {
+function primaryAttunement(context: ElementalistModifierContext): ElementalistAttunement | string {
   return coreState(context).primaryAttunement || String(context.config?.startAttunement || 'Fire');
 }
 
 // Conjure attributes belong to the wielder, including utility attacks, only during the equipped copy's lifetime.
-function wieldedConjure(context: Gw2ModifierContext): string | null {
+function wieldedConjure(context: ElementalistModifierContext): string | null {
   const state = coreState(context);
   return Number(state.conjureExpiresAt || 0) > context.time ? state.conjureEquipped || null : null;
 }
 
 /** Might stacks at the event's instant, falling back to the build's assumed might. */
-export function elementalistMightStacks(context: Gw2ModifierContext): number {
+export function elementalistMightStacks(context: ElementalistModifierContext): number {
   return Number(
     context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? context.config?.boons?.might ?? 0
   );
@@ -54,7 +55,7 @@ export function elementalistMightStacks(context: Gw2ModifierContext): number {
  * Counts stacks of a timed profession buff (Fresh Air, Persisting Flames, orb
  * buffs, specialization windows) that are live at the event's instant.
  */
-export function elementalistTimedBuffStacks(context: Gw2ModifierContext, kind: string, maximum = 25): number {
+export function elementalistTimedBuffStacks(context: ElementalistModifierContext, kind: string, maximum = 25): number {
   const applications = context.runtime?.boons?.get(kind) || [];
   return Math.min(
     maximum,
@@ -68,7 +69,7 @@ export function elementalistTimedBuffStacks(context: Gw2ModifierContext, kind: s
 // variant; express it as a ratio against the canonical Burning rate so the
 // shared condition pipeline stays untouched.
 function infernoBurningFactor(
-  context: Gw2ModifierContext,
+  context: ElementalistModifierContext,
   _target: string,
   parameters: Readonly<Record<string, number>>
 ): number {
@@ -205,11 +206,8 @@ export const elementalistCoreModifierRules: readonly Gw2ModifierRule[] = Object.
 
 // Apply live attunement, timed-buff, conjure, and signet attribute changes at
 // event time; build-time bonuses are intentionally handled upstream.
-export function modifyElementalistAttributes(
-  context: Gw2ModifierContext,
-  attributes: SchedulerRecord
-): SchedulerRecord {
-  const modified = { ...attributes };
+export function modifyElementalistAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified: Gw2MutableStats = { ...attributes };
   const primary = primaryAttunement(context);
   if (hasTrait(context, 'Empowering Flame') && primary === 'Fire') {
     modified.power =

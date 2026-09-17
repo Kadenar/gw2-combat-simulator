@@ -4,17 +4,13 @@ import {
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEventLogDescriptor,
-  ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { PaletteSkillAvailability, ProfessionEventLogDescriptor } from '#gw2/platform/engine/profession/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerSimulationEvent,
   NecromancerSkill,
-  NecromancerUiContext
+  NecromancerUiContext,
+  NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
 
 const RITUALIST_PACKET_EVENTS = new Set<string>([
@@ -54,7 +50,7 @@ function ritualistPaletteAvailability(
   };
 }
 
-export const ritualistUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const ritualistUi: NecromancerUiSlice = Object.freeze({
   eventLogRow: ritualistEventLogRow,
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {

@@ -32,13 +32,14 @@ import type {
   CastLifecycleContext,
   CooldownController,
   ScheduledTask,
+  RegisteredTaskHandler,
   ScheduledTaskHandler,
   ScheduledTaskInput,
   Scheduler,
+  RechargeQueryDetails,
   SchedulerConfig,
   SchedulerContext,
   SchedulerPolicy,
-  SchedulerRecord,
   SchedulerRunResult,
   SchedulerStep,
   SchedulerTaskAccess,
@@ -53,6 +54,20 @@ import type {
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+
+/** Payload of the core task that commits a reserved cast when its lane completes. */
+interface CastCompletionTaskPayload {
+  readonly reservationId: string;
+}
+
+/** Payload of a declarative skill mechanic trigger scheduled at cast completion. */
+interface SkillMechanicTaskPayload {
+  readonly skillId: SkillId;
+  readonly trigger: SkillMechanicTrigger;
+  readonly castStart: number;
+  readonly castEnd: number;
+  readonly activationId?: string;
+}
 
 interface CastReservation<TProfessionState extends object> {
   id: string;
@@ -206,7 +221,7 @@ function unavailable(reason: string, code = 'platform.unavailable', retryAt: num
 /**
  * Creates the profession-neutral chronological scheduler.
  */
-export function createScheduler<TProfessionState extends object = SchedulerRecord>({
+export function createScheduler<TProfessionState extends object = object>({
   profession,
   config = {},
   catalog,
@@ -327,7 +342,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   let selfStunUntil = state.time;
   let hasPreviousCast = false;
   let combatStartTime: number | null = null;
-  let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, SchedulerRecord>;
+  let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, object>;
 
   const skillFor = (requestedId: SkillId): Skill | undefined => {
     // Resolve build-selected variants before looking up the skill so aliases spend the same resource pool.
@@ -403,7 +418,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
 
       return normalized;
     },
-    replaceEvent(/** @type {SimulationEvent} */ event, /** @type {SchedulerRecord} */ updates) {
+    replaceEvent(/** @type {SimulationEvent} */ event, /** @type {Partial<SimulationEventInput>} */ updates) {
       // Hooks may retain older references; always merge into the current version of this identity.
       const current = context.eventByOrder(Number(event.eventOrder));
       if (!current) throw new TypeError('Event replacement requires a scheduled event.');
@@ -474,7 +489,11 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     return Math.max(0, Number(activeProfession.modifyCastDuration(castContext, sharedDuration) || 0));
   }
 
-  function rechargeDurationFor(skill: Skill, at = state.time, details: SchedulerRecord = {}): number {
+  function rechargeDurationFor<TDetails extends RechargeQueryDetails>(
+    skill: Skill,
+    at = state.time,
+    details: TDetails = {} as TDetails
+  ): number {
     const rechargeContext = {
       ...context,
       ...details,
@@ -574,7 +593,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     };
   }
 
-  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
+  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, CastCompletionTaskPayload> = (
     _taskContext,
     task
   ) => {
@@ -637,10 +656,10 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   };
 
   /** Dispatches one due trigger through the active profession's composed handler registry. */
-  const handleSkillMechanicTrigger: ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord> = (
-    taskContext,
-    task
-  ) => {
+  const handleSkillMechanicTrigger: ScheduledTaskHandler<
+    SchedulerContext<TProfessionState>,
+    SkillMechanicTaskPayload
+  > = (taskContext, task) => {
     const trigger = task.payload?.trigger as SkillMechanicTrigger | undefined;
     const skillId = task.payload?.skillId as SkillId | undefined;
     if (!trigger || skillId == null) return;
@@ -658,7 +677,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     });
   };
 
-  const taskHandlers: Record<string, ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>> = {
+  const taskHandlers: Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>> = {
     [CORE_CAST_COMPLETE]: completeReservation,
     ...(schedulerPolicy.taskHandlers || {}),
     ...activeProfession.taskHandlers,
@@ -668,16 +687,17 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
   };
   const activationAwareTaskHandlers: Record<
     string,
-    ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
+    ScheduledTaskHandler<SchedulerContext<TProfessionState>, object>
   > = Object.fromEntries(
     Object.entries(taskHandlers).map(([type, handler]) => [
       type,
-      (taskContext: SchedulerContext<TProfessionState>, task: ScheduledTask<SchedulerRecord>) => {
+      (taskContext: SchedulerContext<TProfessionState>, task: ScheduledTask<object>) => {
+        const payload = task.payload;
         const inheritedActivationId =
-          typeof task.payload?.activationId === 'string'
-            ? task.payload.activationId
-            : typeof task.payload?.reservationId === 'string'
-              ? task.payload.reservationId
+          payload && 'activationId' in payload && typeof payload.activationId === 'string'
+            ? payload.activationId
+            : payload && 'reservationId' in payload && typeof payload.reservationId === 'string'
+              ? payload.reservationId
               : null;
         const taskActivationId = inheritedActivationId || taskContext.createActivationId('effect');
         // Independent recurring tasks must not pass their newly generated effect ID to the next execution.
@@ -686,7 +706,8 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
             ...taskContext,
             ...activationScopedOperations(taskContext, taskActivationId, inheritedActivationId)
           },
-          task
+          // Tasks are dispatched by type, so the queued payload is the one this type's owner scheduled.
+          task as ScheduledTask<never>
         );
       }
     ])
@@ -698,7 +719,7 @@ export function createScheduler<TProfessionState extends object = SchedulerRecor
     safetyLimit: ACTION_SAFETY_LIMIT
   });
   context.tasks = Object.freeze({
-    schedule(task: ScheduledTaskInput<SchedulerRecord>) {
+    schedule(task: ScheduledTaskInput<object>) {
       if (canonicalTime(Number(task?.at)) < canonicalTime(state.time)) {
         throw new RangeError('Scheduled tasks cannot be placed before the clock.');
       }

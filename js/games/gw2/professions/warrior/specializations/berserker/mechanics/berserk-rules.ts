@@ -1,10 +1,12 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/equipment/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
@@ -61,10 +63,10 @@ function active(context: Gw2ModifierContext): boolean {
 
 // Apply Berserker's live trait and Berserk-window attribute changes without
 // mutating the shared resolved-stat object.
-function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const conversionPower = Number(context.config?.stats?.power ?? attributes.power ?? 0);
   const conversionPrecision = Number(context.config?.stats?.precision ?? attributes.precision ?? 0);
-  const result = { ...attributes } as SchedulerRecord & {
+  const result = { ...attributes } as Gw2MutableStats & {
     power: number;
     precision: number;
     ferocity: number;

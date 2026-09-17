@@ -13,7 +13,6 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { ThiefPrecastContext } from '#gw2/professions/thief/types.js';
@@ -26,7 +25,7 @@ export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCor
 
 // Return specialization state only when its runtime kind matches, preventing
 // modifier rules from interpreting another Thief module's state shape.
-export function thiefRuntimeSpecializationState<TState extends object = SchedulerRecord>(
+export function thiefRuntimeSpecializationState<TState extends object = object>(
   context: Gw2ModifierContext,
   expectedKind: string
 ): Partial<TState> {

@@ -1,16 +1,15 @@
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantChargeState, RevenantConfig, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface RevenantUpkeepState extends SchedulerRecord {
+export interface RevenantUpkeepState {
   skillId: SkillId;
   upkeepCost: number;
   startsAt?: number;
   empoweredNextPulse: boolean;
 }
 
-export interface RevenantSelfCondition extends SchedulerRecord {
+export interface RevenantSelfCondition {
   readonly condition: string;
   readonly stacks: number;
   readonly at: number;

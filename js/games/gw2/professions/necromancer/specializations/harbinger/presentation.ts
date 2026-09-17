@@ -5,13 +5,8 @@ import {
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type {
-  ProfessionResourceView,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
+import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
@@ -53,7 +48,7 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
   return items;
 }
 
-export const harbingerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const harbingerUi: NecromancerUiSlice = Object.freeze({
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.HARBINGER_SHROUD,

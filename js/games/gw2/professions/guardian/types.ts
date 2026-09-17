@@ -1,12 +1,12 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
   CastLifecycleContext,
   SchedulerContext,
-  SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata, SimulationActorType } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -76,14 +76,38 @@ export interface GuardianEndStateProjectionOptions {
   readonly resolverState?: Partial<GuardianState> | null;
 }
 
-export interface GuardianAvailabilityContext extends SchedulerRecord {
+export interface GuardianAvailabilityContext {
   readonly config?: GuardianConfig;
   readonly catalog?: CanonicalCatalog;
   readonly specialization?: string;
   readonly specializations?: GuardianConfig['specializations'];
 }
 
-export interface GuardianEventExtra extends SchedulerRecord {
+/** Fields emitted by Guardian mechanics and read by its resolver and presentation. */
+export interface GuardianEventExtra {
+  readonly virtue?: GuardianVirtue;
+  readonly passiveReadyAt?: number;
+  readonly priority?: number;
+  readonly tetherUntil?: number;
+  readonly applicationIndex?: number;
+  readonly totalApplications?: number;
+  readonly weaponSet?: number;
+  readonly mechanicSwap?: boolean;
+  readonly weaponLine?: string | null;
+  readonly activeTome?: string;
+  readonly tome?: string;
+  readonly pageCost?: number;
+  readonly pagesRemaining?: number;
+  readonly nextTomePageAt?: number;
+  readonly ashesCharges?: number;
+  readonly ashesBurnDuration?: number;
+  readonly ashesNextTriggerAt?: number;
+  readonly ashesExpiresAt?: number;
+  readonly radiantForge?: boolean;
+  readonly radiantForgeEndsAt?: number;
+  readonly radiantForgeEnteredAt?: number;
+  readonly radiantWeapon?: string;
+  readonly duration?: number;
   readonly at?: number;
   readonly source?: string;
   readonly sourceId?: SkillId;
@@ -96,7 +120,18 @@ export type GuardianEventContext = GuardianSchedulerContext & {
   readonly effectiveEnd?: number;
 };
 
-export interface GuardianStrikeFields extends SchedulerRecord {
+export interface GuardianStrikeFields {
+  readonly skillWeapon?: string;
+  readonly isSymbol?: boolean;
+  readonly triggeredBy?: string;
+  readonly activationId?: string;
+  readonly comboFields?: readonly { readonly ownerId: string; readonly fieldType: string; readonly duration: number }[];
+  readonly metadata?: EffectMetadata;
+  readonly priority?: number;
+  readonly offTarget?: boolean;
+  readonly weaponStrengthProfileId?: string;
+  readonly stackCount?: number;
+  readonly willbenderFlames?: boolean;
   readonly at: number;
   readonly sourceId: SkillId;
   readonly skillId: SkillId | null;
@@ -152,11 +187,12 @@ export interface GuardianSkill extends Skill {
   readonly tome?: string;
 }
 
-export interface GuardianUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<GuardianState>> {
   readonly config?: GuardianConfig;
   readonly state?: {
     readonly profession?: Partial<GuardianState>;
   };
-  readonly professionState?: Partial<GuardianState>;
 }
+
+/** UI slice whose callbacks read Guardian end-state projections. */
+export type GuardianUiSlice = Partial<ProfessionUiContract<Partial<GuardianState>>>;

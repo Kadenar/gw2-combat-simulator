@@ -5,7 +5,6 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,
@@ -14,7 +13,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 
 function firebrandEventLogRow(
-  _context: SchedulerRecord,
+  _context: GuardianUiContext,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   // null suppresses the row entirely; these internal bookkeeping events have no

@@ -124,7 +124,10 @@ export function observeThiefCriticalBoons(context: ThiefSchedulerContext, event:
   });
 }
 
-export function materializeThiefCriticalBoons(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+export function materializeThiefCriticalBoons(
+  context: ThiefSchedulerContext,
+  task: ThiefScheduledTask<{ readonly eventOrder: ThiefSimulationEvent['eventOrder'] }>
+): void {
   const event = context.eventByOrder(Number(task.payload.eventOrder));
   if (!event || missesTarget(event)) return;
   const state = professionCoreState(context);

@@ -5,9 +5,12 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistPrecastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+
+import type {
+  ElementalistPrecastContext,
+  ElementalistRechargeQuery,
+  ElementalistSchedulerContext
+} from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -18,7 +21,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
  * next-cast empowerments, including when queried for bulk cooldown reductions.
  */
 export function modifyElementalistRechargeDuration(
-  context: ElementalistSchedulerContext & { skill?: Skill },
+  context: ElementalistSchedulerContext & ElementalistRechargeQuery,
   duration: number
 ): number {
   const skill = context.skill;
@@ -28,7 +31,7 @@ export function modifyElementalistRechargeDuration(
   if (skill.id === ID.GLYPH_OF_ELEMENTALS) return 0;
   // Rock Barrier holds its recharge until the stored barrier is released; the
   // release handler re-requests the duration with that flag set.
-  if (skill.id === ID.ROCK_BARRIER && !(context as unknown as SchedulerRecord).rockBarrierRelease) {
+  if (skill.id === ID.ROCK_BARRIER && !context.rockBarrierRelease) {
     return 0;
   }
 

@@ -3,12 +3,11 @@ import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js'
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type {
   ProfessionPaletteActionIdentity,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RevenantUiContext } from '#gw2/professions/revenant/types.js';
+import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
 export const VINDICATOR_DODGE_AUTO_ACTION = '__vindicator_dodge_auto';
@@ -16,13 +15,13 @@ export const VINDICATOR_DODGE_AUTO_ACTION = '__vindicator_dodge_auto';
 const VINDICATOR_DODGE_AUTO_ICON =
   'https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png';
 
-function activeAutoattack(context: SchedulerRecord): Skill | null {
+function activeAutoattack(context: RevenantUiContext): Skill | null {
   // activeAutoattack may be a raw ID string rather than a Skill object; guard ensures we only return a full object.
   const skill = context.activeAutoattack;
   return skill && typeof skill === 'object' ? (skill as Skill) : null;
 }
 
-export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill | null {
+export function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | null {
   // Guard specialization first: this helper is called from shared palette code that doesn't know the spec.
   if (String(context.specialization || '') !== 'Vindicator') return null;
   // No auto-attack means there's nothing to pair a dodge with; suppress the synthetic entry.
@@ -40,7 +39,7 @@ export function vindicatorDodgeAutoPaletteSkill(context: SchedulerRecord): Skill
   };
 }
 
-export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, offsetMs = 0): RotationCommand[] {
+export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, offsetMs = 0): RotationCommand[] {
   const autoattack = activeAutoattack(context);
   if (!autoattack) return [];
   return [
@@ -57,7 +56,7 @@ export function vindicatorDodgeAutoRotationEntries(context: SchedulerRecord, off
   ];
 }
 
-function vindicatorPaletteActionSkills(context: SchedulerRecord, skills: readonly Skill[]): Skill[] {
+function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: readonly Skill[]): Skill[] {
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills
     .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
@@ -72,7 +71,7 @@ function vindicatorPaletteActionSkills(context: SchedulerRecord, skills: readonl
 }
 
 function resolveVindicatorPaletteAction(
-  context: SchedulerRecord,
+  context: RevenantUiContext,
   action: ProfessionPaletteActionIdentity
 ): RotationCommand[] | undefined {
   // Return undefined for unrecognized actions so the platform can try other resolvers.
@@ -95,7 +94,7 @@ function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnaps
     : [];
 }
 
-export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const vindicatorUi: RevenantUiSlice = Object.freeze({
   rotationStateSnapshot: vindicatorStateSnapshot,
   // Alliance has one supported skill bar; the specialization group only adds Energy Meld.
   paletteGroups: () => [

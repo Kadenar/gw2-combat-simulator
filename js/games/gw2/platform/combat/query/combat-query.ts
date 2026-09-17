@@ -17,7 +17,6 @@ import {
   runtimeTargetConditionStacks
 } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
 import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -103,7 +102,7 @@ function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | n
  * conditions, and active equipment effects chronological instead of looking
  * ahead in the completed event stream.
  */
-export function createGw2CombatQuery<TProfessionState extends object = SchedulerRecord>({
+export function createGw2CombatQuery<TProfessionState extends object = object>({
   profession,
   config = {},
   events = [],
@@ -715,7 +714,12 @@ export interface Gw2CombatQuery {
   readonly timeline: Readonly<Gw2TimelineIndex>;
 }
 
-export interface Gw2ResolvedStats extends SchedulerRecord {
+/** Keys whose resolved values support numeric attribute adjustments. */
+export type Gw2NumericStatKey = {
+  [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] extends number ? Key : never;
+}[keyof Gw2ResolvedStats];
+
+export interface Gw2ResolvedStats {
   readonly power: number;
   readonly precision: number;
   readonly toughness: number;

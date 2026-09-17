@@ -1,19 +1,18 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 
-export interface ThiefArtifactSlot extends SchedulerRecord {
+export interface ThiefArtifactSlot {
   readonly kind: ThiefArtifactKind;
   readonly skillId: SkillId;
 }
 
-export interface ThiefBackfireState extends SchedulerRecord {
+export interface ThiefBackfireState {
   readonly activeUntil: number;
   readonly skillName: string;
 }
 
-export interface ThiefAntiquarySummon extends SchedulerRecord {
+export interface ThiefAntiquarySummon {
   readonly skillId: SkillId;
   readonly name: string;
   readonly expiresAt: number;

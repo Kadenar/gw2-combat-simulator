@@ -8,7 +8,8 @@ import {
   type AutoattackChainTransitionContext
 } from '#gw2/platform/skills/autoattack-chains.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { NecromancerCastContext, NecromancerSchedulerContext } from '#gw2/professions/necromancer/types.js';
 
 const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';
@@ -16,7 +17,10 @@ const SWORD_AUTOATTACK_EXPIRY_TASK = 'necromancer.sword-autoattack-chain-expire'
 const SWORD_AUTOATTACK_RETENTION_SECONDS = 3;
 
 // Expires a sword continuation only if no newer transition has replaced the scheduled chain state.
-function expireSwordAutoattackChain(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function expireSwordAutoattackChain(
+  context: NecromancerSchedulerContext,
+  task: ScheduledTask<{ readonly root: SkillId; readonly next: SkillId }>
+): void {
   const root = Number(task.payload?.root);
   const next = Number(task.payload?.next);
   const state = professionCoreState(context);

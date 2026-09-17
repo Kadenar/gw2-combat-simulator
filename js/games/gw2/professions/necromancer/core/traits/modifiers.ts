@@ -1,3 +1,4 @@
+import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -8,13 +9,13 @@ import {
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
-  targetHealthFraction
+  targetHealthFraction,
+  vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { necromancerCastRules } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   NecromancerRechargeModifierContext,
@@ -64,7 +65,7 @@ export function necromancerTargetControlled(context: Gw2ModifierContext): boolea
 }
 
 /** Clones mutable combat attributes with the numeric fields used by Necromancer conversions. */
-export function cloneNecromancerAttributes(attributes: SchedulerRecord): SchedulerRecord & {
+export function cloneNecromancerAttributes(attributes: Gw2Stats): Gw2MutableStats & {
   power: number;
   precision: number;
   vitality: number;
@@ -73,7 +74,7 @@ export function cloneNecromancerAttributes(attributes: SchedulerRecord): Schedul
   expertise: number;
   concentration: number;
 } {
-  return { ...attributes } as SchedulerRecord & {
+  return { ...attributes } as Gw2MutableStats & {
     power: number;
     precision: number;
     vitality: number;
@@ -102,10 +103,7 @@ function playerModifierContext(context: Gw2ModifierContext): boolean {
 }
 
 /** Applies Core Necromancer static conversions and runtime-dependent attribute bonuses. */
-export function modifyNecromancerCoreAttributes(
-  context: Gw2ModifierContext,
-  attributes: SchedulerRecord
-): SchedulerRecord {
+export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   // Conversions read gear-only stats. config.stats excludes might
   // (baked into the seed's power/condition damage) and live trait bonuses
@@ -252,6 +250,14 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     factor: 1.2,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthFraction(context) < 0.5
+  },
+  {
+    // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
+    id: 'necromancer.ghastly-claws-vulnerability',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: (context) => 1 + vulnerabilityStacks(context) * 0.01,
+    when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === 'player'
   },
   {
     id: 'necromancer.necromantic-corruption',

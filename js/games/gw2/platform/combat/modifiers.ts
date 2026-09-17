@@ -1,3 +1,6 @@
+import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
@@ -7,7 +10,6 @@ import type {
 } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 interface NormalizeResolverOptions {
@@ -560,13 +562,20 @@ export type Gw2DamageModifierTarget = 'strikeDamage' | 'conditionDamage';
 
 export type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
-export interface Gw2ModifierContext extends SchedulerRecord {
+/** Modifier queries retain scheduler state and source identity when no event is available. */
+export interface Gw2ModifierContext {
+  readonly skillId?: SkillId | null;
+  readonly sourceId?: SkillId | null;
+  readonly actorType?: SimulationEvent['actorType'] | null;
+  readonly profession?: { readonly catalog?: CanonicalCatalog };
+  readonly state?: Partial<SchedulerState> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
+
   readonly config?: Gw2Config;
   readonly time: number;
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
-  readonly traits?: ReadonlySet<string | number>;
-  readonly query?: Readonly<Gw2CombatQuery>;
+  readonly traits?: ReadonlySet<string | number> | null;
+  readonly query?: Readonly<Gw2CombatQuery> | null;
   readonly timeline?: Readonly<Gw2TimelineIndex>;
   readonly events?: readonly SimulationEvent[];
   readonly runtime?: Gw2QueryRuntime | null;

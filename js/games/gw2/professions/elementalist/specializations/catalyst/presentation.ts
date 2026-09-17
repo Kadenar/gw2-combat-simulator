@@ -1,11 +1,10 @@
+import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -19,23 +18,21 @@ import {
 const CATALYST_SPHERE_COST = 10;
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));
 
-function uiState(context: SchedulerRecord): Partial<CatalystState> {
+function uiState(context: ElementalistUiContext): Partial<CatalystState> {
   return (context.professionState as Partial<CatalystState> | undefined) || {};
 }
 
 // Mirrors the scheduler availability rule for the palette: a Jade Sphere needs the
 // matching attunement and the sphere cost in energy, falling back to build defaults
 // before any simulated state exists.
-function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
+function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
   if (skill.skillFamily !== 'Jade Sphere') {
     return { available: true, message: '' };
   }
 
   const state = uiState(context);
-  const build = context.build as SchedulerRecord | undefined;
-  const primaryAttunement = String(
-    (context.professionState as SchedulerRecord | undefined)?.primaryAttunement || build?.startAttunement || 'Fire'
-  );
+  const build = context.build;
+  const primaryAttunement = String(context.professionState?.primaryAttunement || build?.startAttunement || 'Fire');
   if (skill.attunement !== primaryAttunement) {
     return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
   }
@@ -50,7 +47,7 @@ function catalystPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 
 // Empowering Auras has no stored state, so replay its buff events up to the
 // inspected time to recover the live stack count and remaining duration.
-function empoweringAurasAt(context: SchedulerRecord, at: number): { stacks: number; remaining: number } | null {
+function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks: number; remaining: number } | null {
   let expiries: number[] = [];
   const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
   for (const event of events) {
@@ -72,7 +69,7 @@ function empoweringAurasAt(context: SchedulerRecord, at: number): { stacks: numb
 }
 
 /** Shows timed Catalyst combat state that changes decisions at the inspected rotation point. */
-function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
+function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = uiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
@@ -111,7 +108,7 @@ function catalystStateSnapshot(context: SchedulerRecord): RotationStateSnapshotI
 }
 
 /** Publishes Catalyst effect presentation from its active balance profile. */
-function catalystEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+function catalystEffectPresentations(context: ElementalistUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'elementalist-elemental-empowerment',
@@ -126,7 +123,7 @@ function catalystEffectPresentations(context: SchedulerRecord): ProfessionEffect
  * Catalyst UI contract: the F5 Jade Sphere skill and palette groups, palette gating,
  * the energy resource bar, and the timed state shown at a rotation point.
  */
-export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const catalystUi: ElementalistUiSlice = Object.freeze({
   effectPresentations: catalystEffectPresentations,
   paletteGroups: () => [
     {
@@ -141,9 +138,9 @@ export const catalystUi: Partial<ProfessionUiContract> & SchedulerRecord = Objec
   ],
   paletteSkillAvailability: catalystPaletteAvailability,
   rotationStateSnapshot: catalystStateSnapshot,
-  resourceViews: (context: SchedulerRecord): ProfessionResourceView[] => {
+  resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
-    const build = context.build as SchedulerRecord | undefined;
+    const build = context.build;
     return [
       {
         id: 'catalyst-energy',

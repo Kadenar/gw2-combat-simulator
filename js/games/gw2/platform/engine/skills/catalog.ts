@@ -3,6 +3,7 @@
  * boundary where generated API data, hand-authored mechanics, explicit
  * overrides, and resolver handlers become one validated immutable lookup.
  */
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { normalizeSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
@@ -20,7 +21,7 @@ import type {
   SkillLockout,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 
 interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -129,7 +130,7 @@ const EFFECT_FIELDS = new Set([
  */
 function normalizeSkillHandlers(
   value: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | null | undefined
-): Map<string, SkillHandlerStrategy<SchedulerRecord>> {
+): Map<string, SkillHandlerStrategy> {
   return new Map(toEntries(value).map(([id, handler]) => [id, normalizeSkillHandler(id, handler)]));
 }
 
@@ -189,7 +190,7 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
     throw new TypeError('Strike tick timelines require at least one hit.');
   }
 
-  const ticks = value as SchedulerRecord[];
+  const ticks = value as UnvalidatedFields[];
   let previousAtMs = -Infinity;
   return Object.freeze(
     ticks.map((tick, index) => {
@@ -227,7 +228,7 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
     throw new TypeError('Condition tick timelines require at least one application.');
   }
 
-  const ticks = value as SchedulerRecord[];
+  const ticks = value as UnvalidatedFields[];
   let previousAtMs = -Infinity;
   return Object.freeze(
     ticks.map((tick, index) => {
@@ -273,7 +274,8 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
  * Validates one declarative effect and normalizes any embedded timelines.
  */
 function normalizeEffect(effect: unknown): SkillEffect {
-  const candidate = effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as SchedulerRecord) : null;
+  const candidate =
+    effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as UnvalidatedFields) : null;
   if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
     throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
   }
@@ -549,7 +551,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
         throw new TypeError(`Skill ${skillId} lockout ${index + 1} must be an object.`);
       }
 
-      const candidate = lockout as SchedulerRecord;
+      const candidate = lockout as UnvalidatedFields;
       const group = String(candidate.group || '').trim();
       const durationMs = Number(candidate.durationMs);
       if (!group) {

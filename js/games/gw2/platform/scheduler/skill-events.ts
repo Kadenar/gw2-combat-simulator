@@ -3,6 +3,7 @@
  * keep the common GW2 event envelope aligned with declarative effects while
  * leaving unusual profession metadata and ownership explicit at the call site.
  */
+import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 
@@ -13,10 +14,10 @@ import type {
   SimulationEvent,
   SimulationEventInput
 } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-interface SkillEventOwnership extends SchedulerRecord {
+interface SkillEventOwnership extends UnvalidatedFields {
   /** Optional identity for procedural events that do not have a catalog skill in scope. */
   readonly skill?: Skill;
   readonly cause?: SimulationEvent;
@@ -38,7 +39,7 @@ interface SkillEventMetadata {
   readonly metadata?: EffectMetadata;
 }
 
-interface StandardSkillEventEnvelope extends SchedulerRecord {
+interface StandardSkillEventEnvelope {
   readonly source: string;
   readonly sourceId: SkillId;
   /** Standard emitters always supply ownership, including their player default. */
@@ -112,7 +113,7 @@ function proceduralSkill<TProfessionState extends object>(
   return (
     options.skill ?? {
       id,
-      name: options.skillName ?? String((options as SchedulerRecord).name || id)
+      name: options.skillName ?? String((options as UnvalidatedFields).name || id)
     }
   );
 }
@@ -130,10 +131,10 @@ function skillEventArguments<TProfessionState extends object, TOptions extends S
 function supplementalEventFields(
   options: SkillEventOwnership & SkillEventMetadata,
   internalFields: readonly string[] = []
-): SchedulerRecord {
+): UnvalidatedFields {
   // Preserve nested metadata while keeping helper-only controls out of the emitted event.
   const metadata = normalizeEffectMetadata(options.metadata);
-  const fields: SchedulerRecord = { ...options, ...(metadata ? { metadata } : {}) };
+  const fields: DynamicFields = { ...options, ...(metadata ? { metadata } : {}) };
   for (const field of ['skill', 'cause', 'type', ...internalFields]) delete fields[field];
   return fields;
 }

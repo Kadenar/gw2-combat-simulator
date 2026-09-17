@@ -5,7 +5,7 @@ import type {
   EffectAudience,
   DamageEvent
 } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
 
 export type SkillId = string | number;
 
@@ -274,7 +274,7 @@ export interface BalanceProfile extends CatalogEntity {
   readonly [field: string]: unknown;
 }
 
-export type SkillFragment = Partial<Skill> & SchedulerRecord;
+export type SkillFragment = Partial<Skill>;
 
 export interface SkillLockout {
   readonly group: string;
@@ -298,7 +298,7 @@ export interface AutoattackChainPosition {
   readonly next: number | null;
 }
 
-export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = SchedulerRecord> {
+export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = object> {
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   readonly skillsByName: ReadonlyMap<string, TSkill>;

@@ -1,21 +1,36 @@
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { StableEventQueue } from '#kernel/events/queue.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
+import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 
 /** Minimal configuration surface consumed by relic rules. */
-export interface Gw2RelicConfig extends SchedulerRecord {
+export interface Gw2RelicConfig {
   readonly relic?: string;
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
-  readonly target?: {
-    readonly health?: number;
-  };
+  readonly target?: Gw2TargetConfig;
 }
 
-export interface Gw2RelicState extends SchedulerRecord {
+/** Optional fields are initialized by the relic rule that owns each timer or history. */
+export interface Gw2RelicState {
+  combatStartTime?: number;
+  timelineEvents?: readonly SimulationEvent[];
+  timelineLength?: number;
+  buffFrom?: number;
+  activationTimes?: number[];
+  trackedActivations?: Set<string>;
+  count?: number;
+  combatMarker?: SimulationEvent;
+  windows?: { from: number; until: number }[];
+  whirlReadyAt?: number;
+  activations?: {
+    readonly at: number;
+    readonly expiresAt: number;
+    readonly stacks: number;
+    readonly event: SimulationEvent;
+  }[];
   readyAt?: number;
   buffUntil?: number;
   stacks?: number;
@@ -38,7 +53,21 @@ export interface Gw2RelicContext {
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   readonly totals: { strike: number; condition: number };
-  readonly resolved: SchedulerRecord[];
+  /** Includes the direct life-siphon report, which is not queued as an owned simulation event. */
+  readonly resolved: Array<
+    | SimulationEvent
+    | {
+        readonly type: 'damage';
+        readonly at: number;
+        readonly source: string;
+        readonly name: string;
+        readonly skillName: string;
+        readonly triggeredBy?: string;
+        readonly coefficient: number;
+        readonly hits?: SimulationEvent['hits'];
+        readonly damage: number;
+      }
+  >;
   readonly queue: StableEventQueue<SimulationEvent>;
   readonly combatStartTime?: number | null;
   readonly relic?: Gw2RelicRuntime;
@@ -56,7 +85,24 @@ export interface Gw2RelicContext {
   addBreakdown(name: string, amount: number, kind: string, hits?: unknown): unknown;
 }
 
-export interface Gw2EventDraft extends SchedulerRecord {
+export type Gw2EventDraft = {
+  readonly ownerActorType?: SimulationActorType;
+  readonly triggeredBy?: string;
+  readonly activationId?: string;
+  readonly procType?: string;
+  readonly coefficient?: number;
+  readonly controlKind?: string;
+  readonly sourceSkill?: string;
+  readonly detail?: string;
+  readonly hits?: number;
+  readonly hitIndex?: number;
+  readonly totalHits?: number;
+  readonly skillWeapon?: string;
+  readonly canCrit?: boolean;
+  readonly venomProcEffectIndex?: number;
+  readonly summonOwner?: SimulationEvent['summonOwner'];
+  readonly independentConditionOwner?: boolean;
+  readonly metadata?: SimulationEvent['metadata'];
   readonly type: string;
   readonly at: number;
   readonly source: string;
@@ -73,7 +119,7 @@ export interface Gw2EventDraft extends SchedulerRecord {
   readonly stacks?: number;
   readonly condition?: string;
   readonly fixedDuration?: boolean;
-}
+};
 
 export type Gw2ApplyCondition = (context: Gw2RelicContext, event: Gw2EventDraft) => unknown;
 

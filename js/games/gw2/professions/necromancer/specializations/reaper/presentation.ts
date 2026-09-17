@@ -4,11 +4,10 @@ import {
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionResourceView, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
-export const reaperUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const reaperUi: NecromancerUiSlice = Object.freeze({
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.REAPERS_SHROUD,

@@ -8,13 +8,11 @@ import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { MesmerResolverEvent, MesmerUiContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.SPLIT_SECOND,
@@ -26,7 +24,7 @@ const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
 const CHRONOMANCER_PALETTE_SKILLS = Object.freeze([...CHRONOMANCER_MECHANIC_SKILLS, ID.CONTINUUM_SHIFT]);
 
 function chronomancerEventLogRow(
-  _context: SchedulerRecord,
+  _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {
   if (event?.type !== 'mesmer.phantasm-resummoned') return undefined;
@@ -42,7 +40,7 @@ function chronomancerEventLogRow(
 /** Keeps Continuum Shift unavailable until the active split has produced a restorable snapshot. */
 function chronomancerPaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
   if (skill.id !== ID.CONTINUUM_SHIFT) return { available: true, message: '' };
-  const state = (context.professionState || context.state?.profession || {}) as SchedulerRecord;
+  const state = context.professionState || context.state?.profession || {};
   const available = Boolean(state.continuumActive);
   return {
     available,
@@ -95,7 +93,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   return items;
 }
 
-export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const chronomancerUi: MesmerUiSlice = Object.freeze({
   eventLogRow: chronomancerEventLogRow,
   rotationStateSnapshot: chronomancerStateSnapshot,
   paletteGroups: (context: MesmerUiContext) =>

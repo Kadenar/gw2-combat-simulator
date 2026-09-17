@@ -25,13 +25,13 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 
-interface ForgedSurferTaskPayload extends Record<string, unknown> {
+interface ForgedSurferTaskPayload {
   readonly generation: number;
   readonly bomb: number;
   readonly skillId: SkillId;
 }
 
-interface SkrittScuffleTaskPayload extends Record<string, unknown> {
+interface SkrittScuffleTaskPayload {
   readonly expiresAt: number;
 }
 

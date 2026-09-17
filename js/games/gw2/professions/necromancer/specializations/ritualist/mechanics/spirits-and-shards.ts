@@ -1,3 +1,4 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -11,7 +12,7 @@ import {
   necromancerRuntimeSpecializationState,
   necromancerTargetControlled
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
@@ -46,7 +47,7 @@ function ritualistAvailability(
 }
 
 // Apply Ritualist's build-time concentration bonus without double-counting pre-applied static rules.
-function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     result.concentration += Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.attributeBonus ?? 180);

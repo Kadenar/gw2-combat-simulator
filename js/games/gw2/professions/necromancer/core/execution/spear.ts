@@ -6,7 +6,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -130,7 +130,14 @@ function afterPerforateEffect(
 }
 
 // Consumes one currently active shard and emits its bonus damage at the matching Perforate strike.
-function handlePerforateSoulShard(context: NecromancerSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handlePerforateSoulShard(
+  context: NecromancerSchedulerContext,
+  task: ScheduledTask<{
+    readonly skillId: NecromancerSkill['id'];
+    readonly hitIndex: number;
+    readonly totalHits: number;
+  }>
+): void {
   const skill = context.catalog.skillsById.get(Number(task.payload?.skillId)) as NecromancerSkill | undefined;
   if (!skill || consumeSoulShards(professionCoreState(context), 1, task.at) === 0) return;
   soulShardDamage(context, skill, task.at, Number(task.payload?.hitIndex || 1), Number(task.payload?.totalHits || 1));

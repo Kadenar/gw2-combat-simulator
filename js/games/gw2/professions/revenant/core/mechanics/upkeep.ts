@@ -17,7 +17,6 @@ import {
  * pulses. Elite specializations own any additional upkeep lifecycle.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
@@ -30,7 +29,7 @@ import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.j
 
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
 
-interface UpkeepTaskPayload extends SchedulerRecord {
+interface UpkeepTaskPayload {
   readonly skillId: SkillId;
 }
 
@@ -184,7 +183,7 @@ export function handleRevenantUpkeepPulse(
   });
 }
 
-interface ImpossibleOddsTaskPayload extends SchedulerRecord {
+interface ImpossibleOddsTaskPayload {
   readonly event: SimulationEvent;
 }
 

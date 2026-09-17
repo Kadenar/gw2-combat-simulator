@@ -1,35 +1,31 @@
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type {
   NormalizedProfessionContract,
+  ProfessionSimulationDefinition,
   ProfessionApplicationContract,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type {
-  SchedulerContext,
-  SchedulerRecord,
-  SchedulerState,
-  SchedulerStep
-} from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext, SchedulerState, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   Gw2ResolverEventHandlers,
   Gw2ResolverReactions,
   Gw2ResolverResult
 } from '#gw2/platform/resolver/types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationApm } from '#gw2/platform/simulation/rotation-apm.js';
 
+/** GW2 simulation policy: one optional refinement pass over the scheduler config. */
+export interface Gw2SimulationDefinition extends ProfessionSimulationDefinition {
+  readonly refineSchedulerConfig?: (config: Gw2Config, result: Gw2SimulationResult) => Gw2Config | null | undefined;
+}
+
 export interface Gw2ProfessionContract<
-  TProfessionState extends object = SchedulerRecord
-> extends NormalizedProfessionContract<TProfessionState, Gw2ResolverEventHandlers, Gw2ResolverReactions> {
-  readonly simulation:
-    | (SchedulerRecord & {
-        readonly refineSchedulerConfig?: (
-          config: Gw2Config,
-          result: Gw2SimulationResult
-        ) => Gw2Config | null | undefined;
-      })
-    | null;
+  TProfessionState extends object = object,
+  TBuild extends Gw2Build = Gw2Build
+> extends NormalizedProfessionContract<TProfessionState, Gw2ResolverEventHandlers, Gw2ResolverReactions, TBuild> {
+  readonly simulation: Gw2SimulationDefinition | null;
   readonly projectEndState: (options: {
     readonly config: Gw2Config;
     readonly schedulerContext: SchedulerContext;
@@ -39,8 +35,11 @@ export interface Gw2ProfessionContract<
 }
 
 /** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
-export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract &
-  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>>;
+export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<
+  Gw2SimulationDefinition,
+  Gw2Build
+> &
+  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2SimulationDefinition, Gw2Build>;
 
 export interface Gw2SimulationEndState {
   /** Resolution-end clock in milliseconds, including any observation tail. */

@@ -1,3 +1,4 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
@@ -15,7 +16,6 @@ import {
   necromancerTargetChilled
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   NecromancerCastContext,
@@ -95,7 +95,7 @@ export const reaperSchedulerHooks = Object.freeze({
 });
 
 /** Applies Reaper's Onslaught ferocity while Reaper Shroud is active. */
-function modifyReaperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
     result.ferocity += Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.attributeBonus ?? 300);

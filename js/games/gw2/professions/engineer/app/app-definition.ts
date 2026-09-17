@@ -7,7 +7,7 @@ import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import type { EngineerApplicationBuild, EngineerEvolveAttributePool } from '#gw2/professions/engineer/types.js';
+import type { EngineerApplicationBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
 export const engineerAppAdapter = defineProfessionApp({
@@ -23,11 +23,7 @@ export const engineerAppAdapter = defineProfessionApp({
     // Supply specialization-only runtime fields without leaking inactive state into other builds.
     buildConfigExtras: (app, { attributeData }) => {
       const build = app.build as EngineerApplicationBuild;
-      const evolveAttributePool = (
-        attributeData as {
-          amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
-        }
-      ).amalgamEvolveAttributePool;
+      const evolveAttributePool = (attributeData as EngineerFinalizedAttributeResult).amalgamEvolveAttributePool;
       const amalgam = build.specializations?.some((specialization) => specialization.name === 'Amalgam');
       return {
         ...(amalgam

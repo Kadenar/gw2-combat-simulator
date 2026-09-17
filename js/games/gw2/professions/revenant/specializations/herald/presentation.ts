@@ -1,10 +1,9 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { PaletteSkillAvailability, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { PaletteSkillAvailability } from '#gw2/platform/engine/profession/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RevenantSkill, RevenantUiContext } from '#gw2/professions/revenant/types.js';
+import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
 
@@ -30,7 +29,7 @@ function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSk
     : { available: false, message: 'Activate Facet of Nature first' };
 }
 
-export const heraldUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const heraldUi: RevenantUiSlice = Object.freeze({
   paletteGroups: () => {
     return [
       {

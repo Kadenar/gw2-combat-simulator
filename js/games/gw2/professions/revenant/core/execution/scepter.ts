@@ -70,7 +70,10 @@ export function detonateBlossomingAura(context: RevenantCastContext): void {
 }
 
 /** Apply each pulse at its task time so detonation can suppress all later packets. */
-export function handleBlossomingAura(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
+export function handleBlossomingAura(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ readonly index: number }>
+): void {
   const skill = context.catalog.skillsById.get(ID.BLOSSOMING_AURA)!;
   const pulse = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
   const ticks = (pulse as StrikeEffect | undefined)?.ticks;

@@ -1,3 +1,4 @@
+import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 /**
  * Evoker rotation-palette presentation.
  *
@@ -10,10 +11,9 @@ import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
-  ProfessionUiContract,
+  ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -24,13 +24,13 @@ import {
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
 // the projected state record is absent until a simulation has produced one
-function uiState(context: SchedulerRecord): Partial<EvokerState> {
+function uiState(context: ElementalistUiContext): Partial<EvokerState> {
   return (context.professionState as Partial<EvokerState> | undefined) || {};
 }
 
 // prefers simulated state, then the build's configured element, then Fire
-function selectedElement(context: SchedulerRecord): ElementalistAttunement {
-  const build = context.build as SchedulerRecord | undefined;
+function selectedElement(context: ElementalistUiContext): ElementalistAttunement {
+  const build = context.build;
   const value = String(uiState(context).element || build?.evokerElement || 'Fire');
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
@@ -46,10 +46,10 @@ const FAMILIAR_SKILL_NAMES = Object.freeze({
 } as const);
 
 // returns the empowered form when 3 stacks are ready so the UI shows which familiar is currently usable
-function familiarSkillId(context: SchedulerRecord): number {
+function familiarSkillId(context: ElementalistUiContext): number {
   const element = selectedElement(context);
   const state = uiState(context);
-  const build = context.build as SchedulerRecord | undefined;
+  const build = context.build;
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= 3 ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
@@ -57,7 +57,7 @@ function familiarSkillId(context: SchedulerRecord): number {
 
 // Keeps the F5 palette state aligned with scheduler validation so a familiar
 // only looks clickable when the charges shown at the insertion point can cast it.
-function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): PaletteSkillAvailability {
+function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skill): PaletteSkillAvailability {
   const element = FAMILIAR_ELEMENTS.get(skill.id);
   if (!element) return { available: true, message: '' };
   if (selectedElement(context) !== element) {
@@ -68,7 +68,7 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
   }
 
   const state = uiState(context);
-  const build = context.build as SchedulerRecord | undefined;
+  const build = context.build;
   const maximum = Number(state.maximumCharges ?? 6);
   const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
@@ -90,7 +90,7 @@ function familiarPaletteAvailability(context: SchedulerRecord, skill: Skill): Pa
 }
 
 /** Reports the brief Elemental Balance damage window only while it can affect the next action. */
-function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotItem[] {
+function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const remaining = Number(uiState(context).elementalBalanceUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
   return remaining > 0
     ? [
@@ -105,9 +105,9 @@ function evokerStateSnapshot(context: SchedulerRecord): RotationStateSnapshotIte
 }
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */
-export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const evokerUi: ElementalistUiSlice = Object.freeze({
   // Edit the build's familiar independently of attunement or a previous simulation's state.
-  skillBarGroups: (context: SchedulerRecord): ProfessionSkillBarGroup[] => {
+  skillBarGroups: (context: ElementalistUiContext): ProfessionSkillBarGroup[] => {
     const element = selectedElement({ build: context.build });
     const catalog = context.catalog as Readonly<CanonicalCatalog> | undefined;
     return [
@@ -130,8 +130,8 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
     ];
   },
   // Only valid familiar choices may update the persisted element used by the palette and simulation.
-  updateSkillBarSelection: (context: SchedulerRecord, selection: SchedulerRecord): boolean => {
-    const build = context.build as SchedulerRecord | undefined;
+  updateSkillBarSelection: (context: ElementalistUiContext, selection: ProfessionSkillBarSelectionChange): boolean => {
+    const build = context.build;
     if (
       !build ||
       selection.key !== 'evokerElement' ||
@@ -144,7 +144,7 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
   },
   paletteSkillAvailability: familiarPaletteAvailability,
   rotationStateSnapshot: evokerStateSnapshot,
-  paletteGroups: (context: SchedulerRecord) => {
+  paletteGroups: (context: ElementalistUiContext) => {
     const element = selectedElement(context);
     return [
       {
@@ -161,9 +161,9 @@ export const evokerUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.
       }
     ];
   },
-  resourceViews: (context: SchedulerRecord): ProfessionResourceView[] => {
+  resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
-    const build = context.build as SchedulerRecord | undefined;
+    const build = context.build;
     const maximum = Number(state.maximumCharges || 6);
     const empowered = Math.max(
       0,

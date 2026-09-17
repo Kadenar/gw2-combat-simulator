@@ -1,4 +1,4 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/professions/warrior/types.js';
 
@@ -8,9 +8,12 @@ import type { WarriorResolverContext, WarriorResolverEvent } from '#gw2/professi
 // copy from aliasing the scheduler's live state objects.
 function handleParagonState(context: WarriorResolverContext, event: WarriorResolverEvent): void {
   const state = paragonState.from(context);
-  for (const [key, value] of Object.entries(event.state || {})) {
+  for (const [key, value] of Object.entries(event.state || {}) as Array<
+    [keyof ParagonState | 'activeRefrain', ParagonState[keyof ParagonState]]
+  >) {
     if (key === 'activeRefrain') continue;
-    (state as unknown as SchedulerRecord)[key] = structuredClone(value);
+    // Object.entries loses the key/value relationship of the scheduler's Paragon state projection.
+    (state as { [Key in keyof ParagonState]: ParagonState[keyof ParagonState] })[key] = structuredClone(value);
   }
 }
 

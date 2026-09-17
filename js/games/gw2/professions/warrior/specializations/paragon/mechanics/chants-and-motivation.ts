@@ -1,10 +1,10 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -126,7 +126,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-function modifyAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   // Skip when attributes have already been pre-computed in the static pass to
   // prevent the concentration bonus from being applied twice.
   if (!hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) || professionStaticRulesApplied(context.config)) {

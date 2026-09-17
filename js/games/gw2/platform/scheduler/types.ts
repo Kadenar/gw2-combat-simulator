@@ -1,19 +1,20 @@
 /** Owns the scheduler/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type {
-  ScheduledTask,
-  SchedulerContext,
-  SchedulerPolicy,
-  SchedulerRecord
-} from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask, SchedulerContext, SchedulerPolicy } from '#gw2/platform/engine/execution/types.js';
+import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 
+/** Defers one scheduled event's materialization until its task runs. */
+export interface MaterializeEventTaskPayload {
+  readonly eventOrder: number;
+}
+
 export interface Gw2TriggerMaterializer {
-  readonly state: SchedulerRecord;
+  readonly state: MaterializerState;
   initialize(context: SchedulerContext): void;
   onEventScheduled(context: SchedulerContext, event: SimulationEvent): void;
   onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
-  handleTask(context: SchedulerContext, task: ScheduledTask<SchedulerRecord>): void;
+  handleTask(context: SchedulerContext, task: ScheduledTask<MaterializeEventTaskPayload>): void;
   critical(event: SimulationEvent): Gw2CriticalResult;
   rollRandom(probability: number, stream?: string): boolean;
   isCombatActive(): boolean;
@@ -22,7 +23,10 @@ export interface Gw2TriggerMaterializer {
 }
 
 export interface Gw2SchedulerPolicy extends SchedulerPolicy {
-  critical(context: SchedulerContext, event: SimulationEvent): Gw2CriticalResult;
+  critical<TProfessionState extends object>(
+    context: SchedulerContext<TProfessionState>,
+    event: SimulationEvent
+  ): Gw2CriticalResult;
   rollRandom(probability: number, stream?: string): boolean;
   isCombatActive(): boolean;
   combatBeganAt(): number | null;

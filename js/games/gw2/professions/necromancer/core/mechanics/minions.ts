@@ -19,9 +19,13 @@ import {
   gainNecromancerLifeForce,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerCastContext,
+  NecromancerRechargeQuery,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,
@@ -35,7 +39,7 @@ const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';
 const MINION_ATTACK_STOP_TASK = 'necromancer.minion-attack-stop';
 
-interface MinionAttackTaskPayload extends SchedulerRecord {
+interface MinionAttackTaskPayload {
   readonly skillId: SkillId;
   readonly minionKey: string;
   readonly generation: number;
@@ -45,7 +49,7 @@ interface MinionAttackTaskPayload extends SchedulerRecord {
   readonly controlKind?: string;
 }
 
-interface MinionAttackStopTaskPayload extends SchedulerRecord {
+interface MinionAttackStopTaskPayload {
   readonly ownerId: string;
 }
 
@@ -435,7 +439,8 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
       );
       const summon = skill.flipParentId == null ? undefined : context.catalog.skillsById.get(skill.flipParentId);
       if (summon?.rechargeOnMinionDeath) {
-        const recharge = context.rechargeDurationFor(summon, context.effectiveEnd, { minionDeathRecharge: true });
+        const deathQuery: NecromancerRechargeQuery = { minionDeathRecharge: true };
+        const recharge = context.rechargeDurationFor(summon, context.effectiveEnd, deathQuery);
         if (recharge > 0) {
           context.state.cooldowns.set(summon.id, context.effectiveEnd + recharge);
         }

@@ -1,5 +1,5 @@
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import type { SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
@@ -9,17 +9,19 @@ import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 
-export interface MaterializerProfessionState extends SchedulerRecord {
+export interface MaterializerProfessionState {
+  /** Family state nests shared resources under core; legacy projections remain flat. */
+  core?: Pick<MaterializerProfessionState, 'maximumEndurance' | 'endurance' | 'enduranceUpdatedAt'>;
   maximumEndurance?: number;
   endurance?: number;
   enduranceUpdatedAt?: number;
 }
 
-export interface MaterializerState extends SchedulerRecord {
+export interface MaterializerState {
   config: Gw2Config;
   traits: ReadonlySet<string | number> | null;
   query: Readonly<Gw2CombatQuery> | null;
-  state: SchedulerState<SchedulerRecord> | null;
+  state: SchedulerState | null;
   profession: MaterializerProfessionState | null;
   activeWeaponSet: number;
   combatActive: boolean;

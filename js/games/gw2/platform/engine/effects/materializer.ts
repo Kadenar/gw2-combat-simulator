@@ -5,10 +5,11 @@
  * interruption and actual event emission remain scheduler concerns.
  */
 import type { EffectMetadata, SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, SkillId, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 
-export interface EffectEventBase extends SchedulerRecord {
+export interface EffectEventBase {
+  readonly cloneId?: number;
+  readonly triggeredBy?: string;
   readonly source: string;
   readonly sourceId: SkillId;
   /** Materialized packets inherit the producer's declared actor. */
@@ -45,7 +46,7 @@ function nestedEffectMetadata(
 }
 
 /** Copies the strike formula fields that the numeric resolver consumes from each packet. */
-function strikeEventFields(source: SchedulerRecord): SchedulerRecord {
+function strikeEventFields(source: StrikeEffect | StrikeTick) {
   return {
     ...(source.name != null ? { name: String(source.name) } : {}),
     // Explicit packet labels let the breakdown separate effects while retaining their casting skill.

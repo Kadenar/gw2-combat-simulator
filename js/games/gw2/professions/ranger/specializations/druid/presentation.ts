@@ -1,12 +1,7 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionResourceView,
-  ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
+import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const AVATAR_SKILLS = Object.freeze([
   ID.COSMIC_RAY,
@@ -52,7 +47,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   return { available: true, message: '' };
 }
 
-export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const druidUi: RangerUiSlice = Object.freeze({
   paletteGroups: (context: RangerUiContext) => [
     rangerPetPaletteGroup(context),
     {

@@ -5,13 +5,8 @@ import {
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionResourceView,
-  ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { NecromancerSkill, NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
+import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 const SCOURGE_SKILLS = Object.freeze([
   ID.MANIFEST_SAND_SHADE,
@@ -39,7 +34,7 @@ function scourgePaletteAvailability(context: NecromancerUiContext, skill: Necrom
   return { available: true, message: '' };
 }
 
-export const scourgeUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const scourgeUi: NecromancerUiSlice = Object.freeze({
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       professionSkillIds: SCOURGE_SKILLS

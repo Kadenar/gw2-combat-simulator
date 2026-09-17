@@ -3,11 +3,10 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 import { balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerConfig, EngineerPlayerStats } from '#gw2/professions/engineer/types.js';
 
-export interface EngineerMechAttributes extends SchedulerRecord {
+export interface EngineerMechAttributes {
   power: number;
   precision: number;
   toughness: number;
@@ -19,7 +18,7 @@ export interface EngineerMechAttributes extends SchedulerRecord {
   healingPower: number;
 }
 
-export interface EngineerMechState extends SchedulerRecord {
+export interface EngineerMechState {
   enabled: boolean;
   active: boolean;
   commandSkillIds: SkillId[];

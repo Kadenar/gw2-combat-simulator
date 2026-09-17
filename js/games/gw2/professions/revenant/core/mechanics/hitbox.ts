@@ -1,4 +1,3 @@
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 
@@ -7,7 +6,7 @@ export function prepareRevenantHitboxEvent(
   context: RevenantSchedulerContext,
   event: SimulationEventInput
 ): SimulationEventInput {
-  const assumptions = (context.config.professionAssumptions || {}) as SchedulerRecord;
+  const assumptions = context.config.professionAssumptions || {};
   if (String(assumptions.hitboxSize || 'small') === 'large' || event.metadata?.largeHitboxOnly !== true) {
     return event;
   }

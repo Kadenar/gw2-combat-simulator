@@ -1,9 +1,11 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { NecromancerSchedulerFeedback } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
   CastLifecycleContext,
+  RechargeQueryDetails,
   SchedulerContext,
-  SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -22,7 +24,6 @@ import type { ScourgeState } from '#gw2/professions/necromancer/specializations/
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  assumptions?: SchedulerRecord;
   initialResource?: number;
   initialBlight?: number;
   initialCascadingCorruptionStacks?: number;
@@ -30,7 +31,6 @@ export interface NecromancerBuild extends Gw2Build {
 }
 
 export interface NecromancerCanonicalBuild extends Gw2CanonicalBuild {
-  assumptions: SchedulerRecord;
   initialResource: number;
   initialBlight: number;
   initialCascadingCorruptionStacks: number;
@@ -43,6 +43,8 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
+  /** Feedback the scheduler records for its next refinement pass; written only by the refinement hook. */
+  readonly _schedulerFeedback?: NecromancerSchedulerFeedback;
 }
 
 export interface NecromancerState
@@ -73,6 +75,12 @@ export interface NecromancerSkill extends Skill {
   readonly usableInShroud?: boolean;
   readonly shroudSlot?: number;
   readonly slotSelectable?: boolean;
+}
+
+/** Recharge queries Necromancer rules answer, beyond the shared query details. */
+export interface NecromancerRechargeQuery extends RechargeQueryDetails {
+  /** Set when a minion's death re-requests its summon recharge. */
+  readonly minionDeathRecharge?: boolean;
 }
 
 export type NecromancerSchedulerContext = SchedulerContext<NecromancerRuntimeState> & {
@@ -151,7 +159,7 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
   readonly state?: { readonly profession: NecromancerRuntimeState };
 };
 
-export interface NecromancerResolverReactionDetails extends SchedulerRecord {
+export interface NecromancerResolverReactionDetails {
   readonly hitContext?: Gw2HitResolutionContext;
 }
 
@@ -168,17 +176,14 @@ export interface NecromancerEndStateProjectionOptions {
   readonly resolverState?: Partial<NecromancerState> | null;
 }
 
-export interface NecromancerUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {
   readonly config?: NecromancerConfig;
-  readonly build?: NecromancerBuild;
+  readonly build?: NecromancerBuild | null;
   readonly state?: {
     readonly profession?: Partial<NecromancerState>;
   };
-  readonly professionState?: Partial<NecromancerState>;
   readonly lifeForcePoolCapacity?: number;
-  readonly value?: number;
-  readonly initialResource?: number;
-  readonly initialBlight?: number;
-  readonly initialCascadingCorruptionStacks?: number;
 }
+
+/** UI slice whose callbacks read Necromancer end-state projections. */
+export type NecromancerUiSlice = Partial<ProfessionUiContract<Partial<NecromancerState>>>;

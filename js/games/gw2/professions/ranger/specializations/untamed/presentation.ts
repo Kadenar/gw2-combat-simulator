@@ -1,13 +1,9 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
+import type { PaletteSkillAvailability, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 // Module-level cache populated once in bindUntamedUi; avoids filtering the catalog on every render.
 let petSkillIds: SkillId[] = [];
@@ -99,7 +95,7 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
   return items;
 }
 
-export const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const untamedUi: RangerUiSlice = Object.freeze({
   startControls: (context: RangerUiContext) => [
     {
       id: 'ranger-untamed-start-state',
@@ -123,7 +119,7 @@ export const untamedUi: Partial<ProfessionUiContract> & SchedulerRecord = Object
   paletteSkillAvailability: availability,
   rotationStateSnapshot: untamedStateSnapshot,
   // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
-  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
     event.type === 'ranger.untamed-state' ? null : undefined
 });
 

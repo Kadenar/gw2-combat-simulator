@@ -1,3 +1,4 @@
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type {
   BalanceProfile,
   CanonicalCatalog,
@@ -69,8 +70,9 @@ export interface NativePatchAuthoringMetadata {
 export type NativePatchAuthoringContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object
-> = NativeProfessionContract<TModules, TPresentation, TSimulation> & {
+  TSimulation extends object = object,
+  TBuild extends Gw2Build = Gw2Build
+> = NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> & {
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   /** Serializable live metadata consumed by the local patch authoring UI. */

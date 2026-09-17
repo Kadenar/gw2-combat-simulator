@@ -5,7 +5,7 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { elementalistAlacrityAdjustedDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
@@ -54,12 +54,12 @@ export function modifyWeaveSelfRechargeStart(context: ElementalistPrecastContext
 /** Opens the Weave Self window and seeds it with the current attunement. */
 export function handleWeaveSelfActivation(
   context: ElementalistSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>
+  task: ScheduledTask<{ readonly sourceId: Skill['id'] }>
 ): void {
   const state = weaverState.from(context);
   const core = professionCoreState(context);
   const at = task.at;
-  const sourceId = (task.payload?.sourceId ?? ID.WEAVE_SELF) as Skill['id'];
+  const sourceId = task.payload?.sourceId ?? ID.WEAVE_SELF;
   const duration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 20);
   state.weaveSelfUntil = at + duration;
   state.weaveSelfVisited = [core.primaryAttunement];

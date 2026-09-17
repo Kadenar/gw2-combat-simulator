@@ -40,7 +40,7 @@ import { gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js
 import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastContext, SchedulerContext, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { CastContext, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -56,12 +56,11 @@ interface CreateGw2SchedulerPolicyOptions {
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
 }
 
-type CastBoundTimingContext = SchedulerContext &
-  SchedulerRecord & {
-    /** Cast start and planned full completion, in simulation seconds. */
-    start: number;
-    fullEnd: number;
-  };
+type CastBoundTimingContext = SchedulerContext & {
+  /** Cast start and planned full completion, in simulation seconds. */
+  start: number;
+  fullEnd: number;
+};
 
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;

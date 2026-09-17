@@ -5,11 +5,10 @@ import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext } from '#gw2/professions/ranger/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
   ID.KEEN_SHOT,
@@ -89,10 +88,10 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   return { available: true, message: '' };
 }
 
-export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const galeshotUi: RangerUiSlice = Object.freeze({
   // null = suppress the row entirely; undefined = fall through to default rendering.
   // State-sync events are internal bookkeeping and should not appear in the log.
-  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
     event.type === 'ranger.galeshot-state' ? null : undefined,
   paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
     rangerPetPaletteGroup(context, { stackId: GALESHOT_PALETTE_STACK }),

@@ -21,7 +21,8 @@ interface Gw2AlliedPlayerConfig {
     readonly count?: number;
     readonly strikesPerSecond?: number;
   };
-  readonly [field: string]: unknown;
+  /** Whether player boons also reach the player's own summons. */
+  readonly sharePlayerBoonsWithSummons?: boolean;
 }
 
 interface Gw2AlliedPlayerProcOptions {

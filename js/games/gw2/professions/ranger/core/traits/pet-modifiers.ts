@@ -1,4 +1,5 @@
 /** Owns Ranger pet-audience attributes and rules so player modifier composition stays explicit. */
+import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -12,22 +13,22 @@ import {
   rangerPetEvent,
   rangerTargetImpaired
 } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 
-function activePetFamily(context: Gw2ModifierContext): string {
+function activePetFamily(context: RangerModifierContext): string {
   const activePet = readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet;
   return rangerPetByName(String(activePet || context.config?.selectedPet || 'Pig')).family;
 }
 
 // Apply only companion-specific family bonuses and the pet form of Wellspring's conversion.
 export function modifyRangerPetAttributes(
-  context: Gw2ModifierContext,
-  result: Gw2ResolvedStats,
+  context: RangerModifierContext,
+  result: { -readonly [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] },
   staticRulesApplied: boolean
 ): void {
   if (!rangerPetEvent(context)) return;
-  const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
+  const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
 

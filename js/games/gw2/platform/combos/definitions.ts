@@ -349,12 +349,29 @@ export function comboDefinition(fieldType: ComboFieldType, finisherType: ComboFi
   return definition;
 }
 
-interface ComboOutcomeEventBase extends Record<string, unknown> {
+interface ComboOutcomeEventBase extends Pick<
+  ComboEvent,
+  | 'skillId'
+  | 'skillName'
+  | 'parentSkillName'
+  | 'activationId'
+  | 'comboId'
+  | 'attemptId'
+  | 'fieldId'
+  | 'fieldType'
+  | 'fieldSourceId'
+  | 'fieldSource'
+  | 'fieldOwnerId'
+  | 'finisherType'
+  | 'schedulerPrediction'
+> {
   readonly at: number;
   readonly source: string;
   readonly sourceId: SkillId;
   /** Outcomes preserve the combo's actor rather than deriving it from display metadata. */
   readonly actorType: ComboEvent['actorType'];
+  readonly priority?: ComboEvent['priority'];
+  readonly triggeredBy: string;
 }
 
 function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {

@@ -5,19 +5,21 @@
  * union that pairs core state with exactly one specialization's state, and the
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
   CastLifecycleContext,
+  RechargeQueryDetails,
   SchedulerContext,
-  SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistApplicationBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { TempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import type { WeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
@@ -41,6 +43,34 @@ export interface ElementalistRuntimeState {
 /** Flattened view of core and specialization state, used for snapshots and end-state projection. */
 export interface ElementalistState extends ElementalistCoreState, WeaverState, CatalystState, EvokerState {}
 
+/** Modifier context whose config is the Elementalist's, so rules can read its build selections. */
+export interface ElementalistModifierContext extends Gw2ModifierContext {
+  readonly config?: ElementalistConfig;
+}
+
+/** Bullet stock by element; absent elements are unstocked. */
+export type ElementalistPistolBullets = Partial<Record<ElementalistAttunement, boolean>>;
+
+/** Recharge queries Elementalist rules answer, including its own release flag. */
+export interface ElementalistRechargeQuery extends RechargeQueryDetails {
+  /** Set when Rock Barrier's release handler re-requests the held recharge. */
+  readonly rockBarrierRelease?: boolean;
+}
+
+/** Application UI callback context narrowed to Elementalist builds and end-state projections. */
+export interface ElementalistUiContext extends Omit<
+  ProfessionUiCallbackContext<Partial<ElementalistState>>,
+  'build' | 'config'
+> {
+  readonly build?: Partial<ElementalistApplicationBuild> | null;
+  readonly config?: ElementalistConfig;
+  /** Live scheduler state when a palette is inspected mid-rotation. */
+  readonly state?: { readonly profession?: Partial<ElementalistState> };
+}
+
+/** UI slice whose callbacks read Elementalist end-state projections. */
+export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<ElementalistState>>>;
+
 /** A catalog skill carrying the Elementalist-specific identity fields the modules read. */
 export interface ElementalistSkill extends Skill {
   readonly attunement?: string;
@@ -52,11 +82,10 @@ export interface ElementalistSkill extends Skill {
 }
 
 /** Scheduler-phase context narrowed to the Elementalist catalog, config, and runtime state. */
-export type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState> &
-  SchedulerRecord & {
-    readonly catalog: CanonicalCatalog<ElementalistSkill>;
-    readonly config: ElementalistConfig;
-  };
+export type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState> & {
+  readonly catalog: CanonicalCatalog<ElementalistSkill>;
+  readonly config: ElementalistConfig;
+};
 
 /** Context for availability checks made before a cast is allowed to start. */
 export type ElementalistPrecastContext = CastContext<ElementalistRuntimeState> & {
@@ -70,6 +99,8 @@ export type ElementalistCastContext = CastLifecycleContext<ElementalistRuntimeSt
   readonly catalog: CanonicalCatalog<ElementalistSkill>;
   readonly config: ElementalistConfig;
   readonly skill: ElementalistSkill;
+  /** Set by a specialization that already performed this cast's attunement swap, so Core does not repeat it. */
+  elementalistAttunementHandled?: boolean;
 };
 
 /** Scheduled event enriched with the attunement, aura, and combo-field metadata Elementalist emits. */

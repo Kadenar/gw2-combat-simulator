@@ -11,12 +11,16 @@ import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionSkillBarGroup,
-  ProfessionUiContract
+  ProfessionSkillBarGroup
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { RangerSkill, RangerUiContext, RangerUiSelection } from '#gw2/professions/ranger/types.js';
-import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type {
+  RangerState,
+  RangerSkill,
+  RangerUiContext,
+  RangerUiSelection,
+  RangerUiSlice
+} from '#gw2/professions/ranger/types.js';
 import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
@@ -39,8 +43,9 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.winter-bite-ready'
 ]);
 
-export function rangerUiState(context: RangerUiContext): SchedulerRecord {
-  return flattenProfessionState(context.state?.profession || context.professionState || {});
+/** Flatten runtime or projected state while retaining the declared Ranger fields. */
+export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
+  return flattenProfessionState<Partial<RangerState>>(context.state?.profession || context.professionState || {});
 }
 
 export function rangerUiSpecialization(context: RangerUiContext): string {
@@ -50,7 +55,7 @@ export function rangerUiSpecialization(context: RangerUiContext): string {
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
   const state = rangerUiState(context);
   if (Array.isArray(state.activePetSkillIds)) {
-    return [...(state.activePetSkillIds as SkillId[])];
+    return [...state.activePetSkillIds];
   }
 
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
@@ -98,14 +103,8 @@ export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
   const selected = String(
     slot === 2
-      ? context.build?.selectedPet2 ||
-          context.config?.selectedPet2 ||
-          (state.petNames as string[] | undefined)?.[1] ||
-          'Lynx'
-      : context.build?.selectedPet ||
-          context.config?.selectedPet ||
-          (state.petNames as string[] | undefined)?.[0] ||
-          state.activePet
+      ? context.build?.selectedPet2 || context.config?.selectedPet2 || state.petNames?.[1] || 'Lynx'
+      : context.build?.selectedPet || context.config?.selectedPet || state.petNames?.[0] || state.activePet
   );
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
@@ -165,7 +164,7 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
   return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
-function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: SchedulerRecord): boolean {
+function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: RangerUiContext): boolean {
   if (
     isRangerHammerVariant(skill.id) &&
     !selectedHammerSkillIds(context as RangerUiContext).includes(Number(skill.id))
@@ -184,13 +183,13 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   }
 
   const state = rangerUiState(context);
-  const availableFlips = (state.availableFlips || {}) as SchedulerRecord;
+  const availableFlips = state.availableFlips || {};
   const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
   // Share the scheduler's spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
-    const available = rangerSpearStealthAvailable(state as Partial<RangerCoreState>, Number(context.time || 0));
+    const available = rangerSpearStealthAvailable(state, Number(context.time || 0));
     if (isSpearStealthAttack && !available)
       return { available: false, message: "Use Panther's Prowl or gain stealth first" };
     if (!isSpearStealthAttack && available)
@@ -229,7 +228,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   };
 }
 
-export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const rangerCoreUi: RangerUiSlice = Object.freeze({
   assumptionControls: [
     ...RANGER_ASSUMPTION_CONTROLS,
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
@@ -332,7 +331,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Obj
   },
   paletteSkillAvailability: rangerCorePaletteAvailability,
   weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
-  eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
     RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
 });
 

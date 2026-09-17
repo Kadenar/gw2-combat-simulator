@@ -18,7 +18,7 @@ import { buildGuardianStrike, emitGuardianEvent } from '#gw2/professions/guardia
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,
@@ -234,7 +234,7 @@ function radiantWeapon(context: GuardianCastContext, skill: GuardianSkill): void
 /** Consumes Justice once at the first committed hammer impact, preserving that cast's ownership for the extra hit. */
 export function handleRadiantHammerImpact(
   context: GuardianSchedulerContext,
-  task: ScheduledTask<SchedulerRecord>
+  task: ScheduledTask<{ readonly activationId: string }>
 ): void {
   const state = luminaryState.from(context);
   if (!state.radiantJusticeArmed) return;

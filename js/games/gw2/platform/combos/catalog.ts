@@ -1,9 +1,9 @@
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import {
   normalizeComboFieldType,
   normalizeComboFinisherType,
   normalizeComboFieldSelectionAnchor
 } from '#gw2/platform/combos/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillEffect, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {
@@ -15,7 +15,7 @@ function positiveInteger(value: unknown, fallback: number, label: string): numbe
   return normalized;
 }
 
-function normalizeFieldDescriptors(value: unknown): readonly Readonly<SchedulerRecord>[] {
+function normalizeFieldDescriptors(value: unknown): readonly Readonly<UnvalidatedFields>[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFields must be a non-empty array.');
   }
@@ -26,7 +26,7 @@ function normalizeFieldDescriptors(value: unknown): readonly Readonly<SchedulerR
         throw new TypeError(`comboFields entry ${index + 1} must be an object.`);
       }
 
-      const descriptor = raw as SchedulerRecord;
+      const descriptor = raw as UnvalidatedFields;
       const duration = Number(descriptor.duration);
       if (!(duration > 0) || !Number.isFinite(duration)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a positive duration.`);
@@ -53,7 +53,7 @@ function normalizeFieldDescriptors(value: unknown): readonly Readonly<SchedulerR
   );
 }
 
-function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): readonly Readonly<SchedulerRecord>[] {
+function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): readonly Readonly<UnvalidatedFields>[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFinishers must be a non-empty array.');
   }
@@ -64,7 +64,7 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
         throw new TypeError(`comboFinishers entry ${index + 1} must be an object.`);
       }
 
-      const descriptor = raw as SchedulerRecord;
+      const descriptor = raw as UnvalidatedFields;
       const chance = Number(descriptor.chance ?? 1);
       if (!Number.isFinite(chance)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a finite chance.`);
@@ -98,7 +98,7 @@ function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): re
   );
 }
 
-function normalizeTick(tick: SchedulerRecord, effectIndex: number, tickIndex: number): SchedulerRecord {
+function normalizeTick(tick: UnvalidatedFields, effectIndex: number, tickIndex: number): UnvalidatedFields {
   const attemptGroup = `effect:${effectIndex + 1}:tick:${tickIndex + 1}`;
   const comboFinishers =
     tick.comboFinishers == null ? undefined : normalizeFinisherDescriptors(tick.comboFinishers, attemptGroup);
@@ -114,7 +114,7 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
   const ticks = Array.isArray(effect.ticks)
     ? Object.freeze(
         effect.ticks.map((tick, tickIndex) =>
-          Object.freeze(normalizeTick(tick as SchedulerRecord, effectIndex, tickIndex))
+          Object.freeze(normalizeTick(tick as UnvalidatedFields, effectIndex, tickIndex))
         )
       )
     : effect.ticks;

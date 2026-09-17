@@ -1,10 +1,10 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
   CastLifecycleContext,
   ScheduledTask,
   SchedulerContext,
-  SchedulerRecord,
   SchedulerState
 } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -39,7 +39,6 @@ export interface ThiefBuild extends Gw2Build {
 }
 
 export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
-  assumptions: SchedulerRecord;
   selectedDodge: ThiefDodge;
   initialInitiative: number;
   initialShadowForce: number;
@@ -51,9 +50,9 @@ export interface ThiefApplicationBuild extends Gw2ApplicationBuild {
   initialShadowForce: number;
 }
 
-export interface ThiefDeterministicChoices extends SchedulerRecord {
+export type ThiefDeterministicChoices = {
   readonly forgedSurferBombsHit?: number;
-}
+};
 
 export interface ThiefConfig extends Gw2Config {
   readonly specialization?: string;
@@ -86,13 +85,13 @@ export interface ThiefRuntimeState {
     | { kind: 'Antiquary'; state: AntiquaryState };
 }
 
-export interface ThiefSummonCondition extends SchedulerRecord {
+export interface ThiefSummonCondition {
   readonly condition: string;
   readonly duration: number;
   readonly stacks: number;
 }
 
-export interface ThiefSummonStrike extends SchedulerRecord {
+export interface ThiefSummonStrike {
   readonly name: string;
   readonly coefficientPerHit: number;
   readonly hits?: number;
@@ -102,7 +101,7 @@ export interface ThiefSummonStrike extends SchedulerRecord {
   readonly conditions?: readonly ThiefSummonCondition[];
 }
 
-export interface ThiefSummonDefinition extends SchedulerRecord {
+export interface ThiefSummonDefinition {
   readonly name: string;
   readonly displayName?: string;
   readonly variant?: string;
@@ -111,7 +110,7 @@ export interface ThiefSummonDefinition extends SchedulerRecord {
   readonly attacks?: readonly ThiefSummonStrike[];
 }
 
-export interface ThiefSummonAttack extends SchedulerRecord {
+export interface ThiefSummonAttack {
   readonly basePower: number;
   readonly criticalChance: number;
   readonly criticalDamage: number;
@@ -168,7 +167,7 @@ export type ThiefEmissionContext = ThiefSchedulerContext & {
   readonly skill?: ThiefSkill;
 };
 
-export type ThiefScheduledTask<TPayload = SchedulerRecord> = Omit<ScheduledTask<TPayload>, 'payload'> & {
+export type ThiefScheduledTask<TPayload = object> = Omit<ScheduledTask<TPayload>, 'payload'> & {
   readonly payload: TPayload;
 };
 
@@ -201,7 +200,7 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
   readonly state?: { readonly profession: ThiefRuntimeState };
 };
 
-export interface ThiefResolverReactionDetails extends SchedulerRecord {
+export interface ThiefResolverReactionDetails {
   readonly hitContext?: Gw2HitResolutionContext;
 }
 
@@ -210,18 +209,21 @@ export interface ThiefEndStateProjectionOptions {
   readonly resolverState?: Partial<ThiefState> | null;
 }
 
-export interface ThiefUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+export interface ThiefUiContext extends Omit<
+  ProfessionUiCallbackContext<ThiefRuntimeState | Partial<ThiefState>>,
+  'build'
+> {
   readonly config?: ThiefConfig;
-  readonly build?: ThiefBuild;
+  readonly build?: ThiefBuild | null;
   readonly state?: {
     readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
   };
-  readonly professionState?: ThiefRuntimeState | Partial<ThiefState>;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
-  readonly time?: number;
 }
+
+/** UI slice whose callbacks read Thief end-state projections. */
+export type ThiefUiSlice = Partial<ProfessionUiContract<ThiefRuntimeState | Partial<ThiefState>>>;
 
 export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly catalog?: CanonicalCatalog<ThiefSkill> | null;

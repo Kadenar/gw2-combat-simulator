@@ -4,13 +4,13 @@
  * Profession-specific resources are nested under `state.profession` via the
  * profession contract; the scheduler retains events for resolver handoff.
  */
-import type { SchedulerRecord, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerConfig, SchedulerState } from '#gw2/platform/engine/execution/types.js';
 
 interface SchedulerStateOptions<TProfessionState extends object> {
   readonly profession?: {
-    createProfessionState(config: Readonly<SchedulerRecord>): TProfessionState;
+    createProfessionState(config: Readonly<SchedulerConfig>): TProfessionState;
   };
-  readonly config?: Readonly<SchedulerRecord>;
+  readonly config?: Readonly<SchedulerConfig>;
   readonly startingTime?: number;
   readonly activeWeaponSet?: number;
 }
@@ -20,7 +20,7 @@ interface SchedulerStateOptions<TProfessionState extends object> {
  * Profession-specific resources are nested under `state.profession`.
  *
  */
-export function createSchedulerState<TProfessionState extends object = SchedulerRecord>({
+export function createSchedulerState<TProfessionState extends object = object>({
   profession,
   config = {},
   startingTime = 0,

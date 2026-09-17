@@ -1,3 +1,4 @@
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -12,7 +13,6 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   EngineerMaximumAmmoContext,
@@ -130,7 +130,7 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 ]);
 
 // Applied Force (GM trait): each might stack (capped at 25) adds 30 flat power at cast time.
-function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   if (!hasTrait(context, TRAIT.APPLIED_FORCE)) return attributes;
   const modified = {
     ...attributes,

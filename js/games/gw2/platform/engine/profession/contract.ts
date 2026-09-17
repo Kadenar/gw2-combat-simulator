@@ -2,12 +2,15 @@
  * Profession contract normalization. Validates sparse profession definitions
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
-import type { AvailabilityResult, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   NormalizedProfessionContract,
   PaletteSkillAvailability,
   ProfessionDefinition,
+  ProfessionSimulationDefinition,
+  UnvalidatedBuild,
   ProfessionUiContract
 } from '#gw2/platform/engine/profession/types.js';
 import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
@@ -33,7 +36,7 @@ type HookCategory = 'scheduler' | 'cast' | 'attribute' | 'resource';
  * resources. Derive composition lists from this order so new hooks cannot
  * silently miss a subset list.
  */
-const HOOK_DEFINITIONS: readonly (readonly [string, HookCategory])[] = Object.freeze([
+const HOOK_DEFINITIONS = Object.freeze([
   ['prepareEvent', 'scheduler'],
   ['initialize', 'scheduler'],
   ['availability', 'cast'],
@@ -59,10 +62,14 @@ const HOOK_DEFINITIONS: readonly (readonly [string, HookCategory])[] = Object.fr
   ['modifyConditionDamage', 'attribute'],
   ['modifyConditionBaseDuration', 'attribute'],
   ['modifyConditionDuration', 'attribute']
-]);
+] as const satisfies readonly (readonly [string, HookCategory])[]);
 
-const hookNamesWith = (category: HookCategory): readonly string[] =>
-  Object.freeze(HOOK_DEFINITIONS.filter(([, owner]) => owner === category).map(([name]) => name));
+// Filtering by category preserves the corresponding container's finite set of hook names.
+const hookNamesWith = <TCategory extends HookCategory>(category: TCategory) =>
+  Object.freeze(HOOK_DEFINITIONS.filter(([, owner]) => owner === category).map(([name]) => name)) as readonly Extract<
+    (typeof HOOK_DEFINITIONS)[number],
+    readonly [string, TCategory]
+  >[0][];
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
 export const SCHEDULER_HOOK_NAMES = hookNamesWith('scheduler');
@@ -117,7 +124,7 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
 
-      const candidate = entry as SchedulerRecord;
+      const candidate = entry as UnvalidatedFields;
       if (typeof candidate.handler !== 'function') {
         throw new TypeError(`Invalid ${hookName} hook at index ${index}.`);
       }
@@ -151,7 +158,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
   if (hookName === 'availability') {
-    return (context: SchedulerRecord, skill: Skill) =>
+    return (context: UnvalidatedFields, skill: Skill) =>
       foldAvailability(
         (function* () {
           for (const hook of hooks) {
@@ -166,7 +173,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
   // Recharge commitment also chains Core and elite contributions, but is invoked only for accepted casts.
   // Preparers and modifiers preserve the current value when a hook returns undefined.
   if (hookName === 'prepareEvent' || hookName === 'commitRechargeDuration' || hookName.startsWith('modify')) {
-    const composed = (context: SchedulerRecord, initialValue: unknown) =>
+    const composed = (context: UnvalidatedFields, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
         return next === undefined ? chainedValue : next;
@@ -179,7 +186,7 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
     return composed;
   }
 
-  return (context: SchedulerRecord, value: unknown) => {
+  return (context: UnvalidatedFields, value: unknown) => {
     let result: unknown;
     for (const hook of hooks) {
       const next = hook.handler(context, value);
@@ -194,9 +201,9 @@ function composeHooks(value: unknown, hookName: string, fallback: ComposableHook
  * Normalizes resolver event reactions into deterministic per-event dispatchers.
  */
 export function createEventReactions<
-  TContext = SchedulerRecord,
-  TEvent = SchedulerRecord,
-  TDetails extends object = SchedulerRecord,
+  TContext = UnvalidatedFields,
+  TEvent = UnvalidatedFields,
+  TDetails extends object = UnvalidatedFields,
   TResult = unknown
 >(
   value: Readonly<Record<string, unknown>> | null | undefined
@@ -226,7 +233,7 @@ export function assertDefinition(definition: unknown): void {
     throw new TypeError('A profession definition must be an object.');
   }
 
-  const candidate = definition as SchedulerRecord;
+  const candidate = definition as UnvalidatedFields;
   if (!/^[a-z][a-z0-9-]*$/.test(String(candidate.id || ''))) {
     throw new TypeError('Profession id must be a stable lowercase identifier.');
   }
@@ -237,7 +244,7 @@ export function assertDefinition(definition: unknown): void {
 }
 
 function assertOptionalCallback(container: object, name: string, scope: string): void {
-  const candidate = container as SchedulerRecord;
+  const candidate = container as UnvalidatedFields;
   if (candidate[name] != null && typeof candidate[name] !== 'function') {
     throw new TypeError(`${scope}.${name} must be a function.`);
   }
@@ -247,7 +254,7 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
   for (const name of names) assertOptionalCallback(container, name, scope);
 }
 
-function assertUiDefinition(ui: SchedulerRecord): void {
+function assertUiDefinition(ui: UnvalidatedFields): void {
   assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], 'ui');
   if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
     throw new TypeError('ui.assumptionControls must be an array.');
@@ -315,7 +322,7 @@ function normalizePaletteAvailability(value: unknown, professionId: string): Pal
     throw new TypeError(`${professionId} paletteSkillAvailability must return an object.`);
   }
 
-  const result = value as SchedulerRecord;
+  const result = value as UnvalidatedFields;
   if (typeof result.available !== 'boolean') {
     throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
   }
@@ -331,7 +338,7 @@ function normalizePaletteAvailability(value: unknown, professionId: string): Pal
   };
 }
 
-function assertShallowUnchanged(value: SchedulerRecord, snapshot: SchedulerRecord, label: string): void {
+function assertShallowUnchanged(value: UnvalidatedFields, snapshot: UnvalidatedFields, label: string): void {
   const keys = Object.keys(value);
   const priorKeys = Object.keys(snapshot);
   if (
@@ -343,7 +350,9 @@ function assertShallowUnchanged(value: SchedulerRecord, snapshot: SchedulerRecor
   }
 }
 
-function normalizeSimulation(simulation: SchedulerRecord | null | undefined): SchedulerRecord | null {
+function normalizeSimulation(
+  simulation: ProfessionSimulationDefinition | null | undefined
+): ProfessionSimulationDefinition | null {
   if (simulation == null) return null;
   if (typeof simulation !== 'object' || Array.isArray(simulation)) {
     throw new TypeError('simulation must be an object.');
@@ -354,10 +363,10 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
     return Object.freeze({ ...simulation });
   }
 
-  const refine = simulation.refineSchedulerConfig as (config: SchedulerRecord, result: SchedulerRecord) => unknown;
+  const refine = simulation.refineSchedulerConfig as (config: object, result: object) => unknown;
   return Object.freeze({
     ...simulation,
-    refineSchedulerConfig(config: SchedulerRecord, result: SchedulerRecord) {
+    refineSchedulerConfig(config: UnvalidatedFields, result: UnvalidatedFields): object | null {
       if (!config || typeof config !== 'object' || !result || typeof result !== 'object') {
         throw new TypeError('simulation.refineSchedulerConfig requires config and result objects.');
       }
@@ -376,7 +385,7 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
         throw new TypeError('simulation.refineSchedulerConfig must return a new config object.');
       }
 
-      return refined as SchedulerRecord;
+      return refined as object;
     }
   });
 }
@@ -387,9 +396,9 @@ function normalizeSimulation(simulation: SchedulerRecord | null | undefined): Sc
  * profession definition objects are intentionally not used directly elsewhere.
  */
 
-export function defineProfession<TProfessionState extends object>(
-  definition: ProfessionDefinition<TProfessionState>
-): Readonly<NormalizedProfessionContract<TProfessionState>> {
+export function defineProfession<TProfessionState extends object, TBuild extends object = object>(
+  definition: ProfessionDefinition<TProfessionState, TBuild>
+): Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>> {
   assertDefinition(definition);
   const build = definition.build || {};
   const resources = definition.resources || {};
@@ -448,7 +457,7 @@ export function defineProfession<TProfessionState extends object>(
     weaponSwapChangesSet: ui.weaponSwapChangesSet !== false
   };
 
-  const sources: SchedulerRecord = {
+  const sources: UnvalidatedFields = {
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
     availability: castRules.availability,
@@ -476,7 +485,7 @@ export function defineProfession<TProfessionState extends object>(
     modifyConditionDuration: attributeRules.modifyConditionDuration
   };
 
-  const hooks: SchedulerRecord = {};
+  const hooks: DynamicFields = {};
   for (const name of HOOK_NAMES) {
     const fallback =
       name === 'availability'
@@ -502,7 +511,7 @@ export function defineProfession<TProfessionState extends object>(
         schemaVersion: 3,
         profession: definition.id
       })),
-    migrateBuild: build.migrateBuild || ((saved: SchedulerRecord) => saved),
+    migrateBuild: build.migrateBuild || ((saved: UnvalidatedBuild) => saved as object),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
     createProfessionState: resources.createProfessionState || (() => ({})),
     createResolverState: resources.createResolverState || null,
@@ -520,5 +529,7 @@ export function defineProfession<TProfessionState extends object>(
     ui: Object.freeze(normalizedUi),
     simulation: normalizeSimulation(definition.simulation)
   };
-  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
+  return Object.freeze(profession) as unknown as Readonly<
+    NormalizedProfessionContract<TProfessionState, object, object, TBuild>
+  >;
 }

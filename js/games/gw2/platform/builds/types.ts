@@ -1,15 +1,18 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
 
+/** A saved build's fields before migration and validation; every value is unverified input. */
+export type UnvalidatedBuildRecord = Record<string, unknown>;
+
 export type Gw2AttributeEffectRounding = 'none' | 'round' | 'floor';
 
 /** Build assumptions shared by profession definitions and application adapters. */
-export interface ProfessionBuildAssumptions extends SchedulerRecord {
+/** Custom control keys remain unverified until the registered assumption normalizers read them. */
+export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
   procRateOverrides?: Record<string, number>;
   might?: number;
   fury?: boolean;
@@ -53,7 +56,7 @@ export interface ProfessionAssumptionControlInput {
   readonly section?: unknown;
 }
 
-export interface ProfessionAssumptionControlBase extends SchedulerRecord {
+export interface ProfessionAssumptionControlBase {
   readonly key: string;
   readonly label: string;
   readonly defaultValue: unknown;
@@ -123,7 +126,39 @@ export interface Gw2AttributeBreakdown {
 
 export type Gw2AttributeMap = Record<string, Gw2AttributeBreakdown>;
 
-export interface Gw2Build extends SchedulerRecord {
+/** Optional starting resources shared by the build editor; professions require the fields they own. */
+export interface Gw2BuildResources {
+  initialResource?: number;
+  initialBlight?: number;
+  initialCascadingCorruptionStacks?: number;
+  initialHeat?: number;
+  initialAstralForce?: number;
+  initialArrows?: number;
+  initialShadowForce?: number;
+  initialInitiative?: number;
+  initialEnergy?: number;
+  initialCatalystEnergy?: number;
+  initialEvokerCharges?: number;
+  initialEvokerEmpowered?: number;
+}
+
+/** Known build fields; persisted input stays unknown until the build codec normalizes it. */
+export interface Gw2Build extends Gw2BuildResources {
+  schemaVersion?: number;
+  profession?: string;
+  /** Legacy explicit specialization used by presentation fallbacks. */
+  specialization?: string;
+  assumptions?: ProfessionBuildAssumptions;
+  startAttunement?: string;
+  secondaryAttunement?: string;
+  initialUntamedState?: 'Ranger' | 'Pet';
+  selectedPet?: string;
+  selectedPet2?: string;
+  selectedHammerSkillIds?: number[];
+  selectedMorphSkillIds?: number[];
+  selectedLegends?: string[];
+  startingLegend?: string;
+  evokerElement?: string;
   gear?: Record<string, string>;
   alternateWeaponPrefixes?: string[];
   weapons?: string[];
@@ -150,7 +185,7 @@ export interface Gw2BuildInfusion {
   count: number;
 }
 
-export interface Gw2CanonicalBuild extends SchedulerRecord {
+export interface Gw2CanonicalBuild extends Gw2Build {
   precastRelics?: string[];
   schemaVersion: number;
   profession: string;
@@ -166,7 +201,7 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
   jadeBotCore: boolean;
   specializations: Gw2BuildSpecialization[];
   selectedSkills: Record<string, string>;
-  assumptions: SchedulerRecord;
+  assumptions: ProfessionBuildAssumptions;
   infusions: Gw2BuildInfusion[];
   startingWeaponSet: number;
   targetHealth: number;
@@ -178,7 +213,7 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
 }
 
 export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
-  readonly saved: SchedulerRecord;
+  readonly saved: UnvalidatedBuildRecord;
   readonly defaults: TBuild;
 }
 
@@ -210,9 +245,13 @@ export interface Gw2EnumBuildField<TValue extends string = string> extends Gw2Bu
 
 export type Gw2BuildExtraFieldDescriptor = Gw2BoundedNumberBuildField | Gw2BoundedIntegerBuildField | Gw2EnumBuildField;
 
-export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> = Readonly<
-  Partial<Record<Extract<keyof TBuild, string>, Gw2BuildExtraFieldDescriptor>>
->;
+export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> = Readonly<{
+  [K in Extract<keyof TBuild, string>]?: NonNullable<TBuild[K]> extends number
+    ? Gw2BoundedNumberBuildField | Gw2BoundedIntegerBuildField
+    : NonNullable<TBuild[K]> extends string
+      ? Gw2EnumBuildField<Extract<TBuild[K], string>>
+      : never;
+}>;
 
 export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: TBuild;
@@ -220,8 +259,8 @@ export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2Can
   readonly catalog: CanonicalCatalog;
 }
 
-export interface Gw2SlotLoadout<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> extends SchedulerRecord {
-  normalizeBuild(build: TBuild, context: Gw2SlotLoadoutContext<TBuild>): Partial<TBuild> & SchedulerRecord;
+export interface Gw2SlotLoadout<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
+  normalizeBuild(build: TBuild, context: Gw2SlotLoadoutContext<TBuild>): Partial<TBuild>;
   validateBuild(build: TBuild, context: Gw2SlotLoadoutContext<TBuild>): readonly unknown[];
 }
 
@@ -230,14 +269,14 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly schemaVersion: number;
   readonly catalog: CanonicalCatalog;
   readonly createDefaults: () => TBuild;
-  readonly migrations?: Readonly<Record<number, (saved: SchedulerRecord) => SchedulerRecord>>;
+  readonly migrations?: Readonly<Record<number, (saved: UnvalidatedBuildRecord) => UnvalidatedBuildRecord>>;
   readonly extraFields?: Gw2BuildExtraFieldDescriptors<TBuild>;
   readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext<TBuild>) => TBuild;
   readonly validateExtra?: (build: TBuild) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;
   readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
 }
 
-export interface Gw2ApplicationBuild extends SchedulerRecord {
+export interface Gw2ApplicationBuild extends Gw2Build {
   precastRelics?: string[];
   schemaVersion: number;
   profession: string;
@@ -253,7 +292,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
   jadeBotCore: boolean;
   specializations: Gw2BuildSpecialization[];
   selectedSkills: Record<string, string>;
-  assumptions: SchedulerRecord;
+  assumptions: ProfessionBuildAssumptions;
   infusions: Gw2BuildInfusion[];
   startingWeaponSet: number;
   targetHealth: number;
@@ -284,7 +323,7 @@ export interface Gw2AttributeCommonContext {
   sigilCriticalChance: number;
 }
 
-export interface Gw2CommonAttributeResult extends SchedulerRecord {
+export interface Gw2CommonAttributeResult {
   attributes: Gw2AttributeMap;
   gear: Record<string, string>;
   alternateWeaponPrefixes: string[];
@@ -300,7 +339,7 @@ export interface Gw2CommonAttributeResult extends SchedulerRecord {
   commonContext: Gw2AttributeCommonContext;
 }
 
-export interface Gw2FinalizedAttributeResult extends SchedulerRecord {
+export interface Gw2FinalizedAttributeResult {
   attributes: Gw2AttributeMap;
   gear: Record<string, string>;
   alternateWeaponPrefixes: string[];
@@ -355,7 +394,7 @@ export interface Gw2AttributeData {
         readonly poisonDuration?: number;
         readonly tormentDuration?: number;
         readonly boonDuration?: number;
-      } & SchedulerRecord
+      }
     >
   >;
   UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;

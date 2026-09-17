@@ -9,10 +9,9 @@ import {
 import type {
   PaletteSkillAvailability,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 
@@ -81,7 +80,7 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
   return { available: true, message: '' };
 }
 
-export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
+export const bladeswornUi: WarriorUiSlice = Object.freeze({
   chargeReleaseProjection: dragonChargeReleaseProjection,
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>

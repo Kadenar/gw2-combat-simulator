@@ -1,5 +1,4 @@
 /** Owns the combos/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 
 export type ComboFieldType =
@@ -54,7 +53,7 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly outcome: Readonly<Record<string, unknown>>;
 }
 
-export interface Gw2ComboRuntimeState extends SchedulerRecord {
+export interface Gw2ComboRuntimeState {
   readonly fields: Map<string, ComboFieldEvent>;
   readonly handledAttemptIds: Set<string>;
   readonly deterministicProgress: Map<string, number>;

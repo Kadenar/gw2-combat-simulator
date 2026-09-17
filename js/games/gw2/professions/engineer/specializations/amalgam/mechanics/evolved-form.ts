@@ -17,7 +17,6 @@ import {
   AMALGAM_NEW_GENES_BOONS
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
 import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerCastContext,
@@ -35,7 +34,7 @@ interface AmalgamBuff {
   readonly name: string;
 }
 
-interface MercurialTendenciesPayload extends SchedulerRecord {
+interface MercurialTendenciesPayload {
   readonly sourceSkill?: string;
 }
 

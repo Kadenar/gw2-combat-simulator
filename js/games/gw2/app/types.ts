@@ -1,8 +1,15 @@
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
+import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
 import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord, RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   PatchComparison,
@@ -48,7 +55,7 @@ export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
 };
 
-export interface RotationActionOptions extends SchedulerRecord {
+export interface RotationActionOptions {
   readonly skillId?: SkillId | null;
   readonly offTarget?: boolean | null;
   readonly concurrentOffsetMs?: number | null;
@@ -144,11 +151,14 @@ export interface ProfessionChangeOptions {
   readonly deferRotationRender?: boolean;
 }
 
-export interface ProfessionRotationDragState extends SchedulerRecord {
+export interface ProfessionRotationDragState {
   readonly source?: string;
   readonly index?: number;
   readonly name?: string;
   readonly skillId?: SkillId;
+  /** Legacy aliases still read by the timeline drop handler; current producers set `index` and `name`. */
+  readonly idx?: number;
+  readonly skillName?: string;
 }
 
 export interface ProfessionAppResult extends Gw2SimulationResult {
@@ -182,9 +192,25 @@ export interface ProfessionRuntimeConfigContext {
   readonly activeTraits: readonly CatalogEntity[];
 }
 
+/** Runtime adapters return the configuration fields owned by their profession. */
+export type ProfessionRuntimeConfig =
+  | ElementalistConfig
+  | EngineerConfig
+  | GuardianConfig
+  | NecromancerConfig
+  | RangerConfig
+  | RevenantConfig
+  | ThiefConfig;
+
 export interface ProfessionRuntimeOverrides {
-  readonly buildConfigInputs?: (app: ProfessionAppState, context: ProfessionRuntimeConfigContext) => SchedulerRecord;
-  readonly buildConfigExtras?: (app: ProfessionAppState, context: ProfessionRuntimeConfigContext) => SchedulerRecord;
+  readonly buildConfigInputs?: (
+    app: ProfessionAppState,
+    context: ProfessionRuntimeConfigContext
+  ) => Partial<Gw2SimulationConfigOptions>;
+  readonly buildConfigExtras?: (
+    app: ProfessionAppState,
+    context: ProfessionRuntimeConfigContext
+  ) => ProfessionRuntimeConfig;
 }
 
 export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {

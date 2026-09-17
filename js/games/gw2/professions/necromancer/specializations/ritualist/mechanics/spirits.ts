@@ -23,7 +23,7 @@ import {
   gainNecromancerLifeForce,
   runCreatureSummonReactions
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
@@ -46,13 +46,13 @@ const SPIRIT_ATTACK_TASK = 'necromancer.ritualist-spirit-attack';
 const SPIRIT_ATTACK_STOP_TASK = 'necromancer.ritualist-spirit-attack-stop';
 const RITUALIST_SHROUD_WEAPON_PROFILE = 'transform.ritualist-shroud';
 
-interface SpiritAttackTaskPayload extends SchedulerRecord {
+interface SpiritAttackTaskPayload {
   readonly skillId: SkillId;
   readonly spiritKey: string;
   readonly generation: number;
 }
 
-interface SpiritAttackStopTaskPayload extends SchedulerRecord {
+interface SpiritAttackStopTaskPayload {
   readonly ownerId: string;
 }
 
@@ -134,7 +134,7 @@ function activePrimaryWeapon(context: NecromancerCastContext): string {
 }
 
 // Snapshot the equipped main-hand profile so delayed player-owned spirit packets keep their cast-time weapon roll.
-function activePrimaryWeaponFields(context: NecromancerCastContext): Readonly<SchedulerRecord> {
+function activePrimaryWeaponFields(context: NecromancerCastContext) {
   const skillWeapon = activePrimaryWeapon(context) || 'Unequipped';
   const weaponStrengthProfileId = weaponStrengthProfileForName(skillWeapon)?.id;
   return {

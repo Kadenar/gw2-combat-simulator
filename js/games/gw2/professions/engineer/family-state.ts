@@ -9,7 +9,6 @@ import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/core/state.js';
 import {
@@ -66,7 +65,7 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> 
 export function projectEngineerEndState({
   schedulerState,
   resolverState
-}: EngineerEndStateProjectionOptions): SchedulerRecord {
+}: EngineerEndStateProjectionOptions): Pick<EngineerState, (typeof ENGINEER_PUBLIC_END_STATE_KEYS)[number]> {
   const state = snapshotEngineerState(schedulerState.profession);
   // Report consumed charges from the resolver instead of the scheduler's initial values.
   if (resolverState?.specialization.kind === 'Holosmith') {

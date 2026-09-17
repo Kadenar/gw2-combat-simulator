@@ -9,15 +9,14 @@ import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-st
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   RevenantResolverEvent,
   RevenantSkill,
   RevenantState,
-  RevenantUiContext
+  RevenantUiContext,
+  RevenantUiSlice
 } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
@@ -49,7 +48,7 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
   if (!entry || typeof entry !== 'object' || !('type' in entry)) return '';
   if (entry.type !== 'cast' || !('skillId' in entry)) return String(entry.type || '');
   const skillId = entry.skillId;
-  const catalog = context.catalog as SchedulerRecord | undefined;
+  const catalog = context.catalog;
   const skillsById = catalog?.skillsById;
   return skillsById instanceof Map ? String(skillsById.get(skillId)?.name || skillId) : String(skillId);
 }
@@ -172,7 +171,7 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
   return items;
 }
 
-export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const revenantCoreUi: RevenantUiSlice = Object.freeze({
   assumptionControls: Object.freeze([
     ...REVENANT_ASSUMPTION_CONTROLS,
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
@@ -226,7 +225,7 @@ export const revenantCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = O
         value: displayedRevenantEnergy(state.energy ?? context.initialEnergy ?? 50),
         startMaximum: 100,
         canStart: true,
-        buildKey: 'initialEnergy',
+        buildKey: 'initialEnergy' as const,
         step: 1,
         displayMode: 'bar',
         pipStyle: 'compact-profession-resource-revenant-energy',

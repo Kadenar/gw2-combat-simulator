@@ -10,10 +10,9 @@ import {
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
 const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -45,7 +44,7 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
   return { available: true, message: '' };
 }
 
-export const berserkerUi: Partial<ProfessionUiContract> = Object.freeze({
+export const berserkerUi: WarriorUiSlice = Object.freeze({
   // Berserk is a mode window, so overlapping activation records remain binary in result charts.
   effectPresentations: () => [...BERSERKER_EFFECT_PRESENTATIONS],
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),

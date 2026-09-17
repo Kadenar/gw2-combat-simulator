@@ -1,3 +1,4 @@
+import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
  * as independent skills (for example, a Revenant legend and its entire bar).
@@ -37,12 +38,13 @@ export interface SlotLoadoutEntry {
   readonly specialization: string;
 }
 
+/** Field names come from validated loadout options; only this dynamic adapter indexes them. */
 type BuildRecord = Record<string, unknown>;
 
 export interface SlotLoadoutContext {
   specialization?: string;
-  config?: { specialization?: string; [field: string]: unknown };
-  build?: BuildRecord;
+  config?: SchedulerConfig;
+  build?: object | null;
   professionState?: { activeLoadoutId?: string; [field: string]: unknown };
   state?: {
     profession?: { activeLoadoutId?: string; [field: string]: unknown };
@@ -109,13 +111,13 @@ export interface CreateFixedSlotLoadoutOptions {
   defaults?: readonly unknown[];
 }
 
-export interface FixedSlotLoadout<TBuild extends BuildRecord = BuildRecord> {
+export interface FixedSlotLoadout<TBuild extends object = object> {
   readonly id: string;
   readonly label: string;
   readonly selectionKey: string;
   readonly startingKey: string;
   readonly entries: readonly SlotLoadoutEntry[];
-  normalizeBuild(build: TBuild, context?: SlotLoadoutContext): Partial<TBuild> & BuildRecord;
+  normalizeBuild(build: TBuild, context?: SlotLoadoutContext): Partial<TBuild>;
   validateBuild(build: TBuild, context?: SlotLoadoutContext): string[];
   view(context?: SlotLoadoutContext): SlotLoadoutView;
   updateBuild(build: TBuild, selectorKey: string, value: unknown, context?: SlotLoadoutContext): TBuild;
@@ -166,7 +168,7 @@ function loadoutContext(
  * Creates the shared fixed-bar loadout model used by professions whose slot
  * skills are selected as packages rather than five independent dropdowns.
  */
-export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>({
+export function createFixedSlotLoadout<TBuild extends object = object>({
   id = 'fixed-slot-loadout',
   label = 'Loadout',
   entryLabel = 'Bar',
@@ -201,10 +203,10 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
     return loadoutContext(context, entries).legal;
   }
 
-  function normalizedSelection(build: BuildRecord | undefined, context: SlotLoadoutContext = {}): string[] {
+  function normalizedSelection(build: object | undefined, context: SlotLoadoutContext = {}): string[] {
     const legal = legalEntries(context);
     const legalIds = new Set(legal.map((entry) => entry.id));
-    const rawRequested = build?.[selectionKey];
+    const rawRequested = (build as BuildRecord | undefined)?.[selectionKey];
     const requested = Array.isArray(rawRequested) ? rawRequested.map(stableId) : [];
     const fallback = [...defaultIds.filter((entryId) => legalIds.has(entryId)), ...legal.map((entry) => entry.id)];
     const selected: string[] = [];
@@ -216,18 +218,18 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
     return selected;
   }
 
-  function normalizeBuild(build: TBuild, context: SlotLoadoutContext = {}): Partial<TBuild> & BuildRecord {
+  function normalizeBuild(build: TBuild, context: SlotLoadoutContext = {}): Partial<TBuild> {
     const selected = normalizedSelection(build, context);
-    const requestedStart = stableId(build?.[startingKey]);
+    const requestedStart = stableId((build as BuildRecord | undefined)?.[startingKey]);
     return {
       [selectionKey]: selected,
       [startingKey]: selected.includes(requestedStart) ? requestedStart : selected[0]
-    } as Partial<TBuild> & BuildRecord;
+    } as Partial<TBuild>;
   }
 
   function validateBuild(build: TBuild, context: SlotLoadoutContext = {}): string[] {
     const errors: string[] = [];
-    const rawSelected = build?.[selectionKey];
+    const rawSelected = (build as BuildRecord | undefined)?.[selectionKey];
     const selected = Array.isArray(rawSelected) ? rawSelected.map(stableId) : [];
     const legalIds = new Set(legalEntries(context).map((entry) => entry.id));
     if (
@@ -238,7 +240,7 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
       errors.push(`${selectionKey} must contain ${selectionCount} distinct legal ${entryLabel.toLowerCase()} ids.`);
     }
 
-    if (!selected.includes(stableId(build?.[startingKey]))) {
+    if (!selected.includes(stableId((build as BuildRecord | undefined)?.[startingKey]))) {
       errors.push(`${startingKey} must be included in ${selectionKey}.`);
     }
 
@@ -249,7 +251,9 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
     const runtimeId = stableId(
       context.professionState?.activeLoadoutId ?? context.state?.profession?.activeLoadoutId ?? context.activeLoadoutId
     );
-    return selected.includes(runtimeId) ? runtimeId : stableId(context.build?.[startingKey] || selected[0]);
+    return selected.includes(runtimeId)
+      ? runtimeId
+      : stableId((context.build as BuildRecord | undefined)?.[startingKey] || selected[0]);
   }
 
   function view(context: SlotLoadoutContext = {}): SlotLoadoutView {
@@ -275,7 +279,7 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
       selectors.push({
         key: startingKey,
         label: `Starting ${entryLabel}`,
-        value: stableId(build[startingKey] || selected[0]),
+        value: stableId((build as BuildRecord)[startingKey] || selected[0]),
         options: selected.map((value) => ({
           value,
           label: byId.get(value)?.name || value,
@@ -308,7 +312,7 @@ export function createFixedSlotLoadout<TBuild extends BuildRecord = BuildRecord>
   }
 
   function updateBuild(build: TBuild, selectorKey: string, value: unknown, context: SlotLoadoutContext = {}): TBuild {
-    const mutableBuild: BuildRecord = build;
+    const mutableBuild = build as BuildRecord;
     const selected = normalizedSelection(build, context);
     if (selectorKey.startsWith(`${selectionKey}:`)) {
       const index = Number(selectorKey.split(':').at(-1));

@@ -8,15 +8,14 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/type
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
-  GuardianUiContext
+  GuardianUiContext,
+  GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 
 let guardianCatalog: Readonly<CanonicalCatalog>;
@@ -93,7 +92,7 @@ export function guardianUiSkillsByMode(property: keyof GuardianSkill, value: unk
 // Render Guardian-specific virtue and state events while delegating ordinary
 // combat events to the shared log formatter.
 export function guardianEventLogRow(
-  _context: SchedulerRecord,
+  _context: GuardianUiContext,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   if (event.type === 'guardian.righteous-instincts-tick' || event.type === 'guardian.symbol-of-ignition-field') {
@@ -141,7 +140,7 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
   }
 ]);
 
-export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const guardianCoreUi: GuardianUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
   effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],

@@ -24,7 +24,7 @@ export function thiefStealthAttackChargeState(context: ThiefSchedulerContext): P
 
 export const THIEF_BREAK_STEALTH_TASK = 'thief.break-stealth-on-strike';
 
-interface BreakStealthTaskPayload extends Record<string, unknown> {
+interface BreakStealthTaskPayload {
   readonly skillId: number;
   readonly strikeAt: number;
 }

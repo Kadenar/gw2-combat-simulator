@@ -5,13 +5,9 @@ import {
   warriorPaletteGroups,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type {
-  ProfessionResourceView,
-  ProfessionUiContract,
-  RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { WarriorSkill, WarriorUiContext } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
 
@@ -51,7 +47,7 @@ function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotI
     : [];
 }
 
-export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
+export const paragonUi: WarriorUiSlice = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, CHANTS),
   rotationStateSnapshot: paragonStateSnapshot,
   resourceViews: resources,

@@ -3,8 +3,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulat
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 export interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];
@@ -27,9 +26,9 @@ function buildAssumptionControls(
 
 /** Normalizes the assumptions persisted by a profession build definition. */
 export function normalizeProfessionBuildAssumptions(
-  assumptions: SchedulerRecord = {},
+  assumptions: ProfessionBuildAssumptions = {},
   controls: readonly ProfessionAssumptionControl[] = []
-): SchedulerRecord {
+): ProfessionBuildAssumptions {
   return normalizeProfessionAssumptions(assumptions, buildAssumptionControls(controls));
 }
 

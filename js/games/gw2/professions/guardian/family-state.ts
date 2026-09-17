@@ -3,7 +3,6 @@ import {
   projectPublicProfessionState,
   snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import {
   activeSymbolicAvengerExpirations,
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
@@ -77,10 +76,11 @@ const GUARDIAN_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianState)[] = Objec
 export function projectGuardianEndState({
   schedulerState,
   resolverState
-}: GuardianEndStateProjectionOptions): SchedulerRecord {
+}: GuardianEndStateProjectionOptions): Partial<GuardianState> {
   const state = flattenProfessionState<GuardianState>(schedulerState.profession);
-  const resolver = flattenProfessionState(resolverState || {});
-  const mutableState = state as unknown as SchedulerRecord;
+  const resolver = flattenProfessionState<Partial<GuardianState>>(resolverState || {});
+  // The same runtime key selects both sides; the writable view keeps the union of owned field values.
+  const mutableState: Partial<{ [Key in keyof GuardianState]: GuardianState[keyof GuardianState] }> = state;
 
   for (const key of GUARDIAN_RESOLVER_END_STATE_KEYS) {
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];

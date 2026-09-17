@@ -1,3 +1,5 @@
+import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
 /**
  * Evoker damage and attribute modifiers.
  *
@@ -6,11 +8,10 @@
  * attributes feed into scaling.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import {
   elementalistMightStacks,
   elementalistTimedBuffStacks
@@ -39,7 +40,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       hasTrait(context, "Familiar's Focus") ? parameters.focusedAmount : parameters.baseAmount,
-    when: (context) =>
+    when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
   },
   {
@@ -49,7 +50,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     parameters: { baseAmount: 0.05, focusedAmount: 0.1 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       hasTrait(context, "Familiar's Focus") ? parameters.focusedAmount : parameters.baseAmount,
-    when: (context) =>
+    when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
   },
   {
@@ -57,7 +58,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) =>
+    when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' &&
       hasTrait(context, 'Enhanced Potency') &&
       Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
@@ -67,7 +68,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.03,
-    when: (context) =>
+    when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, 'zap buff', 1) > 0
   }
 ]);
@@ -77,8 +78,8 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
  * Air Evoker, and might-scaled condition damage on a Fire Evoker.
  */
 // ferocity and conditionDamage added here rather than as modifier rules because they must feed into crit-damage and condition scaling before those are computed
-export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = { ...attributes };
+export function modifyEvokerAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified: Gw2MutableStats = { ...attributes };
   if (
     context.config?.evokerElement === 'Air' &&
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))

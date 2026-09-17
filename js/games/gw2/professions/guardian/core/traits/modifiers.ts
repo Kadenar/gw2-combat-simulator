@@ -6,7 +6,6 @@ import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { boonActive, hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { GuardianSchedulerContext, GuardianSkill, GuardianState } from '#gw2/professions/guardian/types.js';
@@ -18,15 +17,13 @@ import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/g
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
-type GuardianRechargeModifierContext = GuardianSchedulerContext &
-  SchedulerRecord & {
-    readonly skill?: GuardianSkill;
-  };
+type GuardianRechargeModifierContext = GuardianSchedulerContext & {
+  readonly skill?: GuardianSkill;
+};
 
-type GuardianAmmoModifierContext = GuardianSchedulerContext &
-  SchedulerRecord & {
-    readonly skill?: GuardianSkill;
-  };
+type GuardianAmmoModifierContext = GuardianSchedulerContext & {
+  readonly skill?: GuardianSkill;
+};
 
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   return readProfessionCoreState<GuardianState>(context.runtime?.profession);

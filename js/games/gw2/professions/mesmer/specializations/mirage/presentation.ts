@@ -6,19 +6,14 @@ import {
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
-import type {
-  PaletteSkillAvailability,
-  ProfessionEffectPresentation,
-  ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { PaletteSkillAvailability, ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerUiContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Mirage-only timed effects and their chart limits. */
-function mirageEffectPresentations(context: SchedulerRecord): ProfessionEffectPresentation[] {
+function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-phantom-pain',
@@ -40,7 +35,7 @@ function mirageEffectPresentations(context: SchedulerRecord): ProfessionEffectPr
 /** Keeps the mirror pickup action disabled until the projected state has a collectible ground mirror. */
 function miragePaletteSkillAvailability(context: MesmerUiContext, skill: Skill): PaletteSkillAvailability {
   if (skill.id !== ID.PICK_UP_MIRAGE_MIRROR) return { available: true, message: '' };
-  const state = (context.professionState || context.state?.profession || {}) as SchedulerRecord;
+  const state = context.professionState || context.state?.profession || {};
   const available = Number(state.availableMirrors || 0) > 0;
   return {
     available,
@@ -48,7 +43,7 @@ function miragePaletteSkillAvailability(context: MesmerUiContext, skill: Skill):
   };
 }
 
-export const mirageUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const mirageUi: MesmerUiSlice = Object.freeze({
   effectPresentations: mirageEffectPresentations,
   paletteGroups: (context: MesmerUiContext) => mesmerMechanicPaletteGroups(context, MIRAGE_MECHANIC_SKILLS, 'clones'),
   resourceViews: (context: MesmerUiContext) => [

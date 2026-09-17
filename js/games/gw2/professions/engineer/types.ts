@@ -1,10 +1,10 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
   CastLifecycleContext,
-  RotationCommand,
   SchedulerContext,
-  SchedulerRecord,
   SchedulerState,
   ScheduledTask
 } from '#gw2/platform/engine/execution/types.js';
@@ -13,6 +13,7 @@ import type {
   Gw2ApplicationBuild,
   Gw2Build,
   Gw2CanonicalBuild,
+  Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
@@ -38,7 +39,6 @@ export interface EngineerBuild extends Gw2Build {
 }
 
 export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
-  assumptions: SchedulerRecord;
   initialHeat: number;
   selectedMorphSkillIds: number[];
 }
@@ -129,7 +129,7 @@ export interface EngineerEndStateProjectionOptions {
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;
 
-export type EngineerScheduledTask<TPayload extends SchedulerRecord> = ScheduledTask<TPayload>;
+export type EngineerScheduledTask<TPayload extends object> = ScheduledTask<TPayload>;
 
 export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;
@@ -150,26 +150,38 @@ export type EngineerResolverContext = Gw2ResolverRuntime & {
   readonly state?: { readonly profession: EngineerRuntimeState };
 };
 
-export interface EngineerResolverReactionDetails extends SchedulerRecord {
+export interface EngineerResolverReactionDetails {
   readonly hitContext?: Gw2HitResolutionContext;
   readonly criticalChance?: number;
 }
 
-export interface EngineerUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+/** Engineer's finalized attributes also carry the pre-profession conversion pool Amalgam evolves from. */
+export interface EngineerFinalizedAttributeResult extends Gw2FinalizedAttributeResult {
+  readonly amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
+}
+
+/** Modifier context whose config is the Engineer's, so rules can read its build selections. */
+export interface EngineerModifierContext extends Gw2ModifierContext {
   readonly config?: EngineerConfig;
-  readonly build?: EngineerBuild;
+}
+
+export interface EngineerUiContext extends Omit<
+  ProfessionUiCallbackContext<Partial<EngineerState>>,
+  'build' | 'skill'
+> {
+  readonly config?: EngineerConfig;
+  readonly build?: EngineerBuild | null;
   readonly state?: {
     readonly profession?: Partial<EngineerState>;
   };
-  readonly professionState?: Partial<EngineerState>;
   readonly initialHeat?: number;
   readonly skill?: EngineerSkill;
-  readonly weaponLine?: string | null;
-  readonly entry?: RotationCommand;
 }
 
-export interface EngineerUiSelection extends SchedulerRecord {
+/** UI slice whose callbacks read Engineer end-state projections. */
+export type EngineerUiSlice = Partial<ProfessionUiContract<Partial<EngineerState>>>;
+
+export interface EngineerUiSelection {
   readonly key?: string;
   readonly index?: number;
   readonly skillId?: SkillId;

@@ -1,5 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
@@ -54,7 +54,7 @@ function flowRateSegments(value: unknown): readonly DragonFlowRateSegment[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate) => {
     if (!candidate || typeof candidate !== 'object') return [];
-    const segment = candidate as SchedulerRecord;
+    const segment = candidate as UnvalidatedFields;
     const start = Number(segment.start);
     const end = Number(segment.end);
     const flowPerSecond = Number(segment.flowPerSecond);
@@ -70,7 +70,7 @@ export function dragonChargeReleaseProjection(context: {
   readonly events?: readonly SimulationEvent[];
   readonly insertionIndex?: number;
   readonly skill?: Skill;
-}): SchedulerRecord {
+}) {
   const events = context.events || [];
   const insertionIndex = Number(context.insertionIndex);
   const skill = context.skill;

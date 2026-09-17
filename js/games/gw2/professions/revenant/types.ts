@@ -1,3 +1,4 @@
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
@@ -5,7 +6,7 @@ import type {
   ScheduledTask,
   SchedulerState,
   SchedulerContext,
-  SchedulerRecord
+  CastCommand
 } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
@@ -58,7 +59,6 @@ export interface RevenantBuild extends Gw2Build {
 }
 
 export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
-  assumptions: SchedulerRecord;
   selectedLegends: string[];
   startingLegend: string;
   initialEnergy: number;
@@ -80,12 +80,12 @@ export interface RevenantConfig extends Gw2Config {
   readonly targetCount?: number;
 }
 
-export interface RevenantTimedStack extends SchedulerRecord {
+export interface RevenantTimedStack {
   at: number;
   expiresAt: number;
 }
 
-export interface RevenantChargeState extends SchedulerRecord {
+export interface RevenantChargeState {
   charges: number;
   expiresAt: number;
   readyAt: number;
@@ -115,6 +115,8 @@ export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & 
 };
 
 export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
+  /** Release Potential may override the configured target count for this cast. */
+  readonly command: CastCommand & { readonly targetsHit?: number };
   readonly catalog: CanonicalCatalog<RevenantSkill>;
   readonly config: RevenantConfig;
   readonly skill: RevenantSkill;
@@ -126,16 +128,15 @@ export type RevenantPrecastContext = CastContext<RevenantRuntimeState> & {
   readonly skill: RevenantSkill;
 };
 
-export type RevenantRechargeContext = RevenantSchedulerContext &
-  SchedulerRecord & {
-    readonly skill?: RevenantSkill;
-    readonly at: number;
-    readonly start?: number;
-    readonly hasBuff?: (kind: string, at?: number) => boolean;
-  };
+export type RevenantRechargeContext = RevenantSchedulerContext & {
+  readonly skill?: RevenantSkill;
+  readonly at: number;
+  readonly start?: number;
+  readonly hasBuff?: (kind: string, at?: number) => boolean;
+};
 
 export interface RevenantEnergyContext {
-  readonly catalog?: CanonicalCatalog<RevenantSkill>;
+  readonly catalog?: CanonicalCatalog<RevenantSkill> | null;
   readonly config?: RevenantConfig;
   readonly state?:
     | SchedulerState<RevenantRuntimeState>
@@ -151,7 +152,7 @@ export interface RevenantEnergyContext {
   readonly hasBuff?: (kind: string, at?: number) => boolean;
 }
 
-export type RevenantScheduledTask<TPayload extends SchedulerRecord = SchedulerRecord> = ScheduledTask<TPayload>;
+export type RevenantScheduledTask<TPayload extends object = object> = ScheduledTask<TPayload>;
 
 export type RevenantSimulationEvent = SimulationEvent & {
   readonly eventOrder?: number;
@@ -168,18 +169,20 @@ export type RevenantResolverContext = Gw2ResolverRuntime & {
   profession: RevenantRuntimeState;
 };
 
-export interface RevenantUiContext extends SchedulerRecord {
-  readonly specialization?: string;
+export interface RevenantUiContext extends Omit<
+  ProfessionUiCallbackContext<Partial<RevenantState>>,
+  'build' | 'cooldowns' | 'entry' | 'rotation'
+> {
   readonly config?: RevenantConfig;
-  readonly build?: RevenantBuild;
+  readonly build?: RevenantBuild | null;
   readonly state?: {
     readonly profession?: Partial<RevenantState>;
   };
-  readonly professionState?: Partial<RevenantState>;
   readonly initialEnergy?: number;
   readonly cooldowns?: Readonly<Record<string, { readonly remaining?: number }>>;
   readonly entry?: unknown;
   readonly rotation?: readonly unknown[];
-  readonly index?: number;
-  readonly time?: number;
 }
+
+/** UI slice whose callbacks read Revenant end-state projections. */
+export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantState>>>;

@@ -1,3 +1,4 @@
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileFromContext,
@@ -29,7 +30,6 @@ import type {
   EngineerSchedulerContext
 } from '#gw2/professions/engineer/types.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 /** Applies mech cast traits after the skill's effects have been emitted. */
@@ -125,8 +125,8 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 ]);
 
 /** Replaces player attributes with the mech's inherited attribute set for mech-owned events. */
-function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
-  const modified = { ...attributes };
+function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified: Gw2MutableStats = { ...attributes };
   if (!engineerMechEvent(context)) return modified;
   const mightStacks = activeBoonStacks(context, 'might');
   // The mech inherits base player stats, not boon-amplified ones. Strip might

@@ -17,8 +17,7 @@ import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platfor
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { castRelativeEffectTimingScale, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, StrikeTick, ConditionTick } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -51,14 +50,15 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
     const familiar = context.catalog.skillsById.get(skillId);
     if (!familiar) continue;
     for (const rawEffect of familiar.effects || []) {
-      const effect = rawEffect as SchedulerRecord;
+      const effect = rawEffect;
       // Procession launches an independent familiar sequence rather than a
       // player cast, so its packets retain their unquickened runtime spacing.
       const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * 1.5);
       const timingScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
       const ticks = Array.isArray(effect.ticks) ? effect.ticks : [effect];
       for (const rawTick of ticks) {
-        const tick = rawTick as SchedulerRecord;
+        // Array.isArray erases the catalog tick type; retain the authored tick/effect union.
+        const tick = rawTick as StrikeTick | ConditionTick | SkillEffect;
         const at = context.effectiveEnd + (Number(tick.atMs ?? effect.atMs ?? 0) * timingScale) / 1_000;
         const comboFinishers = tick.comboFinishers || effect.comboFinishers;
         if (effect.type === 'strike') {
@@ -541,7 +541,7 @@ function applySpecializedElementsTrait(context: ElementalistCastContext, skill: 
 export function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   // Evoker supplies its trait-proc policy before Core's completion hook, while Core still owns the shared transition.
   if (completeEvokerAttunement(context, skill)) {
-    (context as unknown as SchedulerRecord).elementalistAttunementHandled = true;
+    context.elementalistAttunementHandled = true;
   }
 
   const state = evokerState.from(context);

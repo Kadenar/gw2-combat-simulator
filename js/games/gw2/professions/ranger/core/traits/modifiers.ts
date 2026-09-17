@@ -26,7 +26,7 @@ import {
   rangerPetModifierRules
 } from '#gw2/professions/ranger/core/traits/pet-modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -54,7 +54,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   const calculatedWeapon = String(context.config?.attributeProvenance?.calculatedPrimaryWeapon || '');
   const calculatedWeaponSet = Number(context.config?.attributeProvenance?.calculatedWeaponSet) === 2 ? 2 : 1;
-  const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
+  const adjust = (attribute: Gw2NumericStatKey, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
 

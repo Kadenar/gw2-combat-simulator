@@ -1,3 +1,4 @@
+import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import {
   balanceProfileFromContext,
   balanceProfileEffect,
@@ -13,7 +14,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -170,18 +171,18 @@ export function galeshotCastAvailability(context: RangerCastContext, skill: Rang
   return { ready: true };
 }
 
-function galeshotRuntimeState(context: Gw2ModifierContext) {
+function galeshotRuntimeState(context: RangerModifierContext) {
   return readProfessionSpecializationState<{ windForce?: number; galeForceUntil?: number }>(
     context.runtime?.profession,
     'Galeshot'
   );
 }
 
-function windForce(context: Gw2ModifierContext): number {
+function windForce(context: RangerModifierContext): number {
   return Number(galeshotRuntimeState(context)?.windForce || 0);
 }
 
-function galeForceAmount(context: Gw2ModifierContext, parameters: Readonly<Record<string, number>>): number {
+function galeForceAmount(context: RangerModifierContext, parameters: Readonly<Record<string, number>>): number {
   const galeForce =
     Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time ? parameters.galeForceBonus : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
@@ -189,7 +190,7 @@ function galeForceAmount(context: Gw2ModifierContext, parameters: Readonly<Recor
   return galeForce + windForce(context) * parameters.windForcePerStack;
 }
 
-function activePetIsFeathered(context: Gw2ModifierContext): boolean {
+function activePetIsFeathered(context: RangerModifierContext): boolean {
   const name = String(
     readProfessionCoreState<{ activePet?: string }>(context.runtime?.profession).activePet ||
       context.config?.selectedPet ||
@@ -198,7 +199,7 @@ function activePetIsFeathered(context: Gw2ModifierContext): boolean {
   return ['avian', 'moa', 'phoenix', 'raptor swiftwing'].includes(rangerPetByName(name).family);
 }
 
-function eventSkillId(context: Gw2ModifierContext): number {
+function eventSkillId(context: RangerModifierContext): number {
   return Number(context.event?.skillId ?? context.skillId);
 }
 

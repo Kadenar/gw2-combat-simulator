@@ -1,8 +1,8 @@
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type {
   ComboEvent,
@@ -120,7 +120,7 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
     throw new TypeError('Combo finisher fieldBinding is required.');
   }
 
-  const binding = value as SchedulerRecord;
+  const binding = value as UnvalidatedFields;
   if (binding.kind === 'none') return Object.freeze({ kind: 'none' });
   if (binding.kind === 'field-id') {
     return Object.freeze({

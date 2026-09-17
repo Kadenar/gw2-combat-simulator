@@ -1,7 +1,8 @@
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
 import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 4_000_000;
 export const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
@@ -30,7 +31,9 @@ export type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
  * Profession-specific assumptions are applied last and may intentionally
  * override a common default.
  */
-export function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverrides = {}): SchedulerRecord {
+export function createDefaultSimulationAssumptions(
+  overrides: ProfessionAssumptionOverrides = {}
+): ProfessionBuildAssumptions {
   return {
     ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
     ...DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS,
@@ -68,7 +71,7 @@ export interface CommonBuildDefaultsOptions {
 }
 
 export interface CommonBuildDefaults {
-  readonly assumptions: SchedulerRecord;
+  readonly assumptions: ProfessionBuildAssumptions;
   readonly startingWeaponSet: number;
   readonly targetHealth: number;
   readonly targetStartingHealthPercent: number;

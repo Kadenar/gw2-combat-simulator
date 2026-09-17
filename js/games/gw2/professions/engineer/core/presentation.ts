@@ -16,16 +16,15 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
-  ProfessionUiContract,
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
   EngineerState,
-  EngineerUiContext
+  EngineerUiContext,
+  EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
 
 /**
@@ -265,7 +264,7 @@ export function engineerEventLogRow(
   return undefined;
 }
 
-export const engineerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const engineerCoreUi: EngineerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
   paletteGroups: (context: EngineerUiContext) => {

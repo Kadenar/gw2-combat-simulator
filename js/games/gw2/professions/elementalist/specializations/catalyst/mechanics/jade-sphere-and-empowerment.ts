@@ -1,3 +1,5 @@
+import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
+import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
 /**
  * Scheduler-side Catalyst mechanics.
  *
@@ -15,11 +17,10 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type { AvailabilityResult, ScheduledTask, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -79,7 +80,7 @@ function initialize(context: ElementalistSchedulerContext): void {
   state.energy = Math.min(state.maximumEnergy, state.energy);
 }
 
-function catalystModifierState(context: Gw2ModifierContext): CatalystStateLike {
+function catalystModifierState(context: ElementalistModifierContext): CatalystStateLike {
   return readProfessionSpecializationState<CatalystStateLike>(context.runtime?.profession, 'Catalyst') || {};
 }
 
@@ -89,7 +90,7 @@ interface CatalystStateLike {
 
 // Apply live Elemental Empowerment stacks as an all-attribute multiplier without
 // mutating the shared resolved-stat object.
-function modifyCatalystAttributes(context: Gw2ModifierContext, attributes: SchedulerRecord): SchedulerRecord {
+function modifyCatalystAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
   if (!hasTrait(context, 'Elemental Empowerment')) return attributes;
 
   const timedStacks = (catalystModifierState(context).elementalEmpowermentExpiries || []).filter(
@@ -613,7 +614,10 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
 // Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless
 // Sphere Specialist is taken.
-function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handleCatalystEnergyHit(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<{ readonly sourceId: SimulationEvent['sourceId']; readonly skillName: string }>
+): void {
   const state = catalystState.from(context);
   if (task.at < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
     return;
@@ -639,7 +643,10 @@ function handleCatalystEnergyHit(context: ElementalistSchedulerContext, task: Sc
 
 // Folds an observed empowerment buff into the timed stack list at its original
 // application time rather than the time the task runs.
-function handleCatalystEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handleCatalystEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<{ readonly applicationAt: number; readonly duration: number; readonly stacks: number }>
+): void {
   grantCatalystElementalEmpowerment(
     catalystState.from(context),
     Number(task.payload?.applicationAt ?? task.at),
@@ -652,7 +659,10 @@ function handleCatalystEmpowerment(context: ElementalistSchedulerContext, task: 
 
 // Apply a scheduled base Elemental Empowerment stack with its original
 // application timestamp and profile duration.
-function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handleBaseEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<{ readonly applicationAt: number }>
+): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
   const duration = balanceProfileValueFromContext(
     context,
@@ -697,7 +707,10 @@ function handleBaseEmpowerment(context: ElementalistSchedulerContext, task: Sche
 
 // Grants the Vicious Empowerment stacks for a control or immobilize proc, ignoring
 // pre-combat events and honouring the shared internal cooldown.
-function handleViciousEmpowerment(context: ElementalistSchedulerContext, task: ScheduledTask<SchedulerRecord>): void {
+function handleViciousEmpowerment(
+  context: ElementalistSchedulerContext,
+  task: ScheduledTask<{ readonly applicationAt: number }>
+): void {
   const at = Number(task.payload?.applicationAt ?? task.at);
   if (context.combatStartTime != null && at < context.combatStartTime) return;
   const state = catalystState.from(context);

@@ -7,7 +7,8 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import type { RotationCommand, SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
@@ -128,7 +129,7 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
     // Normalize one raw entry at a time so dropping a malformed command cannot shift later name-based casts.
     const [command] = normalizeRotation([raw], engineerCatalog);
     if (!command) return [];
-    const rawCommand = raw && typeof raw === 'object' ? (raw as SchedulerRecord) : null;
+    const rawCommand = raw && typeof raw === 'object' ? (raw as UnvalidatedFields) : null;
     const legacyName =
       typeof raw === 'string'
         ? raw

@@ -11,11 +11,9 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/type
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
-  ProfessionResourceView,
-  ProfessionUiContract
+  ProfessionResourceView
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
-import type { EngineerResolverEvent, EngineerUiContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
@@ -102,7 +100,7 @@ function holosmithEventLogRow(
 }
 
 /** Supplies Holosmith skill-bar, palette, heat-resource, and event-log presentation behavior. */
-export const holosmithUi: Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+export const holosmithUi: EngineerUiSlice = Object.freeze({
   eventLogRow: holosmithEventLogRow,
   // Photon Forge changes weapon presentation only while the Holosmith slice is active.
   timelineWeaponLineTransition: (context: EngineerUiContext) => {

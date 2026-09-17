@@ -7,7 +7,8 @@ import { GW2_ALACRITY_RECHARGE_RATE, gw2SchedulerBoonDuration } from '#gw2/platf
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
-import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
@@ -288,9 +289,12 @@ function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSk
   });
 }
 
-function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task: SchedulerRecord): void {
-  const payload = task.payload as SchedulerRecord | undefined;
-  const virtue = payload?.virtue as GuardianVirtue | undefined;
+function handleWillbenderFlameActivation(
+  context: GuardianSchedulerContext,
+  task: ScheduledTask<{ readonly virtue: GuardianVirtue; readonly flameId: number; readonly offTarget?: boolean }>
+): void {
+  const payload = task.payload;
+  const virtue = payload?.virtue;
   if (!payload || !virtue) return;
   const state = willbenderState.from(context);
   if (state.flameVirtue !== virtue) state.flameGeneration += 1;
@@ -316,8 +320,17 @@ function handleWillbenderFlameActivation(context: GuardianSchedulerContext, task
   }
 }
 
-function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: SchedulerRecord): void {
-  const payload = task.payload as SchedulerRecord | undefined;
+function handleWillbenderFlamePulse(
+  context: GuardianSchedulerContext,
+  task: ScheduledTask<{
+    readonly activationId: string;
+    readonly flameGeneration: number;
+    readonly flameId: number;
+    readonly pulse: number;
+    readonly offTarget: boolean;
+  }>
+): void {
+  const payload = task.payload;
   const state = willbenderState.from(context);
   // Stale pulses from a previous virtue activation (different flameGeneration) are
   // silently discarded; only the most recent virtue's pulses should fire.
@@ -367,8 +380,15 @@ function handleWillbenderFlamePulse(context: GuardianSchedulerContext, task: Sch
   }
 }
 
-function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: SchedulerRecord): void {
-  const payload = task.payload as SchedulerRecord | undefined;
+function handleWillbenderVirtueHit(
+  context: GuardianSchedulerContext,
+  task: ScheduledTask<{
+    readonly activationId?: SimulationEvent['activationId'];
+    readonly sourceSkillId?: SimulationEvent['skillId'];
+    readonly sourceSkillName?: SimulationEvent['skillName'];
+  }>
+): void {
+  const payload = task.payload;
   if (!payload) return;
   const at = Number(task.at);
   const state = willbenderState.from(context);
@@ -484,7 +504,7 @@ function handleWillbenderVirtueHit(context: GuardianSchedulerContext, task: Sche
   }
 }
 
-function observeWillbenderEvent(context: GuardianSchedulerContext, event: SchedulerRecord): void {
+function observeWillbenderEvent(context: GuardianSchedulerContext, event: SimulationEvent): void {
   // Only landed player-owned strikes count as virtue hits. Sigil of Air is the sole
   // non-player-actor source explicitly permitted because its proc is considered
   // "player damage" in-game even though its actor classification differs.
