@@ -1,4 +1,4 @@
-import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
@@ -83,8 +83,6 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
 
   return metrics;
 }
-
-export { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 /** Finds the active profession contribution for an internal effect kind. */
 function effectPresentation(
@@ -173,5 +171,3 @@ export function buildChartSeries(
     skillName: (key) => key.slice(key.indexOf('|') + 1)
   });
 }
-
-export { chartValueAt };

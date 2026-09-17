@@ -8,7 +8,8 @@ import {
 } from '#gw2/app/results/analysis-panel.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
-import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
+import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/result-view.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';

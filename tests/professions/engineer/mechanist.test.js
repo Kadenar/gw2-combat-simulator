@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/results/model.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
