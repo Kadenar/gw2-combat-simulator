@@ -31,7 +31,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
     name: 'Rapacious Strain',
     profileKind: 'mechanic',
-    internalCooldown: 0.5,
+    internalCooldown: 0.48,
     effects: [{ type: 'strike', coefficient: 0.3, hits: 1 }]
   },
   {
@@ -77,7 +77,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     maximumStacks: 4
   }),
   trait(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies, 'Mercurial Tendencies', {
-    internalCooldown: 0.25,
+    internalCooldown: 0.24,
     rechargeReduction: 2.5
   }),
   {

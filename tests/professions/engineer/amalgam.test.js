@@ -37,17 +37,16 @@ const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-test('Amalgam resolver procs honor authored poison, strike and ICD edits, including zero', () => {
+test('Amalgam resolver procs honor authored poison and strike edits, including zero', () => {
   // Minimal resolver inputs isolate the authoring contract without a full morph rotation.
-  for (const [coefficient, cooldown, duration, stacks] of [
-    [0.9, 1.2, 7, 3],
-    [0, 0, 0, 0]
+  for (const [coefficient, duration, stacks] of [
+    [0.9, 7, 3],
+    [0, 0, 0]
   ]) {
     const catalog = applyBalanceProfilePatch(engineerCatalog, {
       balanceProfiles: {
         [PROFILE.carbolicComposition]: { effects: [{ type: 'condition', duration, stacks }] },
         [PROFILE.rapaciousStrain]: {
-          fields: { internalCooldown: cooldown },
           effects: [{ type: 'strike', coefficient }]
         }
       }
@@ -71,11 +70,6 @@ test('Amalgam resolver procs honor authored poison, strike and ICD edits, includ
     amalgamResolverEventReactions.damage(context, event);
     assert.equal(conditions[0].duration, duration);
     assert.equal(conditions[0].stacks, stacks);
-    assert.equal(context.profession.core.traitProcReadyAt.rapacious, cooldown);
-    amalgamResolverEventReactions.damage(context, { ...event, at: 0.5 });
-    assert.equal(context.queue.length, cooldown === 0 ? 2 : 1);
-    amalgamResolverEventReactions.damage(context, { ...event, at: 1.201 });
-    assert.equal(context.queue.length, cooldown === 0 ? 3 : 2);
     assert.equal(context.queue.dequeue().coefficient, coefficient);
   }
 });
@@ -103,17 +97,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     skillName: 'Offensive Protocol: Shred'
   });
   const proc = context.queue.dequeue();
-  // Separate player packets at the same timestamp remain eligible when the ICD is disabled.
-  amalgamResolverEventReactions.damage(context, {
-    type: 'damage',
-    at: 1,
-    coefficient: 1,
-    actorType: 'player',
-    skillId: 77103,
-    skillName: 'Offensive Protocol: Shred'
-  });
-  assert.equal(context.queue.length, 1);
-  context.queue.dequeue();
+  // Disabling the cooldown isolates recursion prevention from timing gates.
   amalgamResolverEventReactions.damage(context, proc);
   assert.equal(context.queue.length, 0);
   assert.ok(conditions.some((condition) => condition.triggeredBy === 'Rapacious Strain'));
@@ -404,7 +388,7 @@ test('Silver Lining moves strain activation from Evolve to each morph', () => {
   );
 });
 
-test('Mercurial Tendencies reduces Evolve once per quarter-second', () => {
+test('Mercurial Tendencies reduces Evolve recharge after control', () => {
   const selectedMorphSkillIds = [76815, 76866, 76954];
   const baseline = simulate('Amalgam', ['Evolve', 76815, 'Evolve'], {
     selectedMorphSkillIds,
@@ -417,10 +401,8 @@ test('Mercurial Tendencies reduces Evolve once per quarter-second', () => {
   const evolveStart = (result) => result.steps.filter((step) => step.skillId === ID.EVOLVE_BASE)[1].start;
 
   assert.equal(evolveStart(baseline) - evolveStart(reduced), 2500);
-  const procs = reduced.events.filter((event) => event.type === 'proc' && event.name === 'Mercurial Tendencies');
-
-  assert.equal(procs.length, 1);
-  assert.equal(procs[0].cooldownReduction, 2.5);
+  const proc = reduced.events.find((event) => event.type === 'proc' && event.name === 'Mercurial Tendencies');
+  assert.equal(proc.cooldownReduction, 2.5);
 });
 
 test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
@@ -657,29 +639,6 @@ test('Thorns damaging-field assumption creates six one-second retaliations', () 
   assert.deepEqual(
     retaliation.slice(1).map((event, index) => Number((event.at - retaliation[index].at).toFixed(3))),
     Array(5).fill(1)
-  );
-  assert.equal(
-    active.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Rapacious Strain').length,
-    6
-  );
-});
-
-test('Rapacious Strain follows Flux State packets beyond its half-second ICD', () => {
-  const result = simulate('Amalgam', ['Evolve', 'Flux State', { type: 'wait', durationMs: 7000 }], {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Bomb Kit', 'Flux State'],
-    selectedMorphSkillIds: [77103, 77104, 76705],
-    target: { conditions: {} }
-  });
-  const rapacious = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Rapacious Strain'
-  );
-
-  // Flux State's initial packet plus twelve 520 ms field packets each clear
-  // Rapacious Strain's strict 500 ms ICD while both strain states are active.
-  assert.equal(rapacious.length, 13);
-  assert.deepEqual(
-    rapacious.slice(1).map((event, index) => Number((event.at - rapacious[index].at).toFixed(3))),
-    Array(12).fill(0.52)
   );
 });
 

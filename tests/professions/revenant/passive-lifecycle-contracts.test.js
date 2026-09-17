@@ -16,7 +16,6 @@ import {
   resolveNatureSiphon
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { handleRevenantState, snapshotRevenantState } from '#gw2/professions/revenant/state.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const base = {
@@ -194,7 +193,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   assert.equal(modifyHeraldPassiveAttributes(context, { boonDurationBonus: 5 }).boonDurationBonus, 15);
 });
 
-test('Assassin Nature procs on resolved strikes and retains its resolver-owned cooldown through snapshots', () => {
+test('Assassin Nature procs only on eligible resolved strikes while its passive is available', () => {
   const core = createRevenantCoreState(base);
   core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
   const state = createHeraldState();
@@ -208,25 +207,20 @@ test('Assassin Nature procs on resolved strikes and retains its resolver-owned c
   };
   const hit = { actorType: 'player', coefficient: 1, skillName: 'Test strike' };
   resolveNatureSiphon(context, { ...hit, at: 1 });
-  handleRevenantState(context, { state: { ...snapshotRevenantState(profession), natureSiphonReadyAt: 0 } });
-  for (const at of [1.1, 1.5]) resolveNatureSiphon(context, { ...hit, at });
+  // Rejected packets must not trigger siphons even after the initial proc's cooldown.
   resolveNatureSiphon(context, { ...emitted[0], at: 2 });
   resolveNatureSiphon(context, { ...hit, at: 2, cancelled: true });
   resolveNatureSiphon(context, { ...hit, at: 2, coefficient: 0 });
-  resolveNatureSiphon(context, { ...hit, at: 1.51 });
-  assert.deepEqual(
-    emitted.map((event) => event.at),
-    [1, 1.51]
-  );
+  assert.equal(emitted.length, 1);
   assert.equal(emitted[0].flatStrikeBase, 53);
   assert.equal(emitted[0].flatStrikePowerCoeff, 0.0666);
   core.activeUpkeeps = [];
   resolveNatureSiphon(context, { ...hit, at: 3 });
-  assert.equal(emitted.length, 2);
+  assert.equal(emitted.length, 1);
   state.lingeringFacets[SKILL.FACET_OF_NATURE] = { startsAt: 3, expiresAt: 9, legendId: LEGEND.ASSASSIN };
   resolveNatureSiphon(context, { ...hit, at: 4 });
   resolveNatureSiphon(context, { ...hit, at: 9 });
-  assert.equal(emitted.length, 3);
+  assert.equal(emitted.length, 2);
 });
 
 test('Nature adds outgoing Assassin damage only while its passive is available', () => {

@@ -51,7 +51,7 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
   }
 
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
-  const cooldown = balanceProfileValueFromContext(context, PROFILE.rapaciousStrain, 'internalCooldown', 0.5);
+  const cooldown = balanceProfileValueFromContext(context, PROFILE.rapaciousStrain, 'internalCooldown', 0.48);
   if (
     event.actorType !== 'summon' &&
     event.sourceId !== 'engineer.rapacious-strain' &&

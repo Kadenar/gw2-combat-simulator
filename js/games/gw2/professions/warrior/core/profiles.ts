@@ -191,7 +191,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     resourceGain: 7
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.stalwartStrength, 'Stalwart Strength', {
-    internalCooldown: 0.25,
+    internalCooldown: 0.32,
     effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bodyBlow, 'Body Blow', {
@@ -206,7 +206,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.aggressiveOnslaught, 'Aggressive Onslaught', {
-    internalCooldown: 0.25,
+    internalCooldown: 0.32,
     effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.legSpecialist, 'Leg Specialist', {

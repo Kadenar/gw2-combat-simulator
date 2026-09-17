@@ -380,7 +380,7 @@ export function handleMercurialTendencies(
 
   // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
   coreState.traitProcReadyAt.mercurialTendencies =
-    at + balanceProfileValueFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.25);
+    at + balanceProfileValueFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.24);
   context.emit({
     type: 'proc',
     at,
