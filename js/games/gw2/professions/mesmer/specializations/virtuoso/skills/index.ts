@@ -63,7 +63,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.SWORD_OF_DECIMATION]: {
-    castTimeMs: 333.333333333,
+    // Resolve the strike after the reviewed activation duration.
+    castTimeMs: 720,
     blade: true,
     effects: [
       {
@@ -77,7 +78,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.BLADE_RENEWAL]: {
-    castTimeMs: 1333.333333333,
+    // Fill stored blades only after the reviewed channel completes.
+    castTimeMs: 2040,
     resource: {
       mode: 'fill',
       count: 5

@@ -2,6 +2,7 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// The axe chain uses reviewed 440/520/720 ms activations to keep its completion packets aligned.
 export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIRROR_STRIKES]: {
     castTimeMs: 720,
@@ -74,10 +75,10 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 1
       }
     ],
-    castTimeMs: 430
+    castTimeMs: 440
   },
   [ID.ETHEREAL_CHOP]: {
-    castTimeMs: 530,
+    castTimeMs: 520,
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
       {

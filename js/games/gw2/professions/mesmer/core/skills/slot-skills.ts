@@ -2,6 +2,7 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ETHER_FEAST]: {
     castTimeMs: 666.666666667,
@@ -21,7 +22,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.MANTRA_OF_PAIN]: {
-    castTimeMs: 1500,
+    castTimeMs: 1600,
     effects: []
   },
   [ID.MANTRA_OF_RECOVERY]: {
@@ -29,7 +30,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: []
   },
   [ID.SIGNET_OF_DOMINATION]: {
-    castTimeMs: 166.666666667,
+    castTimeMs: 480,
     // Signet activation applies its control when the cast completes.
     effects: [
       { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }
@@ -42,7 +43,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     effects: [{ type: 'blind', duration: 5, source: 'Player', actorType: 'player' }]
   },
   [ID.MASS_INVISIBILITY]: {
-    castTimeMs: 833.333333333,
+    castTimeMs: 1080,
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
@@ -124,10 +125,21 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
       count: 1
     },
     effects: [
-      // Keep the existing cast-completion control alongside the phantasm's effects.
+      // Record the taunt's control trigger and three-second target condition at cast completion.
       {
         type: 'control',
+        controlKind: 'taunt',
         source: 'Player',
+        actorType: 'player',
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      },
+      {
+        type: 'condition',
+        condition: 'Taunt',
+        stacks: 1,
+        duration: 3,
         actorType: 'player',
         atMs: 0,
         timingAnchor: 'castEnd',
@@ -143,7 +155,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         weapon: 'phantasm defender'
       }
     ],
-    castTimeMs: 770
+    castTimeMs: 760
   },
   [ID.SIGNET_OF_THE_ETHER]: {
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
@@ -159,7 +171,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 920
   },
   [ID.SIGNET_OF_HUMILITY]: {
-    castTimeMs: 666.666666667,
+    castTimeMs: 880,
     // Signet activation applies its control when the cast completes.
     effects: [
       { type: 'control', source: 'Player', actorType: 'player', atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }

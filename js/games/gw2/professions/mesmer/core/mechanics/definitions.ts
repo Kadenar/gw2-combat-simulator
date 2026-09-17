@@ -225,7 +225,8 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
       spawnAtMs: 7040
     },
     [ID.PHANTASMAL_DEFENDER]: {
-      castTimeMs: 780,
+      // Keep the lifecycle reference consistent with the skill's reviewed activation.
+      castTimeMs: 760,
       damageAtMs: 3800,
       spawnAtMs: 4510
     },
