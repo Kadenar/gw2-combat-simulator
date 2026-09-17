@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '../../helpers/elementalist-simulation.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/scheduler/policy.js';
 import {

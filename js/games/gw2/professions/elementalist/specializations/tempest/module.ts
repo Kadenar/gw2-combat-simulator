@@ -6,27 +6,19 @@
  * the single native module the elementalist family registers.
  */
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { augmentSkill, onAuraApplied } from '#gw2/platform/profession-definition/mechanics.js';
-import { createElementalistModuleData } from '#gw2/professions/elementalist/catalog/module-data.js';
+import { onAuraApplied } from '#gw2/platform/profession-definition/mechanics.js';
+import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import {
   tempestAttributeRules,
   tempestCastRules,
-  tempestSchedulerHooks,
-  applyTempestShoutTraits
+  tempestSchedulerHooks
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overloads.js';
 import { createTempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
 import { TEMPEST_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import type { ElementalistCastContext } from '#gw2/professions/elementalist/types.js';
-
-/** Appends Tempest shout traits after each shout's authored effects. */
-const tempestSkillHandlers = Object.freeze({
-  'elementalist.tempest-shout': augmentSkill<ElementalistCastContext>({
-    afterEffects: applyTempestShoutTraits
-  })
-});
+import { tempestSkillHandlers } from '#gw2/professions/elementalist/specializations/tempest/execution/index.js';
 
 /** The Tempest specialization module consumed by the elementalist module registry. */
 export const tempestModule = defineNativeModule({

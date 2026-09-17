@@ -98,3 +98,12 @@ export function modifyEvokerAttributes(context: Gw2ModifierContext, attributes: 
 
   return modified;
 }
+
+/**
+ * Evoker's damage/attribute contributions: declarative modifier rules plus the
+ * attribute pass that must run before crit and condition scaling are computed.
+ */
+export const evokerAttributeRules = Object.freeze({
+  modifyAttributes: modifyEvokerAttributes,
+  modifierRules: evokerModifierRules
+});

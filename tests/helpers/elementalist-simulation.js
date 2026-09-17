@@ -1,7 +1,6 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
 // Preserve test shorthand: numbers are waits, names are casts, and explicit commands pass through.
 function canonicalRotation(rotation) {

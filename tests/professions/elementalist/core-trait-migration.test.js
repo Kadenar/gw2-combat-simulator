@@ -3,8 +3,7 @@ import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreCriticalReactions } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 

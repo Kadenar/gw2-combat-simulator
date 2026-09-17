@@ -7,7 +7,7 @@ import {
   onResolvedControl,
   onResolvedDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
-import { createElementalistModuleData } from '#gw2/professions/elementalist/catalog/module-data.js';
+import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystComboTraits,

@@ -24,7 +24,7 @@ import {
   skillAuthoringReference,
   skillPatchableNumericFields
 } from '#gw2/integrations/patches/authoring/fields.js';
-import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession as baseElementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession as baseEngineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession as baseGuardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesmer/definition.js';

@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '../../helpers/elementalist-simulation.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/traits/modifiers.js';

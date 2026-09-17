@@ -7,8 +7,7 @@ import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
 

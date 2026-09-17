@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createElementalistModuleData } from '#gw2/professions/elementalist/catalog/module-data.js';
+import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import {
   weaverAttributeRules,
   weaverCastRules,
