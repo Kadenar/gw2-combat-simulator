@@ -187,7 +187,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Splinter Weapon - Triggered Attack',
     profileKind: 'skill-variant',
     parentId: ID.SPLINTER_WEAPON,
-    internalCooldown: 0.25,
+    internalCooldown: 0.32,
     effects: [{ type: 'strike', coefficient: 0.4, hits: 1, actorType: 'effect' }]
   },
   {

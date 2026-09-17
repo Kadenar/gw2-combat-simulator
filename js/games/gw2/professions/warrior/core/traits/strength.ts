@@ -273,7 +273,7 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.aggressiveOnslaught || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.aggressiveOnslaught);
   const quickness = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown ?? 0.25);
+  state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown ?? 0.32);
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||

@@ -57,7 +57,7 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
   if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.stalwartStrength || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.stalwartStrength);
   const stability = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown ?? 0.25);
+  state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown ?? 0.32);
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||

@@ -25,7 +25,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     id: HERALD_NATURE_ASSASSIN_PROFILE_ID,
     name: 'Facet of Nature — Assassin',
     profileKind: 'mechanic',
-    cooldown: 0.5,
+    cooldown: 0.52,
     effects: [{ type: 'strike', coefficient: 0, flatStrikeBase: 53, flatStrikePowerCoeff: 0.0666, actorType: 'effect' }]
   },
   {
