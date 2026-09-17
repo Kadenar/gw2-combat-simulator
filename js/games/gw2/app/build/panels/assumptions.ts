@@ -7,7 +7,7 @@ import {
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '#gw2/app/build/panels/options.js';
+} from '#gw2/app/build/panels/metadata.js';
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
 import { mountProcRateOverrides } from '#gw2/app/build/panels/proc-rates.js';
 

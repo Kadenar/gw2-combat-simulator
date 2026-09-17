@@ -9,7 +9,7 @@ import {
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '#gw2/app/build/panels/options.js';
+} from '#gw2/app/build/panels/metadata.js';
 import { getBuildExportPayload, getBuildWithRotationExportPayload, getRotationItems } from '#gw2/app/io/files.js';
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { clampStartingResourceValues, selectSpecialization } from '#gw2/app/build/panels/traits.js';
