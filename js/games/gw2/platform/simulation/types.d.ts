@@ -54,9 +54,16 @@ export interface Gw2SimulationEndState {
   readonly profession: unknown;
 }
 
-export interface Gw2SimulationResult extends Gw2ResolverResult {
+/** Presentation consumes observed facts without depending on a legacy scheduler snapshot. */
+export interface Gw2SimulationViewResult extends Gw2ResolverResult {
+  readonly engine?: 'legacy' | 'preview';
   readonly rotationApm: RotationApm;
   readonly steps: readonly SchedulerStep[];
+  readonly rotationEndTime: number;
+  readonly endState?: Gw2SimulationEndState;
+}
+
+export interface Gw2SimulationResult extends Gw2SimulationViewResult {
   readonly endState: Gw2SimulationEndState;
   readonly schedulerState: SchedulerState;
   readonly snapshot: unknown;
@@ -64,6 +71,7 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2DeclarativeSimulationOptions {
+  readonly selection?: { readonly engine: 'legacy' };
   /** Capture formula facts only in the final detailed pass; never persisted as build configuration. */
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */

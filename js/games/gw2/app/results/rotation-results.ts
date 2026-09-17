@@ -64,7 +64,7 @@ export interface ResultCondition {
   readonly name: string;
   readonly damage: number;
   readonly dps: number;
-  readonly averageStacks: number;
+  readonly averageStacks: number | null;
 }
 
 export interface ResultConditionTotal {
@@ -668,7 +668,7 @@ export function mountRotationResults(
           <span class="res-skill condi">${escapeHtml(condition.name)}</span>
           <span class="condi">${number(condition.damage)}</span>
           <span class="dps">${number(condition.dps)}</span>
-          <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+          <span>${condition.averageStacks == null ? '—' : Number(condition.averageStacks).toFixed(2)}</span>
         </div>`;
             })
             .join('')}

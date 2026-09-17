@@ -4,6 +4,7 @@ import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-r
 import { hasConfigurableDoubleEdgeOutcome, openDoubleEdgeEditor } from '#gw2/app/rotation/editing/double-edge.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
 import { WAIT_ICON } from '#gw2/app/rotation/shared/icons.js';
+import { usesCombatPreview } from '#gw2/app/rotation/shared/context.js';
 import { clearTimelineDropIndicators, type RotationDragState } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
@@ -104,6 +105,8 @@ function resolveProfessionPaletteAction(
   skillId: number | null,
   context: PaletteContext = createPaletteContext(app)
 ): RotationCommand | RotationCommand[] | null | undefined {
+  // Preview commands retain their UI identity; the adapter owns their engine translation.
+  if (usesCombatPreview(app)) return undefined;
   const resolveAction = app.profession.ui?.resolvePaletteAction;
   return typeof resolveAction === 'function' ? resolveAction(context, { name, skillId }) : undefined;
 }

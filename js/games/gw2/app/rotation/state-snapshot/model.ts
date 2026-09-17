@@ -5,6 +5,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/shared/context.js';
 import { procStackLabel } from '#gw2/app/rotation/timeline/model.js';
+import { usesCombatPreview } from '#gw2/app/rotation/shared/context.js';
 
 function percent(value: number, signed = false): string {
   const numeric = Number(value || 0) * 100;
@@ -44,6 +45,18 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   const atInsertion = app.rotationInsertionIndex != null && app.rotationInsertionIndex !== rotationLength;
 
   const items: RotationStateSnapshotItem[] = [];
+  if (usesCombatPreview(app)) {
+    const prefix = app.prefixSimulationRunner?.current();
+    if (prefix) {
+      items.push({ id: 'weapon-set', label: 'Weapon set', value: String(prefix.activeWeaponSet) });
+      if (prefix.bundle) items.push({ id: 'bundle', label: 'Bundle', value: prefix.bundle });
+      for (const [name, value] of Object.entries(prefix.counters))
+        items.push({ id: name, label: name, value: String(value) });
+    }
+
+    return { items, atInsertion, timeMs };
+  }
+
   const criticalEvent = criticalChanceEventAt(result, timeMs);
   if (criticalEvent) {
     const critical = Number(criticalEvent.criticalChance);

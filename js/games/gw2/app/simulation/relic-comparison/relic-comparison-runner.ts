@@ -44,6 +44,11 @@ export class RelicComparisonRunner {
   /** Publishes picker availability without paying for another simulation. */
   schedule(): void {
     const app = this.app;
+    if (app.previewSelection) {
+      this.cancel();
+      return;
+    }
+
     this.requestId += 1;
     if (this.timer !== null) {
       clearTimeout(this.timer);
@@ -84,6 +89,11 @@ export class RelicComparisonRunner {
   /** Applies each relic's configured assumptions to its comparison simulation. */
   run(comparisonRelic: string = this.comparisonRelic, initialStacks: number = this.initialStacks): void {
     const app = this.app;
+    if (app.previewSelection) {
+      this.cancel();
+      return;
+    }
+
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;

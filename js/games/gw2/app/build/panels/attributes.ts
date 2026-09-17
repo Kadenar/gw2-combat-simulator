@@ -54,6 +54,14 @@ export function renderAttributeStats(
   input = readAttributePreviewValues(container),
   previewContainer = container
 ): void {
+  // Conditional stat previews use legacy queries; do not present them as the historical engine's attributes.
+  if (app.previewSelection) {
+    container.innerHTML =
+      '<p>Conditional attributes are unavailable in the new engine preview. Select Legacy to use the attribute preview.</p>';
+    if (previewContainer !== container) previewContainer.innerHTML = '';
+    return;
+  }
+
   const controls = attributeEffectControls(app);
   const values = normalizeAttributePreview(controls, input);
   let durationDetails = container.querySelector('.attr-duration-details')?.getAttribute('aria-expanded') === 'true';

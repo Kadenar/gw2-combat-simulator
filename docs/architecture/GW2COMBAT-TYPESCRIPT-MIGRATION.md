@@ -2,8 +2,11 @@
 
 Date: 2026-09-16  
 Status: Phase 2 implemented. The TypeScript engine reproduces the pinned C++ reference on the first Guardian build.
-Phase 0's reference prerequisites are recorded; its caller inventory and baseline measurements are still outstanding. No
-production caller uses the new runtime.  
+Phases 3.1–3.5 are implemented: inventories and measured legacy baselines are recorded in
+[the prerequisite evidence](GW2COMBAT-PHASE-3-BASELINE.md), and the headless preview translates existing inputs and
+projects results and worker-backed insertion state into the existing views. Guardian now exposes an opt-in historical
+Willbender preview; legacy remains the default. Phase 3.6 completion evidence is next.
+
 Target: all nine professions and their supported core/elite specializations, using the existing browser application.
 
 ## 1. Objective and completion boundary
@@ -28,8 +31,9 @@ runtime and temporary routing.
 ## 2. Evidence and current constraints
 
 This plan was written from source inspection. Phase 2 has since pinned the upstream commit, reproduced a C++ build, and
-run executed C++/TypeScript comparisons (see Phases 0 and 2 below). A measured performance baseline for the current
-engine and a complete mechanic inventory are still Phase 0 work.
+run executed C++/TypeScript comparisons (see Phases 0 and 2 below). Phase 3.1 records the initial source-backed
+profession inventory and current-engine performance baseline. Detailed mechanic validation remains part of each content
+port.
 
 ### Current application
 
@@ -256,8 +260,10 @@ Deliverables:
 Exit: another developer can reproduce the C++ run; the first Guardian scope and required contracts are enumerated; the
 upstream revision and initial workload measurements are recorded. Do not claim reference parity before this gate.
 
-Status: the reference prerequisites were completed at the start of Phase 2. The production-caller, saved-data, and
-all-profession inventories and the current-engine performance baseline are not yet done.
+Status: reference prerequisites were completed at the start of Phase 2. Phase 3.1 completed the initial
+production-caller, result-consumer, saved-data, Guardian/all-profession ownership inventories and measured
+current-engine baseline; see [the evidence and limitations](GW2COMBAT-PHASE-3-BASELINE.md). These inventories do not
+claim current-patch mechanic validation or all-profession new-engine support.
 
 | Item            | Recorded evidence                                                                                                                                                                                                                                                                                                                                                                     |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -448,18 +454,392 @@ for the slower Willbender examples.
 
 ### Phase 3 — Existing UI integration for that build
 
-Add temporary whole-run selection at the common simulation boundary, then trace every caller to ensure it uses it. Adapt
-existing saved build/rotation inputs, result views, warnings, and prefix-state queries.
+Status: Phases 3.1–3.5 implemented on 2026-09-16; Phase 3.6 has not started. Deliver an opt-in preview of the pinned
+Willbender pistol/torch–pistol/pistol build in the existing Guardian workspace. Keep legacy as the default for every
+profession. This phase proves application integration; current-patch Guardian coverage and analysis support remain
+Phase 4.
 
-The first usable slice includes build selection, rotation editing, skill availability, cooldown/ammo/resource display,
-timeline, damage breakdown, event log, and target/observation settings for the supported build. Unsupported analysis
-features are explicitly unavailable for the preview until migrated; they must not quietly invoke a different engine.
+#### Input contract: preserve the existing build and rotation models
 
-Retain worker request identity and stale-result rejection. Test cancellation or worker replacement for expensive runs;
-do not assume a synchronous tick loop can respond to a queued cancellation message while blocking the worker.
+The existing application build model and `RotationCommand[]` remain authoritative. Keep today's build editor, rotation
+editor, saved schemas, imports, exports, and command semantics. Phase 3 adds a translation layer at the simulation
+boundary; it does not replace those models with upstream files or require users to author engine configuration.
 
-Exit: a supported Guardian build can be loaded, edited, simulated, and inspected in the existing UI; insertion-state
-previews agree with execution; unsupported combinations are clearly rejected or use explicitly selected legacy mode.
+The input flow is: existing build and rotation -> translation adapter -> engine build/rotation configuration -> prepared
+encounter -> combat engine. The adapter produces the structures represented by the engine's existing build JSON and
+rotation JSON/CSV inputs. Pass validated objects in memory for normal simulation; writing JSON/CSV files and reading
+them back is unnecessary. The existing file readers remain useful for reference fixtures and diagnostic tooling.
+
+Translate the actual selected equipment, attributes, traits, skills, weapons, assumptions, and rotation on each request.
+The pinned Willbender fixture supplies initial content/reference evidence, not a replacement for the user's build.
+Unsupported mechanics are gaps in adapter coverage, not a reason to change the saved model. Preserve unsupported input
+intact and report its responsible field or command; support expands without making users remodel their builds.
+
+The combat engine remains pure. Application mechanics belong in `platform/simulation/combat-engine-adapter/` and
+profession-owned content mappings. A skill makes an actor act; permanent unique effects express markers and conditional
+behavior. Translate waits, off-target actions, and interrupted casts into those existing constructs. Do not add UI
+commands, wait state, off-target flags, or interruption handling to the engine.
+
+#### Scope and fixed decisions
+
+- Offer an explicit `Legacy` / `Combat engine preview` selection in the existing simulation controls. Keep the selection
+  in workspace session state and serialized simulation requests, outside the saved build schema. Missing selection means
+  legacy. Changing engines cancels pending work, clears results and projections, and schedules a fresh run.
+- Label preview content as the pinned upstream reference, including engine/content revisions, seed, and timing mode in
+  diagnostics. Do not present its historical build data as the current game patch. Use the reference's mean weapon and
+  critical-strike modes with a fixed, recorded seed for remaining random predicates; this is reproducible, not proof of
+  an expected-value model for branching procs.
+- Limit content to the first build's verified dependency closure. Allow rotation insertion, deletion, reordering, waits,
+  and supported skill/weapon transitions. A build edit outside that closure produces an actionable unsupported-input
+  error. Never keep simulating the frozen build while displaying different traits, equipment, or assumptions.
+- Use the verified 1 ms step. The experimental 40 ms step is not the preview default. Reject fractional-millisecond
+  timing with the source command and value; do not round, rewrite imported rotations, or silently substitute a coarser
+  clock. Supporting finer precision is a separate evidenced change.
+- Support target health/armor, combat-start markers, and the existing rotation, fixed-time, and tail observation
+  policies for this slice. Keep absolute simulation time, rotation-end time, combat start, and the DPS window distinct.
+  Controls whose semantics have not been implemented must report that limitation before a run.
+- Defer optimizer, RNG batches, modifier/relic comparisons, patch comparisons, reference-rotation comparisons, EVTC
+  integration, and diagnostic export parity. Disable their preview entry points with a reason and enforce the same
+  rejection in headless/worker requests. Ordinary supported saved builds/rotations must still load and round-trip.
+
+#### 3.1 — Close prerequisites and record the consumer map
+
+Status: complete. [Recorded evidence](GW2COMBAT-PHASE-3-BASELINE.md) includes all production call paths, result
+consumers, saved schemas, source-backed profession ownership, first-build translation requirements, reproducible
+Node/browser measurements, and raw input hashes. Validation: build/typecheck/lint and emitted-output checks passed; 61
+focused Node tests and 14 browser tests passed. Existing build/rotation models and runtime behavior are unchanged.
+
+Complete the outstanding Phase 0 inventories and baseline measurements before implementation. Record actual commands,
+workloads, Node/browser versions, hardware, and cold/warm timings; existing new-engine profiling is not a legacy
+baseline. Keep the broader all-profession inventory separate from this build's support list. Do not mark Phase 0
+complete solely because this UI slice has been scoped.
+
+The source inspection for this plan establishes these starting points:
+
+- `platform/simulation/simulate.ts` currently dispatches only to the legacy pipeline. `app/create-runtime.ts` uses it
+  for ordinary simulation and synchronous rotation-prefix replay.
+- `app/simulation/baseline-simulation.ts` calls it directly for baseline, patch, and reference-rotation results.
+  `random-distribution/random-distribution-worker.ts`, `modifiers/modifier-contribution-worker.ts`, and
+  `gear-optimizer/gear-optimizer.ts` also call it directly; modifying only the profession adapter would miss these
+  paths.
+- `app/create-runtime.ts` and `app/simulation/relic-comparison/relic-comparison-runner.ts` supply additional analysis
+  paths through `simulateBuild`. Inventory the analysis scripts as headless consumers too.
+- `app/rotation/shared/context.ts` caches prefix state by result object and insertion index. The palette also invokes
+  legacy profession availability callbacks in `app/rotation/palette/model.ts`; changing result data alone is
+  insufficient.
+- `platform/simulation/types.d.ts` exposes `SchedulerState`, scheduler steps, and snapshots. The timeline currently
+  reads `results.schedulerState.time` in `app/rotation/timeline/rows.ts`. Inventory all result consumers before deciding
+  which fields to project, replace with explicit values, or make legacy-only.
+- Guardian's build schema is version 3; saved workspace records use version 1. Reuse the existing build codec and
+  `app/build/state/persistence.ts` / `workspace.ts`; inventory rotation imports and exports without introducing a schema
+  bump just for engine selection.
+
+Gate: every production caller and displayed field has an owner and a disposition: supported, adapted, or visibly
+unavailable. Record baseline editor/prefix latency, worker startup, single-run and batch timing, memory, and bundle
+size.
+
+#### 3.2 — Translate existing builds and rotations at the simulation boundary
+
+Status: implemented. `platform/simulation/combat-engine-adapter/input.ts` owns preview request validation and
+`rotation.ts` emits ordinary engine configuration. `professions/guardian/combat-engine/compile.ts` compiles the selected
+build, composed through `guardianProfession.simulation.compileCombatPreview`. The engine directory is unchanged.
+
+The common entry point accepts an explicit
+`selection: { engine: 'preview', contentRevision, patchId: 'reference', build }`, with the existing normalized build and
+rotation. Missing selection remains legacy. Serialized baseline worker requests support the same preview contract;
+legacy analysis config copies preserve engine identity and reject preview execution. Phase 3.3 now returns a UI result
+alongside the raw engine outcome, with the requested observation window applied to reporting.
+
+Implemented translations:
+
+- Wait: an inert skill with the requested duration, using the normal cast lane.
+- Off-target cast: a skill variant retaining self/team effects and stripping hostile packets, including child skills.
+- Interrupted cast: a shortened skill variant; channel packets stop at the cutoff, while committed delayed packets
+  retain their authored offsets. Existing conditional skill groups synchronize the original and variants' ammo and
+  cooldowns. Recharge modifiers also target those variants; passive attribute modifiers remain on the original only.
+- Concurrent instant action: a timed self marker plus a permanent unique effect queues the skill on the original actor,
+  retaining engine castability checks. Inert delay skills prevent serial commands from passing the pending action.
+- Combat-start: an inert marker skill. It does not reset effects or cooldowns. Unique generated skill keys map back to
+  source indices in adapter metadata; interpreting its observation window belongs to Phase 3.3.
+
+The first content closure fixes traits, weapons, rune, sigils, relic, food, utility, and selected slots to the saved
+Willbender setup. Gear prefixes, infusions, Jade Bot core, starting weapon set, boons, target conditions, armor, and
+health are compiled from the selected build. The common attribute calculator supplies base/equipment/consumable stats;
+reference rune, food, Jade Bot, and utility stat contributions are removed where already supplied. Reference traits and
+boon effects remain engine-owned. Per-set attribute differences use a conditional permanent unique effect.
+
+Content provenance and resolved gaps:
+
+- `reference-content.ts` is generated from the frozen fixture and its declared errata, with the upstream MIT notice.
+  `node scripts/data/generate-guardian-combat-content.mjs --check` verifies it. Browser code imports no Node fixture
+  loader.
+- The selected Toxic Tuning Crystal uses the existing common attribute calculator. The reference's differently named
+  Toxic Focusing Crystal conversion is removed, rather than silently treating them as interchangeable.
+- The existing Radiant Fire flip-window value is shared by Guardian's current mechanics and the adapter; reference pulse
+  damage remains pinned. This is an explicit UI-mechanics adaptation, not a current-patch balance port.
+- The pinned engine's profession enum has no Willbender value. The adapter uses its generic `invalid` value with
+  Guardian base class and explicit content, instead of carrying forward the fixture's incorrect Dragonhunter label.
+
+Unsupported requests fail explicitly: other content/patch identities, other trait/equipment/slot combinations, cooldown
+reset, charge release, imported initial-state options, fractional milliseconds, non-instant concurrent casts, concurrent
+offsets below 2 ms, unsupported skills (including the equipped heal/elite absent from the reference content), and
+analyses/prefix/observation options. Existing saved inputs are not rewritten. Per-command skill variants currently make
+the full saved preview substantially slower than the bare reference run; performance remains a later phase gate.
+
+Focused checks cover the translated mechanics, selected attributes, serialized request execution, input rejection,
+legacy default routing, and successful headless execution of the existing saved Willbender build and rotation.
+
+Validation: 3,210 Node tests passed, including reference DPS and all supported legacy presets. All 129 existing browser
+tests passed; the added preview-worker test also passed, including unsupported-request recovery and absence of editor
+imports. Production build, typecheck, lint, generated-content verification, and dist/site checks passed. The focused
+adapter tests were rerun after the final timing/error-path refinements. Preview result rendering and selection remain
+unexposed until the following subphases.
+
+Add a small typed engine selection at `platform/simulation/simulate.ts` and its request contracts. Select once before
+execution for both detailed and score requests. Preserve the legacy branch and existing default call signatures. Reject
+unsupported preview operations at this shared boundary, not only in the UI. Carry selection and content identity through
+baseline and analysis request builders, worker messages, and direct callers; never catch a preview failure and retry it
+through legacy.
+
+Keep shared input translation at `platform/simulation/` and add Guardian-owned content mappings under
+`professions/guardian/combat-engine/` only as working code requires. Compose them at the existing profession/application
+boundary. The shared runtime must not import Guardian. Pass validated content into the shared boundary rather than
+importing a profession implementation there. Accept the existing normalized application build and rotation; add no
+second application-facing build or rotation model.
+
+Make required engine content browser-loadable, using the pinned fixture and declared errata as initial reference
+material. Compile the selected build from that content and existing supported definitions rather than loading the
+fixture as the user's build. Reuse one maintained source for shared immutable facts, preserve provenance/license
+notices, and avoid importing the Node-only fixture loader or its `node:fs` dependencies into browser code. Use existing
+numeric skill IDs and presentation metadata with an explicit map to reference skill keys, including
+triggered/conditional skills and weapon swap. Do not resolve identity by display name alone or maintain a second
+hand-edited copy of immutable content.
+
+Validate the normalized saved build against the supported traits, equipment, skills, weapon sets, patch, assumptions,
+and options before constructing an encounter. Explicitly map base attributes versus trait/boon modifiers so the existing
+attribute calculator and reference effects cannot apply the same bonus twice. If upstream data lacks enough provenance
+to describe an editable build field honestly, record and resolve that gap before exposing the preset.
+
+Translate `RotationCommand[]` into the engine rotation sequence represented by its JSON/CSV inputs, mapping skill IDs to
+engine keys and preserving order, waits, and supported timing semantics. The JSON rotation uses `skill_casts` entries
+with `skill` and `cast_time_ms`; the parsed engine representation is `Rotation.skillCasts`. Carry command indices and
+activation identities as adapter metadata rather than changing the persisted commands.
+
+Check each command's semantics against what that format actually expresses. An absolute earliest-cast timestamp is not
+automatically equivalent to a wait relative to the previous cast's completion, and a combat-start marker is not a cast.
+Use ordinary engine skills and conditional effects for state-dependent translation; do not compute a second combat
+timeline through the legacy scheduler. When an existing command cannot be represented faithfully by the current adapter,
+add the smallest content translation needed while keeping the application's command and the engine unchanged. Record
+that mapping before exposing it. The 3.1 inventory found off-target preparation, concurrent offsets, interruptions,
+waits, and a combat-start marker in the existing Willbender acceptance rotation: these must work before the first UI
+slice can pass. Remaining unimplemented variants (such as cooldown reset, charge release, and imported initial-state
+actions) must fail explicitly rather than being dropped or reinterpreted. Combat-start remains an observation marker
+without resetting live effects or cooldowns.
+
+Gate: a normalized supported build and edited rotation execute headlessly through the common entry point. Invalid
+skills, unsupported build changes, command options, analysis operations, and non-integral timing fail with responsible
+fields or command indices. Existing unselected callers still use legacy.
+
+#### 3.3 — Supply truthful results and observation windows
+
+Status: implemented in `combat-engine-adapter/result.ts` and `observation.ts`. Success returns
+`{ ok, output, identity, reference, result }`; failure retains the structured engine error without a partial result.
+`reference` preserves reference totals and termination; `result` contains the existing presentation fields. The Guardian
+content identity is now `guardian-willbender-cc9a0d0-adapter-2`. The engine directory remains unchanged.
+
+Per-command metadata records stable IDs, source indices, and shortened/cancelled casts. Packet-only child variants
+retain their originating activation, including overlapping casts; shared triggered procs keep their own identity without
+guessing a triggering command. Child content with passive side effects is explicitly rejected because cloning it would
+duplicate actor-wide registrations. Cast completion comes from audits; death cannot manufacture an END event. Equal-time
+event-log rows preserve audit order.
+
+`Gw2SimulationViewResult` supplies renderer facts and an explicit `rotationEndTime`; legacy execution extends it with
+its real scheduler/end-state fields. Preview results omit those fields. Chart, table, timeline, log, and summary
+consumers accept the shared view. Prefix/palette state remains Phase 3.4. Audits expose condition payouts and effect
+applications but not individual stack lifetimes: payout charts and effect log rows are available, while stack averages
+are `null` (displayed as “—”) and effect-uptime charts are omitted. No preset warnings are suppressed.
+
+Implementation boundary policy (2026-09-16): audit timestamps are authoritative, with both ends of the reporting window
+included and audit order retained at equal timestamps. Downstate wins over configured termination; fixed time stops
+precede rotation/active-skill stops. An inert adapter skill marks command-lane exhaustion; a following inert skill
+supplies an observation tail. Active-skill completion is an explicit preview observation option and does not imply
+condition expiration. Absolute ends before command completion are rejected unless death ended the run. An explicit
+combat-start marker filters reporting only: precast damage still changes the reference world. DPS starts at the first
+retained positive player payout; environment DPS starts at the marker (or zero). Conditions retain reference payout
+timing, including buffered pre-marker accrual paid after the marker; no interpolated damage or unpaid end-window
+fraction is invented. Raw reference totals remain separately accessible. Score projection uses the same detailed engine
+audit internally until generic window accounting exists, with histories omitted on output. Its engine identity therefore
+records `mode: 'detailed'`; the outer `output` identifies the requested view. The marker follows ordinary millisecond
+skill scheduling. Rotation reports exclude any subsequent exhaustion-housekeeping tick, and tails end exactly at the
+marker plus the requested duration.
+
+Validation (2026-09-16): all 3,217 Node tests and 131 browser tests passed, including the unchanged reference fixture's
+1% total-DPS gate and legacy saved presets. Focused cases cover repeated/child/proc attribution, interruption versus
+death, marker filtering, player/environment separation, rotation/active/tail/absolute boundaries, empty windows,
+score/detail parity, and work-limit failures. The saved Willbender build/rotation also feeds the existing chart,
+damage-table, and event-log projections. A browser check mounts the real summary, timeline, damage tables/charts, and
+event log with no scheduler or end-state object. Typecheck, lint, production build, and generated-content checks passed.
+Prefix state and the visible selector have not been implemented.
+
+Keep application command identities in the adapter. Map the generated per-command skill keys directly to adapter
+metadata and use generic engine cast audits to establish acceptance and completion. Carry that identity into
+child/trigger attribution without adding UI commands to engine state. `skillStatus` describes only the terminal world;
+additional observation must remain generic and free of extra RNG draws or combat mutations. Preserve the frozen
+reference adapter's behavior.
+
+Adapt results at `platform/simulation/` into the existing chart, damage-table, event-log, and timeline contracts. Reuse
+renderers wherever the semantics match. Project rotation steps from accepted commands and actual cast lifecycle events;
+do not infer repeated casts by matching names after the run. Preserve stable skill IDs, source indices, owner
+attribution, warnings, and deterministic equal-time ordering.
+
+Replace consumed scheduler internals with explicit projection fields, starting with rotation-end time. Keep legacy-only
+internals behind a discriminated result or narrow consumer contracts; do not manufacture a fake `SchedulerState`, cast
+the entire result through `any`, or run the old scheduler to fill holes. Add only the shared view fields that inspected
+consumers need.
+
+The new engine's `totalDamage` includes encounter damage and its `dps` uses the whole encounter clock. The application
+reports player damage separately from environmental damage and uses an observation window. Compute those values from
+engine-owned attribution and window accounting, consistently in detailed and score modes, rather than copying the raw
+reference totals. Keep the original reference totals available for reference checks.
+
+Implement rotation exhaustion, active-skill completion, target death, fixed observation end, and observation tail as
+separate boundaries. Document equal-time inclusion and stop precedence before coding; preserve legacy product semantics
+where required, with explicit differences from the reference lane. Handle empty rotations and zero-length DPS windows
+without non-finite values. A structured engine failure must become a visible simulation failure, never a successful
+partial score. Identify and scope any intentional preset warnings rather than suppressing them.
+
+Gate: the supported build renders timeline, player/environment totals, strike/condition breakdown, event log, warnings,
+and target/observation settings without invoking legacy combat code. Small scenarios establish attribution and
+observation semantics; the reference fixture remains within its existing 1% total-DPS criterion.
+
+#### 3.4 — Project insertion state from the same engine
+
+Status: implemented on 2026-09-16. The shared `simulateGw2` boundary accepts `operation: 'prefix'` with a validated
+`insertionIndex`. The adapter compiles that command prefix, then uses the unchanged engine's preparation, setup, loop,
+and castability queries. Index zero returns initialized state. Other boundaries are after that tick's cast completion,
+equipment changes, hooks, packets, and cleanup, before accepting another UI command. Future delayed packets are not
+drained; report observation tails do not affect insertion state. Queries omit audit history and expose real ID-keyed
+ammo/cooldowns, weapon set, bundle, counters, and availability reasons. A target death before the cursor or an engine
+failure returns an explicit failure without publishing a partial projection.
+
+`PrefixSimulationRunner` reuses the baseline worker endpoint with a distinct prefix operation. A 40 ms debounce
+coalesces cursor changes; worker replacement interrupts abandoned loops. Results are guarded by worker/request identity,
+build revision, tab, insertion index, preview selection/content/patch, mode, and seed. Pending/error states clear
+current availability. Engine revisions are fixed by the loaded application bundle; no state persists across deployments.
+The app owns worker construction, keeping it outside palette modules reachable from headless adapters. The palette and
+state snapshot consume the projection without legacy legality/resource callbacks or a synchronous preview fallback. The
+transient `previewSelection` hook is exercised by browser tests; the production selector remains Phase 3.5.
+
+Validation: focused synthetic checks cover beginning/middle/append, cast-completion equipment and counters, delayed
+effects, cooldown/ammo, target death, work limits, and direct engine castability agreement. Worker tests cover
+coalescing, identity invalidation, late success/error messages, recovery, and unavailable workers. The browser check
+completes the saved Willbender sequence with a larger target, abandons an active append query for a middle cursor, and
+verifies main-thread timers continue during projection (a 250 ms timer completes within 1.5 seconds). The saved
+4-million-health target can die before append, which intentionally reports unavailable. Validation passed: 3,225 Node
+tests, 132 browser tests, production build, type checking, lint, touched-file formatting, and distribution/site checks.
+The prefix browser case took 10.7 seconds in the full two-worker suite; this is responsiveness evidence, not Phase 6
+latency acceptance. Replay remains the implementation, without checkpoints.
+
+Add a headless prefix projection using the same preparation, execution, and castability queries as a full run. The
+insertion point is the boundary after the selected prefix has completed its required cast lane and before the next
+command is accepted. Index zero means initialized state; appending uses rotation-end state even when the displayed
+result includes a damage tail. Keep active delayed packets/effects in the world through that boundary, without running
+them to completion just to obtain availability. Settle the equal-tick phase for this projection with a minimal execution
+test.
+
+Return explicit time, active weapon set/bundle, ID-keyed ammo, cooldowns, supported profession resources/counters, and
+skill availability with reasons. Use engine castability for conditional/flip skills; the preview palette must not apply
+legacy legality callbacks on top. Resources absent from this build should remain absent, not fabricated as zero/full.
+
+Replace synchronous preview replay in `app/create-runtime.ts` / `app/rotation/shared/context.ts` with worker-backed
+requests and a pending projection state. Reuse the worker endpoint/message pattern with a distinct request purpose or a
+dedicated prefix worker if needed; rendering must never run the tick loop on the main thread. Debounce/coalesce cursor
+changes and invalidate by build/rotation revision, insertion index, engine/content/patch identity, mode, and seed. Do
+not show old availability as current while a new projection is pending or failed.
+
+Gate: beginning, middle, and append projections agree with execution for cooldowns, ammo, weapon/conditional-skill
+transitions, and pending delayed effects. Moving the cursor on a long rotation leaves editing responsive. Start with
+prefix replay; add checkpoints only if measured latency requires them.
+
+#### 3.5 — Expose the preview and preserve worker isolation
+
+Status: implemented on 2026-09-16. Guardian's rotation builder now has a **Simulation engine** selector with **Legacy**
+and **New engine preview — historical Willbender**, plus **Load Willbender reference**. The reference button loads the
+existing saved build and rotation assets through their existing codecs. The selector and engine identity remain
+session-only; saved inputs retain their schemas, and a page reload starts in legacy mode. Select preview again to run
+the restored input. The displayed Player DPS, timeline, skill breakdown, charts, and event log use the selected engine.
+
+The baseline runner accepts explicit preview requests, validates responses against request/revision/worker/selection
+identity, and replaces abandoned synchronous workers after a 40 ms debounce. Engine switches terminate idle workers as
+well. Preview requests cannot use the browser's synchronous fallback. Prefix and baseline requests share build capture;
+unsupported edits clear the prior result and surface the responsible validation field. Tab switches discard preview
+selection and refuse to reuse cached preview results as legacy output. Late reference-asset loads cannot overwrite newer
+edits, tabs, or engine choices.
+
+Capability messages and disabled controls cover patch changes, cooldown reset, conditional attribute previews,
+transition delays, RNG, modifier/relic comparisons, rotation comparison, and the gear optimizer. Request boundaries also
+reject unsupported analyses. Non-zero saved transition-delay preferences must be reset in legacy before preview use;
+they are never silently dropped. Ordinary build edits remain available and are validated by the existing adapter.
+
+Focused checks cover input preservation, request rejection, worker replacement/identity validation, late success/error
+messages, unavailable/blocked workers, reference loading, editing, result inspection, unsupported-edit recovery,
+save/reload, and explicit legacy rollback. The browser acceptance flow uses the visible selector and real workers.
+Validation passed: 3,227 Node tests, 134 browser tests, production build, type checks, lint, generated-output/site
+checks, and formatting for all files touched by this phase. The aggregate `npm run check` stops at 56 pre-existing
+formatting failures outside this phase; its remaining checks were run separately and passed. Combat-engine code is
+unchanged. Phase 3.6 still owns the consolidated acceptance/performance evidence; this does not claim full Guardian
+coverage or default cutover.
+
+Wire the selector, labeled reference preset, supported rotation palette, result views, and capability messages into the
+existing Guardian app. Keep current-patch patch controls and unavailable analyses clearly disabled for this historical
+preview. Build controls can remain editable, but unsupported changes must invalidate the prior score and explain what is
+unsupported; a disabled control alone is not request validation.
+
+Extend `baseline-simulation-runner.ts` and the prefix runner to preserve request ID, build revision, engine identity,
+and worker identity checks. Use worker termination/replacement for engine changes, abandoned expensive runs, and
+relevant build/preset changes; a synchronous loop cannot process a queued cancellation message. Coalesce ordinary rapid
+edits so replacement does not create unbounded worker churn. Test late success and error messages from terminated
+workers.
+
+Keep preview calculation off the browser main thread. If workers are unavailable or blocked, report preview unavailable
+with an explicit legacy choice; do not reuse the current synchronous browser fallback for expensive preview runs.
+Headless Node execution remains supported. Clear preview state when switching builds/tabs or engines, and exercise
+rollback by selecting legacy and loading the same saved input without rewriting it.
+
+Gate: a browser user can select, load, edit, simulate, inspect, save/reload supported inputs, and return to legacy.
+Stale work cannot publish after a cursor, build, tab, or engine change; errors leave the next valid request runnable.
+
+#### 3.6 — Validation and completion evidence
+
+Implement in the order above, keeping the preview hidden until request, result, and prefix contracts work. Reuse
+existing Node and Playwright infrastructure. Add focused checks alongside the affected engine, app, worker, and browser
+tests:
+
+- Routing and validation: default legacy behavior, explicit preview, unsupported capability rejection, source-indexed
+  diagnostics, command translation, and engine identity through serialization.
+- Translation compatibility: existing build/rotation inputs remain unchanged after translation, supported edits change
+  the generated engine configuration, saved data round-trips through existing codecs, and small scenarios preserve
+  command order and timing semantics. Do not substitute a frozen fixture when an input changes.
+- Execution/projection: observation boundaries, empty prefix, delayed work, cooldown/ammo/state transitions, activation
+  identity, attribution, detailed/score agreement, seeded repeatability, and isolation between runs.
+- Browser acceptance: load the reference build, edit at beginning/middle/end, change target/window settings, inspect the
+  existing views, reject an unsupported edit/analysis, reload saved input, replace a busy worker, and return to legacy.
+- Regression coverage: existing Guardian and non-Guardian legacy smoke checks, import boundaries, worker bundles, and
+  reference fixture load/simulation with total DPS within 1% of the recorded manifest value.
+
+Do not add full-result snapshots, per-skill benchmark totals, fixed saved-rotation ordering/counts, exact benchmark DPS,
+or tests specifically for Quickness cast times or `interruptCommitMs`. Use minimal scenarios for exact engine
+assertions.
+
+For each implementation batch, format touched files, then run focused Node/Playwright tests, `npm run build`, and
+`npm run typecheck` as appropriate. Run `npm run check` before declaring this UI integration complete because its shared
+request/result changes reach every profession. Record interactive timings against Phase 0 and any preview limitations;
+Phase 6 still owns performance acceptance and default cutover.
+
+Exit: all six gates have recorded evidence; the supported Guardian build loads, edits, simulates, and renders through
+the new engine; insertion-state projections agree with execution; unsupported inputs/features fail explicitly; legacy
+rollback preserves saved data. Update the status ledger only then. Full Guardian coverage, other professions, general
+analysis support, default cutover, and legacy retirement are not Phase 3 completion claims.
 
 ### Phase 4 — Current-patch Guardian content and full Guardian scope
 
@@ -697,19 +1077,24 @@ milestones expose the actual porting effort and are the basis for scheduling the
 | Milestone                            | Status      | Required evidence before completion                                                                                             |
 | ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Plan recorded                        | Complete    | This document                                                                                                                   |
-| Upstream revision and C++ reference  | Complete    | Recorded under Phase 0 status; the caller inventory and current-engine baseline are still open                                  |
+| Upstream revision and C++ reference  | Complete    | Recorded under Phase 0 status; initial inventory and legacy baseline completed in Phase 3.1                                     |
 | Shared TypeScript core               | Complete    | Phase 1 kernel, replaced in Phase 2 by the reference port; see Phase 1 status                                                   |
 | First Guardian reference build       | Complete    | Original reference fidelity verified; subsequent effect-order/cache corrections documented under Phase 2; fixture DPS within 1% |
-| First Guardian UI slice              | Not started | Editing, prefix state, simulation, and results acceptance                                                                       |
+| Phase 3.1 inventory and baseline     | Complete    | Evidence in GW2COMBAT-PHASE-3-BASELINE.md; 61 Node and 14 browser tests passed                                                  |
+| Phase 3.2 input adapter              | Implemented | Existing saved Willbender inputs run headlessly; skill/effect translations, request validation, and legacy routing checked      |
+| Phase 3.3 result adapter             | Implemented | Audit attribution, observation windows, shared view contracts, and headless rendering                                           |
+| Phase 3.4 insertion projection       | Implemented | Engine castability and boundary state, worker cancellation, pending/error palette state, and responsiveness checked             |
+| Phase 3.5 preview UI                 | Implemented | Guardian selector, reference loading, selected-engine results, capability gates, worker isolation, and legacy rollback          |
+| First Guardian UI slice              | In progress | Phases 3.1–3.5 implemented; consolidated acceptance evidence (3.6) remains                                                      |
 | Complete current-patch Guardian      | Not started | Core plus all four elites and product feature checks                                                                            |
 | Non-Guardian portability slices      | Not started | Thief resource and independent-pet Ranger evidence                                                                              |
 | Guardian performance/default cutover | Not started | Recorded budgets/results and exercised rollback                                                                                 |
 | All remaining professions            | Not started | Accepted matrix rows and cross-profession checks                                                                                |
 | Legacy retirement                    | Not started | One production runtime and full repository checks                                                                               |
 
-The next work packages are the remaining Phase 0 inventories and baselines (production callers, result consumers,
-saved-data versions, the Guardian and all-profession mechanic inventory, and current-engine workload measurements),
-followed by Phase 3. Do not begin by moving all profession folders or replacing the UI.
+The next work package is Phase 3.6: consolidate acceptance evidence, remaining validation cases, and interactive timings
+against the recorded baseline. Continue one subphase at a time with its validation gate. Preserve the engine's
+skill/effect model and the application's saved schemas.
 
 Update this document as implementation proceeds: record the pinned revision, chosen fixture, source/data references,
 actual paths, performance budgets, intentional deviations, acceptance evidence, and remaining coverage. Add separate

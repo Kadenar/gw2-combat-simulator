@@ -2,6 +2,9 @@
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+/** One maintained flip-window fact shared by live mechanics and combat-engine input translation. */
+export const ZEALOTS_FLAME_FLIP_DURATION_MS = Object.freeze({ base: 3000, radiantFire: 4500 });
+
 export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.CLEANSING_FLAME]: {
     interruptMode: 'per-packet',

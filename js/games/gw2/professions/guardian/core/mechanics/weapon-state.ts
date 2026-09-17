@@ -4,6 +4,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { ZEALOTS_FLAME_FLIP_DURATION_MS } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
 
 /**
  * Arms or consumes Guardian flip skills after a committed cast. Shared GW2
@@ -36,8 +37,8 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
       const duration =
         skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
           ? hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
-            ? 4.5
-            : 3
+            ? ZEALOTS_FLAME_FLIP_DURATION_MS.radiantFire / 1000
+            : ZEALOTS_FLAME_FLIP_DURATION_MS.base / 1000
           : skill.id === GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION
             ? 4
             : skill.id === GUARDIAN_SKILL_IDS.BINDING_BLADE

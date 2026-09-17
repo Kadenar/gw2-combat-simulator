@@ -14,7 +14,8 @@ import type { ObservationPolicy, RotationCommand } from '#gw2/platform/engine/ex
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
+import type { BaselineSimulationCalculation, SelectedBaselineSimulationRequest } from '#gw2/app/simulation/types.js';
+import { combatPreviewRequest, requireLegacyAnalysis } from '#gw2/app/simulation/preview-request.js';
 import type { ModifierContributionRequest, ProfessionModifier } from '#gw2/app/simulation/modifiers/types.js';
 import type {
   RandomDistributionJobRequest,
@@ -26,6 +27,7 @@ import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-compar
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import { usesCombatPreview } from '#gw2/app/rotation/shared/context.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -145,6 +147,7 @@ export function createProfessionRuntime({
   }
 
   function simulationConfig(app: ProfessionAppState, disabled: ProfessionModifier | null = null): Gw2Config {
+    requireLegacyAnalysis(app);
     const attributeDataByWeaponSet = [1, 2].map((weaponSet) =>
       attributesWithModifierDisabled(app, disabled, weaponSet)
     );
@@ -162,7 +165,12 @@ export function createProfessionRuntime({
       selectedTraitIds: activeTraits.map((trait) => trait.id).filter((id) => id != null),
       ...(buildConfigInputs ? buildConfigInputs(app, runtimeContext) : null)
     });
-    return buildConfigExtras ? { ...config, ...buildConfigExtras(app, runtimeContext) } : config;
+    // All baseline and analysis request builders preserve engine identity in their copied configuration.
+    return {
+      ...config,
+      ...(buildConfigExtras ? buildConfigExtras(app, runtimeContext) : {}),
+      engineSelection: { engine: 'legacy' }
+    };
   }
 
   function calculateModifierContributions({ rotation, baseConfig, comparisons }: ModifierContributionRequest) {
@@ -189,6 +197,7 @@ export function createProfessionRuntime({
 
   /** Uses the on-screen equipped relic as the baseline for an explicitly selected alternative. */
   function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonJobRequest | null {
+    requireLegacyAnalysis(app);
     const opponentRelic = String(app.build.relic || '');
     const targetRelic = String(comparisonRelic || '');
     if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(opponentRelic, targetRelic)) return null;
@@ -214,12 +223,19 @@ export function createProfessionRuntime({
   }
 
   function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
+    if (usesCombatPreview(app)) {
+      const projected = app.prefixSimulationRunner?.current();
+      if (!projected || projected.insertionIndex !== insertionIndex)
+        throw new Error('Preview insertion state is pending or unavailable.');
+      return projected;
+    }
+
     const rotation = app.build.rotation;
     const index = Math.max(0, Math.min(Math.floor(Number(insertionIndex) || 0), rotation.length));
     // A tail-resolved result cannot supply availability at the insertion boundary.
     if (
       index === rotation.length &&
-      app.results &&
+      app.results?.endState &&
       app.results.endState.time === Math.round(app.results.duration * 1000)
     ) {
       return app.results.endState;
@@ -229,8 +245,10 @@ export function createProfessionRuntime({
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
-  function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
+  function baselineSimulationRequest(app: ProfessionAppState): SelectedBaselineSimulationRequest {
+    if (app.previewSelection) return combatPreviewRequest(app);
     return {
+      selection: { engine: 'legacy' },
       gameId: 'gw2',
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
@@ -244,15 +262,17 @@ export function createProfessionRuntime({
   }
 
   /** Runs a serialized baseline job without depending on browser application state. */
-  function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
+  function calculateBaselineSimulation(request: SelectedBaselineSimulationRequest): BaselineSimulationCalculation {
     return calculateBaseline(request, profession);
   }
 
   function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
+    requireLegacyAnalysis(app);
     const output = calculateBaselineSimulation(baselineSimulationRequest(app));
+    if ('ok' in output) throw new Error('Preview simulations require a worker in the browser.');
     app.patchComparison = output.patchComparison;
     app.results = output.result;
-    return app.results;
+    return output.result;
   }
 
   const api: ProfessionRuntimeApi = {

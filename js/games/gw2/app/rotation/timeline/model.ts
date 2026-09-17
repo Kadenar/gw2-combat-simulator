@@ -5,7 +5,7 @@ import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/result-transform.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationViewResult as Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 
 export type TimelineRotationEntry = RotationCommand;

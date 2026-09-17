@@ -6,10 +6,13 @@ import {
 } from '#gw2/professions/guardian/build/build.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { compileGuardianPreview } from '#gw2/professions/guardian/combat-engine/compile.js';
 
 export const guardianProfession = defineNativeProfession({
   id: 'guardian',
   name: 'Guardian',
+  // Compose profession-owned content here so the shared simulation boundary stays profession-independent.
+  simulation: { compileCombatPreview: compileGuardianPreview },
   build: {
     createBuildDefaults: createGuardianBuildDefaults,
     migrateBuild: migrateGuardianBuild,

@@ -8,6 +8,8 @@ import type { Gw2TargetConfig } from '#gw2/platform/combat/state/types.js';
 import type { Gw2SigilSet, Gw2Stats } from '#gw2/platform/equipment/types.js';
 
 export interface Gw2Config extends SchedulerRecord {
+  /** Preserved by analysis config copies so a preview request can never fall through to the legacy runtime. */
+  readonly engineSelection?: import('#gw2/platform/simulation/combat-engine-adapter/input.js').EngineSelection;
   readonly procRateOverrides?: Readonly<Record<string, number>>;
   readonly transitionDelays?: Partial<TransitionDelays>;
   readonly stats?: Gw2Stats;

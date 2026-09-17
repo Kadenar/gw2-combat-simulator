@@ -13,6 +13,10 @@ Use the npm commands in the root `package.json` for routine workflows.
 Tests and headless scripts use package aliases to load compiled `dist/js` modules directly in Node. Build the modules
 before running them; no custom loader is required.
 
+`node scripts/data/generate-guardian-combat-content.mjs` generates browser-loadable Guardian preview content from the
+pinned gw2combat fixture and declared errata, preserving its MIT license. Run after `npm run build:modules`; use
+`--check` to verify the generated module without writing it. Do not edit the generated copy by hand.
+
 ## Formatting touched files
 
 Format only files changed by the current task. From the repository root, pass their explicit paths:
@@ -51,6 +55,10 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   manifest value.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
+- After `npm run build`, `node --expose-gc scripts/analysis/benchmark-migration-baseline.mjs [output.json]` records
+  legacy Node simulation/prefix timings, retained heap samples, production Chrome worker/edit timings, and bundle sizes.
+  Requires local Chrome and free port 4181; defaults to `.scratch/gw2combat-phase-3-baseline.json`. See the
+  [Phase 3.1 evidence](../docs/architecture/GW2COMBAT-PHASE-3-BASELINE.md) for workloads and measurement limits.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a
   local ArcDPS log. Add `--summary` or the documented `--debug-*` filters to narrow the output.
 - `npm run build:modules && node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>`

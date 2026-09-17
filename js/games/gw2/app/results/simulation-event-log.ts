@@ -1,7 +1,7 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
 import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationViewResult as Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#gw2/app/results/event-log-view.js';
 import type { EventLogRow } from '#gw2/app/results/event-log-view.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
@@ -61,12 +61,14 @@ export function simulationEventLogRows(
     )
   );
   const activationOrder = (event: SimulationEvent): number =>
-    event.type === 'combat_start'
-      ? -1
-      : (activationOrders.get(event.activationId || '') ??
-        event.eventOrder ??
-        eventOrders.get(event) ??
-        eventOrders.size);
+    typeof event.auditOrder === 'number'
+      ? event.auditOrder
+      : event.type === 'combat_start'
+        ? -1
+        : (activationOrders.get(event.activationId || '') ??
+          event.eventOrder ??
+          eventOrders.get(event) ??
+          eventOrders.size);
   const professionUi = profession?.ui;
   const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
   const endState = professionEndState(result);
@@ -167,9 +169,24 @@ export function simulationEventLogRows(
       case 'action': {
         const durationMs = Math.max(0, Math.round((Number(event.endsAt || event.at) - Number(event.at || 0)) * 1000));
         push(event, 'cast', `CAST ${event.name} (${durationMs}ms)`);
-        push(event, 'cast_end', `END ${event.name}`, '', false, event.endsAt);
+        if (event.completed !== false)
+          push(
+            { ...event, auditOrder: event.completionOrder ?? event.auditOrder },
+            'cast_end',
+            `${event.interrupted ? 'INTERRUPT' : 'END'} ${event.name}`,
+            '',
+            false,
+            event.endsAt
+          );
         break;
       }
+
+      case 'gw2.wait':
+        push(event, 'trigger', `WAIT ${Math.round((Number(event.endsAt) - event.at) * 1000)}ms`);
+        break;
+      case 'gw2.engine-effect':
+        push(event, 'trigger', `EFFECT ${event.detail}`);
+        break;
 
       case 'resource': {
         const amount = Number(event.amount || 0);
@@ -273,7 +290,9 @@ export function simulationEventLogRows(
       push(
         event,
         'condition',
-        `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(2)}s) [${event.skillName}]`,
+        event.enginePayout
+          ? `TICK ${event.condition} -> ${Math.round(Number(event.damage)).toLocaleString()} damage [${event.skillName}]`
+          : `CONDITION ${event.condition} x${event.stacks || 1} (${Number(event.duration || 0).toFixed(2)}s) [${event.skillName}]`,
         'condition'
       );
     }

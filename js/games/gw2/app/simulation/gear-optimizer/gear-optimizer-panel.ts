@@ -99,6 +99,20 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const runner = app.gearOptimizerRunner;
   if (!runner || typeof document === 'undefined') return;
   let panel = document.getElementById('gear-optimizer');
+  // Keep the historical preview explicit instead of presenting controls backed by another engine.
+  if (app.previewSelection) {
+    const container = document.getElementById('optimizer-search');
+    if (container)
+      container.innerHTML =
+        '<div id="gear-optimizer" data-preview-unavailable><p>The gear optimizer is unavailable in the new engine preview. Select Legacy to use it.</p><button disabled>Run optimizer</button></div>';
+    return;
+  }
+
+  if (panel?.hasAttribute('data-preview-unavailable')) {
+    panel.remove();
+    panel = null;
+  }
+
   const displayedResults = (): OptimizerCandidate[] => {
     const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
       'none') as OptimizerResultFilter;

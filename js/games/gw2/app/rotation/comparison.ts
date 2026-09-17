@@ -7,7 +7,7 @@ import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.j
 
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationViewResult as Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface RotationComparisonMetrics {
   readonly timeMs: number | null;
@@ -99,6 +99,7 @@ export function rotationComparisonMetrics(
 
 function currentIsFresh(app: ProfessionAppState): boolean {
   return (
+    !app.previewSelection &&
     Boolean(app.results) &&
     app.build.rotation.length > 0 &&
     app.resultRevision === app.buildRevision &&
@@ -135,6 +136,9 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
 
   compareButton.hidden = Boolean(app.rotationComparison);
   compareButton.disabled = !currentIsFresh(app);
+  compareButton.title = app.previewSelection
+    ? 'Rotation comparison is unavailable in the new engine preview.'
+    : 'Open rotation comparison';
   compareButton.setAttribute('aria-pressed', String(Boolean(app.rotationComparison)));
   compareButton.onclick = () => app.startRotationComparison();
 

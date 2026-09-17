@@ -23,6 +23,7 @@ import {
   paletteProfessionState,
   professionEndState
 } from '#gw2/app/rotation/shared/context.js';
+import { usesCombatPreview } from '#gw2/app/rotation/shared/context.js';
 
 export interface PaletteResourceView {
   readonly id: string;
@@ -270,6 +271,8 @@ export function activeResourceGroup(
     readonly excludeIds?: readonly string[];
   } = {}
 ): string {
+  // Preview only exposes counters actually read from its engine, not legacy resource defaults.
+  if (usesCombatPreview(app)) return '';
   const included = includeIds ? new Set(includeIds.map(String)) : null;
   const excluded = new Set((excludeIds || []).map(String));
   const definitions = activeResourceDefinitions(app).filter(

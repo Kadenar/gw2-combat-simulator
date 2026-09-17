@@ -1,5 +1,5 @@
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationViewResult as Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface RelicDamageSummary {
   readonly buildDps: number;

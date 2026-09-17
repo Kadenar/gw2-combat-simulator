@@ -5,7 +5,7 @@ import { timelineIdleTimeMetric } from '#gw2/app/rotation/timeline/timing/model.
 import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/state/boons.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationViewResult as Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(
   (presentation) => presentation != null

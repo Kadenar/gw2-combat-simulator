@@ -1,5 +1,26 @@
 /* Owns the rotation workspace shell, toolbar, focus mode, and timing controls. */
 
+/* Keep the optional engine selector and its capability/status text readable on narrow workspaces. */
+#combat-engine-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+#combat-engine-controls label,
+#combat-engine-controls select {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#combat-engine-controls p {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+}
+
 /* ─── Rotation Builder ─── */
 .simulation-workspace {
   position: relative;

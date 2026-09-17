@@ -55,7 +55,7 @@ export class GearOptimizerRunner {
   state: OptimizerProgress = this.emptyState();
 
   constructor(
-    readonly app: Pick<ProfessionAppState, 'buildRevision'>,
+    readonly app: Pick<ProfessionAppState, 'buildRevision' | 'previewSelection'>,
     readonly onUpdate: () => void = () => {},
     private readonly createWorker = () =>
       new Worker(new URL('./gear-optimizer-worker.js', import.meta.url), { type: 'module' }),
@@ -108,6 +108,8 @@ export class GearOptimizerRunner {
   }
 
   run(request: GearOptimizerRequest, workerCount = this.workerCount): void {
+    if (this.app.previewSelection)
+      throw new TypeError('The gear optimizer is unavailable in the new engine preview. Select Legacy to use it.');
     // Validate before replacing an active job; workers are bounded independently of the candidate search space.
     if (!Number.isInteger(workerCount) || workerCount < 1 || workerCount > MAX_OPTIMIZER_WORKERS)
       throw new RangeError(`Choose between 1 and ${MAX_OPTIMIZER_WORKERS} workers.`);

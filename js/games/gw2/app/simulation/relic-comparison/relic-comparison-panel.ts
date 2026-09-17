@@ -115,6 +115,12 @@ export function renderRelicComparison(app: ProfessionAppState): void {
   if (typeof document === 'undefined') return;
   const container = document.getElementById('optimizer-relic-comparison');
   if (!container || document.body?.dataset.simulatorView !== 'gear-optimizer') return;
+  if (app.previewSelection) {
+    container.innerHTML =
+      '<p>Relic comparison is unavailable in the new engine preview. Select Legacy to use it.</p><button disabled>Compare relics</button>';
+    return;
+  }
+
   const result = app.results;
   // Keep the comparison UI empty until a rotation exists to compare.
   if (!app.build.rotation.length) {

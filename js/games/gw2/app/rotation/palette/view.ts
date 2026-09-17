@@ -416,7 +416,11 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
         <div class="pal-group"><div class="pal-label" style="color:#7e9ac7">Rst</div>
             <div class="pal-row">${virtualPaletteSkillHtml({
               name: '__cooldown_reset',
-              title: 'Cooldown Reset',
+              title: app.previewSelection
+                ? 'Cooldown Reset is unavailable in the new engine preview'
+                : 'Cooldown Reset',
+              disabled: Boolean(app.previewSelection),
+              contextDisabled: Boolean(app.previewSelection),
               icon: COOLDOWN_RESET_ICON
             })}</div>
         </div>
@@ -468,8 +472,16 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
 export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-palette');
   if (!element) return;
+  // Prefix work stays off the main thread; completion only refreshes dependent presentation.
+  app.prefixSimulationRunner?.refresh();
   const paletteContext = createPaletteContext(app);
   element.innerHTML = paletteHtml(app, paletteContext);
+  if (app.previewSelection && !app.prefixSimulationRunner?.current()) {
+    const status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    status.textContent = app.prefixSimulationRunner?.message() ?? 'Preview insertion state is unavailable.';
+    element.prepend(status);
+  }
 
   bindAppPaletteInteractions(app, element, paletteContext);
 }

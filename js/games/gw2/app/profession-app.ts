@@ -19,6 +19,9 @@ import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/reli
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlays.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
+import { PrefixSimulationRunner } from '#gw2/app/simulation/prefix-simulation-runner.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { renderRotationComparison, renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/index.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/profession/navigation.js';
@@ -35,7 +38,13 @@ import type {
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
-import type { BaselineSimulationOutput } from '#gw2/app/simulation/types.js';
+import type { PublishedBaselineSimulationOutput } from '#gw2/app/simulation/types.js';
+import {
+  guardianPreviewSelection,
+  mountPreviewControls,
+  renderPreviewControls
+} from '#gw2/app/simulation/preview-controls.js';
+import { requireLegacyAnalysis } from '#gw2/app/simulation/preview-request.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 
@@ -87,6 +96,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: ProfessionFeatureRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
+  previewSelection?: ProfessionAppState['previewSelection'];
+  prefixSimulationRunner?: ProfessionAppState['prefixSimulationRunner'];
   private initialRenderGeneration: number;
   private deferredRotationRenderRevision: number | null;
 
@@ -142,6 +153,12 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       ? new RelicComparisonRunner(this, () => renderRelicComparison(this))
       : NOOP_FEATURE;
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
+    // App ownership keeps worker construction outside presentation modules imported by headless adapters.
+    this.prefixSimulationRunner = new PrefixSimulationRunner(this, () => {
+      renderPalette(this);
+      renderRotationStateSnapshot(this);
+      renderRotationComparison(this);
+    });
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
@@ -171,6 +188,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     await this.adapter.capabilities.patchPreview?.mount(this);
     this.baselineSimulationRunner.warmup();
     bindPageControls(this);
+    mountPreviewControls(this);
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       // Analysis owns modifier work; navigation away cancels it without discarding completed results.
       if (document.body?.dataset.simulatorView === 'analysis') this.modifierContributionRunner.schedule();
@@ -221,6 +239,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     // together; otherwise every edit briefly collapses result-derived timeline rows and causes visible flicker.
     // Empty rotations have no resolved rows to preserve; clear them before a cold worker finishes loading.
     const deferRotationRender =
+      !this.previewSelection &&
       this.build.rotation.length > 0 &&
       !this.templateRotationLoading &&
       (!rebuildStatic || options.deferRotationRender === true);
@@ -232,6 +251,9 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       renderRotationEditor(this);
       renderRotationComparison(this);
     }
+
+    renderPreviewControls(this);
+    if (this.previewSelection) renderSimulationOutput(this);
   }
 
   /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
@@ -242,6 +264,18 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
     this.buildRevision += 1;
+    if (this.previewSelection) {
+      this.results = null;
+      this.resultRevision = -1;
+      this.patchComparison = null;
+    }
+
+    this.prefixSimulationRunner?.cancel();
+    if (this.previewSelection) {
+      renderPalette(this);
+      renderRotationStateSnapshot(this);
+    }
+
     this.gearOptimizerRunner?.cancel();
     // Prior-result analysis must release CPU and discard callbacks as soon as the build changes.
     this.randomDistributionRunner?.cancel?.();
@@ -260,16 +294,22 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   /** Preserves synchronous first paint while all edit-triggered baselines use the worker. */
   private updateSimulationStateSynchronously(): void {
     const revision = this.prepareSimulationState();
+    if (this.previewSelection) {
+      this.baselineSimulationRunner.schedule(revision);
+      return;
+    }
+
     const output = this.adapter.calculateBaselineSimulation(this.adapter.baselineSimulationRequest(this));
+    if ('ok' in output) throw new Error('Preview simulations require a browser worker.');
     this.commitBaselineSimulation(output, revision, false);
   }
 
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void {
+  publishBaselineSimulation(output: PublishedBaselineSimulationOutput, revision: number): void {
     this.commitBaselineSimulation(output, revision, true);
   }
 
   /** Rejects stale completions before publishing any result-dependent UI or follow-up work. */
-  private commitBaselineSimulation(output: BaselineSimulationOutput, revision: number, render: boolean): void {
+  private commitBaselineSimulation(output: PublishedBaselineSimulationOutput, revision: number, render: boolean): void {
     if (revision !== this.buildRevision) return;
     const renderDeferredRotation = this.deferredRotationRenderRevision === revision;
     if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
@@ -287,22 +327,30 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
       this.rotationComparison.referenceError = '';
     }
 
-    if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
+    if (!this.previewSelection && Array.isArray(previousContributions))
+      this.results.contributions = previousContributions;
     // Each baseline invalidates comparisons, even when Workspace defers their calculation.
     this.results.modifierContributionsStale =
-      this.adapter.capabilities.modifierContributions === true && this.build.rotation.length > 0;
+      !this.previewSelection &&
+      this.adapter.capabilities.modifierContributions === true &&
+      this.build.rotation.length > 0;
     this.results.modifierContributionsError = '';
     this.resultRevision = revision;
     this.simulationStatus = 'idle';
     this.simulationError = '';
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
-    this.randomDistributionRunner.schedule();
-    this.modifierContributionRunner.schedule();
-    this.relicComparisonRunner.schedule();
+    if (!this.previewSelection) {
+      this.randomDistributionRunner.schedule();
+      this.modifierContributionRunner.schedule();
+      this.relicComparisonRunner.schedule();
+    }
+
     if (render) {
       if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
       else renderSimulationOutput(this);
     }
+
+    renderPreviewControls(this);
   }
 
   failBaselineSimulation(error: unknown, revision: number): void {
@@ -313,6 +361,12 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
     this.simulationStatus = 'error';
     this.simulationError = error instanceof Error ? error.message : String(error || 'Simulation failed.');
+    if (this.previewSelection) {
+      this.results = null;
+      this.resultRevision = -1;
+      renderSimulationOutput(this);
+    }
+
     // A failed shared job leaves the prior pinned result visible but prevents a misleading delta.
     if (this.rotationComparison?.referenceStatus === 'queued') {
       this.rotationComparison.referenceStatus = 'error';
@@ -322,6 +376,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
     if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
     else renderRotationComparison(this);
+    renderPreviewControls(this);
   }
 
   private scheduleInitialDeferredRender(): void {
@@ -340,6 +395,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     const tab = this.workspace.tabs.find((entry) => entry.id === id);
     if (!tab) return;
     captureActiveBuildTab(this);
+    this.previewSelection = undefined;
+    this.prefixSimulationRunner?.cancel();
     this.baselineSimulationRunner.cancel();
     this.gearOptimizerRunner?.reset();
     this.randomDistributionRunner.cancel?.();
@@ -356,6 +413,12 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.skillByName = this.activeCatalog.skillsByName;
     this.skillById = this.activeCatalog.skillsById;
     Object.assign(this, tab.session);
+    // Preview results are session-only and cannot become a legacy tab's current result.
+    if (this.results?.engine === 'preview') {
+      this.results = null;
+      tab.resultsFresh = false;
+    }
+
     recordRotationHistory(this);
     this.dragState = null;
     this.simulationError = '';
@@ -405,6 +468,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
 
   /** Opens a focused comparison workspace with an empty reference ready to load. */
   startRotationComparison(): void {
+    requireLegacyAnalysis(this);
     if (
       this.rotationComparison ||
       !this.build.rotation.length ||
@@ -429,6 +493,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
 
   /** Loads an independent reference rotation and schedules it under Current's shared build context. */
   loadRotationReference(rotation: readonly RotationCommand[]): void {
+    requireLegacyAnalysis(this);
     if (!this.rotationComparison || !rotation.length) return;
     this.rotationComparison.referenceRotation = cloneRotation(rotation);
     this.rotationComparison.referenceResult = null;
@@ -490,16 +555,19 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   }
 
   runRandomDistribution(): void {
+    requireLegacyAnalysis(this);
     this.gearOptimizerRunner?.cancel();
     this.randomDistributionRunner.run?.();
   }
 
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void {
+    requireLegacyAnalysis(this);
     this.gearOptimizerRunner?.cancel();
     this.relicComparisonRunner.run?.(comparisonRelic, initialStacks);
   }
 
   selectPatch(patchId: string): void {
+    requireLegacyAnalysis(this);
     const catalog = this.profession.catalogFor
       ? this.profession.catalogFor(patchId)
       : patchId === 'current'
@@ -520,6 +588,25 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     for (const section of this.adapter.buildEditor.sections) {
       if (includeGear || section.id !== 'gear') section.render(this);
     }
+
+    renderPreviewControls(this);
+  }
+
+  /** Engine switches abandon work and cached output but preserve the authored build and rotation. */
+  selectSimulationEngine(engine: 'legacy' | 'preview'): void {
+    if (engine === 'preview' && this.contentId !== 'guardian')
+      throw new Error('The preview currently supports Guardian only.');
+    this.baselineSimulationRunner.cancel(true);
+    this.prefixSimulationRunner?.cancel();
+    this.previewSelection = engine === 'preview' ? guardianPreviewSelection() : undefined;
+    this.results = null;
+    this.patchComparison = null;
+    this.rotationComparison = null;
+    this.resultRevision = -1;
+    this.rotationInsertionIndex = 0;
+    this.gearOptimizerRunner?.reset();
+    this.changed();
+    renderSimulationOutput(this);
   }
 
   private renderBuildSection(sectionId: string): void {

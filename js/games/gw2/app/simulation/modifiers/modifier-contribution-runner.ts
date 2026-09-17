@@ -40,6 +40,11 @@ export class ModifierContributionRunner {
 
   schedule(): void {
     const app = this.app;
+    if (app.previewSelection) {
+      this.cancel();
+      return;
+    }
+
     // Only missing or stale comparisons for the current baseline consume workers while Analysis is visible.
     if (
       this.isRunning ||

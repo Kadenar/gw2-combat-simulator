@@ -140,6 +140,7 @@ function simulateDeclarativeGw2Pass({
     ...detailed,
     profession: structuredClone(flattenProfessionState(detailed.profession)),
     steps: scheduled.steps,
+    rotationEndTime: scheduled.stream.rotationEndTime,
     // Detailed results preserve the full rotation's input rate even when damage reporting uses another window.
     rotationApm: rotationApm(scheduled, rotation, runtimeProfession.catalog),
     endState: endState(runtimeProfession, config, scheduled, detailed),

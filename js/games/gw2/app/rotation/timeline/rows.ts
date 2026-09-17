@@ -167,7 +167,7 @@ export function timelineRowsView(
   const transitionDelays = timelineTransitionDelayMarkers(
     resultSteps,
     results?.events || [],
-    Number(results?.schedulerState?.time || 0) * 1000
+    Number(results?.rotationEndTime || 0) * 1000
   );
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];

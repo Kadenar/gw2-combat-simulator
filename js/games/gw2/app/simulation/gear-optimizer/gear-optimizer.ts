@@ -106,6 +106,9 @@ export function captureGearOptimizerRequest(
   observationPolicy: ObservationPolicy = { kind: 'rotation' },
   search: 'exact' | 'fast' = 'exact'
 ): GearOptimizerRequest {
+  // Candidate workers reconstruct legacy builds; never drop a selected preview identity on capture.
+  if (app.previewSelection)
+    throw new TypeError('The gear optimizer is unavailable in the new engine preview. Select Legacy to use it.');
   const request: GearOptimizerRequest = structuredClone({
     gameId: 'gw2',
     contentId: app.contentId,

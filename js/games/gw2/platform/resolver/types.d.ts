@@ -394,14 +394,14 @@ export interface Gw2ResolverResult extends Record<string, unknown> {
     name: string;
     damage: number;
     dps: number;
-    averageStacks: number;
+    averageStacks: number | null;
   }>;
   readonly environmentConditionBreakdown: Array<{
     name: string;
     damage: number;
     dps: number;
-    averageStacks: number;
-    stacks: number;
+    averageStacks: number | null;
+    stacks: number | null;
     damageTicks: Gw2EnvironmentConditionTick[];
   }>;
   readonly events: readonly SimulationEvent[];

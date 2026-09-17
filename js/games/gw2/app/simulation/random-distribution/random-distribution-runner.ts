@@ -47,6 +47,11 @@ export class RandomDistributionRunner {
 
   schedule(run = false): void {
     const app = this.app;
+    if (app.previewSelection) {
+      this.cancel();
+      return;
+    }
+
     const requestId = ++this.requestId;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = null;

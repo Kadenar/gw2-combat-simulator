@@ -1,0 +1,269 @@
+{
+  "capturedAt": "2026-09-17T00:22:33.672Z",
+  "revision": "038300b2f51ef9c5644d5cc300bd1aa0fd03f0c8",
+  "workingTree": " M docs/architecture/GW2COMBAT-TYPESCRIPT-MIGRATION.md\n?? scripts/analysis/benchmark-migration-baseline.mjs\n",
+  "environment": {
+    "node": "v24.14.1",
+    "platform": "win32",
+    "osRelease": "10.0.26200",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+    "logicalCpus": 24,
+    "memoryBytes": 34162880512
+  },
+  "samples": 7,
+  "warmups": 3,
+  "importMs": 35.50630000000001,
+  "workloads": [
+    {
+      "profession": "guardian",
+      "preset": "Condition (Pistol / Torch + Pistol / Pistol)",
+      "inputs": {
+        "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json": "e17bf932edba10f4e57003f0e0404937ad24ae66445dfc164612977b2d0e3842",
+        "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json": "2c28e3abcd0a49991ed1a5209b931f995f6ea2d2116d108d386dab766b57eac9"
+      },
+      "adapterLoadMs": 126.65179999999998,
+      "coldSimulationMs": 170.16029999999995,
+      "detailed": {
+        "samplesMs": [
+          91.46389999999985, 91.73220000000015, 90.61940000000004, 87.27749999999992, 85.39350000000013,
+          87.43100000000004, 87.10950000000003
+        ],
+        "medianMs": 87.43100000000004,
+        "p95Ms": 91.73220000000015
+      },
+      "score": {
+        "samplesMs": [
+          80.02150000000006, 80.5326, 82.23360000000002, 82.69810000000007, 81.4715000000001, 79.32420000000002,
+          79.98149999999987
+        ],
+        "medianMs": 80.5326,
+        "p95Ms": 82.69810000000007
+      },
+      "prefix": {
+        "start": {
+          "samplesMs": [
+            0.37190000000009604, 0.3462000000004082, 0.3447000000001026, 0.5270000000000437, 0.6934000000001106,
+            0.690900000000056, 0.35099999999965803
+          ],
+          "medianMs": 0.37190000000009604,
+          "p95Ms": 0.6934000000001106
+        },
+        "middle": {
+          "samplesMs": [
+            42.141200000000026, 35.88720000000012, 35.264900000000125, 37.48349999999982, 36.14859999999999,
+            33.44160000000011, 38.22420000000011
+          ],
+          "medianMs": 36.14859999999999,
+          "p95Ms": 42.141200000000026
+        },
+        "append": {
+          "samplesMs": [
+            80.61630000000014, 80.00890000000027, 82.81100000000015, 84.10969999999998, 82.1518000000001,
+            84.85739999999987, 82.74420000000009
+          ],
+          "medianMs": 82.74420000000009,
+          "p95Ms": 84.85739999999987
+        }
+      },
+      "batch20WithGcMs": 1781.1847000000002,
+      "retainedHeapBytes": [65512080, 65543536, 65426304],
+      "dps": 42046.02105263158,
+      "warnings": []
+    },
+    {
+      "profession": "thief",
+      "preset": "Power Quickness (Sword / Pistol)",
+      "inputs": {
+        "data/gw2/builds/thief/b-power-quick-deadeye-sword-pistol.json": "7f9f49ca00b13d71d0b508249e82ec0f205153dc6bc687d03e259fc04d4fa72e",
+        "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json": "bb8c6741159d6a8b9619aabe7d770ebaaf53f26b34fe27e721d5232330e75571"
+      },
+      "adapterLoadMs": 68.46280000000024,
+      "coldSimulationMs": 154.07950000000073,
+      "detailed": {
+        "samplesMs": [
+          97.15499999999975, 94.47050000000036, 96.04039999999986, 93.02580000000034, 96.4448999999995,
+          100.45280000000002, 97.1878000000006
+        ],
+        "medianMs": 96.4448999999995,
+        "p95Ms": 100.45280000000002
+      },
+      "score": {
+        "samplesMs": [
+          84.42270000000008, 86.0030999999999, 87.16700000000037, 86.04480000000058, 84.65970000000016,
+          90.96119999999974, 95.32909999999993
+        ],
+        "medianMs": 86.04480000000058,
+        "p95Ms": 95.32909999999993
+      },
+      "prefix": {
+        "start": {
+          "samplesMs": [
+            0.33289999999942665, 0.3105999999997948, 0.30199999999967986, 0.35860000000047876, 0.3352000000004409,
+            0.58429999999953, 0.32119999999940774
+          ],
+          "medianMs": 0.33289999999942665,
+          "p95Ms": 0.58429999999953
+        },
+        "middle": {
+          "samplesMs": [
+            45.32899999999972, 39.91259999999966, 42.86859999999979, 41.151600000000144, 40.94599999999991,
+            44.3781999999992, 40.91190000000006
+          ],
+          "medianMs": 41.151600000000144,
+          "p95Ms": 45.32899999999972
+        },
+        "append": {
+          "samplesMs": [
+            88.64350000000013, 89.85699999999997, 90.8028000000013, 89.70900000000074, 88.03920000000107,
+            84.78430000000117, 83.71030000000064
+          ],
+          "medianMs": 88.64350000000013,
+          "p95Ms": 90.8028000000013
+        }
+      },
+      "batch20WithGcMs": 1822.2038000000011,
+      "retainedHeapBytes": [70941152, 71071560, 71195976],
+      "dps": 34986.40366326171,
+      "warnings": []
+    },
+    {
+      "profession": "ranger",
+      "preset": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
+      "inputs": {
+        "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json": "23b506058cc856542751f79d4163fc339aa673c7d2eec625d68f516dd02d107f",
+        "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json": "116cd67a63585872ca980d6cdeb2384f12ce025740d6d19c7438b56be2096578"
+      },
+      "adapterLoadMs": 2850.2543000000005,
+      "coldSimulationMs": 160.97400000000016,
+      "detailed": {
+        "samplesMs": [
+          104.19330000000082, 105.59729999999945, 104.28850000000057, 98.36650000000009, 107.64000000000124,
+          100.71529999999984, 100.09250000000065
+        ],
+        "medianMs": 104.19330000000082,
+        "p95Ms": 107.64000000000124
+      },
+      "score": {
+        "samplesMs": [
+          96.69020000000091, 92.91110000000117, 96.26130000000012, 98.19570000000022, 96.005799999999,
+          94.83649999999943, 96.33419999999933
+        ],
+        "medianMs": 96.26130000000012,
+        "p95Ms": 98.19570000000022
+      },
+      "prefix": {
+        "start": {
+          "samplesMs": [
+            0.27479999999923166, 0.27739999999903375, 0.24140000000079453, 0.28249999999934516, 0.28659999999945285,
+            0.23929999999927531, 0.20229999999901338
+          ],
+          "medianMs": 0.27479999999923166,
+          "p95Ms": 0.28659999999945285
+        },
+        "middle": {
+          "samplesMs": [
+            47.04559999999947, 58.09889999999905, 50.04620000000068, 50.44390000000021, 50.66780000000108,
+            46.472600000000966, 47.48000000000138
+          ],
+          "medianMs": 50.04620000000068,
+          "p95Ms": 58.09889999999905
+        },
+        "append": {
+          "samplesMs": [
+            98.87219999999797, 101.79289999999673, 99.71580000000176, 101.77100000000064, 105.40229999999792,
+            100.39930000000095, 100.03039999999964
+          ],
+          "medianMs": 100.39930000000095,
+          "p95Ms": 105.40229999999792
+        }
+      },
+      "batch20WithGcMs": 2082.7761000000028,
+      "retainedHeapBytes": [76393144, 76458368, 76394416],
+      "dps": 39544.75247524752,
+      "warnings": []
+    }
+  ],
+  "browser": {
+    "version": "153.0.8010.47",
+    "pageReadyMs": 289.8015000000014,
+    "workerStartup": {
+      "samplesMs": [51.900000005960464, 36, 28.299999997019768],
+      "medianMs": 36,
+      "p95Ms": 51.900000005960464
+    },
+    "workerRoundTrip": {
+      "samplesMs": [
+        108.40000000596046, 80.8999999910593, 77.5, 78.1000000089407, 83.8999999910593, 73.80000001192093,
+        75.3999999910593
+      ],
+      "medianMs": 78.1000000089407,
+      "p95Ms": 108.40000000596046
+    },
+    "editToPaint": {
+      "samplesMs": [179.40000000596046, 179.29999999701977, 175.29999999701977, 183.5, 175.40000000596046, 179, 171],
+      "medianMs": 179,
+      "p95Ms": 183.5
+    },
+    "warnings": [],
+    "pageHeapBytes": 44706040
+  },
+  "bundle": {
+    "jsBytes": 18739758,
+    "jsGzipBytes": 4708556,
+    "baselineWorkerEntryBytes": 224478
+  },
+  "peakRssBytes": 372641792,
+  "optimizer": {
+    "node": "v24.14.1",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+    "logicalCpus": 24,
+    "memoryBytes": 34162880512,
+    "workerCount": 1,
+    "revision": "038300b2f51ef9c5644d5cc300bd1aa0fd03f0c8",
+    "workingTree": " M docs/architecture/GW2COMBAT-TYPESCRIPT-MIGRATION.md\n?? scripts/analysis/benchmark-migration-baseline.mjs\n",
+    "memory": {
+      "rss": 257724416,
+      "heapTotal": 202977280,
+      "heapUsed": 131046624,
+      "external": 2048551,
+      "arrayBuffers": 18816
+    },
+    "peakRssBytes": 258232320,
+    "gcCount": 8,
+    "gcMs": 4.666900038719177,
+    "rows": [
+      {
+        "profession": "guardian",
+        "preset": "Power (Spear / Greatsword)",
+        "coldSetupMs": 125.53710000000001,
+        "medianMs": {
+          "generation": 0.025700000000028922,
+          "preparation": 0.23490000000003874,
+          "scheduling": 45.49649999999997,
+          "resolution": 21.62649999999985,
+          "refinement": 0,
+          "reporting": 0.7475999999999203,
+          "simulation": 68.16240000000016,
+          "serialization": 0.02479999999991378,
+          "total": 68.42719999999997
+        },
+        "candidatesPerSecond": 14.614071597259576,
+        "scoreMedianMs": 63.24090000000001,
+        "search": {
+          "rawCount": "8",
+          "groupedCount": "6",
+          "simulations": "6",
+          "preparationMs": 0.9167999999999665,
+          "evaluationMs": 366.4759999999999,
+          "verificationMs": 395.15740000000005,
+          "totalMs": 762.5501999999999
+        },
+        "duration": 94.88,
+        "events": 1697,
+        "ticks": 1905,
+        "schedulingPasses": 1,
+        "warnings": []
+      }
+    ]
+  }
+}

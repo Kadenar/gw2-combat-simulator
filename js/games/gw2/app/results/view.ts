@@ -9,6 +9,8 @@ import {
 import { PLACEHOLDER_ICON, resultSkillIcon } from '#gw2/app/rotation/shared/icons.js';
 import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2/app/results/model.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/result-view.js';
+import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { PREVIEW_ANALYSIS_UNAVAILABLE } from '#gw2/app/simulation/preview-request.js';
 import type { SimulationViewModel } from '#app/shell/types.js';
 import type { SimulationViewSection } from '#ui/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/rotation/shared/icons.js';
@@ -83,6 +85,12 @@ function randomDistributionModel(result: ProfessionAppResult) {
 
 /** Shares modifier labels and status between initial Analysis rendering and its isolated completion update. */
 function modifierContributionModel(app: ProfessionAppState) {
+  if (app.previewSelection)
+    return {
+      contributions: [],
+      contributionsStale: false,
+      contributionsError: `Modifier contributions: ${PREVIEW_ANALYSIS_UNAVAILABLE}`
+    };
   return {
     contributions: (app.results?.contributions || []).map((contribution) => ({
       ...contribution,
@@ -110,15 +118,17 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       analysis: null,
       floatingDps: null,
       // An existing rotation is waiting for results, so reserve the analysis layout instead of prompting for skills.
-      analysisEmptyHtml: app.build.rotation.length
-        ? `<div class="analysis-skeleton" role="status" aria-label="Loading combat analysis" aria-busy="true">
+      analysisEmptyHtml: app.simulationError
+        ? `<p role="alert">${escapeHtml(app.simulationError)}</p>`
+        : app.build.rotation.length
+          ? `<div class="analysis-skeleton" role="status" aria-label="Loading combat analysis" aria-busy="true">
           <div class="analysis-skeleton-heading" aria-hidden="true"></div>
           <div class="analysis-skeleton-chart" aria-hidden="true"></div>
           <div class="analysis-skeleton-row" aria-hidden="true"></div>
           <div class="analysis-skeleton-row" aria-hidden="true"></div>
           <div class="analysis-skeleton-row" aria-hidden="true"></div>
         </div>`
-        : `<div class="analysis-empty-state">
+          : `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
         <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
       </div>`
@@ -152,15 +162,27 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   return {
     summary: gw2ResultView({ metrics, breakpoints }),
     floatingDps: metrics.find((metric) => metric.className === 'dps')?.value,
-    workspace: gw2ResultView(
-      {
-        showSummary: false,
-        ...randomDistributionModel(result)
-      },
-      {
-        onRunRandomDistribution: () => app.runRandomDistribution()
-      }
-    ),
+    workspace: app.previewSelection
+      ? {
+          panels: [
+            {
+              kind: 'extension',
+              mount(container) {
+                container.innerHTML =
+                  '<div class="rng-distribution"><p>RNG sampling is unavailable in the new engine preview. Select Legacy to use it.</p><button disabled>Calculate range</button></div>';
+              }
+            }
+          ]
+        }
+      : gw2ResultView(
+          {
+            showSummary: false,
+            ...randomDistributionModel(result)
+          },
+          {
+            onRunRandomDistribution: () => app.runRandomDistribution()
+          }
+        ),
     analysis: gw2ResultView(
       {
         metrics,
@@ -183,7 +205,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
             }
           : null,
         ...modifierContributionModel(app),
-        ...randomDistributionModel(result),
+        ...(app.previewSelection ? {} : randomDistributionModel(result)),
         // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
         chartSeries: analysisViewIsActive() ? buildChartSeries(result, 250, effectPresentations) : null
       },

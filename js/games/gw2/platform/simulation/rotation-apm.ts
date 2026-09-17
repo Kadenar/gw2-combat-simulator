@@ -62,7 +62,12 @@ function peakApm(starts: readonly number[], duration: number, windowSeconds: num
 
 /** Counts executed command activations over the execution window, independently of damage and observation tails. */
 export function rotationApm(
-  scheduled: Pick<SchedulerRunResult, 'steps' | 'stream'>,
+  scheduled: {
+    readonly steps: SchedulerRunResult['steps'];
+    readonly stream: Pick<SchedulerRunResult['stream'], 'events' | 'rotationEndTime'> & {
+      readonly resolverHandoff: { readonly combatStartTime?: number | null };
+    };
+  },
   rotation: readonly unknown[],
   catalog: CanonicalCatalog,
   rotationStartTime = 0

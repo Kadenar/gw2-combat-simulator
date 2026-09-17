@@ -1,12 +1,17 @@
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
-import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type {
+  Gw2ProfessionSource,
+  Gw2SimulationResult,
+  Gw2SimulationViewResult
+} from '#gw2/platform/simulation/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import type { SchedulerRecord, RotationCommand, ObservationPolicy } from '#gw2/platform/engine/execution/types.js';
 import type {
   PatchComparison,
-  BaselineSimulationOutput,
-  BaselineSimulationRequest
+  PublishedBaselineSimulationOutput,
+  SelectedBaselineSimulationRequest,
+  BaselineSimulationCalculation
 } from '#gw2/app/simulation/types.js';
 import type {
   ModifierContribution,
@@ -59,12 +64,19 @@ export interface RotationActionOptions extends SchedulerRecord {
 
 export interface RotationComparisonState {
   referenceRotation: RotationCommand[];
-  referenceResult: Gw2SimulationResult | null;
+  referenceResult: Gw2SimulationViewResult | null;
   referenceStatus: 'empty' | 'fresh' | 'queued' | 'error';
   referenceError: string;
 }
 
 export interface ProfessionAppState {
+  /** Transient engine selection; saved build and rotation schemas remain unchanged. */
+  previewSelection?: Omit<
+    import('#gw2/platform/simulation/combat-engine-adapter/input.js').CombatPreviewSelection,
+    'build'
+  > & { readonly seed?: number };
+  prefixSimulationRunner?: import('#gw2/app/simulation/prefix-simulation-runner.js').PrefixSimulationRunner;
+  selectSimulationEngine?(engine: 'legacy' | 'preview'): void;
   gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
@@ -123,7 +135,7 @@ export interface ProfessionAppState {
   baselineSimulationRunner: {
     schedule(revision: number): void;
   };
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void;
+  publishBaselineSimulation(output: PublishedBaselineSimulationOutput, revision: number): void;
   failBaselineSimulation(error: unknown, revision: number): void;
   changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
   startRotationComparison(): void;
@@ -150,7 +162,7 @@ export interface ProfessionRotationDragState extends SchedulerRecord {
   readonly skillId?: SkillId;
 }
 
-export interface ProfessionAppResult extends Gw2SimulationResult {
+export interface ProfessionAppResult extends Gw2SimulationViewResult {
   contributions?: ModifierContribution[];
   modifierContributionsStale?: boolean;
   modifierContributionsError?: string;
@@ -209,8 +221,8 @@ export interface ProfessionRuntimeApi {
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
   rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'];
-  baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
-  calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
+  baselineSimulationRequest(app: ProfessionAppState): SelectedBaselineSimulationRequest;
+  calculateBaselineSimulation(request: SelectedBaselineSimulationRequest): BaselineSimulationCalculation;
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;
 }
 
