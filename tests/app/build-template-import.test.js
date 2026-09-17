@@ -7,7 +7,7 @@ import {
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from '#gw2/app/build/io/build-template-import.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';

@@ -22,7 +22,7 @@ const professionBoundaryPattern = {
 
 // Professions that adopted the layout in docs/architecture/PROFESSION-LAYOUT-PLAN.md. Code outside those
 // profession folders may import only their public entry points. Remove the list once every profession migrates.
-const MIGRATED_PROFESSIONS = ['engineer', 'necromancer'];
+const MIGRATED_PROFESSIONS = ['engineer', 'necromancer', 'elementalist'];
 const migratedProfessionGroup = MIGRATED_PROFESSIONS.join('|');
 const professionPublicEntryPatterns = MIGRATED_PROFESSIONS.length
   ? [
@@ -268,6 +268,19 @@ export default [
       'no-restricted-imports': restrictedImports({
         regex: '(^|/)(app|core|integrations|specializations)(/|$)|(^|/)presentation\\.js$',
         message: 'Profession data must not import behavior, presentation, application, or integration modules.'
+      })
+    }
+  },
+
+  // Elementalist catalog generation merges every module's declarative skill fragments before any module reads its
+  // share, so its module-data may read the core and specialization skills/index.js declarations and nothing else.
+  {
+    files: ['js/games/gw2/professions/elementalist/data/module-data.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports({
+        regex:
+          '(^|/)(app|integrations)(/|$)|(^|/)core/(?!skills/index\\.js$)|(^|/)specializations/(?![^/]+/skills/index\\.js$)|(^|/)presentation\\.js$',
+        message: 'Profession data may read module skill declarations but no behavior, presentation, or application.'
       })
     }
   },

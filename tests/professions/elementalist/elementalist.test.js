@@ -19,8 +19,7 @@ import {
   migrateElementalistBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT

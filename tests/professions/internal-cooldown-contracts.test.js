@@ -2,7 +2,7 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';

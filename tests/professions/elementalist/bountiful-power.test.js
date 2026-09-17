@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

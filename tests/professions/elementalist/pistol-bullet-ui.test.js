@@ -4,8 +4,7 @@ import test from 'node:test';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderPaletteMarkup } from '../../helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
 function createPistolApp() {
   const build = elementalistAppAdapter.toApplicationBuild({

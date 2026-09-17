@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { elementalistNativeModules } from '#gw2/professions/elementalist/modules.js';
+import { elementalistNativeModules } from '#gw2/professions/elementalist/profession.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/modules.js';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { applySchedulerZephyrsBoon, applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';

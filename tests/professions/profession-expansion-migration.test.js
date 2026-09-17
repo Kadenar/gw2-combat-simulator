@@ -6,7 +6,7 @@ import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/family-state.js';
-import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/state.js';
+import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/family-state.js';
 import { GUARDIAN_PUBLIC_END_STATE_KEYS } from '#gw2/professions/guardian/state.js';
 import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/family-state.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';

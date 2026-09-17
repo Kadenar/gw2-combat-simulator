@@ -1,5 +1,5 @@
 import { runNative } from '../../helpers/elementalist-simulation.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
