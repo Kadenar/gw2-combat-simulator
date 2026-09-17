@@ -5,7 +5,7 @@ import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { renderRotationBuilder } from '#gw2/app/rotation/index.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
-import { gw2BuildEditor } from '#gw2/app/build-editor.js';
+import { gw2BuildEditor } from '#gw2/app/build/editor.js';
 import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';

@@ -10,7 +10,7 @@ import {
   PERCENT_ATTRIBUTES,
   PRIMARY_ATTRIBUTES,
   SPECIFIC_CONDITION_DURATION_ATTRIBUTES
-} from '#gw2/app/build/panels/options.js';
+} from '#gw2/app/build/panels/metadata.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 

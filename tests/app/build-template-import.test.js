@@ -99,7 +99,7 @@ test('cross-profession imports identify the build and offer its simulator', () =
 
 test('GW2 contributes build-code controls that use a review dialog instead of browser prompts', () => {
   const pageControls = readFileSync(new URL('../../js/games/gw2/app/build/page-controls.ts', import.meta.url), 'utf8');
-  const buildEditor = readFileSync(new URL('../../js/games/gw2/app/build-editor.ts', import.meta.url), 'utf8');
+  const buildEditor = readFileSync(new URL('../../js/games/gw2/app/build/editor.ts', import.meta.url), 'utf8');
   const dialog = readFileSync(
     new URL('../../js/games/gw2/app/io/build-template-import-dialog.ts', import.meta.url),
     'utf8'
