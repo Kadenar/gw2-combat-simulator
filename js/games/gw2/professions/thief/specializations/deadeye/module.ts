@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createThiefModuleData } from '#gw2/professions/thief/catalog/module-data.js';
+import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { deadeyeSkillHandlers } from '#gw2/professions/thief/specializations/deadeye/execution/index.js';
 import {
   deadeyeAttributeRules,

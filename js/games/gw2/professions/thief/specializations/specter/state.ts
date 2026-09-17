@@ -1,6 +1,16 @@
 import { thiefBaseMaximumHealth } from '#gw2/professions/thief/core/state.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SpecterState, ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+
+export interface SpecterState {
+  shadowShroudExitReadyAt: number;
+  shadowForce: number;
+  maximumShadowForce: number;
+  shadowForcePoolCapacity: number;
+  shadowShroudActive: boolean;
+  shadowForceUpdatedAt: number;
+  darkSentryReadyAtByAlly: Record<string, number>;
+}
 
 // GW2: shadow force pool capacity is 69% of maximum health in absolute HP terms.
 const SHADOW_FORCE_HEALTH_MULTIPLIER = 0.69;

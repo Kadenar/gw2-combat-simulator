@@ -1,5 +1,49 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { AntiquaryState, ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+
+export interface ThiefArtifactSlot extends SchedulerRecord {
+  readonly kind: ThiefArtifactKind;
+  readonly skillId: SkillId;
+}
+
+export interface ThiefBackfireState extends SchedulerRecord {
+  readonly activeUntil: number;
+  readonly skillName: string;
+}
+
+export interface ThiefAntiquarySummon extends SchedulerRecord {
+  readonly skillId: SkillId;
+  readonly name: string;
+  readonly expiresAt: number;
+}
+
+export interface AntiquaryState extends ThiefStealthAttackChargeState {
+  initiativePipRows: number;
+  artifactSlots: ThiefArtifactSlot[];
+  artifactUsesRemaining: number;
+  scoundrelsLuck: number;
+  scoundrelsLuckReadyAt: number;
+  improvisationReadyAt: number;
+  backfireState: Record<string, ThiefBackfireState>;
+  initiativeSpentSincePilfer: number;
+  activeAntiquarySummons: ThiefAntiquarySummon[];
+  nextSkrittScufflePilferAt: number;
+  antiquaryDamageUntil: number;
+  combatHighExpiresAt: number;
+  combatHighStacks: number;
+  mistburnCharges: number;
+  mistburnExpiresAt: number;
+  mistburnGeneration: number;
+  kryptisDamageUntil: number;
+  chakInitiativeRefundUntil: number;
+  holoUtilityCooldownReductionExpirations: number[];
+  forgedSurferGeneration: number;
+  forgedSurferBombDropUntil: number;
+  forgedSurferMaximumBombHits: number;
+  canachCoinIndex: number;
+}
 
 export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   return {

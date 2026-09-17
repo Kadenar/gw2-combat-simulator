@@ -31,7 +31,7 @@ import { mesmerProfession as baseMesmerProfession } from '#gw2/professions/mesme
 import { necromancerProfession as baseNecromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession as baseRangerProfession } from '#gw2/professions/ranger/definition.js';
 import { revenantProfession as baseRevenantProfession } from '#gw2/professions/revenant/definition.js';
-import { thiefProfession as baseThiefProfession } from '#gw2/professions/thief/definition.js';
+import { thiefProfession as baseThiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession as baseWarriorProfession } from '#gw2/professions/warrior/definition.js';
 
 const elementalistProfession = withActivePatchPreview(baseElementalistProfession);

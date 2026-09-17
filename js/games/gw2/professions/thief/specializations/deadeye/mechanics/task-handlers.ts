@@ -1,4 +1,4 @@
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/state.js';
+import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { resolveDeadeyeMaliceHit } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
