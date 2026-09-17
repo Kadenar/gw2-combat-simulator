@@ -1,6 +1,6 @@
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
+import { effectiveRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -10,7 +10,6 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/timelines.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *

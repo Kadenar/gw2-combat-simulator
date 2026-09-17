@@ -4,10 +4,9 @@ import test from 'node:test';
 import { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/profession.js';
 import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
 import { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/profession.js';
 import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/profession.js';
+import { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/profession.js';
 import {
   catalogSkillById,
   findRotationSkill,

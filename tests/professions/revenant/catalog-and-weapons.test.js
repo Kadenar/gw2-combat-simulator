@@ -18,12 +18,11 @@ import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
@@ -636,7 +635,8 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
       'utf8'
     ),
     readFile(new URL('../../../js/games/gw2/professions/revenant/catalog.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../../../js/games/gw2/professions/revenant/modules.ts', import.meta.url), 'utf8')
+    // The module tuple lives beside the catalog (PROFESSION-LAYOUT-PLAN.md §3.1).
+    readFile(new URL('../../../js/games/gw2/professions/revenant/catalog.ts', import.meta.url), 'utf8')
   ]);
 
   assert.doesNotMatch(ids, /^import\b/m);

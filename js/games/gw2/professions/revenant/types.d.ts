@@ -18,6 +18,26 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/lib/trait-data.js';
+import type {
+  RevenantCoreState,
+  RevenantSelfCondition,
+  RevenantUpkeepState
+} from '#gw2/professions/revenant/core/state.js';
+import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
+
+// Module state is declared beside each state factory; re-export it for existing family type importers.
+export type {
+  ConduitState,
+  HeraldState,
+  RenegadeState,
+  RevenantCoreState,
+  RevenantSelfCondition,
+  RevenantUpkeepState,
+  VindicatorState
+};
 
 export type RevenantSpecializationSelection = ProfessionTraitSelection;
 
@@ -85,90 +105,6 @@ export interface RevenantChargeState extends SchedulerRecord {
   charges: number;
   expiresAt: number;
   readyAt: number;
-}
-
-export interface RevenantUpkeepState extends SchedulerRecord {
-  skillId: SkillId;
-  upkeepCost: number;
-  startsAt?: number;
-  empoweredNextPulse: boolean;
-}
-
-export interface RevenantSelfCondition extends SchedulerRecord {
-  readonly condition: string;
-  readonly stacks: number;
-  readonly at: number;
-  readonly expiresAt: number;
-  readonly sourceId: SkillId;
-  readonly skillName: string;
-}
-
-export interface RevenantCoreState {
-  energy: number;
-  maximumEnergy: number;
-  energyUpdatedAt: number;
-  // Preserve the elapsed-time baseline across scheduler reads until Energy, upkeep, or its cap changes.
-  energyAccrual?: { at: number; energy: number; rate: number; maximum: number };
-  activeLegendId: string;
-  activeLoadoutId: string;
-  selectedLegendIds: string[];
-  legendSwapReadyAt: number;
-  activeUpkeeps: RevenantUpkeepState[];
-  availableFlips: Record<string, number | boolean>;
-  autoattackChains: Record<string, SkillId>;
-  endurance: number;
-  maximumEndurance: number;
-  enduranceUpdatedAt: number;
-  enchantedDaggers: RevenantChargeState;
-  battleScars: RevenantTimedStack[];
-  crushingAbyss: number[];
-  combatBeganAt: number | null;
-  nextThrillOfCombatAt: number | null;
-  exposeDefensesUsed: boolean;
-  selfConditions: RevenantSelfCondition[];
-  selfConditionCount: number;
-  traitProcReadyAt: Record<string, number | boolean>;
-}
-
-export interface HeraldState {
-  elevatedCompassionReadyAt: number;
-  sharedEmpowermentReadyAt: number;
-  /** Consumed passives retain their window and legend without retaining upkeep drain. */
-  lingeringFacets: Record<string, { startsAt: number; expiresAt: number; legendId: string }>;
-  facetPulseReadyAt: Record<string, number>;
-  /** Resolver-owned life-steal cooldown; scheduler snapshots must not rewind it. */
-  natureSiphonReadyAt: number;
-}
-
-export interface RenegadeState {
-  bandTogetherReady: boolean;
-  bandTogetherExpiresAt: number;
-  kallasFervor: RevenantTimedStack[];
-  kallasFervorMaximumStacks: number;
-  renegadeCriticalProgress: number;
-  razorclawsRage: RevenantChargeState;
-  endlessEnmityReadyAt: number;
-  bloodFuryReadyAt: number;
-  /** Scheduler-owned deadline for Brutal Momentum's Vigor reaction. */
-  brutalMomentumReadyAt: number;
-  soulcleaveReadyAt: number;
-}
-
-export interface VindicatorState {
-  reaversCurseUntil: number;
-  forerunnerOfDeathUntil: number;
-}
-
-export interface ConduitState {
-  affinity: number;
-  affinityMaximum: number;
-  cosmicWisdomUntil: number;
-  conduitForm: string;
-  beguilingHazeCharges: number;
-  beguilingHazeReadyAt: number;
-  beguilingHazeMainReservations: string[];
-  energyCostOverrides: Record<string, number>;
-  mistfireReadyAt: number;
 }
 
 export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {}

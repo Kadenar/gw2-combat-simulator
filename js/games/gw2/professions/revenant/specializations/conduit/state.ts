@@ -1,5 +1,16 @@
-import type { ConduitState } from '#gw2/professions/revenant/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface ConduitState {
+  affinity: number;
+  affinityMaximum: number;
+  cosmicWisdomUntil: number;
+  conduitForm: string;
+  beguilingHazeCharges: number;
+  beguilingHazeReadyAt: number;
+  beguilingHazeMainReservations: string[];
+  energyCostOverrides: Record<string, number>;
+  mistfireReadyAt: number;
+}
 
 export const CONDUIT_PUBLIC_END_STATE_KEYS: readonly (keyof ConduitState)[] = Object.freeze([
   'affinity',

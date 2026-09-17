@@ -9,7 +9,7 @@ import {
   balanceProfileEffect as effectByType,
   balanceProfileFromContext as balanceProfileById
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';

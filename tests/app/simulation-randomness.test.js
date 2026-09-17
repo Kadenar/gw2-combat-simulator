@@ -28,7 +28,7 @@ import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/i
 import { createNecromancerBuildDefaults, migrateNecromancerBuild } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
