@@ -17,7 +17,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 const DEFAULT_PROFESSIONS = [

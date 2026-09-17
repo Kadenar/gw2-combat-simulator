@@ -9,7 +9,7 @@ import {
   weaponSetActiveSegments,
   weaponSetDurationTotals
 } from '#gw2/app/rotation/timeline/timing/model.js';
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 
 const FIRE_BOMB_ID = 5823;
 const SHRAPNEL_GRENADE_ID = 5807;

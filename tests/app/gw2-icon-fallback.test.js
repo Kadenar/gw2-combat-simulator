@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  GW2_ICON_PLACEHOLDER,
-  gw2BackupIconUrl,
-  nextGw2IconFallback
-} from '#gw2/app/presentation/shared/gw2-icon-fallback.js';
+import { GW2_ICON_PLACEHOLDER, gw2BackupIconUrl, nextGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 
 const RENDER_ICON = 'https://render.guildwars2.com/file/617705CDC4E6D5CA0EB9F492B94B4D060F354980/1012459.png';
 

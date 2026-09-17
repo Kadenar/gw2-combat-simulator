@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activateTutorialPanel, restartTutorialAnimation, setTutorialAnimationState } from '#gw2/app/tutorial.js';
+import { activateTutorialPanel, restartTutorialAnimation, setTutorialAnimationState } from '#gw2/app/page/tutorial.js';
 
 function tutorialImageStub(source = 'tutorial.gif') {
   const attributes = new Map();

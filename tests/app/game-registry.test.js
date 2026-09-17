@@ -42,7 +42,7 @@ test('bootstrap requires both explicit IDs even when legacy profession markup is
 
 test('the GW2 game plug-in exposes the existing lazy profession registry', async () => {
   const [{ professionRegistry }, { gw2Plugin }] = await Promise.all([
-    import('#gw2/app/profession/registry.js'),
+    import('#gw2/app/profession-registry.js'),
     import('#gw2/plugin.js')
   ]);
 

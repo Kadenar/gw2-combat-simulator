@@ -8,7 +8,7 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulatio
 import { createGameWorkerEndpoint, ManagedWorkerBatch } from '#app/simulation/game-worker-harness.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
-import { loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 

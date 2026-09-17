@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '../../helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {

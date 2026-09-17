@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import {

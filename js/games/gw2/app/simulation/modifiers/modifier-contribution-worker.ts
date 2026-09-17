@@ -1,5 +1,5 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifiers/modifier-contributions.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

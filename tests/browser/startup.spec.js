@@ -15,7 +15,7 @@ for (const failArtwork of [false, true]) {
     const selector = Promise.withResolvers();
     const artwork = Promise.withResolvers();
     const startup = Promise.withResolvers();
-    await page.route('**/js/games/gw2/app/profession/selector.ts*', async (route) => {
+    await page.route('**/js/games/gw2/app/page/entry.ts*', async (route) => {
       await selector.promise;
       await route.continue();
     });

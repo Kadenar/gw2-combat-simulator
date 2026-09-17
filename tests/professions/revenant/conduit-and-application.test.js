@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';

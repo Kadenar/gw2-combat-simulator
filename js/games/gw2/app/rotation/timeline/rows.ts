@@ -2,7 +2,7 @@
  * Projects authored commands and simulation events into timeline rows and the proc panel.
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
  */
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { doubleEdgeOutcomeLabel, hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge.js';
 import { professionEndState } from '#gw2/app/rotation/shared/context.js';

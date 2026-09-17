@@ -1,4 +1,4 @@
-import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml } from '#gw2/app/shared/html.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/app/results/charts/boon-generation.js';
 import {
   buildPhaseDpsSeries,

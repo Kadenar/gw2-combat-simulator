@@ -78,7 +78,7 @@ Use this table as the first place to look.
 | gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`             |
 | Upcoming balance changes                                              | Patch-preview system                                  |
 | Build migration/default/validation                                    | Profession `build/build.ts`                           |
-| New profession page/registry entry                                    | `js/games/gw2/app/profession/registry.ts`             |
+| New profession page/registry entry                                    | `js/games/gw2/app/profession-registry.ts`             |
 
 The main rule is:
 
@@ -1327,7 +1327,7 @@ js/games/gw2/professions/new-profession/
 Then register it in:
 
 ```text
-js/games/gw2/app/profession/registry.ts
+js/games/gw2/app/profession-registry.ts
 ```
 
 and provide the associated profession page/build data.

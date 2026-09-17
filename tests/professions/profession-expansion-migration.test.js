@@ -13,7 +13,7 @@ import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-sta
 import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/family-state.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/family-state.js';
 import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/family-state.js';
-import { professionRegistry } from '#gw2/app/profession/registry.js';
+import { professionRegistry } from '#gw2/app/profession-registry.js';
 
 const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
   elementalist: ELEMENTALIST_PUBLIC_END_STATE_KEYS,

@@ -272,7 +272,7 @@ Start with the base config near the top of the relevant profession test, then re
 Use the registry when the profession is selected by a command-line argument or configuration file:
 
 ```js
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
 
 const profession = await loadProfession('engineer');

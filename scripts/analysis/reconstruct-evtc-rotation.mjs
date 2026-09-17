@@ -14,7 +14,7 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import { loadProfession } from '#gw2/app/profession/registry.js';
+import { loadProfession } from '#gw2/app/profession-registry.js';
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
 import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';

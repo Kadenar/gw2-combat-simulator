@@ -6,7 +6,7 @@ import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { SIGIL_NAMES, SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { escapeHtml } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml } from '#gw2/app/shared/html.js';
 import {
   prefixOptionLabel,
   runeOptionLabel,

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession/registry.js';
+import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession-registry.js';
 import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
 
 // All application entry paths must agree before attributes or simulations consume the build.

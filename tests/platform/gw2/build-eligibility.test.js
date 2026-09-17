@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
-import { professionRegistry } from '#gw2/app/profession/registry.js';
+import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 

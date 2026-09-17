@@ -3,7 +3,7 @@
  * The view hides empty snapshots so the timeline only reserves space for state
  * that the user can inspect.
  */
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { formatResultTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';

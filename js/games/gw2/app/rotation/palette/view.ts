@@ -1,5 +1,5 @@
 /** Composes palette markup from projected state and binds the current rendered controls. */
-import { escapeHtml as esc } from '#gw2/app/presentation/shared/html.js';
+import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
