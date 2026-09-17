@@ -11,7 +11,7 @@ import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import { resolveTestGw2Stream } from '../../helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
-import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
 test('samples and strikes see cooldown resets, snapshots, and swaps only after execution', () => {
@@ -434,7 +434,7 @@ test('delayed first damage aligns payouts with whole fight seconds in both outpu
     assert.equal(result.dpsStartTime, 8.72);
     assert.deepEqual([...new Set(payouts)], [9.72, 10.72, 11.72]);
     if (output === 'detailed') {
-      const chart = buildChartSeries(result);
+      const chart = buildTimeSeries(result);
       assert.deepEqual(
         chart.conditionDamage.Bleeding.map(({ t }) => t),
         [1000, 2000, 3000]

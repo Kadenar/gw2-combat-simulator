@@ -1,4 +1,4 @@
-import { buildChartSeries as buildSharedChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
@@ -145,7 +145,7 @@ export function buildChartSeries(
   // Attribute each per-hit event to the same breakdown row key the skill table
   // uses, so clicking a row highlights exactly its hits on the chart.
   const skillKeyByIdentity = skillDamageKeyByIdentity(result);
-  return buildSharedChartSeries(result, sampleStepMs, {
+  return buildTimeSeries(result, sampleStepMs, {
     effectName: (kind, event) => effectName(kind, event, presentations),
     effectType: (kind, event) => (event.type === 'condition' ? 'condition' : isStandardBoon(kind) ? 'boon' : 'buff'),
     replacementGroup: (kind) => effectPresentation(kind, presentations)?.replacementGroup || '',

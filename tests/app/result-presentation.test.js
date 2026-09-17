@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  buildChartSeries,
+  buildTimeSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   chartValueAt
@@ -59,7 +59,7 @@ test('shared chart lookup and series cover damage timing and configurable effect
     4
   );
 
-  const series = buildChartSeries(
+  const series = buildTimeSeries(
     {
       duration: 9,
       deathTime: 2,
@@ -120,7 +120,7 @@ test('shared chart lookup and series cover damage timing and configurable effect
 });
 
 test('shared DPS charts start their sample grid at the first hit', () => {
-  const series = buildChartSeries({
+  const series = buildTimeSeries({
     duration: 2,
     dpsStartTime: 1.156,
     resolvedEvents: [
@@ -164,7 +164,7 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
     ])
   };
   const metrics = baseResultSummaryMetrics(result);
-  const series = buildChartSeries(result, 500);
+  const series = buildTimeSeries(result, 500);
   assert.deepEqual(series.dps, [
     { t: 0, v: 0 },
     { t: 500, v: 152 / 0.5 },

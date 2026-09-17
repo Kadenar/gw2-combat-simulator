@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { drawHitTimeline, filterHitsToPhase, groupSkillHits } from '#ui/results/charts/hit-timeline.js';
-import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Payout inspection preserves partial and zero-rounded shares across sources and the observation boundary.
 test('condition payouts retain full and partial attribution independently of skill grouping', () => {
-  const series = buildChartSeries(
+  const series = buildTimeSeries(
     {
       dpsStartTime: 0.36,
       deathTime: 4.36,
@@ -89,7 +89,7 @@ test('condition payouts retain full and partial attribution independently of ski
 
 // Burst grouping must preserve every hit and its activation through chart projection and phase filtering.
 test('chart projection preserves activation ownership across burst grouping and phase boundaries', () => {
-  const series = buildChartSeries(
+  const series = buildTimeSeries(
     {
       dpsStartTime: 1,
       deathTime: 5,
@@ -143,7 +143,7 @@ test('chart projection preserves activation ownership across burst grouping and 
 
 // Continuous ticks must split at fixed boundaries, retain damage, and never join separate strike bursts.
 test('condition windows preserve damage kind and stay aligned through phase filtering', () => {
-  const series = buildChartSeries(
+  const series = buildTimeSeries(
     {
       dpsStartTime: 0,
       deathTime: 12,

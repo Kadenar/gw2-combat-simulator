@@ -96,7 +96,7 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
   return value;
 }
 
-export function buildChartSeries(
+export function buildTimeSeries(
   result: Gw2ResolverResult,
   sampleStepMs = 250,
   {
