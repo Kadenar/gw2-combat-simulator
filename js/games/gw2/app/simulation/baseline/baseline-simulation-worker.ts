@@ -1,8 +1,8 @@
 import { createGameWorkerEndpoint } from '#app/simulation/game-worker-harness.js';
-import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline-simulation.js';
+import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import type { BaselineSimulationRequest } from '#gw2/app/simulation/types.js';
+import type { BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 
 interface BaselineSimulationWorkerMessage {

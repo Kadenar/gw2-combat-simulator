@@ -4,7 +4,10 @@ import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumabl
 import type { ProfessionAppState, ProfessionRuntimeApi } from '#gw2/app/types.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { ModifierContributionRequest, ProfessionModifier } from '#gw2/app/simulation/modifiers/types.js';
+import type {
+  ModifierContributionRequest,
+  ProfessionModifier
+} from '#gw2/app/simulation/modifier-contributions/types.js';
 
 /** Enumerates equipped effects and active assumptions for one-at-a-time removal comparisons. */
 function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {

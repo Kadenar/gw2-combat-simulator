@@ -7,12 +7,12 @@ import type {
   PatchComparison,
   BaselineSimulationOutput,
   BaselineSimulationRequest
-} from '#gw2/app/simulation/types.js';
+} from '#gw2/app/simulation/baseline/types.js';
 import type {
   ModifierContribution,
   ProfessionModifier,
   ModifierContributionRequest
-} from '#gw2/app/simulation/modifiers/types.js';
+} from '#gw2/app/simulation/modifier-contributions/types.js';
 import type {
   RandomDistributionProgress,
   RandomDistributionSummary,

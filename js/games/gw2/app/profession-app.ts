@@ -10,16 +10,16 @@ import {
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
 import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifiers/modifier-contribution-runner.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
 import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
 import { renderGearOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-panel.js';
-import { renderGearOptimizerView } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-view.js';
+import { renderGearOptimizerView } from '#gw2/app/simulation/optimizer-view.js';
 import { renderRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
 import { RelicComparisonRunner } from '#gw2/app/simulation/relic-comparison/relic-comparison-runner.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline-simulation-runner.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
@@ -37,7 +37,7 @@ import type {
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
-import type { BaselineSimulationOutput } from '#gw2/app/simulation/types.js';
+import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
 

@@ -23,7 +23,7 @@ test('modifier and RNG workers simulate without loading UI dependencies', async 
     app.modifierContributionRunner.cancel();
     const request = app.adapter.modifierContributionRequest(app);
     return new Promise((resolve, reject) => {
-      const worker = new Worker('/js/games/gw2/app/simulation/modifiers/modifier-contribution-worker.ts', {
+      const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/modifier-contribution-worker.ts', {
         type: 'module'
       });
       worker.addEventListener('error', (event) => reject(new Error(event.message)));
