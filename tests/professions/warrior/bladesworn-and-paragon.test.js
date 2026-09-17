@@ -5,9 +5,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession/registry.js';
 import { buildChartSeries, skillBreakdownRows } from '#gw2/app/results/model.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 import {
   DRAGON_TRIGGER_DURATION_SECONDS,

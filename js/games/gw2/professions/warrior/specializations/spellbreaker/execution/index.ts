@@ -1,7 +1,7 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { applyWarriorSkillResource } from '#gw2/professions/warrior/resources.js';
+import { applyWarriorSkillResource } from '#gw2/professions/warrior/family-state.js';
 
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';

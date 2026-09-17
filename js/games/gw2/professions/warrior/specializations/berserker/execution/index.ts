@@ -5,7 +5,7 @@ import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { syncWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import { applyWarriorSkillResource } from '#gw2/professions/warrior/resources.js';
+import { applyWarriorSkillResource } from '#gw2/professions/warrior/family-state.js';
 
 import type { WarriorCastContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';

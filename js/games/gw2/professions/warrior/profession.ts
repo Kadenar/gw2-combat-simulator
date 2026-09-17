@@ -4,8 +4,10 @@ import {
   migrateWarriorBuild,
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
-import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
-import { WARRIOR_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/warrior/catalog/module-data.js';
+import { warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
+import { WARRIOR_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/warrior/data/module-data.js';
+
+export { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 
 export const warriorProfession = defineNativeProfession({
   id: 'warrior',
@@ -20,3 +22,6 @@ export const warriorProfession = defineNativeProfession({
 });
 
 export default warriorProfession;
+
+// Integration exports: helpers that log integrations share with the simulation.
+export { dragonChargesForDurationMs } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';

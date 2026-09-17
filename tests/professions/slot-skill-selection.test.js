@@ -4,7 +4,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 

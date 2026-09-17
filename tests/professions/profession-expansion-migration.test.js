@@ -12,7 +12,7 @@ import { NECROMANCER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/necromancer/
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/state.js';
 import { REVENANT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/state.js';
 import { THIEF_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/state.js';
-import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/state.js';
+import { WARRIOR_PUBLIC_END_STATE_KEYS } from '#gw2/professions/warrior/family-state.js';
 import { professionRegistry } from '#gw2/app/profession/registry.js';
 
 const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({

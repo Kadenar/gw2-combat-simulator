@@ -12,7 +12,7 @@ import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '#gw2/professions/warrior/resources.js';
+import { gainWarriorAdrenaline, warriorGainsAdrenalineOnHit } from '#gw2/professions/warrior/family-state.js';
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,

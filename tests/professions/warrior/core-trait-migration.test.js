@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 const baseConfig = Object.freeze({
