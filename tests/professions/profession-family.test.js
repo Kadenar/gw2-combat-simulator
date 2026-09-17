@@ -42,8 +42,7 @@ import { chronomancerModule } from '#gw2/professions/mesmer/specializations/chro
 import { mirageModule } from '#gw2/professions/mesmer/specializations/mirage/module.js';
 import { troubadourModule } from '#gw2/professions/mesmer/specializations/troubadour/module.js';
 import { virtuosoModule } from '#gw2/professions/mesmer/specializations/virtuoso/module.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 import { REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';

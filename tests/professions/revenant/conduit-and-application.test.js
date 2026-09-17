@@ -4,14 +4,13 @@ import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession/registry.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
 import { skillBreakdownRows } from '#gw2/app/results/result-tables.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 
 const revenantAttributeRules = Object.freeze({

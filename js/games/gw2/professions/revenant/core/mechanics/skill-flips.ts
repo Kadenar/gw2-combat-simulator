@@ -1,6 +1,6 @@
 /** Owns cross-cast Revenant skill flips that remain armed until a later activation consumes them. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 

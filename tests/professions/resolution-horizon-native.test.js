@@ -4,7 +4,7 @@ import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as NECRO_SKILL } from '#gw2/professions/necromancer/data/ids.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 
 const target = Object.freeze({ armor: 2597, health: 1_000_000_000 });

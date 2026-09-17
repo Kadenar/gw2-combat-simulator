@@ -5,8 +5,7 @@ import { engineerCatalog, engineerNativeModules } from '#gw2/professions/enginee
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/modules.js';
 import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
+import { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { thiefNativeModules } from '#gw2/professions/thief/modules.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';

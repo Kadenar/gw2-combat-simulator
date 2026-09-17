@@ -470,7 +470,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/revenant/definition.js');
+      const module = await import('#gw2/professions/revenant/profession.js');
       return module.revenantProfession;
     },
     loadAppAdapter: async () => {

@@ -5,7 +5,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianProfession } from '#gw2/professions/guardian/definition.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/data/ids.js';

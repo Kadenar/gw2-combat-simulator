@@ -1,5 +1,9 @@
-import type { VindicatorState } from '#gw2/professions/revenant/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+
+export interface VindicatorState {
+  reaversCurseUntil: number;
+  forerunnerOfDeathUntil: number;
+}
 
 export const VINDICATOR_PUBLIC_END_STATE_KEYS: readonly (keyof VindicatorState)[] = Object.freeze([
   'reaversCurseUntil',

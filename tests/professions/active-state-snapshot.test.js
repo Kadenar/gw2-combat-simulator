@@ -8,7 +8,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/definition.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/definition.js';
 import { projectRangerEndState } from '#gw2/professions/ranger/state.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 

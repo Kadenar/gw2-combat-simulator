@@ -1,6 +1,6 @@
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';

@@ -22,12 +22,19 @@ import {
   VINDICATOR_PUBLIC_END_STATE_KEYS,
   VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/professions/revenant/specializations/vindicator/state.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { baseRevenantEnergyCost } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
+import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 import type {
   HeraldState,
   RenegadeState,
+  RevenantEnergyContext,
+  RevenantPrecastContext,
   RevenantResolverContext,
   RevenantResolverEvent,
   RevenantRuntimeState,
+  RevenantSkill,
   RevenantState
 } from '#gw2/professions/revenant/types.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
@@ -93,5 +100,44 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
 
   if (context.profession.specialization.kind === 'Renegade') {
     (specialization as RenegadeState).soulcleaveReadyAt = Number(preservedSoulcleaveReadyAt || 0);
+  }
+}
+
+// Family Energy cost composition: Core supplies the base cost and each elite specialization applies its own policy.
+// It lives at the family root because Core modules may not import specialization rules.
+
+// Resolve the active Revenant specialization consistently from runtime and
+// configuration shapes used by energy rules.
+function revenantEnergySpecialization(context: RevenantEnergyContext): string {
+  const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
+  const candidate = schedulerState?.profession ?? context.state;
+  if (candidate && typeof candidate === 'object' && 'specialization' in candidate) {
+    return String((candidate as RevenantRuntimeState).specialization.kind);
+  }
+
+  return String(context.config?.specialization || 'Core');
+}
+
+/** Composes the shared base Energy cost with the active elite specialization's policy. */
+export function effectiveRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
+  const baseCost = baseRevenantEnergyCost(context, skill);
+  switch (revenantEnergySpecialization(context)) {
+    case 'Conduit':
+      return applyConduitEnergyCostRules(context, skill, baseCost);
+    case 'Vindicator':
+      return applyVindicatorEnergyCostRules(context, skill, baseCost);
+    default:
+      return baseCost;
+  }
+}
+
+/** Pays a cast's composed family Energy cost after all specialization policies have run. */
+export function spendRevenantEnergy(context: RevenantPrecastContext, skill: RevenantSkill): void {
+  if (([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(Number(skill.id))) return;
+  const state = professionCoreState(context);
+  const cost = effectiveRevenantEnergyCost(context, skill);
+  state.energy = Math.max(0, state.energy - cost);
+  if (cost > 0) {
+    emitRevenantStateSnapshot(context, context.start, 'energy-spent');
   }
 }

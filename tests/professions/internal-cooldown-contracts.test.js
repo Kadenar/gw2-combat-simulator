@@ -24,7 +24,7 @@ import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { reactToSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';

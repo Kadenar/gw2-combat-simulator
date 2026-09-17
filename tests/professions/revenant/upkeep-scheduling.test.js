@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { test } from 'node:test';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { createProfessionSimulator } from '../../helpers/profession-simulation.js';
 

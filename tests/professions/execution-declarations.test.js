@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/definition.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/definition.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

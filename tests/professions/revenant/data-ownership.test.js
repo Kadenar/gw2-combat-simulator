@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertComposedCatalog } from '../../helpers/skill-mechanics.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 
 import { REVENANT_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';

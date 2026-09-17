@@ -3,7 +3,7 @@
  * Action declarations live in `skills/actions.ts`; registration lives in `index.ts`.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';

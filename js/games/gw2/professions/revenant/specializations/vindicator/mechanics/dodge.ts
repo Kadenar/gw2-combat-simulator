@@ -1,6 +1,6 @@
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/state.js';
+import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 /**
  * Revenant dodge execution.
  *

@@ -4,7 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 // Professions that adopted docs/architecture/PROFESSION-LAYOUT-PLAN.md. Keep in sync with eslint.config.js.
-const MIGRATED_PROFESSIONS = ['engineer', 'necromancer'];
+const MIGRATED_PROFESSIONS = ['engineer', 'necromancer', 'revenant'];
 
 const PROFESSIONS_ROOT = path.resolve(import.meta.dirname, '../../js/games/gw2/professions');
 const ROOT_FILES = new Set(['profession.ts', 'catalog.ts', 'family-state.ts', 'family-presentation.ts', 'types.d.ts']);

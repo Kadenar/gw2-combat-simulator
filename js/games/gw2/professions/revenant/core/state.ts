@@ -1,5 +1,50 @@
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
-import type { RevenantConfig, RevenantCoreState } from '#gw2/professions/revenant/types.js';
+import type { RevenantChargeState, RevenantConfig, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
+import type { SchedulerRecord } from '#gw2/platform/engine/execution/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+export interface RevenantUpkeepState extends SchedulerRecord {
+  skillId: SkillId;
+  upkeepCost: number;
+  startsAt?: number;
+  empoweredNextPulse: boolean;
+}
+
+export interface RevenantSelfCondition extends SchedulerRecord {
+  readonly condition: string;
+  readonly stacks: number;
+  readonly at: number;
+  readonly expiresAt: number;
+  readonly sourceId: SkillId;
+  readonly skillName: string;
+}
+
+export interface RevenantCoreState {
+  energy: number;
+  maximumEnergy: number;
+  energyUpdatedAt: number;
+  // Preserve the elapsed-time baseline across scheduler reads until Energy, upkeep, or its cap changes.
+  energyAccrual?: { at: number; energy: number; rate: number; maximum: number };
+  activeLegendId: string;
+  activeLoadoutId: string;
+  selectedLegendIds: string[];
+  legendSwapReadyAt: number;
+  activeUpkeeps: RevenantUpkeepState[];
+  availableFlips: Record<string, number | boolean>;
+  autoattackChains: Record<string, SkillId>;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
+  enchantedDaggers: RevenantChargeState;
+  battleScars: RevenantTimedStack[];
+  crushingAbyss: number[];
+  combatBeganAt: number | null;
+  nextThrillOfCombatAt: number | null;
+  exposeDefensesUsed: boolean;
+  selfConditions: RevenantSelfCondition[];
+  selfConditionCount: number;
+  traitProcReadyAt: Record<string, number | boolean>;
+}
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.

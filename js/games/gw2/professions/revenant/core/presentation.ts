@@ -5,7 +5,7 @@ import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/as
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy.js';
+import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,

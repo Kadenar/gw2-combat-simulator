@@ -6,7 +6,7 @@ import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 
 const AUDITED_WEAPON_FLIPS = Object.freeze([
