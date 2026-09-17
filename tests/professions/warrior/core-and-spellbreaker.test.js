@@ -15,15 +15,13 @@ import {
   migrateWarriorBuild,
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
+import { warriorCatalog, warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/actions.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
 import { berserkerAttributeRules } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
 import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';

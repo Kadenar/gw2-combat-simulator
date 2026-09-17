@@ -26,7 +26,7 @@ import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializati
 import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-rules.js';
 import { observeConduitTraits } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/definition.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
 import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 import {
@@ -35,7 +35,7 @@ import {
   observeParagonEvent
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
-import { projectWarriorEndState, snapshotWarriorState } from '#gw2/professions/warrior/state.js';
+import { projectWarriorEndState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 test('Forge exits finalize once at the exit time and clear weapon state even without an exit catalog entry', () => {

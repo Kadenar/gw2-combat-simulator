@@ -423,7 +423,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
       }
     ],
     loadProfession: async () => {
-      const module = await import('#gw2/professions/warrior/definition.js');
+      const module = await import('#gw2/professions/warrior/profession.js');
       return module.warriorProfession;
     },
     loadAppAdapter: async () => {

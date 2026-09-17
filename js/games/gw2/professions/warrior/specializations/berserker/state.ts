@@ -1,5 +1,12 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { BerserkerState } from '#gw2/professions/warrior/types.js';
+
+export interface BerserkerState {
+  berserkActive: boolean;
+  berserkUntil: number;
+  fireAuraUntil: number;
+  kingOfFiresReadyAt: number;
+  kingOfFiresCriticalProgress: number;
+}
 
 /** Declares Berserker's public compatibility fields and inactive values. */
 export const BERSERKER_PUBLIC_END_STATE_KEYS = Object.freeze([

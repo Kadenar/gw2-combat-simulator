@@ -9,7 +9,7 @@ import { necromancerNativeModules } from '#gw2/professions/necromancer/professio
 import { rangerNativeModules } from '#gw2/professions/ranger/profession.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
 import { thiefNativeModules } from '#gw2/professions/thief/profession.js';
-import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
+import { warriorNativeModules } from '#gw2/professions/warrior/profession.js';
 
 const PROFESSION_MODULES = Object.freeze({
   elementalist: elementalistNativeModules,

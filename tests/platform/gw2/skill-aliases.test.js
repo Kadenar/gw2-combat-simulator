@@ -7,8 +7,7 @@ import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/n
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/modules.js';
 import { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/profession.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { warriorNativeModules } from '#gw2/professions/warrior/modules.js';
+import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/profession.js';
 import {
   catalogSkillById,
   findRotationSkill,

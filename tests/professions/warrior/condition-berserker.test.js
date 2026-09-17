@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { migrateWarriorBuild } from '#gw2/professions/warrior/build/build.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 const buildUrl = new URL(

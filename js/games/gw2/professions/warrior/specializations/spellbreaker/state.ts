@@ -1,5 +1,11 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SpellbreakerState } from '#gw2/professions/warrior/types.js';
+
+export interface SpellbreakerState {
+  attackerInsightExpiries: number[];
+  fullCounterActiveUntil: number;
+  magebaneTetherUntil: number;
+  magebaneTetherReadyAt: number;
+}
 
 /** Declares Spellbreaker's public compatibility fields and inactive values. */
 export const SPELLBREAKER_PUBLIC_END_STATE_KEYS = Object.freeze([
