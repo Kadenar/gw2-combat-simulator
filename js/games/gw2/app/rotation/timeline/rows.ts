@@ -4,8 +4,11 @@
  */
 import { escapeHtml as esc } from '#gw2/app/shared/html.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
-import { doubleEdgeOutcomeLabel, hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge.js';
-import { professionEndState } from '#gw2/app/rotation/shared/context.js';
+import {
+  doubleEdgeOutcomeLabel,
+  hasConfigurableDoubleEdgeOutcome
+} from '#gw2/app/rotation/editing/double-edge-editor.js';
+import { professionEndState } from '#gw2/app/rotation/context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,

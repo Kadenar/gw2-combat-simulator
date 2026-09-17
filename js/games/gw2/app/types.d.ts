@@ -39,7 +39,7 @@ import type {
 } from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RotationHotkeyImport } from '#gw2/app/rotation/input/hotkeys.js';
+import type { RotationHotkeyImport } from '#gw2/app/rotation/hotkeys.js';
 import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {

@@ -9,7 +9,7 @@ import { buildChartSeries, resultSummaryMetrics, skillBreakdownRows } from '#gw2
 import { formatResultTimelineTime } from '#gw2/app/rotation/timeline/timing/model.js';
 import { continuumEndTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/simulation-event-log.js';
-import { rotationWarningItems } from '#gw2/app/results/warnings.js';
+import { rotationWarningItems } from '#gw2/app/rotation/warnings.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 

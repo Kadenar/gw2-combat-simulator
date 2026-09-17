@@ -39,7 +39,7 @@ C++ build, measured performance baseline, and complete mechanic inventory remain
 - [The baseline worker](../../js/games/gw2/app/simulation/baseline-simulation-worker.ts) already isolates expensive
   computation from the browser editor. Other simulation callers include the optimizer, RNG distribution, modifier
   contributions, relic comparison, patch comparison, and rotation prefix previews.
-- [Palette state](../../js/games/gw2/app/rotation/shared/context.ts) depends on simulation state at the insertion
+- [Palette state](../../js/games/gw2/app/rotation/context.ts) depends on simulation state at the insertion
   cursor, not only on final DPS. Existing result types also expose scheduler internals that will need adaptation.
 - [Guardian's implementation notes](../professions/GUARDIAN.md) describe Core, Dragonhunter, Firebrand, Willbender,
   and Luminary. Those all belong in the Guardian migration scope.

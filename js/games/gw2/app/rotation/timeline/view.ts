@@ -1,6 +1,6 @@
 /** Reconciles rendered timeline rows and binds editing, insertion, and preview interactions. */
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
-import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline.js';
+import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-options.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';

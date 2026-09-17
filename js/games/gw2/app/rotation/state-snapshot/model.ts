@@ -3,7 +3,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/
 import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/shared/context.js';
+import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/context.js';
 import { procStackLabel } from '#gw2/app/rotation/timeline/model.js';
 
 function percent(value: number, signed = false): string {

@@ -22,7 +22,7 @@ import {
   paletteEndState,
   paletteProfessionState,
   professionEndState
-} from '#gw2/app/rotation/shared/context.js';
+} from '#gw2/app/rotation/context.js';
 
 export interface PaletteResourceView {
   readonly id: string;

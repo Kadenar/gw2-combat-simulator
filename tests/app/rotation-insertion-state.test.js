@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession-registry.js';
-import { paletteEndState, paletteProfessionState } from '#gw2/app/rotation/shared/context.js';
+import { paletteEndState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 
 function endState(overrides = {}) {
