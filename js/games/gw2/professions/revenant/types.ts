@@ -5,8 +5,7 @@ import type {
   CastLifecycleContext,
   ScheduledTask,
   SchedulerState,
-  SchedulerContext,
-  CastCommand
+  SchedulerContext
 } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
@@ -76,8 +75,6 @@ export interface RevenantConfig extends Gw2Config {
   readonly startingLegend?: string;
   readonly initialEnergy?: number;
   readonly selfConditionCount?: number;
-  readonly targetsHit?: number;
-  readonly targetCount?: number;
 }
 
 export interface RevenantTimedStack {
@@ -115,8 +112,6 @@ export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & 
 };
 
 export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
-  /** Release Potential may override the configured target count for this cast. */
-  readonly command: CastCommand & { readonly targetsHit?: number };
   readonly catalog: CanonicalCatalog<RevenantSkill>;
   readonly config: RevenantConfig;
   readonly skill: RevenantSkill;

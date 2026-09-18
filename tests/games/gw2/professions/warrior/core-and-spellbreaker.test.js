@@ -887,17 +887,12 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 
   assert.equal(singleTarget.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0);
-  const multipleTargets = simulate('Berserker', ['Mighty Throw'], {
-    target: { count: 2 }
-  });
-
-  assert.equal(multipleTargets.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0.9);
 });
 
 test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
   const replacements = [];
   const context = {
-    config: { selectedTraitIds: [], target: { count: 1 } },
+    config: { selectedTraitIds: [] },
     epsilon: 1e-9,
     replaceEvent: (_event, replacement) => replacements.push(replacement)
   };

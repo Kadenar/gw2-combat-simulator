@@ -211,7 +211,6 @@ export interface Gw2TargetConfig {
   /** Remaining health as a fraction of maximum, when a caller configures it directly. */
   readonly healthFraction?: number;
   readonly armor?: number;
-  readonly count?: number;
   readonly moving?: boolean;
   /** A defiant golem never rotates, so it also stands in for flanking and behind-the-target bonuses. */
   readonly defiant?: boolean;

@@ -148,10 +148,8 @@ function adjustMightyThrowTarget(
   _skill: WarriorSkill,
   event: WarriorSimulationEvent
 ): void {
-  if (
-    event.metadata?.packetKind === 'warrior.mighty-throw-shard' &&
-    Math.max(1, Number(context.config.target?.count || 1)) === 1
-  ) {
+  // Shards only hit secondary enemies, which this single-target simulation excludes.
+  if (event.metadata?.packetKind === 'warrior.mighty-throw-shard') {
     context.replaceEvent(event, {
       coefficient: 0,
       secondaryTargetOnly: true

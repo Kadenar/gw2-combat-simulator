@@ -32,12 +32,11 @@ import type {
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Resolve enemy and self Torment from impact-time affinity, including swaps during the windup. */
 export function handleMesmerReleaseConditions(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ targetsHit: number; activationId: string }>
+  task: RevenantScheduledTask<{ activationId: string }>
 ): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.RELEASE_POTENTIAL_MESMER);
@@ -59,16 +58,15 @@ export function handleMesmerReleaseConditions(
   const selfDuration =
     Number(selfTormentTick?.duration || 0) *
     Math.max(0, 1 - affinity * Number(selfTorment?.durationReductionPerAffinity || 0));
-  for (let index = 0; index < task.payload.targetsHit; index += 1) {
-    professionCoreState(context).selfConditions.push({
-      condition: String(selfTormentTick?.condition || 'Torment'),
-      stacks: Number(selfTormentTick?.stacks ?? 1),
-      at: task.at,
-      expiresAt: task.at + selfDuration,
-      sourceId: skill.id,
-      skillName: skill.name
-    });
-  }
+  // One enemy is simulated, so the release applies self-Torment once.
+  professionCoreState(context).selfConditions.push({
+    condition: String(selfTormentTick?.condition || 'Torment'),
+    stacks: Number(selfTormentTick?.stacks ?? 1),
+    at: task.at,
+    expiresAt: task.at + selfDuration,
+    sourceId: skill.id,
+    skillName: skill.name
+  });
 }
 
 function effectiveAffinity(context: RevenantSchedulerContext): number {
@@ -78,16 +76,6 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
   return Math.min(
     Math.max(1, Number(affinityProfile?.maximumStacks ?? 1)),
     Number(conduitState.from(context).affinity || 0) + bonus
-  );
-}
-
-function targetsHit(context: RevenantCastContext, maximum = 5): number {
-  // Command-level override takes priority so per-skill target counts can differ from the global config value.
-  return boundedInteger(
-    context.command.targetsHit ?? context.config.targetsHit ?? context.config.targetCount ?? 1,
-    1,
-    1,
-    maximum
   );
 }
 
@@ -165,7 +153,7 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       context.tasks.schedule({
         type: 'revenant.release-mesmer-conditions',
         at: impactAt,
-        payload: { targetsHit: targetsHit(context), activationId: context.reservationId }
+        payload: { activationId: context.reservationId }
       });
 
       const control = (skill.effects || []).find((effect) => effect.type === 'control');
