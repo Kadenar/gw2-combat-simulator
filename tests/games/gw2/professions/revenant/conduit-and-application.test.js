@@ -1238,6 +1238,25 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
   assert.ok(Math.abs(expanded.endState.profession.energy - ordinary.endState.profession.energy - 15) < 1e-9);
 });
 
+test('Conduit affinity gains only after combat starts', () => {
+  // Explicit precasts cannot build affinity, while the same damaging skill can once combat is active.
+  const config = {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100
+  };
+  const skillPrecast = simulate('Conduit', ['Phase Traversal', '__combat_start'], config);
+  const swapPrecast = simulate('Conduit', ['Swap Legends', '__combat_start'], {
+    ...config,
+    selectedTraitIds: [TRAIT.LINGERING_DETERMINATION]
+  });
+  const combatCast = simulate('Conduit', ['__combat_start', 'Phase Traversal'], config);
+
+  assert.equal(skillPrecast.endState.profession.affinity, 0);
+  assert.equal(swapPrecast.endState.profession.affinity, 0);
+  assert.equal(combatCast.endState.profession.affinity, 2);
+});
+
 test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => {
   const kinetic = simulate('Conduit', ['Release Potential: Warrior'], {
     selectedLegends: [LEGEND.DWARF, LEGEND.ENTITY],

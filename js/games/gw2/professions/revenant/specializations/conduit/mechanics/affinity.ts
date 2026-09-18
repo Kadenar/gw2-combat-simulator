@@ -5,6 +5,7 @@ import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
+import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type {
@@ -25,7 +26,8 @@ interface ConduitAffinityTaskPayload {
 
 /** Adds capped Conduit affinity and snapshots a real resource change. */
 export function gainConduitAffinity(context: RevenantMechanicContext, amount: number, reason: string): number {
-  if (context.config.specialization !== 'Conduit') return 0;
+  // Affinity is combat-only, so explicit precasts may spend Energy or swap legends without building it.
+  if (context.config.specialization !== 'Conduit' || !revenantCombatActive(context)) return 0;
   const state = conduitState.from(context);
   const coreState = professionCoreState(context);
   const affinityProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
