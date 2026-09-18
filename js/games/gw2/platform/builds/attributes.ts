@@ -1,4 +1,7 @@
-import { BASE_STATS, GEAR_SLOTS, GEAR_STATS, INFUSION_BONUS, JBC_BONUS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
+import { BASE_STATS, JBC_BONUS } from '#gw2/platform/builds/base-attributes.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';

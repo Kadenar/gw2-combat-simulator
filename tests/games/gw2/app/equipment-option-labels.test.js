@@ -12,7 +12,7 @@ import {
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
-import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 

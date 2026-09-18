@@ -148,33 +148,42 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
   assert.equal(sim.endState.profession.activeTome, '');
 });
 
-test('Reaper shroud transitions do not import EI bar changes as weapon swaps', () => {
-  // Shroud changes emit a swap row one millisecond later; only the independent weapon swap is player input.
-  const report = reportFixture(
-    'Reaper',
-    [
-      { id: -2, skills: [879, 2399, 15318].map((castTime) => ({ castTime, duration: 0 })) },
-      { id: 30792, skills: [{ castTime: 2398, duration: 0 }] },
-      { id: 30961, skills: [{ castTime: 15317, duration: 0 }] }
-    ],
-    {
-      's-2': { name: 'Weapon Swap', isSwap: true },
-      s30792: { name: "Reaper's Shroud" },
-      s30961: { name: "Exit Reaper's Shroud" }
-    }
-  );
+for (const [profession, entryId, exitId] of [
+  ['Necromancer', 10574, 10585],
+  ['Reaper', 30792, 30961],
+  ['Harbinger', 62567, 62540],
+  ['Ritualist', 77238, 76933]
+]) {
+  test(`${profession} shroud transitions survive swap metadata without importing duplicate bar changes`, () => {
+    // Shroud changes emit a swap row one millisecond later; only the independent weapon swap is player input.
+    const report = reportFixture(
+      profession,
+      [
+        { id: -2, skills: [879, 2399, 15318].map((castTime) => ({ castTime, duration: 0 })) },
+        { id: entryId, skills: [{ castTime: 2398, duration: 0 }] },
+        { id: exitId, skills: [{ castTime: 15317, duration: 0 }] }
+      ],
+      {
+        's-2': { name: 'Weapon Swap', isSwap: true },
+        [`s${entryId}`]: { name: necromancerCatalog.skillsById.get(entryId).name, isSwap: true },
+        [`s${exitId}`]: { name: necromancerCatalog.skillsById.get(exitId).name, isSwap: true }
+      }
+    );
 
-  const result = reconstructDpsReportRotation(report, necromancerCatalog);
+    const result = reconstructDpsReportRotation(report, necromancerCatalog);
 
-  assert.deepEqual(
-    result.actions.filter((action) => action.kind === 'weapon-swap').map((action) => action.timestampMs),
-    [879]
-  );
-  assert.deepEqual(
-    result.actions.filter((action) => action.name.includes('Shroud')).map((action) => action.timestampMs),
-    [2398, 15317]
-  );
-});
+    assert.deepEqual(
+      result.actions.filter((action) => action.kind === 'weapon-swap').map((action) => action.timestampMs),
+      [879]
+    );
+    assert.deepEqual(
+      result.actions.filter((action) => action.name.includes('Shroud')).map((action) => action.timestampMs),
+      [2398, 15317]
+    );
+    assert.ok(result.rotation.some((command) => command.skillId === entryId));
+    assert.ok(result.rotation.some((command) => command.skillId === exitId));
+  });
+}
 
 test('Bladesworn Gunsaber transitions omit EI swaps and Dragon Trigger charge waits', () => {
   // Gunsaber bar changes are represented by their own inputs, while Dragon Slash owns its charge delay in simulation.

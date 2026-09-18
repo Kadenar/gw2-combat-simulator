@@ -5,7 +5,7 @@
  * from, and the codec that migrates, validates, and adapts stored builds for the
  * application shell. Schema-version bumps and field additions belong here.
  */
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';

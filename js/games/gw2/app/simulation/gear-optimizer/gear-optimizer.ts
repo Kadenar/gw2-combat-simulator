@@ -1,4 +1,6 @@
-import { GEAR_SLOTS, PREFIXES, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';

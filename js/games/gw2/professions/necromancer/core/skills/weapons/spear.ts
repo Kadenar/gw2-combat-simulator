@@ -76,13 +76,15 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     handlerId: 'necromancer.addle'
   },
   [ID.DEADLY_SLICE]: {
+    interruptCommitMs: 480,
     castTimeMs: 520,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1.4 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ],
     // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.

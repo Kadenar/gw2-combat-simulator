@@ -1,4 +1,4 @@
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import type { NecromancerCanonicalBuild } from '#gw2/professions/necromancer/types.js';

@@ -4,6 +4,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DUSK_STRIKE]: {
+    interruptCommitMs: 440,
     castTimeMs: 480,
     effects: [
       {

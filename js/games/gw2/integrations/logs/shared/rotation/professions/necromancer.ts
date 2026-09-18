@@ -25,6 +25,8 @@ export function reconstructNecromancerDpsReportActions(
   return context.recordedActions.filter(
     (action) =>
       !action.isSwap ||
+      // EI also flags shroud transitions as swaps; keep them instead of matching them against themselves.
+      SHROUD_TRANSITION_IDS.has(action.rawSkillId) ||
       !shroudTransitions.some(
         (transition) => action.start >= transition.start && action.start - transition.start <= DUPLICATE_SWAP_WINDOW_MS
       )

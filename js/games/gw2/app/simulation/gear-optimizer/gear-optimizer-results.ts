@@ -3,7 +3,7 @@ import {
   type OptimizerCandidate,
   type OptimizerEquipment
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
-import { INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 
 export const OPTIMIZER_RESULT_FILTERS = {
   none: 'No filtering',

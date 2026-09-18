@@ -1,7 +1,9 @@
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
-import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';

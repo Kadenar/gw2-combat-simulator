@@ -47,7 +47,7 @@ import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
 import { ACTION_ICONS, resolveProcIcon } from '#gw2/app/shared/icons.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
-import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';

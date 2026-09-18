@@ -1,20 +1,4 @@
-/** Owns equipment slots, prefixes, base attributes, and infusion constants used by build calculation. */
-export const GEAR_SLOTS = [
-  'Helm',
-  'Shoulders',
-  'Chest',
-  'Gloves',
-  'Leggins',
-  'Boots',
-  'Amulet',
-  'Ring1',
-  'Ring2',
-  'Accessory1',
-  'Accessory2',
-  'Back',
-  'Weapon1',
-  'Weapon2'
-];
+/** Owns the static prefix table: level-80 ascended slot values for every selectable prefix. */
 
 // Maps each prefix to level-80 ascended slot values so selected gear contributes its in-game attributes.
 export const GEAR_STATS = {
@@ -740,51 +724,3 @@ export const GEAR_STATS = {
     }
   }
 };
-
-export const PREFIXES = [...Object.keys(GEAR_STATS)].sort((a, b) => a.localeCompare(b));
-
-const GEAR_STATS_LOOKUP = GEAR_STATS as Readonly<
-  Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>
->;
-
-export const PREFIX_GROUPS = [
-  {
-    label: 'Power',
-    items: PREFIXES.filter(
-      (prefix) =>
-        !Object.values(GEAR_STATS_LOOKUP[prefix] || {}).some((stats) => Object.hasOwn(stats, 'Condition Damage'))
-    )
-  },
-  {
-    label: 'Condition',
-    items: PREFIXES.filter((prefix) =>
-      Object.values(GEAR_STATS_LOOKUP[prefix] || {}).some((stats) => Object.hasOwn(stats, 'Condition Damage'))
-    )
-  }
-];
-
-// ─── Base Stats (level 80) ────────────────────────────────────────────────────
-export const BASE_STATS = {
-  Power: 1000,
-  Precision: 1000,
-  Toughness: 1000,
-  Vitality: 1000
-};
-
-// ─── Jade Bot Core ────────────────────────────────────────────────────────────
-// Tier 10 JBC adds Vitality. In-game this IS included in the conversion pool
-// (trait conversions like Elements of Rage operate on full stats including JBC).
-export const JBC_BONUS = { Vitality: 235 };
-
-// ─── Infusions ────────────────────────────────────────────────────────────────
-export const INFUSION_BONUS = 5;
-export const INFUSION_STATS = [
-  'Power',
-  'Precision',
-  'Condition Damage',
-  'Expertise',
-  'Concentration',
-  'Healing Power',
-  'Vitality',
-  'Toughness'
-];

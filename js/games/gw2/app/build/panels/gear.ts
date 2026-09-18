@@ -2,7 +2,9 @@ import { getProfessionEntry } from '#gw2/app/profession-registry.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/platform/equipment/icons.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
-import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { INFUSION_BONUS, INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import {
