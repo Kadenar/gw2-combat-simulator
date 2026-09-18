@@ -10,7 +10,7 @@ import {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';

@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/equipment/weapons/strength.js';
 import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
 
-import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 

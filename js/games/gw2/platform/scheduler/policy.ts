@@ -47,7 +47,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { Gw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 interface CreateGw2SchedulerPolicyOptions {

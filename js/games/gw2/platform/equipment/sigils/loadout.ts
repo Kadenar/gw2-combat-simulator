@@ -1,5 +1,5 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 

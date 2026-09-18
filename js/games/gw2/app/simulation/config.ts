@@ -1,7 +1,7 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2AttributeBreakdown, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { createAttributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';

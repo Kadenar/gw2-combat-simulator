@@ -1,4 +1,4 @@
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileFromContext,

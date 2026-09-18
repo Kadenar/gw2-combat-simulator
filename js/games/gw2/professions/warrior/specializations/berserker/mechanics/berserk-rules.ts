@@ -1,11 +1,11 @@
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import type { Gw2MutableStats } from '#gw2/platform/equipment/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';

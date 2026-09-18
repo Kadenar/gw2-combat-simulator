@@ -29,7 +29,7 @@ import {
 import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { gw2SigilSet, sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { roundEffectDuration } from '#gw2/platform/skills/timing.js';

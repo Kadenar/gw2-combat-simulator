@@ -4,7 +4,7 @@ import {
 } from '#gw2/platform/combat/formulas.js';
 import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2SigilCriticalContribution {

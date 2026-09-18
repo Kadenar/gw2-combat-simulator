@@ -35,7 +35,7 @@ import type {
   ProfessionAssumptionControl,
   Gw2ApplyBuildAttributeRules
 } from '#gw2/platform/builds/types.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
+import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionResourceView, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
 import type {
   ProfessionAttributeData,

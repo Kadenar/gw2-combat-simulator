@@ -1,5 +1,5 @@
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
  * Evoker damage and attribute modifiers.
  *

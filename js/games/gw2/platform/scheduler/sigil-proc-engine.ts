@@ -12,7 +12,7 @@ import {
   isSigilInternalCooldownReady
 } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { MaterializerProfessionState, MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
 export type SigilTrigger = 'crit' | 'swap' | 'control' | 'strike';

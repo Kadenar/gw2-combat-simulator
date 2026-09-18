@@ -20,7 +20,7 @@ import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.j
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 export const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,

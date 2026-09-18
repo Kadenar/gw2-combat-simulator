@@ -1,6 +1,6 @@
 import { clamp } from '#gw2/platform/combat/numeric.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
 // Stateless GW2 damage formulas used by timestamp-aware runtime resolution.
 

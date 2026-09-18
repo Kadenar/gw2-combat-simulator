@@ -1,6 +1,6 @@
 /** Combines shared weapon-family strength with profession-owned weapon availability. */
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
+import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 
 // ─── Weapon Data ──────────────────────────────────────────────────────────────

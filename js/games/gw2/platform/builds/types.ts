@@ -1,7 +1,7 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/types.js';
+import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
 

@@ -15,3 +15,22 @@ export type Gw2WeaponSkillMatcher = (
   weaponSet?: readonly (string | undefined)[],
   context?: Gw2WeaponMatcherContext
 ) => boolean;
+
+export interface Gw2WeaponDataEntry {
+  readonly wielding: string;
+  readonly weaponStrengthProfileId: string;
+  readonly weaponStrength: number;
+}
+
+export interface Gw2WeaponStrengthProfile {
+  readonly id: string;
+  readonly min: number;
+  readonly max: number;
+}
+
+export interface Gw2ResolvedWeaponStrength {
+  readonly activationId: string | null;
+  readonly profileId: string;
+  readonly value: number;
+  readonly sampled: boolean;
+}

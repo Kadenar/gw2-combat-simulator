@@ -1,6 +1,6 @@
 import { timeKey } from '#kernel/core/clock.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import type { Gw2SigilProc } from '#gw2/platform/equipment/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 export const RESOLVER_CRITICAL_SIGILS = Object.freeze(new Set(['Air', 'Earth', 'Torment']));
 

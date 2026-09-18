@@ -42,7 +42,7 @@ import {
   observeConduitTraits
 } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2Stats } from '#gw2/platform/equipment/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,

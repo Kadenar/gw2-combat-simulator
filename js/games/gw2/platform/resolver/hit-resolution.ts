@@ -3,7 +3,7 @@ import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import type { Gw2CriticalResult, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/types.js';
+import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
