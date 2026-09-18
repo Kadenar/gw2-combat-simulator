@@ -185,7 +185,8 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
 
   applyDragonSlashTraits(context, skill, impactAt);
 
-  exitDragonTrigger(context, context.effectiveEnd);
+  // Releasing the charge starts recharge immediately, while the slash is still casting.
+  exitDragonTrigger(context, context.start);
 }
 
 // Consume Artillery Slash ammo, preserve its recharge lockout, and select the

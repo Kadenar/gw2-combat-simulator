@@ -233,7 +233,7 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
   assert.match(repeated.warnings[0], /Dragon Trigger is already active/);
 });
 
-test('Every Dragon Slash starts Dragon Trigger recharge at cast completion', () => {
+test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () => {
   // Check both skill variants and recharge modifiers without depending on a saved rotation.
   for (const skillId of [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]) {
     for (const selectedTraitIds of [[], [TRAIT.SHARP_AS_THE_WIND]]) {
@@ -246,7 +246,7 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast completion', () 
         const slash = result.steps.at(-1);
         assert.deepEqual(result.warnings, []);
         assert.equal(result.endState.profession.dragonTriggerActive, false);
-        assert.equal(result.endState.cooldowns['Dragon Trigger'].readyAt, slash.end + (alacrity ? 6400 : 8000));
+        assert.equal(result.endState.cooldowns['Dragon Trigger'].readyAt, slash.start + (alacrity ? 6400 : 8000));
       }
     }
   }
