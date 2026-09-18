@@ -21,6 +21,7 @@ import type {
   NecromancerSchedulerContext,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 function applyRitualistCreatureSummonTraits(
   context: NecromancerCastContext,
@@ -92,7 +93,7 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
 
 /** Refunds the first completed spirit summon after Soul Twisting is armed. */
 export function refundRitualistSoulTwisting(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   const state = ritualistState.from(context);
   if (state.pendingSoulTwistSkill !== skill.id) return;
   context.state.cooldowns.delete(skill.id);

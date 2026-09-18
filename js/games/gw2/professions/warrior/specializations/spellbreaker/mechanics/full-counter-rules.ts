@@ -1,6 +1,7 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -34,7 +35,7 @@ function insightStacks(context: Gw2ModifierContext): number {
     context.runtime?.profession,
     'Spellbreaker'
   );
-  return (state?.attackerInsightExpiries || []).filter((expiresAt) => expiresAt > context.time).length;
+  return activeStackCount(state?.attackerInsightExpiries || [], context.time);
 }
 
 function spellbreakerStateAt(context: Gw2ModifierContext): {

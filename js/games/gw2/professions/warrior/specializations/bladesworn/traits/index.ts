@@ -6,6 +6,7 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -236,7 +237,7 @@ export function applyBladeswornCompletionTraits(
     const profile = balanceProfileFromContext(context, PROFILE.fierceAsFire);
     const effect = balanceProfileEffect(profile, 'buff');
     const duration = Number(effect?.duration ?? 15);
-    state.fierceAsFireExpiries = state.fierceAsFireExpiries.filter((expiresAt) => expiresAt > at);
+    state.fierceAsFireExpiries = purgeExpiredStacks(state.fierceAsFireExpiries, at);
     state.fierceAsFireExpiries.push(...Array(roundsSpent).fill(at + duration));
     state.fierceAsFireExpiries = state.fierceAsFireExpiries.slice(-Number(profile?.maximumStacks ?? 10));
     emitSkillBuff(context, {

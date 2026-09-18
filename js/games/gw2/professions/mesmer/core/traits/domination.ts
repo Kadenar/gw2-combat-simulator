@@ -7,6 +7,7 @@ import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Adds two enemy packets to Mirror Blade's four-hit base inside the existing cast-emission interruption scope. */
 export function scheduleBountifulBlades(context: MesmerCastContext, skill: MesmerSkill): void {
@@ -14,7 +15,7 @@ export function scheduleBountifulBlades(context: MesmerCastContext, skill: Mesme
   if (skill.id !== ID.MIRROR_BLADE || !runtime?.traits.has(TRAIT.BOUNTIFUL_BLADES)) return;
   // Trait bounces belong to the launched projectile and use the same commit boundary as its base packets.
   if (
-    context.effectiveEnd < context.fullEnd - EPSILON &&
+    castWasInterrupted(context) &&
     (context.effectiveEnd - context.start) * 1000 + EPSILON * 1000 < Number(skill.interruptCommitMs)
   )
     return;

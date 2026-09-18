@@ -6,6 +6,7 @@ import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/plat
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -22,6 +23,8 @@ const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
 const LIGHTNING_ROD_PULSE_COUNT = 8;
 // measured from EVTC across eleven activations — EA becomes available 4.196-4.203s after LR starts
 const ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS = 4.2;
+const LIGHTNING_ROD_CHARGE_DURATION_SECONDS = 12;
+const LIGHTNING_ROD_MAXIMUM_CHARGES = 12;
 
 /** Emits the standard player-sourced event envelope used by Engineer spear mechanics. */
 function emitSpearEvent(context: EngineerCastContext, skill: EngineerSkill, at: number, eventType: string): void {
@@ -110,7 +113,7 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   // Snapshot unexpired charges at release; expiry during flight must not weaken an already-fired projectile.
-  const charges = state.lightningRodChargeExpiries.filter((expiresAt) => Number(expiresAt) > at).length;
+  const charges = activeStackCount(state.lightningRodChargeExpiries, at);
   context.emit({
     type: 'engineer.electric-artillery',
     // Resolve the projectile 600 ms after release, using the measured close-range impact delay.
@@ -143,14 +146,15 @@ export function handleLightningRodCharge(
   const state = professionCoreState(context);
   // activationId mismatch means this is a stale task from a previous LR cast — discard it
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
-  // prune expired charges before adding the new one
-  state.lightningRodChargeExpiries = state.lightningRodChargeExpiries.filter(
-    (expiresAt) => Number(expiresAt) > task.at
-  );
-  // Live charges last twelve seconds each; the cap remains twelve charges.
-  if (state.lightningRodChargeExpiries.length < 12) {
-    state.lightningRodChargeExpiries.push(task.at + 12);
-  }
+  // Live charges last twelve seconds each; the cap remains twelve charges, and an
+  // over-cap charge is dropped rather than evicting a live one.
+  state.lightningRodChargeExpiries = addTimedStacks(
+    state.lightningRodChargeExpiries,
+    1,
+    task.at,
+    LIGHTNING_ROD_CHARGE_DURATION_SECONDS,
+    LIGHTNING_ROD_MAXIMUM_CHARGES
+  ).expiries;
 }
 
 /** Makes Electric Artillery available when the active Lightning Rod sequence finishes arming. */

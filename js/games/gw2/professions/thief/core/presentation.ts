@@ -1,4 +1,5 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -173,7 +174,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const state = thiefUiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
-  const axes = (state.spinningAxeExpirations || []).filter((expiresAt) => expiresAt > at);
+  const axes = purgeExpiredStacks(state.spinningAxeExpirations || [], at);
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes('Axe')) {
     items.push({
       id: 'thief-spinning-axes',

@@ -5,6 +5,7 @@ import {
   restoreFlatProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
@@ -91,7 +92,7 @@ export function projectThiefEndState({
     ...state,
     holoUtilityCooldownReductionExpiresAt: Math.max(
       0,
-      ...(state.holoUtilityCooldownReductionExpirations || []).filter((expiresAt) => expiresAt > schedulerState.time)
+      ...purgeExpiredStacks(state.holoUtilityCooldownReductionExpirations || [], schedulerState.time)
     )
   };
   return projectPublicProfessionState<typeof publicState, keyof typeof publicState>(

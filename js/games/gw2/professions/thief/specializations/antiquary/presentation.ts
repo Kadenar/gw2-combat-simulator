@@ -5,6 +5,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -96,9 +97,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const holoExpiries = (state.holoUtilityCooldownReductionExpirations || [])
-    .map(Number)
-    .filter((expiry) => expiry > at);
+  const holoExpiries = purgeExpiredStacks((state.holoUtilityCooldownReductionExpirations || []).map(Number), at);
   if (holoExpiries.length) {
     items.push({
       id: 'antiquary-holo-dancer-decoy',

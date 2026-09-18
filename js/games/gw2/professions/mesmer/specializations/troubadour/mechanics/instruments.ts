@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -14,6 +13,7 @@ import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesme
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(
@@ -323,7 +323,7 @@ export function completeTroubadourPerformance(context: MesmerCastContext, skill:
   const instrument = runtime.instruments[skill.id];
   if (!instrument) return;
 
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const interrupted = castWasInterrupted(context);
   const at = interrupted && instrument?.instrument === 'Harp' ? context.effectiveEnd : context.fullEnd;
   withMesmerCastEmission(context, skill, () => commitInstrument(context, skill, instrument, at));
 }

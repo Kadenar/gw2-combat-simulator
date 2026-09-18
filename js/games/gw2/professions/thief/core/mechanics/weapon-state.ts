@@ -1,6 +1,6 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -18,6 +18,7 @@ import type {
   ThiefState,
   ThiefWeaponMatcherContext
 } from '#gw2/professions/thief/types.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 // Match weapon skills against hand requirements while projecting live rifle
 // stance and spear-chain state outside the full weapon-bar preview.
@@ -131,17 +132,14 @@ export function materializeThiefAxe(
   const event = context.eventByOrder(Number(task.payload.eventOrder));
   if (!event || event.cancelled === true) return;
   const state = professionCoreState(context);
-  state.spinningAxeExpirations = [
-    ...state.spinningAxeExpirations.filter((expiresAt) => expiresAt > task.at),
-    task.at + 10
-  ].slice(-6);
+  state.spinningAxeExpirations = [...purgeExpiredStacks(state.spinningAxeExpirations, task.at), task.at + 10].slice(-6);
   emitThiefStateSnapshot(context, task.at, 'spinning-axe');
 }
 
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const completed = context.effectiveEnd >= context.fullEnd - EPSILON;
+  const completed = castCompleted(context);
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }

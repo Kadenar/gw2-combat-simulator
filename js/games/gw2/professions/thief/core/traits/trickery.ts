@@ -1,4 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -115,7 +116,7 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
   const maximumStacks = Number(profile?.maximumStacks ?? 15);
-  const expirations = (state.leadAttackExpirations || []).filter((expiresAt) => expiresAt > at);
+  const expirations = purgeExpiredStacks(state.leadAttackExpirations || [], at);
   // New initiative spending replaces the oldest stacks at the cap without refreshing the remaining stacks.
   for (let stack = 0; stack < initiativeCost; stack += 1) {
     expirations.push(at + Number(profile?.durationMultiplier ?? 10));

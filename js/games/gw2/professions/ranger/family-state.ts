@@ -4,6 +4,7 @@ import {
   snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   DRUID_PUBLIC_END_STATE_KEYS,
   DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS
@@ -53,7 +54,7 @@ export function projectRangerEndState({
   const resolver = flattenProfessionState(resolverState || {});
   // Remaining stones are owned by landed-hit resolution and retain their original expiry.
   const stones = (resolver.sharpeningStoneExpirations as number[] | undefined) || [];
-  state.sharpeningStoneExpirations = stones.filter((at) => at > schedulerState.time);
+  state.sharpeningStoneExpirations = purgeExpiredStacks(stones, schedulerState.time);
   // Ferocious Symbiosis advances from resolved player/pet hits, so its resolver
   // values supersede the scheduler copy in the public insertion-aware state.
   for (const key of UNTAMED_RESOLVER_END_STATE_KEYS) {

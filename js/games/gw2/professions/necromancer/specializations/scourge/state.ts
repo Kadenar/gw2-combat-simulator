@@ -1,4 +1,5 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 export interface ScourgeState {
@@ -29,7 +30,7 @@ export function createScourgeState(): ScourgeState {
 
 /** Removes expired shades at the Scourge module boundary. */
 export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
-  state.shades = state.shades.filter((expiresAt: number) => expiresAt > at);
+  state.shades = purgeExpiredStacks(state.shades, at);
 }
 
 // Both scheduler and resolver share the same factory — shade expiry is read in

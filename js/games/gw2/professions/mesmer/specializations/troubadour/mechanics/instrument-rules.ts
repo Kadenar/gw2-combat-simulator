@@ -22,6 +22,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);
 const instrumentEventIndex = new WeakMap<readonly SimulationEvent[], readonly SimulationEvent[]>();
@@ -128,7 +129,7 @@ export const troubadourAttributeRules = Object.freeze({
 /** Grants Harmonize's resource only once a phantasm has crossed its summon point. */
 function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSkill): void {
   if (skill.resource?.mode !== 'phantasm') return;
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const interrupted = castWasInterrupted(context);
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill);
   if (interrupted && !completedInterruptedPhantasm) return;
 

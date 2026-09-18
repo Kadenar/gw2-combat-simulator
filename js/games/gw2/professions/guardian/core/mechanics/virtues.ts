@@ -19,6 +19,7 @@ import type {
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 interface JusticeHitDependencies {
   readonly hitContext?: object;
@@ -56,7 +57,7 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): voi
  * a resolver refresh event.
  */
 function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   for (const virtue of context.catalog.skills.filter(
     (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
   )) {

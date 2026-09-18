@@ -1,6 +1,7 @@
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -47,7 +48,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: R
 export function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   // Expire each application independently and spend the oldest surviving charge first.
-  state.sharpeningStoneExpirations = state.sharpeningStoneExpirations.filter((at) => at > event.at);
+  state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
 
   if (!state.sharpeningStoneExpirations.length || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
     return;

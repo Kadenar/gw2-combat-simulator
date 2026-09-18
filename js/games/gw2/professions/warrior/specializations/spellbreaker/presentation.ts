@@ -1,4 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
@@ -20,7 +21,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
-    const insight = (state.attackerInsightExpiries || []).filter((expiry) => Number(expiry) > at).length;
+    const insight = activeStackCount(state.attackerInsightExpiries || [], at);
     if (insight > 0) {
       items.push({
         id: 'attackers-insight',

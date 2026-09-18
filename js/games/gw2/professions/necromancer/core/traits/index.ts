@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
@@ -42,6 +41,7 @@ import {
   reactToVampiricPresenceAlliedHit
 } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
 import { applyCorruptorsFervor, applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 export {
   applyTraitCondition,
@@ -59,7 +59,7 @@ export {
 /** Reconciles completed-cast flips and Fear of Death before later trait effects are emitted. */
 function updateNecromancerCastState(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
-  const completed = context.effectiveEnd >= context.fullEnd - EPSILON;
+  const completed = castCompleted(context);
   if (!completed) return;
 
   const chainNext = context.catalog.autoattackChainPositions.get(Number(skill.id))?.next;

@@ -27,6 +27,7 @@ import {
 } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 function eclipseEffect(context: RangerCastContext, index: number) {
   return balanceProfileEffectFromContext(context, PROFILE.eclipse, 'condition', index);
@@ -37,9 +38,7 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
   const pulses = skill.id === ID.NATURAL_CONVERGENCE ? [520, 1160, 1640, 2040] : [0];
   // Channel traits stop with the cast, while already-applied conditions keep ticking.
   const pulseLanded = (at: number) =>
-    skill.id !== ID.NATURAL_CONVERGENCE ||
-    context.effectiveEnd >= context.fullEnd - EPSILON ||
-    at <= context.effectiveEnd + EPSILON;
+    skill.id !== ID.NATURAL_CONVERGENCE || castCompleted(context) || at <= context.effectiveEnd + EPSILON;
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
     const effect = balanceProfileEffectFromContext(context, PROFILE.graceOfTheLand, 'boon');
     const boon = String(effect?.boon || 'alacrity');

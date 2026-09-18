@@ -11,6 +11,7 @@ import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/ev
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 
@@ -71,7 +72,7 @@ function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearE
  * no bonus packet could be applied.
  */
 function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill, multiplier: number): number | null {
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const interrupted = castWasInterrupted(context);
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {

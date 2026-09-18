@@ -1,5 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
@@ -31,8 +32,7 @@ function gainAttackersInsight(
     () => at + Number(effect?.duration ?? 15)
   );
   // slice(-max) drops the oldest stacks when at cap, matching game behavior.
-  state.attackerInsightExpiries = state.attackerInsightExpiries
-    .filter((expiresAt) => expiresAt > at)
+  state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, at)
     .concat(expiries)
     .slice(-Number(profile?.maximumStacks ?? 5));
 }

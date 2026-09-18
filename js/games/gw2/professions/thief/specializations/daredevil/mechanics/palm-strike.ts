@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -7,6 +6,7 @@ import type { ThiefCastContext, ThiefSkill } from '#gw2/professions/thief/types.
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSkill): void {
   if (context.action?.cancelled === true) return;
@@ -14,7 +14,7 @@ export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSk
   const flips = professionCoreState(context).availableFlips;
   if (skill.id === ID.FIST_FLURRY) {
     // Only a completed, on-target flurry opens the follow-up in both scheduling and the palette.
-    if (context.action?.offTarget === true || context.effectiveEnd < context.fullEnd - EPSILON) return;
+    if (context.action?.offTarget === true || castWasInterrupted(context)) return;
     state.palmStrikeUntil =
       context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.palmStrike)?.durationMultiplier ?? 5);
     flips[ID.PALM_STRIKE] = state.palmStrikeUntil;

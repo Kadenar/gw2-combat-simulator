@@ -10,6 +10,7 @@ import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
 function dispatchShatterResolved(context: MesmerCastContext, resolution: MesmerShatterResolution): void {
@@ -27,7 +28,7 @@ export function withMesmerCastEmission(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   const previousEmission = runtime.activeEmission;
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const interrupted = castWasInterrupted(context);
   runtime.activeEmission = {
     skill,
     effectiveEnd: interrupted ? interruptedEnd : Infinity,
@@ -47,11 +48,7 @@ export function isCommittedInterruptedPhantasm(
 ): boolean {
   const progress = Number(skill.phantasmSummonProgress);
   const summonAt = context.start + (context.fullEnd - context.start) * progress;
-  return (
-    context.effectiveEnd < context.fullEnd - EPSILON &&
-    Number.isFinite(progress) &&
-    context.effectiveEnd >= summonAt - EPSILON
-  );
+  return castWasInterrupted(context) && Number.isFinite(progress) && context.effectiveEnd >= summonAt - EPSILON;
 }
 
 /** Registers phantasm packets at cast start so observers see their authored timeline in order. */
@@ -148,7 +145,7 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(context.reservationId) || {};
   const at = context.fullEnd;
-  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const interrupted = castWasInterrupted(context);
   if (interrupted && details.earlyResourceAt != null && context.effectiveEnd < details.earlyResourceAt - EPSILON) {
     context.tasks.cancelOwner(details.earlyResourceOwnerId || '');
   }

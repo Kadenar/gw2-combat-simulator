@@ -1,5 +1,6 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -94,10 +95,10 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
   state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
     ? Number(resources?.minimumStacks ?? 15)
     : Number(resources?.maximumStacks ?? 12);
-  state.leadAttackExpirations = (state.leadAttackExpirations || []).filter((expiresAt) => Number(expiresAt) > target);
+  state.leadAttackExpirations = purgeExpiredStacks(state.leadAttackExpirations || [], target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   // Ground axes expire independently, including while waiting or using another weapon.
-  state.spinningAxeExpirations = state.spinningAxeExpirations.filter((expiresAt) => expiresAt > target);
+  state.spinningAxeExpirations = purgeExpiredStacks(state.spinningAxeExpirations, target);
   refreshVenomCharges(state, target);
 
   if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt || 0) <= target) {

@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -20,6 +19,7 @@ import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 export interface BandTogetherState {
   readonly enhanced: boolean;
@@ -184,7 +184,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
 
 /** Refreshes current Fervor and materializes Heroic Command's selected profile. */
 export function castHeroicCommand(context: RevenantCastContext, skill: RevenantSkill): void {
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   const stacks = refreshKallasFervor(context, context.effectiveEnd);
   if (!stacks) return;
   const profile = hasTrait(context, TRAIT.LASTING_LEGACY)

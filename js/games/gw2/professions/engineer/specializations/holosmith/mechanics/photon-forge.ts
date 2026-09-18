@@ -28,6 +28,7 @@ import type {
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 interface PhotonForgeHeatPayload {
   readonly skillId: string | number;
@@ -447,7 +448,7 @@ function applyPhotonBlitzHeat(context: EngineerCastContext, skill: HolosmithSkil
 function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   if (!canApplyHeat(context, skill)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
-  if (context.effectiveEnd < context.fullEnd - EPSILON) {
+  if (castWasInterrupted(context)) {
     const commitMs = Number(skill.interruptCommitMs);
     if (!Number.isFinite(commitMs) || elapsedMs + EPSILON * 1000 < commitMs) return;
   }

@@ -15,6 +15,7 @@ import type {
 
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 
@@ -65,7 +66,7 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
 }
 
 function isComplete(context: WarriorCastContext): boolean {
-  return context.effectiveEnd >= context.fullEnd - EPSILON;
+  return castCompleted(context);
 }
 
 /**

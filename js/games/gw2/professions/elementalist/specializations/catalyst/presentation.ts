@@ -9,6 +9,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import {
   CATALYST_MAXIMUM_ENERGY,
@@ -73,7 +74,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const state = uiState(context);
   const at = Math.max(0, Number(context.atSeconds || 0));
   const items: RotationStateSnapshotItem[] = [];
-  const empowerment = (state.elementalEmpowermentExpiries || []).filter((expiry) => Number(expiry) > at).length;
+  const empowerment = activeStackCount(state.elementalEmpowermentExpiries || [], at);
   if (empowerment > 0) {
     items.push({
       id: 'catalyst-elemental-empowerment',

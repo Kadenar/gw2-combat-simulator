@@ -24,6 +24,7 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Reduces every active Reaper Shroud cooldown when Reaper's Onslaught sees Life Reap land. */
 function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number): void {
@@ -62,7 +63,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   const state = reaperState.from(context);
   if (
     hasTrait(context, TRAIT.CHILLING_VICTORY) &&

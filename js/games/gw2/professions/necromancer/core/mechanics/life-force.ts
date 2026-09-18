@@ -39,6 +39,7 @@ import {
   observeTargetConditionCount,
   type NecromancerSchedulerFeedback
 } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 // Each scheduler run consumes observed strike gains exactly once, including gains at time zero.
 const resourceFeedbackCursors = new WeakMap<object, number>();
@@ -347,7 +348,7 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
 /** Advances state after a cast, applies completed-cast gains, and commits shroud entry cooldown state. */
 export function finalizeNecromancerCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   advanceNecromancerState(context, context.effectiveEnd);
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   applySkillLifeForceGain(context, skill);
   const state = professionCoreState(context);
   if (state.pendingShroudEntryId === skill.id) {

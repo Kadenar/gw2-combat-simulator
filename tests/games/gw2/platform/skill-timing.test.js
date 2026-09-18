@@ -4,6 +4,8 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { strikeTimeline, conditionTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 // Minimal packet sequences cover scheduling contracts without calibrating individual skills.
 test('declarative packets retain coefficients, shared timestamps, and application order', () => {
@@ -120,4 +122,22 @@ test('runtime variants scale cast-bound launch timing while fixed pulse spacing 
 
     assert.equal(Math.round(result.events.find((e) => e.type === 'buff').at * 1000), 400 * multiplier + 100);
   }
+});
+
+// The cast-interrupt predicates replace the comparison that was inlined at 33 call sites; pin the boundary.
+test('cast interrupt predicates split on the epsilon-tolerant full-duration boundary', () => {
+  const fullEnd = 4;
+  assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd }), false);
+  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd }), true);
+
+  // An end short by less than the clock tolerance still counts as a completed cast.
+  assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd - EPSILON / 2 }), false);
+  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd - EPSILON / 2 }), true);
+
+  assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: fullEnd - 2 * EPSILON }), true);
+  assert.equal(castCompleted({ fullEnd, effectiveEnd: fullEnd - 2 * EPSILON }), false);
+
+  // Each predicate states its own comparison, so a non-finite end is neither interrupted nor completed.
+  assert.equal(castWasInterrupted({ fullEnd, effectiveEnd: Number.NaN }), false);
+  assert.equal(castCompleted({ fullEnd, effectiveEnd: Number.NaN }), false);
 });

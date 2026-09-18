@@ -15,6 +15,7 @@ import type {
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const MANTRA_BY_ROOT_ID = new Map(MANTRAS.map((definition) => [definition.rootId, definition]));
 const MANTRA_BY_NORMAL_ID = new Map(MANTRAS.map((definition) => [definition.normalId, definition]));
@@ -155,7 +156,7 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
 export function completeFirebrandMantra(context: GuardianCastContext, skill: GuardianSkill): void {
   // Interrupted casts must not consume a charge or start a recharge; early-out
   // when the cast was cut short before its natural end.
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
   if (root) {
     armMantra(context, root, context.effectiveEnd);

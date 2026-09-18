@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -17,6 +17,7 @@ import type {
 } from '#gw2/professions/thief/types.js';
 
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
@@ -32,7 +33,7 @@ interface DarkSentryTaskPayload {
 /** Adds Shade Step's ally boon and arms Dark Sentry for barrier skills. */
 export function completeShadowShroudSkill(context: ThiefCastContext, skill: ThiefSkill): void {
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   if (hasTrait(context.config, TRAIT.SHADESTEP)) {
     const profile = balanceProfileFromContext(context, PROFILE.shadeStep);
     const authoredBoon =

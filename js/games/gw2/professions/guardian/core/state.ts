@@ -1,6 +1,7 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
   endurance: number;
@@ -71,7 +72,7 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
 
 /** Each Symbolic Avenger stack expires independently, including between symbol hits. */
 export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreState>, at: number): number[] {
-  return (state.symbolicAvengerExpirations || []).filter((expiresAt) => expiresAt > at);
+  return purgeExpiredStacks(state.symbolicAvengerExpirations || [], at);
 }
 
 /** Declares the Core-owned portion of Guardian's stable public end-state contract. */

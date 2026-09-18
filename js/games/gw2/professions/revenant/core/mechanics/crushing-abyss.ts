@@ -3,6 +3,7 @@ import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { activeStackCount, addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -19,13 +20,13 @@ export const CRUSHING_GAIN_TASK = 'revenant.crushing-abyss-gain';
 const CRUSHING_SWAP_TASK = 'revenant.crushing-abyss-weapon-swap';
 
 function activeCrushingAbyss(state: RevenantCoreState, at: number): number[] {
-  state.crushingAbyss = (state.crushingAbyss || []).filter((expiresAt) => Number(expiresAt) > at);
+  state.crushingAbyss = purgeExpiredStacks(state.crushingAbyss || [], at);
   return state.crushingAbyss;
 }
 
 /** Reads the stack count at an impact without mutating future expirations. */
 export function crushingAbyssStacksAt(state: RevenantCoreState, at: number): number {
-  return (state.crushingAbyss || []).filter((expiresAt) => Number(expiresAt) > at).length;
+  return activeStackCount(state.crushingAbyss || [], at);
 }
 
 function weaponSet(config: RevenantConfig, set: number): string[] {
@@ -99,9 +100,11 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
   if (!effect) throw new Error('Abyssal Raze is missing Crushing Abyss.');
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
   const duration = Math.max(0, Number(effect.duration || 0));
-  const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
-  if (stacks.length >= maximum) return;
-  stacks.push(task.at + duration);
+  const state = professionCoreState(context);
+  const grant = addTimedStacks(activeCrushingAbyss(state, task.at), 1, task.at, duration, maximum);
+  // At the cap the grant lands nothing, and the buff must not be published either.
+  if (grant.added === 0) return;
+  state.crushingAbyss = grant.expiries;
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = String(effect.name || 'Crushing Abyss');
   emitSkillBuff(context, {
@@ -129,7 +132,7 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
     sourceSkill: skill.name,
     icon: skill.icon,
     name: effectName,
-    detail: `${stacks.length}/${maximum} stacks`
+    detail: `${state.crushingAbyss.length}/${maximum} stacks`
   });
   emitRevenantStateSnapshot(context, task.at, 'crushing-abyss-gain');
 }

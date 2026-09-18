@@ -1,5 +1,6 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
@@ -35,7 +36,7 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
   // Recasts add charges without renewing the lifetime of the remaining stones.
-  state.sharpeningStoneExpirations = state.sharpeningStoneExpirations.filter((at) => at > event.at);
+  state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
   state.sharpeningStoneExpirations.push(
     ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + Number(event.duration || 0))
   );

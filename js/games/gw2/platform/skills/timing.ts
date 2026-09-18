@@ -1,11 +1,27 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;
 /** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
 export const GW2_ACTION_TICK_MS = 40;
+
+/** The cast-end pair every cast lifecycle context carries, regardless of profession. */
+export interface Gw2CastEndTimes {
+  readonly fullEnd: number;
+  readonly effectiveEnd: number;
+}
+
+/** A cast that stopped before its full duration was interrupted or cancelled. */
+export function castWasInterrupted(cast: Gw2CastEndTimes): boolean {
+  return cast.effectiveEnd < cast.fullEnd - EPSILON;
+}
+
+/** A cast that reached its full duration. Stated as its own comparison so a non-finite end is neither. */
+export function castCompleted(cast: Gw2CastEndTimes): boolean {
+  return cast.effectiveEnd >= cast.fullEnd - EPSILON;
+}
 
 /** Cancelled attempts release the cast lane; only committed skills retain their aftercast. */
 export function retainsInterruptedCastLockout(skill: Skill | null, cancelledBeforeCommit: boolean): boolean {

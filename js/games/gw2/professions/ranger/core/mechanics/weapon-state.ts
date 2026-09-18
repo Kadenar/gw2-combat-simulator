@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -8,6 +7,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const WEAPON_FLIP_DURATION_BY_PARENT = Object.freeze({
   [ID.COUNTERATTACK]: 5
@@ -87,7 +87,7 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
     context.state.cooldowns.set(flipId, readyAt);
   }
 
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
   if (skill.id === ID.PANTHERS_PROWL) {
     for (const flipId of RANGER_SPEAR_STEALTH_ATTACK_IDS) {
       professionCoreState(context).availableFlips[flipId] = context.effectiveEnd + 3;
@@ -108,7 +108,7 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
 }
 
 export function updateRangerWeaponState(context: RangerCastContext, skill: RangerSkill): void {
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (castWasInterrupted(context)) return;
 
   const state = professionCoreState(context);
   // Sequence children occupy the opener's tile only for their live window;

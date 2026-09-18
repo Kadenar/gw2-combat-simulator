@@ -35,6 +35,7 @@ import {
   type MinionCommandDefinition,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';
@@ -273,7 +274,7 @@ function queueMinionCommandAttacks(
 // Establish a fresh minion generation, arm its command, publish state, and start autonomous attacks.
 function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   // Interrupted summons never create a creature, arm its command, or start its attack clock.
-  if (context.effectiveEnd < context.fullEnd - EPSILON) return true;
+  if (castWasInterrupted(context)) return true;
   const definition = minionDefinitionForSkill(context, skill.id);
   if (!definition) return false;
   const state = professionCoreState(context);

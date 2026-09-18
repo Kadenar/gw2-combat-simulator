@@ -6,7 +6,7 @@
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
-import { retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
+import { castCompleted, castWasInterrupted, retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createEvent } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -112,7 +112,7 @@ function interruptCommitCutoffs(skill: Skill): number[] {
 }
 
 function cancelledBeforeInterruptCommit(skill: Skill, start: number, fullEnd: number, effectiveEnd: number): boolean {
-  if (skill.interruptMode === 'per-packet' || effectiveEnd >= fullEnd - EPSILON) return false;
+  if (skill.interruptMode === 'per-packet' || castCompleted({ fullEnd, effectiveEnd })) return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
   const cutoffs = interruptCommitCutoffs(skill);
   return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + EPSILON * 1000 < Number(cutoff));
@@ -126,7 +126,7 @@ function cancelledBeforeEffectCommit(
   fullEnd: number,
   effectiveEnd: number
 ): boolean {
-  if (effectiveEnd >= fullEnd - EPSILON) return false;
+  if (castCompleted({ fullEnd, effectiveEnd })) return false;
   const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
   if (cutoff == null) return true;
   const elapsedMs = (effectiveEnd - start) * 1000;
@@ -146,7 +146,7 @@ export function scheduleDeclarativeEffects<TProfessionState extends object>(
   effectiveEnd: number,
   observeEffect: (event: SimulationEvent, effect: SkillEffect, effectIndex: number) => void = () => {}
 ): void {
-  const interrupted = effectiveEnd < fullEnd - EPSILON;
+  const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
   const slotSkill = skill.type === 'Heal' || skill.type === 'Utility' || skill.type === 'Elite';
   const effects = skill.effects || [];
   for (let index = 0; index < effects.length; index += 1) {
@@ -969,7 +969,7 @@ export function createScheduler<TProfessionState extends object = object>({
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
       interruptAfterMs == null ? fullEnd : Math.min(fullEnd, canonicalTime(start + Number(interruptAfterMs) / 1000));
-    const interrupted = effectiveEnd < fullEnd - EPSILON;
+    const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
     // Some skills commit and begin recharge at their interrupt point but retain
     // the remainder of their ordinary cast as aftercast. Keep completion and
     // recharge anchored to effectiveEnd while reserving the cast lane through

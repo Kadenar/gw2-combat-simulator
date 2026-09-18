@@ -3,6 +3,7 @@ import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/c
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
  * Shroud entry/exit and Lich Form handlers.
@@ -29,7 +30,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   const shroud = String(skill.shroudEntry || '');
   const at = context.effectiveEnd;
   const specialization = context.config.specialization || 'Core';
-  const timedCarapace = (state.carapaceExpiries || []).filter((expiresAt: number) => expiresAt > at).length;
+  const timedCarapace = activeStackCount(state.carapaceExpiries || [], at);
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce((total, count) => total + Number(count || 0) * 2, 0)
     : 0;

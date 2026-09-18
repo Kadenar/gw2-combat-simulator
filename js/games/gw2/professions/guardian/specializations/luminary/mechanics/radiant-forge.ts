@@ -6,7 +6,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
 import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
  * transitions, radiant-weapon effects, forge expiry, and resolver state
@@ -272,11 +272,7 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   const elapsedMs = (context.effectiveEnd - context.start) * 1000;
   // A committed cancel keeps the earlier replacement packet; only a cancel
   // before the measured safe point suppresses it.
-  if (
-    context.effectiveEnd < context.fullEnd - EPSILON &&
-    elapsedMs + EPSILON * 1000 < Number(skill.interruptCommitMs || 0)
-  )
-    return;
+  if (castWasInterrupted(context) && elapsedMs + EPSILON * 1000 < Number(skill.interruptCommitMs || 0)) return;
   const state = luminaryState.from(context);
   const radiantWeapon = state.radiantWeapon;
   const swordSlow = radiantWeapon === 'blade' && state.glaringBurstSwordSlow;

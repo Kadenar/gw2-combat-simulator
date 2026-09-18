@@ -5,10 +5,11 @@ import { chronomancerState } from '#gw2/professions/mesmer/specializations/chron
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Arms Time Bomb only after a completed Time Sink and keeps its delayed explosion attributed to that cast. */
 export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: MesmerSkill): void {
-  if (skill.id !== ID.TIME_SINK || context.effectiveEnd < context.fullEnd - EPSILON) return;
+  if (skill.id !== ID.TIME_SINK || castWasInterrupted(context)) return;
 
   const runtime = mesmerRuntimeFor(context);
   const state = chronomancerState.from(context);
