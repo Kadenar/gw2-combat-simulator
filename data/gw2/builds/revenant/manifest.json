@@ -33,7 +33,7 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41097,
+        "benchmarkDps": 41089,
         "upToDate": true
       },
       {
@@ -41,7 +41,7 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41437,
+        "benchmarkDps": 41475,
         "referenceDps": 40839,
         "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
@@ -66,7 +66,7 @@
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 32035,
+        "benchmarkDps": 32112,
         "upToDate": true
       }
     ]
@@ -104,11 +104,11 @@
         "referenceDps": 42999
       },
       {
-        "label": "Condition (Spear - Mace/Axe)",
+        "label": "Condition (Spear - Mace/Axe) - Mistfire",
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39451,
+        "benchmarkDps": 39640,
         "upToDate": true
       }
     ]

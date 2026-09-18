@@ -14,10 +14,7 @@ import {
   consumeBattleScar
 } from '#gw2/professions/revenant/core/traits/devastation.js';
 import { applyDwarvenBattleTraining, applyViciousReprisal } from '#gw2/professions/revenant/core/traits/retribution.js';
-import {
-  empowerEmbraceTheDarkness,
-  scheduleImpossibleOddsStrike
-} from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { scheduleImpossibleOddsStrike } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { triggerEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import type {
   RevenantCastContext,
@@ -26,12 +23,10 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 
-/** Commits trait effects and Embrace bookkeeping after cast packet handling finishes. */
+/** Schedules cast traits after packet handling; completion-gated effects use onCastComplete. */
 export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
   applyBattleScarred(context, skill);
   if (revenantCombatActive(context, context.effectiveEnd)) applyNotoriety(context, skill);
-
-  empowerEmbraceTheDarkness(context, skill);
 }
 
 /** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */

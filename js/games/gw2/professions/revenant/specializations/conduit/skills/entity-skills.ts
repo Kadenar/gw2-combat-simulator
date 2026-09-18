@@ -5,234 +5,129 @@
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
+const BEGUILING_HAZE_SKILL: SkillFragment = {
+  // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
+  handlerId: 'revenant.beguiling-haze',
+  castTimeMs: 200,
+  cooldown: 10,
+  recharge: 0,
+  ammo: 1,
+  ammoRecharge: 10,
+  energyCost: 20,
+  effects: [
+    {
+      type: 'strike',
+      name: 'Beguiling Haze',
+      actorType: 'player',
+      ticks: [{ atMs: 520, coefficient: 2.2 }],
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    }
+  ],
+  legendId: 'LegendaryEntity'
+};
+
+// Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
+const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
+  // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
+  handlerId: 'revenant.twin-moon-sweep',
+  castTimeMs: 920,
+  cooldown: 3,
+  energyCost: 25,
+  affinityOnHit: true,
+  comboFinishers: [
+    {
+      ownerId: 'revenant',
+      finisherType: 'Whirl',
+      applications: 2,
+      effectDelay: 0.04,
+      ambiguousFieldSelection: 'oldest'
+    }
+  ],
+  effects: [
+    {
+      type: 'strike',
+      ticks: [{ atMs: 880, coefficient: 2.5 }],
+      name: 'Twin Moon Sweep — Player',
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      metadata: { affinityOnHit: true }
+    },
+    {
+      type: 'strike',
+      ticks: [{ atMs: 880, coefficient: 2.5 }],
+      name: 'Twin Moon Sweep — Fragment',
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'condition',
+      ticks: Array.from({ length: 2 }, (_, index) => ({
+        atMs: 880 + index * 0,
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 3
+      })),
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'boon',
+      boon: 'might',
+      stacks: 2,
+      duration: 8,
+      applications: 2,
+      intervalMs: 0,
+      atMs: 880,
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'condition',
+      ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      metadata: { legendId: LEGEND.ASSASSIN }
+    },
+    {
+      type: 'strike',
+      coefficient: 0.4,
+      hits: 2,
+      atMs: 1400,
+      name: 'Twin Moon Sweep — Shatter',
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      metadata: { legendId: LEGEND.DEMON }
+    },
+    {
+      type: 'condition',
+      ticks: Array.from({ length: 2 }, (_, index) => ({
+        atMs: 1400 + index * 0,
+        condition: 'Confusion',
+        stacks: 3,
+        duration: 3
+      })),
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      metadata: { legendId: LEGEND.DEMON }
+    }
+  ],
+  legendId: 'LegendaryEntity'
+};
+
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.BEGUILING_HAZE_ID_76805]: {
-    // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
-    handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 200,
-    cooldown: 10,
-    recharge: 0,
-    ammo: 1,
-    ammoRecharge: 10,
-    energyCost: 20,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Beguiling Haze',
-        actorType: 'player',
-        ticks: [{ atMs: 520, coefficient: 2.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ],
-    legendId: 'LegendaryEntity'
-  },
-  [ID.TWIN_MOON_SWEEP]: {
-    // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
-    handlerId: 'revenant.twin-moon-sweep',
-    castTimeMs: 920,
-    cooldown: 3,
-    energyCost: 25,
-    affinityOnHit: true,
-    comboFinishers: [
-      {
-        ownerId: 'revenant',
-        finisherType: 'Whirl',
-        applications: 2,
-        effectDelay: 0.04,
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Player',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { affinityOnHit: true }
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Fragment',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 880 + index * 0,
-          condition: 'Bleeding',
-          stacks: 2,
-          duration: 3
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 2,
-        duration: 8,
-        applications: 2,
-        intervalMs: 0,
-        atMs: 880,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.ASSASSIN }
-      },
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 2,
-        atMs: 1400,
-        name: 'Twin Moon Sweep — Shatter',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.DEMON }
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 1400 + index * 0,
-          condition: 'Confusion',
-          stacks: 3,
-          duration: 3
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.DEMON }
-      }
-    ],
-    legendId: 'LegendaryEntity'
-  },
-  [ID.TWIN_MOON_SWEEP_ID_77001]: {
-    // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
-    handlerId: 'revenant.twin-moon-sweep',
-    castTimeMs: 920,
-    cooldown: 3,
-    energyCost: 25,
-    affinityOnHit: true,
-    comboFinishers: [
-      {
-        ownerId: 'revenant',
-        finisherType: 'Whirl',
-        applications: 2,
-        effectDelay: 0.04,
-        ambiguousFieldSelection: 'oldest'
-      }
-    ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Player',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { affinityOnHit: true }
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Fragment',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 880 + index * 0,
-          condition: 'Bleeding',
-          stacks: 2,
-          duration: 3
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 2,
-        duration: 8,
-        applications: 2,
-        intervalMs: 0,
-        atMs: 880,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.ASSASSIN }
-      },
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 2,
-        atMs: 1400,
-        name: 'Twin Moon Sweep — Shatter',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.DEMON }
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 2 }, (_, index) => ({
-          atMs: 1400 + index * 0,
-          condition: 'Confusion',
-          stacks: 3,
-          duration: 3
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        metadata: { legendId: LEGEND.DEMON }
-      }
-    ],
-    legendId: 'LegendaryEntity'
-  },
-  [ID.BEGUILING_HAZE]: {
-    // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
-    handlerId: 'revenant.beguiling-haze',
-    castTimeMs: 200,
-    cooldown: 10,
-    recharge: 0,
-    ammo: 1,
-    ammoRecharge: 10,
-    energyCost: 20,
-    effects: [
-      {
-        type: 'strike',
-        name: 'Beguiling Haze',
-        actorType: 'player',
-        ticks: [{ atMs: 520, coefficient: 2.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ],
-    legendId: 'LegendaryEntity'
-  },
+  [ID.BEGUILING_HAZE_ID_76805]: BEGUILING_HAZE_SKILL,
+  [ID.TWIN_MOON_SWEEP]: TWIN_MOON_SWEEP_SKILL,
+  [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
+  [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
   [ID.HEX_EATER_VORTEX]: {
     // Custom: Materializes affinity-dependent pulses and charge consumption; see `execution/entities.ts`.
     handlerId: 'revenant.hex-eater-vortex',

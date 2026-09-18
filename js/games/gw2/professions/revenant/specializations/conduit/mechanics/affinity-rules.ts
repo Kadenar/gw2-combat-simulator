@@ -1,4 +1,5 @@
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { handleMesmerReleaseConditions } from '#gw2/professions/revenant/specializations/conduit/execution/release-potential.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -387,6 +388,7 @@ export const conduitSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: Object.freeze({
+    'revenant.release-mesmer-conditions': handleMesmerReleaseConditions,
     'revenant.conduit-upkeep-affinity': handleConduitUpkeep,
     'revenant.conduit-upkeep-daggers': handleConduitUpkeep,
     'revenant.affinity-hit': handleConduitAffinityHit

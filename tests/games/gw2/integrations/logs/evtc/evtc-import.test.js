@@ -234,6 +234,60 @@ test('a recorded Mirage dodge restores the state required to replay an ambush', 
   assert.equal(result.endState.profession.availableAmbush, null);
 });
 
+test('Frigid Blitz imports retain completed packets without inventing the missing follow-up', async () => {
+  const { revenantCatalog, revenantProfession } = await import('#gw2/professions/revenant/profession.js');
+  const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
+  const { defaultSimulationConfig } = await import('#tests/helpers/fixture-harness-core.js');
+
+  // Replay both split phases and an opening-only log through the real packet scheduler.
+  for (const [openingMs, followUp, coefficients, conditions] of [
+    [400, false, [], []],
+    [681, false, [0.15], ['Chilled']],
+    [680, true, [0.15, 1.5], ['Chilled', 'Torment']]
+  ]) {
+    const fixture = log({
+      agents: [{ ...log().agents[0], profession: 9, elite: 0 }],
+      skills: [
+        { id: 28029, name: 'Frigid Blitz' },
+        { id: 26923, name: 'Frigid Blitz' }
+      ],
+      events: [
+        event({ stateChange: 1 }),
+        event({ stateChange: 67, skillId: 28029, value: 680 }),
+        event({ time: 1000 + openingMs, stateChange: 68, skillId: 28029, value: openingMs, activation: 3 }),
+        ...(followUp
+          ? [
+              event({ time: 1680, stateChange: 67, skillId: 26923, value: 320 }),
+              event({ time: 2000, stateChange: 68, skillId: 26923, value: 320, activation: 3 })
+            ]
+          : [])
+      ]
+    });
+    const imported = reconstructEvtcRotation(fixture, revenantCatalog);
+    const result = simulateGw2({
+      profession: revenantProfession,
+      rotation: imported.rotation,
+      config: defaultSimulationConfig({ specialization: 'Core', primaryWeapon: 'Mace', secondaryWeapon: 'Axe' }),
+      observationPolicy: { kind: 'tail', durationMs: 1500 }
+    });
+    const packets = result.events.filter((entry) => entry.skillName === 'Frigid Blitz');
+    const cast = result.steps.find((step) => step.skill === 'Frigid Blitz');
+
+    assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
+    assert.deepEqual(result.warnings, []);
+    assert.ok(cast && !cast.invalid && !cast.cancelledBeforeCommit);
+    assert.deepEqual(
+      packets.filter((entry) => entry.type === 'damage').map((entry) => entry.coefficient),
+      coefficients
+    );
+    assert.deepEqual(
+      packets.filter((entry) => entry.type === 'condition').map((entry) => entry.condition),
+      conditions
+    );
+    if (!followUp) assert.equal(cast.end - cast.start, openingMs === 681 ? 680 : openingMs);
+  }
+});
+
 test('the browser rotation importer previews compressed .zevtc files before applying them', async () => {
   assert.equal(isJsonRotationFile({ name: 'rotation.json', type: '' }), true);
   assert.equal(isJsonRotationFile({ name: 'fight.zevtc', type: '' }), false);

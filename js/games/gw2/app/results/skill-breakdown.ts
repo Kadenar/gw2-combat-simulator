@@ -230,6 +230,15 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     damageByTrigger.set(key, sources);
   }
 
+  // Relic procs are already recorded once per activation. A relic that strikes
+  // reports its own hits; one that only applies conditions has none, so its
+  // recorded activations fill that column instead.
+  const relicProcCounts = new Map<string, number>();
+  for (const step of result.procSteps || []) {
+    if (step.type !== 'relic_proc') continue;
+    relicProcCounts.set(step.skill, (relicProcCounts.get(step.skill) || 0) + 1);
+  }
+
   // Canonical action events are the authoritative source for cast count/time.
   const actionDurations = new Map<string, number>();
   const actionCounts = new Map<string, number>();
@@ -299,6 +308,11 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
           : entry.fallbackCasts;
       const total = entry.strike + entry.condition;
       const castTime = sources.reduce((total, source) => total + Number(actionDurations.get(source) || 0), 0);
+      const procCount =
+        procCounts.get(skillBreakdownKey(entry.group, entry.name)) ||
+        // A relic that strikes already counts its own hits; only a condition-only
+        // relic falls back to its recorded activations.
+        (entry.hits ? 0 : relicProcCounts.get(entry.name) || 0);
       return {
         name: entry.name,
         key: skillBreakdownKey(entry.group, entry.name),
@@ -311,8 +325,8 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
         group: entry.group,
         strike: entry.strike,
         condition: entry.condition,
-        hits: entry.hits || procCounts.get(skillBreakdownKey(entry.group, entry.name)) || 0,
-        procCount: procCounts.get(skillBreakdownKey(entry.group, entry.name)) || 0,
+        hits: entry.hits || procCount,
+        procCount,
         total,
         dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
         procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name)) || [])].map(

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCorePaletteSkillAvailability } from '#gw2/professions/revenant/core/presentation.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 
@@ -29,6 +30,18 @@ test('Beguiling Haze follow-up charges waive only Beguiling Haze energy costs', 
     ),
     20
   );
+});
+
+test('Beguiling Haze follow-ups remain available in the palette below their base Energy cost', () => {
+  const availability = revenantCorePaletteSkillAvailability(
+    {
+      specialization: 'Conduit',
+      professionState: { energy: 16, beguilingHazeCharges: 2 }
+    },
+    { id: SKILL.BEGUILING_HAZE, name: 'Beguiling Haze', handlerId: 'revenant.beguiling-haze', energyCost: 20 }
+  );
+
+  assert.equal(availability.available, true);
 });
 
 test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {

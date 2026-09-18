@@ -1132,6 +1132,26 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   );
 });
 
+test('Bloodbane Path keeps Bleeding aligned with landed projectile packets', () => {
+  const result = simulate(
+    'Renegade',
+    [{ type: 'cast', skillId: SKILL.BLOODBANE_PATH, interruptAfterMs: 750 }],
+    {
+      primaryWeapon: 'Shortbow',
+      secondaryWeapon: '',
+      initialEnergy: 100
+    },
+    observationTail(2000)
+  );
+  const packetTimes = (type) =>
+    result.events
+      .filter((event) => event.type === type && event.skillName === 'Bloodbane Path')
+      .map((event) => event.at);
+
+  assert.deepEqual(packetTimes('condition'), packetTimes('damage'));
+  assert.equal(packetTimes('condition').length, 2);
+});
+
 // Repeated spear swings share one selectable action instead of adding a synthetic palette entry.
 test('Abyssal Strike repeats without exposing a separate second-swing palette tile', () => {
   const result = simulate('Core', ['Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike', 'Abyssal Strike'], {

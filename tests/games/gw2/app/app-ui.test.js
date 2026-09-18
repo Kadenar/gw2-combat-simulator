@@ -1159,7 +1159,7 @@ test('Revenant Condition Conduit Mistfire default build resolves', async () => {
   );
   const adapter = await loadProfessionAppAdapter('revenant');
   const conduit = manifest.find((section) => section.section === 'Conduit');
-  const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Spear - Mace/Axe)');
+  const preset = conduit.presets.find((candidate) => candidate.label === 'Condition (Spear - Mace/Axe) - Mistfire');
   const saved = JSON.parse(await readFile(new URL(`../../../../${preset.build}`, import.meta.url), 'utf8'));
   const build = adapter.toApplicationBuild(saved);
 

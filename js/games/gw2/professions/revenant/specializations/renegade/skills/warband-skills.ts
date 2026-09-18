@@ -53,7 +53,6 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     handlerId: 'revenant.band-together',
     castTimeMs: 520,
     interruptCommitMs: 480,
-
     cooldown: 10,
     energyCost: 20,
     effects: [

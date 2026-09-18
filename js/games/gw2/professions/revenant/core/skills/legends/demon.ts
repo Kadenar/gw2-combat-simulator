@@ -138,6 +138,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',
     castTimeMs: 440,
+    interruptCommitMs: 400,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
@@ -149,14 +150,16 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Embrace the Darkness',
-        actorType: 'player'
+        actorType: 'player',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         condition: 'Torment',
         stacks: 1,
         duration: 5,
-        actorType: 'player'
+        actorType: 'player',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -164,6 +167,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         stacks: 2,
         duration: 5,
         actorType: 'player',
+        persistsAfterInterrupt: true,
         metadata: { trigger: 'empowered-upkeep-pulse' }
       }
     ],

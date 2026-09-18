@@ -4,43 +4,49 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIGID_BLITZ]: {
-    // Combine the 360 ms and 640 ms phases into one activation.
+    // Keep the axe hit when only the opening phase completes; the follow-up needs the remaining cast.
     castTimeMs: 1000,
+    interruptMode: 'per-packet',
     cooldown: 10,
     energyCost: 10,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.15,
-        hits: 1,
+        ticks: [{ atMs: 680, coefficient: 0.15 }],
         name: 'Pass-Through Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [{ atMs: 1000, coefficient: 1.5 }],
         name: 'Final Damage',
-        actorType: 'player'
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        actorType: 'player'
+        ticks: [{ atMs: 680, condition: 'Chilled', stacks: 1, duration: 2 }],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
-        condition: 'Torment',
-        stacks: 3,
-        duration: 6,
-        actorType: 'player'
+        ticks: [{ atMs: 1000, condition: 'Torment', stacks: 3, duration: 6 }],
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.TEMPORAL_RIFT]: {
     castTimeMs: 560,
+    // Once opened at 480 ms, the rift retains its delayed effects and the remaining cast lockout.
+    interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -49,6 +55,7 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
         ticks: [{ atMs: 640, coefficient: 0.75 }],
         name: 'Temporal Rift',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -56,12 +63,14 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'condition',
         ticks: [{ atMs: 640, condition: 'Torment', stacks: 4, duration: 10 }],
         actorType: 'player',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
       {
         type: 'control',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         atMs: 640,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',

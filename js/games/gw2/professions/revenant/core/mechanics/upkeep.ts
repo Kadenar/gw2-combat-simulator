@@ -258,12 +258,13 @@ export function handleImpossibleOddsStrike(
   });
 }
 
-/** Arms the next Embrace pulse only after another Energy-costing skill is handled. */
+/** Paid cast completion, including Embrace activation, arms one pulse; upkeep pulses never re-arm it. */
 export function empowerEmbraceTheDarkness(context: RevenantCastContext, skill: RevenantSkill): void {
   if (
-    !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]).includes(Number(skill.id)) &&
-    // Only Energy-costing skills empower Embrace; free attacks such as Shattershot do not.
-    effectiveRevenantEnergyCost(context, skill) > 0
+    skill.id !== ID.RESIST_THE_DARKNESS &&
+    // Activation has already enabled upkeep, so its cost query now describes a free toggle-off.
+    // Other skills must cost Energy.
+    (skill.id === ID.EMBRACE_THE_DARKNESS || effectiveRevenantEnergyCost(context, skill) > 0)
   ) {
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS

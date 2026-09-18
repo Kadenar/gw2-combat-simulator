@@ -26,7 +26,48 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type {
+  RevenantCastContext,
+  RevenantScheduledTask,
+  RevenantSchedulerContext,
+  RevenantSkill
+} from '#gw2/professions/revenant/types.js';
+
+/** Resolve enemy and self Torment from impact-time affinity, including swaps during the windup. */
+export function handleMesmerReleaseConditions(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ targetsHit: number; activationId: string }>
+): void {
+  if (!task.payload) return;
+  const skill = context.catalog.skillsById.get(ID.RELEASE_POTENTIAL_MESMER);
+  if (!skill) return;
+  const affinity = effectiveAffinity(context);
+  const conditions = skill.effects?.filter((effect) => effect.type === 'condition') || [];
+  const torment = conditions.find((effect) => effect.target !== 'self');
+  const selfTorment = conditions.find((effect) => effect.target === 'self');
+  const tormentTick = firstConditionTick(torment, 'Torment');
+  const selfTormentTick = firstConditionTick(selfTorment, 'Torment');
+  emitSkillCondition(context, skill, {
+    at: task.at,
+    activationId: task.payload.activationId,
+    condition: String(tormentTick?.condition || 'Torment'),
+    stacks: Number(tormentTick?.stacks ?? 1),
+    duration: Number(tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
+  });
+  const selfDuration =
+    Number(selfTormentTick?.duration || 0) *
+    Math.max(0, 1 - affinity * Number(selfTorment?.durationReductionPerAffinity || 0));
+  for (let index = 0; index < task.payload.targetsHit; index += 1) {
+    professionCoreState(context).selfConditions.push({
+      condition: String(selfTormentTick?.condition || 'Torment'),
+      stacks: Number(selfTormentTick?.stacks ?? 1),
+      at: task.at,
+      expiresAt: task.at + selfDuration,
+      sourceId: skill.id,
+      skillName: skill.name
+    });
+  }
+}
 
 function effectiveAffinity(context: RevenantSchedulerContext): number {
   // Kinetic Insight contributes a virtual +2 to affinity for scaling calculations without mutating actual state.
@@ -119,32 +160,11 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
         skillWeapon: conduitSkillWeapon(context, skill),
         canCrit: null
       });
-      const torment = conditions.find((effect) => effect.target !== 'self');
-      const selfTorment = conditions.find((effect) => effect.target === 'self');
-      const tormentTick = firstConditionTick(torment, 'Torment');
-      const selfTormentTick = firstConditionTick(selfTorment, 'Torment');
-      emitSkillCondition(context, skill, {
+      context.tasks.schedule({
+        type: 'revenant.release-mesmer-conditions',
         at: impactAt,
-        condition: String(tormentTick?.condition || 'Torment'),
-        stacks: Number(tormentTick?.stacks ?? 1),
-        duration: Number(tormentTick?.duration || 0) * (1 + affinity * Number(torment?.durationPerAffinity || 0))
+        payload: { targetsHit: targetsHit(context), activationId: context.reservationId }
       });
-      // Self-torment duration decreases with higher affinity (more skill = less self-harm); clamped to 0 at max.
-      const selfDuration =
-        Number(selfTormentTick?.duration || 0) *
-        Math.max(0, 1 - affinity * Number(selfTorment?.durationReductionPerAffinity || 0));
-      // One self-condition entry per target hit; Hex Eater Vortex then consumes entries to scale its projectiles.
-      const count = targetsHit(context);
-      for (let index = 0; index < count; index += 1) {
-        professionCoreState(context).selfConditions.push({
-          condition: String(selfTormentTick?.condition || 'Torment'),
-          stacks: Number(selfTormentTick?.stacks ?? 1),
-          at: impactAt,
-          expiresAt: impactAt + selfDuration,
-          sourceId: skill.id,
-          skillName: skill.name
-        });
-      }
 
       const control = (skill.effects || []).find((effect) => effect.type === 'control');
       emitSkillControl(context, skill, {

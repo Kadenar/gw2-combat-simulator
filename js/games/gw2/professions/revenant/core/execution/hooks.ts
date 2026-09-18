@@ -21,6 +21,7 @@ import {
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
 import {
+  empowerEmbraceTheDarkness,
   handleRevenantUpkeepPulse,
   handleImpossibleOddsStrike
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -50,6 +51,8 @@ function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
 function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): void {
   completeRevenantFollowup(context, skill);
   completeRevenantWeaponCast(context, skill);
+  // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.
+  if (!context.action.cancelled) empowerEmbraceTheDarkness(context, skill);
 }
 
 function advance(context: RevenantSchedulerContext, time: number): void {

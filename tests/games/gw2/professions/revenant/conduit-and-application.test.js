@@ -1016,6 +1016,45 @@ test('Conduit form attacks carry usable icons into skill breakdowns', () => {
   assert.equal(daggersRow.icon, expectedDaggersIcon);
 });
 
+test('Mesmer release reads enemy and self Torment affinity at impact after a legend swap', () => {
+  // Five affinity at cast start becomes two on swap; a swap after impact must leave the original duration intact.
+  for (const [swapOffset, expectedAffinity] of [
+    [240, 2],
+    [320, 5]
+  ]) {
+    const result = simulate(
+      'Conduit',
+      [
+        '__combat_start',
+        'Pain Absorption',
+        'Pain Absorption',
+        'Banish Enchantment',
+        'Release Potential: Mesmer',
+        { type: 'cast', skillId: SKILL.SWAP_LEGENDS, concurrentOffsetMs: swapOffset }
+      ],
+      {
+        selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+        startingLegend: LEGEND.DEMON,
+        initialEnergy: 100,
+        selectedTraitIds: [TRAIT.LINGERING_DETERMINATION],
+        boons: { quickness: true }
+      }
+    );
+    const torment = result.events.find(
+      (event) => event.type === 'condition' && event.skillId === SKILL.RELEASE_POTENTIAL_MESMER
+    );
+    assert.ok(Math.abs(torment.duration - 3 * (1 + expectedAffinity * 0.1)) < 1e-9);
+    const self = result.endState.profession.selfConditions.find(
+      (entry) => entry.sourceId === SKILL.RELEASE_POTENTIAL_MESMER
+    );
+    assert.ok(Math.abs(self.expiresAt - self.at - 8 * (1 - expectedAffinity * 0.15)) < 1e-9);
+    assert.equal(
+      torment.activationId,
+      result.steps.find((step) => step.skillId === SKILL.RELEASE_POTENTIAL_MESMER).activationId
+    );
+  }
+});
+
 test('Release Potential variants use affinity and equipped-legend effects', () => {
   for (const [legend, name, expected] of [
     [LEGEND.DEMON, 'Release Potential: Mesmer', [280]],

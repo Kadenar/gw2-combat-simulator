@@ -106,8 +106,7 @@ export function handleRevenantState(context: RevenantResolverContext, event: Rev
 // Family Energy cost composition: Core supplies the base cost and each elite specialization applies its own policy.
 // It lives at the family root because Core modules may not import specialization rules.
 
-// Resolve the active Revenant specialization consistently from runtime and
-// configuration shapes used by energy rules.
+// Resolve the active Revenant specialization from scheduler, simulation, or flattened UI contexts.
 function revenantEnergySpecialization(context: RevenantEnergyContext): string {
   const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
   const candidate = schedulerState?.profession ?? context.state;
@@ -115,7 +114,7 @@ function revenantEnergySpecialization(context: RevenantEnergyContext): string {
     return String((candidate as RevenantRuntimeState).specialization.kind);
   }
 
-  return String(context.config?.specialization || 'Core');
+  return String(context.specialization || context.config?.specialization || 'Core');
 }
 
 /** Composes the shared base Energy cost with the active elite specialization's policy. */

@@ -16,7 +16,6 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        // Once Manifest Toxin launches, its strike and Poison survive a later animation cancel.
         persistsAfterInterrupt: true
       },
       {
@@ -31,6 +30,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ANGUISH_SWIPE]: {
     castTimeMs: 360,
+    interruptCommitMs: 320,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -39,6 +39,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ticks: [{ atMs: 280, coefficient: 0.4 }],
         name: 'Anguish Swipe',
         actorType: 'player',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -46,6 +47,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         type: 'condition',
         ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -63,14 +65,16 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         name: 'Misery Swipe',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

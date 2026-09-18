@@ -138,6 +138,7 @@ export type RevenantRechargeContext = RevenantSchedulerContext & {
 export interface RevenantEnergyContext {
   readonly catalog?: CanonicalCatalog<RevenantSkill> | null;
   readonly config?: RevenantConfig;
+  readonly specialization?: string;
   readonly state?:
     | SchedulerState<RevenantRuntimeState>
     | (Partial<RevenantState> & { readonly time?: number })

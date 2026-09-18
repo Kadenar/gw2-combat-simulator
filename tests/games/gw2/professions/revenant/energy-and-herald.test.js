@@ -892,9 +892,8 @@ test('Core Revenant trait lines preserve scheduled-event reaction order', () => 
   assert.deepEqual(sources, [TRAIT.ABYSSAL_CHILL, TRAIT.VICIOUS_REPRISAL]);
 });
 
-// Observe trait emissions and the upkeep setter directly to pin the mixed
-// after-cast contract: Battle Scarred, Notoriety, then base Embrace bookkeeping.
-test('Core Revenant after-cast traits run before Embrace empowerment', () => {
+// Cast-start trait scheduling must not consume the completion-gated Embrace trigger.
+test('Core Revenant after-cast traits leave Embrace empowerment to completion', () => {
   const config = {
     ...baseConfig,
     specialization: 'Core',
@@ -932,8 +931,39 @@ test('Core Revenant after-cast traits run before Embrace empowerment', () => {
 
   afterRevenantCast(context, revenantCatalog.skillsById.get(SKILL.ENCHANTED_DAGGERS));
 
-  assert.deepEqual(order, ['Battle Scarred', 'Notoriety', 'Embrace the Darkness']);
-  assert.equal(empowered, true);
+  assert.deepEqual(order, ['Battle Scarred', 'Notoriety']);
+  assert.equal(empowered, false);
+});
+
+test('Embrace activation empowers once and later empowerment waits for a paid cast to complete', () => {
+  // Consume activation's bonus before another cast straddles a pulse; neither pulse can re-arm itself.
+  const config = {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 100,
+    primaryWeapon: 'Shortbow',
+    boons: { quickness: true }
+  };
+  for (const [cast, expected] of [
+    ['Bloodbane Path', 2],
+    ['Shattershot', 1],
+    [{ type: 'wait', durationMs: 760 }, 1],
+    [{ type: 'cast', skillId: SKILL.BANISH_ENCHANTMENT, interruptAfterMs: 80 }, 1]
+  ]) {
+    const result = simulate(
+      'Core',
+      ['Embrace the Darkness', { type: 'wait', durationMs: 1440 }, cast, { type: 'wait', durationMs: 3000 }],
+      config
+    );
+    const pulses = result.events.filter(
+      (event) => event.type === 'condition' && event.skillId === SKILL.EMBRACE_THE_DARKNESS
+    );
+    assert.equal(pulses[0].stacks, 1);
+    assert.equal(pulses.find((event) => event.at === 1).stacks, 2);
+    assert.equal(pulses.find((event) => event.at === 2).stacks, 1);
+    assert.equal(pulses.find((event) => event.at === 3).stacks, expected);
+    assert.equal(pulses.find((event) => event.at === 4).stacks, 1);
+  }
 });
 
 test('upkeep drains net energy and cancels exactly on starvation', () => {

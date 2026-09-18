@@ -6,7 +6,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.BLOODBANE_PATH]: {
     interruptMode: 'per-packet',
     castTimeMs: 760,
-
     cooldown: 3,
     energyCost: 4,
     effects: [
@@ -24,17 +23,17 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 6,
-        actorType: 'player'
+        // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
+        ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 })),
+        actorType: 'player',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
   [ID.SHATTERSHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 480,
-
     interruptCommitMs: 400,
     cooldown: 0,
     energyCost: 0,
@@ -53,7 +52,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         name: 'Shattershot',
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -61,7 +61,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 1, duration: 3 }],
         actorType: 'player',
         timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -97,7 +98,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SEVENSHOT]: {
     castTimeMs: 440,
-
+    // Once the volley releases, its projectiles keep traveling after the remaining animation is interrupted.
+    interruptCommitMs: 400,
     cooldown: 7,
     energyCost: 7,
     comboFinishers: [
@@ -123,7 +125,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs: 600, coefficient: 0.31 }
         ],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
@@ -138,7 +141,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 }
         ],
         timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       }
     ]
   },

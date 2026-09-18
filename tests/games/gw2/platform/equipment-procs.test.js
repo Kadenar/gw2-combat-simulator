@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
@@ -587,6 +588,41 @@ test('Relic of Akeem triggers on control against five confusion stacks', () => {
   );
   assert.ok(applications.length > 0);
   assert.ok(applications.every((event) => event.actorType === 'effect'));
+});
+
+test('condition-only relic rows report their recorded activations as hits', () => {
+  const akeem = simulateMesmer(
+    ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance', { name: '__wait', waitMs: 12000 }],
+    defaultSimulationConfig({
+      relic: 'Akeem',
+      initialResource: 5,
+      modifiers: { strike: 1, condition: 1 }
+    })
+  );
+  const akeemRow = skillBreakdownRows(akeem).find((row) => row.name === 'Relic of Akeem');
+  const akeemProcs = akeem.procSteps.filter((proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of Akeem');
+
+  // Confusion and Torment share one row, so the row counts activations, not applications.
+  assert.ok(akeemProcs.length > 0);
+  assert.equal(akeemRow.strike, 0);
+  assert.equal(akeemRow.hits, akeemProcs.length);
+  assert.equal(akeemRow.procCount, akeemProcs.length);
+
+  const peitha = simulateMesmer(
+    ['Phase Retreat', { name: '__wait', waitMs: 5000 }, 'Phase Retreat', { name: '__wait', waitMs: 8000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      initialResource: 0,
+      primaryWeapon: 'Staff',
+      relic: 'Peitha',
+      modifiers: { strike: 1, condition: 1 }
+    })
+  );
+  const peithaRow = skillBreakdownRows(peitha).find((row) => row.name === 'Relic of Peitha');
+  const peithaProcs = peitha.procSteps.filter((proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of Peitha');
+
+  assert.equal(peithaProcs.length, 2);
+  assert.equal(peithaRow.hits, peithaProcs.length);
 });
 
 test('Relic of Akeem is reported when its trigger ends the rotation', () => {
