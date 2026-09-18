@@ -1,6 +1,6 @@
-import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;

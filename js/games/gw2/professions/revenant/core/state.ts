@@ -1,6 +1,7 @@
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantChargeState, RevenantConfig, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface RevenantUpkeepState {
   skillId: SkillId;
@@ -54,7 +55,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     ? configuredStartingLegend
     : selectedLegendIds[0] || '';
   return {
-    energy: Math.max(0, Math.min(100, Number(config.initialEnergy ?? 50))),
+    energy: boundedNumber(config.initialEnergy ?? 50, 50, 0, 100),
     maximumEnergy: 100,
     energyUpdatedAt: 0,
     activeLegendId,

@@ -10,8 +10,8 @@ import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-r
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { roundHalfToEven } from '#gw2/platform/combat/numeric.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
+import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
 function tormentDamageAtMight(might) {

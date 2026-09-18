@@ -9,6 +9,7 @@ import {
   type BoonGeneration,
   type BoonGenerationByAudience
 } from '#gw2/app/results/charts/boon-generation.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
 export interface ChartPoint {
@@ -133,7 +134,7 @@ export function buildTimeSeries(
     )
   );
   const durationMs = Math.max(1, endMs - dpsStartMs);
-  const interval = Math.max(50, Math.min(1000, Number(sampleStepMs) || 250));
+  const interval = clamp(Number(sampleStepMs) || 250, 50, 1000);
   const times: number[] = [];
   for (let time = 0; time < durationMs; time += interval) times.push(time);
   times.push(durationMs);

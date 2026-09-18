@@ -86,3 +86,20 @@
   flex-basis: 12px;
   min-width: 12px;
 }
+
+/* During a drag, show only the actual drop boundary instead of the click insertion cursor. */
+.drag-active .rot-insertion-gap .rot-insertion-marker {
+  opacity: 0;
+  transition: none;
+  pointer-events: none;
+}
+
+.drag-active .rot-insertion-gap.drag-drop-target .rot-insertion-marker {
+  opacity: 1;
+  width: 3px;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.drag-active .rot-insertion-arrow {
+  opacity: 0;
+}

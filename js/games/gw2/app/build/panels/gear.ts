@@ -31,6 +31,7 @@ import {
 } from '#gw2/app/build/equipment-option-labels.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 // Decorative item icons identify equipment slots without inventing selectable armor or trinket items.
 function equipmentIcon(source?: string): string {
@@ -333,7 +334,7 @@ export function renderGear(app: ProfessionAppState): void {
       const index = Number(input.dataset.index);
       if (!Number.isInteger(index) || !b.infusions[index]) return;
       const other = b.infusions.reduce((sum, infusion, i) => (i === index ? sum : sum + infusion.count), 0);
-      b.infusions[index].count = Math.max(0, Math.min(Math.trunc(Number(input.value) || 0), 18 - other));
+      b.infusions[index].count = clamp(18 - other, 0, Math.trunc(Number(input.value) || 0));
       app.changed();
     });
   });

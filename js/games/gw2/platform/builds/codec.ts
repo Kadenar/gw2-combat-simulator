@@ -1,5 +1,4 @@
 import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
@@ -8,8 +7,7 @@ import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/p
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
-import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';
+import { enumValue } from '#gw2/platform/builds/normalization.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -27,6 +25,7 @@ import type {
   UnvalidatedBuildRecord
 } from '#gw2/platform/builds/types.js';
 import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
+import { boundedInteger, boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
 const SLOT_TYPES = Object.freeze({
   Heal: 'Heal',
@@ -109,12 +108,6 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     const targetConditions = Object.hasOwn(assumptions, 'targetConditions')
       ? plainObject(assumptions.targetConditions)
       : plainObject(defaults.assumptions.targetConditions);
-    // Old builds stored a single sigils array shared by both weapon sets.
-    // Duplicate it into the two-weapon-set format so downstream code is uniform.
-    const legacySigils =
-      !Array.isArray(saved.weaponSigils) && Array.isArray(saved.sigils)
-        ? [saved.sigils, saved.sigils]
-        : saved.weaponSigils;
     const specializations = normalizeSpecializations(saved.specializations, defaults.specializations, catalog);
     const gear = normalizeGear(saved.gear, defaults, DEFAULT_GEAR_ALIASES);
     let migrated = {
@@ -132,8 +125,9 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       weapons: normalizeWeaponPair(saved.weapons, defaults.weapons, catalog),
       // Second weapon set is optional; allowEmpty=true lets both slots be "".
       alternateWeapons: normalizeWeaponPair(saved.alternateWeapons, defaults.alternateWeapons, catalog, true),
+      // Normalize explicit weapon-set pairs, using profession defaults for missing selections.
       weaponSigils: normalizeWeaponSigils(
-        legacySigils as readonly (readonly string[])[] | null | undefined,
+        saved.weaponSigils as readonly (readonly string[])[] | null | undefined,
         defaults.weaponSigils
       ),
       rune: optionalEquipmentName(RUNE_NAMES, saved.rune) ? saved.rune : defaults.rune,
@@ -213,9 +207,6 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       );
     }
 
-    // Strip legacy fields so they don't leak into the canonical output.
-    delete migrated.selectedSkillIds;
-    delete migrated.sigils;
     return migrated;
   }
 
@@ -472,25 +463,6 @@ function normalizeSpecializations(
   return selected.length === 3 && eliteCount <= 1 ? selected : structuredClone([...fallback]);
 }
 
-// Older builds stored skill IDs instead of names. Canonicalize numeric aliases
-// before catalog lookup so deleted compatibility records still migrate.
-function selectedSkillsFromLegacy(saved: UnvalidatedBuildRecord, catalog: CanonicalCatalog): Record<string, string> {
-  const result: Record<string, string> = {};
-  const skills = (Array.isArray(saved.selectedSkillIds) ? saved.selectedSkillIds : [])
-    .map((id) =>
-      typeof id === 'string' || typeof id === 'number' ? catalog.skillsById.get(canonicalGw2SkillId(id)) : undefined
-    )
-    .filter((skill) => skill != null);
-  result.Heal = skills.find((skill) => skill.type === 'Heal')?.name || '';
-  result.Elite = skills.find((skill) => skill.type === 'Elite')?.name || '';
-  const utilities = skills.filter((skill) => skill.type === 'Utility');
-  for (let index = 0; index < 3; index += 1) {
-    result[`Utility${index + 1}`] = utilities[index]?.name || '';
-  }
-
-  return result;
-}
-
 function selectableSlotSkill(
   skill: Skill | null | undefined,
   type: string,
@@ -515,12 +487,8 @@ function normalizeSelectedSkills(
   catalog: CanonicalCatalog,
   specializations: readonly Gw2BuildSpecialization[]
 ): Record<string, string> {
-  // Legacy ID-based format is overlaid first so that the newer name-based
-  // selectedSkills field takes precedence when both are present.
-  const source = {
-    ...selectedSkillsFromLegacy(saved, catalog),
-    ...plainObject(saved.selectedSkills)
-  };
+  // Read slot-keyed names so saved selections retain their explicit slot assignments.
+  const source = plainObject(saved.selectedSkills);
   const selectedSpecializations = new Set(specializations.map((specialization) => specialization.name));
   const selectedUtilityIds = new Set<SkillId>();
   const normalized: Record<string, string> = {};

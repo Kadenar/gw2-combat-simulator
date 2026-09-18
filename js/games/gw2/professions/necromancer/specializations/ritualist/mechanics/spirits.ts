@@ -531,6 +531,8 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
   const state = ritualistState.from(context);
   const at = context.effectiveEnd;
   if (skill.id === ID.ESSENCE_BLAST) {
+    // Custom emission must honor the scheduler's cancellation decision before creating the blast.
+    if (context.action.cancelled === true) return true;
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = skill.effects?.find((effect) => effect.type === 'strike');
     // Impact lands at 14/15 of the way through the cast window (observed from EVTC timing)
@@ -538,6 +540,7 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
     emitSkillDamage(context, skill, {
       at: impactAt,
       coefficient: Number(essence?.coefficient ?? 0.75),
+      persistsAfterInterrupt: essence?.persistsAfterInterrupt === true,
       skillWeapon: activePrimaryWeapon(context),
       // Snapshot the spirit count at activation; the modifier rule owns per-spirit scaling.
       metadata: {

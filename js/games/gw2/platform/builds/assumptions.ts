@@ -4,6 +4,7 @@ import type {
   ProfessionAssumptionControlInput,
   ProfessionAssumptionOption
 } from '#gw2/platform/builds/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 const COMMON_BOOLEAN_ASSUMPTION_DEFAULTS: Readonly<Record<string, boolean>> = Object.freeze({
   fury: false,
@@ -213,7 +214,7 @@ export function normalizeProfessionAssumptions(
     } else if (control.type === 'number') {
       const number = Number(value);
       const finite = Number.isFinite(number) ? number : Number(control.defaultValue || 0);
-      result[control.key] = Math.max(control.minimum, Math.min(control.maximum, finite));
+      result[control.key] = clamp(finite, control.minimum, control.maximum);
     } else {
       const candidate = String(value);
       result[control.key] = control.options.some((option) => option.value === candidate)

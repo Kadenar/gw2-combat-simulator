@@ -512,11 +512,6 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   min-width: 0;
 }
 
-.rot-row-skills.drag-over {
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
-  border-radius: 6px;
-}
-
 .rot-skill {
   width: 40px;
   border-radius: 5px;
@@ -554,16 +549,10 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   opacity: 0.4;
 }
 
-.rot-skill.drag-over {
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.rot-skill.drag-insert-before {
-  box-shadow: -3px 0 0 0 var(--accent);
-}
-
-.rot-skill.drag-insert-after {
-  box-shadow: 3px 0 0 0 var(--accent);
+/* Stable card geometry keeps the hovered drop boundary from moving under the pointer. */
+.rotation-timeline.drag-active .rot-skill {
+  transform: none;
+  transition: none;
 }
 
 .rot-x {

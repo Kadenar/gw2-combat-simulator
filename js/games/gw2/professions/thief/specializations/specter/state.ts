@@ -1,6 +1,7 @@
 import { thiefBaseMaximumHealth } from '#gw2/professions/thief/core/state.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface SpecterState {
   shadowShroudExitReadyAt: number;
@@ -18,7 +19,7 @@ const SHADOW_FORCE_HEALTH_MULTIPLIER = 0.69;
 export function createSpecterState(config: ThiefConfig = {}): SpecterState {
   const maximumHealth = thiefBaseMaximumHealth(config);
   return {
-    shadowForce: Math.max(0, Math.min(100, Number(config.initialShadowForce || 0))),
+    shadowForce: boundedNumber(config.initialShadowForce || 0, 0, 0, 100),
     maximumShadowForce: 100,
     shadowForcePoolCapacity: maximumHealth * SHADOW_FORCE_HEALTH_MULTIPLIER,
     shadowShroudActive: false,

@@ -11,6 +11,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
@@ -43,7 +44,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
-  const combatHighStacks = Math.max(0, Math.min(10, Math.trunc(Number(state.combatHighStacks || 0))));
+  const combatHighStacks = boundedInteger(state.combatHighStacks || 0, 0, 0, 10);
   if (combatHighRemaining > 0 && combatHighStacks > 0) {
     items.push({
       id: 'antiquary-combat-high',

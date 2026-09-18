@@ -50,6 +50,15 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
         "benchmarkDps": 43094,
         "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Spear / Greatsword)",
+        "build": "data/gw2/builds/necromancer/b-power-quick-ritualist.json",
+        "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
+        "dpsReportUrl": "https://dps.report/PEBh-20260414-172707_golem",
+        "benchmarkDps": 35612,
+        "referenceDps": 35805,
+        "upToDate": true
       }
     ]
   },

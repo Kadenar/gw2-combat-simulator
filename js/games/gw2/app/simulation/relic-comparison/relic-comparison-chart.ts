@@ -5,6 +5,7 @@ import type {
   RelicComparisonModel,
   RelicComparisonPoint
 } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import { clamp } from '#kernel/core/numeric.js';
 export interface RelicComparisonChartOptions {
   /** Colour for the equipped (opponent) relic curve. */
   readonly opponentColor?: string;
@@ -56,7 +57,7 @@ function createScale(points: readonly RelicComparisonPoint[], startMs: number, e
   const yRange = Math.max(1, yMax - yMin);
   const xRange = Math.max(1, endMs - startMs);
   return {
-    xFor: (tMs) => PAD.left + (Math.max(0, Math.min(xRange, tMs - startMs)) / xRange) * PLOT_WIDTH,
+    xFor: (tMs) => PAD.left + (clamp(tMs - startMs, 0, xRange) / xRange) * PLOT_WIDTH,
     yFor: (value) => PAD.top + (1 - (value - yMin) / yRange) * PLOT_HEIGHT
   };
 }

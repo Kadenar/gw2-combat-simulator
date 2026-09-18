@@ -1,5 +1,6 @@
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface RelicDamageSummary {
   readonly buildDps: number;
@@ -71,7 +72,7 @@ function interpolateCrossing(previous: RelicComparisonPoint, current: RelicCompa
   const currentDelta = current.targetDps - current.opponentDps;
   const span = previousDelta - currentDelta;
   if (!(Math.abs(span) > 0)) return current.tMs;
-  const fraction = Math.max(0, Math.min(1, previousDelta / span));
+  const fraction = clamp(previousDelta / span, 0, 1);
   return previous.tMs + (current.tMs - previous.tMs) * fraction;
 }
 

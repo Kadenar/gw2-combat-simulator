@@ -5,6 +5,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 import type { WarriorCastContext, WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
 
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export const DRAGON_FLOW_PER_INTERVAL = 5;
 export const DRAGON_TRIGGER_FLOW_COST = 15;
@@ -88,7 +89,7 @@ export function dragonSlashCoefficient(
   maximumCharges: number
 ): number {
   if (maximumCharges <= 1) return maximum;
-  const resolvedCharges = Math.max(1, Math.min(maximumCharges, charges));
+  const resolvedCharges = clamp(charges, 1, maximumCharges);
   return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));
 }
 

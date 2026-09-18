@@ -6,7 +6,6 @@ import {
   gw2ConditionDurationMultiplier
 } from '#gw2/platform/combat/formulas.js';
 import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierHook } from '#gw2/platform/combat/modifiers.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
@@ -33,6 +32,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { roundEffectDuration } from '#gw2/platform/skills/timing.js';
+import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];
@@ -614,7 +614,7 @@ export function createGw2CombatQuery<TProfessionState extends object = object>({
       );
       // Clamped to [1, 2]: condition duration never drops below baseline and
       // cannot exceed +100% regardless of how many sources stack.
-      return clamp(Number(modified || 1), 1, 2);
+      return boundedNumber(modified || 1, 1, 1, 2);
     },
     conditionBaseDurationMultiplier(
       name: string,

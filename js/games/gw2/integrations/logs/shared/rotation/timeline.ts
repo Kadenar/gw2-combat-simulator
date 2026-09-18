@@ -100,8 +100,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     return leftIndex - rightIndex;
   });
 
-  // A tied outgoing weapon cast must start before attuning; incoming weapon casts need the swap first.
-  // Reorder only those slots, preserving source timestamps and unrelated inputs. Multiple tied swaps stay ambiguous.
+  // Resolve tied bar transitions within their own slots, preserving timestamps and unrelated inputs.
   for (let start = 0; start < entries.length;) {
     const first = entries[start];
     const time = first.type === 'action' ? first.action.start : first.at;
@@ -113,6 +112,24 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     }
 
     const tied = entries.slice(start, end);
+    // Shroud attacks require entry first and exit last, regardless of log grouping or event order.
+    const shroudRank = (entry: (typeof entries)[number]): number | null => {
+      const skill = entry.type === 'action' ? entry.action.skill : null;
+      if (skill?.shroudEntry || skill?.handlerId === 'thief.shadow-shroud-enter') return 0;
+      if (skill?.shroudExit || skill?.handlerId === 'thief.shadow-shroud-exit') return 2;
+      return skill?.shroud || skill?.shadowShroudSkill ? 1 : null;
+    };
+
+    const shroudIndices = tied.flatMap((entry, index) => (shroudRank(entry) == null ? [] : [start + index]));
+    const shroudEntries = shroudIndices
+      .map((index) => entries[index])
+      .sort((left, right) => shroudRank(left)! - shroudRank(right)!);
+
+    shroudIndices.forEach((index, offset) => {
+      entries[index] = shroudEntries[offset];
+    });
+
+    // Outgoing weapon casts precede attunement; incoming casts follow it. Multiple tied swaps stay ambiguous.
     const swaps = tied.filter(
       (entry) => entry.type === 'action' && /^(Fire|Water|Air|Earth) Attunement$/.test(entry.action.name)
     );

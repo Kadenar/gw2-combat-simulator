@@ -42,6 +42,7 @@ import {
   observeBladeswornExplosionTraits,
   prepareGunsaberSwapTraits
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill): void {
   resetAutoattackChains(context);
@@ -130,7 +131,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
 export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = bladeswornState.from(context);
   const maximumCharges = maximumDragonCharges(context);
-  const charges = Math.max(1, Math.min(maximumCharges, state.dragonCharges));
+  const charges = clamp(state.dragonCharges, 1, maximumCharges);
   const requestedCharges = requestedDragonCharges(context, maximumCharges);
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
   const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);

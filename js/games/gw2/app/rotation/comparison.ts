@@ -9,6 +9,7 @@ import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.j
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface RotationComparisonMetrics {
   readonly timeMs: number | null;
@@ -57,7 +58,7 @@ export function rotationComparisonMetricsFromSeries(
   previewTimeMs: number | null
 ): RotationComparisonMetrics {
   const maximumTimeMs = Math.min(referenceSeries.durationMs, currentSeries.durationMs);
-  const timeMs = previewTimeMs == null ? null : Math.max(0, Math.min(maximumTimeMs, Number(previewTimeMs) || 0));
+  const timeMs = previewTimeMs == null ? null : clamp(Number(previewTimeMs) || 0, 0, maximumTimeMs);
   const referenceDps = timeMs == null ? Number(referenceResult.dps || 0) : chartValueAt(referenceSeries.dps, timeMs);
   const currentDps = timeMs == null ? Number(currentResult.dps || 0) : chartValueAt(currentSeries.dps, timeMs);
   const referenceDamage =

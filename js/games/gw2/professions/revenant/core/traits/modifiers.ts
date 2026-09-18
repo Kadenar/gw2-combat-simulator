@@ -25,6 +25,7 @@ import type {
   RevenantResolverEvent
 } from '#gw2/professions/revenant/types.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;
@@ -217,7 +218,7 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
 function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (hasTrait(context, TRAIT.NOTORIETY)) {
-    const baseMight = Math.max(0, Math.min(25, Number(context.config?.boons?.might || 0)));
+    const baseMight = boundedNumber(context.config?.boons?.might || 0, 0, 0, 25);
     // Notoriety converts only the player's Might; retain explicit zero stacks and the remaining configured cap.
     const dynamicMight = sumActiveStacks(
       context.runtime?.boons?.get('might') || [],

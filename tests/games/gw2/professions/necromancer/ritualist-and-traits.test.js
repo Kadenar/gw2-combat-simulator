@@ -32,6 +32,26 @@ const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
+test('cancelled Essence Blast attempts emit no damage while committed blasts survive interruption', () => {
+  // Exercise the custom handler's cancellation contract using the catalog's cutoff rather than pinning its value.
+  const skill = necromancerCatalog.skillsById.get(ID.ESSENCE_BLAST);
+  for (const interruptAfterMs of [0, skill.interruptCommitMs / 2, skill.interruptCommitMs, undefined]) {
+    const result = simulate(
+      'Ritualist',
+      ["Ritualist's Shroud", { name: skill.name, interruptAfterMs }, "Exit Ritualist's Shroud"],
+      { initialResource: 100 },
+      observationTail(1000)
+    );
+    const cancelled = interruptAfterMs != null && interruptAfterMs < skill.interruptCommitMs;
+    assert.deepEqual(result.warnings, []);
+    assert.equal(Boolean(result.steps.find((step) => step.skillId === skill.id).cancelledBeforeCommit), cancelled);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === skill.id),
+      !cancelled
+    );
+  }
+});
+
 test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   const result = simulate(
     'Ritualist',

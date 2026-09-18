@@ -1,3 +1,5 @@
+import { clamp } from '#kernel/core/numeric.js';
+
 const GAP = 12;
 const VIEWPORT_PADDING = 8;
 const ARROW_INSET = 18;
@@ -17,19 +19,16 @@ export function positionFloatingEditor(editor: HTMLElement, anchor: HTMLElement)
   const opensLeft = left + editorRect.width > window.innerWidth - VIEWPORT_PADDING;
   if (opensLeft) left = anchorRect.left - editorRect.width - GAP;
 
-  left = Math.max(VIEWPORT_PADDING, Math.min(left, window.innerWidth - editorRect.width - VIEWPORT_PADDING));
+  left = clamp(window.innerWidth - editorRect.width - VIEWPORT_PADDING, VIEWPORT_PADDING, left);
   const anchorCenter = anchorRect.top + anchorRect.height / 2;
-  const top = Math.max(
-    VIEWPORT_PADDING,
-    Math.min(anchorCenter - 76, window.innerHeight - editorRect.height - VIEWPORT_PADDING)
-  );
+  const top = clamp(window.innerHeight - editorRect.height - VIEWPORT_PADDING, VIEWPORT_PADDING, anchorCenter - 76);
 
   editor.classList.toggle('opens-left', opensLeft);
   editor.style.left = `${Math.round(left)}px`;
   editor.style.top = `${Math.round(top)}px`;
   editor.style.setProperty(
     '--floating-editor-arrow-y',
-    `${Math.round(Math.max(ARROW_INSET, Math.min(anchorCenter - top, editorRect.height - ARROW_INSET)))}px`
+    `${Math.round(clamp(editorRect.height - ARROW_INSET, ARROW_INSET, anchorCenter - top))}px`
   );
   return true;
 }

@@ -1,5 +1,6 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface GuardianCoreState {
   endurance: number;
@@ -38,7 +39,7 @@ export interface GuardianCorePublicState extends GuardianCoreState {
 // virtue, trait, symbol, and flip bookkeeping.
 export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
   return {
-    endurance: Math.max(0, Math.min(100, Number(config.initialEndurance ?? 100))),
+    endurance: boundedNumber(config.initialEndurance ?? 100, 100, 0, 100),
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
     justiceActiveArmed: false,

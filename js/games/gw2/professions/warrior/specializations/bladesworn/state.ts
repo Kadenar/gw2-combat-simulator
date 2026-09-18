@@ -1,5 +1,6 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface BladeswornState {
   flow: number;
@@ -65,7 +66,7 @@ export const BLADESWORN_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<BladeswornSt
 
 export function createBladeswornState(config: WarriorConfig = {}): BladeswornState {
   return {
-    flow: Math.max(0, Math.min(100, Number(config.initialResource ?? 0))),
+    flow: boundedNumber(config.initialResource ?? 0, 0, 0, 100),
     maximumFlow: 100,
     flowUpdatedAt: 0,
     flowStabilizerWindows: [],

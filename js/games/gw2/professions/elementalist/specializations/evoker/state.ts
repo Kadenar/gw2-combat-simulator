@@ -10,6 +10,7 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Per-simulation Evoker state carried across every cast, hook, and resolver pass. */
 export interface EvokerState {
@@ -82,8 +83,8 @@ export const evokerState = defineProfessionSpecializationState(
     return {
       element,
       maximumCharges,
-      charges: Math.max(0, Math.min(maximumCharges, Number(config.initialEvokerCharges ?? maximumCharges))),
-      empowered: Math.max(0, Math.min(3, Number(config.initialEvokerEmpowered ?? 0))),
+      charges: boundedNumber(config.initialEvokerCharges ?? maximumCharges, maximumCharges, 0, maximumCharges),
+      empowered: boundedNumber(config.initialEvokerEmpowered ?? 0, 0, 0, 3),
       electricEnchantmentStacks: 0,
       electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,

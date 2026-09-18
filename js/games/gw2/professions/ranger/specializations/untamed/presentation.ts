@@ -4,6 +4,7 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/type
 import type { PaletteSkillAvailability, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 // Module-level cache populated once in bindUntamedUi; avoids filtering the catalog on every render.
 let petSkillIds: SkillId[] = [];
@@ -82,7 +83,7 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
     ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPetStacks, state.ferociousSymbiosisPetUntil]
   ] as const) {
     const remaining = Number(expiresAt || 0) - at;
-    const stacks = Math.max(0, Math.min(5, Math.trunc(Number(stacksValue || 0))));
+    const stacks = boundedInteger(stacksValue || 0, 0, 0, 5);
     if (remaining <= 0 || stacks <= 0) continue;
     items.push({
       id,

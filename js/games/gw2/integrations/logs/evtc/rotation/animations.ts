@@ -6,6 +6,7 @@ import {
 } from '#gw2/integrations/logs/evtc/types.js';
 import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
 import type { EvtcRecordedRotationAction as RecordedAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 const SERVER_DELAY_MS = 10;
 const STANDARD_DODGE_ANIMATION_ID = 23275;
@@ -54,7 +55,7 @@ function animatedCast(
   let status: RecordedAction['status'] = 'unknown';
   let savedDuration = 0;
   if (stop) {
-    if (scaled > 0) acceleration = Math.max(-1, Math.min(1, ratio > 1 ? (ratio - 1) / 0.5 : -(1 - ratio) / 0.6));
+    if (scaled > 0) acceleration = clamp(ratio > 1 ? (ratio - 1) / 0.5 : -(1 - ratio) / 0.6, -1, 1);
     // Resurrect remains unknown in EI regardless of the activation byte.
     if (event.skillId !== 1066) {
       if (stop.activation === EVTC_ACTIVATION.CANCEL_CANCEL) {

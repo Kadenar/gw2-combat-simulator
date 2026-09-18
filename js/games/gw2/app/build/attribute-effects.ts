@@ -2,6 +2,7 @@ import { balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export type AttributePreviewValues = Record<string, number | string>;
 export interface AttributeEffectControl {
@@ -347,7 +348,7 @@ export function normalizeAttributePreview(
         ? control.options.includes(String(raw))
           ? String(raw)
           : control.options[0]
-        : Math.max(0, Math.min(control.max ?? 1, Number.isFinite(Number(raw)) ? Math.trunc(Number(raw)) : 0));
+        : clamp(Number.isFinite(Number(raw)) ? Math.trunc(Number(raw)) : 0, 0, control.max ?? 1);
       return [control.key, value];
     })
   );

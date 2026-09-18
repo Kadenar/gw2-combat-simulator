@@ -1,5 +1,6 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface GaleshotState {
   cycloneBowActive: boolean;
@@ -51,7 +52,7 @@ export const GALESHOT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerSta
 export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
     cycloneBowActive: false,
-    arrows: Math.max(0, Math.min(8, Number(config.initialArrows ?? 8))), // clamped so a bad preset can't exceed the cap
+    arrows: boundedNumber(config.initialArrows ?? 8, 8, 0, 8), // clamped so a bad preset can't exceed the cap
     maximumArrows: 8,
     arrowsUpdatedAt: 0,
     arrowRechargeProgress: 0,

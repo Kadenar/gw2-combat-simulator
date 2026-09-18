@@ -30,6 +30,7 @@ import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-compar
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -219,7 +220,7 @@ export function createProfessionRuntime({
 
   function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
     const rotation = app.build.rotation;
-    const index = Math.max(0, Math.min(Math.floor(Number(insertionIndex) || 0), rotation.length));
+    const index = clamp(rotation.length, 0, Math.floor(Number(insertionIndex) || 0));
     // A tail-resolved result cannot supply availability at the insertion boundary.
     if (
       index === rotation.length &&

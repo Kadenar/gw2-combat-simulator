@@ -16,6 +16,7 @@ import type {
   GuardianResolverEvent,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Applies cast-timed Luminary stance windows and schedules Effulgent resolution. */
 export function processLuminaryStances(context: GuardianCastContext, skill: GuardianSkill): void {
@@ -133,7 +134,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
   const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
   const strike = balanceProfileEffect(profile, 'strike');
   const maximumStacks = Number(profile?.maximumStacks ?? 10);
-  const stacks = Math.max(0, Math.min(maximumStacks, Number(state.effulgentStacks || 0)));
+  const stacks = boundedNumber(state.effulgentStacks || 0, 0, 0, maximumStacks);
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;
   context.recordProc('skill', 'Effulgent Stance', event.at, 'Effulgent Stance', `${stacks}/10 stacks`);

@@ -11,7 +11,7 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 
 | Path                                  | Purpose                                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `js/kernel/`                          | Game-neutral clock, collections, randomness, event-stream, queue, and observation contracts |
+| `js/kernel/`                          | Game-neutral clock, collections, numeric helpers, randomness, event-stream, queue, and observation contracts |
 | `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
 | `js/app/`                             | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell |
 | `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
@@ -290,8 +290,9 @@ js/kernel/
 ```
 
 The kernel contains the small primitives that make sense for any deterministic simulator: monotonic clock helpers,
-collections, seeded randomness, stable event queues, caller-owned event-stream identity, and observation windows. It
-must not import application or game packages.
+collections, generic arithmetic (`core/numeric.ts` owns `clamp` and `roundHalfToEven`), seeded randomness, stable
+event queues, caller-owned event-stream identity, and observation windows. It must not import application or game
+packages.
 
 ---
 
@@ -382,8 +383,8 @@ Important modules include:
 | `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
 | `combat/modifiers.ts`             | Declarative scalar modifier system                                                      |
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
+| `builds/normalization.ts`         | Coercion of unvalidated persisted build input into typed values                         |
 | `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
-| `combat/numeric.ts`               | Clamp, finite-number conversion, and half-even rounding                                 |
 | `combat/critical-procs.ts`        | Critical-proc progress, including the one-hit expected critical tracker                 |
 | `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
 | `skills/timing.ts`                | Effect duration rounding, absolute expiry, and skill timing                             |

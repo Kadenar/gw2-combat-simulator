@@ -1,5 +1,6 @@
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(
@@ -85,7 +86,7 @@ export function bindCandidatePickers(root: HTMLElement): void {
 export function positionGearPopover(menu: HTMLElement, trigger: HTMLElement): void {
   const anchor = trigger.getBoundingClientRect();
   const bounds = menu.getBoundingClientRect();
-  menu.style.left = `${Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8))}px`;
+  menu.style.left = `${clamp(window.innerWidth - bounds.width - 8, 8, anchor.left)}px`;
   menu.style.top = `${anchor.bottom + bounds.height + 2 <= window.innerHeight ? anchor.bottom + 2 : Math.max(8, anchor.top - bounds.height - 2)}px`;
 }
 

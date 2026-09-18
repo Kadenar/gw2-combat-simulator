@@ -1,5 +1,6 @@
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 export interface HarbingerState {
   nextBlightAt?: number;
@@ -26,12 +27,9 @@ export const HARBINGER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<HarbingerStat
 
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
-  const initialBlight = Math.max(0, Math.min(25, Math.trunc(Number(config.initialBlight || 0))));
+  const initialBlight = boundedInteger(config.initialBlight || 0, 0, 0, 25);
   // Cap at 19 rather than 20: pre-combat stacks must never immediately trigger Meltdown on the first consumed Blight.
-  const initialCascadingCorruptionStacks = Math.max(
-    0,
-    Math.min(19, Math.trunc(Number(config.initialCascadingCorruptionStacks || 0)))
-  );
+  const initialCascadingCorruptionStacks = boundedInteger(config.initialCascadingCorruptionStacks || 0, 0, 0, 19);
   return {
     // POSITIVE_INFINITY means "not yet in shroud"; the cursor is set to a real value when Harbinger Shroud is entered.
     nextBlightAt: Number.POSITIVE_INFINITY,

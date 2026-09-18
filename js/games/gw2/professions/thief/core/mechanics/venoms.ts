@@ -13,6 +13,7 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 interface VenomDefinition {
   readonly skillId: SkillId;
@@ -75,7 +76,7 @@ export function addVenomCharges(
   refreshVenomCharges(state, at);
   const batches = (state.venomChargeBatches[String(skillId)] ??= []);
   const remaining = batches.reduce((sum, batch) => sum + batch.charges, 0);
-  const added = Math.max(0, Math.min(charges, cap - remaining));
+  const added = clamp(cap - remaining, 0, charges);
   if (!added) return;
   state.venomGeneration += 1;
   batches.push({

@@ -11,6 +11,7 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
@@ -76,7 +77,7 @@ export function randomDistributionWorkerCount(
   hardwareConcurrency = 0,
   workload: RandomDistributionWorkload = {}
 ): number {
-  const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
+  const trials = clamp(Math.trunc(Number(trialCount) || 0), 0, MAX_RANDOM_DISTRIBUTION_TRIALS);
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers = hardware > 0 ? Math.max(1, hardware - 1) : DEFAULT_RANDOM_DISTRIBUTION_WORKERS;
@@ -92,7 +93,7 @@ export function randomDistributionWorkerCount(
 }
 
 export function partitionRandomDistributionTrials(trialCount: number, workerCount: number): RandomDistributionBatch[] {
-  const trials = Math.max(0, Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(trialCount) || 0)));
+  const trials = clamp(Math.trunc(Number(trialCount) || 0), 0, MAX_RANDOM_DISTRIBUTION_TRIALS);
   if (!trials) return [];
   const count = Math.min(trials, Math.max(1, Math.trunc(Number(workerCount) || 1)));
   const baseSize = Math.floor(trials / count);
@@ -107,15 +108,12 @@ export function partitionRandomDistributionTrials(trialCount: number, workerCoun
 }
 
 function normalizedTrialCount(value: unknown): number {
-  return Math.max(
-    1,
-    Math.min(MAX_RANDOM_DISTRIBUTION_TRIALS, Math.trunc(Number(value) || DEFAULT_RANDOM_DISTRIBUTION_TRIALS))
-  );
+  return clamp(Math.trunc(Number(value) || DEFAULT_RANDOM_DISTRIBUTION_TRIALS), 1, MAX_RANDOM_DISTRIBUTION_TRIALS);
 }
 
 function percentile(sortedValues: number[], probability: number): number {
   if (!sortedValues.length) return 0;
-  const position = Math.max(0, Math.min(1, Number(probability) || 0)) * (sortedValues.length - 1);
+  const position = clamp(Number(probability) || 0, 0, 1) * (sortedValues.length - 1);
   const lowerIndex = Math.floor(position);
   const upperIndex = Math.ceil(position);
   const lower = sortedValues[lowerIndex];

@@ -18,6 +18,7 @@ import type {
   ProfessionAssumptionOption,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   ['fury', 'Fury'],
@@ -75,7 +76,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       checked: Number(a.might) > 0,
       type: 'boon',
       key: 'might',
-      stacks: Math.max(0, Math.min(25, Number(a.might) || 0))
+      stacks: clamp(Number(a.might) || 0, 0, 25)
     }),
     ...PERMANENT_BOONS.map(([key, name]) =>
       item({
@@ -100,7 +101,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
           name,
           checked: stackable ? Number(value) > 0 : !!value,
           type: 'condition',
-          stacks: stackable ? Math.max(0, Math.min(25, Number(value) || 0)) : null
+          stacks: stackable ? clamp(Number(value) || 0, 0, 25) : null
         });
       })
       .join('');
@@ -270,7 +271,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   container.querySelectorAll('input[type="number"][data-effect-type]').forEach((input) => {
     if (!(input instanceof HTMLInputElement)) return;
     input.addEventListener('change', () => {
-      const value = Math.max(0, Math.min(25, Number(input.value) || 0));
+      const value = clamp(Number(input.value) || 0, 0, 25);
       const { effectType, effectKey } = input.dataset;
       if (!effectType || !effectKey) return;
       input.value = String(value);
@@ -287,7 +288,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   });
   const targetSkillActivations = requiredInput('target-skill-activations');
   targetSkillActivations.addEventListener('change', () => {
-    a.targetSkillActivationsPerSecond = Math.max(0, Math.min(10, Number(targetSkillActivations.value) || 0));
+    a.targetSkillActivationsPerSecond = clamp(Number(targetSkillActivations.value) || 0, 0, 10);
     app.changed();
   });
   const targetMoving = requiredInput('target-moving');
@@ -297,7 +298,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   });
   const alliedPlayerCount = requiredInput('allied-player-count');
   alliedPlayerCount.addEventListener('change', () => {
-    a.alliedPlayerCount = Math.max(0, Math.min(4, Math.trunc(Number(alliedPlayerCount.value) || 0)));
+    a.alliedPlayerCount = clamp(Math.trunc(Number(alliedPlayerCount.value) || 0), 0, 4);
     app.changed();
   });
   const sharePlayerBoonsWithSummons = requiredInput('share-player-boons-with-summons');
@@ -322,7 +323,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
         if (!(control instanceof HTMLInputElement)) return;
         a[definition.key] = control.checked;
       } else if (definition.type === 'number') {
-        a[definition.key] = Math.max(definition.minimum, Math.min(definition.maximum, Number(control.value) || 0));
+        a[definition.key] = clamp(Number(control.value) || 0, definition.minimum, definition.maximum);
       } else {
         a[definition.key] = control.value;
       }
@@ -354,7 +355,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   });
   const targetStartingHealthPercent = requiredInput('target-starting-health-percent');
   targetStartingHealthPercent.addEventListener('change', () => {
-    app.build.targetStartingHealthPercent = Math.max(0, Math.min(100, Number(targetStartingHealthPercent.value) || 0));
+    app.build.targetStartingHealthPercent = clamp(Number(targetStartingHealthPercent.value) || 0, 0, 100);
     targetStartingHealthPercent.value = String(app.build.targetStartingHealthPercent);
     app.changed();
   });

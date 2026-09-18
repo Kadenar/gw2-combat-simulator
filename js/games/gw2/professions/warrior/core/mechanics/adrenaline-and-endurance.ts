@@ -8,6 +8,7 @@ import {
 import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigor: boolean): number {
   const resources = balanceProfileFromContext(context, PROFILE.resources);
@@ -55,7 +56,7 @@ export function gainWarriorEndurance(context: WarriorSchedulerContext, amount: n
 
 export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {
   const state = professionCoreState(context);
-  state.adrenaline = Math.max(0, Math.min(state.maximumAdrenaline, Number(state.adrenaline || 0)));
+  state.adrenaline = boundedNumber(state.adrenaline || 0, 0, 0, state.maximumAdrenaline);
   state.resource = state.adrenaline;
 }
 

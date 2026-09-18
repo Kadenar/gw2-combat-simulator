@@ -1,10 +1,10 @@
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/skills/timing.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;

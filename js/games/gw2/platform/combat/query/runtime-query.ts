@@ -1,4 +1,3 @@
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import { buffApplicationStacks, isDurationStackingBoon } from '#gw2/platform/combat/boons.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
@@ -10,6 +9,7 @@ import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 interface RuntimeSkillEvent {
   readonly skillId?: SkillId | null;
@@ -53,7 +53,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
 
 /** Normalizes the configured player-health assumption to the valid fraction range. */
 export function playerHealthFraction(context: Gw2ModifierContext): number {
-  return clamp(Number(context.config?.playerHealthFraction ?? 1), 0, 1);
+  return boundedNumber(context.config?.playerHealthFraction ?? 1, 1, 0, 1);
 }
 
 /** Keeps permanent player boons while using live state to hide later same-time applications. */

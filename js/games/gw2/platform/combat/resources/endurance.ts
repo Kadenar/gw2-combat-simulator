@@ -1,4 +1,7 @@
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
+
+import { clamp } from '#kernel/core/numeric.js';
+
 export interface Gw2EnduranceState {
   readonly endurance: number;
   readonly enduranceUpdatedAt: number;
@@ -12,7 +15,7 @@ export interface Gw2EnduranceInterval {
 }
 
 function cappedEndurance(value: number, maximumEndurance: number): number {
-  return Math.max(0, Math.min(Math.max(0, maximumEndurance), value));
+  return clamp(value, 0, Math.max(0, maximumEndurance));
 }
 
 /** Advances capped endurance without allowing an older scheduler timestamp to regenerate or rewind state. */

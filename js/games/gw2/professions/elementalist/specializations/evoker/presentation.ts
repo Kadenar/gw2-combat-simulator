@@ -22,6 +22,7 @@ import {
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 // the projected state record is absent until a simulation has produced one
 function uiState(context: ElementalistUiContext): Partial<EvokerState> {
@@ -165,10 +166,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const state = uiState(context);
     const build = context.build;
     const maximum = Number(state.maximumCharges || 6);
-    const empowered = Math.max(
-      0,
-      Math.min(3, Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)))
-    );
+    const empowered = boundedNumber(Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)), 0, 0, 3);
     const element = selectedElement(context).toLowerCase();
     const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
     const basicReady = charges >= maximum;

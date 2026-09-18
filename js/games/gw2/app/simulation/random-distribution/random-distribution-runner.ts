@@ -11,6 +11,7 @@ import type {
   RandomDistributionProgress,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 interface RandomDistributionWorkerMessage extends GameWorkerResponseEnvelope {
   readonly progress?: { readonly completed?: number };
@@ -92,8 +93,8 @@ export class RandomDistributionRunner {
     const applyProgress = (progress: RandomDistributionProgress): void => {
       if (requestId !== this.requestId || !app.results) return;
       const total = Math.max(1, Number(progress?.total || request.trials));
-      const completed = Math.max(0, Math.min(total, Number(progress?.completed || 0)));
-      const percent = Math.max(0, Math.min(100, Number(progress?.percent ?? (completed / total) * 100)));
+      const completed = boundedNumber(progress?.completed || 0, 0, 0, total);
+      const percent = boundedNumber(progress?.percent ?? (completed / total) * 100, (completed / total) * 100, 0, 100);
       app.results.randomDistributionProgress = {
         completed,
         total,
@@ -167,7 +168,7 @@ export class RandomDistributionRunner {
             },
             (data, worker) => {
               if (data.progress) {
-                batchProgress[batchIndex] = Math.max(0, Math.min(batch.trials, Number(data.progress.completed || 0)));
+                batchProgress[batchIndex] = boundedNumber(data.progress.completed || 0, 0, 0, batch.trials);
                 const completed = batchProgress.reduce((sum, value) => sum + value, 0);
                 applyProgress({
                   completed,

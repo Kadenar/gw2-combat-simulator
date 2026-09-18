@@ -13,6 +13,7 @@ import {
   type OptimizerResultGroups,
   type OptimizerGroupedFilter
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export const MAX_OPTIMIZER_WORKERS = 4;
 
@@ -266,8 +267,9 @@ export class GearOptimizerRunner {
         }
 
         // Target about 150 ms per chunk, capped to bound message and cancellation bookkeeping.
+        // BigInt() throws on NaN, so an unusable chunk size falls back to the minimum.
         chunkSize = BigInt(
-          Math.max(1, Math.min(256, Math.round((Number(chunk.size) * 150) / Math.max(1, message.elapsedMs || 1))))
+          boundedNumber(Math.round((Number(chunk.size) * 150) / Math.max(1, message.elapsedMs || 1)), 1, 1, 256)
         );
         dispatch(worker);
         finishRound();

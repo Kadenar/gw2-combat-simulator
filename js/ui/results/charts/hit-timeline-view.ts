@@ -7,6 +7,7 @@ import {
   type ConditionTickContribution,
   type SkillHit
 } from '#ui/results/charts/hit-timeline-model.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /** Combine all sources into one payout row; tick counts represent stacks, not application rows. */
 function conditionTickTotalsHtml(hits: readonly SkillHit[], offsetMs: number): string {
@@ -224,7 +225,7 @@ export function drawHitTimeline(
     const x = pad.left + ((start + end) / 2 / durationMs) * plotWidth;
     const timestamp = groupHits ? hitGroupLabel(group, timeOffsetMs, durationMs) : hitTime(group[0]!.t + timeOffsetMs);
     const labelWidth = context.measureText(timestamp).width;
-    const labelX = Math.max(0, Math.min(cssWidth - labelWidth, x - labelWidth / 2));
+    const labelX = clamp(x - labelWidth / 2, 0, cssWidth - labelWidth);
     // Crowded labels remain available through focus/hover and the expanded hit list.
     const lane = labelEnds.findIndex((end) => labelX >= end + 4);
     if (lane >= 0) {
@@ -470,7 +471,7 @@ function mountHitTimelineLane(
           ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}
           ${group.length === 1 && first.triggeredBy ? `<div>Triggered by: ${escapeHtml(first.triggeredBy)}</div>` : ''}`;
         tooltip.style.display = 'block';
-        tooltip.style.left = `${Math.max(0, Math.min(left, layout.cssWidth - tooltip.offsetWidth))}px`;
+        tooltip.style.left = `${clamp(layout.cssWidth - tooltip.offsetWidth, 0, left)}px`;
         tooltip.style.top = `${layout.pad.top + layout.plotHeight + 4}px`;
       };
 

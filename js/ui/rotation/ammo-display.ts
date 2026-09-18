@@ -1,3 +1,5 @@
+import { clamp } from '#kernel/core/numeric.js';
+
 export interface AmmoDisplayView {
   readonly current: number;
   readonly maximum: number;
@@ -14,7 +16,7 @@ export function ammoDisplayView(charges: unknown, maximum: unknown): AmmoDisplay
   const normalizedMaximum = Math.max(0, Math.floor(Number(maximum) || 0));
   if (!normalizedMaximum) return null;
 
-  const current = Math.max(0, Math.min(normalizedMaximum, Math.floor(Number(charges) || 0)));
+  const current = clamp(Math.floor(Number(charges) || 0), 0, normalizedMaximum);
 
   return {
     current,

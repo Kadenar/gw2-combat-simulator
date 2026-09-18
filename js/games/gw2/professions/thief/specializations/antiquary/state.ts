@@ -1,6 +1,7 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface ThiefArtifactSlot {
   readonly kind: ThiefArtifactKind;
@@ -71,10 +72,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     forgedSurferGeneration: 0,
     forgedSurferBombDropUntil: 0,
     // clamped 1-5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
-    forgedSurferMaximumBombHits: Math.max(
-      1,
-      Math.min(5, Number(config.deterministicChoices?.forgedSurferBombsHit || 5))
-    ),
+    forgedSurferMaximumBombHits: boundedNumber(config.deterministicChoices?.forgedSurferBombsHit || 5, 5, 1, 5),
     canachCoinIndex: 0
   };
 }

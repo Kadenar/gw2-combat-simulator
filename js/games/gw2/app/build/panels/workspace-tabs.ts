@@ -2,6 +2,7 @@ import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /** Edits the chosen tab in a modal without changing the active build or saving cancelled input. */
 function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
@@ -105,8 +106,8 @@ export function mountBuildTabs(app: ProfessionAppState): void {
         `[popovertarget="${menu.id}"]${menu.dataset.buildTabId ? `[data-build-tab-id="${CSS.escape(menu.dataset.buildTabId)}"]` : ''}`
       )!;
       const bounds = trigger.getBoundingClientRect();
-      menu.style.left = `${Math.max(8, Math.min(bounds.left, innerWidth - menu.offsetWidth - 8))}px`;
-      menu.style.top = `${Math.max(8, Math.min(bounds.bottom + 4, innerHeight - menu.offsetHeight - 8))}px`;
+      menu.style.left = `${clamp(innerWidth - menu.offsetWidth - 8, 8, bounds.left)}px`;
+      menu.style.top = `${clamp(innerHeight - menu.offsetHeight - 8, 8, bounds.bottom + 4)}px`;
       menu.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true });
     });
   });

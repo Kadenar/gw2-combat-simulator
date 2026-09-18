@@ -26,6 +26,7 @@ import type {
 } from '#gw2/platform/combos/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
 
@@ -120,7 +121,7 @@ function finisherDescriptors<TProfessionState extends object>(
       ownerId: String(raw.ownerId),
       finisherType: normalizeComboFinisherType(raw.finisherType ?? raw.type),
       fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(raw.fieldSelectionAnchor),
-      chance: Math.max(0, Math.min(1, Number(raw.chance ?? 1))),
+      chance: boundedNumber(raw.chance ?? 1, 1, 0, 1),
       attempts: Math.max(1, Math.trunc(Number(raw.attempts ?? 1))),
       applications: Math.max(1, Math.trunc(Number(raw.applications ?? 1))),
       successfulCombos: Math.max(1, Math.trunc(Number(raw.successfulCombos ?? 1)))

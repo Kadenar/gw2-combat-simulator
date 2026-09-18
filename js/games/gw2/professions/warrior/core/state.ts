@@ -1,5 +1,6 @@
 import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface WarriorCoreState {
   adrenaline: number;
@@ -45,7 +46,7 @@ export const WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<WarriorCor
 /** Creates only the state shared by every Warrior build; elite caps initialize in their slices. */
 export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreState {
   const maximumAdrenaline = 30;
-  const adrenaline = Math.max(0, Math.min(maximumAdrenaline, Number(config.initialResource ?? 0)));
+  const adrenaline = boundedNumber(config.initialResource ?? 0, 0, 0, maximumAdrenaline);
   return {
     adrenaline,
     resource: adrenaline,

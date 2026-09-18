@@ -521,18 +521,13 @@ describe('native build codecs', () => {
 
     test(`${entry.id} sanitizes shared equipment fields`, async () => {
       const { profession, defaults } = await load();
-      const legacySigils = profession.migrateBuild({
+      const missingSigils = profession.migrateBuild({
         ...defaults,
         schemaVersion: 0,
-        weaponSigils: undefined,
-        sigils: ['Force', 'Impact']
+        weaponSigils: undefined
       });
 
-      assert.deepEqual(legacySigils.weaponSigils, [
-        ['Force', 'Impact'],
-        ['Force', 'Impact']
-      ]);
-      assert.equal('sigils' in legacySigils, false);
+      assert.deepEqual(missingSigils.weaponSigils, defaults.weaponSigils);
 
       for (const field of ['rune', 'food', 'utility']) {
         const invalidBuild = { ...defaults, [field]: `Unknown ${field}` };

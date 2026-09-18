@@ -122,11 +122,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   [ID.ESSENCE_BLAST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
+    interruptCommitMs: 560,
     effects: [
       {
         type: 'strike',
         coefficient: 0.75,
-        hits: 1
+        hits: 1,
+        persistsAfterInterrupt: true
       }
     ],
     type: 'Profession',

@@ -1,4 +1,5 @@
 import type { RotationCommand, CastCommand, WaitCommand } from '#gw2/platform/engine/execution/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /**
  * Owns mutations of the user-authored rotation so shared timeline renderers
@@ -20,7 +21,7 @@ export function moveRotationEntry(rotation: RotationCommand[], fromIndex: number
   }
 
   // Clamp the requested target into [0, length] so callers can pass "end" freely.
-  const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
+  const boundedTarget = clamp(rotation.length, 0, toIndex);
   // Removing an earlier entry shifts a forward insertion target left by one.
   const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
   if (insertAt === fromIndex) return false;
@@ -76,7 +77,7 @@ export function insertRotationEntries(
     return false;
   }
 
-  const boundedIndex = Math.max(0, Math.min(index, rotation.length));
+  const boundedIndex = clamp(rotation.length, 0, index);
   rotation.splice(boundedIndex, 0, ...entries);
   return true;
 }

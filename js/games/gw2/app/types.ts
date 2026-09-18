@@ -151,14 +151,12 @@ export interface ProfessionChangeOptions {
   readonly deferRotationRender?: boolean;
 }
 
+/** Carries a timeline index or palette name so drops can resolve the dragged entry. */
 export interface ProfessionRotationDragState {
   readonly source?: string;
   readonly index?: number;
   readonly name?: string;
   readonly skillId?: SkillId;
-  /** Legacy aliases still read by the timeline drop handler; current producers set `index` and `name`. */
-  readonly idx?: number;
-  readonly skillName?: string;
 }
 
 export interface ProfessionAppResult extends Gw2SimulationResult {

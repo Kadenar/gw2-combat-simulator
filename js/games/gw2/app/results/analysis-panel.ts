@@ -5,6 +5,7 @@ import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
@@ -590,19 +591,18 @@ export function mountRotationResults(
   const randomDistributionStale = model.randomDistributionStale === true;
   const randomDistributionTrials = Number(randomDistribution?.trials || model.randomDistributionTrials || 0);
   const randomDistributionProgress = model.randomDistributionProgress || {};
-  const randomDistributionCompleted = Math.max(
+  const randomDistributionCompleted = boundedNumber(
+    randomDistributionProgress.completed || 0,
     0,
-    Math.min(randomDistributionTrials, Number(randomDistributionProgress.completed || 0))
+    0,
+    randomDistributionTrials
   );
-  const randomDistributionPercent = Math.max(
+  const randomDistributionPercent = boundedNumber(
+    randomDistributionProgress.percent ??
+      (randomDistributionTrials > 0 ? (randomDistributionCompleted / randomDistributionTrials) * 100 : 0),
+    randomDistributionTrials > 0 ? (randomDistributionCompleted / randomDistributionTrials) * 100 : 0,
     0,
-    Math.min(
-      100,
-      Number(
-        randomDistributionProgress.percent ??
-          (randomDistributionTrials > 0 ? (randomDistributionCompleted / randomDistributionTrials) * 100 : 0)
-      )
-    )
+    100
   );
   const randomDistributionError = String(model.randomDistributionError || '');
   const randomDistributionAction = !randomDistributionStale

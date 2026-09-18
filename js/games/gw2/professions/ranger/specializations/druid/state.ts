@@ -1,5 +1,6 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface DruidState {
   astralForce: number;
@@ -27,7 +28,7 @@ export const DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>
 
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {
-    astralForce: Math.max(0, Math.min(100, Number(config.initialAstralForce ?? 100))),
+    astralForce: boundedNumber(config.initialAstralForce ?? 100, 100, 0, 100),
     maximumAstralForce: 100,
     celestialAvatarActive: false,
     celestialAvatarEndsAt: 0,

@@ -554,7 +554,11 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
     initialResource: 500,
     initialBlight: -4,
     initialCascadingCorruptionStacks: 30,
-    selectedSkillIds: [ID.SUMMON_BLOOD_FIEND, ID.BLOOD_IS_POWER, ID.LICH_FORM]
+    selectedSkills: {
+      Heal: 'Summon Blood Fiend',
+      Utility1: 'Blood Is Power',
+      Elite: 'Lich Form'
+    }
   });
 
   assert.deepEqual(migrated.weapons, ['Greatsword', '']);
@@ -562,6 +566,7 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
   assert.equal(migrated.initialBlight, 0);
   assert.equal(migrated.initialCascadingCorruptionStacks, 19);
   assert.equal(migrated.selectedSkills.Heal, 'Summon Blood Fiend');
+  assert.equal(migrated.selectedSkills.Utility1, 'Blood Is Power');
   assert.equal(migrated.selectedSkills.Elite, 'Lich Form');
   assert.deepEqual(validateNecromancerBuild(migrated), {
     valid: true,

@@ -25,6 +25,7 @@ import type {
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 interface PhotonForgeHeatPayload {
   readonly skillId: string | number;
@@ -239,7 +240,7 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   if (target <= from) return;
   const previousHeat = state.heat;
   const heat = Number(state.heat || 0);
-  state.heat = Math.max(0, Math.min(state.maximumHeat, heat));
+  state.heat = clamp(heat, 0, state.maximumHeat);
   if (hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
     let readyAt = state.enhancedCapacityMightReadyAt;
     if (heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) {

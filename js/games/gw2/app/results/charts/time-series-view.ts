@@ -10,6 +10,7 @@ import {
 } from '#gw2/app/results/charts/time-series-model.js';
 import { filterHitsToPhase } from '#ui/results/charts/hit-timeline-model.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
 export interface ChartHealthBreakpoint {
@@ -773,7 +774,7 @@ export function mountTimeSeriesCharts(
       }
 
       const durationMs = kind === 'dps' ? chartState.dpsView.durationMs : chartState.effectsView.durationMs;
-      const time = Math.max(0, Math.min(durationMs, ((chartX - minX) / layout.plotWidth) * durationMs));
+      const time = clamp(((chartX - minX) / layout.plotWidth) * durationMs, 0, durationMs);
       const timeLabel = `${((phaseStartMs + time) / 1000).toFixed(2)}s`;
       let body: string;
       if (kind === 'dps') {

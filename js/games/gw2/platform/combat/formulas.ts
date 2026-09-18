@@ -1,6 +1,6 @@
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 // Stateless GW2 damage formulas used by timestamp-aware runtime resolution.
 
@@ -21,7 +21,7 @@ export function expectedCritMultiplier(chance: number, damage: number): number {
 export function criticalChance(precision: number): number {
   // Fraction-form API used by the resolver. Precision below the level-80
   // baseline is clamped rather than producing a negative chance.
-  return clamp(criticalChanceFractionFromPrecision(Number(precision)), 0, 1);
+  return boundedNumber(criticalChanceFractionFromPrecision(Number(precision)), 0, 0, 1);
 }
 
 /** Converts ferocity to a critical-damage multiplier. */

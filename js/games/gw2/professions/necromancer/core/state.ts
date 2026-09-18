@@ -4,6 +4,7 @@ import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
 export interface NecromancerSelfCondition {
   readonly condition: string;
@@ -118,7 +119,7 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
 
 /** Clamps life force and reconciles the public soul-shard count with its active expiries. */
 export function syncNecromancerResources<TState extends NecromancerCoreState>(state: TState): TState {
-  state.lifeForce = Math.max(0, Math.min(Number(state.maximumLifeForce || 100), Number(state.lifeForce || 0)));
+  state.lifeForce = boundedNumber(state.lifeForce || 0, 0, 0, finiteNumber(state.maximumLifeForce || 100, 100));
   state.resource = state.lifeForce;
   state.soulShardExpiries = (state.soulShardExpiries || []).sort((left, right) => left - right).slice(-6);
   state.soulShards = state.soulShardExpiries.length;
@@ -134,7 +135,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const maximumHealth = necromancerMaximumHealth(config, traits);
   const lifeForcePoolCapacity = maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);
   const configuredLifeForce = Number(config.initialResource ?? 100);
-  const lifeForce = (maximumLifeForce * Math.max(0, Math.min(100, configuredLifeForce))) / 100;
+  const lifeForce = (maximumLifeForce * clamp(configuredLifeForce, 0, 100)) / 100;
   // Seed every mutable subsystem independently, then reconcile public resource aliases once.
   const state: NecromancerCoreState = syncNecromancerResources({
     lifeForce,

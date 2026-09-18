@@ -14,6 +14,7 @@ import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
+import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
 
 /** Keep baseline and modifier comparisons stable while preserving all other simulation settings. */
 export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {
@@ -41,7 +42,7 @@ export function createGw2SimulationConfig({
 }: Gw2SimulationConfigOptions): Gw2Config {
   const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
-  const alliedPlayerCount = Math.max(0, Math.min(4, Math.trunc(Number(assumptions.alliedPlayerCount || 0))));
+  const alliedPlayerCount = boundedInteger(assumptions.alliedPlayerCount || 0, 0, 0, 4);
   const targetConditions = { ...(assumptions.targetConditions || {}) };
   if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
     delete targetConditions.Vulnerability;
@@ -145,7 +146,7 @@ export function createGw2SimulationConfig({
       calculatedPrimaryWeapon
     }),
     initialResource,
-    playerHealthFraction: Math.max(0, Math.min(1, Number(assumptions.playerHealthPercent ?? 100) / 100)),
+    playerHealthFraction: boundedNumber(Number(assumptions.playerHealthPercent ?? 100) / 100, 1, 0, 1),
     deterministicChoices: Object.fromEntries(
       professionAssumptionControls
         .filter((control) => control.type === 'select' && !isSimulationRandomnessControl(control))
@@ -187,7 +188,7 @@ export function createGw2SimulationConfig({
       armor: app.build.targetArmor,
       health: Math.max(0, Number(app.build.targetHealth) || 0),
       // Starting health is a fraction of maximum health so low-health gates and death share one source of truth.
-      startingHealthFraction: Math.max(0, Math.min(1, Number(app.build.targetStartingHealthPercent ?? 100) / 100)),
+      startingHealthFraction: boundedNumber(Number(app.build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1),
       count: Math.max(1, Math.trunc(Number(assumptions.targetCount) || 1)),
       // Existing professions retain the historical defiant-golem default.
       // Defiant doubles as the positional proxy: a defiant golem never rotates,

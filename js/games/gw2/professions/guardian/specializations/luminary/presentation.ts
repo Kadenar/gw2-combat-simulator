@@ -19,6 +19,7 @@ import type {
   GuardianState,
   GuardianUiContext
 } from '#gw2/professions/guardian/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 const LUMINARY_INTERNAL_EVENT_TYPES = new Set([
   'guardian.effulgent-activated',
@@ -79,7 +80,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   const effulgentRemaining = Number(state.effulgentActiveUntil || 0) - at;
   if (effulgentRemaining > 0) {
-    const stacks = Math.max(0, Math.min(10, Math.trunc(Number(state.effulgentStacks || 0))));
+    const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, 10);
     items.push({
       id: 'luminary-effulgent-stance',
       label: 'Effulgent Stance',

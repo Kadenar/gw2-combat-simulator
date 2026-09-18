@@ -5,6 +5,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import type { GuardianConfig, GuardianSchedulerContext } from '#gw2/professions/guardian/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface GuardianFirebrandState {
   activeTome: string;
@@ -39,7 +40,7 @@ function initialTomePageState(
   // Archivist upgrades the untraited default, while explicit nondefault page counts remain intact.
   const initialPages =
     archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
-  const tomePages = Math.max(0, Math.min(maximumTomePages, initialPages));
+  const tomePages = clamp(initialPages, 0, maximumTomePages);
   return {
     tomePages,
     maximumTomePages,

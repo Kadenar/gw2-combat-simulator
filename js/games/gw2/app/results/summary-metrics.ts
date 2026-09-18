@@ -1,5 +1,6 @@
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface ResultSummaryMetric {
   readonly title?: string;
@@ -105,9 +106,7 @@ export function targetHealthBreakpointSnapshots(
   const health = Number(targetHealth || 0);
   if (!(health > 0)) return [];
   const configuredStartingPercent = Number(startingHealthPercent);
-  const startingPercent = Number.isFinite(configuredStartingPercent)
-    ? Math.max(0, Math.min(100, configuredStartingPercent))
-    : 100;
+  const startingPercent = Number.isFinite(configuredStartingPercent) ? clamp(configuredStartingPercent, 0, 100) : 100;
 
   const damageByTime = new Map<number, { player: number; environment: number }>();
   const addDamage = (at: unknown, damage: unknown, owner: 'player' | 'environment'): void => {

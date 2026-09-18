@@ -1,6 +1,5 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
 import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
@@ -14,6 +13,7 @@ import type {
   ComboFinisherType,
   Gw2ComboRuntimeState
 } from '#gw2/platform/combos/types.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export const COMBO_FIELD_TYPES: readonly ComboFieldType[] = Object.freeze([
   'Dark',

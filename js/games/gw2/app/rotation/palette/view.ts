@@ -24,6 +24,7 @@ import type {
   ProfessionPaletteSkillRenderOptions
 } from '#gw2/platform/engine/profession/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const ammo = view.ammo;
@@ -54,7 +55,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     : '';
   const ariaLabel = ammo ? `${view.name || ''}: ${ammo.current}/${ammo.maximum} charges` : '';
   const resourceMaximum = Math.max(0, Number(resource?.maximum || 0));
-  const resourceValue = Math.max(0, Math.min(resourceMaximum, Number(resource?.value || 0)));
+  const resourceValue = boundedNumber(resource?.value || 0, 0, 0, resourceMaximum);
   const resourcePercent = resourceMaximum ? (resourceValue / resourceMaximum) * 100 : 0;
   const resourceIndicator = resource
     ? `<span class="pal-skill-resource" data-resource-id="${esc(resource.id)}"

@@ -1,4 +1,3 @@
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
 
 import type {
@@ -6,6 +5,7 @@ import type {
   ResolvedEffectAudience,
   SimulationEventInput
 } from '#gw2/platform/engine/events/events.js';
+import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc
@@ -58,8 +58,8 @@ export interface Gw2AlliedPlayerProc {
 export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): Gw2AlliedPlayerAssumptions {
   const allies = config.allies || {};
   return Object.freeze({
-    count: clamp(Math.trunc(Number(allies.count || 0)), 0, 4),
-    strikesPerSecond: clamp(Number(allies.strikesPerSecond || 0), 0, 10)
+    count: boundedInteger(allies.count || 0, 0, 0, 4),
+    strikesPerSecond: boundedNumber(allies.strikesPerSecond || 0, 0, 0, 10)
   });
 }
 
@@ -177,7 +177,7 @@ export function gw2AlliedPlayerProcTimeline(
   }: Gw2AlliedPlayerProcOptions
 ): Gw2AlliedPlayerProc[] {
   const assumptions = gw2AlliedPlayerAssumptions(config);
-  const allyCount = clamp(Math.trunc(Number(maximumAllies)), 0, assumptions.count);
+  const allyCount = boundedInteger(maximumAllies, 0, 0, assumptions.count);
   if (!allyCount || !assumptions.strikesPerSecond) return [];
   const interval = Math.max(Number(internalCooldown || 0), 1 / assumptions.strikesPerSecond);
   const end = Number(start) + Math.max(0, Number(duration || 0));

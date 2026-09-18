@@ -80,7 +80,10 @@ async function sourceModulePath(file) {
 
 test('Mesmer build migrations produce validated schema version 3 data', () => {
   const migrated = migrateMesmerBuild({
-    sigils: ['Force', 'Impact'],
+    weaponSigils: [
+      ['Force', 'Impact'],
+      ['Force', 'Impact']
+    ],
     targetStartingHealthPercent: 40,
     assumptions: { targetConditions: { Vulnerability: 10, Slow: true } },
     rotation: ['Mind Stab', { name: '__wait', waitMs: 125 }]

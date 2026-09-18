@@ -1,5 +1,6 @@
 import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface SkillTimingOccurrence {
   readonly rotationIndex: number;
@@ -177,7 +178,7 @@ export function weaponSetActiveSegments(
     .sort((left, right) => Number(left.end) - Number(right.end) || Number(left.ri) - Number(right.ri));
 
   for (const swap of swaps) {
-    const at = Math.max(segmentStart, Math.min(timelineEnd, Number(swap.end)));
+    const at = boundedNumber(swap.end, segmentStart, segmentStart, timelineEnd);
     segments.push({ weaponSet: activeSet, startMs: segmentStart, endMs: at, durationMs: at - segmentStart });
     activeSet = activeSet === 1 ? 2 : 1;
     segmentStart = at;

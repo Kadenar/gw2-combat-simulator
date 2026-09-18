@@ -21,6 +21,7 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;
@@ -40,9 +41,7 @@ function syncRevenantCombatState(context: RevenantSchedulerContext, state: Reven
 }
 
 function accruedEnergy(accrual: NonNullable<RevenantCoreState['energyAccrual']>, at: number): number {
-  return roundedResourceValue(
-    Math.max(0, Math.min(accrual.maximum, accrual.energy + (at - accrual.at) * accrual.rate))
-  );
+  return roundedResourceValue(clamp(accrual.energy + (at - accrual.at) * accrual.rate, 0, accrual.maximum));
 }
 
 function activeUpkeepCost(state: RevenantCoreState, at: number): number {

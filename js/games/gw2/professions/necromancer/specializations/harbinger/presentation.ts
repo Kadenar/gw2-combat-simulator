@@ -7,12 +7,13 @@ import {
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
 import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
-  const blight = Math.max(0, Math.min(25, Math.trunc(Number(state.blight || 0))));
-  const stacks = Math.max(0, Math.min(19, Math.trunc(Number(state.cascadingCorruptionStacks || 0))));
+  const blight = boundedInteger(state.blight || 0, 0, 0, 25);
+  const stacks = boundedInteger(state.cascadingCorruptionStacks || 0, 0, 0, 19);
   const hasTrait = getActiveTraits(context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
   );

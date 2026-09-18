@@ -10,6 +10,7 @@ import type {
   EngineerSchedulerContext,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Emits kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
 export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
@@ -81,7 +82,7 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
 export function handleElectricArtillery(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
-  const charges = Math.max(0, Math.min(12, Math.trunc(Number(event.charges || 0))));
+  const charges = boundedInteger(event.charges || 0, 0, 0, 12);
   queueDamage(context, event, {
     name: 'Electric Artillery',
     coefficient: isFocused ? 1.5 : 1,

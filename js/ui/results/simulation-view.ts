@@ -1,4 +1,5 @@
 import { escapeHtml } from '#ui/shared/html.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface SimulationMetricViewModel {
   readonly label: string;
@@ -95,7 +96,7 @@ function panelHtml(panel: Exclude<SimulationPanelViewModel, SimulationExtensionV
     return `<section class="sim-panel sim-timeline"><h4>${escapeHtml(panel.title)}</h4><div class="sim-timeline-track">${panel.points
       .map(
         (point) =>
-          `<span class="sim-timeline-point" style="left:${Math.max(0, Math.min(100, (point.atMs / duration) * 100))}%" title="${escapeHtml(point.label)} at ${number(point.atMs)}ms"></span>`
+          `<span class="sim-timeline-point" style="left:${clamp((point.atMs / duration) * 100, 0, 100)}%" title="${escapeHtml(point.label)} at ${number(point.atMs)}ms"></span>`
       )
       .join('')}</div></section>`;
   }

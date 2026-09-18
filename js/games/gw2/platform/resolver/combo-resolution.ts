@@ -20,6 +20,7 @@ import type {
   Gw2ResolverReactionRegistry
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface EnqueueGw2OwnedComboFinisherOptions {
   readonly ownerId: string;
@@ -63,7 +64,7 @@ export function enqueueGw2OwnedComboFinisher(
     finisherType: normalizeComboFinisherType(options.finisherType),
     fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
     warnOnUnbound: ambiguous && !field,
-    chance: Math.max(0, Math.min(1, Number(options.chance ?? 1))),
+    chance: boundedNumber(options.chance ?? 1, 1, 0, 1),
     applications: Math.max(1, Math.trunc(Number(options.applications ?? 1))),
     successfulCombos: Math.max(1, Math.trunc(Number(options.successfulCombos ?? 1)))
   });

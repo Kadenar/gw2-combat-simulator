@@ -7,6 +7,8 @@ import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/sel
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '#tests/helpers/evtc-fixture.js';
@@ -21,6 +23,50 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = { skills: [fixtureSkill] };
+
+test('the shared timeline keeps tied shroud attacks between entry and exit for every shroud', () => {
+  // Reverse source ordering and nearby timestamps distinguish a true tie from a separate transition.
+  const shrouds = necromancerCatalog.skills
+    .filter((skill) => skill.shroudEntry)
+    .map((entry) => [
+      entry,
+      necromancerCatalog.skills.find((skill) => skill.shroud === entry.shroudEntry && skill.shroudSlot === 1),
+      necromancerCatalog.skills.find((skill) => skill.shroudExit === entry.shroudEntry)
+    ]);
+  shrouds.push([63155, 63362, 63251].map((id) => thiefCatalog.skillsById.get(id)));
+  for (const [entry, attack, exit] of shrouds) {
+    for (const transition of [entry, exit]) {
+      for (const offset of [-1, 0, 1]) {
+        for (const reverse of [false, true]) {
+          const actions = [
+            { start: 1000 + offset, end: 1000 + offset, skill: transition },
+            { start: 1000, end: 1400, skill: attack }
+          ];
+          if (reverse) actions.reverse();
+          // The unrelated instant input retains its slot even when the two shroud inputs exchange places.
+          actions.splice(1, 0, { start: 1000, end: 1000, skill: fixtureSkill });
+          const rotation = buildReplayTimeline(
+            actions.map((action, eventIndex) => ({
+              ...action,
+              eventIndex,
+              name: action.skill.name,
+              skillId: action.skill.id
+            })),
+            1000 + Math.min(0, offset),
+            null,
+            { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+          );
+          const ids = rotation.filter((command) => command.skillId != null).map((command) => command.skillId);
+          assert.equal(
+            ids.indexOf(transition.id) < ids.indexOf(attack.id),
+            offset < 0 || (offset === 0 && transition === entry)
+          );
+          if (offset === 0) assert.equal(ids[1], fixtureSkill.id);
+        }
+      }
+    }
+  }
+});
 
 test('the shared timeline orders simultaneous instant stunbreaks before blocked casts', () => {
   // Only tied inputs are reordered; a later stunbreak must retain its recorded overlap.

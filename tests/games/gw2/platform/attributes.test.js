@@ -283,7 +283,6 @@ test('the default build persists a complete alternate weapon set', () => {
     ['Force', 'Accuracy'],
     ['Force', 'Accuracy']
   ]);
-  assert.equal(Object.hasOwn(build, 'sigils'), false);
   assert.equal(build.assumptions.targetSkillActivationsPerSecond, 0);
   assert.equal(build.assumptions.protection, true);
   assert.equal(build.assumptions.resolution, true);
@@ -292,14 +291,18 @@ test('the default build persists a complete alternate weapon set', () => {
   assert.equal(build.assumptions.aegis, true);
 });
 
-test('legacy global sigils migrate onto both weapon sets', () => {
-  const build = replaceBuild({ sigils: ['Bursting', 'Malice'] });
+test('saved sigils preserve each weapon set selection', () => {
+  const build = replaceBuild({
+    weaponSigils: [
+      ['Bursting', 'Malice'],
+      ['Force', 'Impact']
+    ]
+  });
 
   assert.deepEqual(build.weaponSigils, [
     ['Bursting', 'Malice'],
-    ['Bursting', 'Malice']
+    ['Force', 'Impact']
   ]);
-  assert.equal(Object.hasOwn(build, 'sigils'), false);
 });
 
 test('duplicate saved sigils are normalized independently in each weapon set', () => {

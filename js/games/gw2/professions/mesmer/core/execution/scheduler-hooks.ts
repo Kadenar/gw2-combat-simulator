@@ -1,6 +1,5 @@
 /** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { EPSILON } from '#kernel/core/clock.js';
-import { clamp } from '#gw2/platform/combat/numeric.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -21,6 +20,7 @@ import {
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /**
  * Initializes the per-simulation Mesmer runtime, weapon set, resource pool,
@@ -38,7 +38,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
     context.schedulerPolicy.requireCriticalFacts?.();
   }
 
-  const initial = clamp(Number(config.initialResource || 0), 0, runtime.resourceDefinition.maximum);
+  const initial = boundedNumber(config.initialResource || 0, 0, 0, runtime.resourceDefinition.maximum);
   runtime.resources.gainResources(0, initial, gw2PrimaryWeapon(config, 1), 'initial', {
     kind: 'initial'
   });

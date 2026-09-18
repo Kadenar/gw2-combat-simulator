@@ -28,12 +28,10 @@ export interface TimelineInteractionOptions {
 
 export function clearTimelineDropIndicators(root: HTMLElement | null | undefined): void {
   if (!root) return;
-  root.classList.remove('drag-over', 'drag-over-empty', 'drag-insert-before', 'drag-insert-after');
+  root.classList.remove('drag-active', 'drag-over-empty');
   root
-    .querySelectorAll<HTMLElement>('.drag-over, .drag-over-empty, .drag-insert-before, .drag-insert-after')
-    .forEach((element) =>
-      element.classList.remove('drag-over', 'drag-over-empty', 'drag-insert-before', 'drag-insert-after')
-    );
+    .querySelectorAll<HTMLElement>('.drag-drop-target')
+    .forEach((element) => element.classList.remove('drag-drop-target'));
 }
 
 export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: number): number | null {
@@ -44,12 +42,6 @@ export function getSkillDropInsertionIndex(skillElement: HTMLElement, clientX: n
   const rect = skillElement.getBoundingClientRect();
   // Dropping on the left/right half inserts before/after the hovered entry.
   return clientX < rect.left + rect.width / 2 ? index : index + 1;
-}
-
-export function updateSkillDropIndicator(skillElement: HTMLElement, clientX: number): void {
-  skillElement.classList.remove('drag-insert-before', 'drag-insert-after');
-  const rect = skillElement.getBoundingClientRect();
-  skillElement.classList.add(clientX < rect.left + rect.width / 2 ? 'drag-insert-before' : 'drag-insert-after');
 }
 
 /** Binds timeline drag, drop, removal, and editor controls to rendered entries. */
@@ -79,14 +71,14 @@ export function bindTimelineInteractions(
     setDragState(null);
     if (!canInteract()) return false;
     if (drag.source === 'timeline') {
-      const fromIndex = Number(drag.index ?? drag.idx);
+      const fromIndex = Number(drag.index);
       if (!options.moveEntry(fromIndex, insertAt)) return false;
       changed();
       return true;
     }
 
     if (drag.source === 'palette') {
-      const name = String(drag.name ?? drag.skillName ?? '');
+      const name = String(drag.name ?? '');
       const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
       // Palette macros may resolve to multiple adjacent entries.
       const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
@@ -163,73 +155,68 @@ export function bindTimelineInteractions(
     };
 
     item.ondragend = () => cleanup(item);
-    item.ondragover = (event) => {
-      if (!canInteract() || !getDragState()) return;
-      event.preventDefault();
-      clearTimelineDropIndicators(root);
-      updateSkillDropIndicator(item, event.clientX);
-    };
-
-    item.ondragleave = () => {
-      item.classList.remove('drag-insert-before', 'drag-insert-after');
-    };
-
-    item.ondrop = (event) => {
-      if (!getDragState()) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const insertAt = getSkillDropInsertionIndex(item, event.clientX);
-      clearTimelineDropIndicators(root);
-      if (insertAt != null) applyDrop(insertAt);
-    };
   }
 
-  // Every logical line keeps its own insertion boundary even when several lines share one weapon-set label.
-  for (const row of root.querySelectorAll<HTMLElement>('.rot-row-skills[data-insert-idx]')) {
-    row.ondragover = (event) => {
-      // Skill elements own midpoint insertion. Row background drops use the
-      // row's precomputed insertion boundary.
-      const target = event.target instanceof Element ? event.target : null;
-      if (!canInteract() || !getDragState() || target?.closest('.rot-skill')) return;
-      event.preventDefault();
-      clearTimelineDropIndicators(root);
-      row.classList.add('drag-over');
-    };
+  // Hover and drop resolve the same boundary, including gaps and whitespace in wrapped rows.
+  const dropIndex = (event: DragEvent): number => {
+    const target = event.target instanceof Element ? event.target : null;
+    const gap = target?.closest<HTMLElement>('.rot-insertion-gap');
+    if (gap) return Number(gap.dataset.insertionIndex);
+    const skill = target?.closest<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)');
+    if (skill) return getSkillDropInsertionIndex(skill, event.clientX) ?? rotation.length;
+    const row = target?.closest('.rot-row-skills');
+    let nearest: HTMLElement | undefined;
+    let distance = Infinity;
+    for (const card of row?.querySelectorAll<HTMLElement>('.rot-skill[data-idx]:not(.rot-injected)') || []) {
+      const rect = card.getBoundingClientRect();
+      const dx = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
+      const dy = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
+      const candidateDistance = dx * dx + dy * dy;
+      if (candidateDistance < distance) {
+        nearest = card;
+        distance = candidateDistance;
+      }
+    }
 
-    row.ondragleave = (event) => {
-      if (event.target === row) row.classList.remove('drag-over');
-    };
-
-    row.ondrop = (event) => {
-      const target = event.target instanceof Element ? event.target : null;
-      if (!getDragState() || target?.closest('.rot-skill')) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const insertAt = Number(row.dataset.insertIdx);
-      clearTimelineDropIndicators(root);
-      if (Number.isInteger(insertAt)) applyDrop(insertAt);
-    };
-  }
+    return nearest ? (getSkillDropInsertionIndex(nearest, event.clientX) ?? rotation.length) : rotation.length;
+  };
 
   root.ondragover = (event) => {
-    // The root is the empty-space fallback and always appends.
-    const target = event.target instanceof Element ? event.target : null;
-    if (!canInteract() || !getDragState() || target?.closest('.rot-row-skills')) return;
+    if (!canInteract() || !getDragState()) return;
     event.preventDefault();
-    clearTimelineDropIndicators(root);
-    root.classList.add('drag-over-empty');
+    event.stopPropagation();
+    const index = dropIndex(event);
+    const marker = root.querySelector<HTMLElement>(`.rot-insertion-gap[data-insertion-index="${index}"]`);
+    // Keep the marker stable across repeated events and transitions between a card's children.
+    if (!marker?.classList.contains('drag-drop-target')) {
+      clearTimelineDropIndicators(root);
+      marker?.classList.add('drag-drop-target');
+    }
+
+    root.classList.add('drag-active');
+    if (!marker) root.classList.add('drag-over-empty');
   };
 
   root.ondragleave = (event) => {
-    if (event.target === root) root.classList.remove('drag-over-empty');
+    if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+    const rect = root.getBoundingClientRect();
+    if (
+      event.clientX >= rect.left &&
+      event.clientX < rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY < rect.bottom
+    )
+      return;
+    clearTimelineDropIndicators(root);
   };
 
   root.ondrop = (event) => {
-    const target = event.target instanceof Element ? event.target : null;
-    if (!getDragState() || target?.closest('.rot-row-skills')) return;
+    if (!getDragState()) return;
     event.preventDefault();
+    event.stopPropagation();
+    const index = dropIndex(event);
     clearTimelineDropIndicators(root);
-    applyDrop(rotation.length);
+    applyDrop(index);
   };
 
   const bindEdit = (selector: string, callback: ((index: number, event?: Event) => unknown) | undefined): void => {

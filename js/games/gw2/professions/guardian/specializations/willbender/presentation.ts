@@ -12,6 +12,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/engine/profession/types.js';
 import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/professions/guardian/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 function willbenderEventLogRow(
   _context: GuardianUiContext,
@@ -39,7 +40,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
-  const lethalStacks = Math.max(0, Math.min(5, Math.trunc(Number(state.lethalTempoStacks || 0))));
+  const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, 5);
   if (lethalRemaining > 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',

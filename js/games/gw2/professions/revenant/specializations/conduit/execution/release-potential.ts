@@ -32,6 +32,7 @@ import type {
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Resolve enemy and self Torment from impact-time affinity, including swaps during the windup. */
 export function handleMesmerReleaseConditions(
@@ -82,12 +83,11 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
 
 function targetsHit(context: RevenantCastContext, maximum = 5): number {
   // Command-level override takes priority so per-skill target counts can differ from the global config value.
-  return Math.max(
+  return boundedInteger(
+    context.command.targetsHit ?? context.config.targetsHit ?? context.config.targetCount ?? 1,
     1,
-    Math.min(
-      maximum,
-      Math.trunc(Number(context.command.targetsHit ?? context.config.targetsHit ?? context.config.targetCount ?? 1))
-    )
+    1,
+    maximum
   );
 }
 

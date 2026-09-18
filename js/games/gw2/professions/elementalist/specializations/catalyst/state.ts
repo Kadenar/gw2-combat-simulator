@@ -1,5 +1,6 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
 export const CATALYST_MAXIMUM_ENERGY = 30;
@@ -32,9 +33,11 @@ export interface CatalystState {
 export const catalystState = defineProfessionSpecializationState(
   'Catalyst',
   (config: ElementalistConfig = {}): CatalystState => ({
-    energy: Math.max(
+    energy: boundedNumber(
+      config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY,
+      CATALYST_MAXIMUM_ENERGY,
       0,
-      Math.min(CATALYST_MAXIMUM_ENERGY, Number(config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY))
+      CATALYST_MAXIMUM_ENERGY
     ),
     elementalEmpowermentExpiries: [],
     elementalEmpowermentRefreshStarted: false,

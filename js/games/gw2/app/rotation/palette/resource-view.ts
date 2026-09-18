@@ -23,6 +23,7 @@ import {
   paletteProfessionState,
   professionEndState
 } from '#gw2/app/rotation/context.js';
+import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
 export interface PaletteResourceView {
   readonly id: string;
@@ -39,7 +40,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
       : maximum > 20
         ? 'bar'
         : 'pips';
-  const value = Math.max(0, Math.min(maximum, Number(view.value || 0)));
+  const value = boundedNumber(view.value || 0, 0, 0, maximum);
   const pipStyle = String(view.pipStyle || '')
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, '');
@@ -63,9 +64,9 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
     step: Math.max(0.01, Number(view.step || 1)),
     // Dense resources default to a bar; small discrete resources use pips.
     displayMode,
-    barSegments: Math.max(1, Math.min(maximum || 1, Math.round(Number(view.barSegments || 1)))),
+    barSegments: boundedNumber(Math.round(Number(view.barSegments || 1)), 1, 1, maximum || 1),
     pipStyle,
-    pipRows: Math.max(1, Math.min(maximum || 1, Math.round(Number(view.pipRows || 1)))),
+    pipRows: boundedNumber(Math.round(Number(view.pipRows || 1)), 1, 1, maximum || 1),
     shortLabel: String(view.shortLabel || view.singular || 'Res'),
     statusLabel: String(view.statusLabel || 'Current'),
     statusItemsLabel: String(view.statusItemsLabel || ''),
@@ -218,7 +219,7 @@ function resourceBarsHtml(definition: ProfessionResourceView, value: number): st
   const segmentMaximum = definition.maximum / segmentCount;
   const barClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : '';
   const bars = Array.from({ length: segmentCount }, (_, index) => {
-    const segmentValue = Math.max(0, Math.min(segmentMaximum, value - index * segmentMaximum));
+    const segmentValue = clamp(value - index * segmentMaximum, 0, segmentMaximum);
     const width = segmentMaximum ? (segmentValue / segmentMaximum) * 100 : 0;
     return `<div class="active-resource-bar${barClass}"><span style="width:${width}%"></span></div>`;
   }).join('');
@@ -284,7 +285,7 @@ export function activeResourceGroup(
       }
 
       const buildValue = definition.buildKey ? app.build[definition.buildKey] : 0;
-      const value = Math.max(0, Math.min(definition.maximum, Number(definition.value ?? buildValue)));
+      const value = boundedNumber(definition.value ?? buildValue, 0, 0, definition.maximum);
       const displayValue = formatResourceValue(value);
       const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
       const title = definition.showValue === false ? `${definition.statusLabel} ${definition.plural}` : valueLabel;
@@ -443,7 +444,7 @@ export function renderStartResource(app: ProfessionAppState): void {
       if (definition.canStart === false) return '';
       const key = definition.buildKey || 'initialResource';
       const startMaximum = Number(definition.startMaximum ?? definition.maximum);
-      const value = Math.max(0, Math.min(startMaximum, Number(app.build[key] || 0)));
+      const value = boundedNumber(app.build[key] || 0, 0, 0, startMaximum);
       if (definition.displayMode === 'bar' || definition.displayMode === 'counter') {
         return `<div class="start-resource-control start-resource-number">
                 <label class="start-att-label">
@@ -476,7 +477,11 @@ export function renderStartResource(app: ProfessionAppState): void {
   element.querySelectorAll<HTMLInputElement>('input[data-resource-key]').forEach((input) => {
     input.addEventListener('change', () => {
       const key = (input.dataset.resourceKey || 'initialResource') as keyof Gw2BuildResources;
-      app.build[key] = Math.max(Number(input.min || 0), Math.min(Number(input.max), Number(input.value) || 0));
+      app.build[key] = clamp(
+        Number(input.value) || 0,
+        finiteNumber(input.min, 0),
+        finiteNumber(input.max, Number.POSITIVE_INFINITY)
+      );
       app.changed();
     });
   });

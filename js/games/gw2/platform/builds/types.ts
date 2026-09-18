@@ -208,8 +208,6 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   targetStartingHealthPercent: number;
   targetArmor: number;
   rotation: import('#gw2/platform/engine/execution/types.js').RotationCommand[];
-  selectedSkillIds?: import('#gw2/platform/engine/skills/types.js').SkillId[];
-  sigils?: string[];
 }
 
 export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
