@@ -1137,9 +1137,10 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     }
   );
 
+  // Precombat swaps must not proc the trait, regardless of the time spent waiting for swap cooldowns.
   assert.deepEqual(
     combatOnly.resolvedEvents.filter((event) => event.name === 'Unseen Sword').map((event) => event.at),
-    [0]
+    [combatOnly.events.find((event) => event.type === 'combat_start').at]
   );
 
   const trigger = simulate('Bladesworn', ['Dragon Trigger', 'Dragon Slash—Force'], {

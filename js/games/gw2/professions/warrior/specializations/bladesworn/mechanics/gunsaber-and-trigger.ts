@@ -47,6 +47,12 @@ function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill
   resetAutoattackChains(context);
   prepareGunsaberSwapTraits(context);
 
+  // Explicit Gunsaber swaps recharge the opposite action so switching back must wait.
+  if (skill.id === ID.UNSHEATHE_GUNSABER || skill.id === ID.SHEATHE_GUNSABER) {
+    const oppositeId = skill.id === ID.UNSHEATHE_GUNSABER ? ID.SHEATHE_GUNSABER : ID.UNSHEATHE_GUNSABER;
+    context.state.cooldowns.set(oppositeId, context.rechargeStart + context.rechargeDuration);
+  }
+
   context.emit({
     type: 'sigil_swap',
     at: context.effectiveEnd,
