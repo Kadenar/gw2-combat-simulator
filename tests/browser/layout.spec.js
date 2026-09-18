@@ -679,7 +679,6 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
 
   expect(await renderCycles(12)).toBe(true);
   await expect(group.locator('.rot-row-line')).toHaveCount(25);
-  expect(await group.locator('.rot-row-skills').evaluateAll((lines) => lines.every((line) => line.ondrop))).toBe(true);
 
   const heights = await group.evaluate((element) => ({
     label: element.querySelector('.rot-row-label').getBoundingClientRect().height,

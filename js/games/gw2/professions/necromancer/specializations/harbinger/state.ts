@@ -1,10 +1,6 @@
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  addTimedStacks,
-  consumeOldestStacks,
-  purgeExpiredStacks
-} from '#gw2/platform/combat/resources/timed-stacks.js';
+import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
@@ -51,7 +47,8 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
 
 /** Keeps Harbinger's capped, expiry-backed Blight representation internally consistent. */
 export function syncHarbingerState<TState extends HarbingerState>(state: TState): TState {
-  state.blightExpiries = (state.blightExpiries || []).sort((left, right) => left - right).slice(-BLIGHT_MAXIMUM_STACKS);
+  // Cap refreshes retain their consumption position; sorting by expiry would spend different stacks.
+  state.blightExpiries = (state.blightExpiries || []).slice(-BLIGHT_MAXIMUM_STACKS);
   state.blight = state.blightExpiries.length;
   return state;
 }
@@ -62,19 +59,34 @@ export function purgeHarbingerTimedState(state: HarbingerState, at: number): voi
   syncHarbingerState(state);
 }
 
-/** Adds as many 25-second Blight applications as the stack cap permits. */
+/**
+ * Adds 25-second applications; cap refreshes replace the shortest-lived stack in place so spending
+ * still follows stack positions rather than expiry order.
+ *
+ * Returns the net change in live stacks, so a refresh at the cap still reports zero gained.
+ */
 export function addBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const grant = addTimedStacks(state.blightExpiries, stacks, at, BLIGHT_DURATION_SECONDS, BLIGHT_MAXIMUM_STACKS);
-  state.blightExpiries = grant.expiries;
+  const before = state.blightExpiries.length;
+  const expiries = state.blightExpiries;
+  const count = boundedInteger(stacks, 0, 0, BLIGHT_MAXIMUM_STACKS);
+  for (let index = 0; index < count; index += 1) {
+    const expiresAt = at + BLIGHT_DURATION_SECONDS;
+    if (expiries.length < BLIGHT_MAXIMUM_STACKS) expiries.push(expiresAt);
+    else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
+  }
+
   syncHarbingerState(state);
-  return grant.added;
+  return state.blightExpiries.length - before;
 }
 
-/** Consumes the oldest active Blight applications up to the requested amount. */
+/**
+ * Consumes from the end of the live stack array. Refreshed positions stay in place, so the consumed
+ * stacks need not be the freshest; expiration likewise preserves the surviving positions.
+ */
 export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const consumption = consumeOldestStacks(state.blightExpiries, stacks, at);
+  const consumption = consumeNewestStacks(state.blightExpiries, stacks, at);
   state.blightExpiries = consumption.expiries;
   syncHarbingerState(state);
   return consumption.consumed;

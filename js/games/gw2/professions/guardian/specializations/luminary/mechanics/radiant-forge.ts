@@ -336,6 +336,12 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   const state = luminaryState.from(context);
   const enter = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE);
   if (!enter || !state.radiantForge) return;
+  // Manual exits and timed expiry before combat leave Forge ready for the opener.
+  if (context.hasExplicitCombatStart && (context.combatStartTime == null || at < context.combatStartTime)) {
+    context.state.cooldowns.delete(enter.id);
+    return;
+  }
+
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
   ).length;

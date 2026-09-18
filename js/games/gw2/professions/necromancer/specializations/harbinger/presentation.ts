@@ -5,7 +5,11 @@ import {
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionEffectPresentation,
+  ProfessionResourceView,
+  RotationStateSnapshotItem
+} from '#gw2/platform/engine/profession/types.js';
 import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -49,7 +53,38 @@ function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSna
   return items;
 }
 
+/** Recorded state supplies exact shroud and Meltdown windows; Blight grants replace their previous count. */
+const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
+  {
+    id: 'harbinger-blight',
+    kind: 'harbinger-blight',
+    name: 'Blight',
+    maximumStacks: 25,
+    replacementGroup: 'harbinger-blight'
+  },
+  {
+    id: 'harbinger-shroud',
+    kind: 'harbinger-shroud',
+    name: 'Harbinger Shroud',
+    stateFromEvent: (event) =>
+      event.type === 'necromancer.state'
+        ? { stacks: Number((event.state as { activeShroud?: string })?.activeShroud === 'harbinger') }
+        : null
+  },
+  {
+    id: 'meltdown',
+    kind: 'meltdown',
+    name: 'Meltdown',
+    stateFromEvent: (event) => {
+      if (event.type !== 'necromancer.state') return null;
+      const expiresAt = Number((event.state as { meltdownUntil?: number })?.meltdownUntil || 0);
+      return { stacks: Number(expiresAt > event.at), expiresAt };
+    }
+  }
+]);
+
 export const harbingerUi: NecromancerUiSlice = Object.freeze({
+  effectPresentations: () => [...HARBINGER_EFFECT_PRESENTATIONS],
   paletteGroups: (context: NecromancerUiContext) =>
     necromancerTransformPaletteGroups(context, {
       entryId: ID.HARBINGER_SHROUD,

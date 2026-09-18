@@ -13,6 +13,7 @@ import {
   harbingerState,
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
@@ -46,14 +47,50 @@ const CASCADING_CORRUPTION_EFFECT: NecromancerSkill = Object.freeze({
   skillWeapon: 'Unequipped'
 });
 
+// Blight has no skill or trait id of its own; it is the Harbinger Shroud resource, so it borrows that identity.
+const BLIGHT_EFFECT: NecromancerSkill = Object.freeze({
+  id: ID.HARBINGER_SHROUD,
+  name: 'Blight',
+  type: 'Trait',
+  skillWeapon: 'Unequipped'
+});
+
+/**
+ * Republishes the whole live Blight resource so the analysis chart tracks it like any other timed effect.
+ *
+ * Blight is not additive on the chart: it is gained in bursts, spent in fixed chunks by shroud skills and
+ * elixirs, and each stack also ages out on its own 25-second window. A grant-only emission would show the
+ * gains and never the spending, so every emission carries the complete current count and supersedes the
+ * previous one through the presentation's replacement group. The duration runs to the longest-lived stack,
+ * which is when the count would reach zero if nothing further touched it.
+ */
+export function emitBlightState(context: NecromancerSchedulerContext, state: HarbingerState, at: number): void {
+  const expiries = state.blightExpiries || [];
+  emitSkillBuff(context, BLIGHT_EFFECT, {
+    at,
+    kind: 'harbinger-blight',
+    stacks: expiries.length,
+    duration: expiries.length ? Math.max(...expiries) - at : 0
+  });
+}
+
+/** Publishes each expiry at its own time before later gains or spends can change the surviving stacks. */
+function expireBlight(context: NecromancerSchedulerContext, state: HarbingerState, target: number): void {
+  while (state.blightExpiries.length && Math.min(...state.blightExpiries) <= target) {
+    const at = Math.min(...state.blightExpiries);
+    purgeHarbingerTimedState(state, at);
+    emitBlightState(context, state, at);
+  }
+}
+
 /** Advances timed Blight accrual through a target time while Harbinger Shroud remains active. */
 export function advanceHarbingerBlight(context: NecromancerSchedulerContext, target: number): void {
   const state = harbingerState.from(context);
   const coreState = professionCoreState(context);
-  purgeHarbingerTimedState(state, target);
   // Blight only accrues while inside Harbinger Shroud; reset the cursor after every exit path.
   if (coreState.activeShroud !== 'harbinger') {
     state.nextBlightAt = Number.POSITIVE_INFINITY;
+    expireBlight(context, state, target);
     return;
   }
 
@@ -74,9 +111,13 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
   while (Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <= exitAt + EPSILON) {
     const nextBlightAt = Number(state.nextBlightAt);
+    expireBlight(context, state, nextBlightAt);
     addBlight(state, stacksPerSecond, nextBlightAt);
+    emitBlightState(context, state, nextBlightAt);
     state.nextBlightAt = nextBlightAt + 1;
   }
+
+  expireBlight(context, state, target);
 }
 
 /** Accumulates consumed Blight and emits Meltdown whenever Cascading Corruption crosses its threshold. */
@@ -204,6 +245,8 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const commitAt = skill.interruptCommitMs == null ? impactAt : context.start + Number(skill.interruptCommitMs) / 1000;
   // A canceled throw must reach its launch/impact commit before it can consume Blight or apply any effects.
   if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
+  // Reconcile timed resources before checking empowerment or spending at completion.
+  advanceHarbingerBlight(context, at);
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
   const empoweredProfile = balanceProfileFromContext(
@@ -213,6 +256,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const threshold = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
+  emitBlightState(context, state, at);
   applyCascadingCorruption(context, skill, consumed, at);
   emitNecromancerStateSnapshot(context, at, 'blight-consumed', {
     dedupeAcrossSourceIds: true
@@ -241,6 +285,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   );
   // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
   addBlight(state, Number((empoweredProfile || skill).blightGain ?? (ambition ? 15 : 10)), at);
+  emitBlightState(context, state, at);
   emitNecromancerStateSnapshot(context, at, 'blight-gained', {
     dedupeAcrossSourceIds: true
   });
@@ -258,6 +303,8 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   // Blight skills have mid-cast hit frames; these fractions come from wiki frame data, not approximations.
   const impactProgress = skill.id === ID.DEVOURING_CUT ? 0.75 : skill.id === ID.VORACIOUS_ARC ? 20 / 21 : 1;
   const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
+  // Earlier shroud ticks must land before this spend, including when the cast crosses a tick boundary.
+  advanceHarbingerBlight(context, at);
   const state = harbingerState.from(context);
   const empoweredProfile = balanceProfileFromContext(
     context,
@@ -266,9 +313,9 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   const cost = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, at) : 0;
-  // The strike snapshots Blight after the five-stack activation cost. Blight
-  // generated during the cast is advanced afterward and affects later skills.
+  // The strike retains the post-cost count after reconciling earlier resource ticks.
   const damageBlight = state.blight;
+  emitBlightState(context, state, at);
   applyCascadingCorruption(context, skill, consumed, at);
   emitNecromancerStateSnapshot(context, at, 'blight-skill', {
     dedupeAcrossSourceIds: true

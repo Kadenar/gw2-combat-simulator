@@ -9,6 +9,8 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createRitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import { ritualistEventHandlers } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -60,7 +62,7 @@ test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   );
   const lingering = simulate(
     'Ritualist',
-    ["Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", { type: 'wait', durationMs: 8000 }],
+    ["Ritualist's Shroud", 'Anguish', "Exit Ritualist's Shroud", { type: 'wait', durationMs: 9000 }],
     {
       initialResource: 100,
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS]
@@ -90,10 +92,10 @@ test('Soul Twisting refunds only the first spirit summon after entering Ritualis
 });
 
 test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
-  const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 8000 }], {
+  const anguish = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 9000 }], {
     initialResource: 100
   });
-  const wanderlust = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 8000 }], {
+  const wanderlust = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 9000 }], {
     initialResource: 100
   });
   const anguishIcon = necromancerCatalog.skillsById.get(ID.ANGUISH).icon;
@@ -106,6 +108,77 @@ test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
   assert.equal(wanderlustRows.find((row) => row.name === 'Wanderlust Autoattack')?.icon, wanderlustIcon);
 });
 
+// A missed shared pulse is skipped, not delayed into the current animation's impact window.
+test('spirit readiness is checked at attack start and generation is checked again at impact', () => {
+  for (const key of ['anguish', 'wanderlust', 'preservation']) {
+    const state = createRitualistState();
+    const queued = [];
+    const context = {
+      profession: { specialization: { kind: 'Ritualist', state } },
+      queue: { enqueue: (event) => queued.push(event) }
+    };
+    const attack = {
+      type: 'necromancer.spirit-attack',
+      at: 5,
+      coefficient: 1,
+      requiresSpirit: key,
+      requiresSpiritGeneration: 1,
+      spiritAttackDelay: 0.8
+    };
+    const handle = ritualistEventHandlers['necromancer.spirit-attack'];
+    state.activeSpirits[key] = true;
+    state.spiritGenerations[key] = 1;
+    state.spiritBusyUntil[key] = 5.4;
+    handle(context, attack);
+    assert.deepEqual(queued, []);
+    state.spiritBusyUntil[key] = 5;
+    handle(context, attack);
+    const impact = queued.pop();
+    assert.equal(impact.at, 5.8);
+    state.spiritGenerations[key] = 2;
+    handle(context, impact);
+    assert.deepEqual(queued, []);
+    handle(context, { ...impact, requiresSpiritGeneration: 2 });
+    assert.equal(queued.pop().type, 'damage');
+  }
+});
+
+// Replacing Anguish must preserve the other spirits' clocks and rejoin their next eligible cycle.
+test('spirit replacement skips its busy pulse without restarting the other spirit clocks', () => {
+  const run = (replace) =>
+    simulate(
+      'Ritualist',
+      [
+        "Ritualist's Shroud",
+        'Anguish',
+        'Wanderlust',
+        'Preservation',
+        { type: 'wait', durationMs: 4000 },
+        replace ? 'Anguish' : { type: 'wait', durationMs: 560 },
+        { type: 'wait', durationMs: 8500 }
+      ],
+      { initialResource: 100, selectedTraitIds: [TRAIT.SOUL_TWISTING] }
+    );
+  const baseline = run(false);
+  const replaced = run(true);
+  const times = (result, spirit) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'damage' &&
+          event.metadata?.spiritAttackType === 'autoattack' &&
+          event.metadata.spirit === spirit
+      )
+      .map((event) => event.at);
+  assert.deepEqual(replaced.warnings, []);
+  for (const key of ['wanderlust', 'preservation']) assert.deepEqual(times(replaced, key), times(baseline, key));
+  const originalAnguish = times(baseline, 'anguish');
+  const replacedAnguish = times(replaced, 'anguish');
+  assert.ok(originalAnguish.length >= 2);
+  assert.deepEqual(replacedAnguish, originalAnguish.slice(1));
+  assert.equal(replacedAnguish[0], times(replaced, 'wanderlust')[1]);
+});
+
 test('Ritualist live spirit packets retain independent ownership and cadence', () => {
   const packets = simulate(
     'Ritualist',
@@ -115,7 +188,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
       'Wanderlust',
       'Preservation',
       'Essence Blast',
-      { type: 'wait', durationMs: 6000 }
+      { type: 'wait', durationMs: 8000 }
     ],
     {
       initialResource: 100,
@@ -162,7 +235,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
       (event) =>
         event.actorType === 'summon' &&
         event.coefficient === 0.3 &&
-        event.weaponStrength === 1565 &&
+        event.weaponStrength === 1440 &&
         event.summonInheritsCriticalAttributes === true
     ),
     true
@@ -170,14 +243,14 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   assert.equal(
     wanderlustAutos.every(
       (event) =>
-        event.coefficient === 0.4 && event.weaponStrength === 1565 && event.summonInheritsCriticalAttributes === true
+        event.coefficient === 0.4 && event.weaponStrength === 1440 && event.summonInheritsCriticalAttributes === true
     ),
     true
   );
   assert.equal(
     anguishAutos.every(
       (event) =>
-        event.coefficient === 0.4 && event.weaponStrength === 1685 && event.summonInheritsCriticalAttributes === true
+        event.coefficient === 0.4 && event.weaponStrength === 1510 && event.summonInheritsCriticalAttributes === true
     ),
     true
   );
@@ -195,7 +268,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
 });
 
 test('Ritualist spirit autos inherit owner Fury without inheriting owner Might', () => {
-  const rotation = ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 8000 }];
+  const rotation = ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 9000 }];
   const run = (boons) =>
     simulate('Ritualist', rotation, {
       initialResource: 100,

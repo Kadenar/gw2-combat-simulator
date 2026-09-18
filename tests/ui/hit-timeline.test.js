@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { filterHitsToPhase, groupSkillHits } from '#ui/results/charts/hit-timeline-model.js';
+import { groupSkillHits } from '#ui/results/charts/hit-timeline-model.js';
 import { drawHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
@@ -88,8 +88,8 @@ test('condition payouts retain full and partial attribution independently of ski
   assert.deepEqual(series.skillDamage, {});
 });
 
-// Burst grouping must preserve every hit and its activation through chart projection and phase filtering.
-test('chart projection preserves activation ownership across burst grouping and phase boundaries', () => {
+// Burst grouping must preserve every hit and its activation through chart projection.
+test('chart projection preserves activation ownership across burst grouping', () => {
   const series = buildTimeSeries(
     {
       dpsStartTime: 1,
@@ -123,15 +123,6 @@ test('chart projection preserves activation ownership across burst grouping and 
   );
   assert.equal(hits[0].activationId, hits[2].activationId);
   assert.notEqual(hits[0].activationId, hits[1].activationId);
-  const phase = filterHitsToPhase(hits, 1000, 3000);
-  assert.deepEqual(
-    phase.filter((hit) => hit.activationId === 'cast:1').map((hit) => hit.t),
-    [1000]
-  );
-  assert.equal(
-    phase.some((hit) => hit.t === 2000),
-    false
-  );
   assert.deepEqual(
     groupSkillHits([
       { t: 0, v: 0 },
@@ -143,7 +134,7 @@ test('chart projection preserves activation ownership across burst grouping and 
 });
 
 // Continuous ticks must split at fixed boundaries, retain damage, and never join separate strike bursts.
-test('condition windows preserve damage kind and stay aligned through phase filtering', () => {
+test('condition windows preserve damage kind and stay aligned to fight time', () => {
   const series = buildTimeSeries(
     {
       dpsStartTime: 0,
@@ -185,12 +176,6 @@ test('condition windows preserve damage kind and stay aligned through phase filt
       .flat()
       .every((hit) => hit.damageType === 'condition' && hit.crit === null)
   );
-  const phase = filterHitsToPhase(hits, 2300, 10_800);
-  const conditionGroups = groupSkillHits(phase, 2300).filter((group) => group[0].damageType === 'condition');
-  assert.deepEqual(
-    conditionGroups.map((group) => group.map((hit) => hit.t + 2300)),
-    [[3000, 4000], [5000, 6000, 7000, 8000, 9000], [10_000]]
-  );
   assert.deepEqual(groupSkillHits([{ t: 0, v: 0, damageType: 'condition' }]), []);
 });
 
@@ -214,49 +199,49 @@ test('repeated skill uses merge across gaps up to 1.5 seconds', () => {
 
 // A multi-hit activation gets one label while every damage marker remains drawn.
 test('cast labels stagger without overlap and keep fight timestamps', () => {
-  for (const showAxis of [true, false]) {
-    const labels = [];
-    let strokes = 0;
-    const context = {
-      setTransform() {},
-      clearRect() {},
-      beginPath() {},
-      moveTo() {},
-      lineTo() {},
-      stroke() {
-        strokes += 1;
-      },
-      measureText: (text) => ({ width: text.length * 6 }),
-      fillText: (text, x, y) => labels.push({ text, x, y })
-    };
-    const canvas = {
-      parentElement: { clientWidth: 400 },
-      style: {},
-      getContext: () => context,
-      getBoundingClientRect: () => ({ left: 0, top: 0, width: 400 })
-    };
-    const hits = [0, 1600, 1610, 1620, 10_000].map((t) => ({
-      t,
-      v: 100,
-      activationId: t > 0 && t < 2000 ? 'cast:2' : `cast:${t}`
-    }));
-    const layout = drawHitTimeline(canvas, hits, 10_000, { showAxis, timeOffsetMs: 5000 });
-    const timestamps = labels.filter(({ text }) => text.includes('hit'));
-    assert.deepEqual(
-      timestamps.map(({ text }) => text),
-      ['5.00s · 1 hit', '6.60s · 3 hits', '15.00s · 1 hit']
-    );
-    assert.equal(strokes, hits.length + 1);
-    assert.notEqual(timestamps[0].y, timestamps[1].y);
-    for (const label of timestamps) {
-      assert.ok(label.x >= 0);
-      assert.ok(label.x + context.measureText(label.text).width <= layout.cssWidth);
-      assert.ok(label.y + 10 <= layout.height);
-      for (const previous of timestamps.filter(
-        (other) => other !== label && other.y === label.y && other.x <= label.x
-      )) {
-        assert.ok(previous.x + context.measureText(previous.text).width + 4 <= label.x);
-      }
+  const labels = [];
+  let strokes = 0;
+  const context = {
+    setTransform() {},
+    clearRect() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    stroke() {
+      strokes += 1;
+    },
+    measureText: (text) => ({ width: text.length * 6 }),
+    fillText: (text, x, y) => labels.push({ text, x, y })
+  };
+  const canvas = {
+    parentElement: { clientWidth: 400 },
+    style: {},
+    getContext: () => context,
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 400 })
+  };
+  const hits = [0, 1600, 1610, 1620, 10_000].map((t) => ({
+    t,
+    v: 100,
+    activationId: t > 0 && t < 2000 ? 'cast:2' : `cast:${t}`
+  }));
+  const layout = drawHitTimeline(canvas, hits, 10_000, { timeOffsetMs: 5000 });
+  assert.deepEqual(
+    labels.filter(({ text }) => !text.includes('hit')).map(({ text }) => text),
+    ['5s', '7s', '9s', '11s', '13s', '15s']
+  );
+  const timestamps = labels.filter(({ text }) => text.includes('hit'));
+  assert.deepEqual(
+    timestamps.map(({ text }) => text),
+    ['5.00s · 1 hit', '6.60s · 3 hits', '15.00s · 1 hit']
+  );
+  assert.equal(strokes, hits.length + 1);
+  assert.notEqual(timestamps[0].y, timestamps[1].y);
+  for (const label of timestamps) {
+    assert.ok(label.x >= 0);
+    assert.ok(label.x + context.measureText(label.text).width <= layout.cssWidth);
+    assert.ok(label.y + 10 <= layout.height);
+    for (const previous of timestamps.filter((other) => other !== label && other.y === label.y && other.x <= label.x)) {
+      assert.ok(previous.x + context.measureText(previous.text).width + 4 <= label.x);
     }
   }
 });

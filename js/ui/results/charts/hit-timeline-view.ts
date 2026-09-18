@@ -76,7 +76,6 @@ interface HitTimelineOptions {
   readonly color?: string;
   readonly label?: string;
   readonly emptyText?: string;
-  readonly showAxis?: boolean;
   readonly timeOffsetMs?: number;
   readonly groupHits?: boolean;
 }
@@ -92,8 +91,7 @@ export interface HitTimelineMountOptions extends HitTimelineOptions {
   readonly inspectAllTicks?: boolean;
 }
 
-// Shared horizontal padding keeps standalone and embedded hit strips aligned
-// with the time-series chart's left axis gutter and right margin.
+// Shared horizontal padding aligns hit timelines with the time-series chart's axis gutter.
 const HIT_TIMELINE_PAD = { right: 16, left: 54 } as const;
 const ACTIVE_HIT_TIMELINE_MOUNTS = new WeakMap<HTMLElement, ActiveHitTimelineMount>();
 
@@ -107,7 +105,6 @@ export function drawHitTimeline(
     color = '#b57ce0',
     label = '',
     emptyText = '',
-    showAxis = true,
     timeOffsetMs = 0,
     groupHits = true
   }: HitTimelineOptions = {}
@@ -135,7 +132,7 @@ export function drawHitTimeline(
   const pad = {
     top: label ? 18 : 10,
     right: HIT_TIMELINE_PAD.right,
-    bottom: (showAxis ? 18 : 8) + 28,
+    bottom: 46,
     left: HIT_TIMELINE_PAD.left
   };
   const plotWidth = Math.max(1, cssWidth - pad.left - pad.right);
@@ -159,23 +156,21 @@ export function drawHitTimeline(
   context.lineTo(cssWidth - pad.right, baseY);
   context.stroke();
 
-  if (showAxis) {
-    context.fillStyle = '#8d8d9f';
-    context.textBaseline = 'top';
-    for (let index = 0; index <= 5; index += 1) {
-      const ratio = index / 5;
-      const x = pad.left + plotWidth * ratio;
-      context.textAlign = index === 0 ? 'left' : index === 5 ? 'right' : 'center';
-      context.fillText(
-        `${((timeOffsetMs + durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
-        x,
-        baseY + 33
-      );
-    }
-
-    context.textBaseline = 'middle';
+  // Every timeline keeps a time axis so both overview and detail markers retain their fight timestamps.
+  context.fillStyle = '#8d8d9f';
+  context.textBaseline = 'top';
+  for (let index = 0; index <= 5; index += 1) {
+    const ratio = index / 5;
+    const x = pad.left + plotWidth * ratio;
+    context.textAlign = index === 0 ? 'left' : index === 5 ? 'right' : 'center';
+    context.fillText(
+      `${((timeOffsetMs + durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
+      x,
+      baseY + 33
+    );
   }
 
+  context.textBaseline = 'middle';
   const groups = groupHits ? groupSkillHits(hits, timeOffsetMs) : hits.filter((hit) => hit.v > 0).map((hit) => [hit]);
   const conditionOverview = groupHits && hits.some((hit) => hit.damageType === 'condition');
   const markers = conditionOverview
@@ -249,8 +244,8 @@ export function mountHitTimeline(
   container: HTMLElement | null | undefined,
   hits: readonly SkillHit[],
   options: HitTimelineMountOptions
-): { redraw: () => void } | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   for (const previous of [container, ...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')]) {
     ACTIVE_HIT_TIMELINE_MOUNTS.get(previous)?.resizeObserver?.disconnect();
     ACTIVE_HIT_TIMELINE_MOUNTS.delete(previous);
@@ -267,13 +262,12 @@ export function mountHitTimeline(
 
   container.innerHTML = `<div data-role="hit-lane" role="group" aria-label="Strike damage"></div>
     <div data-role="hit-lane" role="group" aria-label="Condition damage"></div>`;
-  const lanes = [...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')].map((lane, index) =>
+  [...container.querySelectorAll<HTMLElement>('[data-role="hit-lane"]')].forEach((lane, index) =>
     mountHitTimelineLane(lane, index === 0 ? strikes : conditions, {
       ...options,
       label: [options.label, index === 0 ? 'Strikes' : 'Conditions'].filter(Boolean).join(' · ')
     })
   );
-  return { redraw: () => lanes.forEach((lane) => lane?.redraw()) };
 }
 
 /** Mounts native keyboard controls and an expandable, precise hit or tick breakdown for one lane. */
@@ -286,13 +280,12 @@ function mountHitTimelineLane(
     label,
     height = 100,
     emptyText,
-    showAxis = true,
     timeOffsetMs = 0,
     timeLabel = 'fight time',
     inspectAllTicks = false
   }: HitTimelineMountOptions
-): { redraw: () => void } | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   ACTIVE_HIT_TIMELINE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
   const activeMount: ActiveHitTimelineMount = { token: mountToken };
@@ -426,7 +419,6 @@ function mountHitTimelineLane(
       color,
       label,
       emptyText,
-      showAxis,
       timeOffsetMs
     });
     if (!layout || !controls) return;
@@ -520,6 +512,4 @@ function mountHitTimelineLane(
     });
     activeMount.resizeObserver.observe(wrap);
   }
-
-  return { redraw };
 }

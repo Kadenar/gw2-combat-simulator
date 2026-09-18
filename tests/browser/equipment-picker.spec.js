@@ -138,6 +138,14 @@ test('skill choices support word search and keyboard selection', async ({ page }
   const menu = page.locator('.sbar-dropdown.open');
   const search = menu.getByRole('searchbox');
   await expect(search).toBeFocused();
+  // Skill results own the constrained menu's scroll while the search field stays fixed above them.
+  const results = menu.locator('.dropdown-search-results');
+  expect(await results.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await results.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  expect(await results.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  expect(await menu.evaluate((element) => element.scrollTop)).toBe(0);
   await search.fill('disen phant');
   await expect(menu.locator('.dd-item:visible')).toHaveCount(1);
   await search.press('ArrowDown');

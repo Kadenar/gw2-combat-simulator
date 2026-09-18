@@ -8,6 +8,9 @@
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
+const SCOURGE_SHROUD_PALETTE_TILE = 'scourge-desert-shroud';
+
 export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.NEFARIOUS_FAVOR]: {
     castTimeMs: 0,
@@ -112,7 +115,9 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     lifeForceCost: 50,
     // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade',
-    flipSkillId: null
+    flipSkillId: null,
+    paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
+    paletteTileOrder: 1
   },
   [ID.MANIFEST_SAND_SHADE]: {
     castTimeMs: 480,
@@ -131,6 +136,8 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     lifeForceCost: 35,
     // Custom: Spends life force and resolves shade placement/pulses against live shade state; see `scourge/mechanics/shades.ts`.
     handlerId: 'necromancer.shade',
-    flipParentId: null
+    flipParentId: null,
+    paletteTileId: SCOURGE_SHROUD_PALETTE_TILE,
+    paletteTileOrder: 2
   }
 });

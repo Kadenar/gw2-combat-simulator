@@ -41,7 +41,6 @@ test('skill details distinguish normal and empowered applications', async ({ pag
             { t: 1000, v: 100 }
           ]
         },
-        skillNames: { embrace: 'Embrace the Darkness', other: 'Other Skill' },
         skillApplications: {
           'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
             t,
@@ -57,6 +56,8 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await embraceRow.focus();
   await embraceRow.press('Enter');
   const timeline = page.locator('[data-role="skill-timeline"]');
+  await expect(page.locator('[data-role="result-charts"] [data-role="dps-hit-strip"]')).toHaveCount(0);
+  await expect(page.locator('[data-role="result-charts"] [data-role="hit-timeline-canvas"]')).toHaveCount(0);
   const strikes = timeline.getByRole('group', { name: 'Strike damage', exact: true });
   await strikes.getByRole('button', { name: '0.00s · 5 hits', exact: true }).click();
   await expect(strikes.getByRole('columnheader', { name: 'Pulse', exact: true })).toBeVisible();
@@ -268,7 +269,7 @@ async function resizeToMobile(page) {
   await expect.poll(() => page.evaluate(() => window.resizeOverflow)).toBe(0);
 }
 
-// Window controls retain precise ticks in both placements, including clipped phases and narrow screens.
+// Expanded-row timeline controls retain precise ticks and stay usable on narrow screens.
 test('conditions use separate bounded windows with accessible tick details', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
@@ -290,7 +291,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
       }))
     ];
     mountHitTimeline(document.querySelector('#standalone'), hits, { durationMs: 12_000, label: 'Damage events' });
-    const chart = mountTimeSeriesCharts(
+    mountTimeSeriesCharts(
       document.querySelector('#series'),
       {
         durationMs: 12_000,
@@ -302,9 +303,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
           { t: 0, v: 0 },
           { t: 12_000, v: 520 }
         ],
-        effects: {},
-        skillDamage: { skill: hits },
-        skillNames: { skill: 'Mixed damage' }
+        effects: {}
       },
       {
         healthBreakpoints: [
@@ -313,11 +312,10 @@ test('conditions use separate bounded windows with accessible tick details', asy
         ]
       }
     );
-    chart.setSelectedSkill('skill');
   });
 
-  for (const selector of ['#standalone', '#series [data-role="dps-hit-strip"]']) {
-    const chart = page.locator(selector);
+  {
+    const chart = page.locator('#standalone');
     const strikes = chart.getByRole('group', { name: 'Strike damage', exact: true });
     const conditions = chart.getByRole('group', { name: 'Condition damage', exact: true });
     await expect(strikes.locator('.hit-group')).toHaveCount(2);
@@ -375,14 +373,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.content).toBeLessThanOrEqual(width.viewport);
   await page.locator('#series').getByRole('button', { name: '80-60%', exact: true }).click();
-  const phase = page.locator('#series [data-role="dps-hit-strip"]');
-  await expect(phase.locator('[data-role="hit-lane"]')).toHaveCount(0);
-  await expect(phase.locator('.hit-group')).toHaveCount(2);
-  await phase.getByRole('button', { name: '2.30s–5.00s · 2 ticks', exact: true }).click();
-  await expect(phase.locator('tbody tr')).toHaveCount(2);
-  await expect(phase.locator('tbody tr').first().locator('td')).toHaveText(['1', '3.00s', 'Bleeding', '10']);
-  await phase.getByRole('button', { name: '5.00s–8.80s · 4 ticks', exact: true }).click();
-  await expect(phase.locator('tbody tr')).toHaveCount(4);
+  await expect(page.locator('#series [data-role="hit-timeline-canvas"]')).toHaveCount(0);
 });
 
 // Condition labels survive projection, and only identical timestamps and types combine across applications.
@@ -416,7 +407,7 @@ test('condition details sum simultaneous ticks by type', async ({ page }) => {
   await expect(rows.nth(2).locator('td')).toHaveText(['3', '1.00s', 'Bleeding', '5']);
 });
 
-// Both chart placements share native cast controls, detailed hits, and absolute timestamps after phase changes.
+// Hit details stay local while the separate DPS chart retains its phase clock.
 test('multi-hit groups support hover, keyboard inspection, resizing, and phase changes', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
@@ -433,7 +424,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
       { t: 13_000, v: 50, crit: null, activationId: 'cast:5' }
     ];
     mountHitTimeline(document.querySelector('#standalone'), hits, { durationMs: 20_000, label: 'Damage events' });
-    const chart = mountTimeSeriesCharts(
+    mountTimeSeriesCharts(
       document.querySelector('#series'),
       {
         durationMs: 20_000,
@@ -445,9 +436,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
           { t: 0, v: 0 },
           { t: 20_000, v: 530 }
         ],
-        effects: {},
-        skillDamage: { skill: hits },
-        skillNames: { skill: 'Multi-hit skill' }
+        effects: {}
       },
       {
         healthBreakpoints: [
@@ -456,11 +445,10 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
         ]
       }
     );
-    chart.setSelectedSkill('skill');
   });
 
-  for (const selector of ['#standalone', '#series [data-role="dps-hit-strip"]']) {
-    const chart = page.locator(selector);
+  {
+    const chart = page.locator('#standalone');
     await expect(chart.getByText('Select a hit group to inspect individual hits.', { exact: true })).toHaveCount(0);
     const group = chart.getByRole('button', { name: '5.51s · 5 hits', exact: true });
     await group.hover();
@@ -535,10 +523,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(width.content).toBeLessThanOrEqual(width.viewport);
   await page.locator('#series').getByRole('button', { name: '80-60%', exact: true }).click();
-  const phaseGroup = page.locator('#series').getByRole('button', { name: '5.51s · 5 hits', exact: true });
-  await expect(page.locator('#series [data-role="hit-detail"]')).toBeHidden();
-  await phaseGroup.click();
-  await expect(page.locator('#series [data-role="hit-detail"]')).toContainText('5.61s');
+  await expect(page.locator('#series [data-role="hit-detail"]')).toHaveCount(0);
   const dpsCanvas = page.locator('#series [data-role="dps-canvas"]');
   const bounds = await dpsCanvas.boundingBox();
   await dpsCanvas.hover({ position: { x: 54 + (bounds.width - 70) / 2, y: 100 } });

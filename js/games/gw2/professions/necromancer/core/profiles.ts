@@ -369,7 +369,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_BLOOD_FIEND,
       minionKey: 'blood-fiend',
       minionCount: 1,
-      pulseInterval: 3.1,
+      // Measured animation plus fixed idle time; only the animation benefits from received Quickness.
+      pulseInterval: 3.16,
       basePower: 2400,
       damagePerCoefficient: 4338,
       criticalChance: 0.05,
@@ -382,7 +383,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         coefficient: 0.065,
         hits: 1,
         actorType: 'summon',
-        name: 'Summon Blood Fiend - Minion Attack'
+        name: 'Summon Blood Fiend - Minion Attack',
+        castTimeMs: 2000
       }
     ]
   ),
@@ -474,7 +476,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
       parentId: ID.SUMMON_BONE_MINIONS,
       minionKey: 'bone-minion',
       minionCount: 2,
-      pulseInterval: 3.52,
+      pulseInterval: 3.56,
       basePower: 2250,
       damagePerCoefficient: 4750,
       criticalChance: 0.05,
@@ -487,7 +489,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         coefficient: 0.04,
         hits: 1,
         actorType: 'summon',
-        name: 'Summon Bone Minions - Minion Attack'
+        name: 'Summon Bone Minions - Minion Attack',
+        castTimeMs: 1440
       }
     ]
   ),
@@ -542,6 +545,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3653,
+        // Both Slashes accelerate; Fist's animation and the chain's idle gaps remain fixed.
+        castTimeMs: 1200,
         name: 'Slash',
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
       },
@@ -554,6 +559,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3654,
+        castTimeMs: 1200,
         name: 'Slash',
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
       },

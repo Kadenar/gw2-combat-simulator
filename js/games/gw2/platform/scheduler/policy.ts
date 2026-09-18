@@ -29,6 +29,7 @@ import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.j
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
 import {
   buffApplicationStacks,
+  buffMatchesAudience,
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration
@@ -112,7 +113,8 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   kind: string,
   at: number,
-  audience: 'self' | 'summon' = 'self'
+  audience: 'self' | 'summon' = 'self',
+  companionId?: string
 ): boolean {
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
@@ -120,7 +122,8 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
     const applications = boonApplicationsAt(context.events, normalized, canonicalTime(at));
     return (
       buffApplicationStacks(applications, normalized, at, 1, {
-        includes: (application) => application.resolvedAudience.includesSummons
+        audience: 'summon',
+        companionId
       }) > 0
     );
   }
@@ -131,7 +134,8 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
       includes: (event) =>
         event.type === 'buff' &&
         String(event.kind || '').toLowerCase() === normalized &&
-        event.resolvedAudience?.includesSummons === true &&
+        // Recipient-specific clocks must not borrow another summon's boon applications.
+        buffMatchesAudience(event, 'summon', companionId) &&
         Number(event.stacks || 1) > 0
     }) > 0
   );

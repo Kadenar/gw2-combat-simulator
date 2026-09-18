@@ -774,9 +774,6 @@ export function mountRotationResults(
   };
 
   let selectedSkillKey: string | null = null;
-  let chartHandle: {
-    readonly setSelectedSkill: (key: string | null) => void;
-  } | null = null;
   const applySkillRowSelection = (): void => {
     for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
       const active = rowElement.dataset.skillKey === selectedSkillKey;
@@ -862,10 +859,9 @@ export function mountRotationResults(
   };
 
   const selectSkill = (key: string | null): void => {
-    // Clicking the active row again clears the selection.
+    // Keep hit inspection local to the expanded row; clicking it again clears the selection.
     selectedSkillKey = key && key === selectedSkillKey ? null : key;
     applySkillRowSelection();
-    chartHandle?.setSelectedSkill(selectedSkillKey);
     renderSkillTimeline();
   };
 
@@ -888,11 +884,10 @@ export function mountRotationResults(
   const chartContainer = container.querySelector<HTMLElement>('[data-role="result-charts"]');
   if (chartContainer && chartSeries) {
     // Charts mount only when the transformed model supplies sampled series.
-    chartHandle =
-      mountTimeSeriesCharts(chartContainer, chartSeries, {
-        ...(options.chartOptions || {}),
-        healthBreakpoints: breakpoints
-      }) || null;
+    mountTimeSeriesCharts(chartContainer, chartSeries, {
+      ...(options.chartOptions || {}),
+      healthBreakpoints: breakpoints
+    });
   }
 
   bindSkillSelection();

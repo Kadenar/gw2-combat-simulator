@@ -4,10 +4,6 @@
     "Harbinger Shroud",
     "Exit Harbinger Shroud",
     {
-      "name": "__wait",
-      "waitMs": 9000
-    },
-    {
       "name": "Grasping Darkness",
       "interruptMs": 120
     },

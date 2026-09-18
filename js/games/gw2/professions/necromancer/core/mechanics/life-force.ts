@@ -62,6 +62,12 @@ function setShroudRecharge(
   at: number
 ): void {
   if (entryId != null) {
+    // Precombat shroud toggles prepare traits without imposing an artificial wait before the opener.
+    if (context.hasExplicitCombatStart && (context.combatStartTime == null || at < context.combatStartTime)) {
+      context.state.cooldowns.delete(entryId);
+      return;
+    }
+
     context.state.cooldowns.set(entryId, at + alacrityRecharge(context, 10, at));
   }
 }

@@ -144,12 +144,18 @@ export function buildChartSeries(
   presentations: readonly ProfessionEffectPresentation[] = []
 ): ChartSeries {
   // Attribute each per-hit event to the same breakdown row key the skill table
-  // uses, so clicking a row highlights exactly its hits on the chart.
+  // uses, so expanding a row shows exactly its hits in the local timeline.
   const skillKeyByIdentity = skillDamageKeyByIdentity(result);
   const series = buildTimeSeries(result, sampleStepMs, {
     effectName: (kind, event) => effectName(kind, event, presentations),
     effectType: (kind, event) => (event.type === 'condition' ? 'condition' : isStandardBoon(kind) ? 'boon' : 'buff'),
     replacementGroup: (kind) => effectPresentation(kind, presentations)?.replacementGroup || '',
+    // Let profession-owned snapshots feed the existing timed-effect integration without changing combat events.
+    stateEffects: (event) =>
+      presentations.flatMap((presentation) => {
+        const state = presentation.stateFromEvent?.(event);
+        return state ? [{ ...state, name: effectName(presentation.kind, event, presentations) }] : [];
+      }),
     // Relic activation records are the authoritative source for temporary
     // relic state, including refreshes that extend the active window.
     timedProcEffect: (proc) =>
@@ -169,9 +175,7 @@ export function buildChartSeries(
           parentSkill: event.parentSkillName,
           name: event.name
         })
-      ) ?? null,
-    // Row keys are `group|name`; the display name is everything after the group.
-    skillName: (key) => key.slice(key.indexOf('|') + 1)
+      ) ?? null
   });
   // Show upkeep applications on the fight clock without splitting skill identity or damage totals.
   const startMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;

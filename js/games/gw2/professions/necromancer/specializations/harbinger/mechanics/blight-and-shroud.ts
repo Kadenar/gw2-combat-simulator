@@ -8,7 +8,10 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { advanceHarbingerBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
+import {
+  advanceHarbingerBlight,
+  emitBlightState
+} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import {
   cloneNecromancerAttributes,
@@ -29,6 +32,8 @@ import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer
 /** Applies Harbinger's health baseline and registers its shroud-exit Blight cursor cleanup. */
 function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void {
   const core = professionCoreState(context);
+  // Seed the chart before the first cast so initial Blight contributes throughout the observation window.
+  emitBlightState(context, harbingerState.from(context), context.state.time);
   if (!professionStaticRulesApplied(context.config)) {
     // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
     const vitality = Number(balanceProfileFromContext(context, PROFILE.alchemicVigor)?.attributeBonus ?? 240);

@@ -8,8 +8,6 @@ import {
   type ChartPoint,
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
-import { filterHitsToPhase } from '#ui/results/charts/hit-timeline-model.js';
-import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
@@ -30,8 +28,8 @@ export interface ChartOptions {
   readonly targetStartingHealthPercent: number;
   readonly targetDied: boolean;
   readonly healthBreakpointColor: string;
-  // Colour of the per-skill hit markers on the DPS strip and table timeline.
-  readonly skillDamageColor: string;
+  // Colour of the per-skill hit markers in the expanded table row.
+  readonly skillDamageColor?: string;
 }
 
 interface ChartLine {
@@ -95,8 +93,7 @@ const DEFAULT_OPTIONS: ChartOptions = {
   healthBreakpoints: [],
   targetStartingHealthPercent: 100,
   targetDied: false,
-  healthBreakpointColor: '#e1c070',
-  skillDamageColor: '#b57ce0'
+  healthBreakpointColor: '#e1c070'
 };
 interface ActiveChartMount {
   readonly token: object;
@@ -405,7 +402,7 @@ function drawLineChart(
   };
 }
 
-/** Separates ally boon supply from personal buff uptime so each table only shows relevant metrics. */
+/** Shows time-averaged stacks for each audience alongside boon supply coverage and personal uptime. */
 function effectSummaryHtml(series: ChartSeries): string {
   const priority = ['Might', 'Fury', 'Protection', 'Quickness', 'Alacrity'];
   const summaries = series.effectSummaries || {};
@@ -438,11 +435,10 @@ function effectSummaryHtml(series: ChartSeries): string {
         const alliedPerPlayer = alliedGenerated / PRESENTATION_ALLIED_PLAYER_COUNT;
         const generatedAverage = duration > 0 ? (own?.generatedStackSeconds || 0) / duration : 0;
         const alliedAverage = duration > 0 ? alliedGenerated / (duration * PRESENTATION_ALLIED_PLAYER_COUNT) : 0;
-        const mixed = boon && boon.selfOnly.generatedStackSeconds > 0 && boon.sharedWithSelf.generatedStackSeconds > 0;
         const target = intensity ? maximum : 1;
         const isBoon = Boolean(boon) || priority.includes(name);
         const selfState = intensity
-          ? `Self: ${(summary?.averageStacks || 0).toFixed(2)}${maximum == null ? '' : ` / ${maximum}`} avg stacks · ${percent(summary?.uptime || 0)} uptime${summary?.maximumStackUptime == null ? '' : ` · ${percent(summary.maximumStackUptime)} at cap`}`
+          ? `Self uptime: ${percent(summary?.uptime || 0)}${summary?.maximumStackUptime == null ? '' : ` · ${percent(summary.maximumStackUptime)} at cap`}`
           : `Self uptime: ${percent(summary?.uptime || 0)}`;
         const overTarget =
           isBoon && target != null && alliedAverage > target
@@ -451,10 +447,6 @@ function effectSummaryHtml(series: ChartSeries): string {
         const selfGeneration = own?.generatedStackSeconds || 0;
         // Identical per-player values add no self-specific information, so only differences stay visible.
         const selfDiffersFromAllies = Math.abs(selfGeneration - alliedPerPlayer) > 1e-9;
-        const selfGenerationDetails =
-          selfGeneration && selfDiffersFromAllies
-            ? `<small>Self: ${selfGeneration.toFixed(2)}${mixed ? ` · ${boon.selfOnly.generatedStackSeconds.toFixed(2)} self-only` : boon?.selfOnly.generatedStackSeconds ? ' · self-only' : ''}</small>`
-            : '';
         const selfCoverage =
           selfGeneration && selfDiffersFromAllies
             ? `<small>Self: ${coverage(generatedAverage, intensity, maximum)}</small>`
@@ -464,7 +456,7 @@ function effectSummaryHtml(series: ChartSeries): string {
           : selfState;
         return `<tr>
       <th scope="row">${escapeHtml(name)}</th>
-      <td>${isBoon ? alliedGenerated.toFixed(2) : '—'}${isBoon ? `<small>${alliedPerPlayer.toFixed(2)} per ally</small>` : ''}${selfGenerationDetails}</td>
+      <td>Ally: ${(series.alliedAverageStacks?.[name] || 0).toFixed(2)}<small>Self: ${(summary?.averageStacks || 0).toFixed(2)}</small></td>
       <td>${coverageDetails}</td>
     </tr>`;
       })
@@ -473,18 +465,19 @@ function effectSummaryHtml(series: ChartSeries): string {
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
       <table>
         ${showCaption ? `<caption>${label} · ${PRESENTATION_ALLIED_PLAYER_COUNT} allies · full benchmark (${duration.toFixed(2)}s)</caption>` : ''}
-        <thead><tr><th scope="col">Effect</th><th scope="col">Allied stack-seconds</th><th scope="col">Coverage</th></tr></thead>
+        <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Coverage</th></tr></thead>
         <tbody>${rows(effects)}</tbody>
       </table>
     </div>`;
   const buffTable = (effects: readonly string[]): string => `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="Other buffs">
       <table>
-        <thead><tr><th scope="col">Effect</th><th scope="col">Player uptime</th></tr></thead>
+        <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Player uptime</th></tr></thead>
         <tbody>${effects
           .map(
             (name) => `<tr>
       <th scope="row">${escapeHtml(name)}</th>
+      <td>${(summaries[name]?.averageStacks || 0).toFixed(2)}</td>
       <td>${percent(summaries[name]?.uptime || 0)}</td>
     </tr>`
           )
@@ -573,7 +566,6 @@ function chartHtml(
           <canvas class="chart-canvas" data-role="dps-canvas"></canvas>
           <div class="chart-tooltip" data-role="dps-tooltip"></div>
         </div>
-        <div class="chart-hit-strip" data-role="dps-hit-strip" hidden></div>
       </div>
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
@@ -598,17 +590,14 @@ function chartHtml(
 /**
  * Replaces `container` with a complete, container-scoped time-series chart.
  * Replacing the contents also makes repeated mounts safe from duplicate
- * handlers.
+ * handlers. Controls and resize observers own redraws within this mount.
  */
 export function mountTimeSeriesCharts(
   container: HTMLElement | null | undefined,
   series: ChartSeries,
   options: Partial<ChartOptions> = {}
-): {
-  redraw: () => void;
-  setSelectedSkill: (key: string | null) => void;
-} | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   // A token makes a queued animation-frame redraw from an older mount harmless.
   ACTIVE_MOUNTS.get(container)?.resizeObserver?.disconnect();
   const mountToken = {};
@@ -620,6 +609,7 @@ export function mountTimeSeriesCharts(
     dps: resolvedDps,
     effects: series?.effects || {},
     alliedEffects: series?.alliedEffects || {},
+    alliedAverageStacks: series?.alliedAverageStacks || {},
     effectTypes: series?.effectTypes || {},
     effectUnits: series?.effectUnits || {},
     effectSummaries: series?.effectSummaries || {},
@@ -630,9 +620,7 @@ export function mountTimeSeriesCharts(
       resolvedDps.map((point) => ({
         t: point.t,
         v: Number(point.v) * (Number(point.t) / 1000)
-      })),
-    skillDamage: series?.skillDamage || {},
-    skillNames: series?.skillNames || {}
+      }))
   };
   const resolvedOptions: ChartOptions = {
     ...DEFAULT_OPTIONS,
@@ -651,9 +639,6 @@ export function mountTimeSeriesCharts(
   const effectNames = [
     ...new Set([...Object.keys(resolvedSeries.effects), ...Object.keys(resolvedSeries.alliedEffects!)])
   ];
-  // Which breakdown row's hits the DPS strip highlights (null until a row is
-  // clicked).
-  let selectedSkillKey: string | null = null;
   container.innerHTML = chartHtml(resolvedSeries, resolvedOptions, healthMarkers, phases);
 
   // Cached control roots for toggle/phase state queries during redraw.
@@ -673,8 +658,6 @@ export function mountTimeSeriesCharts(
     effectsView: effectsViewForPhase(resolvedSeries, phases[0]!),
     effectLines: []
   };
-  let hitStripKey = '';
-  let hitStripHandle: ReturnType<typeof mountHitTimeline> = null;
   let phaseStartMs = 0;
 
   const redraw = (): void => {
@@ -745,32 +728,6 @@ export function mountTimeSeriesCharts(
       chartState.effectsView.durationMs,
       { height: 260, emptyText: resolvedOptions.emptyEffectsText, timeOffsetMs: phaseStartMs }
     );
-
-    // Marker strip beneath the DPS line showing the selected skill's hits,
-    // aligned to the same time axis as the DPS view above it.
-    const hitStrip = container.querySelector<HTMLElement>('[data-role="dps-hit-strip"]');
-    if (hitStrip) hitStrip.hidden = !selectedSkillKey;
-    const nextHitStripKey = JSON.stringify([selectedSkillKey, activePhase.id]);
-    if (nextHitStripKey !== hitStripKey) {
-      hitStripKey = nextHitStripKey;
-      const allHits = (selectedSkillKey && resolvedSeries.skillDamage?.[selectedSkillKey]) || [];
-      // Reuse the table's cast inspector, preserving fight timestamps in phase views.
-      hitStripHandle = mountHitTimeline(
-        hitStrip,
-        activePhase.id === 'full' ? allHits : filterHitsToPhase(allHits, activePhase.startMs, activePhase.endMs),
-        {
-          durationMs: chartState.dpsView.durationMs,
-          timeOffsetMs: activePhase.startMs,
-          height: 76,
-          color: resolvedOptions.skillDamageColor,
-          label: selectedSkillKey ? `${resolvedSeries.skillNames?.[selectedSkillKey] || selectedSkillKey} hits` : '',
-          emptyText: 'No hits in this range',
-          showAxis: false
-        }
-      );
-    } else if (selectedSkillKey) {
-      hitStripHandle?.redraw();
-    }
   };
 
   const bindHover = (canvasRole: string, tooltipRole: string, kind: 'dps' | 'effects'): void => {
@@ -919,12 +876,4 @@ export function mountTimeSeriesCharts(
   }
 
   requestRedraw();
-  const setSelectedSkill = (key: string | null): void => {
-    const next = key && resolvedSeries.skillDamage?.[key]?.length ? key : null;
-    if (next === selectedSkillKey) return;
-    selectedSkillKey = next;
-    redraw();
-  };
-
-  return { redraw, setSelectedSkill };
 }

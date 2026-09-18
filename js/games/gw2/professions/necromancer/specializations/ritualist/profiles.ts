@@ -31,7 +31,11 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Anguish - Spirit Attacks',
     profileKind: 'skill-variant',
     parentId: ID.ANGUISH,
-    weaponStrength: 1685,
+    // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
+    weaponStrength: 1510,
+    // Spawn-to-ready includes the spirit's activation delay and its opening animation.
+    initialBusyMs: 1920,
+    autoattackImpactDelayMs: 840,
     effects: [
       {
         type: 'strike',
@@ -73,7 +77,9 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Wanderlust - Spirit Attacks',
     profileKind: 'skill-variant',
     parentId: ID.WANDERLUST,
-    weaponStrength: 1565,
+    weaponStrength: 1440,
+    initialBusyMs: 1440,
+    autoattackImpactDelayMs: 840,
     effects: [
       {
         type: 'strike',
@@ -119,7 +125,10 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Preservation - Spirit Attacks',
     profileKind: 'skill-variant',
     parentId: ID.PRESERVATION,
-    weaponStrength: 1565,
+    weaponStrength: 1440,
+    initialBusyMs: 1640,
+    // Projectile travel adds some variation; use the later observed action tick at golem range.
+    autoattackImpactDelayMs: 920,
     effects: [
       {
         type: 'strike',

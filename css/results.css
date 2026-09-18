@@ -1266,10 +1266,6 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   display: block;
 }
 
-.chart-hit-strip {
-  margin-top: 4px;
-}
-
 /* Transparent native controls make canvas hit groups focusable without hiding their markers. */
 .hit-group {
   position: absolute;

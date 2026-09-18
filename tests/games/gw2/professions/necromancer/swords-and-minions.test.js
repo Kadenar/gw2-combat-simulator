@@ -1068,7 +1068,12 @@ test("Ritualist spirit attacks proc Vampiric and share the owner's Vampiric Pres
     (event) =>
       event.type === 'damage' && event.summonKind === 'spirit' && event.metadata?.spiritAttackType === 'autoattack'
   );
-  const spiritAutoTimes = new Set(spiritAutos.map((event) => event.at));
+  // Different projectile offsets still share the owner's half-second siphon cooldown.
+  const spiritAutoTimes = [];
+  for (const event of spiritAutos) {
+    if (!spiritAutoTimes.length || event.at - spiritAutoTimes.at(-1) > 0.5) spiritAutoTimes.push(event.at);
+  }
+
   const spiritVampiric = result.resolvedEvents.filter(
     (event) =>
       event.type === 'damage' && event.sourceId === TRAIT.VAMPIRIC && String(event.triggeredBy).endsWith('Autoattack')
@@ -1086,8 +1091,11 @@ test("Ritualist spirit attacks proc Vampiric and share the owner's Vampiric Pres
     spiritVampiric.every((event) => event.flatStrikeBase === 38 && event.flatStrikePowerCoeff === 0.003),
     true
   );
-  assert.equal(spiritPresence.length, spiritAutoTimes.size);
-  assert.deepEqual(new Set(spiritPresence.map((event) => event.at)), spiritAutoTimes);
+  assert.equal(spiritPresence.length, spiritAutoTimes.length);
+  assert.deepEqual(
+    spiritPresence.map((event) => event.at),
+    spiritAutoTimes
+  );
 });
 
 test('Vampiric Presence uses its half-second interval and stronger Shroud siphon', () => {
@@ -1479,7 +1487,7 @@ test('minion attacks use their canonical cadence, coefficients, and icons', () =
     bloodAttacks.every((event) => event.coefficient === 0.065),
     true
   );
-  assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.1) < 1e-12);
+  assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.16) < 1e-12);
   assert.equal(bloodAttacks[0].summonBasePower, 2400);
   assert.equal(bloodAttacks[0].summonDamagePerCoefficient, 4338);
   assert.equal(bloodAttacks[0].weaponStrength, undefined);
@@ -1550,6 +1558,52 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
 
   assertFlooredDamageMultiplier(totalMinionDamage(corruption), totalMinionDamage(base), 1.25);
   assertFlooredDamageMultiplier(totalMinionDamage(strength), totalMinionDamage(base), 1.5);
+});
+
+// Only recipients accelerate; sharing and party caps must govern each creature's clock independently.
+test('minion attack scheduling respects boon sharing, recipient caps, and expiry', () => {
+  const run = (sharePlayerBoonsWithSummons, allies) =>
+    simulate(
+      'Ritualist',
+      [
+        'Summon Bone Minions',
+        "Ritualist's Shroud",
+        'Wanderlust',
+        "Exit Ritualist's Shroud",
+        { type: 'wait', durationMs: 20000 }
+      ],
+      {
+        initialResource: 100,
+        selectedSkills: ['Summon Bone Minions'],
+        selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
+        sharePlayerBoonsWithSummons,
+        allies: { count: allies, strikesPerSecond: 1 }
+      }
+    );
+  const timestamps = (result, index) =>
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.summonOwner === `minion:bone-minion:${index}`)
+      .map((event) => event.at);
+  const unshared = run(false, 0);
+  const capped = run(true, 4);
+  const partial = run(true, 3);
+  const shared = run(true, 0);
+  const baseline = timestamps(unshared, 0);
+  assert.ok(baseline.length > 2);
+  assert.deepEqual(timestamps(unshared, 1), baseline);
+  for (const index of [0, 1]) assert.deepEqual(timestamps(capped, index), baseline);
+  assert.deepEqual(timestamps(partial, 1), baseline);
+  assert.deepEqual(timestamps(partial, 0), timestamps(shared, 0));
+  assert.deepEqual(timestamps(shared, 1), timestamps(shared, 0));
+  assert.ok(timestamps(partial, 0).some((at, index) => at < baseline[index]));
+  const lastInterval = (times) => times.at(-1) - times.at(-2);
+  assert.ok(Math.abs(lastInterval(timestamps(shared, 0)) - lastInterval(baseline)) < 1e-9);
+  for (const result of [unshared, capped, partial, shared]) {
+    assert.deepEqual(result.warnings, []);
+    for (const index of [0, 1]) {
+      assert.ok(timestamps(result, index).every((at) => Math.abs(at * 25 - Math.round(at * 25)) < 1e-9));
+    }
+  }
 });
 
 test('independent minions inherit dynamically shared Fury', () => {

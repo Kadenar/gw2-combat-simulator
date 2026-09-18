@@ -68,6 +68,8 @@ export interface SkillEffectBase {
 
 export interface StrikeEffect extends SkillEffectBase {
   readonly type: 'strike';
+  /** Autonomous summon animation, excluding idle time, for recipient-specific attack scheduling. */
+  readonly castTimeMs?: number;
   /** Optional row label separates an effect's damage while preserving its source skill. */
   readonly damageBreakdownName?: string;
   /** Aggregate coefficient; hits above one require one explicit shared atMs timestamp. */

@@ -31,6 +31,25 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
+// The shared exit path exempts precombat manual exits and expiry, while preserving combat recharge.
+test('Radiant Forge precombat exits leave entry ready', () => {
+  const run = (rotation) =>
+    simulateGw2({ profession: guardianProfession, rotation, config: { ...config, specialization: 'Luminary' } });
+  const precombat = run(['Enter Radiant Forge', 'Exit Radiant Forge', { type: 'combat-start' }, 'Enter Radiant Forge']);
+  assert.deepEqual(precombat.warnings, []);
+  assert.equal(
+    precombat.steps.filter((step) => step.skill === 'Enter Radiant Forge').at(-1).start / 1000,
+    precombat.combatStartTime
+  );
+  for (const prefix of [[], [{ type: 'combat-start' }]]) {
+    const combat = run([...prefix, 'Enter Radiant Forge', 'Exit Radiant Forge']);
+    assert.ok(combat.endState.cooldowns['Enter Radiant Forge'].remaining > 0);
+  }
+
+  const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: 30000 }, { type: 'combat-start' }]);
+  assert.equal(expired.endState.cooldowns['Enter Radiant Forge'], undefined);
+});
+
 // Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
 test('Illuminating Inspiration delegates capped reductions for the three radiant virtues', () => {
   const ids = GUARDIAN_SKILL_IDS;

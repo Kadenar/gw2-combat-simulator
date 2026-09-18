@@ -24,6 +24,36 @@ const buff = (kind, at, duration, stacks = 1, extra = {}) => ({
 });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+// State windows include an open final shroud, close on exit, and refresh Meltdown without stacking it.
+test('Harbinger state uptime uses recorded transitions and clips to the observation window', async () => {
+  const { harbingerUi } = await import('#gw2/professions/necromancer/specializations/harbinger/presentation.js');
+  const presentations = harbingerUi.effectPresentations();
+  const state = (at, activeShroud, meltdownUntil = 0) => ({
+    type: 'necromancer.state',
+    at,
+    state: { activeShroud, meltdownUntil }
+  });
+  const events = [
+    state(0, 'harbinger'),
+    state(2, 'harbinger', 5),
+    state(3, '', 5),
+    state(4, 'harbinger', 6),
+    state(6, 'harbinger', 6)
+  ];
+  for (const sampleStep of [50, 1000]) {
+    const summaries = buildChartSeries(
+      { dpsStartTime: 1, deathTime: 7, duration: 10, events },
+      sampleStep,
+      presentations
+    ).effectSummaries;
+    close(summaries['Harbinger Shroud'].uptime, 5 / 6);
+    close(summaries.Meltdown.uptime, 4 / 6);
+    close(summaries.Meltdown.averageStacks, 4 / 6);
+  }
+
+  assert.deepEqual(buildChartSeries({ duration: 2, events: [state(0, '')] }, 250, presentations).effectSummaries, {});
+});
+
 // Recipient caps apply before averaging, and personal grants/extensions cannot leak into allied state.
 test('allied boon state preserves recipient caps, extensions, expiry, and observation origin', () => {
   const series = buildChartSeries(
@@ -61,6 +91,29 @@ test('allied boon state preserves recipient caps, extensions, expiry, and observ
 });
 
 // Small synthetic windows exercise integration and supply contracts independently of any benchmark rotation.
+test('allied averages integrate capped stacks and duration pools inside the observation window', () => {
+  const party = { audience: { recipients: 'party', maximumRecipients: 3 } };
+  const result = {
+    duration: 10,
+    combatStartTime: 0,
+    dpsStartTime: 1,
+    deathTime: 5,
+    resolvedEvents: [
+      buff('might', 1.12, 0.2, 30, party),
+      buff('might', 4.8, 10, 10, { audience: { recipients: 'party' } }),
+      buff('fury', 1.12, 0.2, 1, party),
+      buff('fury', 1.24, 0.2, 1, party),
+      buff('protection', 0, 30)
+    ]
+  };
+  for (const sampleStep of [50, 1000]) {
+    const averages = buildChartSeries(result, sampleStep).alliedAverageStacks;
+    close(averages.Might, 1.125);
+    close(averages.Fury, 0.05);
+    assert.equal(averages.Protection, 0);
+  }
+});
+
 test('duration supply can exceed a full window while caps and gaps reduce actual uptime', () => {
   const result = {
     duration: 60,

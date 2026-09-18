@@ -41,6 +41,7 @@ export interface ChartSeries {
   readonly dps: readonly ChartPoint[];
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
   readonly alliedEffects?: Readonly<Record<string, readonly ChartPoint[]>>;
+  readonly alliedAverageStacks?: Readonly<Record<string, number>>;
   readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
   // Exact full-DPS-window summaries are independent of graph sampling and chart zoom.
@@ -57,10 +58,8 @@ export interface ChartSeries {
   readonly cumulativeDamage?: readonly ChartPoint[];
   // Individual hits/ticks per skill breakdown row key (`group|name`), each
   // timestamped relative to the DPS window. Backs the per-skill damage-events
-  // timeline (in the table) and the hit-marker strip on the DPS chart.
+  // timeline in the expanded table row.
   readonly skillDamage?: Readonly<Record<string, readonly SkillHit[]>>;
-  // Display name per skill key, for timeline labels and tooltips.
-  readonly skillNames?: Readonly<Record<string, string>>;
   // One payout per condition in fight time, retaining each application's full or partial share.
   readonly conditionDamage?: Readonly<Record<string, readonly SkillHit[]>>;
   readonly skillApplications?: Readonly<Record<string, readonly SkillApplication[]>>;
@@ -71,13 +70,16 @@ export interface BuildChartSeriesOptions {
   readonly effectType?: (value: unknown, event: Gw2ResolverEvent) => ChartEffectType;
   readonly replacementGroup?: (value: unknown, event: Gw2ResolverEvent) => string;
   readonly timedProcEffect?: (proc: Gw2ProcStep) => { readonly name: string; readonly type?: ChartEffectType } | null;
+  readonly stateEffects?: (event: Gw2ResolverEvent) => readonly {
+    readonly name: string;
+    readonly stacks: number;
+    readonly expiresAt?: number;
+  }[];
   readonly stackCaps?: Readonly<Record<string, number>>;
   readonly durationStackCaps?: Readonly<Record<string, number>>;
   // Attributes a resolved damage/condition event to a skill breakdown row key
   // (`group|name`), or null to omit it from the per-skill damage series.
   readonly skillKey?: (event: Gw2ResolverEvent) => string | null;
-  // Human-readable label for a skill key, used by the skill-damage panel.
-  readonly skillName?: (key: string, event: Gw2ResolverEvent) => string;
 }
 
 interface ChartEffectApplication {
@@ -114,10 +116,10 @@ export function buildTimeSeries(
     effectType = (_value, event) => (event.type === 'condition' ? 'condition' : 'buff'),
     replacementGroup = () => '',
     timedProcEffect,
+    stateEffects,
     stackCaps = {},
     durationStackCaps = {},
-    skillKey,
-    skillName
+    skillKey
   }: BuildChartSeriesOptions = {}
 ): ChartSeries {
   // Chart time is relative to the DPS window, while simulation events use
@@ -166,6 +168,20 @@ export function buildTimeSeries(
     return { t: time, v: damage / elapsed };
   });
   const applications: ChartEffectApplication[] = [];
+  // State snapshots persist until replaced or expired, including zero states that close an active window.
+  for (const event of result.events || resolved) {
+    for (const effect of stateEffects?.(event) || []) {
+      applications.push({
+        name: effect.name,
+        type: 'buff',
+        start: event.at * 1000 - dpsStartMs,
+        end: effect.expiresAt == null ? endMs - dpsStartMs : effect.expiresAt * 1000 - dpsStartMs,
+        stacks: effect.stacks,
+        replacementGroup: `state:${effect.name}`
+      });
+    }
+  }
+
   // Convert conditions and buffs to half-open [start, end) stack intervals.
   for (const event of resolved) {
     if (event.type !== 'condition') continue;
@@ -282,6 +298,7 @@ export function buildTimeSeries(
   const effectTypes: Record<string, ChartEffectType> = {};
   const effectSummaries: Record<string, ChartEffectSummary> = {};
   for (const name of new Set(applications.map((entry) => entry.name))) {
+    if (!applications.some((entry) => entry.name === name && entry.stacks > 0 && entry.end > entry.start)) continue;
     const matching = applications
       .filter((entry) => entry.name === name)
       .sort((left, right) => left.start - right.start);
@@ -368,23 +385,45 @@ export function buildTimeSeries(
 
   // Average capped state across all four projected allies, including recipients with no boon.
   const alliedEffects: Record<string, ChartPoint[]> = {};
+  const alliedAverageStacks: Record<string, number> = {};
   for (const kind of boonGeneration.boons.keys()) {
     const event = buffs.find((entry) => entry.type === 'buff' && String(entry.kind).toLowerCase() === kind)!;
     const name = effectName(kind, event);
     effectTypes[name] = 'boon';
+    const recipients = boonGeneration.alliedApplications.map((history) => {
+      const applications = history.get(kind) || [];
+      const durationStacking = durationStackCaps[name] != null;
+      const valueAt = (at: number): number =>
+        durationStacking
+          ? remainingDurationStackSeconds(applications, at, { maximum: durationStackCaps[name] })
+          : buffApplicationStacks(applications, kind, at, stackCaps[name] ?? Infinity);
+      // Integrate each recipient at exact transitions so caps, downtime, and partial audiences affect averages.
+      const boundaries = [
+        dpsStartMs / 1000,
+        ...new Set(
+          applications
+            .flatMap((application) => [application.at, application.expiresAt])
+            .filter((at) => at > dpsStartMs / 1000 && at < endMs / 1000)
+        ),
+        endMs / 1000
+      ].sort((left, right) => left - right);
+      let stackSeconds = 0;
+      for (let index = 1; index < boundaries.length; index++) {
+        const start = boundaries[index - 1]!;
+        const elapsed = boundaries[index]! - start;
+        const value = valueAt(start);
+        stackSeconds += durationStacking ? Math.min(elapsed, value) : value * elapsed;
+      }
+
+      return { valueAt, averageStacks: (stackSeconds * 1000) / durationMs };
+    });
+    alliedAverageStacks[name] =
+      recipients.reduce((sum, recipient) => sum + recipient.averageStacks, 0) / boonGeneration.alliedPlayerCount;
     alliedEffects[name] = times.map((time) => ({
       t: time,
       v:
-        boonGeneration.alliedApplications.reduce((sum, history) => {
-          const applications = history.get(kind) || [];
-          const at = (dpsStartMs + time) / 1000;
-          return (
-            sum +
-            (durationStackCaps[name] != null
-              ? remainingDurationStackSeconds(applications, at, { maximum: durationStackCaps[name] })
-              : buffApplicationStacks(applications, kind, at, stackCaps[name] ?? Infinity))
-          );
-        }, 0) / boonGeneration.alliedPlayerCount
+        recipients.reduce((sum, recipient) => sum + recipient.valueAt((dpsStartMs + time) / 1000), 0) /
+        boonGeneration.alliedPlayerCount
     }));
   }
 
@@ -393,7 +432,6 @@ export function buildTimeSeries(
     v: point.v * (point.t / 1000)
   }));
   const skillDamage: Record<string, SkillHit[]> = {};
-  const skillNames: Record<string, string> = {};
   if (skillKey) {
     // Each strike is one hit at its time; conditions expand to a hit per
     // damaging tick. Times are relative to the DPS window, matching `dps`.
@@ -401,10 +439,6 @@ export function buildTimeSeries(
       const key = skillKey(event);
       if (!key) continue;
       const hits = skillDamage[key] || (skillDamage[key] = []);
-      if (skillName && skillNames[key] == null) {
-        skillNames[key] = skillName(key, event);
-      }
-
       const crit = event.didCrit ?? null;
       // Preserve damage kind so periodic ticks cannot bridge otherwise separate strike bursts.
       const damageType = event.type === 'condition' ? 'condition' : 'strike';
@@ -488,6 +522,7 @@ export function buildTimeSeries(
     dps,
     effects,
     alliedEffects,
+    alliedAverageStacks,
     effectTypes,
     effectSummaries,
     boonGeneration: Object.fromEntries(
@@ -503,7 +538,6 @@ export function buildTimeSeries(
     effectUnits: Object.fromEntries(Object.keys(durationStackCaps).map((name) => [name, 's'])),
     cumulativeDamage,
     skillDamage,
-    skillNames,
     conditionDamage: Object.fromEntries(
       [...conditionTicks].map(([name, ticks]) => [
         name,

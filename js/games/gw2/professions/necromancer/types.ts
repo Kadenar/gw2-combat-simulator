@@ -142,6 +142,8 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly requiresMinionAttackGeneration?: number;
   readonly requiresSpirit?: string;
   readonly requiresSpiritGeneration?: number;
+  /** Delay from a spirit's shared attack opportunity to its damage impact; zero marks the queued impact. */
+  readonly spiritAttackDelay?: number;
   readonly mode?: string;
   readonly playerStacks?: number;
   readonly allyStacks?: number;

@@ -59,6 +59,8 @@ interface SpiritAttackStopTaskPayload {
 
 interface SpiritDefinition {
   readonly key: string;
+  readonly initialBusyMs: number;
+  readonly autoattackImpactDelayMs: number;
   readonly attackCoefficient: number;
   readonly attackWeaponStrength?: number;
   readonly summonTicks: readonly SpiritStrikeTick[];
@@ -120,6 +122,8 @@ function spiritDefinition(
       : [];
   return {
     key,
+    initialBusyMs: Number(profile.initialBusyMs || 0),
+    autoattackImpactDelayMs: Number(profile.autoattackImpactDelayMs || 0),
     attackCoefficient: Number(autoattack?.coefficient || 0),
     attackWeaponStrength: Number(profile.weaponStrength || 0),
     summonTicks: ticks(initial),
@@ -248,6 +252,8 @@ function handleSpiritAutoattack(
       Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength ?? 1048),
     requiresSpirit: spirit.key,
     requiresSpiritGeneration: payload.generation,
+    // The shared clock starts animations; readiness is checked before their later impacts.
+    spiritAttackDelay: spirit.autoattackImpactDelayMs / 1000,
     summonKind: 'spirit',
     summonOwner: `spirit:${spirit.key}`,
     summonInheritsCriticalAttributes: true,
@@ -442,9 +448,10 @@ function summonSpirit(
   const state = ritualistState.from(context);
   state.activeSpirits[spirit.key] = true;
   state.spiritGenerations[spirit.key] = Number(state.spiritGenerations[spirit.key] || 0) + 1;
-  // Anguish has a 1.1 s window during which it fires its summoning barrage and cannot immediately respond to Summon Spirits
-  const initialDuration = spirit.key === 'anguish' ? 1.1 : 0;
-  state.spiritInitialUntil[spirit.key] = at + initialDuration;
+  // Replacing one spirit cancels its old generation; its opening animation can make it miss a shared pulse.
+  const initialDuration = spirit.initialBusyMs / 1000;
+  // Command eligibility retains its separate commitment window; this recording measures autonomous readiness.
+  state.spiritInitialUntil[spirit.key] = at + (spirit.key === 'anguish' ? 1.1 : 0);
   state.spiritBusyUntil[spirit.key] = at + initialDuration;
   if (state.soulTwistingAvailable) {
     // Soul Twisting consumes availability on the first summon; the completion hook refunds that skill's committed cooldown.

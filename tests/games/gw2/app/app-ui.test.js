@@ -1199,6 +1199,7 @@ test('Necromancer preset builds keep rotation data separate', async () => {
     presets.map((preset) => preset.label),
     [
       'Condition (Pistol / Torch + Scepter / Torch)',
+      'Condition Alacrity (Pistol / Torch + Scepter / Torch)',
       'Power (Greatsword / Spear)',
       'Condition (Dagger / Sword + Spear)',
       'Condition (Fields - Pistol / Torch + Greatsword)',

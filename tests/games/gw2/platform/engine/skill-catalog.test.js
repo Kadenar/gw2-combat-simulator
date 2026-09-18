@@ -21,6 +21,31 @@ test('canonical skills validate effective cast durations', () => {
   assert.equal(catalog.skillsById.get(1).castTimeMs, 0);
 });
 
+// Reject invalid autonomous animation metadata before it can corrupt a creature's task clock.
+test('summon strike animation metadata validates duration and ownership', () => {
+  const load = (patch) =>
+    createCanonicalCatalog({
+      generated: [
+        {
+          id: 1,
+          name: 'Summon attack',
+          effects: [{ type: 'strike', actorType: 'summon', coefficient: 1, castTimeMs: 800, ...patch }]
+        }
+      ]
+    });
+  assert.equal(load({}).skillsById.get(1).effects[0].castTimeMs, 800);
+  for (const patch of [
+    { castTimeMs: -1 },
+    { castTimeMs: NaN },
+    { castTimeMs: Infinity },
+    { castTimeMs: '800' },
+    { actorType: 'player' },
+    { type: 'blind' }
+  ]) {
+    assert.throws(() => load(patch), /Effect castTimeMs requires/);
+  }
+});
+
 test('shared autoattack helpers derive and index ID-based chains', () => {
   const chains = deriveAutoattackChains([
     { id: 1, type: 'Weapon', slot: 'Weapon_1', nextChainId: 2 },

@@ -59,7 +59,7 @@ export function groupSkillHits(hits: readonly SkillHit[], timeOffsetMs = 0): Ski
 
 export const hitTime = (timeMs: number): string => `${(timeMs / 1000).toFixed(2)}s`;
 
-// Clip the displayed window at phase boundaries without moving its fight-time bucket.
+// Clip the displayed window to the timeline bounds without moving its fight-time bucket.
 export const conditionWindow = (hits: readonly SkillHit[], offsetMs: number, durationMs: number): [number, number] => {
   const start = Math.floor((hits[0]!.t + offsetMs) / CONDITION_WINDOW_MS) * CONDITION_WINDOW_MS - offsetMs;
   return [Math.max(0, start), Math.min(durationMs, start + CONDITION_WINDOW_MS)];
@@ -74,9 +74,3 @@ export const hitGroupLabel = (hits: readonly SkillHit[], offsetMs: number, durat
 
   return `${hitTime(hits[0]!.t + offsetMs)} · ${hits.length} ${hits.length === 1 ? 'hit' : 'hits'}`;
 };
-
-/** Windows discrete hits to a fight phase and rebases them to the phase start. */
-export function filterHitsToPhase(hits: readonly SkillHit[], startMs: number, endMs: number): SkillHit[] {
-  if (!hits.length || !(endMs > startMs)) return [];
-  return hits.filter((hit) => hit.t >= startMs && hit.t < endMs).map((hit) => ({ ...hit, t: hit.t - startMs }));
-}

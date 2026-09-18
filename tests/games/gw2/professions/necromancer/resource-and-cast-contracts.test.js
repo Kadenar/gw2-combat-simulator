@@ -4,12 +4,93 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import {
+  addBlight,
+  consumeBlight,
+  createHarbingerState,
+  purgeHarbingerTimedState
+} from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { harbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 
 const simulate = createProfessionSimulator(necromancerProfession, {
   stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
   target: { armor: 2597, conditions: {} }
 });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+// Cap refreshes keep their positions, and expiry must preserve the order used by later spends.
+test('Blight cap refreshes survive spending from the end of the stack array', () => {
+  const state = createHarbingerState({ initialBlight: 10 });
+  addBlight(state, 15, 5);
+  assert.equal(addBlight(state, 2, 10), 0);
+  assert.equal(consumeBlight(state, 5, 11), 5);
+  purgeHarbingerTimedState(state, 26);
+  assert.equal(state.blight, 12);
+  consumeBlight(state, 10, 26);
+  assert.deepEqual(state.blightExpiries, [35, 35]);
+});
+
+// A tick crossed during a cast must be available to its completion-time empowerment and spending.
+test('Blight skill consumption follows earlier shroud gains', () => {
+  const result = simulate('Harbinger', ['Harbinger Shroud', wait(800), 'Devouring Cut'], {
+    initialResource: 100,
+    initialBlight: 4
+  });
+  assert.deepEqual(result.warnings, []);
+  const updates = result.events.filter((event) => event.kind === 'harbinger-blight');
+  assert.ok(updates.every((event, index) => index === 0 || event.at >= updates[index - 1].at));
+  assert.equal(updates.find((event) => event.at === 1).stacks, 6);
+  assert.equal(result.endState.profession.blight, 1);
+  assert.equal(
+    result.events.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT).metadata
+      .blightEmpowered,
+    true
+  );
+});
+
+// Large scheduler advances must produce the same stack lifetimes as stepping through each resource tick.
+test('Blight accrual and expiry are independent of wait granularity', () => {
+  const run = (waits) =>
+    simulate('Harbinger', ['Harbinger Shroud', ...waits], { initialResource: 100, initialBlight: 25 });
+  const coarse = run([wait(30000)]);
+  const fine = run(Array.from({ length: 30 }, () => wait(1000)));
+  assert.deepEqual(coarse.warnings, []);
+  assert.deepEqual(fine.warnings, []);
+  assert.deepEqual(coarse.endState.profession.blightExpiries, fine.endState.profession.blightExpiries);
+});
+
+// Initial resource windows contribute before any skill emits a change, including through precombat waits.
+test('Blight chart includes initial stacks and expires them at their actual deadline', () => {
+  const result = simulate('Harbinger', [wait(5000), { type: 'combat-start' }, wait(25000)], { initialBlight: 12 });
+  const series = buildChartSeries(result, 250, harbingerUi.effectPresentations());
+  assert.equal(series.effects.Blight[0].v, 12);
+  assert.equal(series.effectSummaries.Blight.averageStacks, (12 * 20) / 25);
+  assert.equal(result.endState.profession.blight, 0);
+  assert.ok(result.events.some((event) => event.kind === 'harbinger-blight' && event.at === 25 && event.stacks === 0));
+});
+
+// Both voluntary and depleted exits skip recharge only before an explicit combat boundary.
+test('shroud exits before combat leave entry ready without weakening combat recharge', () => {
+  for (const [specialization, entry, exit] of [
+    ['Core', 'Death Shroud', 'End Death Shroud'],
+    ['Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],
+    ['Harbinger', 'Harbinger Shroud', 'Exit Harbinger Shroud']
+  ]) {
+    const precombat = simulate(specialization, [entry, exit, { type: 'combat-start' }, entry], {
+      initialResource: 100
+    });
+    assert.deepEqual(precombat.warnings, [], specialization);
+    assert.equal(precombat.steps.filter((step) => step.skill === entry).at(-1).start / 1000, precombat.combatStartTime);
+    for (const prefix of [[], [{ type: 'combat-start' }]]) {
+      const combat = simulate(specialization, [...prefix, entry, exit], { initialResource: 100 });
+      assert.ok(combat.endState.cooldowns[entry].remaining > 0, specialization);
+    }
+
+    const depleted = simulate(specialization, [entry, wait(40000), { type: 'combat-start' }], { initialResource: 100 });
+    assert.equal(depleted.endState.cooldowns[entry], undefined, specialization);
+  }
+});
 
 // Direct clock checks include repeated timestamps that a rotation can collapse away.
 function advance(config, targets) {

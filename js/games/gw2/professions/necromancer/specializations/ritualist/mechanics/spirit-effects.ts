@@ -204,7 +204,17 @@ export const ritualistEventHandlers = Object.freeze({
       return;
     }
 
-    // Ritualist validates spirit generation and active-skill lockout before reusing Core's generic packet materializer.
+    // A spirit busy at attack start skips this pulse even if it would be ready by the damage timestamp.
+    if (Number(event.spiritAttackDelay || 0) > 0) {
+      context.queue.enqueue({
+        ...event,
+        at: event.at + Number(event.spiritAttackDelay),
+        spiritAttackDelay: 0
+      });
+      return;
+    }
+
+    // Recheck lifetime at impact so replacing a spirit also cancels its pending old-generation strike.
     materializeNecromancerSummonAttack(context, event);
   },
   'necromancer.painful-bond': handleNecromancerPainfulBond,

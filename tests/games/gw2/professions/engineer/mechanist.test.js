@@ -168,7 +168,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
       at: 1,
       duration: 2,
       stacks: 1,
-      resolvedAudience: { includesSelf: false, includesSummons: true }
+      resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: [] }
     }
   ];
   assert.equal(engineerMechHasQuickness(context, 0), false);

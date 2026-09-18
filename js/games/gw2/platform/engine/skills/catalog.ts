@@ -84,6 +84,7 @@ const EFFECT_FIELDS = new Set([
   'timingAnchor',
   'timingScale',
   'castProgress',
+  'castTimeMs',
   'packetLabel',
   'damageBreakdownName',
   'phantasmEntityIndex',
@@ -315,6 +316,18 @@ function normalizeEffect(effect: unknown): SkillEffect {
   }
 
   const metadata = normalizeEffectMetadata(normalizedEffect.metadata);
+  // Autonomous summon packets may declare an animation separately from their fixed idle interval.
+  if (
+    normalizedEffect.castTimeMs != null &&
+    (normalizedEffect.type !== 'strike' ||
+      normalizedEffect.actorType !== 'summon' ||
+      typeof normalizedEffect.castTimeMs !== 'number' ||
+      !Number.isFinite(normalizedEffect.castTimeMs) ||
+      normalizedEffect.castTimeMs < 0)
+  ) {
+    throw new TypeError('Effect castTimeMs requires a non-negative finite duration on a summon strike.');
+  }
+
   const audience = normalizeEffectAudience(normalizedEffect.audience);
   if (audience && normalizedEffect.type !== 'boon' && normalizedEffect.type !== 'buff') {
     throw new TypeError('Skill effect audience is only valid on boon and buff effects.');

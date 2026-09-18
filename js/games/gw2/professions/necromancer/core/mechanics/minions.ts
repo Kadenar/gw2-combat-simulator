@@ -35,7 +35,12 @@ import {
   type MinionCommandDefinition,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import {
+  castWasInterrupted,
+  quantizeGw2ActionDurationUp,
+  summonQuicknessCastTimeMs
+} from '#gw2/platform/skills/timing.js';
+import { gw2BuffActiveForAudience } from '#gw2/platform/scheduler/policy.js';
 
 const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';
@@ -47,6 +52,8 @@ interface MinionAttackTaskPayload {
   readonly generation: number;
   readonly attackGeneration: number;
   readonly cycleIndex: number;
+  readonly minionIndex: number;
+  readonly attackIndex: number;
   readonly controlUntil: number;
   readonly controlKind?: string;
 }
@@ -120,24 +127,28 @@ function queueSummonAttacks(
   const generation = Number(professionCoreState(context).minionGenerations[definition.key] || 0);
   const attackGeneration = Number(professionCoreState(context).minionAttackGenerations[definition.key] || 0);
   queueMinionAttackStop(context, definition.key, attackGeneration - 1, at);
-  context.tasks.schedule({
-    type: MINION_ATTACK_TASK,
-    at: at + Number(initialDelay),
-    ownerId: minionAttackOwner(definition.key, attackGeneration),
-    payload: {
-      skillId: skill.id,
-      minionKey: definition.key,
-      generation,
-      attackGeneration,
-      cycleIndex: initialCycleIndex + 1,
-      controlUntil,
-      controlKind
-    }
-  });
+  // Each creature owns a clock because capped party boons can reach only one copy of a minion.
+  for (let minionIndex = 0; minionIndex < definition.count; minionIndex += 1) {
+    context.tasks.schedule({
+      type: MINION_ATTACK_TASK,
+      at: quantizeGw2ActionDurationUp((at + Number(initialDelay)) * 1000) / 1000,
+      ownerId: minionAttackOwner(definition.key, attackGeneration),
+      payload: {
+        skillId: skill.id,
+        minionKey: definition.key,
+        generation,
+        attackGeneration,
+        cycleIndex: initialCycleIndex + 1,
+        minionIndex,
+        attackIndex: 0,
+        controlUntil,
+        controlKind
+      }
+    });
+  }
 }
 
-// Emit one generation-gated attack cycle for every active copy of a minion, then
-// keep its cadence alive only while the observation window can include another cycle.
+// Advance one creature's attack chain, sampling its own Quickness between attacks while retaining fixed idle gaps.
 function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask<MinionAttackTaskPayload>): void {
   const payload = task.payload;
   if (!payload) return;
@@ -145,7 +156,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
   const definition = skill ? minionDefinitionForSkill(context, skill.id) : undefined;
   if (!skill || !definition || definition.key !== payload.minionKey) return;
 
-  // Pick the cycle's ordinary or alternating packet set before expanding it across minion copies.
+  // Keep the same ordinary or alternating packet set for every attack in this cycle.
   const defaultAttacks = definition.attacks || [
     {
       name: `${skill.name} - Minion Attack`,
@@ -158,55 +169,62 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
     definition.alternateAttacks?.length && alternateEvery > 0 && payload.cycleIndex % alternateEvery === 0
       ? definition.alternateAttacks
       : defaultAttacks;
-  // Stamp ownership and generation guards onto every emitted summon packet.
-  for (const attack of attacks) {
-    const damagePerCoefficient = attack.damagePerCoefficient ?? definition.damagePerCoefficient;
-    for (let index = 0; index < definition.count; index += 1) {
-      context.emit({
-        type: 'necromancer.summon-attack',
-        at: task.at + Number(attack.offset || 0),
-        source: 'Minion',
-        sourceId: attack.skillId ?? skill.id,
-        actorType: 'summon',
-        skillId: attack.skillId ?? skill.id,
-        skillName: attack.name,
-        parentSkillName: attack.skillId ? skill.name : '',
-        name: attack.name,
-        icon: attack.icon || skill.icon || '',
-        coefficient: attack.coefficient,
-        deferredComboFinishers: attack.comboFinishers,
-        onHitCondition: attack.condition,
-        controlKind:
-          attack.controlKind || (task.at <= payload.controlUntil + EPSILON ? payload.controlKind : undefined),
+  const attack = attacks[payload.attackIndex];
+  if (!attack) return;
+  const summonOwner = `minion:${definition.key}:${payload.minionIndex}`;
+  const damagePerCoefficient = attack.damagePerCoefficient ?? definition.damagePerCoefficient;
+  context.emit({
+    type: 'necromancer.summon-attack',
+    at: task.at,
+    source: 'Minion',
+    sourceId: attack.skillId ?? skill.id,
+    actorType: 'summon',
+    skillId: attack.skillId ?? skill.id,
+    skillName: attack.name,
+    parentSkillName: attack.skillId ? skill.name : '',
+    name: attack.name,
+    icon: attack.icon || skill.icon || '',
+    coefficient: attack.coefficient,
+    deferredComboFinishers: attack.comboFinishers,
+    onHitCondition: attack.condition,
+    controlKind: attack.controlKind || (task.at <= payload.controlUntil + EPSILON ? payload.controlKind : undefined),
 
-        ...(Number.isFinite(Number(damagePerCoefficient))
-          ? {}
-          : {
-              weaponStrength: attack.weaponStrength ?? definition.weaponStrength ?? summonWeaponStrength(context)
-            }),
-        requiresMinion: definition.key,
-        requiresMinionIndex: index,
-        requiresMinionGeneration: payload.generation,
-        requiresMinionAttackGeneration: payload.attackGeneration,
-        summonKind: 'minion',
-        summonCount: 1,
-        summonOwner: `minion:${definition.key}:${index}`,
-        summonOwnerBase: `minion:${definition.key}`,
-        ...summonStrikeMetadata(context, definition, damagePerCoefficient)
-      });
-    }
-  }
-
-  // Keep the autonomous loop alive only while another cycle can affect the observation window.
-  const nextAt = task.at + definition.interval;
-  if (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON) {
+    ...(Number.isFinite(Number(damagePerCoefficient))
+      ? {}
+      : {
+          weaponStrength: attack.weaponStrength ?? definition.weaponStrength ?? summonWeaponStrength(context)
+        }),
+    requiresMinion: definition.key,
+    requiresMinionIndex: payload.minionIndex,
+    requiresMinionGeneration: payload.generation,
+    requiresMinionAttackGeneration: payload.attackGeneration,
+    summonKind: 'minion',
+    summonCount: 1,
+    summonOwner,
+    summonOwnerBase: `minion:${definition.key}`,
+    ...summonStrikeMetadata(context, definition, damagePerCoefficient)
+  });
+  const nextAttackIndex = (payload.attackIndex + 1) % attacks.length;
+  const interval =
+    nextAttackIndex === 0
+      ? definition.interval - Number(attack.offset || 0)
+      : Number(attacks[nextAttackIndex].offset || 0) - Number(attack.offset || 0);
+  const castTimeMs = Number(attack.castTimeMs || 0);
+  const quickness =
+    context.config.sharePlayerBoonsWithSummons !== false &&
+    gw2BuffActiveForAudience(context, 'quickness', task.at, 'summon', summonOwner);
+  // Fist and unmeasured attacks declare no accelerable duration; never divide their entire repeat interval.
+  const savedMs = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
+  const nextAt = quantizeGw2ActionDurationUp(task.at * 1000 + Math.max(0, interval * 1000 - savedMs)) / 1000;
+  if (nextAt > task.at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
     context.tasks.schedule({
       type: MINION_ATTACK_TASK,
       at: nextAt,
       ownerId: task.ownerId,
       payload: {
         ...payload,
-        cycleIndex: payload.cycleIndex + 1
+        attackIndex: nextAttackIndex,
+        cycleIndex: payload.cycleIndex + Number(nextAttackIndex === 0)
       }
     });
   }
@@ -283,7 +301,9 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   state.minionGenerations[definition.key] = Number(state.minionGenerations[definition.key] || 0) + 1;
   state.minionAttackGenerations[definition.key] = Number(state.minionAttackGenerations[definition.key] || 0) + 1;
   state.minionAttackAnchors[definition.key] =
-    context.effectiveEnd + Number(definition.initialDelay ?? definition.interval);
+    quantizeGw2ActionDurationUp(
+      (context.effectiveEnd + Number(definition.initialDelay ?? definition.interval)) * 1000
+    ) / 1000;
   state.minionAttackCycleOffsets[definition.key] = 0;
   if (definition.commandId) {
     state.availableFlips[definition.commandId] = Number.POSITIVE_INFINITY;
@@ -390,7 +410,8 @@ function restartMinionAttacks(
   const summonSkill = context.catalog.skillsById.get(skill.flipParentId);
   if (!summonSkill) return;
   // A fresh attack generation invalidates the old loop and resumes after command recovery.
-  state.minionAttackAnchors[minion.key] = context.effectiveEnd + Number(minion.commandRecoveryDelay);
+  state.minionAttackAnchors[minion.key] =
+    quantizeGw2ActionDurationUp((context.effectiveEnd + Number(minion.commandRecoveryDelay)) * 1000) / 1000;
   state.minionAttackCycleOffsets[minion.key] = nextCycleIndex;
   queueSummonAttacks(context, summonSkill, minion, context.effectiveEnd, {
     initialDelay: minion.commandRecoveryDelay,

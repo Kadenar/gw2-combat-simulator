@@ -943,6 +943,11 @@ body[data-profession] #app > header .community-actions {
   overflow-y: auto;
 }
 
+/* Leave room for the fixed search field so skill choices, rather than the whole menu, scroll. */
+.sbar-dropdown .dropdown-search-results {
+  max-height: 270px;
+}
+
 .dropdown-search-empty {
   padding: 8px;
   color: var(--text-dim);

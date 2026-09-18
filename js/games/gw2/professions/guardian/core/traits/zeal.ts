@@ -9,7 +9,7 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.j
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   emitGuardianProc,
   guardianResolverState,
@@ -160,12 +160,13 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
     const profile = balanceProfileFromContext(context, PROFILE.symbolicAvenger);
     // At the cap, replace only the shortest remaining stack instead of refreshing the entire buff.
-    state.symbolicAvengerExpirations = [
-      ...activeSymbolicAvengerExpirations(state, event.at),
-      event.at + Number(profile?.pulseInterval ?? 15)
-    ]
-      .sort((a, b) => b - a)
-      .slice(0, Number(profile?.maximumStacks ?? 5));
+    state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations || [], {
+      at: event.at,
+      expiresAt: event.at + Number(profile?.pulseInterval ?? 15),
+      count: 1,
+      maximumStacks: Number(profile?.maximumStacks ?? 5),
+      retain: 'latest-expiry'
+    });
     recordGuardianTraitProc(
       context,
       GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,

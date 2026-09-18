@@ -22,7 +22,7 @@ test('summon intensity boons exclude canonical expiry and preserve the preceding
         duration: 0.04,
         kind: 'might',
         stacks: 1,
-        resolvedAudience: { includesSummons: true }
+        resolvedAudience: { includesSummons: true, companionIds: [] }
       }
     ]
   };
@@ -35,6 +35,38 @@ test('summon intensity boons exclude canonical expiry and preserve the preceding
   ]) {
     assert.equal(gw2BuffActiveForAudience(context, 'might', at, 'summon'), active);
   }
+});
+
+// Independent recipients must not combine duration pools or inherit each other's expiry.
+test('summon boon queries keep capped recipients in separate duration pools', () => {
+  const context = {
+    events: ['minion:bone-minion:0', 'minion:bone-minion:1'].map((companionId, index) => ({
+      type: 'buff',
+      kind: 'quickness',
+      at: index,
+      duration: 2,
+      resolvedAudience: { includesSummons: true, companionIds: [companionId] }
+    }))
+  };
+  const active = (index, at) =>
+    gw2BuffActiveForAudience(context, 'quickness', at, 'summon', `minion:bone-minion:${index}`);
+  assert.equal(active(0, 0), true);
+  assert.equal(active(1, 0), false);
+  assert.equal(active(0, 1), true);
+  assert.equal(active(1, 1), true);
+  assert.equal(active(0, 2), false);
+  assert.equal(active(1, 2), true);
+  assert.equal(active(1, 3), false);
+  // A self-only extension must neither extend a companion nor change which companion owned the original boon.
+  context.events.push({
+    type: 'boon_extension',
+    at: 1.5,
+    duration: 4,
+    resolvedAudience: { includesSelf: true, includesSummons: false, companionIds: [] }
+  });
+  assert.equal(active(0, 2), false);
+  assert.equal(active(1, 2), true);
+  assert.equal(active(1, 3), false);
 });
 
 // Presence uses the same microsecond half-open boundary for duration pools, intensity boons, and conditions.

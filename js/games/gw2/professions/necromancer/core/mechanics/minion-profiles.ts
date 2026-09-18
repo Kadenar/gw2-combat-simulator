@@ -10,6 +10,8 @@ export interface MinionAttack {
   readonly name: string;
   readonly coefficient?: number;
   readonly offset?: number;
+  /** Accelerable animation within the repeat interval; idle time remains fixed. */
+  readonly castTimeMs?: number;
   readonly skillId?: SkillId;
   readonly icon?: string;
   readonly weaponStrength?: number;
@@ -58,6 +60,7 @@ function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): Mini
     name: String(effect.name || fallbackName),
     coefficient: Number(effect.coefficient || 0),
     offset: Number(effect.atMs || 0) / 1000,
+    castTimeMs: Number(effect.castTimeMs || 0),
     skillId: effect.sourceId,
     icon: effect.icon == null ? undefined : String(effect.icon),
     damagePerCoefficient: effect.damagePerCoefficient == null ? undefined : Number(effect.damagePerCoefficient),

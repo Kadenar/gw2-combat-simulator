@@ -6,43 +6,49 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
   [ID.GRASPING_DEAD]: {
     castTimeMs: 880,
     // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 680,
+    interruptCommitMs: 640,
     retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 560, coefficient: 0.8 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 3, duration: 10 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
   [ID.PUTRID_CURSE]: {
     castTimeMs: 600,
+    interruptCommitMs: 520,
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 360, coefficient: 0.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 1, duration: 6 }],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
