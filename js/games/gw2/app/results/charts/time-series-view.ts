@@ -38,6 +38,8 @@ interface ChartLine {
   readonly name: string;
   readonly color: string;
   readonly points: readonly ChartPoint[];
+  readonly dashed?: boolean;
+  readonly unit?: string;
 }
 
 interface ChartMarker {
@@ -373,6 +375,8 @@ function drawLineChart(
 
   for (const line of lines) {
     if (!line.points.length) continue;
+    context.save();
+    context.setLineDash(line.dashed ? [6, 4] : []);
     context.strokeStyle = line.color;
     context.lineWidth = 2;
     context.beginPath();
@@ -383,6 +387,7 @@ function drawLineChart(
       else context.lineTo(x, y);
     });
     context.stroke();
+    context.restore();
   }
 
   if (!lines.length && emptyText) {
@@ -499,7 +504,7 @@ function chartHtml(
   healthMarkers: readonly ChartMarker[],
   phases: readonly ChartFightPhase[]
 ): string {
-  const effects = Object.keys(series.effects || {});
+  const effects = [...new Set([...Object.keys(series.effects || {}), ...Object.keys(series.alliedEffects || {})])];
   const visibleEffects = new Set(effects.slice(0, Math.max(0, options.defaultVisibleEffectLimit)));
   const effectIndexes = new Map(effects.map((name, index) => [name, index]));
   const effectGroups: readonly {
@@ -572,6 +577,13 @@ function chartHtml(
       </div>
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
+        <div class="chart-phase-toggles" data-role="boon-audience" role="group" aria-label="Boon audience">
+          <span class="chart-toggle-label">Boons</span>
+          <button type="button" data-boon-audience="self" aria-pressed="true">Self</button>
+          <button type="button" data-boon-audience="allies" aria-pressed="false">Allies</button>
+          <button type="button" data-boon-audience="both" aria-pressed="false">Both</button>
+          <span>Self: solid · Allies: dashed, average per ally (${series.alliedPlayerCount || PRESENTATION_ALLIED_PLAYER_COUNT})</span>
+        </div>
         ${effectTogglesMarkup}
         <div class="chart-canvas-wrap">
           <canvas class="chart-canvas" data-role="effects-canvas"></canvas>
@@ -607,6 +619,7 @@ export function mountTimeSeriesCharts(
     durationMs: Math.max(1, Number(series?.durationMs || 0)),
     dps: resolvedDps,
     effects: series?.effects || {},
+    alliedEffects: series?.alliedEffects || {},
     effectTypes: series?.effectTypes || {},
     effectUnits: series?.effectUnits || {},
     effectSummaries: series?.effectSummaries || {},
@@ -634,6 +647,10 @@ export function mountTimeSeriesCharts(
   );
   const phases = fightPhases(resolvedSeries, healthMarkers, resolvedOptions);
   let activePhaseId = 'full';
+  let boonAudience = 'self';
+  const effectNames = [
+    ...new Set([...Object.keys(resolvedSeries.effects), ...Object.keys(resolvedSeries.alliedEffects!)])
+  ];
   // Which breakdown row's hits the DPS strip highlights (null until a row is
   // clicked).
   let selectedSkillKey: string | null = null;
@@ -701,13 +718,27 @@ export function mountTimeSeriesCharts(
         timeOffsetMs: phaseStartMs
       }
     );
-    chartState.effectLines = Object.entries(chartState.effectsView.effects)
-      .filter(([name]) => selected.has(name))
-      .map(([name, points]) => ({
-        name,
-        points,
-        color: resolvedOptions.colors[name] || fallbackColor(Object.keys(resolvedSeries.effects).indexOf(name))
-      }));
+    // Overlay averaged allied boons on the same scale; keep self buffs and target conditions as their own series.
+    const alliedView = effectsViewForPhase({ ...resolvedSeries, effects: resolvedSeries.alliedEffects! }, activePhase);
+    chartState.effectLines = effectNames
+      .filter((name) => selected.has(name))
+      .flatMap((name) => {
+        const boon = resolvedSeries.effectTypes?.[name] === 'boon';
+        const color = resolvedOptions.colors[name] || fallbackColor(effectNames.indexOf(name));
+        const unit = resolvedSeries.effectUnits?.[name];
+        const lines: ChartLine[] = [];
+        const own = chartState.effectsView.effects[name];
+        if (own && (!boon || boonAudience !== 'allies')) {
+          lines.push({ name: boon ? `${name} (Self)` : name, points: own, color, unit });
+        }
+
+        const allied = alliedView.effects[name];
+        if (boon && allied && boonAudience !== 'self') {
+          lines.push({ name: `${name} (Allies avg)`, points: allied, color, unit, dashed: true });
+        }
+
+        return lines;
+      });
     chartState.effectsLayout = drawLineChart(
       container.querySelector<HTMLCanvasElement>('[data-role="effects-canvas"]'),
       chartState.effectLines,
@@ -789,9 +820,7 @@ export function mountTimeSeriesCharts(
             return {
               name: line.name,
               value,
-              displayValue: resolvedSeries.effectUnits?.[line.name]
-                ? `${Number(value.toFixed(2))}${resolvedSeries.effectUnits[line.name]}`
-                : String(Math.round(value))
+              displayValue: `${Number(value.toFixed(2))}${line.unit || ''}`
             };
           })
           .filter((entry) => entry.value > 0)
@@ -810,6 +839,19 @@ export function mountTimeSeriesCharts(
 
   for (const input of chartTogglesEl?.querySelectorAll<HTMLInputElement>('input') || []) {
     input.onchange = redraw;
+  }
+
+  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]')) {
+    button.onclick = () => {
+      boonAudience = button.dataset.boonAudience || 'self';
+      for (const control of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]')) {
+        control.setAttribute('aria-pressed', String(control.dataset.boonAudience === boonAudience));
+      }
+
+      const tooltip = container.querySelector<HTMLElement>('[data-role="effects-tooltip"]');
+      if (tooltip) tooltip.style.display = 'none';
+      redraw();
+    };
   }
 
   for (const button of chartTogglesEl?.querySelectorAll<HTMLButtonElement>(

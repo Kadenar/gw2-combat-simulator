@@ -1,5 +1,80 @@
 import { expect, test } from '@playwright/test';
 
+// Exercise audience selection and phase cropping through the real canvas hover values.
+test('boon charts switch between self, allies, and comparison without losing effect selection', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(async () => {
+    const { buildChartSeries } = await import('/js/games/gw2/app/results/model.ts');
+    const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
+    const resolvedAudience = {
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 0,
+      companionIds: [],
+      recipientCount: 1
+    };
+    const series = buildChartSeries({
+      duration: 10,
+      resolvedEvents: [
+        { type: 'buff', kind: 'might', at: 0, duration: 10, stacks: 20, resolvedAudience },
+        {
+          type: 'buff',
+          kind: 'might',
+          at: 0,
+          duration: 10,
+          stacks: 3,
+          resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 1 }
+        },
+        {
+          type: 'buff',
+          kind: 'stability',
+          at: 0,
+          duration: 10,
+          stacks: 2,
+          resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 4, recipientCount: 4 }
+        }
+      ]
+    });
+    document.body.innerHTML = '<main style="max-width: 1000px; margin: auto"><div id="charts"></div></main>';
+    mountTimeSeriesCharts(document.querySelector('#charts'), series, {
+      healthBreakpoints: [{ healthPercent: 80, elapsed: 5, damage: 0 }]
+    });
+  });
+  const audience = page.getByRole('group', { name: 'Boon audience' });
+  const tooltip = page.locator('[data-role="effects-tooltip"]');
+  const canvas = page.locator('[data-role="effects-canvas"]');
+  const hover = async () => {
+    const box = await canvas.boundingBox();
+    await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
+  };
+
+  await page.locator('input[data-series="Stability"]').uncheck();
+  await hover();
+  await expect(tooltip).toContainText('Might (Self): 20');
+  await expect(tooltip).not.toContainText('Allies');
+  await audience.getByRole('button', { name: 'Allies', exact: true }).click();
+  await hover();
+  await expect(tooltip).toContainText('Might (Allies avg): 0.75');
+  await expect(tooltip).not.toContainText('Self');
+  await audience.getByRole('button', { name: 'Both', exact: true }).click();
+  await hover();
+  await expect(tooltip).toContainText('Might (Self): 20');
+  await expect(tooltip).toContainText('Might (Allies avg): 0.75');
+  await page.locator('[data-chart-phase="100-80"]').click();
+  await hover();
+  await expect(tooltip).toContainText('Might (Allies avg): 0.75');
+  await expect(audience.getByRole('button', { name: 'Both', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('input[data-series="Stability"]')).not.toBeChecked();
+  await page.locator('[data-effect-type="boon"]').getByRole('button', { name: 'All', exact: true }).click();
+  await hover();
+  await expect(tooltip).toContainText('Stability (Allies avg): 2');
+  await expect(tooltip).not.toContainText('Stability (Self)');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(audience).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 // A real mount verifies that ally support leads the summary while personal results remain secondary during zoom.
 test('effect summaries prioritize allied generation and stay readable on narrow screens', async ({
   page

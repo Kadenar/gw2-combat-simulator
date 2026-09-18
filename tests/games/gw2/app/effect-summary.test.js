@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 
@@ -22,6 +23,42 @@ const buff = (kind, at, duration, stacks = 1, extra = {}) => ({
   ...extra
 });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+
+// Recipient caps apply before averaging, and personal grants/extensions cannot leak into allied state.
+test('allied boon state preserves recipient caps, extensions, expiry, and observation origin', () => {
+  const series = buildChartSeries(
+    {
+      duration: 10,
+      combatStartTime: 0,
+      dpsStartTime: 1,
+      resolvedEvents: [
+        buff('might', -1, 30, 25, { audience: { recipients: 'party' } }),
+        buff('might', 0, 2, 30, { audience: { recipients: 'party', maximumRecipients: 3 } }),
+        buff('fury', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } }),
+        buff('fury', 0, 20),
+        buff('protection', 0, 20),
+        { type: 'boon_extension', at: 1, duration: 2, extensionAudience: 'self' },
+        { type: 'boon_extension', at: 1.5, duration: 1, extensionAudience: 'all' },
+        buff('stability', 4, 2, 3, {
+          resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1, recipientCount: 1 }
+        })
+      ]
+    },
+    500
+  );
+  assert.equal(chartValueAt(series.alliedEffects.Might, 0), 12.5);
+  assert.equal(chartValueAt(series.alliedEffects.Might, 1500), 12.5);
+  assert.equal(chartValueAt(series.alliedEffects.Might, 2000), 0);
+  assert.equal(chartValueAt(series.alliedEffects.Fury, 0), 0.5);
+  assert.equal(chartValueAt(series.alliedEffects.Fury, 1500), 0.25);
+  assert.equal(chartValueAt(series.alliedEffects.Fury, 2000), 0);
+  assert.ok(chartValueAt(series.effects.Fury, 2000) > 0);
+  assert.ok(series.alliedEffects.Protection.every((point) => point.v === 0));
+  assert.equal(series.effects.Stability, undefined);
+  assert.equal(series.effectTypes.Stability, 'boon');
+  assert.equal(chartValueAt(series.alliedEffects.Stability, 3000), 0.75);
+  assert.equal(chartValueAt(series.alliedEffects.Stability, 5000), 0);
+});
 
 // Small synthetic windows exercise integration and supply contracts independently of any benchmark rotation.
 test('duration supply can exceed a full window while caps and gaps reduce actual uptime', () => {

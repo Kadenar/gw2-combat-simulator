@@ -1,5 +1,5 @@
 import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import { isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import type { SkillHit } from '#ui/results/charts/hit-timeline-model.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
@@ -40,6 +40,7 @@ export interface ChartSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
+  readonly alliedEffects?: Readonly<Record<string, readonly ChartPoint[]>>;
   readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
   // Exact full-DPS-window summaries are independent of graph sampling and chart zoom.
@@ -365,6 +366,28 @@ export function buildTimeSeries(
     };
   }
 
+  // Average capped state across all four projected allies, including recipients with no boon.
+  const alliedEffects: Record<string, ChartPoint[]> = {};
+  for (const kind of boonGeneration.boons.keys()) {
+    const event = buffs.find((entry) => entry.type === 'buff' && String(entry.kind).toLowerCase() === kind)!;
+    const name = effectName(kind, event);
+    effectTypes[name] = 'boon';
+    alliedEffects[name] = times.map((time) => ({
+      t: time,
+      v:
+        boonGeneration.alliedApplications.reduce((sum, history) => {
+          const applications = history.get(kind) || [];
+          const at = (dpsStartMs + time) / 1000;
+          return (
+            sum +
+            (durationStackCaps[name] != null
+              ? remainingDurationStackSeconds(applications, at, { maximum: durationStackCaps[name] })
+              : buffApplicationStacks(applications, kind, at, stackCaps[name] ?? Infinity))
+          );
+        }, 0) / boonGeneration.alliedPlayerCount
+    }));
+  }
+
   const cumulativeDamage = dps.map((point) => ({
     t: point.t,
     v: point.v * (point.t / 1000)
@@ -464,6 +487,7 @@ export function buildTimeSeries(
     durationMs,
     dps,
     effects,
+    alliedEffects,
     effectTypes,
     effectSummaries,
     boonGeneration: Object.fromEntries(

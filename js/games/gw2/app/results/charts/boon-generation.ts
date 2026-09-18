@@ -32,7 +32,11 @@ export function buildBoonGeneration(
   events: readonly SimulationEvent[],
   start: number,
   end: number
-): { readonly alliedPlayerCount: number; readonly boons: ReadonlyMap<string, BoonGenerationByAudience> } {
+): {
+  readonly alliedPlayerCount: number;
+  readonly boons: ReadonlyMap<string, BoonGenerationByAudience>;
+  readonly alliedApplications: readonly ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>[];
+} {
   const ordered = events
     .filter(
       (event) =>
@@ -140,5 +144,6 @@ export function buildBoonGeneration(
     }
   }
 
-  return { alliedPlayerCount, boons: totals };
+  // Retain the same recipient histories for graphs so generation and allied state share audience rules.
+  return { alliedPlayerCount, boons: totals, alliedApplications: recipients.slice(1) };
 }
