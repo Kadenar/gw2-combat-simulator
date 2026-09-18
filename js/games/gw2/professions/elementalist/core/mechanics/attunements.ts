@@ -7,6 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   setElementalistAttunementReadyAt,
@@ -51,8 +52,9 @@ export function targetAttunement(skill: Skill): ElementalistAttunement | null {
   );
 }
 
-/** Applies alacrity's recharge scaling to an Elementalist mechanic duration. */
+/** Attunement swaps are free before combat; otherwise apply alacrity, including Weave Self's recharge override. */
 export function elementalistAlacrityAdjustedDuration(context: ElementalistCastContext, seconds: number): number {
+  if ((context.schedulerPolicy as Partial<Gw2SchedulerPolicy> | undefined)?.isCombatActive?.() === false) return 0;
   return context.config.boons?.alacrity ? seconds / 1.25 : seconds;
 }
 

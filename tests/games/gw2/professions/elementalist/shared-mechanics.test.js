@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -13,10 +14,61 @@ import { availability as evokerAvailability } from '#gw2/professions/elementalis
 import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
+test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
+  // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
+  for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
+    for (const suffix of [[], ['__combat_start']]) {
+      for (const preparation of specialization === 'Weaver' ? [[], ['Weave Self']] : [[]]) {
+        const result = simulateGw2({
+          profession: elementalistProfession,
+          rotation: [
+            ...preparation,
+            'Water Attunement',
+            'Air Attunement',
+            'Earth Attunement',
+            'Fire Attunement',
+            ...suffix
+          ],
+          config: {
+            specialization,
+            startAttunement: 'Fire',
+            secondaryAttunement: 'Fire',
+            ...(preparation.length ? { selectedSkills: { Elite: 'Weave Self' } } : {})
+          }
+        });
+        const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
+        assert.deepEqual(result.warnings, [], specialization);
+        assert.ok(
+          swaps.every((step) => step.start === swaps[0].start),
+          specialization
+        );
+        assert.equal(result.endState.profession.primaryAttunement, 'Fire');
+        for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
+          assert.equal(result.endState.cooldowns[`${attunement} Attunement`]?.remaining ?? 0, 0, specialization);
+        }
+      }
+    }
+  }
+});
+
+test('attunement recharge resumes after an explicit combat marker or the first hit', () => {
+  for (const combatStart of ['__combat_start', 'Fireball']) {
+    const result = simulateGw2({
+      profession: elementalistProfession,
+      rotation: ['Water Attunement', 'Fire Attunement', combatStart, 'Water Attunement', 'Fire Attunement'],
+      config: { specialization: 'Core', startAttunement: 'Fire', primaryWeapon: 'Staff' }
+    });
+    const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
+    assert.deepEqual(result.warnings, []);
+    assert.equal(swaps[1].start, swaps[0].start);
+    assert.equal(swaps[3].start - swaps[2].start, 10000);
+  }
+});
+
 test('cooldown reset also resets native attunement recharge', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Air Attunement', { type: 'cooldown-reset' }, 'Fire Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Air Attunement', { type: 'cooldown-reset' }, 'Fire Attunement'],
     startAttunement: 'Fire',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
@@ -643,7 +695,7 @@ test('Hammer orb strikes carry Burning and feed Fresh Air', () => {
 
   const freshAir = runNative({
     lines: [['Fire'], ['Air', '3-3-2'], ['Arcane']],
-    rotation: ['Fire Attunement', 'Flame Wheel', 'Air Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Fire Attunement', 'Flame Wheel', 'Air Attunement'],
     weapons: ['Hammer', ''],
     startAttunement: 'Air'
   });

@@ -268,7 +268,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
   for (const entry of ['Unsheathe Gunsaber', 'Dragon Trigger']) {
     const result = simulateGw2({
       profession,
-      rotation: [entry],
+      rotation: ['__combat_start', entry],
       config: { specialization: 'Bladesworn', initialResource: 100, primaryWeapon: 'Sword' }
     });
     const app = projectionApp(profession, { specialization: 'Bladesworn' });

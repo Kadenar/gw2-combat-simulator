@@ -3,6 +3,10 @@
     "Raging Ricochet",
     "Water Attunement",
     "Frigid Flurry",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
     "Earth Attunement",
     "Shattering Stone",
     {

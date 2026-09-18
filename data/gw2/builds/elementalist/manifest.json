@@ -25,7 +25,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
         "dpsReportUrl": "https://dps.report/Yt2F-20260805-122746_golem",
-        "benchmarkDps": 45791,
+        "benchmarkDps": 45811,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn"
       },
@@ -224,7 +224,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 35470,
+        "benchmarkDps": 35473,
         "upToDate": true
       },
       {
@@ -233,7 +233,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-catalyst-pistol.json",
         "dpsReportUrl": "https://dps.report/Q2mp-20260416-234551_golem",
-        "benchmarkDps": 37922,
+        "benchmarkDps": 37928,
         "upToDate": true
       },
       {
@@ -257,7 +257,7 @@
         "label": "Inferno (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40723,
+        "benchmarkDps": 40754,
         "upToDate": false
       }
     ]

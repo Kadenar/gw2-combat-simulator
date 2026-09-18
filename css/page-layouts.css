@@ -496,10 +496,9 @@ html.embed {
   min-height: 100vh;
 }
 
-/* Landing page: keep only the profession picker; drop hero, marketing, footer. */
+/* Hide standalone branding while keeping feedback and credits available in embeds. */
 .embed .landing-header,
-.embed .landing-footer,
-.embed .landing-section:not(:has(.profession-grid)) {
+.embed .landing-footer {
   display: none;
 }
 

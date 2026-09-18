@@ -52,15 +52,21 @@ test('Dragon Trigger does not swap again when Gunsaber is already active', () =>
 
 test('Gunsaber equip and stow put the opposite action on a five-second cooldown', () => {
   // Alternating immediately must wait for the opposite action after every transition.
-  const result = simulate([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
+  const result = simulate([
+    '__combat_start',
+    ID.UNSHEATHE_GUNSABER,
+    ID.SHEATHE_GUNSABER,
+    ID.UNSHEATHE_GUNSABER,
+    ID.SHEATHE_GUNSABER
+  ]);
 
   assert.deepEqual(result.warnings, []);
-  for (let index = 1; index < result.steps.length; index += 1) {
+  for (let index = 2; index < result.steps.length; index += 1) {
     assert.equal(result.steps[index].start - result.steps[index - 1].end, 5000);
   }
 
-  const unsheathed = simulate([ID.UNSHEATHE_GUNSABER]);
-  const sheathed = simulate([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
+  const unsheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER]);
+  const sheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
   assert.equal(unsheathed.endState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
   assert.equal(sheathed.endState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
 });
@@ -73,11 +79,29 @@ test('Dragon Trigger starts Unsheathe recharge only when entering from normal we
     [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 6000 }], 0],
     [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 5000]
   ]) {
-    const result = simulate([...beforeTrigger, ID.DRAGON_TRIGGER]);
+    const result = simulate(['__combat_start', ...beforeTrigger, ID.DRAGON_TRIGGER]);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.endState.cooldowns['Unsheathe Gunsaber'].remaining, remaining);
     assert.equal(result.endState.cooldowns['Sheathe Gunsaber'].remaining, remaining);
     assert.equal(result.endState.cooldowns['Dragon Trigger'], undefined);
+  }
+});
+
+test('Gunsaber swaps and Dragon Trigger entry leave both swap actions ready before combat', () => {
+  // Both implicit setup and an explicit future combat marker allow unrestricted bar preparation.
+  for (const suffix of [[], ['__combat_start']]) {
+    const result = simulate([
+      ID.UNSHEATHE_GUNSABER,
+      ID.SHEATHE_GUNSABER,
+      ID.DRAGON_TRIGGER,
+      ID.SHEATHE_GUNSABER,
+      ID.UNSHEATHE_GUNSABER,
+      ...suffix
+    ]);
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.steps.every((step) => step.start === 0));
+    assert.equal(result.endState.cooldowns['Unsheathe Gunsaber'].remaining, 0);
+    assert.equal(result.endState.cooldowns['Sheathe Gunsaber'].remaining, 0);
   }
 });
 

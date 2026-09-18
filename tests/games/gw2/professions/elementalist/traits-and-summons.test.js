@@ -400,7 +400,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
 
   const flow = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-3']],
-    rotation: ['Water Attunement', 'Air Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Water Attunement', 'Air Attunement'],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
     assumptions: {

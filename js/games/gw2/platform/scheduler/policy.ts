@@ -64,7 +64,8 @@ type CastBoundTimingContext = SchedulerContext & {
 
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
-const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends']);
+// Bar swaps remain freely available during setup until combat is actually established.
+const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends', 'Unsheathe Gunsaber', 'Sheathe Gunsaber']);
 const WEAPON_SWAP_SKILL = 'Swap Weapons';
 
 function baseCastDurationMs(skill: Skill): number {

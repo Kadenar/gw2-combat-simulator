@@ -258,9 +258,13 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
     [{ type: 'wait', durationMs: 31000 }, 30000],
     [ID.SHEATHE_GUNSABER, 5000]
   ]) {
-    const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit], {
-      initialResource: 100
-    });
+    const result = simulate(
+      'Bladesworn',
+      ['__combat_start', ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit],
+      {
+        initialResource: 100
+      }
+    );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.endState.profession.dragonTriggerActive, false);
     assert.equal(result.endState.profession.dragonCharges, 0);

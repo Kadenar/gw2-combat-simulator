@@ -295,7 +295,7 @@ test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
 test('Core mechanics execute through native hooks', () => {
   const result = runNative({
     lines: [['Fire'], ['Air', '1-1-2'], ['Arcane']],
-    rotation: ['Fire Attunement', 'Flame Uprising', 'Ring of Fire'],
+    rotation: [{ type: 'combat-start' }, 'Fire Attunement', 'Flame Uprising', 'Ring of Fire'],
     startAttunement: 'Air'
   });
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
@@ -356,7 +356,7 @@ test('Fresh Air lookahead preserves a scheduled reset across an intervening attu
   const result = runNative({
     lines: [['Fire'], ['Air', '3-3-2'], ['Tempest', '3-1-2']],
     weapons: ['Hammer', ''],
-    rotation: ['Earth Attunement', 'Rocky Loop', 'Water Attunement', 'Air Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Earth Attunement', 'Rocky Loop', 'Water Attunement', 'Air Attunement'],
     startAttunement: 'Air',
     targetHealth: 0
   });
@@ -1021,7 +1021,7 @@ test('Evoker familiar stays available when its element differs from the active a
 test('core attunements enforce and report their individual recharge', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Air Attunement', 'Water Attunement', 'Fire Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Air Attunement', 'Water Attunement', 'Fire Attunement'],
     startAttunement: 'Fire',
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
@@ -1098,7 +1098,7 @@ test('Fresh Air grants ferocity when entering Air, not when resetting it', () =>
 test('Weaver attunements use the shared four-second recharge', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Weaver']],
-    rotation: ['Water Attunement', 'Air Attunement'],
+    rotation: [{ type: 'combat-start' }, 'Water Attunement', 'Air Attunement'],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
     assumptions: {
