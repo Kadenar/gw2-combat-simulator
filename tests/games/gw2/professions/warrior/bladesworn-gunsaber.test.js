@@ -50,20 +50,34 @@ test('Dragon Trigger does not swap again when Gunsaber is already active', () =>
   assert.equal(result.endState.profession.gunsaberActive, true);
 });
 
-test('Gunsaber equip and stow each recharge in five seconds', () => {
-  // Offset the first stow so both transitions must independently wait for their recharge.
-  const result = simulate([
-    ID.UNSHEATHE_GUNSABER,
-    { type: 'wait', durationMs: 1000 },
-    ID.SHEATHE_GUNSABER,
-    ID.UNSHEATHE_GUNSABER,
-    ID.SHEATHE_GUNSABER
-  ]);
+test('Gunsaber equip and stow put the opposite action on a five-second cooldown', () => {
+  // Alternating immediately must wait for the opposite action after every transition.
+  const result = simulate([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
 
   assert.deepEqual(result.warnings, []);
-  for (const name of ['Unsheathe Gunsaber', 'Sheathe Gunsaber']) {
-    const [first, second] = result.steps.filter((step) => step.skill === name);
-    assert.equal(second.start - first.end, 5000);
+  for (let index = 1; index < result.steps.length; index += 1) {
+    assert.equal(result.steps[index].start - result.steps[index - 1].end, 5000);
+  }
+
+  const unsheathed = simulate([ID.UNSHEATHE_GUNSABER]);
+  const sheathed = simulate([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
+  assert.equal(unsheathed.endState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
+  assert.equal(sheathed.endState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
+});
+
+test('Dragon Trigger starts Unsheathe recharge only when entering from normal weapons', () => {
+  // Existing Gunsaber entry preserves both running and expired cooldowns.
+  for (const [beforeTrigger, remaining] of [
+    [[], 5000],
+    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 4000],
+    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 6000 }], 0],
+    [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 5000]
+  ]) {
+    const result = simulate([...beforeTrigger, ID.DRAGON_TRIGGER]);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.cooldowns['Unsheathe Gunsaber'].remaining, remaining);
+    assert.equal(result.endState.cooldowns['Sheathe Gunsaber'].remaining, remaining);
+    assert.equal(result.endState.cooldowns['Dragon Trigger'], undefined);
   }
 });
 

@@ -4,6 +4,7 @@ import test from 'node:test';
 import { loadProfession, professionOptions } from '#gw2/app/profession-registry.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function projectionApp(
   profession,
@@ -258,6 +259,27 @@ test('stateful transforms select one live tile across professions', async () => 
       [expected],
       `${professionId}: ${expected}`
     );
+  }
+});
+
+test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger entry from sword', async () => {
+  const profession = await loadProfession('warrior');
+  // Use real simulation state so the visible flip and its cooldown cannot drift apart.
+  for (const entry of ['Unsheathe Gunsaber', 'Dragon Trigger']) {
+    const result = simulateGw2({
+      profession,
+      rotation: [entry],
+      config: { specialization: 'Bladesworn', initialResource: 100, primaryWeapon: 'Sword' }
+    });
+    const app = projectionApp(profession, { specialization: 'Bladesworn' });
+    app.results = result;
+    const [skill] = displayedSkillTiles(app, [profession.catalog.skillsByName.get('Unsheathe Gunsaber')]);
+    const view = paletteSkillView(app, skill);
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(skill.name, 'Sheathe Gunsaber');
+    assert.equal(view.cooldownLabel, '5.00s');
+    assert.equal(view.disabled, true);
   }
 });
 

@@ -253,10 +253,10 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () 
 });
 
 test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
-  // Expiry uses its deadline even when a wait advances beyond it; sheathing exits immediately.
+  // Expiry uses its deadline even when a wait advances beyond it; sheathing waits for the shared swap cooldown.
   for (const [exit, exitAt] of [
     [{ type: 'wait', durationMs: 31000 }, 30000],
-    [ID.SHEATHE_GUNSABER, 1000]
+    [ID.SHEATHE_GUNSABER, 5000]
   ]) {
     const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit], {
       initialResource: 100
