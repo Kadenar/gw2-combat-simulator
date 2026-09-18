@@ -563,7 +563,6 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
   state.dragonTriggerChargeDeadline = 2.5;
   state.nextDragonChargeAt = 0.24;
   const context = {
-    epsilon: 1e-9,
     config: {},
     events: [],
     emit(event) {

@@ -1,8 +1,8 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns one-shot Core Mesmer state changes tied to individual skill completions.
  * Packet emission lives in `packet-emission.ts`; persistent systems live under `mechanics/`.
  */
-import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
@@ -38,7 +39,7 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): voi
   const virtue = guardianVirtueForSlot(skill.slot);
   if (!virtue) return;
   const state = professionCoreState(context);
-  state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + context.epsilon;
+  state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + EPSILON;
   const passiveReadyAt = context.rechargeReadyAt ?? context.effectiveEnd;
   emitGuardianEvent(context, skill, 'guardian.virtue-activated', {
     virtue,
@@ -55,7 +56,7 @@ function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): voi
  * a resolver refresh event.
  */
 function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   for (const virtue of context.catalog.skills.filter(
     (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
   )) {

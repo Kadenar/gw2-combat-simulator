@@ -14,7 +14,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -147,7 +147,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   // Weave is up.
   if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
   const state = weaverState.from(context);
-  return state.perfectWeaveUntil > context.start + context.epsilon
+  return state.perfectWeaveUntil > context.start + EPSILON
     ? { ready: true }
     : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
 }
@@ -213,7 +213,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   applyWeaveSelfAttunement(context, at, target, source, sourceId);
 
   // Pre-combat setup swaps must not generate trait procs.
-  if (at < Number(context.combatStartTime || 0) - context.epsilon) return;
+  if (at < Number(context.combatStartTime || 0) - EPSILON) return;
   if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
     const resistance = balanceProfileEffectFromContext(context, PROFILE.weaversProwess, 'boon', 0, 'Resistance');
     emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {

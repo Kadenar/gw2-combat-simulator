@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -37,8 +38,8 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
   // Channel traits stop with the cast, while already-applied conditions keep ticking.
   const pulseLanded = (at: number) =>
     skill.id !== ID.NATURAL_CONVERGENCE ||
-    context.effectiveEnd >= context.fullEnd - context.epsilon ||
-    at <= context.effectiveEnd + context.epsilon;
+    context.effectiveEnd >= context.fullEnd - EPSILON ||
+    at <= context.effectiveEnd + EPSILON;
   if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
     const effect = balanceProfileEffectFromContext(context, PROFILE.graceOfTheLand, 'boon');
     const boon = String(effect?.boon || 'alacrity');

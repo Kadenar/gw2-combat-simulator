@@ -17,7 +17,6 @@ test('allied attack clocks preserve independent intervals across partitioned and
       config,
       catalog: necromancerCatalog,
       state: { profession: necromancerProfession.resolveRuntime(config).createProfessionState(config) },
-      epsilon: 0.0001,
       hasExplicitCombatStart: true,
       combatStartTime,
       events,

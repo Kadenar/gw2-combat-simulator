@@ -19,7 +19,6 @@ function resourceContext(events, config = {}) {
     config,
     events,
     start: 0,
-    epsilon: 1e-9,
     state: { profession: { core: { endurance: 0, enduranceUpdatedAt: 0, maximumEndurance: 100 } } },
     emit(event) {
       this.events.push(event);

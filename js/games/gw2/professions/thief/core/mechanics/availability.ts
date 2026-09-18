@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {
@@ -33,7 +34,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   const state = professionCoreState(context);
   const stealthAttackState = thiefStealthAttackChargeState(context);
   if (skill.id === ID.DODGE) {
-    return state.endurance + Number(context.epsilon || 0.0001) >= 50
+    return state.endurance + EPSILON >= 50
       ? { ready: true }
       : deny(skill, 'thief.endurance', 'requires 50 endurance.', thiefEnduranceReadyAt(context, 50));
   }
@@ -132,7 +133,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     return deny(skill, 'thief.stolen-skill', 'steal this skill before using it.');
   }
 
-  if (Number(skill.initiativeCost || 0) > state.initiative + context.epsilon) {
+  if (Number(skill.initiativeCost || 0) > state.initiative + EPSILON) {
     const missing = Number(skill.initiativeCost || 0) - Number(state.initiative || 0);
     return deny(
       skill,

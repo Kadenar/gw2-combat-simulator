@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -140,7 +141,7 @@ export function materializeThiefAxe(
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
+  const completed = context.effectiveEnd >= context.fullEnd - EPSILON;
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }

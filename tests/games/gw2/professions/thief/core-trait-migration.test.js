@@ -42,7 +42,6 @@ function traitContext(selectedTraitIds = [], config = {}) {
     queue: new StableEventQueue(),
     boons: new Map(),
     resolved: [],
-    epsilon: 0.0001,
     start: 0,
     fullEnd: 1,
     effectiveEnd: 1,

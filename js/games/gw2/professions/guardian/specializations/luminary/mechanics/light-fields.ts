@@ -24,8 +24,8 @@ const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
   GUARDIAN_SKILL_IDS.RADIANT_COURAGE
 ]);
 
-function lightAuraActive(state: GuardianLuminaryState, at: number, epsilon: number): boolean {
-  return Number(state.lightAuraUntil || 0) > at + epsilon;
+function lightAuraActive(state: GuardianLuminaryState, at: number): boolean {
+  return Number(state.lightAuraUntil || 0) > at + EPSILON;
 }
 
 // Resolver operations keep overlapping casts in combat-time order instead of scheduler order.
@@ -53,8 +53,7 @@ function emitLightAuraOperation(
 
 function detonateLightAura(context: GuardianResolverContext, event: GuardianResolverEvent): boolean {
   const state = luminaryState.from(context);
-  const epsilon = Number(context.epsilon ?? EPSILON);
-  if (!lightAuraActive(state, event.at, epsilon)) return false;
+  if (!lightAuraActive(state, event.at)) return false;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
   context.queue.enqueue(
@@ -91,7 +90,7 @@ export function handleLightAuraGrant(context: GuardianResolverContext, event: Gu
   if (
     sourceSkill &&
     isLuminaryDetonator(sourceSkill) &&
-    lightAuraActive(state, event.at, Number(context.epsilon ?? EPSILON)) &&
+    lightAuraActive(state, event.at) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
     detonateLightAura(context, event);

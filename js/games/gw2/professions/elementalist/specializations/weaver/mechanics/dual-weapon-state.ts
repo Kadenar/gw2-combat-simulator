@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Weaver dual-weapon state behavior for hammer orbs and pistol bullets.
  * The cataloged weapon fragments live in
@@ -93,7 +94,7 @@ export function weaverHammerAvailability(
   // Every dual hammer skill shares one short lockout after the last orb cast.
   const retryAt =
     state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
-  if (retryAt > context.start + context.epsilon) {
+  if (retryAt > context.start + EPSILON) {
     return retryCast(
       retryAt,
       'elementalist.hammer-orb-lockout',

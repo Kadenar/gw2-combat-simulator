@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import {
   elementalistAfterCast,
   elementalistOnCastComplete,
@@ -46,8 +47,7 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
       handler(context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
         const elemental = professionCoreState(context).summonedElemental;
         const active =
-          elemental.element !== null &&
-          elemental.activeUntil > Number(event.at ?? context.state.time) - context.epsilon;
+          elemental.element !== null && elemental.activeUntil > Number(event.at ?? context.state.time) - EPSILON;
         return prepareGw2BuffCompanionCandidates(
           event,
           active ? [elementalistElementalCompanionId(elemental.summonGeneration)] : []

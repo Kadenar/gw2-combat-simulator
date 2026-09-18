@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
@@ -33,7 +34,7 @@ function scheduleShadowShroudDepletion(context: ThiefSchedulerContext): void {
 export function handleShadowShroudDepletion(context: ThiefSchedulerContext): void {
   const state = specterState.from(context);
   if (!state.shadowShroudActive) return;
-  if (state.shadowForce > context.epsilon) {
+  if (state.shadowForce > EPSILON) {
     scheduleShadowShroudDepletion(context);
     return;
   }

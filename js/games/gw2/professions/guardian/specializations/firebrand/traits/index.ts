@@ -3,7 +3,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -48,7 +48,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
   const coreState = professionCoreState(context);
   const virtue = /^Tome of /.test(skill.name) ? guardianVirtueForSlot(skill.slot) : null;
   if (virtue) {
-    const passiveWasReady = state.tomeDormantReadyAt[virtue] <= at + context.epsilon;
+    const passiveWasReady = state.tomeDormantReadyAt[virtue] <= at + EPSILON;
     state.activeTome = virtue;
     // Switching to a different tome resets the Swift Scholar page-refund streak
     // because it requires three consecutive pages in the same tome.
@@ -302,7 +302,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown ?? 7);
   // Prefer an allied Quickfire recipient when present; otherwise the simulated player receives the charge.
   if (alliedPlayerCount <= 0 && includesSelf) {
-    const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt - Number(context.epsilon || 0.0001);
+    const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt - EPSILON;
     state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
     // Don't reset the trigger timer when stacking onto an active Ashes buff;

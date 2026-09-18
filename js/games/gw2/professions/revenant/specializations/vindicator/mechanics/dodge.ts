@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -100,7 +101,7 @@ export function completeVindicatorDodge(
   const at = strikeProfileOrigin + Math.max(0, Number(offset || 0)) / 1000;
   // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
   const reaversCurse =
-    hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + context.epsilon >= at;
+    hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + EPSILON >= at;
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
   // Strike scaling and Forerunner ordering stay local; support landings continue to their boon package.

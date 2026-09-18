@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
@@ -21,7 +22,7 @@ export function specterCastAvailability(context: ThiefPrecastContext, skill: Thi
   }
 
   // Retry a manual exit after entry's form lockout without blocking forced depletion.
-  if (skill.id === ID.EXIT_SHADOW_SHROUD && state.shadowShroudExitReadyAt > context.start + context.epsilon) {
+  if (skill.id === ID.EXIT_SHADOW_SHROUD && state.shadowShroudExitReadyAt > context.start + EPSILON) {
     return deny(skill, 'thief.shroud-exit-lockout', 'Shadow Shroud exit is not ready.', state.shadowShroudExitReadyAt);
   }
 

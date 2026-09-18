@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -145,9 +146,9 @@ export function projectedFreshAirReadyAt(context: ElementalistPrecastContext, up
   let progress = state.freshAirProgress;
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
   for (const candidate of candidates) {
-    if (candidate.at > upTo + context.epsilon) break;
+    if (candidate.at > upTo + EPSILON) break;
     progress += candidate.criticalChance;
-    if (progress + context.epsilon >= 1) return candidate.at;
+    if (progress + EPSILON >= 1) return candidate.at;
   }
 
   return null;
@@ -195,7 +196,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
   const pending = [];
   const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
   for (const candidate of candidates) {
-    if (candidate.at > through + context.epsilon) {
+    if (candidate.at > through + EPSILON) {
       pending.push(candidate);
       continue;
     }
@@ -208,7 +209,7 @@ export function processFreshAirCandidates(context: ElementalistSchedulerContext,
     const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
     state.freshAirProgress = tracker.progress;
     if (!application) continue;
-    if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
+    if (state.attunementReadyAt.Air > candidate.at + EPSILON) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
       context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
     }

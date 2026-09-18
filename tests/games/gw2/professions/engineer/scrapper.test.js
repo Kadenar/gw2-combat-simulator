@@ -233,7 +233,6 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
         specialization: { kind: 'Scrapper', state: createScrapperState() }
       }
     },
-    epsilon: 1e-9,
     emitDerived(_event, boon) {
       boons.push(boon);
     }

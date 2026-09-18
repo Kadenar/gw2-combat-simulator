@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.
  *
@@ -74,7 +75,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
     const naturalReadyAt = Number(state.attunementReadyAt[target] || 0);
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
-    return readyAt > context.start + context.epsilon
+    return readyAt > context.start + EPSILON
       ? unavailable(skill, 'elementalist.attunement-recharge', `${target} recharges at ${readyAt.toFixed(3)}.`, readyAt)
       : ready();
   }
@@ -89,7 +90,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
       'resourceCost',
       DODGE_ENDURANCE_COST
     );
-    return state.endurance + context.epsilon >= enduranceCost
+    return state.endurance + EPSILON >= enduranceCost
       ? ready()
       : unavailable(
           skill,
@@ -137,11 +138,11 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start + context.epsilon) {
+  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start + EPSILON) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start + context.epsilon) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start + EPSILON) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',
@@ -174,7 +175,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   if (hammerElements) {
     const retryAt =
       state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);
-    if (retryAt > context.start + context.epsilon) {
+    if (retryAt > context.start + EPSILON) {
       return unavailable(
         skill,
         'elementalist.hammer-orb-lockout',

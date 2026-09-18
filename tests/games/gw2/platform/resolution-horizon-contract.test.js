@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { EPSILON } from '#kernel/core/clock.js';
+
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
@@ -240,7 +242,7 @@ function contractProfession() {
       },
       taskHandlers: {
         'fixture.persistent-actor': (context, task) => {
-          if (task.at > context.state.profession.actorActiveUntil + context.epsilon) {
+          if (task.at > context.state.profession.actorActiveUntil + EPSILON) {
             return;
           }
 

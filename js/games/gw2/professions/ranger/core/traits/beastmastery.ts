@@ -2,7 +2,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -37,7 +37,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
       event.type !== 'buff' ||
       !event.resolvedAudience?.includesSelf ||
       !isStandardBoon(kind) ||
-      Number(event.at) > context.effectiveEnd + context.epsilon ||
+      Number(event.at) > context.effectiveEnd + EPSILON ||
       !(remaining > 0)
     ) {
       continue;

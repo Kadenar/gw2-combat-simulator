@@ -61,7 +61,6 @@ function paragonContext() {
   return {
     config: { selectedTraitIds: [TRAIT.REVERBERATION] },
     catalog: warriorCatalog,
-    epsilon: 0.0001,
     start: 0,
     effectiveEnd: 0,
     action: {},

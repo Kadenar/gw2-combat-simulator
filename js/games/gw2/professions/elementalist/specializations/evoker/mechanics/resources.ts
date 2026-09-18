@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * The Evoker familiar-charge economy.
  *
@@ -136,7 +137,7 @@ export function grantWeaponSkillCharges(context: ElementalistCastContext, skill:
     state.activeFamiliarCast &&
     state.activeFamiliarCast.resetsCharges &&
     context.reservationId !== state.activeFamiliarCast.reservationId &&
-    context.effectiveEnd <= state.activeFamiliarCast.endsAt + context.epsilon
+    context.effectiveEnd <= state.activeFamiliarCast.endsAt + EPSILON
   ) {
     state.pendingWeaponChargeGains.push(chargeGain);
     return;

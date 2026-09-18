@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -64,7 +65,7 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 
-  const cooldown = Math.max(context.epsilon, Number(profile.cooldown || 0));
+  const cooldown = Math.max(EPSILON, Number(profile.cooldown || 0));
   heraldState.from(context).elevatedCompassionReadyAt = at + cooldown;
   context.tasks.schedule({
     type: HERALD_ELEVATED_COMPASSION_TASK,
@@ -83,7 +84,7 @@ export function syncElevatedCompassion(context: RevenantCastContext): void {
 
   if (Number.isFinite(context.tasks.nextAt(HERALD_ELEVATED_COMPASSION_TASK))) return;
   const readyAt = Math.max(at, Number(heraldState.from(context).elevatedCompassionReadyAt || 0));
-  if (readyAt <= at + context.epsilon) {
+  if (readyAt <= at + EPSILON) {
     grantElevatedCompassionQuickness(context, at);
     return;
   }
@@ -174,8 +175,7 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   const consumeId = heraldFacetConsumeId(skill, state.activeLegendId);
   if (consumeId != null) state.availableFlips[consumeId] = true;
   if (!skill.upkeepPulse) return;
-  passive.facetPulseReadyAt[skill.id] =
-    context.effectiveEnd + Math.max(context.epsilon, Number(skill.pulseInterval ?? 3));
+  passive.facetPulseReadyAt[skill.id] = context.effectiveEnd + Math.max(EPSILON, Number(skill.pulseInterval ?? 3));
   context.tasks.schedule({
     type: 'revenant.herald-facet-pulse',
     at: passive.facetPulseReadyAt[skill.id],
@@ -208,7 +208,7 @@ export function handleHeraldFacetPulse(
     stacks: pulse.stacks,
     audience: { recipients: 'party' as const }
   });
-  const nextAt = task.at + Math.max(context.epsilon, Number(skill.pulseInterval ?? 3));
+  const nextAt = task.at + Math.max(EPSILON, Number(skill.pulseInterval ?? 3));
   state.facetPulseReadyAt[skillId] = nextAt;
   if (!heraldFacetPassiveActive(core, state, skillId, nextAt)) return;
   context.tasks.schedule({

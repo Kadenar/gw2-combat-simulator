@@ -11,7 +11,7 @@ import {
   emitSkillControl,
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -343,7 +343,7 @@ export function handleEngineerMechAttack(
 
   // Mech is mid-command; hold the attack chain until the command animation ends.
   const busyUntil = Number(state.mech.busyUntil || 0);
-  if (task.at < busyUntil - context.epsilon) {
+  if (task.at < busyUntil - EPSILON) {
     scheduleMechAttack(context, busyUntil, task.payload || { phase: 0 });
     return;
   }

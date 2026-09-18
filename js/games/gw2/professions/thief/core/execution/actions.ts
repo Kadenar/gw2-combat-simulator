@@ -1,5 +1,5 @@
 /** Owns immediate Core Thief action callbacks; persistent summon behavior lives in mechanics. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -17,7 +17,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   emitThiefStateSnapshot(context, at, 'stand');
   const inCombat =
     !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null && at + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
+    (context.combatStartTime != null && at + EPSILON >= Number(context.combatStartTime));
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.QUICK_POCKETS) &&

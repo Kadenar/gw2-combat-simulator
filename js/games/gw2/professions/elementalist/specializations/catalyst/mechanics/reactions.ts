@@ -203,7 +203,6 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     event.at,
     Number(event.duration || 0),
     Number(event.stacks || 1),
-    EPSILON,
     balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks', 10)
   );
 }

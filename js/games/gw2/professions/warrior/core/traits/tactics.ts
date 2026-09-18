@@ -2,7 +2,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
@@ -130,7 +130,7 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
   const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
   const interval = Number(empowerAllies?.pulseInterval ?? 10);
   // Zero disables recurring pulses instead of repeatedly emitting at the same timestamp.
-  while (interval > 0 && state.empowerAlliesNextAt <= target + context.epsilon) {
+  while (interval > 0 && state.empowerAlliesNextAt <= target + EPSILON) {
     const at = state.empowerAlliesNextAt;
     emitSkillBuff(context, {
       at,

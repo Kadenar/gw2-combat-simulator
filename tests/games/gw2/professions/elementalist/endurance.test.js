@@ -21,7 +21,6 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
     for (const targets of [[8], [2, 3, 4, 6, 8]]) {
       const context = {
         config: {},
-        epsilon: 1e-9,
         events: [
           vigor(0, 20, false),
           vigor(2, 2),
@@ -42,7 +41,7 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
 });
 
 test('timed Vigor recovery crosses application and expiry boundaries without rewinding', () => {
-  const context = { config: {}, events: [vigor(2, 2), vigor(0, 20, false)], epsilon: 1e-9 };
+  const context = { config: {}, events: [vigor(2, 2), vigor(0, 20, false)] };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
 
   // Two base seconds, two Vigor seconds, then two base seconds restore 35 endurance.
@@ -56,7 +55,7 @@ test('timed Vigor recovery crosses application and expiry boundaries without rew
 });
 
 test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
-  const context = { config: {}, events: [vigor(3, 2), vigor(2, 2)], epsilon: 1e-9 };
+  const context = { config: {}, events: [vigor(3, 2), vigor(2, 2)] };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   updateEndurance(context, state, 8);
   assert.equal(state.endurance, 50);
@@ -69,7 +68,7 @@ test('Vigor stacks duration without stacking its rate and respects the duration 
 });
 
 test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
-  const context = { config: { boons: { vigor: true } }, events: [vigor(2, 2)], epsilon: 1e-9 };
+  const context = { config: { boons: { vigor: true } }, events: [vigor(2, 2)] };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   updateEndurance(context, state, 6);
   assert.equal(state.endurance, 45);

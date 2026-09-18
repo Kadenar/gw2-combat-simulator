@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -115,7 +116,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
   // so it only applies to the single Dragon Trigger entry it was active for.
   state.dragonChargesPerInterval =
-    state.tacticalReloadUntil > 0 && state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd ? 2 : 1;
+    state.tacticalReloadUntil > 0 && state.tacticalReloadUntil + EPSILON >= context.effectiveEnd ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonChargeTickCount = 0;
   state.nextDragonChargeAt =
@@ -354,9 +355,9 @@ function furyActiveBeforeCurrentCast(
       boonApplicationsAt(
         context.events.filter((event) => event.activationId !== activationId),
         'fury',
-        castStart + context.epsilon
+        castStart + EPSILON
       ),
-      castStart + context.epsilon,
+      castStart + EPSILON,
       {
         includes: (application) => application.resolvedAudience.includesSelf,
         maximum: durationStackingBoonCapSeconds('fury')
@@ -447,7 +448,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
 
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
-  if (target > state.dragonTriggerChargeDeadline + context.epsilon) {
+  if (target > state.dragonTriggerChargeDeadline + EPSILON) {
     exitDragonTrigger(context, state.dragonTriggerChargeDeadline);
   }
 }

@@ -1,5 +1,5 @@
-/** Nourys relic rules. */
 import { EPSILON } from '#kernel/core/clock.js';
+/** Nourys relic rules. */
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2RelicState, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';

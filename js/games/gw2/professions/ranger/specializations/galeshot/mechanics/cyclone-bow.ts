@@ -4,7 +4,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -58,7 +58,7 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
   }
 
   const interval = balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5);
-  const generated = Math.floor((state.arrowRechargeProgress + context.epsilon) / interval);
+  const generated = Math.floor((state.arrowRechargeProgress + EPSILON) / interval);
   state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
   state.arrowRechargeProgress = Math.max(0, state.arrowRechargeProgress - generated * interval);
   state.arrowsUpdatedAt = target;
@@ -128,7 +128,7 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     readonly skillName?: string;
     readonly activationId?: string;
   } | null;
-  if (task.at <= state.mistralUntil + context.epsilon) {
+  if (task.at <= state.mistralUntil + EPSILON) {
     const profile = balanceProfileFromContext(context, PROFILE.mistral);
     const strike = balanceProfileEffect(profile, 'strike');
     const chilled = balanceProfileEffect(profile, 'condition');
@@ -204,7 +204,7 @@ export function handleGaleshotPetHitTask(context: RangerSchedulerContext, task: 
   if (
     !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
-    task.at + context.epsilon < state.wutheringWindReadyAt ||
+    task.at + EPSILON < state.wutheringWindReadyAt ||
     (activationId && state.wutheringWindActivationIds[activationId])
   ) {
     return;

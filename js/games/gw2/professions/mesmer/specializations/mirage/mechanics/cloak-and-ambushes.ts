@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
@@ -40,7 +41,6 @@ interface MirageActionControllerOptions {
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
-  readonly epsilon: number;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
@@ -62,7 +62,6 @@ export function createMirageActionController({
   ambushAttacks,
   cloneAttacks,
   skillsById,
-  epsilon,
   addEvent,
   addTraitProc,
   addCondition,
@@ -438,7 +437,7 @@ export function createMirageActionController({
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
   const pickUpMirror = (at: number, source: string) => {
     const mirrors = mirageState.from(state).mirrors;
-    const index = mirrors.findIndex((mirror) => mirror.availableAt <= at + epsilon && mirror.expiresAt > at + epsilon);
+    const index = mirrors.findIndex((mirror) => mirror.availableAt <= at + EPSILON && mirror.expiresAt > at + EPSILON);
     if (index < 0) return false;
     mirrors.splice(index, 1);
     const pseudo = {

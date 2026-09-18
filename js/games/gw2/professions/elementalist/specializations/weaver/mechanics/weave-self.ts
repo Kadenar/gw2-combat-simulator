@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
@@ -32,7 +33,7 @@ export function startWeaveSelfCast(context: ElementalistCastContext, skill: Skil
     context.start +
     (context.fullEnd - context.start) *
       balanceProfileValueFromContext(context, PROFILE.resources, 'firstPacketRatio', 0.65);
-  if (at > context.effectiveEnd + context.epsilon) return;
+  if (at > context.effectiveEnd + EPSILON) return;
   context.tasks.schedule({
     type: WEAVE_SELF_ACTIVATION_TASK,
     at,

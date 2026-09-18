@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Necromancer torch cast behavior derived from the target's live condition state.
  * Torch skill fragments remain in `skills/weapons/torch.ts`; `index.ts` assigns cast phases.
@@ -8,7 +9,7 @@ import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/
 
 // Converts the target's active-condition count into party Might, subject to Oppressive Collapse's seven-condition cap.
 function oppressiveCollapse(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   const conditionCount = Math.min(7, observeTargetConditionCount(context, context.effectiveEnd, 7));
   if (!conditionCount) return;
   emitSkillBuff(context, skill, {

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import {
   balanceProfileFromContext,
   balanceProfileEffect,
@@ -129,9 +130,9 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
     state.astralForce = Math.max(0, state.astralForce - elapsed * (state.maximumAstralForce / avatarDuration));
     state.astralForceUpdatedAt = target;
     // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
-    if (target >= state.naturalMenderReadyAt - context.epsilon) {
+    if (target >= state.naturalMenderReadyAt - EPSILON) {
       const skippedApplications =
-        Math.floor((target - state.naturalMenderReadyAt + context.epsilon) / naturalMenderInterval) + 1;
+        Math.floor((target - state.naturalMenderReadyAt + EPSILON) / naturalMenderInterval) + 1;
       state.naturalMenderReadyAt += skippedApplications * naturalMenderInterval;
     }
 
@@ -142,13 +143,13 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   if (
     !hasTrait(context, TRAIT.NATURAL_MENDER) ||
     state.astralForce >= state.maximumAstralForce ||
-    target < state.naturalMenderReadyAt - context.epsilon
+    target < state.naturalMenderReadyAt - EPSILON
   ) {
     return;
   }
 
   // Catch up any ticks that were skipped if advance() jumped a large interval
-  const applications = Math.floor((target - state.naturalMenderReadyAt + context.epsilon) / naturalMenderInterval) + 1;
+  const applications = Math.floor((target - state.naturalMenderReadyAt + EPSILON) / naturalMenderInterval) + 1;
   state.astralForce = Math.min(state.maximumAstralForce, state.astralForce + applications * naturalMenderForce);
   state.naturalMenderReadyAt += applications * naturalMenderInterval;
 }
@@ -161,7 +162,7 @@ export function astralForceReadyAt(context: RangerCastContext): number | null {
   const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
   const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
-  if (state.astralForce >= maximum - context.epsilon) return context.start;
+  if (state.astralForce >= maximum - EPSILON) return context.start;
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
   if (!naturalMender) return null;
   const applications = Math.ceil((maximum - state.astralForce) / naturalMenderForce);

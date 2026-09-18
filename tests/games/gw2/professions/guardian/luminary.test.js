@@ -55,7 +55,6 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
       catalog: guardianCatalog,
       state,
       effectiveEnd: 9.999,
-      epsilon: 0.0001,
       emit: () => {},
       cooldownController: createCooldownController({ state, rechargeDuration: (skill) => skill.cooldown })
     };

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Necromancer greatsword cast behavior, life-force tasks, and Gravedigger cooldown feedback.
  * Greatsword skill fragments remain in `skills/weapons/greatsword.ts`; `index.ts` assigns cast phases.
@@ -34,7 +35,7 @@ function committedAtBaseOffset(
   const baseCastMs = Number(skill.castTimeMs || 0);
   const commitProgress = baseCastMs > 0 ? Number(baseOffsetMs) / baseCastMs : 1;
   const commitAt = context.start + (context.fullEnd - context.start) * commitProgress;
-  return context.effectiveEnd + context.epsilon >= commitAt;
+  return context.effectiveEnd + EPSILON >= commitAt;
 }
 
 // Tests Grasping Darkness against its authored projectile-release commit point.
@@ -119,7 +120,7 @@ export const necromancerGreatswordSkillMechanicHandlers = Object.freeze({
   }): void => {
     const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
     const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
-    if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + context.epsilon) {
+    if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + EPSILON) {
       context.state.cooldowns.delete(ID.GRAVEDIGGER);
     }
   }

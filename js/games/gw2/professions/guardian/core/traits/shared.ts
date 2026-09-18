@@ -73,10 +73,6 @@ export function guardianResolverState(context: GuardianResolverContext): Guardia
   return professionCoreState(context);
 }
 
-export function guardianResolverEpsilon(context: GuardianResolverContext): number {
-  return Number(context.epsilon || 0.0001);
-}
-
 export function recordGuardianTraitProc(
   context: GuardianResolverContext,
   traitId: SkillId,

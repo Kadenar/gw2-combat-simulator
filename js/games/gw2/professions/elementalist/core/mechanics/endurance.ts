@@ -58,7 +58,6 @@ export function elementalistEnduranceReadyAt(
     { endurance: current, enduranceUpdatedAt: at },
     cost,
     enduranceIntervals(context, at, Infinity),
-    balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100),
-    context.epsilon
+    balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
   );
 }

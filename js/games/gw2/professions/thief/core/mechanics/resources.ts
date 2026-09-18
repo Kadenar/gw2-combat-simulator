@@ -1,5 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -35,7 +35,7 @@ export function restartInfiltratorsSignetPassive(context: ThiefSchedulerContext)
 
 /** Grant discrete initiative pulses so queued skills can become affordable at the pulse timestamp. */
 export function pulseInfiltratorsSignet(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
-  if (Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= task.at + context.epsilon) {
+  if (Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= task.at + EPSILON) {
     gainThiefInitiative(context, 1, task.at, 'infiltrators-signet');
   }
 
@@ -82,8 +82,7 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
     { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
     cost,
     enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance,
-    context.epsilon
+    state.maximumEndurance
   );
 }
 
@@ -174,7 +173,7 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   const timingScale =
     bullets.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000) : 1;
   const finalBulletAt = context.start + (finalBulletOffsetMs * timingScale) / 1000;
-  if (context.effectiveEnd + context.epsilon < finalBulletAt) return;
+  if (context.effectiveEnd + EPSILON < finalBulletAt) return;
   gainThiefInitiative(
     context,
     Number(balanceProfileFromContext(context, PROFILE.unloadRefund)?.resourceGain ?? 2),

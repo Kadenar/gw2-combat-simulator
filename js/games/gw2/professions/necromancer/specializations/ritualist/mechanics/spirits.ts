@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -258,10 +259,7 @@ function handleSpiritAutoattack(
   });
 
   const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4);
-  if (
-    nextAt > task.at &&
-    (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon)
-  ) {
+  if (nextAt > task.at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
     context.tasks.schedule({
       type: SPIRIT_ATTACK_TASK,
       at: nextAt,

@@ -17,7 +17,6 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
         start: 2,
         fullEnd: 4,
         effectiveEnd,
-        epsilon: 4 * EPSILON,
         reservationId: 'phantasm',
         mesmerRuntime: {
           castDetails: new Map(),
@@ -36,10 +35,7 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
       const packetCommitted = progress === 0.5 && effectiveEnd >= 3 - EPSILON && effectiveEnd < 4;
       assert.equal(packets[0].phantasmSummonAt, packetCommitted ? effectiveEnd : undefined);
       assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
-      assert.equal(
-        resources.length,
-        (progress === 0.5 && effectiveEnd >= 3 - context.epsilon) || effectiveEnd === 4 ? 1 : 0
-      );
+      assert.equal(resources.length, (progress === 0.5 && effectiveEnd >= 3 - EPSILON) || effectiveEnd === 4 ? 1 : 0);
       if (resources.length) assert.equal(resources[0][0], context.fullEnd);
       assert.equal(context.mesmerRuntime.activeEmission, null);
     }

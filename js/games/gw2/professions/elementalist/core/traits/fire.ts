@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
 import {
   balanceProfileEffectFromContext,
@@ -225,12 +226,12 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   const previous = fieldPackets.at(-2);
   if (!template || !previous) return;
   const interval = template.at - previous.at;
-  if (!(interval > context.epsilon)) return;
+  if (!(interval > EPSILON)) return;
   const attachedConditions = context.events.filter(
     (event) =>
       event.activationId === context.reservationId &&
       event.type === 'condition' &&
-      Math.abs(event.at - template.at) <= context.epsilon
+      Math.abs(event.at - template.at) <= EPSILON
   );
   const extraPackets = Math.max(
     0,

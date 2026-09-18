@@ -1,4 +1,4 @@
-import { canonicalTime } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 /**
  * Shared Guild Wars 2 scheduling rules used by `simulateGw2`.
  *
@@ -248,7 +248,7 @@ export function createGw2SchedulerPolicy(
         .eventsOfType(TRANSITION_LOCKOUT_EVENT)
         .reduce(
           (readyAt, event) =>
-            event.at <= at + context.epsilon ? Math.max(readyAt, event.at + Number(event.duration || 0)) : readyAt,
+            event.at <= at + EPSILON ? Math.max(readyAt, event.at + Number(event.duration || 0)) : readyAt,
           Number.NEGATIVE_INFINITY
         );
     },

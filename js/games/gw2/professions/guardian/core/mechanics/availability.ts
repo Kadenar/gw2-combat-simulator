@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -65,7 +66,7 @@ export function guardianCastAvailability(
   const state = professionCoreState(context);
   if (
     skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME &&
-    Number(state.availableFlips[GUARDIAN_SKILL_IDS.ZEALOTS_FIRE] || 0) > context.start + context.epsilon
+    Number(state.availableFlips[GUARDIAN_SKILL_IDS.ZEALOTS_FIRE] || 0) > context.start + EPSILON
   ) {
     return denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.');
   }
@@ -74,7 +75,7 @@ export function guardianCastAvailability(
     // Active specializations can own persistent or resource-driven flips whose
     // retry semantics cannot be represented by Core's short-lived flip window.
     if (skill.tags?.includes('specialization-managed-flip')) return CAST_READY;
-    return Number(state.availableFlips[skill.id] || 0) > context.start + context.epsilon
+    return Number(state.availableFlips[skill.id] || 0) > context.start + EPSILON
       ? CAST_READY
       : denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.');
   }

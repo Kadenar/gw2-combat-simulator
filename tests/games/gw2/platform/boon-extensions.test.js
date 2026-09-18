@@ -78,7 +78,7 @@ test('scheduler configured duration boons bypass history while intensity and cus
   // Permanent presence is fixed even when extensions exist; intensity still needs its extended applications.
   const policy = createGw2SchedulerPolicy();
   const unreadable = new Proxy([], { get: () => assert.fail('Configured duration boons must not read history') });
-  const fixed = { events: unreadable, eventsOfType: () => unreadable, epsilon: 1e-8 };
+  const fixed = { events: unreadable, eventsOfType: () => unreadable };
   for (const kind of ['vigor', 'alacrity', 'fury']) {
     for (const configured of [1, 3]) assert.equal(policy.buffStacks(fixed, kind, 4, configured, unreadable, 0), 1);
   }
@@ -88,7 +88,7 @@ test('scheduler configured duration boons bypass history while intensity and cus
       buff(0, 2, self, kind, kind === 'vigor' ? 1 : 2),
       { ...buff(1, 3), type: 'boon_extension', kind: undefined }
     ];
-    const current = { events, eventsOfType: (type) => events.filter((event) => event.type === type), epsilon: 1e-8 };
+    const current = { events, eventsOfType: (type) => events.filter((event) => event.type === type) };
     assert.equal(policy.buffStacks(current, kind, 3, 3, [], 3), kind === 'vigor' ? 1 : kind === 'custom' ? 3 : 5);
     if (kind === 'vigor') {
       assert.equal(policy.buffStacks(current, kind, 3, 0, [], 0), 1);
@@ -221,7 +221,6 @@ function extend(profession, events, at) {
   if (profession === 'Herald') {
     const context = {
       eventsOfType: (type) => events.filter((event) => event.type === type),
-      epsilon: 0.0001,
       emitDerived: (_event, extension) => events.push(extension)
     };
     heraldSchedulerHooks.onEventScheduled.handler(context, {

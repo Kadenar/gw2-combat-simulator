@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -83,12 +84,11 @@ export function grantCatalystElementalEmpowerment(
   at: number,
   duration: number,
   stacks = 1,
-  epsilon = Number.EPSILON,
   maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS
 ): void {
   const expiresAt = at + Math.max(0, duration);
   const active = state.elementalEmpowermentExpiries
-    .filter((expiry) => expiry > at + epsilon)
+    .filter((expiry) => expiry > at + EPSILON)
     .sort((left, right) => left - right);
 
   for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
@@ -96,7 +96,7 @@ export function grantCatalystElementalEmpowerment(
       active.shift();
     }
 
-    if (expiresAt > at + epsilon) active.push(expiresAt);
+    if (expiresAt > at + EPSILON) active.push(expiresAt);
     active.sort((left, right) => left - right);
   }
 

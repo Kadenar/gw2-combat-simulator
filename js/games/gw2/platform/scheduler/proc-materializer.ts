@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
@@ -145,7 +146,7 @@ export function createGw2TriggerMaterializer(
     },
     onEventScheduled(context, event) {
       // A chronological trait task emits predictions after its hit's facts; expose them before the next same-time hit.
-      if (event.schedulerBoonPrediction === true && event.at <= context.state.time + context.epsilon) {
+      if (event.schedulerBoonPrediction === true && event.at <= context.state.time + EPSILON) {
         observer.observe(context, event);
         return;
       }

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -11,11 +12,7 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 
 /** Applies HGH cast boons and Acid Bomb's extended final pulse to eligible elixirs. */
 export function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
-  if (
-    !hasTrait(context.config, TRAIT.HGH) ||
-    !isElixirSkill(skill) ||
-    context.effectiveEnd < context.fullEnd - context.epsilon
-  )
+  if (!hasTrait(context.config, TRAIT.HGH) || !isElixirSkill(skill) || context.effectiveEnd < context.fullEnd - EPSILON)
     return;
 
   // HGH grants fixed-duration boons and extends Acid Bomb far enough for one additional pulse.

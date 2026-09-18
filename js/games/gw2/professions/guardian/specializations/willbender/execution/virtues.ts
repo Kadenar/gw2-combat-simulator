@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -40,7 +41,7 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
   const state = willbenderState.from(context);
   // virtueUntil may still hold the previous window; reset hit counts only when that
   // window has actually expired so a rapid re-activation doesn't wipe an in-progress tally.
-  if (state[`${virtue}Until`] <= at + context.epsilon) {
+  if (state[`${virtue}Until`] <= at + EPSILON) {
     state.virtueHitCounts[virtue] = 0;
   }
 

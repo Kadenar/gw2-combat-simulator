@@ -1,5 +1,5 @@
-/** Thorns relic rules. */
 import { EPSILON } from '#kernel/core/clock.js';
+/** Thorns relic rules. */
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 const THORNS_CONDITION_DAMAGE_PER_STACK = 30;

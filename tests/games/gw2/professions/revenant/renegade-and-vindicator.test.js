@@ -478,7 +478,6 @@ test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
       start: 6,
       effectiveEnd: 6,
       fullEnd: 6,
-      epsilon: 1e-9,
       state: { profession: { core: {}, specialization: { kind: 'Renegade', state } } },
       events,
       emit: (event) => events.push(event),

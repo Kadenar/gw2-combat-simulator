@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -29,7 +30,6 @@ import {
 } from '#gw2/professions/guardian/core/traits/radiance.js';
 import {
   emitGuardianProc,
-  guardianResolverEpsilon,
   guardianResolverState,
   guardianTraitIcon,
   isGuardianSymbolSkill
@@ -136,11 +136,10 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   }
 
   const state = guardianResolverState(context);
-  const epsilon = guardianResolverEpsilon(context);
   if (
     Number(state.symbolIgnitionUntil || 0) <= Number(state.symbolIgnitionStartsAt || 0) ||
-    event.at < Number(state.symbolIgnitionStartsAt || 0) - epsilon ||
-    event.at > Number(state.symbolIgnitionUntil || 0) + epsilon
+    event.at < Number(state.symbolIgnitionStartsAt || 0) - EPSILON ||
+    event.at > Number(state.symbolIgnitionUntil || 0) + EPSILON
   ) {
     return;
   }

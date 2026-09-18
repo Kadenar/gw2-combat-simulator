@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -200,7 +201,7 @@ function startPetAuto(context: RangerSchedulerContext, at: number, reset = false
   if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
-  if (!reset && state.petAutoNextAt > context.state.time + context.epsilon) {
+  if (!reset && state.petAutoNextAt > context.state.time + EPSILON) {
     return;
   }
 
@@ -228,7 +229,7 @@ function autonomousSkill(
     specials.find(
       (skill) =>
         (!laterIbogaActivation || quickness || Number(state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
-        Number(state.petAutoCooldowns[String(skill.id)] || 0) <= at + context.epsilon
+        Number(state.petAutoCooldowns[String(skill.id)] || 0) <= at + EPSILON
     ) || profile.basic
   );
 }
@@ -321,7 +322,7 @@ export function handleRangerPetAutoTask(
   if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
-  if (task.at < state.petAutoBusyUntil - context.epsilon) {
+  if (task.at < state.petAutoBusyUntil - EPSILON) {
     schedulePetAuto(context, state.petAutoBusyUntil);
     return;
   }
@@ -407,7 +408,7 @@ export function beginRangerPetCommand(context: RangerCastContext, skill: RangerS
   const profile = activeProfile(context);
   if (!profile) return;
   const scheduledOpeningEnd =
-    state.petAutoOpeningBasic && state.petAutoNextAt > context.start + context.epsilon
+    state.petAutoOpeningBasic && state.petAutoNextAt > context.start + EPSILON
       ? state.petAutoNextAt + (profile.opening || profile.basic).recovery + Number(profile.openingRecoveryDelay || 0)
       : 0;
   const actualStart = Math.max(

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
@@ -28,7 +29,7 @@ function schedulePrimordialStance(context: ElementalistCastContext, skill: Skill
     });
     for (const { at } of applications) {
       // Preserve the activation-time exclusion and coalesce coincident condition applications.
-      if (at > context.effectiveEnd + context.epsilon) tickTimes.add(at);
+      if (at > context.effectiveEnd + EPSILON) tickTimes.add(at);
     }
   }
 

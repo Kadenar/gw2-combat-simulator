@@ -169,7 +169,6 @@ test('ECSU carries pulse readiness, resets at the threshold, and restarts on a d
   const events = [];
   const context = {
     config,
-    epsilon: 1e-9,
     state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Holosmith', state } } },
     events,
     emit: (event) => {
@@ -297,10 +296,8 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
   const engage = { ...engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE), name: 'Renamed forge entry' };
 
   assert.equal(
-    holosmithCastAvailability(
-      { config: { specialization: 'Holosmith' }, state: { profession }, start: 0, epsilon: 1e-9 },
-      engage
-    ).code,
+    holosmithCastAvailability({ config: { specialization: 'Holosmith' }, state: { profession }, start: 0 }, engage)
+      .code,
     'engineer.forge-active'
   );
 
@@ -312,7 +309,6 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
       start: 0,
       effectiveEnd: 1.8,
       fullEnd: 1.8,
-      epsilon: 1e-9,
       tasks: { schedule: (task) => scheduled.push(task) }
     },
     corona
@@ -329,8 +325,7 @@ test('Engineer availability follows skill IDs after display labels change', () =
   const coreContext = {
     config: { specialization: 'Core' },
     state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-    start: 0,
-    epsilon: 1e-9
+    start: 0
   };
 
   const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };

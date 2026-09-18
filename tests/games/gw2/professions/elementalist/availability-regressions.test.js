@@ -91,8 +91,7 @@ test('elemental glyphs require equipment while matching command flips and summon
       state: { profession: { core } },
       config: { selectedSkills: { Elite: 'Conjure Fiery Greatsword' }, autoSummonElemental: false },
       catalog: elementalistCatalog,
-      start: 0,
-      epsilon: 1e-9
+      start: 0
     };
     for (const expiry of [0, 10]) {
       core.summonedElemental.activeUntil = expiry;

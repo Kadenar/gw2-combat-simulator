@@ -582,7 +582,7 @@ function chartHtml(
           <button type="button" data-boon-audience="self" aria-pressed="true">Self</button>
           <button type="button" data-boon-audience="allies" aria-pressed="false">Allies</button>
           <button type="button" data-boon-audience="both" aria-pressed="false">Both</button>
-          <span>Self: solid · Allies: dashed, average per ally (${series.alliedPlayerCount || PRESENTATION_ALLIED_PLAYER_COUNT})</span>
+          <span>Self: solid · Allies: dashed</span>
         </div>
         ${effectTogglesMarkup}
         <div class="chart-canvas-wrap">

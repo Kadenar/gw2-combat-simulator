@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -203,9 +204,9 @@ function queueInFlightWeaponCooldownReduction(
     if (
       event.type !== 'action' ||
       event.cancelled === true ||
-      Number(event.at) > at + context.epsilon ||
-      Number(event.endsAt) < at - context.epsilon ||
-      Number(event.rechargeReadyAt || 0) <= at + context.epsilon
+      Number(event.at) > at + EPSILON ||
+      Number(event.endsAt) < at - EPSILON ||
+      Number(event.rechargeReadyAt || 0) <= at + EPSILON
     ) {
       continue;
     }
@@ -227,7 +228,7 @@ function queueInFlightWeaponCooldownReduction(
       ),
       available
     );
-    if (reduction <= context.epsilon) continue;
+    if (reduction <= EPSILON) continue;
     state.pendingWeaponCooldownReduction[activationId] = pending + reduction;
     reducedBy += reduction;
   }
@@ -261,10 +262,10 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
   // Always delete regardless of whether we apply it; stale entries would corrupt
   // future casts if the skill's own recharge changed between the queue and cast-complete.
   delete state.pendingWeaponCooldownReduction[activationId];
-  if (pending <= context.epsilon || skill.type !== 'Weapon') return;
+  if (pending <= EPSILON || skill.type !== 'Weapon') return;
   // Pending values were converted while the cast was in flight, so apply them directly to its committed deadline.
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt > context.effectiveEnd + context.epsilon) {
+  if (readyAt > context.effectiveEnd + EPSILON) {
     context.state.cooldowns.set(skill.id, Math.max(context.effectiveEnd, readyAt - pending));
   }
 }
@@ -490,7 +491,7 @@ function handleWillbenderVirtueHit(
   };
 
   for (const virtue of ['justice', 'resolve', 'courage'] as const) {
-    if (state[`${virtue}Until`] <= at + context.epsilon) continue;
+    if (state[`${virtue}Until`] <= at + EPSILON) continue;
     state.virtueHitCounts[virtue] += 1;
     // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
     // only for justice; resolve and courage always require 5 hits.

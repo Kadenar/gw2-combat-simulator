@@ -652,7 +652,6 @@ function handleCatalystEmpowerment(
     Number(task.payload?.applicationAt ?? task.at),
     Number(task.payload?.duration || 0),
     Number(task.payload?.stacks || 1),
-    context.epsilon,
     maximumEmpowerment(context)
   );
 }
@@ -676,14 +675,7 @@ function handleBaseEmpowerment(
     'playerStacks',
     CATALYST_BASE_EMPOWERMENT_STACKS
   );
-  grantCatalystElementalEmpowerment(
-    catalystState.from(context),
-    at,
-    duration,
-    stacks,
-    context.epsilon,
-    maximumEmpowerment(context)
-  );
+  grantCatalystElementalEmpowerment(catalystState.from(context), at, duration, stacks, maximumEmpowerment(context));
   emitSkillBuff(context, {
     at,
     source: 'Elemental Empowerment',
@@ -723,7 +715,6 @@ function handleViciousEmpowerment(
     at,
     Number(empowerment?.duration ?? 15),
     Number(empowerment?.stacks ?? 2),
-    context.epsilon,
     maximumEmpowerment(context)
   );
 }

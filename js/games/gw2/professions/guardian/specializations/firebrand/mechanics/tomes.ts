@@ -1,6 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -319,10 +319,7 @@ function handleAshesExpired(context: GuardianResolverContext, event: GuardianRes
   // A newer Ashes application extends ashesExpiresAt beyond the queued event
   // time; re-check the stored expiry so a stale expiry event doesn't clear
   // charges that were refreshed by a Quickfire proc after this event was queued.
-  if (
-    Number(firebrandState.from(context).ashesExpiresAt || 0) <=
-    Number(event.at) + Number(context.epsilon || 0.0001)
-  ) {
+  if (Number(firebrandState.from(context).ashesExpiresAt || 0) <= Number(event.at) + EPSILON) {
     firebrandState.from(context).ashesCharges = 0;
   }
 }
@@ -344,12 +341,12 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const state = firebrandState.from(context);
   // Loop rather than a single add so multiple pages that matured in the same
   // advance window are all credited without needing separate advance calls.
-  while (state.nextTomePageAt <= target + context.epsilon) {
+  while (state.nextTomePageAt <= target + EPSILON) {
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 1);
     state.nextTomePageAt += state.tomePageInterval;
   }
 
-  if (state.ashesCharges > 0 && state.ashesExpiresAt <= target + context.epsilon) {
+  if (state.ashesCharges > 0 && state.ashesExpiresAt <= target + EPSILON) {
     state.ashesCharges = 0;
   }
 
@@ -361,13 +358,13 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const aegis = balanceProfileEffect(passiveCourage, 'boon');
   const interval = Number(passiveCourage?.pulseInterval ?? 40);
   // Zero disables periodic Aegis without trapping resource advancement in a same-time loop.
-  while (interval > 0 && courage && state.nextCourageAegisAt <= target + context.epsilon) {
+  while (interval > 0 && courage && state.nextCourageAegisAt <= target + EPSILON) {
     const at = state.nextCourageAegisAt;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
     // the tome was recently activated), unless Stoic Demeanor overrides that
     // suppression window.
     if (
-      at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - context.epsilon ||
+      at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - EPSILON ||
       hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
     ) {
       emitSkillBuff(context, {
@@ -404,7 +401,7 @@ export function reactToAshesHit(
   const state = firebrandState.from(context);
   if (
     state.ashesCharges <= 0 ||
-    event.at >= state.ashesExpiresAt - Number(context.epsilon || 0.0001) ||
+    event.at >= state.ashesExpiresAt - EPSILON ||
     !isInternalCooldownReady(event.at, state.ashesNextTriggerAt)
   )
     return;

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Registers scheduler-phase skill activations for this module. */
 import {
   balanceProfileFromContext,
@@ -24,7 +25,7 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 
 /** Copy both actors' existing boons from one completion-time snapshot, including merged self-copying. */
 export function completeRangerHealingSkill(context: RangerCastContext, skill: RangerSkill): void {
-  if (skill.id !== ID.WE_HEAL_AS_ONE || context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (skill.id !== ID.WE_HEAL_AS_ONE || context.effectiveEnd < context.fullEnd - EPSILON) return;
   const petActive = professionCoreState(context).petActive;
   const companionId = rangerPetCompanionId(context);
   const timeline = createGw2TimelineIndex({ events: context.events });

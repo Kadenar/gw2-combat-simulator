@@ -25,8 +25,8 @@ export function processLuminaryStances(context: GuardianCastContext, skill: Guar
     const runtimeCastMs = Math.max(0, (context.fullEnd - context.start) * 1000);
     const at =
       context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, PIERCING_STANCE_IMPACT_MS) / 1000;
-    if (at > context.effectiveEnd + context.epsilon) return;
-    const wasActive = Number(state.piercingStanceUntil || 0) > at + context.epsilon;
+    if (at > context.effectiveEnd + EPSILON) return;
+    const wasActive = Number(state.piercingStanceUntil || 0) > at + EPSILON;
     state.piercingStanceUntil = wasActive ? state.piercingStanceUntil + 8 : at + 8;
     emitSkillBuff(context, skill, {
       at,
@@ -115,7 +115,7 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
   if (
     !guardianOwnedStrike ||
     !(Number(event.coefficient || 0) > 0) ||
-    !(event.at < Number(state.effulgentActiveUntil || 0) - Number(context.epsilon ?? EPSILON))
+    !(event.at < Number(state.effulgentActiveUntil || 0) - EPSILON)
   ) {
     return;
   }

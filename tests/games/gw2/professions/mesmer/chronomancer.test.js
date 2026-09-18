@@ -21,7 +21,6 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   const continuum = createContinuumController({
     state,
     unaffectedCooldownIds: new Set(),
-    epsilon: 1e-9,
     skillsById: new Map([[skill.id, skill]]),
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,

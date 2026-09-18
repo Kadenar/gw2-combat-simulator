@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Evoker cast gating.
  *
@@ -50,7 +51,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
   }
 
   // Nothing may start until the familiar cast in flight ends.
-  if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - context.epsilon) {
+  if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - EPSILON) {
     return retryCast(
       state.activeFamiliarCast.endsAt,
       'elementalist.evoker-familiar-cast',
@@ -75,7 +76,7 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     if (state.empowered < requiredEmpowered && state.charges < state.maximumCharges) {
       const pending = state.concurrentParentAnchors
         .flatMap((entry) => (entry.weaponChargeGain ? [entry.weaponChargeGain] : []))
-        .filter((grant) => grant.at > context.start + context.epsilon)
+        .filter((grant) => grant.at > context.start + EPSILON)
         .sort((left, right) => left.at - right.at);
       let charges = state.charges;
       for (const grant of pending) {

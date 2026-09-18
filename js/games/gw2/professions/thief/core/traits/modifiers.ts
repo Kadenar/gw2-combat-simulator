@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -269,7 +270,7 @@ export const thiefCoreAttributeRules = Object.freeze({
 function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration: number): number {
   const skill = context.skill;
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (skill.usableWhileRecharging === true && readyAt > context.start + Number(context.epsilon || 0.0001)) {
+  if (skill.usableWhileRecharging === true && readyAt > context.start + EPSILON) {
     return 0;
   }
 

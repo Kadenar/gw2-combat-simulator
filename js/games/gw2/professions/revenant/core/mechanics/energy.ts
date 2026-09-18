@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -91,8 +92,7 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
     { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
     cost,
     enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance,
-    context.epsilon
+    state.maximumEndurance
   );
 }
 
@@ -102,11 +102,10 @@ export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: num
   const regeneration = Number(resourceProfile(context).energyRegenerationPerSecond || 0);
   const rate = regeneration - activeUpkeepCost(state, context.start);
   const accrual = state.energyAccrual;
-  const enough = state.energy + context.epsilon >= cost;
+  const enough = state.energy + EPSILON >= cost;
   // Immediate refunds and an already sufficient pool do not introduce an Energy wait.
-  if (enough && (!accrual || accrual.rate <= 0 || accrual.energy + context.epsilon >= cost)) return context.start;
-  if (rate <= 0 || cost > state.maximumEnergy + context.epsilon || (!enough && state.combatBeganAt == null))
-    return null;
+  if (enough && (!accrual || accrual.rate <= 0 || accrual.energy + EPSILON >= cost)) return context.start;
+  if (rate <= 0 || cost > state.maximumEnergy + EPSILON || (!enough && state.combatBeganAt == null)) return null;
   const threshold = accrual
     ? accrual.at + (cost - accrual.energy) / rate
     : context.start + (cost - state.energy) / rate;

@@ -30,7 +30,7 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   state.flameVirtue = virtue;
   // Resolver state is seeded from scratch, so hit counts from the scheduler phase
   // may be stale if the virtue window already lapsed by the time this event arrives.
-  if (state[`${virtue}Until`] <= event.at + (context.epsilon ?? EPSILON)) {
+  if (state[`${virtue}Until`] <= event.at + (EPSILON ?? EPSILON)) {
     state.virtueHitCounts[virtue] = 0;
   }
 

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -182,7 +183,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
 
 /** Refreshes current Fervor and materializes Heroic Command's selected profile. */
 export function castHeroicCommand(context: RevenantCastContext, skill: RevenantSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   const stacks = refreshKallasFervor(context, context.effectiveEnd);
   if (!stacks) return;
   const profile = hasTrait(context, TRAIT.LASTING_LEGACY)

@@ -2,7 +2,7 @@ import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/c
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -65,7 +65,7 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
 }
 
 function isComplete(context: WarriorCastContext): boolean {
-  return context.effectiveEnd >= context.fullEnd - context.epsilon;
+  return context.effectiveEnd >= context.fullEnd - EPSILON;
 }
 
 /**
@@ -291,7 +291,7 @@ export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task:
   const action = context.events.find(
     (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
   );
-  if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - context.epsilon) {
+  if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - EPSILON) {
     context.tasks.schedule({
       type: 'warrior.king-of-fires-detonation',
       at: event.at,
@@ -315,7 +315,7 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
   const skill = context.catalog.skillsById.get(Number(payload?.skillId));
   if (!skill) return;
   const state = berserkerState.from(context);
-  if (state.fireAuraUntil <= task.at + context.epsilon) return;
+  if (state.fireAuraUntil <= task.at + EPSILON) return;
   const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
   const strike = balanceProfileEffect(profile, 'strike');
   const burning = balanceProfileEffect(profile, 'condition');

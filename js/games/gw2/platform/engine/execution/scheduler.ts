@@ -88,7 +88,6 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
   readonly config?: SchedulerConfig;
   readonly catalog?: CanonicalCatalog;
   readonly startingTime?: number;
-  readonly epsilon?: number;
   readonly schedulerPolicy?: SchedulerPolicy<TProfessionState>;
   readonly observationPolicy?: ObservationPolicy;
 }
@@ -112,33 +111,26 @@ function interruptCommitCutoffs(skill: Skill): number[] {
   );
 }
 
-function cancelledBeforeInterruptCommit<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
-  skill: Skill,
-  start: number,
-  fullEnd: number,
-  effectiveEnd: number
-): boolean {
-  if (skill.interruptMode === 'per-packet' || effectiveEnd >= fullEnd - context.epsilon) return false;
+function cancelledBeforeInterruptCommit(skill: Skill, start: number, fullEnd: number, effectiveEnd: number): boolean {
+  if (skill.interruptMode === 'per-packet' || effectiveEnd >= fullEnd - EPSILON) return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
   const cutoffs = interruptCommitCutoffs(skill);
-  return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + context.epsilon * 1000 < Number(cutoff));
+  return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + EPSILON * 1000 < Number(cutoff));
 }
 
 /** Returns whether an interrupted cast ended before this persistent effect launched. */
-function cancelledBeforeEffectCommit<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
+function cancelledBeforeEffectCommit(
   skill: Skill,
   effect: SkillEffect,
   start: number,
   fullEnd: number,
   effectiveEnd: number
 ): boolean {
-  if (effectiveEnd >= fullEnd - context.epsilon) return false;
+  if (effectiveEnd >= fullEnd - EPSILON) return false;
   const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
   if (cutoff == null) return true;
   const elapsedMs = (effectiveEnd - start) * 1000;
-  return elapsedMs + context.epsilon * 1000 < Number(cutoff);
+  return elapsedMs + EPSILON * 1000 < Number(cutoff);
 }
 
 /**
@@ -154,7 +146,7 @@ export function scheduleDeclarativeEffects<TProfessionState extends object>(
   effectiveEnd: number,
   observeEffect: (event: SimulationEvent, effect: SkillEffect, effectIndex: number) => void = () => {}
 ): void {
-  const interrupted = effectiveEnd < fullEnd - context.epsilon;
+  const interrupted = effectiveEnd < fullEnd - EPSILON;
   const slotSkill = skill.type === 'Heal' || skill.type === 'Utility' || skill.type === 'Elite';
   const effects = skill.effects || [];
   for (let index = 0; index < effects.length; index += 1) {
@@ -173,7 +165,7 @@ export function scheduleDeclarativeEffects<TProfessionState extends object>(
       ) ?? effect;
     const perPacket = skill.interruptMode === 'per-packet';
     const cancelledCommitEffect =
-      interrupted && !perPacket && cancelledBeforeEffectCommit(context, skill, effect, start, fullEnd, effectiveEnd);
+      interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd);
     if (cancelledCommitEffect) continue;
     const cancelPendingEffects = interrupted && (perPacket || effect.persistsAfterInterrupt !== true);
     const base = {
@@ -206,7 +198,7 @@ export function scheduleDeclarativeEffects<TProfessionState extends object>(
 
     // Cancellation keeps packets arriving at the boundary and drops pending impacts.
     for (const application of applications) {
-      if (cancelPendingEffects && application.at > effectiveEnd + context.epsilon) continue;
+      if (cancelPendingEffects && application.at > effectiveEnd + EPSILON) continue;
       observeEffect(context.emit(application.event), effect, index);
     }
   }
@@ -226,7 +218,6 @@ export function createScheduler<TProfessionState extends object = object>({
   config = {},
   catalog,
   startingTime = 0,
-  epsilon = EPSILON,
   schedulerPolicy = {},
   observationPolicy
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
@@ -357,7 +348,6 @@ export function createScheduler<TProfessionState extends object = object>({
     state,
     events,
     warnings,
-    epsilon,
     schedulerPolicy,
     observationPolicy: normalizedObservationPolicy,
     observationEndTime:
@@ -530,7 +520,6 @@ export function createScheduler<TProfessionState extends object = object>({
 
   const cooldownController = createCooldownController({
     state,
-    epsilon,
     rechargeDuration: rechargeDurationFor,
     rechargeReduction: (skill, reduction, at) =>
       schedulerPolicy.rechargeReduction?.({ ...context, skill, at }, skill, reduction) ?? reduction,
@@ -633,7 +622,7 @@ export function createScheduler<TProfessionState extends object = object>({
           : authoredOffsetMs;
       const anchor = trigger.timingAnchor === 'castStart' ? castContext.start : fullEnd;
       const triggerAt = anchor + offsetMs / 1000;
-      if (triggerAt < effectiveEnd - epsilon) {
+      if (triggerAt < effectiveEnd - EPSILON) {
         throw new RangeError(
           `${skill.name} mechanic trigger ${trigger.type} resolves before the cast-completion dispatch phase.`
         );
@@ -780,13 +769,13 @@ export function createScheduler<TProfessionState extends object = object>({
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
-    if ((readyAt > at + epsilon && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
+    if ((readyAt > at + EPSILON && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
       result.push(
         unavailable(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`, 'platform.cooldown', readyAt)
       );
     }
 
-    if (reservedUntil > at + epsilon && skill.independentCastCanOverlap !== true) {
+    if (reservedUntil > at + EPSILON && skill.independentCastCanOverlap !== true) {
       result.push(
         unavailable(
           `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
@@ -798,7 +787,7 @@ export function createScheduler<TProfessionState extends object = object>({
 
     for (const lockout of skill.lockouts || []) {
       const lockoutReadyAt = Number(state.lockouts.get(lockout.group) || 0);
-      if (lockoutReadyAt > at + epsilon) {
+      if (lockoutReadyAt > at + EPSILON) {
         result.push(
           unavailable(
             `${skill.name} is locked by ${lockout.group} until ` + `${lockoutReadyAt.toFixed(3)}.`,
@@ -831,7 +820,7 @@ export function createScheduler<TProfessionState extends object = object>({
       start,
       ammo: state.ammo.get(skill.id) || null
     };
-    if (inputReadyAt > start + epsilon) {
+    if (inputReadyAt > start + EPSILON) {
       return {
         result: retryCast(inputReadyAt, 'platform.input-lockout', 'Transition delay'),
         castContext: preliminaryContext
@@ -919,7 +908,7 @@ export function createScheduler<TProfessionState extends object = object>({
     // A marker or explicit wait can move the clock past an instant skill's
     // requested overlap. Queue that instant at the earliest reachable time so
     // command ordering is preserved and stunbreaks still execute.
-    if (concurrent && (instant || independent) && start < state.time - epsilon) {
+    if (concurrent && (instant || independent) && start < state.time - EPSILON) {
       start = state.time;
     }
 
@@ -929,7 +918,7 @@ export function createScheduler<TProfessionState extends object = object>({
     // Queue authored overlaps through input recovery without moving the transition past retained aftercast.
     start = Math.max(start, schedulerPolicy.inputReadyAt?.(context, state.time) ?? start);
 
-    if (start < state.time - epsilon) {
+    if (start < state.time - EPSILON) {
       recordInvalid(commandIndex, skill, start, `${skill.name} cannot start before the current simulation clock.`);
       return false;
     }
@@ -980,12 +969,12 @@ export function createScheduler<TProfessionState extends object = object>({
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
       interruptAfterMs == null ? fullEnd : Math.min(fullEnd, canonicalTime(start + Number(interruptAfterMs) / 1000));
-    const interrupted = effectiveEnd < fullEnd - epsilon;
+    const interrupted = effectiveEnd < fullEnd - EPSILON;
     // Some skills commit and begin recharge at their interrupt point but retain
     // the remainder of their ordinary cast as aftercast. Keep completion and
     // recharge anchored to effectiveEnd while reserving the cast lane through
     // fullEnd for those skills.
-    const cancelledBeforeCommit = cancelledBeforeInterruptCommit(context, skill, start, fullEnd, effectiveEnd);
+    const cancelledBeforeCommit = cancelledBeforeInterruptCommit(skill, start, fullEnd, effectiveEnd);
     const castLockoutEnd =
       interrupted && retainsInterruptedCastLockout(skill, cancelledBeforeCommit) ? fullEnd : effectiveEnd;
     // Preserve missing metadata separately from a known cutoff miss so dead-time
@@ -1077,7 +1066,7 @@ export function createScheduler<TProfessionState extends object = object>({
       interrupted,
       // Carry skill evade metadata into the action timeline for shared evade-triggered effects.
       ...(skill.evades ? { evades: true } : {}),
-      ...(castLockoutEnd > effectiveEnd + epsilon ? { castLockoutEndsAt: castLockoutEnd } : {}),
+      ...(castLockoutEnd > effectiveEnd + EPSILON ? { castLockoutEndsAt: castLockoutEnd } : {}),
       ...(cancelledBeforeCommit ? { cancelled: true } : {})
     });
     reservation.action = action;
@@ -1128,7 +1117,7 @@ export function createScheduler<TProfessionState extends object = object>({
       interrupted,
       // Expose retained aftercast separately so UI accounting can treat the
       // forced lockout as busy time without extending the interrupted cast.
-      ...(castLockoutEnd > effectiveEnd + epsilon ? { castLockoutEnd: Math.round(castLockoutEnd * 1000) } : {}),
+      ...(castLockoutEnd > effectiveEnd + EPSILON ? { castLockoutEnd: Math.round(castLockoutEnd * 1000) } : {}),
       ...(cancelledBeforeCommit ? { cancelledBeforeCommit: true } : {}),
       ...(missingInterruptCommit ? { missingInterruptCommit: true } : {})
     });
@@ -1264,7 +1253,7 @@ export function createScheduler<TProfessionState extends object = object>({
         if (++guard > ACTION_SAFETY_LIMIT) throw new Error('Input recovery safety limit exceeded.');
         advanceTo(rotationEnd);
         const readyAt = schedulerPolicy.inputReadyAt(context, rotationEnd);
-        if (readyAt <= rotationEnd + epsilon) break;
+        if (readyAt <= rotationEnd + EPSILON) break;
         rotationEnd = readyAt;
       }
     }

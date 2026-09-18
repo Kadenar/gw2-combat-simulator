@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -196,7 +197,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
     const missingCharges = releaseAtCharges - state.dragonCharges;
     if (missingCharges > 0) {
       const nextChargeAt =
-        state.nextDragonChargeAt > context.start + context.epsilon
+        state.nextDragonChargeAt > context.start + EPSILON
           ? state.nextDragonChargeAt
           : state.dragonTriggerStartedAt +
             dragonChargeTickOffsetSeconds(
@@ -205,7 +206,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
               state.dragonChargesPerInterval
             );
       // Even the next possible tick would land after the deadline — stop waiting.
-      if (nextChargeAt > state.dragonTriggerChargeDeadline + context.epsilon) {
+      if (nextChargeAt > state.dragonTriggerChargeDeadline + EPSILON) {
         return {
           ready: false,
           retryAt: null,
@@ -254,7 +255,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
 
   if (
     skill.id === ID.DRAGON_TRIGGER &&
-    state.flow + context.epsilon <
+    state.flow + EPSILON <
       Number(balanceProfileFromContext(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST)
   ) {
     const flowCost = Number(

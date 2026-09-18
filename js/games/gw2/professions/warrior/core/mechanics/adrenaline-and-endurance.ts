@@ -44,8 +44,7 @@ export function warriorEnduranceReadyAt(context: WarriorCastContext, cost: numbe
     { endurance: state.endurance, enduranceUpdatedAt: context.start },
     cost,
     enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance,
-    context.epsilon
+    state.maximumEndurance
   );
 }
 

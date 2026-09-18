@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -100,7 +101,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     const profile = balanceProfileFromContext(context, PROFILE.empoweredArmaments);
     const duration = Number(profile?.resourceGain ?? 6);
     const maximumDuration = Number(profile?.maximumStacks ?? 20);
-    const wasActive = Number(state.empoweredArmamentsUntil || 0) > at + context.epsilon;
+    const wasActive = Number(state.empoweredArmamentsUntil || 0) > at + EPSILON;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
     state.empoweredArmamentsUntil = wasActive

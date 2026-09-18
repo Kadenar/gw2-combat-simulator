@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
@@ -80,7 +81,7 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
 
     const drainPercent = Number(balanceProfileFromContext(runtime, PROFILE.resources)?.lifeForceDrain ?? 3);
     core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
-    if (core.lifeForce <= runtime.epsilon) {
+    if (core.lifeForce <= EPSILON) {
       core.lifeForce = 0;
       state.activeSpirits = {};
     }
@@ -91,7 +92,7 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
 
 /** Refunds the first completed spirit summon after Soul Twisting is armed. */
 export function refundRitualistSoulTwisting(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   const state = ritualistState.from(context);
   if (state.pendingSoulTwistSkill !== skill.id) return;
   context.state.cooldowns.delete(skill.id);

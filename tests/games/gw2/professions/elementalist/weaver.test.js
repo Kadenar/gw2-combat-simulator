@@ -147,7 +147,6 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
         start: 10,
         fullEnd: 10,
         effectiveEnd: 10,
-        epsilon: 1e-9,
         reservationId: 'stance',
         schedulerPolicy: {
           effectTiming: (_context, _skill, authored) => ({

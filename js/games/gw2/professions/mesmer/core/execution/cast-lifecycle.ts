@@ -1,5 +1,5 @@
-/** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { EPSILON } from '#kernel/core/clock.js';
+/** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
@@ -43,15 +43,14 @@ export function withMesmerCastEmission(
 /** Recognizes interrupted casts that reached their authored summon point using the caller's phase tolerance. */
 export function isCommittedInterruptedPhantasm(
   context: Pick<MesmerCastContext, 'start' | 'fullEnd' | 'effectiveEnd'>,
-  skill: Pick<MesmerSkill, 'phantasmSummonProgress'>,
-  epsilon = EPSILON
+  skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
 ): boolean {
   const progress = Number(skill.phantasmSummonProgress);
   const summonAt = context.start + (context.fullEnd - context.start) * progress;
   return (
-    context.effectiveEnd < context.fullEnd - epsilon &&
+    context.effectiveEnd < context.fullEnd - EPSILON &&
     Number.isFinite(progress) &&
-    context.effectiveEnd >= summonAt - epsilon
+    context.effectiveEnd >= summonAt - EPSILON
   );
 }
 

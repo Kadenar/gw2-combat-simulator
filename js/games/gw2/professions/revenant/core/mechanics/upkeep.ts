@@ -1,5 +1,5 @@
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { effectiveRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -113,10 +113,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   if (skill.id === ID.EMBRACE_THE_DARKNESS || VENGEFUL_HAMMERS_IDS.has(skill.id)) {
     context.tasks.schedule({
       type: 'revenant.upkeep-pulse',
-      at:
-        skill.id === ID.EMBRACE_THE_DARKNESS
-          ? Math.floor(at + context.epsilon) + 1
-          : at + pulseIntervalForUpkeep(skill),
+      at: skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(at + EPSILON) + 1 : at + pulseIntervalForUpkeep(skill),
       ownerId: `revenant.upkeep:${skill.id}`,
       payload: { skillId: skill.id }
     });

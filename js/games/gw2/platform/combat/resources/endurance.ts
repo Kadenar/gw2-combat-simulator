@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 
 import { clamp } from '#kernel/core/numeric.js';
@@ -74,11 +75,10 @@ export function enduranceReadyAt(
   currentEndurance: number,
   cost: number,
   at: number,
-  regenerationPerSecond: number,
-  epsilon: number
+  regenerationPerSecond: number
 ): number | null {
   const missing = Math.max(0, Math.max(0, cost) - currentEndurance);
-  if (missing <= Math.max(0, epsilon)) return at;
+  if (missing <= Math.max(0, EPSILON)) return at;
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
 }
 
@@ -108,10 +108,9 @@ export function enduranceIntervalsReadyAt(
   state: Gw2EnduranceState,
   cost: number,
   intervals: Iterable<Gw2EnduranceInterval>,
-  maximumEndurance: number,
-  epsilon: number
+  maximumEndurance: number
 ): number | null {
-  if (cost - Math.max(0, maximumEndurance) > Math.max(0, epsilon)) return null;
+  if (cost - Math.max(0, maximumEndurance) > Math.max(0, EPSILON)) return null;
   let current = {
     endurance: cappedEndurance(state.endurance, maximumEndurance),
     enduranceUpdatedAt: state.enduranceUpdatedAt
@@ -119,7 +118,7 @@ export function enduranceIntervalsReadyAt(
   for (const interval of intervals) {
     const start = Math.max(current.enduranceUpdatedAt, interval.start);
     if (interval.end <= start) continue;
-    const readyAt = enduranceReadyAt(current.endurance, cost, start, interval.rate, epsilon);
+    const readyAt = enduranceReadyAt(current.endurance, cost, start, interval.rate);
     if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end) return readyAt;
     if (interval.end === Infinity) return null;
     current = advanceEndurance(

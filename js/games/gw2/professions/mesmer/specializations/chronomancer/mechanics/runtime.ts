@@ -1,5 +1,4 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
@@ -57,7 +56,6 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
   const continuum = createContinuumController({
     state: context.state,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
-    epsilon: EPSILON,
     skillsById: runtime.skillsById,
     refreshAmmo: context.cooldownController.refreshAmmo,
     consumeResources: runtime.actions.consumeResources,

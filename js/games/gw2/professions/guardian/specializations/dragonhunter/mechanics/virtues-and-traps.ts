@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -68,12 +69,12 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
   const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.passiveCourage), 'boon');
   const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
   // Recurring passives require a positive authored interval.
-  while (interval > 0 && courage && state.nextShieldOfCourageAegisAt <= target + context.epsilon) {
+  while (interval > 0 && courage && state.nextShieldOfCourageAegisAt <= target + EPSILON) {
     const at = state.nextShieldOfCourageAegisAt;
     // Passive Aegis is suppressed while the virtue's cooldown hasn't expired;
     // activating Shield of Courage resets virtueReadyAt.courage, so pulses during
     // the active period are silently skipped (counter still advances to stay in phase).
-    if (at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - context.epsilon) {
+    if (at >= Number(professionCoreState(context).virtueReadyAt.courage || 0) - EPSILON) {
       emitSkillBuff(context, {
         at,
         source: 'guardian',

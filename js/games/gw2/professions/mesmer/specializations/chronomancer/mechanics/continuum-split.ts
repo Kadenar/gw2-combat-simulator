@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
@@ -16,7 +17,6 @@ import type { MesmerContinuumController } from '#gw2/professions/mesmer/speciali
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
-  readonly epsilon: number;
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
@@ -30,7 +30,6 @@ interface ContinuumControllerOptions {
 export function createContinuumController({
   state,
   unaffectedCooldownIds,
-  epsilon,
   skillsById,
   refreshAmmo,
   consumeResources,
@@ -52,7 +51,7 @@ export function createContinuumController({
     state.cooldowns = new Map([
       ...unaffectedCooldowns,
       ...[...continuum.remainingCooldowns]
-        .filter(([, remaining]) => remaining > epsilon)
+        .filter(([, remaining]) => remaining > EPSILON)
         .map(([id, remaining]): [SkillId, number] => [id, at + remaining])
     ]);
     if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);

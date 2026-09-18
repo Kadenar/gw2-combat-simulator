@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
 import {
   balanceProfileEffectFromContext,
@@ -65,9 +66,9 @@ function passiveCoolingPerTick(context: EngineerSchedulerContext, at: number): n
   if (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated) return 0;
 
   const elapsedSinceExit = at - state.forgeExitedAt;
-  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + context.epsilon) return 0;
+  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + EPSILON) return 0;
   const coolingPerSecond =
-    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt + context.epsilon
+    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt + EPSILON
       ? HOLOSMITH_HEAT.slowCoolingPerSecond
       : HOLOSMITH_HEAT.fastCoolingPerSecond;
 
@@ -246,9 +247,9 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
     if (heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) {
       readyAt = null;
     } else {
-      if (readyAt == null || Number(readyAt) < from - context.epsilon) readyAt = from;
+      if (readyAt == null || Number(readyAt) < from - EPSILON) readyAt = from;
       // Include the boundary before same-time heat tasks run, retaining the next pulse across advances.
-      while (Number(readyAt) <= target + context.epsilon) {
+      while (Number(readyAt) <= target + EPSILON) {
         emitEnhancedCapacityMight(context, Number(readyAt));
         readyAt =
           Number(readyAt) + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
@@ -286,7 +287,7 @@ function startPassiveHeatCadence(context: EngineerSchedulerContext, at: number):
 export function initializePhotonForgeHeat(context: EngineerSchedulerContext): void {
   const state = holosmithState.from(context);
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
-  if (state.heat > context.epsilon && state.forgeExitedAt != null) {
+  if (state.heat > EPSILON && state.forgeExitedAt != null) {
     startPassiveHeatCadence(context, Math.max(context.state.time, state.forgeExitedAt));
   }
 }
@@ -297,13 +298,13 @@ export function handlePhotonForgePassiveHeat(
   task: EngineerScheduledTask<object>
 ): void {
   const state = holosmithState.from(context);
-  if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > context.epsilon) return;
+  if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > EPSILON) return;
 
   const previousHeat = state.heat;
   if (state.photonForgeActive && !state.overheated) {
     // The Forge-relative tick overheats only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
-    if (state.heat >= state.maximumHeat - context.epsilon) {
+    if (state.heat >= state.maximumHeat - EPSILON) {
       forceOverheat(context, task.at);
       return;
     }
@@ -312,7 +313,7 @@ export function handlePhotonForgePassiveHeat(
     triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
   } else {
     state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, task.at)) * 1e9) / 1e9);
-    if (state.heat <= context.epsilon) {
+    if (state.heat <= EPSILON) {
       state.heat = 0;
       // Reaching zero cannot re-enable the exhausted Forge bar before its explicit exit.
       if (!state.photonForgeActive) state.overheated = false;
@@ -326,8 +327,8 @@ export function handlePhotonForgePassiveHeat(
   const coolingGraceActive =
     !state.photonForgeActive &&
     state.forgeExitedAt != null &&
-    task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + context.epsilon;
-  if ((state.photonForgeActive && !state.overheated) || state.heat > context.epsilon || coolingGraceActive) {
+    task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + EPSILON;
+  if ((state.photonForgeActive && !state.overheated) || state.heat > EPSILON || coolingGraceActive) {
     startPassiveHeatCadence(context, task.at);
   } else {
     state.passiveHeatAt = null;
@@ -420,7 +421,7 @@ const CORONA_QUICKNESS_PULSE_OFFSETS_MS = Object.freeze([400, 760, 1120, 1480, 1
 function applyCoronaBurstHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   if (!canApplyHeat(context, skill)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
-  if (elapsedMs + context.epsilon * 1000 < CORONA_QUICKNESS_PULSE_OFFSETS_MS[0]) return;
+  if (elapsedMs + EPSILON * 1000 < CORONA_QUICKNESS_PULSE_OFFSETS_MS[0]) return;
   const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
   for (const offsetMs of CORONA_QUICKNESS_PULSE_OFFSETS_MS) {
     scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse, true);
@@ -436,7 +437,7 @@ function applyPhotonBlitzHeat(context: EngineerCastContext, skill: HolosmithSkil
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
   for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
-    if (offsetMs > elapsedMs + context.epsilon * 1000) break;
+    if (offsetMs > elapsedMs + EPSILON * 1000) break;
     scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse);
   }
 }
@@ -445,9 +446,9 @@ function applyPhotonBlitzHeat(context: EngineerCastContext, skill: HolosmithSkil
 function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
   if (!canApplyHeat(context, skill)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) {
+  if (context.effectiveEnd < context.fullEnd - EPSILON) {
     const commitMs = Number(skill.interruptCommitMs);
-    if (!Number.isFinite(commitMs) || elapsedMs + context.epsilon * 1000 < commitMs) return;
+    if (!Number.isFinite(commitMs) || elapsedMs + EPSILON * 1000 < commitMs) return;
   }
 
   // A Forge attack that crossed its interrupt commit point already fired; its

@@ -58,7 +58,6 @@ test('Flow Stabilizer reads accumulated pre-cast Fury and excludes its own activ
   const state = createBladeswornState();
   const context = {
     config: {},
-    epsilon: 0.0001,
     events,
     state: { profession: { core: {}, specialization: { kind: 'Bladesworn', state } } }
   };

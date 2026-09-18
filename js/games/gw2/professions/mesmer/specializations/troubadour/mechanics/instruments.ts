@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -322,7 +323,7 @@ export function completeTroubadourPerformance(context: MesmerCastContext, skill:
   const instrument = runtime.instruments[skill.id];
   if (!instrument) return;
 
-  const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
   const at = interrupted && instrument?.instrument === 'Harp' ? context.effectiveEnd : context.fullEnd;
   withMesmerCastEmission(context, skill, () => commitInstrument(context, skill, instrument, at));
 }

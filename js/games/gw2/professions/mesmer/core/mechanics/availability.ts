@@ -1,5 +1,5 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';

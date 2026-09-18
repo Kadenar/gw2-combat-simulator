@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Emits phantasm-cast packets and tracks their eligible sword hits.
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
@@ -40,7 +41,6 @@ export interface MesmerSkillDamageController {
 
 interface SkillDamageControllerOptions {
   readonly traits: ReadonlySet<number>;
-  readonly epsilon: number;
   readonly phantasms: MesmerPhantasmEffectController;
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -50,7 +50,6 @@ interface SkillDamageControllerOptions {
 
 export function createSkillDamageController({
   traits,
-  epsilon,
   phantasms,
   addEvent,
   addTraitProc,
@@ -175,7 +174,7 @@ export function createSkillDamageController({
         group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
-      if (hitAt > playerEffectEnd + epsilon) continue;
+      if (hitAt > playerEffectEnd + EPSILON) continue;
       const hitTimes = schedulePlayerStrike(skill, group, at, castStart);
       if (group.actorType === 'player') {
         addFencerStacks(hitTimes, group.ticks?.length ?? group.hits);

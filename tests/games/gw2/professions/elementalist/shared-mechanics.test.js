@@ -396,7 +396,6 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
       }
     },
     start: 0,
-    epsilon: 1e-9,
     commandIndex: 0,
     config: { selectedTraitIds: [] }
   };

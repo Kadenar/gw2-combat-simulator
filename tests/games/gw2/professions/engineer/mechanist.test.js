@@ -151,8 +151,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   const context = {
     config: { boons: { quickness: true }, selectedSkills: ['Force Signet'] },
     events: [],
-    state: { cooldowns: new Map() },
-    epsilon: 1e-9
+    state: { cooldowns: new Map() }
   };
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkills = ['Shift Signet'];

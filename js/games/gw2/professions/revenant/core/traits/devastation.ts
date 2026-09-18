@@ -1,6 +1,6 @@
 /** Owns Core Devastation boon, weapon-swap, and Battle Scar trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -163,15 +163,15 @@ export function applyThrillOfCombat(context: RevenantSchedulerContext, event: Re
   const battleScars = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
   const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat);
   const buff = profileEffect(profile, 'buff');
-  const interval = Math.max(context.epsilon, Number(profile.cooldown || 0));
+  const interval = Math.max(EPSILON, Number(profile.cooldown || 0));
   const duration = Math.max(0, Number(buff.duration || 0));
   if (state.nextThrillOfCombatAt == null) {
     state.nextThrillOfCombatAt = Number(state.combatBeganAt ?? event.at) + interval;
   }
 
   const next = Number(state.nextThrillOfCombatAt);
-  if (!Number.isFinite(next) || next > event.at + context.epsilon) return;
-  const elapsedGrants = Math.floor((event.at - next + context.epsilon) / interval) + 1;
+  if (!Number.isFinite(next) || next > event.at + EPSILON) return;
+  const elapsedGrants = Math.floor((event.at - next + EPSILON) / interval) + 1;
   const maximumActiveGrants = Math.ceil(duration / interval);
   const firstActiveIndex = Math.max(0, elapsedGrants - maximumActiveGrants);
   let activeGrants = 0;
@@ -251,7 +251,7 @@ export function handleAssassinsPresencePulse(context: RevenantSchedulerContext, 
   });
   context.tasks.schedule({
     type: ASSASSINS_PRESENCE_TASK,
-    at: task.at + Math.max(context.epsilon, Number(profile.cooldown)),
+    at: task.at + Math.max(EPSILON, Number(profile.cooldown)),
     ownerId: ASSASSINS_PRESENCE_TASK
   });
 }

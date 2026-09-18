@@ -144,7 +144,6 @@ export interface RevenantEnergyContext {
   readonly professionState?: Partial<RevenantState>;
   readonly start?: number;
   readonly time?: number;
-  readonly epsilon?: number;
   readonly hasBuff?: (kind: string, at?: number) => boolean;
 }
 

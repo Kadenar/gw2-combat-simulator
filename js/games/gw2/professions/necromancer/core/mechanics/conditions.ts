@@ -1,4 +1,4 @@
-import { isTimeInWindow } from '#kernel/core/clock.js';
+import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -352,7 +352,7 @@ function darkPactOnHit(
 // Sample live conditions before this impact adds its own Torment, capped at five.
 function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
-  if (impactAt > context.effectiveEnd + context.epsilon) return true;
+  if (impactAt > context.effectiveEnd + EPSILON) return true;
   const count = Math.min(5, observeTargetConditionCount(context, impactAt, 5));
   emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
   if (count > 0) {

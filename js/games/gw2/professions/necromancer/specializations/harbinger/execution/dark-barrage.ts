@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns the Doom Approaches replacement behavior for Dark Barrage.
  * The declarative Harbinger Shroud fragment remains in `skills/shroud-skills.ts`.
@@ -18,7 +19,7 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
   const at = context.start + interval;
   // The trait replacement remains a channel, so an interruption preserves only the rapid hits already fired.
   const landedHits = Array.from({ length: hits }, (_, index) => at + index * interval).filter(
-    (hitAt) => hitAt <= context.effectiveEnd + context.epsilon
+    (hitAt) => hitAt <= context.effectiveEnd + EPSILON
   ).length;
   if (landedHits > 0) {
     emitSkillDamage(context, skill, {

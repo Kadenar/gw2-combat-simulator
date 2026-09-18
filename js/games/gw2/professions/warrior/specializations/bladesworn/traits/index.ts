@@ -6,7 +6,7 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -41,10 +41,7 @@ export function prepareGunsaberSwapTraits(context: WarriorCastContext): void {
 /** Applies the selected Gunsaber-entry trait after the canonical weapon-swap event. */
 export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number): void {
   // Explicit precombat swaps must not spend the trait's internal cooldown.
-  if (
-    context.hasExplicitCombatStart &&
-    (context.combatStartTime == null || at + context.epsilon < context.combatStartTime)
-  ) {
+  if (context.hasExplicitCombatStart && (context.combatStartTime == null || at + EPSILON < context.combatStartTime)) {
     return;
   }
 
@@ -110,7 +107,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
   state.gunsaberSwapTraitReadyAt = at + Number(profile?.internalCooldown ?? 4);
   const positiveFlow = balanceProfileEffect(profile, 'buff');
   const positiveFlowDuration = Number(positiveFlow?.duration ?? 5);
-  if (state.traitPositiveFlowUntil <= at + context.epsilon) {
+  if (state.traitPositiveFlowUntil <= at + EPSILON) {
     state.traitPositiveFlowStartedAt = at;
   }
 

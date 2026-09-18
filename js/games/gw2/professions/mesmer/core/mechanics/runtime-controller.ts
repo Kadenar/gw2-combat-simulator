@@ -1,9 +1,9 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
 import {
   balanceProfileFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -241,7 +241,6 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     phantasmAttackTimings: runtime.phantasmAttackTimings,
     phantasmPolicy: () => runtime.phantasmPolicy,
     allSkills,
-    epsilon: EPSILON,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
     addEvent,

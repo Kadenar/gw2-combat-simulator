@@ -39,7 +39,6 @@ interface SkillEffectControllerOptions {
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly allSkills: readonly MesmerSkill[];
-  readonly epsilon: number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly addEvent: MesmerAddEvent;
@@ -64,7 +63,6 @@ export function createSkillEffectController({
   phantasmAttackTimings,
   phantasmPolicy,
   allSkills,
-  epsilon,
   activePrimaryWeapon,
   queueResources,
   addEvent,
@@ -95,7 +93,6 @@ export function createSkillEffectController({
   });
   const damage = createSkillDamageController({
     traits,
-    epsilon,
     phantasms,
     addEvent,
     addTraitProc,

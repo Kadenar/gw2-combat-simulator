@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
@@ -58,7 +59,7 @@ export {
 /** Reconciles completed-cast flips and Fear of Death before later trait effects are emitted. */
 function updateNecromancerCastState(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
-  const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
+  const completed = context.effectiveEnd >= context.fullEnd - EPSILON;
   if (!completed) return;
 
   const chainNext = context.catalog.autoattackChainPositions.get(Number(skill.id))?.next;

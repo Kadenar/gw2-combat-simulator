@@ -51,7 +51,6 @@ export function rangerEnduranceReadyAt(context: RangerCastContext, cost: number)
     { endurance: state.endurance, enduranceUpdatedAt: context.start },
     cost,
     enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance,
-    context.epsilon
+    state.maximumEndurance
   );
 }

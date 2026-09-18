@@ -50,7 +50,6 @@ function enchantmentHarness() {
     state: { time: 3, profession: { specialization: { kind: 'Evoker', state } } },
     combatStartTime: 2,
     effectiveEnd: 3,
-    epsilon: 1e-6,
     events,
     eventByOrder: (order) => events.find((event) => event.eventOrder === order),
     replaceEvent(event, updates) {

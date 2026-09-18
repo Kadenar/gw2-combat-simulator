@@ -14,7 +14,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -142,7 +142,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.start : state.attunementEnteredAt + dwell;
-  return readyAt > context.start + context.epsilon
+  return readyAt > context.start + EPSILON
     ? retryCast(
         readyAt,
         'elementalist.tempest-dwell',

@@ -5,7 +5,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '#gw2/professions/warrior/family-state.js';
@@ -306,7 +306,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
 
 export function advanceParagon(context: WarriorSchedulerContext, target: number): void {
   const state = paragonState.from(context);
-  while (state.activeRefrainId && state.motivation > 0 && state.nextRefrainAt <= target + context.epsilon) {
+  while (state.activeRefrainId && state.motivation > 0 && state.nextRefrainAt <= target + EPSILON) {
     pulseRefrain(context, state.nextRefrainAt);
   }
 }

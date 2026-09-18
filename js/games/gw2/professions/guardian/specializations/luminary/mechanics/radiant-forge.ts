@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -272,8 +273,8 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   // A committed cancel keeps the earlier replacement packet; only a cancel
   // before the measured safe point suppresses it.
   if (
-    context.effectiveEnd < context.fullEnd - context.epsilon &&
-    elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs || 0)
+    context.effectiveEnd < context.fullEnd - EPSILON &&
+    elapsedMs + EPSILON * 1000 < Number(skill.interruptCommitMs || 0)
   )
     return;
   const state = luminaryState.from(context);
@@ -391,7 +392,7 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
  */
 export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);
-  if (state.radiantForge && state.radiantForgeEndsAt <= target + context.epsilon) {
+  if (state.radiantForge && state.radiantForgeEndsAt <= target + EPSILON) {
     exitRadiantForge(
       context,
       context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE),

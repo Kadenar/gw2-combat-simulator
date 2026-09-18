@@ -1146,8 +1146,7 @@ test('Ranger transformation availability follows skill IDs after display labels 
       {
         config: { specialization: kind, selectedPet: 'Lynx' },
         state: { profession: { specialization: { kind, state } } },
-        start: 0,
-        epsilon: 1e-9
+        start: 0
       },
       skill
     );

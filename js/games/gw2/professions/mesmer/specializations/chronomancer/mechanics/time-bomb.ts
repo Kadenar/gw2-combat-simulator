@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -7,12 +8,12 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Arms Time Bomb only after a completed Time Sink and keeps its delayed explosion attributed to that cast. */
 export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: MesmerSkill): void {
-  if (skill.id !== ID.TIME_SINK || context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (skill.id !== ID.TIME_SINK || context.effectiveEnd < context.fullEnd - EPSILON) return;
 
   const runtime = mesmerRuntimeFor(context);
   const state = chronomancerState.from(context);
   const at = context.fullEnd;
-  if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil - context.epsilon) return;
+  if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil - EPSILON) return;
 
   const timeBomb = runtime.traitDamage['Time Bomb'];
   const duration = Number(timeBomb.duration || 0);

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
@@ -13,7 +14,7 @@ export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSk
   const flips = professionCoreState(context).availableFlips;
   if (skill.id === ID.FIST_FLURRY) {
     // Only a completed, on-target flurry opens the follow-up in both scheduling and the palette.
-    if (context.action?.offTarget === true || context.effectiveEnd < context.fullEnd - context.epsilon) return;
+    if (context.action?.offTarget === true || context.effectiveEnd < context.fullEnd - EPSILON) return;
     state.palmStrikeUntil =
       context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.palmStrike)?.durationMultiplier ?? 5);
     flips[ID.PALM_STRIKE] = state.palmStrikeUntil;

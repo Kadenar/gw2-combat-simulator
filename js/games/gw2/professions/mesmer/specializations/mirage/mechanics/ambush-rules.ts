@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
@@ -12,7 +13,6 @@ import {
   grantEndurance,
   spendEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -94,13 +94,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     if (state.endurance >= cost - EPSILON) return { ready: true };
     return {
       ready: false,
-      retryAt: enduranceReadyAt(
-        state.endurance,
-        cost,
-        context.start,
-        mirageEnduranceRate(context, context.start),
-        EPSILON
-      ),
+      retryAt: enduranceReadyAt(state.endurance, cost, context.start, mirageEnduranceRate(context, context.start)),
       code: 'mesmer.endurance',
       reason: `Dodge requires ${cost} endurance.`
     };

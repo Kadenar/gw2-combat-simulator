@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Electric Enchantment (Galvanic Enchantment) payload delivery.
  *
@@ -69,8 +70,7 @@ export function consumeElectricEnchantment(
   expireElectricEnchantments(state, Math.min(context.state.time, current.at));
   if (state.electricEnchantmentStacks <= 0 || current.electricEnchantmentConsumed === true) return;
   const grant = state.electricEnchantmentGrants.find(
-    (candidate) =>
-      candidate.stacks > 0 && current.at >= candidate.at - context.epsilon && current.at < candidate.expiresAt
+    (candidate) => candidate.stacks > 0 && current.at >= candidate.at - EPSILON && current.at < candidate.expiresAt
   );
   if (!grant) return;
   grant.stacks -= 1;
@@ -93,7 +93,7 @@ export function applyElectricEnchantmentsRetrospectively(context: ElementalistCa
         event.type === 'damage' &&
         event.actorType === 'player' &&
         Number(event.coefficient || 0) > 0 &&
-        event.at >= context.effectiveEnd - context.epsilon &&
+        event.at >= context.effectiveEnd - EPSILON &&
         event.electricEnchantmentConsumed !== true
     )
     .sort((left, right) => left.at - right.at);

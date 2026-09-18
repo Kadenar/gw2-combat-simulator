@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -54,8 +55,7 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
   // Prodigious Pincher should not fire during pre-cast; initiative spent before combat begins must not count toward the threshold
   const inCombat =
     !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null &&
-      context.start + Number(context.epsilon || 0.0001) >= Number(context.combatStartTime));
+    (context.combatStartTime != null && context.start + EPSILON >= Number(context.combatStartTime));
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&

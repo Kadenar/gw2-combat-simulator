@@ -1,9 +1,9 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
-  guardianResolverEpsilon,
   guardianResolverState,
   queueGuardianResolverBuff,
   recordGuardianTraitProc
@@ -44,7 +44,7 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
 
   const state = guardianResolverState(context);
   const duration = Math.max(0, Number(event.duration || 0));
-  const wasActive = event.at < Number(state.resolutionUntil || 0) - guardianResolverEpsilon(context);
+  const wasActive = event.at < Number(state.resolutionUntil || 0) - EPSILON;
   state.resolutionUntil = wasActive ? state.resolutionUntil + duration : event.at + duration;
   if (!wasActive) {
     queueRighteousMight(context, event.at, 'Resolution applied');
@@ -69,8 +69,8 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   const state = guardianResolverState(context);
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
-    event.at >= Number(state.resolutionUntil || 0) - guardianResolverEpsilon(context) ||
-    Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > guardianResolverEpsilon(context)
+    event.at >= Number(state.resolutionUntil || 0) - EPSILON ||
+    Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > EPSILON
   ) {
     return;
   }
@@ -79,10 +79,7 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   state.righteousNextMightAt =
     event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
   // Queue one candidate tick ahead so future Resolution applications can extend the active window before it fires.
-  if (
-    state.righteousNextMightAt > event.at &&
-    state.righteousNextMightAt <= context.horizon + guardianResolverEpsilon(context)
-  ) {
+  if (state.righteousNextMightAt > event.at && state.righteousNextMightAt <= context.horizon + EPSILON) {
     context.queue.enqueue({
       ...event,
       at: state.righteousNextMightAt

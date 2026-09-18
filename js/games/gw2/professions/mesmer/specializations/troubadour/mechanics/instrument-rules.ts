@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -127,8 +128,8 @@ export const troubadourAttributeRules = Object.freeze({
 /** Grants Harmonize's resource only once a phantasm has crossed its summon point. */
 function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSkill): void {
   if (skill.resource?.mode !== 'phantasm') return;
-  const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
-  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill, context.epsilon);
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(context, skill);
   if (interrupted && !completedInterruptedPhantasm) return;
 
   const runtime = mesmerRuntimeFor(context);
@@ -145,7 +146,7 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
 function advanceTroubadourScheduler(context: MesmerSchedulerContext, target: number): void {
   const instruments = troubadourState.from(context).instruments;
   for (const [instrument, expiresAt] of Object.entries(instruments)) {
-    if (expiresAt <= target + context.epsilon) delete instruments[instrument];
+    if (expiresAt <= target + EPSILON) delete instruments[instrument];
   }
 }
 

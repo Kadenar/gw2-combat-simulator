@@ -74,7 +74,6 @@ function contextFor(specialization = 'Renegade', selectedTraitIds = []) {
     config,
     catalog: revenantCatalog,
     profession: revenantProfession,
-    epsilon: 1e-9,
     start: 0,
     effectiveEnd: 0,
     hasExplicitCombatStart: true,

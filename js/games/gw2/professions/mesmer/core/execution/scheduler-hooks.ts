@@ -1,5 +1,5 @@
-/** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { EPSILON } from '#kernel/core/clock.js';
+/** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -230,5 +230,5 @@ export function handleExpectedProcTask(
 export function handleTrackedHitTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'trackedHit'>): void {
   const runtime = mesmerRuntimeFor(context);
   const skill = runtime.skillsById.get(task.payload.skillId);
-  if (skill) scheduleMesmerTrackedHits(context.state, EPSILON, runtime.addDamage, skill, [task.at]);
+  if (skill) scheduleMesmerTrackedHits(context.state, runtime.addDamage, skill, [task.at]);
 }

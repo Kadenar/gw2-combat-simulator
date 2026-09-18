@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -71,7 +72,7 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
       : (resources?.blightGain ?? 2)
   );
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
-  while (Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <= exitAt + context.epsilon) {
+  while (Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <= exitAt + EPSILON) {
     const nextBlightAt = Number(state.nextBlightAt);
     addBlight(state, stacksPerSecond, nextBlightAt);
     state.nextBlightAt = nextBlightAt + 1;

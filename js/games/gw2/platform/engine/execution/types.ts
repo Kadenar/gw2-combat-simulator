@@ -242,7 +242,6 @@ export interface SchedulerContext<TProfessionState extends object = object> {
   readonly state: SchedulerState<TProfessionState>;
   readonly events: SimulationEvent[];
   readonly warnings: string[];
-  readonly epsilon: number;
   readonly schedulerPolicy: SchedulerPolicy<TProfessionState>;
   readonly observationPolicy: ObservationPolicy;
   observationEndTime: number | null;

@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
@@ -276,7 +277,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
         event.type !== 'damage' ||
         event.fulgorSecondary !== true ||
         event.cancelled === true ||
-        event.at < context.start - context.epsilon
+        event.at < context.start - EPSILON
       ) {
         continue;
       }

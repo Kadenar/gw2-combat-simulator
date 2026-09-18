@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Evoker recharge modification for the Elemental Balance one-use window.
  * The persistent window state remains in the Evoker state slice.
@@ -31,7 +32,7 @@ export function commitRechargeDuration(
   }
 
   const state = evokerState.from(context);
-  if (state.elementalBalanceUntil <= context.state.time + context.epsilon) {
+  if (state.elementalBalanceUntil <= context.state.time + EPSILON) {
     return duration;
   }
 

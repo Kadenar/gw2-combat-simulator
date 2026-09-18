@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
@@ -23,7 +24,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
   }
 
   if (skill.id === ID.DODGE) {
-    return state.endurance + context.epsilon >= 50
+    return state.endurance + EPSILON >= 50
       ? { ready: true }
       : {
           ready: false,
@@ -34,14 +35,14 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
   }
 
   const cost = Number(skill.adrenalineCost || 0);
-  if (cost > Number(state.adrenaline || 0) + context.epsilon) {
+  if (cost > Number(state.adrenaline || 0) + EPSILON) {
     const selected = selectedSkillNameSet(context.config.selectedSkills);
     const missing = cost - Number(state.adrenaline || 0);
     const passivePulses = Math.ceil(missing / 2);
     const signetCooldown = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);
     let passiveReadyAt: number | null = null;
     if (selected.has('Signet of Rage') && state.signetOfRageNextAt > context.start) {
-      const skippedPulses = Math.max(0, Math.ceil((signetCooldown - state.signetOfRageNextAt - context.epsilon) / 3));
+      const skippedPulses = Math.max(0, Math.ceil((signetCooldown - state.signetOfRageNextAt - EPSILON) / 3));
       passiveReadyAt = state.signetOfRageNextAt + (skippedPulses + passivePulses - 1) * 3;
     }
 

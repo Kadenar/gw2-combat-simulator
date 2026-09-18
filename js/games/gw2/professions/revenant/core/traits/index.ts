@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /** Owns shared invocation ordering, combat gating, and trait recharge policy. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -23,7 +24,7 @@ export { emitLegendInvocationProfile, emitLegendInvocationSkill };
 export function revenantCombatActive(context: RevenantSchedulerContext, at = context.state.time): boolean {
   return (
     !context.hasExplicitCombatStart ||
-    (context.combatStartTime != null && at + context.epsilon >= Number(context.combatStartTime))
+    (context.combatStartTime != null && at + EPSILON >= Number(context.combatStartTime))
   );
 }
 

@@ -37,7 +37,6 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     ambushAttacks: runtime.ambushAttacks,
     cloneAttacks: runtime.cloneAttacks,
     skillsById: runtime.skillsById,
-    epsilon: EPSILON,
     addEvent: runtime.addEvent,
     addTraitProc: runtime.addTraitProc,
     addCondition: runtime.addCondition,
@@ -65,7 +64,7 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     if (
       triggersCloneAmbush &&
       runtime.traits.has(TRAIT.INFINITE_HORIZON) &&
-      mirageState.from(context).cloneAmbushUntil >= at - context.epsilon
+      mirageState.from(context).cloneAmbushUntil >= at - EPSILON
     ) {
       mirage.executeCloneAmbushes(at, createdClones);
     }

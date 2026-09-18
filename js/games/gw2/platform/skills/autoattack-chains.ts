@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * GW2-wide runtime ownership for autoattack-chain availability and state.
  * Native professions only declare narrow interruption overrides and optional
@@ -167,14 +168,13 @@ function interruptsAutoattackChain(context: CastLifecycleContext, skill: Skill):
   if (
     context.action?.cancelled === true ||
     skill.independentCast === true ||
-    context.fullEnd <= context.start + context.epsilon
+    context.fullEnd <= context.start + EPSILON
   )
     return false;
   const emittedByCastEnd = context
     .eventsOfType('damage')
     .some(
-      (event) =>
-        event.activationId === context.reservationId && Number(event.at) <= context.effectiveEnd + context.epsilon
+      (event) => event.activationId === context.reservationId && Number(event.at) <= context.effectiveEnd + EPSILON
     );
   if (emittedByCastEnd) return true;
 
@@ -183,7 +183,7 @@ function interruptsAutoattackChain(context: CastLifecycleContext, skill: Skill):
   return (skill.effects || []).some((effect) => {
     if (effect.type !== 'strike') return false;
     const timing = context.schedulerPolicy.effectTiming?.(context, skill, effect) ?? effect;
-    return effectFirstAt(context.start, context.fullEnd, timing) <= context.effectiveEnd + context.epsilon;
+    return effectFirstAt(context.start, context.fullEnd, timing) <= context.effectiveEnd + EPSILON;
   });
 }
 

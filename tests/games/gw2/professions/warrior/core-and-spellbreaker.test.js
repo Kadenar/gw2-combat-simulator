@@ -893,7 +893,6 @@ test('Warrior execution follows stable skill and packet IDs after display labels
   const replacements = [];
   const context = {
     config: { selectedTraitIds: [] },
-    epsilon: 1e-9,
     replaceEvent: (_event, replacement) => replacements.push(replacement)
   };
   const killShot = { ...warriorCatalog.skillsById.get(ID.KILL_SHOT), name: 'Renamed burst skill' };

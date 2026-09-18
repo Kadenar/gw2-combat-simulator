@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
@@ -175,7 +176,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
         deferredComboFinishers: attack.comboFinishers,
         onHitCondition: attack.condition,
         controlKind:
-          attack.controlKind || (task.at <= payload.controlUntil + context.epsilon ? payload.controlKind : undefined),
+          attack.controlKind || (task.at <= payload.controlUntil + EPSILON ? payload.controlKind : undefined),
 
         ...(Number.isFinite(Number(damagePerCoefficient))
           ? {}
@@ -197,7 +198,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
 
   // Keep the autonomous loop alive only while another cycle can affect the observation window.
   const nextAt = task.at + definition.interval;
-  if (context.observationEndTime == null || nextAt <= context.observationEndTime + context.epsilon) {
+  if (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON) {
     context.tasks.schedule({
       type: MINION_ATTACK_TASK,
       at: nextAt,
@@ -272,7 +273,7 @@ function queueMinionCommandAttacks(
 // Establish a fresh minion generation, arm its command, publish state, and start autonomous attacks.
 function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   // Interrupted summons never create a creature, arm its command, or start its attack clock.
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return true;
   const definition = minionDefinitionForSkill(context, skill.id);
   if (!definition) return false;
   const state = professionCoreState(context);
@@ -379,8 +380,8 @@ function restartMinionAttacks(
   const previousAnchor = Number(state.minionAttackAnchors[minion.key] || context.effectiveEnd);
   const previousOffset = Number(state.minionAttackCycleOffsets[minion.key] || 0);
   const completedSinceAnchor =
-    context.effectiveEnd + context.epsilon >= previousAnchor
-      ? Math.floor((context.effectiveEnd - previousAnchor + context.epsilon) / minion.interval) + 1
+    context.effectiveEnd + EPSILON >= previousAnchor
+      ? Math.floor((context.effectiveEnd - previousAnchor + EPSILON) / minion.interval) + 1
       : 0;
   const nextCycleIndex = previousOffset + completedSinceAnchor;
   state.minionAttackGenerations[minion.key] = Number(state.minionAttackGenerations[minion.key] || 0) + 1;

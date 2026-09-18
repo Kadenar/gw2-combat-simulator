@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Guardian spear's persistent Illuminated state and conditional packets.
  * Declarative spear fragments remain in `skills/weapons/spear.ts`.
@@ -70,7 +71,7 @@ function strikeStartSeconds(context: GuardianCastContext, effect: GuardianSpearE
  * no bonus packet could be applied.
  */
 function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill, multiplier: number): number | null {
-  const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {
@@ -109,8 +110,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     const firstAt = strikeStartSeconds(context, effect);
     if (skill.id === ID.HELIO_RUSH && hits === 1) {
       const baseHit = context.events.find(
-        (event) =>
-          event.type === 'damage' && event.skillId === skill.id && Math.abs(event.at - firstAt) <= context.epsilon
+        (event) => event.type === 'damage' && event.skillId === skill.id && Math.abs(event.at - firstAt) <= EPSILON
       );
       if (baseHit) {
         context.replaceEvent(baseHit, {
@@ -125,11 +125,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     if (skill.id === ID.GLEAMING_DISC && hits === 2) {
       // Enhance a committed, persistent shock wave even when its impact follows the cancelled animation.
       const shockWaveAt = firstAt + (Number(ticks[1].atMs) - Number(ticks[0].atMs)) / 1000;
-      if (
-        interrupted &&
-        effect.persistsAfterInterrupt !== true &&
-        shockWaveAt > context.effectiveEnd + context.epsilon
-      ) {
+      if (interrupted && effect.persistsAfterInterrupt !== true && shockWaveAt > context.effectiveEnd + EPSILON) {
         continue;
       }
 
@@ -138,7 +134,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           event.type === 'damage' &&
           event.skillId === skill.id &&
           event.hitIndex === 2 &&
-          Math.abs(event.at - shockWaveAt) <= context.epsilon
+          Math.abs(event.at - shockWaveAt) <= EPSILON
       );
       if (shockWave) {
         context.replaceEvent(shockWave, {
@@ -153,7 +149,7 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
     for (const [index, tick] of ticks.entries()) {
       const hitIndex = index + 1;
       const at = firstAt + (Number(tick.atMs) - Number(ticks[0].atMs)) / 1000;
-      if (interrupted && at > context.effectiveEnd + context.epsilon) break;
+      if (interrupted && at > context.effectiveEnd + EPSILON) break;
       context.emit(
         buildGuardianStrike({
           sourceId: skill.id,
@@ -209,8 +205,8 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   if (context.action.cancelled) return;
   const state = professionCoreState(context);
   if (skill.weapon !== 'Spear') return;
-  const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + context.epsilon;
-  const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + context.epsilon;
+  const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + EPSILON;
+  const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + EPSILON;
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
   const multiplier = Number(
@@ -262,7 +258,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
  */
 export function advanceSpearIlluminationState(context: GuardianSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon) {
+  if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target + EPSILON) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;
   }

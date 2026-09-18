@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -27,7 +28,7 @@ export function engineerCoreCastAvailability(
       50
     );
     // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
-    return Number(state.endurance || 0) + Number(context.epsilon || 0.0001) >= enduranceCost
+    return Number(state.endurance || 0) + EPSILON >= enduranceCost
       ? { ready: true }
       : denyEngineerCast(
           skill,

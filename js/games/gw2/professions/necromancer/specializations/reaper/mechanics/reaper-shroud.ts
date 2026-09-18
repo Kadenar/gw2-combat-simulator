@@ -6,7 +6,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { requiredShroud } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
@@ -39,7 +39,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   if (skill.id === ID.LIFE_REAP && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
     // The hit lands at cast midpoint; skip reduction if the cast was cancelled before reaching that point.
     const hitAt = context.start + (context.fullEnd - context.start) / 2;
-    if (context.effectiveEnd >= hitAt - context.epsilon) {
+    if (context.effectiveEnd >= hitAt - EPSILON) {
       reduceShroudCooldowns(context, hitAt);
     }
   }
@@ -62,7 +62,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   const state = reaperState.from(context);
   if (
     hasTrait(context, TRAIT.CHILLING_VICTORY) &&

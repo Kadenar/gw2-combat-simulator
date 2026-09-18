@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
@@ -349,7 +349,7 @@ export function handleForgedSurfer(
 
 // Double Edge is only risky when the skill is on cooldown; casting off-cooldown always succeeds
 function riskyDoubleEdge(context: ThiefCastContext, skill: ThiefSkill): boolean {
-  return Number(context.state.cooldowns.get(skill.id) || 0) > context.start + Number(context.epsilon || 0.0001);
+  return Number(context.state.cooldowns.get(skill.id) || 0) > context.start + EPSILON;
 }
 
 function peekRiskyOutcome(context: ThiefCastContext): ThiefDoubleEdgeOutcome {
@@ -517,7 +517,7 @@ export function handleSkrittScuffle(
   const interval = Number(balanceProfileFromContext(context, PROFILE.scuffle)?.pulseInterval ?? 3);
   if (!(interval > 0)) return;
   // epsilon tolerance: a task scheduled exactly at expiresAt is still valid; floating-point overshoot is not a missed tick
-  if (task.at > Number(task.payload.expiresAt || 0) + Number(context.epsilon || 0.0001)) return;
+  if (task.at > Number(task.payload.expiresAt || 0) + EPSILON) return;
   const nextPilferAt = task.at + interval;
   antiquaryState.from(context).nextSkrittScufflePilferAt =
     nextPilferAt <= Number(task.payload.expiresAt || 0) ? nextPilferAt : 0;

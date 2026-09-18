@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -86,7 +87,7 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
     context.state.cooldowns.set(flipId, readyAt);
   }
 
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   if (skill.id === ID.PANTHERS_PROWL) {
     for (const flipId of RANGER_SPEAR_STEALTH_ATTACK_IDS) {
       professionCoreState(context).availableFlips[flipId] = context.effectiveEnd + 3;
@@ -107,7 +108,7 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
 }
 
 export function updateRangerWeaponState(context: RangerCastContext, skill: RangerSkill): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
 
   const state = professionCoreState(context);
   // Sequence children occupy the opener's tile only for their live window;

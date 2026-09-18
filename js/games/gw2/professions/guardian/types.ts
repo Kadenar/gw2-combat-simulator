@@ -149,7 +149,6 @@ export interface GuardianStrikeFields {
 export type GuardianResolverContext = Gw2ResolverRuntime & {
   config: GuardianConfig;
   profession: GuardianRuntimeState;
-  readonly epsilon?: number;
 };
 
 export type GuardianVirtue = 'justice' | 'resolve' | 'courage';

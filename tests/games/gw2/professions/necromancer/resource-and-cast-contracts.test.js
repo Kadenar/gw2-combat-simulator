@@ -21,7 +21,6 @@ function advance(config, targets) {
       profession: necromancerProfession.resolveRuntime(config).createProfessionState(config),
       cooldowns: new Map()
     },
-    epsilon: 0.000001,
     events,
     emit: (event) => {
       events.push(event);

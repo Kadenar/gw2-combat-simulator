@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Firebrand mantra preparation, charge, flip, and recharge state.
  * Declarative mantra fragments live in `skills/mantra-skills.ts`.
@@ -103,7 +104,7 @@ export function advanceFirebrandMantras(context: GuardianSchedulerContext, targe
     // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
     // The cooldowns guard prevents double-arming if advance is called twice for
     // the same tick.
-    if (readyAt > 0 && readyAt <= target + context.epsilon && context.state.cooldowns.has(definition.rootId)) {
+    if (readyAt > 0 && readyAt <= target + EPSILON && context.state.cooldowns.has(definition.rootId)) {
       armMantra(context, definition, readyAt);
     }
 
@@ -129,7 +130,7 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
   // preparedAt > start means the mantra is currently in full-recharge (not yet
   // armed), so give the scheduler a concrete retry time rather than blocking
   // forever with retryAt: null.
-  if (preparedAt > context.start + context.epsilon) {
+  if (preparedAt > context.start + EPSILON) {
     return retryCast(
       preparedAt,
       'guardian.mantra-charge',
@@ -139,7 +140,7 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
 
   // The final flip shares the normal charge's Alacrity-scaled ammo cooldown.
   const chargeReadyAt = Number(context.state.cooldowns.get(definition.normalId) || 0);
-  if (final && chargeReadyAt > context.start + context.epsilon) {
+  if (final && chargeReadyAt > context.start + EPSILON) {
     return retryCast(chargeReadyAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
   }
 
@@ -154,7 +155,7 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
 export function completeFirebrandMantra(context: GuardianCastContext, skill: GuardianSkill): void {
   // Interrupted casts must not consume a charge or start a recharge; early-out
   // when the cast was cut short before its natural end.
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   const root = MANTRA_BY_ROOT_ID.get(Number(skill.id));
   if (root) {
     armMantra(context, root, context.effectiveEnd);

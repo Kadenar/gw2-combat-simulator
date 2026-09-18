@@ -60,8 +60,7 @@ export function engineerEnduranceReadyAt(
     Number(
       state.maximumEndurance ||
         balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
-    ),
-    context.epsilon
+    )
   );
 }
 

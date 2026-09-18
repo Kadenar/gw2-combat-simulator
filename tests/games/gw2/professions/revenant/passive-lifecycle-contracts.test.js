@@ -45,7 +45,6 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
       catalog: revenantCatalog,
       events,
       start: 0,
-      epsilon: 1e-9,
       state: {
         profession: { core, specialization: { kind: 'Herald', state: createHeraldState() } },
         cooldowns: new Map()

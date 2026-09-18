@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
@@ -20,7 +21,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
     const cost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50);
-    return state.endurance + context.epsilon >= cost
+    return state.endurance + EPSILON >= cost
       ? { ready: true }
       : {
           ready: false,

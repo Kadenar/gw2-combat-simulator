@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
@@ -141,15 +142,15 @@ function emitAlliedAttackOpportunities(
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!allies.count || !allies.strikesPerSecond) return;
   const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
-  if (combatStart == null || end < combatStart - context.epsilon) return;
+  if (combatStart == null || end < combatStart - EPSILON) return;
 
   // Respect both the trait cooldown and the configured aggregate ally strike rate.
   const state = professionCoreState(context);
   const interval = Math.max(minimumInterval, 1 / allies.strikesPerSecond);
   const windowStart = Math.max(start, combatStart);
   let nextAt = Number(state.traitProcReadyAt[cursor] || 0);
-  if (!(nextAt > windowStart + context.epsilon)) nextAt = windowStart + interval;
-  while (nextAt <= end + context.epsilon) {
+  if (!(nextAt > windowStart + EPSILON)) nextAt = windowStart + interval;
+  while (nextAt <= end + EPSILON) {
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
       context.emit({
         type,
@@ -208,7 +209,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   while (true) {
     // The previous iteration drained up to `at`; apply all strike gains due there before choosing another boundary.
     // This also handles gains at the initial timestamp, when no time needs to elapse.
-    while (gainIndex < gains.length && gains[gainIndex].at <= at + context.epsilon) {
+    while (gainIndex < gains.length && gains[gainIndex].at <= at + EPSILON) {
       const gain = gains[gainIndex++];
       // Apply gains at their timestamps, but publish state at the advance boundary: specialization clocks may already
       // hold cast-end state, which must not leak into earlier hits through a backdated full snapshot.
@@ -226,7 +227,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     // Infinity excludes inactive clocks from Math.min; nonpositive pulse intervals disable recurring pulses.
     const nextUndeath = undeath && undeathInterval > 0 ? state.signetNextLifeForceAt : Infinity;
     const nextVampirism = vampirism && vampirismInterval > 0 ? state.vampirismNextAt : Infinity;
-    const nextRegeneration = eternalLife && !state.activeShroud ? Math.floor(at + context.epsilon) + 1 : Infinity;
+    const nextRegeneration = eternalLife && !state.activeShroud ? Math.floor(at + EPSILON) + 1 : Infinity;
     // Stop at the earliest event or the requested end, including the exact instant drain would exhaust life force.
     // Math.max prevents a stale pulse cursor from moving time backward; its branch below advances that cursor.
     const next = Math.max(
@@ -247,20 +248,20 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     state.lifeForce = Math.max(0, state.lifeForce - rate * (next - at));
     syncNecromancerResources(state);
     // Depletion takes precedence over a simultaneous pulse: later gains do not automatically re-enter shroud.
-    if (rate > 0 && state.lifeForce <= context.epsilon) {
+    if (rate > 0 && state.lifeForce <= EPSILON) {
       state.lifeForce = 0;
       leaveShroud(context, next, 'life-force-depleted');
     }
 
     // Clear the transform before its exit refund so subsequent iterations cannot refund it again.
-    if (state.activeShroud === 'lich' && state.lichEndsAt <= next + context.epsilon) {
+    if (state.activeShroud === 'lich' && state.lichEndsAt <= next + EPSILON) {
       state.activeShroud = '';
       state.lichEndsAt = 0;
       delete state.availableFlips[ID.EXIT_LICH_FORM];
       gainNecromancerLifeForce(context, 15, next);
     }
 
-    if (nextRegeneration <= next + context.epsilon) {
+    if (nextRegeneration <= next + EPSILON) {
       const threshold = state.maximumLifeForce * 0.66;
       // Eternal Life fills only below its threshold; resources earned elsewhere remain intact.
       if (state.lifeForce < threshold) {
@@ -270,13 +271,12 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 
     // Evaluate the recharge exception after exits, using the form actually active at this pulse's timestamp.
     const passiveWhileRecharging = hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING) && Boolean(state.activeShroud);
-    if (nextUndeath <= next + context.epsilon) {
+    if (nextUndeath <= next + EPSILON) {
       // The starting boundary belongs to the previous advance. Skip it, and suppress recharge-time pulses unless
       // Signets of Suffering permits them; epsilon tolerates floating-point rounding at the boundary.
       if (
-        nextUndeath > start + context.epsilon &&
-        (Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0) <= next + context.epsilon ||
-          passiveWhileRecharging)
+        nextUndeath > start + EPSILON &&
+        (Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0) <= next + EPSILON || passiveWhileRecharging)
       ) {
         gainNecromancerLifeForce(context, Number(undeath?.lifeForceGain || 0), next);
       }
@@ -285,11 +285,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
       state.signetNextLifeForceAt += undeathInterval;
     }
 
-    if (nextVampirism <= next + context.epsilon) {
+    if (nextVampirism <= next + EPSILON) {
       if (
-        nextVampirism > start + context.epsilon &&
-        (Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0) <= next + context.epsilon ||
-          passiveWhileRecharging)
+        nextVampirism > start + EPSILON &&
+        (Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0) <= next + EPSILON || passiveWhileRecharging)
       ) {
         const strike = balanceProfileEffect(vampirism, 'strike');
         const skill = context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
@@ -348,7 +347,7 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
 /** Advances state after a cast, applies completed-cast gains, and commits shroud entry cooldown state. */
 export function finalizeNecromancerCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
   advanceNecromancerState(context, context.effectiveEnd);
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  if (context.effectiveEnd < context.fullEnd - EPSILON) return;
   applySkillLifeForceGain(context, skill);
   const state = professionCoreState(context);
   if (state.pendingShroudEntryId === skill.id) {

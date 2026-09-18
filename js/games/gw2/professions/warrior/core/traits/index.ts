@@ -1,3 +1,4 @@
+import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Public Core Warrior trait dispatcher.
  *
@@ -317,10 +318,10 @@ export function advanceWarriorTraits(context: WarriorSchedulerContext, target: n
   const state = professionCoreState(context);
   const selected = selectedSkillNameSet(context.config.selectedSkills);
   if (selected.has('Signet of Rage')) {
-    while (state.signetOfRageNextAt > 0 && state.signetOfRageNextAt <= target + context.epsilon) {
+    while (state.signetOfRageNextAt > 0 && state.signetOfRageNextAt <= target + EPSILON) {
       const at = state.signetOfRageNextAt;
       const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);
-      if (cooldownReadyAt <= at + context.epsilon) gainWarriorAdrenaline(context, 2);
+      if (cooldownReadyAt <= at + EPSILON) gainWarriorAdrenaline(context, 2);
       state.signetOfRageNextAt += 3;
     }
   }

@@ -60,7 +60,6 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
       }
     },
     activeWeaponSet: 1,
-    epsilon: 0.0001,
     queue: new StableEventQueue(),
     resolved: [],
     boons: new Map(),

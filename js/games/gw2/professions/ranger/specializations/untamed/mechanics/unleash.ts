@@ -1,6 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -34,7 +34,7 @@ export function untamedCastAvailability(context: RangerCastContext, skill: Range
     }
 
     // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
-    if (context.start >= state.ambushReadyUntil - context.epsilon) {
+    if (context.start >= state.ambushReadyUntil - EPSILON) {
       return deny(skill, 'ranger.ambush-unavailable', 'unleash to make an ambush available.');
     }
   }

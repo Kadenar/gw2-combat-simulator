@@ -1,6 +1,6 @@
+import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerWeaponSpellRecipient } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 
