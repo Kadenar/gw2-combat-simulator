@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/scheduler/skill-events.js';
 
 import type { SimulationActorType, SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { ConditionTick, Skill, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -85,7 +85,7 @@ export function createMesmerEventEmitters({
     const skill = skillForCondition(skillName, extra);
     const baseOwnership = ownership(extra.actorType, extra.summonKind ?? condition.summonKind);
     const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
-    const ticks = condition.ticks?.length
+    const ticks: readonly ConditionTick[] = condition.ticks?.length
       ? condition.ticks
       : Array.from({ length: Math.max(1, Math.trunc(Number(condition.applications ?? 1))) }, (_, index) => ({
           atMs: Number(condition.atMs || 0) + index * Number(condition.intervalMs || 0),
@@ -111,7 +111,9 @@ export function createMesmerEventEmitters({
         skillId: extra.skillId ?? skill.id,
         skillName,
         applicationIndex: index + 1,
-        totalApplications: ticks.length
+        totalApplications: ticks.length,
+        // Packet annotations override application defaults; explicit call annotations win last.
+        metadata: { ...condition.metadata, ...tick.metadata, ...extra.metadata }
       });
       return emitted ? [emitted] : [];
     });
@@ -142,7 +144,7 @@ export function createMesmerEventEmitters({
       'type',
       'weapon'
     ]);
-    const ticks = group.ticks?.length
+    const ticks: readonly StrikeTick[] = group.ticks?.length
       ? group.ticks
       : Array.from({ length: Math.max(1, Math.trunc(Number(group.hits ?? 1))) }, (_, index) => ({
           atMs: Number(group.atMs || 0) + index * Number(group.intervalMs || 0),
@@ -166,7 +168,8 @@ export function createMesmerEventEmitters({
         skillName: String(extra.skillName || skill.name),
         skillWeapon: skill.weapon || (slotSkill ? 'Utility' : activePrimaryWeapon()),
         canCrit: group.canCrit,
-        blade: Boolean(extra.blade ?? skill.blade),
+        // Keep the skill fallback while preserving false, zero, and unrelated packet annotations.
+        metadata: { blade: Boolean(skill.blade), ...group.metadata, ...tick.metadata, ...extra.metadata },
         ...(strength == null ? {} : { weaponStrength: strength })
       }).filter((event): event is SimulationEvent => Boolean(event))
     );

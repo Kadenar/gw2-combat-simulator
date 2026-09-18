@@ -110,7 +110,7 @@ test('recast ally venoms spend one charge per strike instead of overlapping proc
     selectedSkills: ['Spider Venom'],
     allies: { count: 1, strikesPerSecond: 1 }
   });
-  const procs = conditions(result, THIEF.SPIDER_VENOM).filter((event) => event.triggeredByAlly);
+  const procs = conditions(result, THIEF.SPIDER_VENOM).filter((event) => event.metadata?.triggeredByAlly);
   assert.equal(procs.length, 12);
   assert.deepEqual(
     procs.map((event) => event.at),

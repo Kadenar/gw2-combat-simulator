@@ -19,7 +19,7 @@ export function observeVirtuosoExpectedProcEvent(context: MesmerSchedulerContext
     candidate = { type: 'bleeding', stacks: event.stacks };
   } else if (event.type === 'damage' && runtime.traits.has(TRAIT.JAGGED_MIND)) {
     const skill = runtime.skillsById.get(Number(event.skillId));
-    if ((event.blade || skill?.blade) && event.noCrit !== true && event.canCrit !== false) {
+    if ((event.metadata?.blade || skill?.blade) && event.noCrit !== true && event.canCrit !== false) {
       candidate = {
         type: 'blade',
         eventOrder: Number(event.eventOrder)
@@ -32,7 +32,7 @@ export function observeVirtuosoExpectedProcEvent(context: MesmerSchedulerContext
     type: 'mesmer.virtuoso-expected-proc',
     at: Math.max(context.state.time, event.at),
     priority: -40,
-    ownerId: event.cloneId == null ? null : `mesmer.clone:${event.cloneId}`,
+    ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata?.cloneId}`,
     payload: candidate
   });
 }
@@ -67,7 +67,7 @@ export function handleVirtuosoExpectedProcTask(
   const canonicalEvent = context.eventByOrder(task.payload.eventOrder);
   if (!canonicalEvent) throw new TypeError('Virtuoso critical proc requires a scheduled event.');
   const event = { ...canonicalEvent };
-  if (!Object.hasOwn(event, 'blade')) event.blade = true;
+  if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
   // Jagged Mind applies fractional expected stacks directly in deterministic
   // mode, while stochastic mode consumes the canonical sampled critical fact.
   const application = advanceScheduledCriticalProc(context, event, {

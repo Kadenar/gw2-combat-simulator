@@ -958,7 +958,7 @@ describe('Band Together summon enhancement', () => {
             event.type === 'condition' &&
             event.skillName === "Razorclaw's Rage" &&
             event.stacks === 1 &&
-            !event.triggeredByAlly
+            !event.metadata?.triggeredByAlly
         )
         .map((event) => event.at),
       concurrent.events
@@ -1076,14 +1076,14 @@ test("Razorclaw models party procs with the Revenant's condition stats", () => {
   const personalPackets = result.resolvedEvents.filter(
     (event) =>
       event.skillName === "Razorclaw's Rage" &&
-      !event.triggeredByAlly &&
+      !event.metadata?.triggeredByAlly &&
       (event.type === 'damage' || event.type === 'condition')
   );
 
   assert.ok(personalPackets.length > 0);
   assert.ok(personalPackets.every((event) => event.actorType === 'player'));
   const allyBleeds = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === "Razorclaw's Rage" && event.triggeredByAlly
+    (event) => event.type === 'condition' && event.skillName === "Razorclaw's Rage" && event.metadata?.triggeredByAlly
   );
 
   assert.equal(allyBleeds.length, 16);

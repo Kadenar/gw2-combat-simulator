@@ -8,6 +8,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 
 import type {
+  ConditionEventFields,
   EffectAudience,
   EffectMetadata,
   SimulationActorType,
@@ -62,40 +63,7 @@ export interface EmitSkillDamageOptions extends SkillEventOwnership, SkillEventM
   readonly canCrit?: boolean | null;
 }
 
-export interface EmitSkillConditionOptions extends SkillEventOwnership, SkillEventMetadata {
-  readonly at: number;
-  readonly condition: string;
-  readonly stacks: number;
-  readonly duration: number;
-  /** Transferred conditions retain their remaining lifetime without applying duration modifiers again. */
-  readonly fixedDuration?: boolean;
-  readonly transferredCondition?: boolean;
-  readonly transferredFromSkillId?: SkillId;
-  readonly nonDamaging?: boolean;
-  readonly offTarget?: boolean;
-  readonly persistsAfterInterrupt?: boolean;
-  readonly applicationIndex?: number;
-  readonly totalApplications?: number;
-  readonly icon?: string;
-  readonly damageBreakdownName?: string;
-  readonly sourceSkill?: string;
-  readonly skillWeapon?: string;
-  readonly weaponStrength?: number;
-  readonly summonOwner?: string;
-  readonly summonInheritsAttributes?: boolean;
-  readonly summonIgnoresBoons?: boolean;
-  readonly summonUsesEquipmentModifiers?: boolean;
-  readonly independentConditionOwner?: boolean;
-  readonly elementalOwnedCondition?: boolean;
-  readonly crushingAbyssStacks?: number;
-  readonly triggeredByAlly?: number;
-  readonly venomProcEffectIndex?: number;
-  readonly cloneId?: number;
-  readonly blade?: boolean;
-  readonly shatter?: boolean;
-  readonly shatterTraitEligible?: boolean;
-  readonly instrument?: string;
-}
+export interface EmitSkillConditionOptions extends SkillEventOwnership, SkillEventMetadata, ConditionEventFields {}
 
 export interface EmitSkillBuffOptions extends SkillEventOwnership, SkillEventMetadata, UnvalidatedFields {
   readonly at: number;

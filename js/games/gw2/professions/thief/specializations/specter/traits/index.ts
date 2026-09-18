@@ -197,7 +197,7 @@ export function handleDarkSentry(
         condition: String(torment?.condition || 'Torment'),
         stacks: Number(torment?.stacks ?? 1),
         duration: Number(torment?.duration ?? 2),
-        triggeredByAlly: allyIndex
+        metadata: { triggeredByAlly: allyIndex }
       });
     }
   }

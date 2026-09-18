@@ -71,7 +71,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
     when: (context) =>
       hasTrait(context, TRAIT.TIME_CATCHES_UP) &&
-      Boolean(context.event?.shatterTraitEligible) &&
+      Boolean(context.event?.metadata?.shatterTraitEligible) &&
       ['Chilled', 'Cripple', 'Immobilized', 'Slow'].some((condition) => targetConditionActive(context, condition))
   },
   {

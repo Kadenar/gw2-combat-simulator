@@ -21,6 +21,32 @@ import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { createAntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { handleThiefState } from '#gw2/professions/thief/family-state.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
+
+test('allied Leeching Venoms triggers only for the first packet of an allied venom proc', () => {
+  // Ally zero and later condition packets cannot duplicate the venom's life-steal reaction.
+  for (const [skillId, triggeredByAlly, venomProcEffectIndex, eligible] of [
+    [ID.SPIDER_VENOM, 1, 0, true],
+    [ID.SKALE_VENOM, 1, 1, false],
+    [ID.SPIDER_VENOM, 0, 0, false],
+    [ID.SPIDER_VENOM, undefined, 0, false],
+    [ID.CALTROPS, 1, 0, false]
+  ]) {
+    const queued = [];
+    applyAlliedLeechingVenoms(
+      {
+        config: { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
+        queue: { enqueue: (event) => queued.push(event) }
+      },
+      {
+        at: 1,
+        skillId,
+        metadata: { venomProcEffectIndex, ...(triggeredByAlly === undefined ? {} : { triggeredByAlly }) }
+      }
+    );
+    assert.equal(queued.length, Number(eligible));
+  }
+});
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
@@ -678,15 +704,15 @@ test('Spider Venom grants six independent charges to the player and allies', () 
   assert.equal(partyBuff.resolvedAudience.includesSummons, false);
 
   const allyPoisons = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.triggeredByAlly
+    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && event.metadata?.triggeredByAlly
   );
 
   assert.equal(allyPoisons.length, 24);
-  assert.deepEqual([...new Set(allyPoisons.map((event) => event.triggeredByAlly))], [1, 2, 3, 4]);
+  assert.deepEqual([...new Set(allyPoisons.map((event) => event.metadata?.triggeredByAlly))], [1, 2, 3, 4]);
   assert.ok(allyPoisons.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 3) < 1e-9));
 
   const personalPoisons = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && !event.triggeredByAlly
+    (event) => event.type === 'condition' && event.skillId === ID.SPIDER_VENOM && !event.metadata?.triggeredByAlly
   );
 
   assert.equal(personalPoisons.length, 1);
@@ -706,7 +732,8 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   const buff = (kind) => result.events.find((event) => event.type === 'buff' && event.kind === kind);
   const venomConditions = (skillId, allied) =>
     result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillId === skillId && Boolean(event.triggeredByAlly) === allied
+      (event) =>
+        event.type === 'condition' && event.skillId === skillId && Boolean(event.metadata?.triggeredByAlly) === allied
     );
   const personalSkale = venomConditions(ID.SKALE_VENOM, false);
   const personalDevourer = venomConditions(ID.DEVOURER_VENOM, false);
@@ -750,7 +777,7 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   );
   const personalProcs = (skillId) =>
     limited.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillId === skillId && !event.triggeredByAlly
+      (event) => event.type === 'condition' && event.skillId === skillId && !event.metadata?.triggeredByAlly
     );
 
   assert.deepEqual(limited.warnings, []);

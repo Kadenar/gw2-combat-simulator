@@ -54,6 +54,8 @@ test('Might increases condition damage as well as strike power', () => {
 });
 
 test('condition applications shorter than one second deal fractional damage', () => {
+  // Resolution retains nested annotations for condition reactions without flattening them into the application.
+  const metadata = Object.freeze({ cloneId: 0, blade: false, triggeredByAlly: 1, venomProcEffectIndex: 0 });
   const stream = buildScheduledEventStream({
     events: [
       {
@@ -61,6 +63,7 @@ test('condition applications shorter than one second deal fractional damage', ()
         actorType: 'player',
         at: 0,
         name: 'Short Bleed',
+        metadata,
         skillName: 'Short Bleed',
         condition: 'Bleeding',
         duration: 0.5,
@@ -103,6 +106,8 @@ test('condition applications shorter than one second deal fractional damage', ()
   });
 
   assert.ok(result.conditionDamage > 0);
+  assert.deepEqual(result.resolvedEvents[0].metadata, metadata);
+  for (const field of Object.keys(metadata)) assert.equal(Object.hasOwn(result.resolvedEvents[0], field), false);
   assert.equal(result.firstHitTime, 1);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);

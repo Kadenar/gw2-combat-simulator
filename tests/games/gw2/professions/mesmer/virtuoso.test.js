@@ -6,6 +6,7 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { observeMesmerEvent } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import {
   handleVirtuosoExpectedProcTask,
   observeVirtuosoExpectedProcEvent
@@ -14,6 +15,40 @@ import {
   handleDeadlyBladesCriticalTask,
   observeDeadlyBladesEvent
 } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+
+test('clone metadata keeps delayed critical tasks cancellable by their owner', () => {
+  // Destroying one clone cancels its reactions while leaving another clone's work queued.
+  for (const [observe, type, actorType] of [
+    [observeMesmerEvent, 'mesmer.expected-proc', 'summon'],
+    [observeVirtuosoExpectedProcEvent, 'mesmer.virtuoso-expected-proc', 'summon'],
+    [observeDeadlyBladesEvent, 'mesmer.deadly-blades-critical', 'player']
+  ]) {
+    const processed = [];
+    const tasks = createTaskQueue({ handlers: { [type]: (_context, task) => processed.push(task) } });
+    const context = {
+      state: { time: 0 },
+      tasks,
+      mesmerRuntime: {
+        traits: new Set([TRAIT.SHARPER_IMAGES, TRAIT.JAGGED_MIND, TRAIT.DEADLY_BLADES]),
+        skillsById: new Map()
+      }
+    };
+    for (const cloneId of [0, 1])
+      observe(context, {
+        type: 'damage',
+        at: 1,
+        eventOrder: cloneId + 1,
+        actorType,
+        summonKind: 'clone',
+        coefficient: 1,
+        metadata: { cloneId, blade: true }
+      });
+    tasks.cancelOwner('mesmer.clone:0');
+    tasks.drainThrough(1, context);
+    assert.equal(processed.length, 1);
+    assert.equal(processed[0].ownerId, 'mesmer.clone:1');
+  }
+});
 
 test('deferred Virtuoso procs use replacement facts and preserve skill-derived blade metadata', () => {
   // Both reactions read the current hit after queueing; an explicit replacement flag wins over the blade fallback.
@@ -76,7 +111,7 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
     observeDeadlyBladesEvent(context, original);
     current = Object.freeze({
       ...original,
-      ...(blade === undefined ? {} : { blade }),
+      ...(blade === undefined ? {} : { metadata: { blade } }),
       didCrit,
       name: 'Replaced',
       skillName: 'Replaced'
@@ -85,7 +120,7 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
     assert.equal(observed.length, 2);
 
     for (const event of observed) {
-      assert.equal(event.blade, blade ?? true);
+      assert.equal(event.metadata?.blade, blade ?? true);
       assert.equal(event.didCrit, didCrit);
       assert.equal(event.name, 'Replaced');
     }
@@ -98,7 +133,7 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
       assert.equal(event.at, 1);
     }
 
-    assert.equal(Object.hasOwn(current, 'blade'), blade !== undefined);
+    assert.equal(Object.hasOwn(current.metadata ?? {}, 'blade'), blade !== undefined);
     assert.equal(original.didCrit, false);
   }
 });
@@ -262,7 +297,7 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
 
     assert.ok(hitTimes.length > 0, skillName);
     assert.ok(
-      hits.every((event) => event.shatterTraitEligible === true),
+      hits.every((event) => event.metadata?.shatterTraitEligible === true),
       skillName
     );
     assert.deepEqual(
@@ -293,7 +328,7 @@ test('Mental Anguish improves every damaging Virtuoso bladesong hit', () => {
 
     assert.equal(boosted.length, baseline.length, skillName);
     assert.ok(
-      boosted.every((event) => event.shatterTraitEligible === true),
+      boosted.every((event) => event.metadata?.shatterTraitEligible === true),
       skillName
     );
     boosted.forEach((event, index) => assertFlooredDamageMultiplier(event.damage, baseline[index].damage, 1.25));

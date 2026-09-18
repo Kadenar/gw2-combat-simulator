@@ -60,7 +60,10 @@ function queueNightmareWeapon(
     noCrit: true,
     damageKind: 'life-steal',
     triggeredBy: event.skillName,
-    triggeredByAlly: event.triggeredByAlly
+    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+    ...(event.metadata?.triggeredByAlly == null
+      ? {}
+      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
   });
   context.queue.enqueue({
     type: 'condition',
@@ -74,7 +77,10 @@ function queueNightmareWeapon(
     sourceId: ID.NIGHTMARE_WEAPON,
     actorType: 'effect',
     triggeredBy: event.skillName,
-    triggeredByAlly: event.triggeredByAlly
+    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+    ...(event.metadata?.triggeredByAlly == null
+      ? {}
+      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
   });
   context.recordProc?.(
     'skill',
@@ -110,7 +116,10 @@ function queueSplinterWeapon(
     skillId: ID.SPLINTER_WEAPON,
     skillWeapon: 'Unequipped',
     triggeredBy: event.skillName,
-    triggeredByAlly: event.triggeredByAlly
+    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+    ...(event.metadata?.triggeredByAlly == null
+      ? {}
+      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
   });
   context.recordProc?.(
     'skill',

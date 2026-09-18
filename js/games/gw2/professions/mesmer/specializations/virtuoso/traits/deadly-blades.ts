@@ -37,14 +37,14 @@ export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event:
   if (event.type !== 'damage' || !isGw2PlayerActorEvent(event) || !runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
   const skill = runtime.skillsById.get(Number(event.skillId));
-  if (!event.blade && !skill?.blade) return;
+  if (!event.metadata?.blade && !skill?.blade) return;
   if (event.noCrit || event.canCrit === false) return;
 
   context.tasks.schedule({
     type: 'mesmer.deadly-blades-critical',
     at: Math.max(context.state.time, event.at),
     priority: -40,
-    ownerId: event.cloneId == null ? null : `mesmer.clone:${event.cloneId}`,
+    ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata?.cloneId}`,
     payload: { eventOrder: Number(event.eventOrder) }
   });
 }
@@ -58,7 +58,7 @@ export function handleDeadlyBladesCriticalTask(
   const canonicalEvent = context.eventByOrder(task.payload.eventOrder);
   if (!canonicalEvent) throw new TypeError('Deadly Blades critical proc requires a scheduled event.');
   const event = { ...canonicalEvent };
-  if (!Object.hasOwn(event, 'blade')) event.blade = true;
+  if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
   const deadlyBlades = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'condition');
   // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
   // Mind, but remains a separate trait-owned condition application.

@@ -8,7 +8,7 @@ import type { EffectMetadata, SimulationActorType, SimulationEventInput } from '
 import type { Skill, SkillEffect, SkillId, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 
 export interface EffectEventBase {
-  readonly cloneId?: number;
+  readonly metadata?: EffectMetadata;
   readonly triggeredBy?: string;
   readonly source: string;
   readonly sourceId: SkillId;
@@ -36,13 +36,14 @@ export interface MaterializeSkillEffectOptions {
   readonly statusDuration?: number;
 }
 
-/** Preserves authored annotations as one nested runtime object, with tick values overriding effect defaults. */
+/** Preserves authored annotations as one nested runtime object, with tick values overriding effect and base defaults. */
 function nestedEffectMetadata(
+  baseMetadata?: EffectMetadata,
   effectMetadata?: EffectMetadata,
   tickMetadata?: EffectMetadata
 ): { readonly metadata: EffectMetadata } | Record<string, never> {
-  if (!effectMetadata && !tickMetadata) return {};
-  return { metadata: { ...effectMetadata, ...tickMetadata } };
+  if (!baseMetadata && !effectMetadata && !tickMetadata) return {};
+  return { metadata: { ...baseMetadata, ...effectMetadata, ...tickMetadata } };
 }
 
 /** Copies the strike formula fields that the numeric resolver consumes from each packet. */
@@ -142,7 +143,7 @@ export function materializeSkillEffectApplications({
           ...(effect.coefficientModifiers ? { coefficientModifiers: effect.coefficientModifiers } : {}),
           ...strikeEventFields(effect),
           ...(tick ? strikeEventFields(tick) : {}),
-          ...nestedEffectMetadata(effect.metadata, tick?.metadata),
+          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),
           ...comboMetadata,
           ...comboFieldMetadata,
           ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
@@ -176,7 +177,7 @@ export function materializeSkillEffectApplications({
           ...(effect.projectile != null ? { projectile: effect.projectile } : {}),
           ...(tick?.projectile != null ? { projectile: tick.projectile } : {}),
           ...(effect.target != null ? { target: effect.target } : {}),
-          ...nestedEffectMetadata(effect.metadata, tick?.metadata),
+          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),
           ...comboMetadata,
           ...comboFieldMetadata,
           ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
@@ -199,7 +200,7 @@ export function materializeSkillEffectApplications({
           ...(effect.type === 'blind' && effect.duration != null ? { duration: Number(effect.duration) } : {}),
           applicationIndex,
           totalApplications: count,
-          ...nestedEffectMetadata(effect.metadata),
+          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }
@@ -223,7 +224,7 @@ export function materializeSkillEffectApplications({
           duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
           ...(count > 1 ? { applicationIndex, totalApplications: count } : {}),
           ...(effect.audience ? { audience: effect.audience } : {}),
-          ...nestedEffectMetadata(effect.metadata),
+          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }
@@ -243,7 +244,7 @@ export function materializeSkillEffectApplications({
           type: effect.eventType,
           applicationIndex,
           totalApplications: count,
-          ...nestedEffectMetadata(effect.metadata),
+          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),
           ...comboMetadata,
           ...comboFieldMetadata
         }

@@ -192,6 +192,14 @@ export interface ResolvedEffectAudience {
 
 /** Closed vocabulary of subsystem-owned annotations preserved as one nested object. */
 export interface EffectMetadata {
+  // Combat annotations stay nested so profession reactions do not expand emitter controls.
+  readonly cloneId?: number;
+  readonly blade?: boolean;
+  readonly shatter?: boolean;
+  readonly shatterTraitEligible?: boolean;
+  readonly instrument?: string;
+  readonly triggeredByAlly?: number;
+  readonly venomProcEffectIndex?: number;
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
   readonly procCount?: number;
   readonly activeSpirits?: number;
@@ -293,11 +301,34 @@ export type DamageEvent = SimulationEventBase<'damage'> &
     readonly didCrit?: boolean;
   };
 
-export interface ConditionEvent extends SimulationEventBase<'condition'> {
+// Share the closed condition payload so emission and resolution agree without accepting arbitrary option names.
+export interface ConditionEventFields {
+  readonly at: number;
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
+  /** Transferred conditions retain their remaining lifetime without applying duration modifiers again. */
+  readonly fixedDuration?: boolean;
+  readonly transferredCondition?: boolean;
+  readonly transferredFromSkillId?: SkillId;
+  readonly nonDamaging?: boolean;
+  readonly offTarget?: boolean;
+  readonly persistsAfterInterrupt?: boolean;
+  readonly applicationIndex?: number;
+  readonly totalApplications?: number;
+  readonly icon?: string;
+  readonly damageBreakdownName?: string;
+  readonly sourceSkill?: string;
+  readonly skillWeapon?: string;
+  readonly weaponStrength?: number;
+  readonly summonOwner?: string;
+  readonly summonInheritsAttributes?: boolean;
+  readonly summonIgnoresBoons?: boolean;
+  readonly summonUsesEquipmentModifiers?: boolean;
+  readonly independentConditionOwner?: boolean;
 }
+
+export type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFields;
 
 /** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
 export interface BuffEvent extends SimulationEventBase<'buff'> {

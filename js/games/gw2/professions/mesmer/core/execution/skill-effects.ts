@@ -83,7 +83,7 @@ export function createSkillSpecialEffectController({
           weaponStrength: MESMER_CORE_CLONE_ATTACKS.Axe.weaponStrength
         },
         {
-          cloneId: clone.id,
+          metadata: { cloneId: clone.id },
           source: 'Clone',
           actorType: 'summon',
           summonKind: 'clone',
@@ -96,7 +96,7 @@ export function createSkillSpecialEffectController({
         { name: 'Confusion', duration: 6, stacks: 1 },
         'Clone',
         `${skill.name} — Clone`,
-        { cloneId: clone.id, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
+        { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
       );
     }
   };

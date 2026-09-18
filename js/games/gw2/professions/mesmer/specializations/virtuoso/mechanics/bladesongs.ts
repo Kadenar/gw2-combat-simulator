@@ -32,7 +32,7 @@ export function resolveBladesong(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true, shatterTraitEligible: true, blade: true }
+      { metadata: { shatter: true, shatterTraitEligible: true, blade: true } }
     );
 
   if (shatter.kind === 'blade-power') {
@@ -80,7 +80,7 @@ export function resolveBladesong(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { shatter: true, shatterTraitEligible: true, blade: true }
+      { metadata: { shatter: true, shatterTraitEligible: true, blade: true } }
     );
     scheduleDeclarativeEffects(context, skill, context.reservationId, castStart, damageAt, damageAt);
     return [{ at: damageAt, count: 1 }];

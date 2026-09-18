@@ -3,6 +3,43 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 
+test('materialization retains base clone identity while effect and tick metadata override defaults', () => {
+  // Clone-authored control packets and condition/strike ticks share the same nested annotation path.
+  for (const type of ['strike', 'condition', 'control']) {
+    const effect = {
+      type,
+      coefficient: 1,
+      condition: 'Bleeding',
+      stacks: 1,
+      duration: 2,
+      metadata: { shatter: true, blade: true },
+      ...(type === 'control'
+        ? {}
+        : {
+            ticks: [
+              {
+                atMs: 0,
+                coefficient: 1,
+                condition: 'Bleeding',
+                stacks: 1,
+                duration: 2,
+                metadata: { blade: false }
+              }
+            ]
+          })
+    };
+    const [application] = materializeSkillEffectApplications({
+      skill: { id: 1, name: 'Fixture' },
+      effect,
+      start: 0,
+      fullEnd: 1,
+      baseEvent: { source: 'Clone', sourceId: 1, actorType: 'summon', metadata: { cloneId: 0, shatter: false } }
+    });
+    assert.deepEqual(application.event.metadata, { cloneId: 0, shatter: true, blade: type === 'control' });
+    assert.equal(Object.hasOwn(application.event, 'cloneId'), false);
+  }
+});
+
 // Effect validation and materialization preserve explicit packet timing, coefficients, and summon fields.
 test('canonical strike timelines reject invalid or ambiguous hits', () => {
   const skillWithTicks = (ticks) => ({

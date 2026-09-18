@@ -839,7 +839,6 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   assert.equal(immobilize.condition, 'Immobilized');
   assert.equal(immobilize.duration, 1);
   assert.equal(immobilize.actorType, 'player');
-  assert.equal(immobilize.elementalOwnedCondition, true);
   assert.equal(protection.duration, 3);
   assert.equal(protection.audience.recipients, 'party');
   assert.equal(protection.audience.maximumRecipients, 5);

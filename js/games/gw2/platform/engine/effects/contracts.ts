@@ -4,6 +4,13 @@ import type { EffectAudience, EffectMetadata } from '#gw2/platform/engine/events
 const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);
 const AUDIENCE_FIELDS = new Set(['recipients', 'affectsSelf', 'maximumRecipients', 'eligibleCompanionIds']);
 const METADATA_VALUE_KINDS = Object.freeze({
+  cloneId: 'number',
+  blade: 'boolean',
+  shatter: 'boolean',
+  shatterTraitEligible: 'boolean',
+  instrument: 'string',
+  triggeredByAlly: 'number',
+  venomProcEffectIndex: 'number',
   procCount: 'number',
   activeSpirits: 'number',
   affinityOnHit: 'boolean',

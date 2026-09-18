@@ -5,11 +5,27 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { handleExpectedProcTask } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
+import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
+
+test('Mental Anguish uses explicit nested shatter eligibility', () => {
+  // Shatter identity alone must not grant a modifier reserved for eligible packets.
+  const rule = mesmerCoreModifierRules.find(({ id }) => id === 'mesmer.mental-anguish');
+  for (const eligible of [undefined, false, true]) {
+    const metadata = { shatter: true, ...(eligible === undefined ? {} : { shatterTraitEligible: eligible }) };
+    assert.equal(
+      rule.when({ config: { selectedTraitIds: [TRAIT.MENTAL_ANGUISH] }, event: { metadata } }),
+      eligible === true
+    );
+  }
+});
 
 test('delayed Mesmer hit procs retain annotations and prefer canonical critical facts', () => {
   // Canonical replacement supplies sampled facts without dropping annotations on the original scheduled hit.
-  const event = Object.freeze({ type: 'damage', at: 2, eventOrder: 7, blade: true, didCrit: false });
-  for (const canonical of [undefined, { type: 'damage', at: 2, eventOrder: 7, didCrit: true }]) {
+  const event = Object.freeze({ type: 'damage', at: 2, eventOrder: 7, metadata: { blade: true }, didCrit: false });
+  for (const canonical of [
+    undefined,
+    { type: 'damage', at: 2, eventOrder: 7, didCrit: true, metadata: { cloneId: 0 } }
+  ]) {
     const processed = [];
     const context = {
       mesmerRuntime: { expected: { process: (candidate) => processed.push(candidate) } },
@@ -22,7 +38,8 @@ test('delayed Mesmer hit procs retain annotations and prefer canonical critical 
     assert.equal(processed.length, 1);
     assert.equal(processed[0].cloneId, 1);
     assert.equal(processed[0].at, 2);
-    assert.equal(processed[0].event.blade, true);
+    assert.equal(processed[0].event.metadata?.blade, true);
+    assert.equal(processed[0].event.metadata?.cloneId, canonical ? 0 : undefined);
     assert.equal(processed[0].event.didCrit, Boolean(canonical));
     assert.equal(event.didCrit, false);
   }

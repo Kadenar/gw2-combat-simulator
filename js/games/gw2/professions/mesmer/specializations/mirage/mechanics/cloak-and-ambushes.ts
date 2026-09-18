@@ -175,7 +175,7 @@ export function createMirageActionController({
             skillName: ambush.name,
             actorType: 'summon',
             summonKind: 'clone',
-            cloneId: clone.id
+            metadata: { cloneId: clone.id }
           }
         }))
           addEvent({ ...application.event, summonKind: 'clone' });
@@ -199,7 +199,7 @@ export function createMirageActionController({
           source: 'Clone'
         },
         {
-          cloneId: clone.id,
+          metadata: { cloneId: clone.id },
           weaponStrength: attack.weaponStrength,
           source: 'Clone',
           actorType: 'summon',
@@ -209,7 +209,7 @@ export function createMirageActionController({
       );
       for (const condition of ambush.clone.conditions || []) {
         addCondition(`${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
-          cloneId: clone.id,
+          metadata: { cloneId: clone.id },
           skillId: ambush.id,
           actorType: 'summon',
           summonKind: 'clone'

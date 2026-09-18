@@ -232,7 +232,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
       context.config?.target?.activatingSkills ? parameters.activatingFactor : parameters.idleFactor,
     order: 100,
     // Repeat packets are still shatter damage, but the skill contract limits shatter traits to the first strike.
-    when: (context) => Boolean(context.event?.shatterTraitEligible) && hasTrait(context, TRAIT.MENTAL_ANGUISH)
+    when: (context) => Boolean(context.event?.metadata?.shatterTraitEligible) && hasTrait(context, TRAIT.MENTAL_ANGUISH)
   },
   {
     id: 'mesmer.egotism',

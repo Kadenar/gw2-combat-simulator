@@ -144,7 +144,7 @@ export function triggerMaimTheDisillusioned(context: MesmerMaimContext, resoluti
       { ...maim, stacks: maim.stacks * hit.count },
       'Player',
       `${resolution.skill.name} — Maim the Disillusioned`,
-      { shatter: true, shatterTraitEligible: true }
+      { metadata: { shatter: true, shatterTraitEligible: true } }
     );
   }
 

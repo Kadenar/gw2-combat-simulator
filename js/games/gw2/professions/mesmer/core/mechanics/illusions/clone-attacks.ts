@@ -74,7 +74,7 @@ export function createCloneAttackScheduler({
         weaponStrength: attack.weaponStrength
       },
       {
-        cloneId: clone.id,
+        metadata: { cloneId: clone.id },
         source: 'Clone',
         actorType: 'summon',
         summonKind: 'clone',
@@ -83,7 +83,7 @@ export function createCloneAttackScheduler({
     );
     for (const condition of step.conditions || []) {
       addCondition(skillName, impactAt, condition, 'Clone', '', {
-        cloneId: clone.id,
+        metadata: { cloneId: clone.id },
         skillId: step.id,
         actorType: 'summon',
         summonKind: 'clone',

@@ -258,7 +258,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
         stacks: Number(burn?.stacks ?? 1),
         duration: Number(burn?.duration ?? 2),
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
-        triggeredByAlly: proc.allyIndex
+        metadata: { triggeredByAlly: proc.allyIndex }
       });
     }
 

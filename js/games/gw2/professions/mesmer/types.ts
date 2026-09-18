@@ -336,6 +336,8 @@ export type MesmerAddEvent = (
   event: MesmerEventExtra & {
     readonly type: string;
     readonly at: number;
+    /** Instrument lifecycle events retain their payload; combat annotations belong in metadata. */
+    readonly instrument?: string;
   }
 ) => SimulationEvent | null;
 

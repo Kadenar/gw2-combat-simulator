@@ -180,8 +180,6 @@ export type ThiefSimulationEvent = SimulationEvent & {
   readonly deadeyeMaliceSnapshot?: number;
   readonly reason?: string;
   readonly state?: Partial<ThiefState>;
-  readonly triggeredByAlly?: number;
-  readonly venomProcEffectIndex?: number;
 };
 
 export type ThiefResolverEvent = Gw2ResolverEvent & {
@@ -190,8 +188,6 @@ export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly deadeyeMaliceSnapshot?: number;
   readonly lifeSiphon?: boolean;
   readonly state?: Partial<ThiefState>;
-  readonly triggeredByAlly?: number;
-  readonly venomProcEffectIndex?: number;
 };
 
 export type ThiefResolverContext = Gw2ResolverRuntime & {

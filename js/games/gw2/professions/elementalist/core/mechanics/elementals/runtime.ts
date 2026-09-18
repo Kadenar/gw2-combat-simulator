@@ -440,8 +440,7 @@ function emitStrike(
   });
 }
 
-// Elemental-applied conditions are credited to the player (actorType 'player',
-// flagged elementalOwnedCondition) so they benefit from player condition attributes.
+// Elemental-applied conditions use player ownership so they benefit from player condition attributes.
 function emitPlayerOwnedCondition(
   context: ElementalistSchedulerContext,
   task: ScheduledTask<ElementalTaskPayload>,
@@ -461,8 +460,7 @@ function emitPlayerOwnedCondition(
     name: `${skillName} — ${condition}`,
     condition,
     stacks,
-    duration,
-    elementalOwnedCondition: true
+    duration
   });
 }
 

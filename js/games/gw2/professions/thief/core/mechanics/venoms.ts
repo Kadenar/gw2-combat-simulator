@@ -120,8 +120,7 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
         stacks: Number(effect.stacks ?? 1),
         duration: Number(effect.duration || 0),
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
-        triggeredByAlly: proc.allyIndex,
-        venomProcEffectIndex: effectIndex
+        metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
       });
     }
   }
@@ -157,7 +156,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
         duration: Number(effect.duration || 0),
         activationId: event.activationId || `${event.skillId}:${event.at}`,
         triggeredBy: event.skillName,
-        venomProcEffectIndex: effectIndex
+        metadata: { venomProcEffectIndex: effectIndex }
       });
     }
   }

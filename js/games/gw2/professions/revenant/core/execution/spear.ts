@@ -58,8 +58,7 @@ function emitAbyssalRazePackets(
     coefficient,
     hits: 1,
     hitIndex: 1,
-    totalHits: 1,
-    crushingAbyssStacks
+    totalHits: 1
   });
   emitSkillCondition(context, {
     ...common,
@@ -74,8 +73,7 @@ function emitAbyssalRazePackets(
       name: 'Abyssal Raze — Crushing Abyss Torment',
       condition: 'Torment',
       stacks: Number(crushingTormentTick?.stacks || 0) * crushingAbyssStacks,
-      duration: Number(crushingTormentTick?.duration || 0),
-      crushingAbyssStacks
+      duration: Number(crushingTormentTick?.duration || 0)
     });
   }
 }

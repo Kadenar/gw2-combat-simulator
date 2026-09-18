@@ -342,7 +342,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
         condition: String(burn?.condition || 'Burning'),
         stacks: Number(burn?.stacks ?? 1),
         duration: Number(burn?.duration ?? 2),
-        triggeredByAlly: proc.allyIndex
+        metadata: { triggeredByAlly: proc.allyIndex }
       });
     }
   }

@@ -92,10 +92,12 @@ test('Ashes of the Just grants party charges using Firebrand condition stats', (
   const ashesBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'ashes-of-the-just');
 
   const allyBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && event.triggeredByAlly
+    (event) =>
+      event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && event.metadata?.triggeredByAlly
   );
   const personalBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.triggeredByAlly
+    (event) =>
+      event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.metadata?.triggeredByAlly
   );
 
   assert.equal(ashesBuff.resolvedAudience.recipientCount, 5);
@@ -236,7 +238,8 @@ test('later tome pages do not restore consumed Ashes charges', () => {
     }
   });
   const personalBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.triggeredByAlly
+    (event) =>
+      event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.metadata?.triggeredByAlly
   );
 
   assert.equal(personalBurns.length, 2);
@@ -759,7 +762,8 @@ test('Feel My Wrath splits party and self quickness and triggers Quickfire', () 
   );
 
   assert.equal(
-    result.resolvedEvents.filter((event) => event.skillName === 'Quickfire' && event.triggeredByAlly === 1).length,
+    result.resolvedEvents.filter((event) => event.skillName === 'Quickfire' && event.metadata?.triggeredByAlly === 1)
+      .length,
     2
   );
 });
@@ -781,7 +785,7 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
 
   assert.equal(result.procSteps.filter((step) => step.skill === 'Quickfire').length, 1);
   assert.equal(quickfireBurns.length, 1);
-  assert.equal(quickfireBurns[0].triggeredByAlly, undefined);
+  assert.equal(quickfireBurns[0].metadata?.triggeredByAlly, undefined);
 });
 
 test('dormant Tome equips preserve recharge and do not trigger virtue traits', () => {

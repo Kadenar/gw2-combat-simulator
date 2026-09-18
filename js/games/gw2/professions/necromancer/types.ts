@@ -146,7 +146,6 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly playerStacks?: number;
   readonly allyStacks?: number;
   readonly spell?: string;
-  readonly triggeredByAlly?: number;
   readonly procIndex?: number;
   readonly alliesReceiveFullBenefit?: boolean;
   readonly controlKind?: string;

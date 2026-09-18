@@ -40,7 +40,7 @@ export function scheduleMesmerTrackedHits(
             : {})
         },
         {
-          blade: skill.blade,
+          metadata: { blade: Boolean(skill.blade) },
           name: tracking.name,
           skillName: tracking.name,
           parentSkillName: skill.name,

@@ -99,7 +99,6 @@ export type Gw2EventDraft = {
   readonly totalHits?: number;
   readonly skillWeapon?: string;
   readonly canCrit?: boolean;
-  readonly venomProcEffectIndex?: number;
   readonly summonOwner?: SimulationEvent['summonOwner'];
   readonly independentConditionOwner?: boolean;
   readonly metadata?: SimulationEvent['metadata'];

@@ -65,6 +65,54 @@ function createFixture() {
   return { events, emitters };
 }
 
+test('Mesmer wrappers merge application, tick, and explicit metadata without losing false or zero', () => {
+  // Both procedural paths use packet overrides and keep unrelated annotations through validation.
+  const { emitters } = createFixture();
+  const metadata = { cloneId: 1, blade: true, shatter: true };
+  const tickMetadata = { cloneId: 2, blade: false, shatterTraitEligible: true };
+  const extra = { metadata: { cloneId: 0, shatterTraitEligible: false } };
+  const [condition] = emitters.addCondition(
+    'Fixture',
+    1,
+    {
+      name: 'Bleeding',
+      duration: 2,
+      metadata,
+      ticks: [{ atMs: 250, condition: 'Bleeding', duration: 2, stacks: 1, metadata: tickMetadata }]
+    },
+    'Clone',
+    '',
+    extra
+  );
+  const [damage] = emitters.addDamage(
+    { id: 1, name: 'Fixture', blade: true },
+    1,
+    {
+      metadata,
+      ticks: [{ atMs: 250, coefficient: 1, metadata: tickMetadata }]
+    },
+    extra
+  );
+  for (const event of [condition, damage]) {
+    assert.equal(event.at, 1.25);
+    assert.deepEqual(event.metadata, { cloneId: 0, blade: false, shatter: true, shatterTraitEligible: false });
+    assert.ok(Object.isFrozen(event.metadata));
+    for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
+  }
+
+  const [untimed] = emitters.addCondition('Fixture', 0, { name: 'Bleeding', duration: 2, metadata });
+  assert.deepEqual(untimed.metadata, metadata);
+  assert.throws(
+    () =>
+      emitters.addCondition('Fixture', 0, {
+        name: 'Bleeding',
+        duration: 2,
+        metadata: { cloneId: 'invalid' }
+      }),
+    /cloneId must be a finite number/
+  );
+});
+
 test('Mesmer procedural emitters attach canonical skill and summon identity', () => {
   const { events, emitters } = createFixture();
 

@@ -99,7 +99,7 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.07,
     order: 100,
-    when: (context) => Boolean(context.event?.blade) && hasTrait(context, TRAIT.INFINITE_FORGE)
+    when: (context) => Boolean(context.event?.metadata?.blade) && hasTrait(context, TRAIT.INFINITE_FORGE)
   },
   {
     id: 'mesmer.mental-focus',

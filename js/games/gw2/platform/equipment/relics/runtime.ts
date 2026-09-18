@@ -282,7 +282,7 @@ function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2RelicRule
             skillName: name,
             name,
             triggeredBy: cast.skillName,
-            offTarget: cast.offTarget,
+            offTarget: Boolean(cast.offTarget),
             condition: 'Vulnerability',
             stacks: 8,
             duration: 8

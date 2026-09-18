@@ -29,7 +29,9 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
       );
       // Blade identity belongs to the Mesmer skill even when the shared scheduler owns its packets.
       const skill = context.catalog.skillsById.get(prepared.skillId ?? '');
-      return prepared.type === 'damage' && skill?.blade ? { ...prepared, blade: true } : prepared;
+      return prepared.type === 'damage' && skill?.blade
+        ? { ...prepared, metadata: { ...prepared.metadata, blade: true } }
+        : prepared;
     }
   },
   initialize: initializeMesmerScheduler,

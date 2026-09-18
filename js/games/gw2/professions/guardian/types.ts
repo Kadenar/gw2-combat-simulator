@@ -155,6 +155,9 @@ export type GuardianResolverContext = Gw2ResolverRuntime & {
 export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 
 export type GuardianResolverEvent = Gw2ResolverEvent & {
+  // Derived tether conditions retain the application identity of their custom pulse event.
+  readonly applicationIndex?: number;
+  readonly totalApplications?: number;
   readonly activeTome?: string;
   readonly ashesCharges?: number;
   readonly ashesBurnDuration?: number;

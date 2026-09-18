@@ -9,7 +9,7 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata, SimulationActorType } from '#gw2/platform/engine/events/events.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 
@@ -43,6 +43,7 @@ export type MesmerDamageGroup = Partial<MesmerStrikeEffect> & {
 };
 
 export interface MesmerConditionApplication {
+  readonly metadata?: EffectMetadata;
   readonly name: string;
   readonly duration: number;
   readonly stacks?: number;
@@ -57,13 +58,12 @@ export interface MesmerConditionApplication {
 
 /** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */
 export interface MesmerEventExtra {
-  readonly cloneId?: number;
+  readonly metadata?: EffectMetadata;
   readonly skillName?: string;
   readonly detail?: string;
   readonly procType?: string;
   readonly sourceSkill?: string;
   readonly icon?: string;
-  readonly blade?: boolean;
   readonly count?: number;
   readonly multiplier?: number;
   readonly amount?: number;
@@ -89,7 +89,6 @@ export interface MesmerEventExtra {
   readonly damageBreakdownName?: string;
   readonly controlKind?: string;
   readonly persistsAfterInterrupt?: boolean;
-  readonly instrument?: string;
   readonly expiresAt?: number;
 
   readonly name?: string;
@@ -99,8 +98,6 @@ export interface MesmerEventExtra {
   readonly skillId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly summonKind?: MesmerSummonKind;
-  readonly shatter?: boolean;
-  readonly shatterTraitEligible?: boolean;
 }
 
 export type MesmerSkillEffect =

@@ -152,7 +152,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
       type: 'hit',
       at: event.at,
       event,
-      cloneId: event.cloneId
+      cloneId: event.metadata?.cloneId
     };
   }
 
@@ -161,7 +161,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
     type: 'mesmer.expected-proc',
     at: Math.max(context.state.time, event.at),
     priority: -40,
-    ownerId: event.cloneId == null ? null : `mesmer.clone:${event.cloneId}`,
+    ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata?.cloneId}`,
     payload: candidate
   });
 }
@@ -218,7 +218,11 @@ export function handleExpectedProcTask(
   // The trigger materializer runs first and replaces the canonical event with
   // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
   // original candidate (such as a skill-derived `blade` flag).
-  const event = { ...payloadEvent, ...canonicalEvent };
+  const event = {
+    ...payloadEvent,
+    ...canonicalEvent,
+    metadata: { ...payloadEvent.metadata, ...canonicalEvent?.metadata }
+  };
   runtime.expected.process({ ...task.payload, event });
 }
 

@@ -317,14 +317,14 @@ test('Ritualist weapon spells scale with allied players', () => {
     },
     observationTail(5000)
   );
-  const allyProcs = party.resolvedEvents.filter((event) => event.type === 'damage' && event.triggeredByAlly);
+  const allyProcs = party.resolvedEvents.filter((event) => event.type === 'damage' && event.metadata?.triggeredByAlly);
   const applicationEvents = party.events.filter((event) => event.type === 'necromancer.weapon-spell');
 
   assert.equal(solo.totalDamage, 0);
   assert.ok(party.totalDamage > solo.totalDamage);
   assert.equal(allyProcs.filter((event) => event.name === 'Nightmare Weapon').length, 12);
   assert.equal(allyProcs.filter((event) => event.name === 'Splinter Weapon').length, 12);
-  assert.deepEqual([...new Set(allyProcs.map((event) => event.triggeredByAlly))], [1, 2, 3, 4]);
+  assert.deepEqual([...new Set(allyProcs.map((event) => event.metadata?.triggeredByAlly))], [1, 2, 3, 4]);
   assert.equal(
     applicationEvents.every(
       (event) =>
@@ -348,7 +348,7 @@ test('Ritualist weapon spells scale with allied players', () => {
 
   assert.equal(
     wieldersBoon.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.triggeredByAlly === 1
+      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.metadata?.triggeredByAlly === 1
     ).length,
     5
   );
@@ -393,7 +393,7 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   );
   assert.equal(
     result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.triggeredByAlly
+      (event) => event.type === 'damage' && event.name === 'Nightmare Weapon' && event.metadata?.triggeredByAlly
     ).length,
     6
   );

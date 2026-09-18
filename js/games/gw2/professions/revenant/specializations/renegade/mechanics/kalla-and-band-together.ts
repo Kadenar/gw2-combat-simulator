@@ -253,7 +253,7 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
       condition: String(bleed.condition || ''),
       stacks: Number(bleed.stacks || 0),
       duration: Number(bleed.duration || 0),
-      triggeredByAlly: alliedProc.allyIndex
+      metadata: { triggeredByAlly: alliedProc.allyIndex }
     });
   }
 }

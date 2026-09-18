@@ -78,7 +78,7 @@ export interface MesmerResourceController {
 
 export type MesmerExpectedProcCandidate = {
   readonly type: 'hit';
-  readonly cloneId?: SimulationEvent['cloneId'];
+  readonly cloneId?: number;
   readonly at: number;
   readonly event: SimulationEvent;
 };

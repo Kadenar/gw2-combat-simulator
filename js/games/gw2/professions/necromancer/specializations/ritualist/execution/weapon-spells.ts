@@ -74,7 +74,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
         skillName: skill.name,
         name: `${skill.name} - Ally ${proc.allyIndex} Trigger`,
         spell,
-        triggeredByAlly: proc.allyIndex,
+        metadata: { triggeredByAlly: proc.allyIndex },
         procIndex: proc.procIndex
       });
     }

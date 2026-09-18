@@ -283,6 +283,38 @@ test('procedural helpers reject unknown metadata', () => {
   );
 });
 
+test('condition metadata validates every migrated annotation and preserves explicit zero and false', () => {
+  // These fields use the existing normalization boundary, including its unknown-key and finite-number checks.
+  const { context } = captureContext();
+  const options = { at: 0, condition: 'Bleeding', stacks: 1, duration: 2 };
+  const metadata = {
+    cloneId: 0,
+    blade: false,
+    shatter: false,
+    shatterTraitEligible: false,
+    instrument: 'Flute',
+    triggeredByAlly: 0,
+    venomProcEffectIndex: 0
+  };
+  const event = emitSkillCondition(context, { ...options, metadata });
+  assert.deepEqual(event.metadata, metadata);
+  assert.ok(Object.isFrozen(event.metadata));
+  assert.notEqual(event.metadata, metadata);
+  for (const [field, value] of Object.entries(metadata)) {
+    assert.equal(Object.hasOwn(event, field), false);
+    assert.throws(
+      () =>
+        emitSkillCondition(context, {
+          ...options,
+          metadata: { [field]: typeof value === 'number' ? NaN : 1 }
+        }),
+      TypeError
+    );
+  }
+
+  assert.throws(() => emitSkillCondition(context, { ...options, metadata: { unknown: true } }), /unsupported field/);
+});
+
 test('event-record migration preserves finalized boon duration and canonical weapon identity', () => {
   const durationCalls = [];
   const { context, events } = captureContext((_context, _skill, _effect, duration) => {
@@ -351,7 +383,8 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
           at: 1.5,
           condition: 'Burning',
           stacks: 1,
-          duration: 1
+          duration: 1,
+          metadata: { cloneId: 0, blade: false }
         });
       }
     }
@@ -372,5 +405,6 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
     ]
   );
   assert.equal(result.events.at(-1).triggeredBy, 'Cause');
+  assert.deepEqual(result.events.at(-1).metadata, { cloneId: 0, blade: false });
   assert.ok(result.events.at(-1).causalOrder > result.events.at(-2).eventOrder);
 });

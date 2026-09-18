@@ -314,7 +314,11 @@ test('Split Second shatter traits affect only the first strike from each source'
       result.resolvedEvents
         .filter((event) => event.type === 'damage' && event.skillName === 'Split Second')
         .reduce((groups, event) => {
-          groups[event.at] ||= { at: event.at, damage: 0, traitEligible: Boolean(event.shatterTraitEligible) };
+          groups[event.at] ||= {
+            at: event.at,
+            damage: 0,
+            traitEligible: Boolean(event.metadata?.shatterTraitEligible)
+          };
           groups[event.at].damage += event.damage;
           return groups;
         }, {})
@@ -340,5 +344,5 @@ test('Split Second shatter traits affect only the first strike from each source'
   assert.equal(torment.length, 1);
   assert.equal(torment[0].at, baselinePackets[0].at);
   assert.equal(torment[0].stacks, 4);
-  assert.equal(torment[0].shatterTraitEligible, true);
+  assert.equal(torment[0].metadata?.shatterTraitEligible, true);
 });
