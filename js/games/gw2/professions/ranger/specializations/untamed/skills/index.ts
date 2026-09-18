@@ -3,11 +3,13 @@
  * Persistent Unleash state and transitions live under `mechanics/`.
  */
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
     castTimeMs: 0,
@@ -212,26 +214,26 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'strike',
-        sourceId: ID.EXPLODING_SPORE,
-        name: 'Exploding Spore',
-        ticks: [{ atMs: 1720, coefficient: 0.583 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        skillName: 'Exploding Spore',
-        parentSkillName: 'Relentless Whirl'
-      },
-      {
-        type: 'condition',
-        sourceId: ID.EXPLODING_SPORE,
-        name: 'Exploding Spore - Poisoned',
-        ticks: [{ atMs: 1720, condition: 'Poisoned', stacks: 2, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        skillName: 'Exploding Spore',
-        parentSkillName: 'Relentless Whirl'
-      },
+      ...impactEffects({ atMs: 1720, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          sourceId: ID.EXPLODING_SPORE,
+          name: 'Exploding Spore',
+          coefficient: 0.583,
+          skillName: 'Exploding Spore',
+          parentSkillName: 'Relentless Whirl'
+        },
+        {
+          type: 'condition',
+          sourceId: ID.EXPLODING_SPORE,
+          name: 'Exploding Spore - Poisoned',
+          condition: 'Poisoned',
+          stacks: 2,
+          duration: 5,
+          skillName: 'Exploding Spore',
+          parentSkillName: 'Relentless Whirl'
+        }
+      ]),
       {
         type: 'strike',
         sourceId: TRAIT.NATURAL_FORTITUDE,
@@ -249,39 +251,36 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.DEFT_STRIKE]: {
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'daze'
-      },
-      {
-        type: 'strike',
-        sourceId: ID.EXPLODING_SPORE,
-        name: 'Exploding Spore',
-        ticks: [{ atMs: 2160, coefficient: 0.583 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        skillName: 'Exploding Spore',
-        parentSkillName: 'Deft Strike'
-      },
-      {
-        type: 'condition',
-        sourceId: ID.EXPLODING_SPORE,
-        name: 'Exploding Spore - Poisoned',
-        ticks: [{ atMs: 2160, condition: 'Poisoned', stacks: 2, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        skillName: 'Exploding Spore',
-        parentSkillName: 'Deft Strike'
-      },
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 3
+        },
+        {
+          type: 'control',
+          controlKind: 'daze'
+        }
+      ]),
+      ...impactEffects({ atMs: 2160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          sourceId: ID.EXPLODING_SPORE,
+          name: 'Exploding Spore',
+          coefficient: 0.583,
+          skillName: 'Exploding Spore',
+          parentSkillName: 'Deft Strike'
+        },
+        {
+          type: 'condition',
+          sourceId: ID.EXPLODING_SPORE,
+          name: 'Exploding Spore - Poisoned',
+          condition: 'Poisoned',
+          stacks: 2,
+          duration: 5,
+          skillName: 'Exploding Spore',
+          parentSkillName: 'Deft Strike'
+        }
+      ]),
       {
         type: 'strike',
         sourceId: TRAIT.NATURAL_FORTITUDE,

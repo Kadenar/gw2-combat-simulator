@@ -1,17 +1,17 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptCommitMs: 320,
-    effects: [
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 0.9 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 0.9,
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -25,25 +25,19 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'boon',
         boon: 'might',
         duration: 5,
-        stacks: 1,
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 1
       }
-    ],
+    ]),
     castTimeMs: 600,
     missileHits: 1
   },
   [ID.SPLITBLADE]: {
     interruptCommitMs: 480,
-    effects: [
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2.5,
         hits: 5,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -55,44 +49,35 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Bleeding',
-            stacks: 5,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 5,
+        duration: 6
       }
-    ],
+    ]),
     // Match the observed median Quickness animation, rounded to the 40 ms action tick.
     castTimeMs: 560,
     missileHits: 5
   },
   [ID.WINTERS_BITE]: {
     interruptCommitMs: 360,
-    effects: [
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.8
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 3, duration: 12 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 12
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Chilled', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 4
       }
-    ],
+    ]),
     castTimeMs: 520,
     // Custom: Arms the Winter's Bite follow-up state; see `core/execution/index.ts`.
     handlerId: 'ranger.winters-bite',

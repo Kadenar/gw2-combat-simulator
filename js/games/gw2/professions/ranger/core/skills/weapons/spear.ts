@@ -1,7 +1,9 @@
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
     flipSkillId: null,
@@ -21,26 +23,20 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.FALCONS_STOOP]: {
     interruptMode: 'per-packet',
-    effects: [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 1.95,
         hits: 1,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         comboFinishers: [{ ownerId: 'ranger', finisherType: 'Projectile', ambiguousFieldSelection: 'oldest' }]
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 4,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        duration: 4
       }
-    ],
+    ]),
     castTimeMs: 600
   },
   [ID.PANTHERS_PROWL]: {
@@ -81,25 +77,19 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   [ID.CHEETAHS_STRIKE]: {
     flipSkillId: null,
     interruptMode: 'per-packet',
-    effects: [
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 1.8,
-        hits: 1,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        hits: 1
       },
       {
         type: 'boon',
         boon: 'swiftness',
         duration: 3,
-        stacks: 1,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        stacks: 1
       }
-    ],
+    ]),
     castTimeMs: 760
   },
   [ID.MONGOOSES_FRENZY]: {
@@ -122,25 +112,19 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFra
   },
   [ID.WYVERNS_LASH]: {
     interruptMode: 'per-packet',
-    effects: [
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 1.4,
-        hits: 1,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        hits: 1
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 2,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        duration: 2
       }
-    ],
+    ]),
     castTimeMs: 440
   }
 });
@@ -233,14 +217,11 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     flipParentId: ID.WARCLAWS_ENGAGE,
     stealthAttack: true,
     evades: true,
-    effects: [
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 3.67,
         hits: 1,
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -251,12 +232,9 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        controlKind: 'daze'
       }
-    ]
+    ])
   },
   {
     id: ID.SPIDERS_WEB,

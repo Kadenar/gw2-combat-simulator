@@ -21,6 +21,58 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
 
+test('Splitblade shares an impact without merging hit or condition application indices', () => {
+  // Five simultaneous projectiles retain separate hit identities before the single Bleeding application.
+  const result = simulate('Core', [ID.SPLITBLADE], { primaryWeapon: 'Axe' });
+  assert.deepEqual(result.warnings, []);
+  const packets = result.events.filter(
+    (event) => event.skillId === ID.SPLITBLADE && ['damage', 'condition'].includes(event.type)
+  );
+  assert.deepEqual(
+    packets.map(({ type, hitIndex, totalHits, applicationIndex, totalApplications }) => [
+      type,
+      hitIndex ?? applicationIndex,
+      totalHits ?? totalApplications
+    ]),
+    [
+      ['damage', 1, 5],
+      ['damage', 2, 5],
+      ['damage', 3, 5],
+      ['damage', 4, 5],
+      ['damage', 5, 5],
+      ['condition', 1, 1]
+    ]
+  );
+  assert.ok(packets.every((event) => event.at === packets[0].at));
+  assert.equal(packets.at(-1).condition, 'Bleeding');
+  assert.equal(packets.at(-1).stacks, 5);
+});
+
+test('autonomous pet impacts retain summon attribution and strike-before-condition order', () => {
+  // Tiger's opening Bite exercises the autonomous materializer independently of player cast scheduling.
+  const result = simulate('Core', ['__combat_start', wait(1500)], { selectedPet: 'Tiger' });
+  assert.deepEqual(result.warnings, []);
+  const packets = result.events.filter(
+    (event) => event.skillId === ID.FELINE_BITE && ['damage', 'condition'].includes(event.type)
+  );
+  assert.deepEqual(
+    packets.map(({ type }) => type),
+    ['damage', 'condition']
+  );
+  assert.ok(
+    packets.every(
+      (event) =>
+        event.at === packets[0].at &&
+        event.activationId === packets[0].activationId &&
+        event.sourceId === ID.FELINE_BITE &&
+        event.source === 'ranger-pet' &&
+        event.actorType === 'summon' &&
+        event.autonomousPetSkill
+    )
+  );
+  assert.equal(packets[1].condition, 'Vulnerability');
+});
+
 test('Natural Convergence cancellation retains only landed trait pulses and their condition ticks', () => {
   // Probe both sides of a pulse and the exact boundary without making cast-speed assertions.
   for (const [interruptAfterMs, expected] of [

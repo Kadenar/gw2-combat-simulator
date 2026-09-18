@@ -1,7 +1,9 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HAMMER_STRIKE]: {
     interruptCommitMs: 360,
@@ -34,18 +36,18 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 240, coefficient: 0.75 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 240, condition: 'Blindness', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.75
+        },
+        {
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 2
+        }
+      ]),
       {
         type: 'strike',
         sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
@@ -59,32 +61,24 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
   },
   [ID.UNLEASHED_THUMP]: {
     interruptCommitMs: 800,
-    effects: [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 2.3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 2.3
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 6.5,
-        stacks: 6,
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 6
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 6.5,
-        stacks: 1,
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 1
       }
-    ],
+    ]),
     castTimeMs: 960
   },
   [ID.HAMMER_SLAM]: {
@@ -125,71 +119,58 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 440
   },
   [ID.WILD_SWING]: {
-    effects: [
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.5
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 5
       }
-    ],
+    ]),
     castTimeMs: 480
   },
   [ID.THUMP]: {
-    effects: [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 1.25 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.25
       },
       {
         type: 'control',
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       }
-    ],
+    ]),
     castTimeMs: 960
   },
   [ID.OVERBEARING_SMASH]: {
     interruptCommitMs: 240,
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 240, coefficient: 0.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        atMs: 240,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'daze'
-      },
-      {
-        type: 'strike',
-        sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
-        ticks: [{ atMs: 800, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'daze'
-      }
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.4
+        },
+        {
+          type: 'control',
+          controlKind: 'daze'
+        }
+      ]),
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
+          coefficient: 1
+        },
+        {
+          type: 'control',
+          sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
+          controlKind: 'daze'
+        }
+      ])
     ],
     castTimeMs: 960
   },
@@ -207,24 +188,26 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         duration: 3,
         stacks: 1
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Weakness', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Vulnerability', stacks: 8, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'condition',
+          condition: 'Weakness',
+          stacks: 1,
+          duration: 4
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 8,
+          duration: 6
+        },
+        {
+          type: 'condition',
+          condition: 'Immobilized',
+          stacks: 1,
+          duration: 2
+        }
+      ])
     ],
     castTimeMs: 560
   }

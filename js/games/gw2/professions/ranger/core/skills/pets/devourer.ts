@@ -3,8 +3,10 @@
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.POISONOUS_CLOUD]: {
     effects: [
@@ -181,25 +183,20 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
     petSkill: true
   },
   [ID.PET_TAIL_LASH]: {
-    effects: [
+    effects: impactEffects({ atMs: 1280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 1280, coefficient: 0.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 0.5,
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'control',
-        atMs: 1280,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon',
         controlKind: 'knockback'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 1280,
     petSkill: true
   }

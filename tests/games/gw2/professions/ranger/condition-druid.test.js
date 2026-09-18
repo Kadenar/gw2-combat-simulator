@@ -492,7 +492,7 @@ test('Poisonous Cloud uses six player packets across its fixed field window', ()
   );
   assert.equal(twinDarts.effects[0].comboFinishers[0].chance, 0.2);
   assert.equal(tailLash.recharge, 20);
-  assert.equal(tailLash.effects[0].ticks[0].coefficient, 0.5);
+  assert.equal(tailLash.effects[0].coefficient, 0.5);
 });
 
 test('pet commands do not reserve the player cast lane', () => {

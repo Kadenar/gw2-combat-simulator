@@ -3,8 +3,10 @@
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIGHTY_ROAR]: {
     effects: [
@@ -127,24 +129,22 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
     petSkill: true
   },
   [ID.FELINE_BITE]: {
-    effects: [
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.7 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 0.7,
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 5, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 6,
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 800,
     petSkill: true
   },
