@@ -71,7 +71,7 @@ export function gainCoreWarriorAdrenaline(context: WarriorSchedulerContext, amou
 export function spendWarriorAdrenalineAmount(context: WarriorCastContext, amount: number): number {
   const state = professionCoreState(context);
   const available = Number(state.adrenaline || 0);
-  const spent = Math.min(available, Math.max(0, Number(amount || 0)));
+  const spent = boundedNumber(amount, 0, 0, available);
   state.adrenaline = available - spent;
   syncWarriorAdrenaline(context);
   return spent;

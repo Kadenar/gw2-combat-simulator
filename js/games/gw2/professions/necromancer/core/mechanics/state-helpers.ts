@@ -11,6 +11,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
  */
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';
 import type {
   NecromancerCastContext,
@@ -65,7 +66,7 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
 /** Adds as many timed carapace stacks as the 30-stack cap permits and returns the amount added. */
 export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
   purgeTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 30 - state.carapaceExpiries.length);
+  const count = boundedInteger(stacks, 0, 0, 30 - state.carapaceExpiries.length);
   state.carapaceExpiries.push(...Array.from({ length: count }, () => at + duration));
   return count;
 }
@@ -76,7 +77,7 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
   // Every shard shares the newest application's ten-second window so gaining a shard refreshes the stack.
   const expiresAt = at + SOUL_SHARD_DURATION_SECONDS;
   state.soulShardExpiries = state.soulShardExpiries.map(() => expiresAt);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 6 - state.soulShardExpiries.length);
+  const count = boundedInteger(stacks, 0, 0, 6 - state.soulShardExpiries.length);
   state.soulShardExpiries.push(...Array.from({ length: count }, () => expiresAt));
   syncNecromancerResources(state);
   return count;
@@ -85,7 +86,7 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
 /** Removes active Soul Shards up to the requested amount and returns the amount consumed. */
 export function consumeSoulShards(state: NecromancerCoreState, stacks: number, at: number): number {
   purgeTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.soulShardExpiries.length);
+  const count = boundedInteger(stacks, 0, 0, state.soulShardExpiries.length);
   state.soulShardExpiries.splice(0, count);
   syncNecromancerResources(state);
   return count;

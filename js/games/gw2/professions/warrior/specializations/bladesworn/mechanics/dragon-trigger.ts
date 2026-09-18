@@ -49,12 +49,12 @@ export function projectDragonFlow(
   to: number,
   flowRateSegments: readonly DragonFlowRateSegment[]
 ): number {
-  if (!(to > from)) return Math.min(maximumFlow, Math.max(0, flow));
+  if (!(to > from)) return clamp(flow, 0, maximumFlow);
   const gained = flowRateSegments.reduce((total, segment) => {
     const overlap = Math.min(to, segment.end) - Math.max(from, segment.start);
     return overlap > 0 ? total + overlap * segment.flowPerSecond : total;
   }, 0);
-  return Math.min(maximumFlow, Math.max(0, flow + gained));
+  return clamp(flow + gained, 0, maximumFlow);
 }
 
 export function projectDragonCharges(input: DragonChargeProjectionInput): readonly DragonChargeTick[] {
@@ -62,8 +62,8 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
   let tickIndex = input.initialTickIndex ?? 1;
   let at = input.firstTickAt ?? input.tickAt(tickIndex);
   let previousAt = input.startTime;
-  let flow = Math.min(input.maximumFlow, Math.max(0, input.flow));
-  let charges = Math.min(input.maximumCharges, Math.max(0, input.initialCharges ?? 0));
+  let flow = clamp(input.flow, 0, input.maximumFlow);
+  let charges = clamp(input.initialCharges ?? 0, 0, input.maximumCharges);
 
   while (at <= input.deadline + EPSILON && charges < input.maximumCharges) {
     flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
@@ -120,5 +120,5 @@ export function dragonFlowPerInterval(context: DragonTriggerContext): number {
 export function requestedDragonCharges(context: WarriorCastContext, maximumCharges: number): number {
   const configured = context.command.releaseAtCharges;
   if (configured == null) return maximumCharges;
-  return Math.min(maximumCharges, Math.max(1, configured));
+  return clamp(configured, 1, maximumCharges);
 }

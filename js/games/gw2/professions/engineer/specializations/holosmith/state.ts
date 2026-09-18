@@ -4,6 +4,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface HolosmithState {
   heat: number;
@@ -57,7 +58,7 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
   const maximumHeat = hasTrait(traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ? HOLOSMITH_HEAT.enhancedCapacityMaximum
     : HOLOSMITH_HEAT.baseMaximum;
-  const initialHeat = Math.min(maximumHeat, Math.max(0, Number(config.initialHeat || 0)));
+  const initialHeat = boundedNumber(config.initialHeat, 0, 0, maximumHeat);
   return {
     heat: initialHeat,
     maximumHeat,

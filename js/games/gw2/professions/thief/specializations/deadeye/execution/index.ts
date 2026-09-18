@@ -19,6 +19,7 @@ import {
   initialDeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 import type { ThiefCastContext, ThiefSimulationEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
@@ -60,7 +61,7 @@ function prepareDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkil
   const state = deadeyeState.from(context);
   // Only existing malice empowers this attack; Malicious Intent grants its stacks after consumption.
   const handlerState = {
-    malice: Math.min(state.maximumMalice, Math.max(0, Number(state.malice || 0))),
+    malice: boundedNumber(state.malice, 0, 0, state.maximumMalice),
     markExpiresAt: state.markedTargetId ? state.markExpiresAt : 0
   };
   beginStealthAttack(context, skill);

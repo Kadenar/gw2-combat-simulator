@@ -2,6 +2,7 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface ThievesGuildState {
@@ -73,7 +74,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
   const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
   return {
-    initiative: Math.min(maximumInitiative, Math.max(0, Number(config.initialInitiative ?? 12))),
+    initiative: boundedNumber(config.initialInitiative, 12, 0, maximumInitiative),
     maximumInitiative,
     initiativeUpdatedAt: 0,
     stealthStartedAt: 0,

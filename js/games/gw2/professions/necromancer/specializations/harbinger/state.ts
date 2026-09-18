@@ -57,7 +57,7 @@ export function purgeHarbingerTimedState(state: HarbingerState, at: number): voi
 /** Adds as many 25-second Blight applications as the stack cap permits. */
 export function addBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), 25 - state.blightExpiries.length);
+  const count = boundedInteger(stacks, 0, 0, 25 - state.blightExpiries.length);
   state.blightExpiries.push(...Array.from({ length: count }, () => at + 25));
   syncHarbingerState(state);
   return count;
@@ -66,7 +66,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number): nu
 /** Consumes the oldest active Blight applications up to the requested amount. */
 export function consumeBlight(state: HarbingerState, stacks: number, at: number): number {
   purgeHarbingerTimedState(state, at);
-  const count = Math.min(Math.max(0, Math.trunc(Number(stacks || 0))), state.blightExpiries.length);
+  const count = boundedInteger(stacks, 0, 0, state.blightExpiries.length);
   state.blightExpiries.splice(0, count);
   syncHarbingerState(state);
   return count;

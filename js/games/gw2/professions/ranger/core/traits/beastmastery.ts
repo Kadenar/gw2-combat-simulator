@@ -16,6 +16,7 @@ import type {
 } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.
@@ -25,7 +26,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
   const active = new Map<string, { duration: number; stacks: number }>();
   for (const kind of GW2_STANDARD_BOONS) {
     const configured = context.config.boons?.[kind];
-    const stacks = kind === 'might' ? Math.min(25, Math.max(0, Number(configured || 0))) : configured ? 1 : 0;
+    const stacks = kind === 'might' ? boundedNumber(configured, 0, 0, 25) : configured ? 1 : 0;
     if (stacks > 0) active.set(kind, { duration: 3600, stacks });
   }
 
