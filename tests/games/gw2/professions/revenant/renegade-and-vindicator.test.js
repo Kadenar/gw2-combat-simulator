@@ -183,7 +183,13 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
 
   const empowered = simulate(
     'Core',
-    ['Embrace the Darkness', 'Banish Enchantment', { type: 'wait', durationMs: 600 }, 'Resist the Darkness'],
+    [
+      'Embrace the Darkness',
+      { type: 'wait', durationMs: 700 },
+      'Banish Enchantment',
+      { type: 'wait', durationMs: 700 },
+      'Resist the Darkness'
+    ],
     {
       selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
       startingLegend: LEGEND.DEMON,
@@ -194,15 +200,22 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
     (event) => event.type === 'condition' && event.skillName === 'Embrace the Darkness' && event.condition === 'Torment'
   );
 
+  // Activation pulse, the pulse armed by the paid activation itself, then the pulse armed by Banish Enchantment.
   assert.deepEqual(
     empoweredPulses.map((event) => event.stacks),
-    [1, 2]
+    [1, 2, 2]
   );
   assert.equal(empowered.endState.profession.activeUpkeeps.length, 0);
 
   const freeSkill = simulate(
     'Core',
-    ['Embrace the Darkness', 'Shattershot', { type: 'wait', durationMs: 600 }, 'Resist the Darkness'],
+    [
+      'Embrace the Darkness',
+      { type: 'wait', durationMs: 560 },
+      'Shattershot',
+      { type: 'wait', durationMs: 600 },
+      'Resist the Darkness'
+    ],
     {
       primaryWeapon: 'Shortbow',
       secondaryWeapon: '',
@@ -212,7 +225,8 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
     }
   );
 
-  // Embrace empowerment is earned only by spending Energy, not by merely casting a skill.
+  // Once activation's own empowerment is spent, further empowerment is earned only by spending Energy:
+  // a free attack such as Shattershot leaves the following pulse unempowered, and pulses never re-arm themselves.
   assert.deepEqual(
     freeSkill.events
       .filter(
@@ -220,7 +234,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
           event.type === 'condition' && event.skillName === 'Embrace the Darkness' && event.condition === 'Torment'
       )
       .map((event) => event.stacks),
-    [1, 1]
+    [1, 2, 1]
   );
 });
 
