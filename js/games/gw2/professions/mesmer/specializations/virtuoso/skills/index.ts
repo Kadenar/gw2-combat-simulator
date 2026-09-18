@@ -118,7 +118,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
     ]
   },
   [ID.TWIN_BLADE_RESTORATION]: {
-    castTimeMs: 666.666666667,
+    castTimeMs: 680,
     blade: true,
     effects: [
       {

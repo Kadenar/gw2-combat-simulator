@@ -123,7 +123,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 880
   },
   [ID.ILLUSIONARY_RIPOSTE]: {
-    castTimeMs: 1500,
     resource: {
       mode: 'add',
       count: 1
@@ -138,6 +137,7 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         weapon: 'sword'
       }
     ],
+    castTimeMs: 1480,
     defaultInterruptMs: 120,
     interruptCommitMs: 100
   },
