@@ -2,6 +2,7 @@
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -118,23 +119,23 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     countsAsToolbeltSkill: true,
     castTimeMs: 800,
     cooldown: 20,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 2.88 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.88,
+        hits: 1,
         name: 'Offensive Protocol: Obliterate',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Bleeding',
+        stacks: 8,
+        duration: 6,
         actorType: 'player'
       }
-    ],
+    ]),
     mechanicSlot: 4
   },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
@@ -169,23 +170,23 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     countsAsToolbeltSkill: true,
     castTimeMs: 800,
     cooldown: 20,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 2.88 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.88,
+        hits: 1,
         name: 'Offensive Protocol: Obliterate',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Bleeding',
+        stacks: 8,
+        duration: 6,
         actorType: 'player'
       }
-    ],
+    ]),
     mechanicSlot: 2
   },
   [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
@@ -256,23 +257,23 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     countsAsToolbeltSkill: true,
     castTimeMs: 800,
     cooldown: 20,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 2.88 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.88,
+        hits: 1,
         name: 'Offensive Protocol: Obliterate',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 8, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Bleeding',
+        stacks: 8,
+        duration: 6,
         actorType: 'player'
       }
-    ],
+    ]),
     mechanicSlot: 3
   },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {

@@ -2,6 +2,7 @@
  * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
@@ -27,31 +28,28 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     // on its independent lane for the measured animation.
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 2.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        coefficient: 2.2,
+        hits: 1,
         name: 'Jade Mortar',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: 'Burning', stacks: 3, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        condition: 'Burning',
+        stacks: 3,
+        duration: 6,
         actorType: 'summon'
       },
       {
         type: 'control',
-        atMs: 600,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         actorType: 'summon',
         controlKind: 'daze'
       }
-    ],
+    ]),
     mechanicSlot: 3
   }),
   [ID.BARRIER_BURST]: mechCommand({
@@ -200,24 +198,21 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.CORE_REACTOR_SHOT] * 1000,
     rechargeAnchor: 'castStart',
     cooldown: 25,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 680, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        coefficient: 2.5,
+        hits: 1,
         name: 'Core Reactor Shot',
         actorType: 'summon'
       },
       {
         type: 'control',
-        atMs: 680,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         actorType: 'summon',
         controlKind: 'launch'
       }
-    ],
+    ]),
     mechanicSlot: 2
   }),
   [ID.EXPLOSIVE_KNUCKLE]: mechCommand({

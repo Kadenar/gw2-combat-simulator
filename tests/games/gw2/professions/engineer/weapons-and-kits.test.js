@@ -770,10 +770,11 @@ test('Engineer hammer skills use the requested packets and field cadence', () =>
   });
   assert.equal(skill('Negative Bash').castTimeMs, 640);
   assert.equal(strikeEffectCoefficient(skill('Negative Bash').effects[0]), 1);
-  assert.equal(skill('Negative Bash').effects[1].ticks[0].duration, 8);
+  // Read condition payloads through either authoring form so shared impacts retain the same contract.
+  assert.equal(conditionEffectTicks(skill('Negative Bash').effects[1])[0].duration, 8);
   assert.equal(skill('Equalizing Blow').castTimeMs, 440);
   assert.equal(strikeEffectCoefficient(skill('Equalizing Blow').effects[0]), 1.4);
-  assert.equal(skill('Equalizing Blow').effects[1].ticks[0].stacks, 3);
+  assert.equal(conditionEffectTicks(skill('Equalizing Blow').effects[1])[0].stacks, 3);
   assert.equal(skill('Equalizing Blow').effects[2].stacks, 3);
 
   const electro = skill('Electro-whirl');

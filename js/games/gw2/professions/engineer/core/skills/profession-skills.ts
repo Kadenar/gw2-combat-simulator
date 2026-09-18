@@ -1,4 +1,5 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -145,25 +146,22 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 680,
     cooldown: 20,
     interruptCommitMs: 480,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 1,
+        hits: 1,
         name: 'Static Shock',
         weapon: 'Profession mechanic',
         actorType: 'player'
       },
       {
         type: 'control',
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player',
         controlKind: 'daze'
       }
-    ],
+    ]),
     toolbeltParentName: 'A.E.D.',
     mechanicSlot: 1
   },

@@ -1,4 +1,5 @@
 /** Core Engineer Bomb Kit skill mechanics. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -26,27 +27,25 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 2760, coefficient: 3 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: "Big Ol' Bomb",
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        damageKind: 'explosion'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 2760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        controlKind: 'knockdown'
-      }
-    ],
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 2760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 3,
+          hits: 1,
+          name: "Big Ol' Bomb",
+          actorType: 'player',
+          damageKind: 'explosion'
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'knockdown'
+        }
+      ]
+    ),
     kit: 'Bomb Kit'
   },
   [ID.GALVANIC_BOMB]: {
@@ -62,35 +61,29 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 2.5 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
+        coefficient: 2.5,
+        hits: 1,
         name: 'Galvanic Bomb',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         damageKind: 'explosion'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Confusion', stacks: 6, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        condition: 'Confusion',
+        stacks: 6,
+        duration: 8,
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         controlKind: 'daze'
       }
-    ],
+    ]),
     kit: 'Bomb Kit'
   },
   [ID.FIRE_BOMB]: {
@@ -185,27 +178,25 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
     retainsCastLockoutAfterInterrupt: true,
     castTimeMs: 600,
     cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1760, coefficient: 1.5 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Magnetic Bomb',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        damageKind: 'explosion'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 1760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        controlKind: 'pull'
-      }
-    ],
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 1760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.5,
+          hits: 1,
+          name: 'Magnetic Bomb',
+          actorType: 'player',
+          damageKind: 'explosion'
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'pull'
+        }
+      ]
+    ),
     kit: 'Bomb Kit'
   }
 });

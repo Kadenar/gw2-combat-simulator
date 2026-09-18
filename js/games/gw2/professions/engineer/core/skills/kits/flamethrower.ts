@@ -1,4 +1,5 @@
 /** Core Engineer Flamethrower skill mechanics. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -88,35 +89,36 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     cooldown: 6,
     // Flame Blast launches its blast finisher around 480 ms, but a committed cancel keeps the serial lane locked through the full animation.
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 1.3 }],
-        name: 'Flame Blast',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        interruptCommitMs: 480,
-        actorType: 'player',
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: 'Blast',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        damageKind: 'explosion',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        interruptCommitMs: 480,
-        actorType: 'player',
-        persistsAfterInterrupt: true
-      }
-    ],
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.3,
+          hits: 1,
+          name: 'Flame Blast',
+          interruptCommitMs: 480,
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          damageKind: 'explosion'
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 1,
+          duration: 6,
+          interruptCommitMs: 480,
+          actorType: 'player'
+        }
+      ]
+    ),
     kit: 'Flamethrower'
   },
   [ID.STOW_FLAMETHROWER]: {

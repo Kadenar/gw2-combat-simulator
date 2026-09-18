@@ -1,4 +1,5 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -40,44 +41,44 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.SUN_RIPPER_ID_69906]: {
     castTimeMs: 480,
     cooldown: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1.02 }],
+        coefficient: 1.02,
+        hits: 1,
         name: 'Sun Ripper (non-holosmith)',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SUN_EDGE_ID_70514]: {
     castTimeMs: 440,
     cooldown: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.96 }],
+        coefficient: 0.96,
+        hits: 1,
         name: 'Sun Edge (non-holosmith)',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.GLEAM_SABER_ID_70771]: {
     // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.

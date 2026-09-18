@@ -2,6 +2,7 @@
  * Owns Holosmith sword skill fragments and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/execution/sword.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
@@ -46,23 +47,23 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   [ID.SUN_EDGE]: {
     castTimeMs: 440,
     cooldown: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.88 }],
+        coefficient: 0.88,
+        hits: 1,
         name: 'Sun Edge',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.REFRACTION_CUTTER]: {
     castTimeMs: 520,
@@ -79,33 +80,35 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
         name: 'Refraction Cutter - Packet 1',
         actorType: 'player'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Refraction Cutter Blade',
-        // Report projectile damage separately while retaining the parent sword cast.
-        damageBreakdownName: 'Refraction Cutter Blade',
-        sourceId: ID.REFRACTION_CUTTER_BLADE,
-        actorType: 'player',
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Fire'],
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        projectile: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.4,
+          hits: 1,
+          name: 'Refraction Cutter Blade',
+          // Report projectile damage separately while retaining the parent sword cast.
+          damageBreakdownName: 'Refraction Cutter Blade',
+          sourceId: ID.REFRACTION_CUTTER_BLADE,
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Projectile',
+              preferredFieldTypes: ['Fire'],
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          projectile: true
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 4,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'custom',
         eventType: 'engineer.refraction-cutter-extra-blades',
@@ -154,23 +157,23 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
     interruptCommitMs: 440,
     cooldown: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 0.93 }],
+        coefficient: 0.93,
+        hits: 1,
         name: 'Sun Ripper',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.GLEAM_SABER]: {
     // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.

@@ -1,4 +1,5 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -17,28 +18,29 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Fragmentation Shot',
-        interruptCommitMs: 360,
-        persistsAfterInterrupt: true,
-        actorType: 'player',
-        projectile: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 1, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        interruptCommitMs: 360,
-        persistsAfterInterrupt: true,
-        actorType: 'player'
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.4,
+          hits: 1,
+          name: 'Fragmentation Shot',
+          interruptCommitMs: 360,
+          actorType: 'player',
+          projectile: true
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 6,
+          interruptCommitMs: 360,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.POISON_DART_VOLLEY]: {
     castTimeMs: 840,
@@ -142,23 +144,23 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Committed flame casts keep their remaining lockout before the next player input.
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 12,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       // The flame and burning land before aftercast; scheduling at cast end drops committed shortened casts.
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2,
+        hits: 1,
         name: 'Maximum Damage',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Burning', stacks: 3, duration: 4.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Burning',
+        stacks: 3,
+        duration: 4.5,
         actorType: 'player'
       }
-    ]
+    ])
   }
 });

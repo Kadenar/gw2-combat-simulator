@@ -1,4 +1,5 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -44,31 +45,31 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.NET_SHOT]: {
     castTimeMs: 570,
     cooldown: 9,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 520, coefficient: 1.25 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 1.25,
+        hits: 1,
         name: 'Net Shot',
         actorType: 'player',
         projectile: true
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Vulnerability', stacks: 8, duration: 8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 8,
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 4,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.JUMP_SHOT]: {
     castTimeMs: 1000,
@@ -83,61 +84,60 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Leap Damage',
         actorType: 'player'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1000, coefficient: 2.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Landing Damage',
-        actorType: 'player',
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: 'Leap',
-            fieldSelectionAnchor: 'castStart',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1000, condition: 'Vulnerability', stacks: 3, duration: 7 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 2.4,
+          hits: 1,
+          name: 'Landing Damage',
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Leap',
+              fieldSelectionAnchor: 'castStart',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 3,
+          duration: 7,
+          actorType: 'player'
+        }
+      ])
     ]
   },
   [ID.BLUNDERBUSS]: {
     castTimeMs: 400,
     cooldown: 6,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 2.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.2,
+        hits: 1,
         name: 'Maximum Damage',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 3, duration: 9 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 9,
         actorType: 'player'
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 8,
-        stacks: 5,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 5
       }
-    ]
+    ])
   },
   [ID.OVERCHARGED_SHOT]: {
     castTimeMs: 400,
