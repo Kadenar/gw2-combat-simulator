@@ -1228,7 +1228,8 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
       warrior: {
         skills: {
           [ID.KILL_SHOT]: { effects: [{ type: 'strike', coefficient: { multiply: 2 } }] },
-          [ID.FIERCE_BLOW]: { effects: [{ type: 'strike', tickIndex: 'all', coefficient: { multiply: 2 } }] }
+          // The shared impact exposes its singleton strike payload directly to patches.
+          [ID.FIERCE_BLOW]: { effects: [{ type: 'strike', coefficient: { multiply: 2 } }] }
         }
       }
     }
@@ -1261,6 +1262,29 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
       expected
     );
   }
+});
+
+test('Dual Strike preserves separate hit and boon application indices at its shared impact', () => {
+  // Sharing timing must not merge simultaneous hits or the independently scheduled boon applications.
+  const result = simulate('Core', [ID.DUAL_STRIKE], { primaryWeapon: 'Axe', secondaryWeapon: 'Axe' });
+  assert.deepEqual(result.warnings, []);
+  const packets = result.events.filter(
+    (event) => event.skillId === ID.DUAL_STRIKE && ['damage', 'buff'].includes(event.type)
+  );
+  assert.deepEqual(
+    packets.map(({ type, hitIndex, totalHits, applicationIndex, totalApplications }) => [
+      type,
+      hitIndex ?? applicationIndex,
+      totalHits ?? totalApplications
+    ]),
+    [
+      ['damage', 1, 2],
+      ['damage', 2, 2],
+      ['buff', 1, 2],
+      ['buff', 2, 2]
+    ]
+  );
+  assert.ok(packets.every((event) => event.at === packets[0].at));
 });
 
 test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {

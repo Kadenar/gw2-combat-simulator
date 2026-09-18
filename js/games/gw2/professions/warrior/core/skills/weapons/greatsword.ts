@@ -1,47 +1,40 @@
 /** Core Warrior greatsword packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.GREATSWORD_SWING]: {
     castTimeMs: 400,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 0.8
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 1,
-        duration: 8,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 8
       }
-    ]
+    ])
   },
   [ID.GREATSWORD_SLICE]: {
     castTimeMs: 600,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.05 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.05
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 1,
-        duration: 8,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 8
       }
-    ]
+    ])
   },
   [ID.BRUTAL_STRIKE]: {
     castTimeMs: 680,

@@ -1,5 +1,6 @@
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
@@ -13,35 +14,31 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 840, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 2.5
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 840, condition: 'Crippled', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 5
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 840, condition: 'Vulnerability', stacks: 10, duration: 8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 10,
+        duration: 8
       },
       {
         type: 'boon',
         boon: 'aegis',
         duration: 3,
-        stacks: 1,
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 1
       }
-    ],
+    ]),
     castTimeMs: 960,
     adrenalineGain: 10,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
@@ -210,29 +207,25 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     handlerId: 'warrior.resource'
   },
   [ID.SHATTERING_BLOW]: {
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.5
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Bleeding', stacks: 4, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 4,
+        duration: 10
       },
       {
         type: 'boon',
         boon: 'stability',
         duration: 2,
-        stacks: 2,
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 2
       }
-    ],
+    ]),
     castTimeMs: 520,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
@@ -265,21 +258,17 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
   },
   [ID.HEAD_BUTT]: {
     movementSkill: true,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 4.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 4.5
       },
       {
         type: 'control',
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'stun'
       }
-    ],
+    ]),
     castTimeMs: 800,
     interruptCommitMs: 760,
     adrenalineGain: 30,

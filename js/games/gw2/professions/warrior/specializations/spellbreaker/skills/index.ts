@@ -1,16 +1,16 @@
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EARTHSHAKER_ID_40601]: {
     skillWeapon: 'Hammer',
     cooldown: 8,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 840, coefficient: 2.75 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.75,
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -22,12 +22,9 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
       },
       {
         type: 'control',
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'stun'
       }
-    ],
+    ]),
     castTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
@@ -43,23 +40,18 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     // Spellbreaker's level-one variant shares the mace burst's cast and impact timing.
     skillWeapon: 'Mace',
     cooldown: 8,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        controlKind: 'daze'
       }
-    ],
+    ]),
     castTimeMs: 560,
     adrenalineCost: 10,
     burstTier: 1,

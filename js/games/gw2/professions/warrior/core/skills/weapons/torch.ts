@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -16,26 +17,25 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
     totalCoefficient: 2,
     maximumHitsPerTarget: 1,
     castTimeMs: 480,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 0.4
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Burning', stacks: 1, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 6
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Crippled', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 3
       }
-    ]
+    ])
   },
   [ID.FLAMES_OF_WAR]: {
     cooldown: 20,

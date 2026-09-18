@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -7,23 +8,19 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 280,
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 1.05 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 1.05
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 5,
-        stacks: 1,
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        stacks: 1
       }
-    ]
+    ])
   },
   [ID.FOCUSED_SLASH]: {
     castTimeMs: 360,
@@ -66,21 +63,17 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.DISRUPTING_STAB]: {
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 160, coefficient: 1.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 1.2
       },
       {
         type: 'control',
-        atMs: 160,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.HUSHBLADE]: {
     interruptCommitMs: 440,
@@ -90,21 +83,17 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ammoCastLockout: 1,
     castTimeMs: 520,
     dualWieldCastTimeMs: 400,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 1.5
       },
       {
         type: 'control',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.AURA_SLICER]: {
     // Aura Slicer ignores Quickness and Dual Wielding, so its observed timing stays fixed.
@@ -119,22 +108,18 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ],
 
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.8
       },
       {
         type: 'condition',
         condition: 'Slow',
         stacks: 1,
-        duration: 1.5,
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 1.5
       }
-    ]
+    ])
   }
 });

@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -216,21 +217,17 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillF
   },
   [ID.KICK]: {
     castTimeMs: 842,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 1
       },
       {
         type: 'control',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'knockback'
       }
-    ]
+    ])
   },
   [ID.BULLS_CHARGE]: {
     // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the

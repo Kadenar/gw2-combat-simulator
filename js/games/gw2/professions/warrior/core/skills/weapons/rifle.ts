@@ -1,5 +1,6 @@
 /** Rifle packets use close-range cast-start offsets so projectile travel does not inflate their timing. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -13,23 +14,18 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ],
     castTimeMs: 480,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'control',
-        controlKind: 'knockback',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        controlKind: 'knockback'
       }
-    ]
+    ])
   },
   [ID.VOLLEY]: {
     comboFinishers: [
@@ -70,57 +66,44 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ],
     castTimeMs: 600,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
-        hits: 1,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 5,
-        stacks: 1,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 1
       }
-    ]
+    ])
   },
   [ID.EXPLOSIVE_SHELL]: {
     castTimeMs: 560,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.6,
         hits: 1,
-        damageKind: 'explosion',
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 5,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 5
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 10,
-        duration: 10,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 10
       }
-    ]
+    ])
   },
   [ID.BRUTAL_SHOT]: {
     comboFinishers: [

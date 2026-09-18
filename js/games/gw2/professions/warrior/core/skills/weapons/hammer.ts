@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -17,12 +18,11 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.STAGGERING_BLOW]: {
     cooldown: 18,
     castTimeMs: 480,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 1.5,
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -34,12 +34,9 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'control',
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockback'
       }
-    ]
+    ])
   },
   [ID.HAMMER_BASH]: {
     castTimeMs: 640,
@@ -70,38 +67,36 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 880,
     // Custom: Upgrades the strike against controlled or defiant targets; see `core/execution/index.ts`.
     handlerId: 'warrior.fierce-blow',
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.8
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: 'Weakness', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.HAMMER_SHOCK]: {
     cooldown: 8,
     castTimeMs: 600,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.8
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Crippled', stacks: 1, duration: 7 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 7
       }
-    ]
+    ])
   },
   [ID.BACKBREAKER]: {
     cooldown: 25,
@@ -113,20 +108,16 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ],
     castTimeMs: 880,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 680, coefficient: 2.25 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 2.25
       },
       {
         type: 'control',
-        atMs: 680,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       }
-    ]
+    ])
   }
 });

@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -12,22 +13,21 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     castTimeMs: 560,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 600, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.5,
         // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
         damageKind: 'explosion'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: 'Burning', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 5
       }
-    ]
+    ])
   },
   [ID.DUAL_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -61,26 +61,25 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     castTimeMs: 680,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 0.44 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 0.44
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 6, duration: 12 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 6,
+        duration: 12
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Immobilized', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 3
       }
-    ]
+    ])
   },
   [ID.SMOLDERING_ARROW]: {
     ammo: 3,
@@ -118,21 +117,19 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     // remaining animation as aftercast for ordinary cast-time skills.
     interruptCommitMs: 240,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.32,
-        hits: 3,
-        atMs: 240,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 3
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 3,
+        duration: 3
       }
-    ]
+    ])
   }
 });

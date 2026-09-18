@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -71,23 +72,20 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.85, projectile: true }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 0.85,
+        projectile: true
       },
       {
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,
-        duration: 4,
-        atMs: 280,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.WHIRLING_AXE]: {
     interruptMode: 'per-packet',
@@ -118,14 +116,12 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     cooldown: 12,
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2.35,
-        hits: 2,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 2
       },
       {
         type: 'boon',
@@ -133,12 +129,9 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         duration: 2,
         stacks: 1,
         applications: 2,
-        intervalMs: 0,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        intervalMs: 0
       }
-    ]
+    ])
   },
   [ID.CYCLONE_AXE]: {
     cooldown: 6,

@@ -1,5 +1,6 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -73,12 +74,11 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     burst: true,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 840, coefficient: 2.75 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 2.75,
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -90,12 +90,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'control',
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'stun'
       }
-    ]
+    ])
   },
   [ID.KILL_SHOT]: {
     skillWeapon: 'Rifle',
@@ -137,23 +134,18 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     burst: true,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.COMBUSTIVE_SHOT]: {
     comboFields: [
@@ -192,26 +184,23 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     burst: true,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'custom',
-        eventType: 'warrior.boon-removal',
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        event: {
-          attemptedBoonRemovals: 2
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 2.5
+        },
+        {
+          type: 'custom',
+          eventType: 'warrior.boon-removal',
+          event: {
+            attemptedBoonRemovals: 2
+          }
         }
-      }
-    ]
+      ]
+    )
   },
   [ID.PATH_TO_VICTORY]: {
     castTimeMs: 333,
@@ -348,19 +337,18 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     burst: true,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 2
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 3, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 6
       }
-    ]
+    ])
   }
 });

@@ -1,5 +1,6 @@
 /** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -31,25 +32,20 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.PULVERIZE]: {
     castTimeMs: 920,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.6,
-        hits: 1,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'condition',
         condition: 'Weakness',
         stacks: 1,
-        duration: 5,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 5
       }
-    ]
+    ])
   },
   [ID.TREMOR]: {
     // Tremor refreshes Crushing Blow when its cast completes.
@@ -92,23 +88,18 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
   [ID.POMMEL_BASH]: {
     cooldown: 10,
     castTimeMs: 440,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.4,
-        hits: 1,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'control',
-        controlKind: 'daze',
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.COUNTERBLOW]: {
     // Like Illusionary Counter, the block arms a separate attack and can release its channel early.
@@ -123,53 +114,44 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     interruptCommitMs: 440,
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 2.25 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 2.25
       },
       {
         type: 'boon',
         boon: 'might',
         duration: 6,
-        stacks: 5,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        stacks: 5
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 10, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        condition: 'Vulnerability',
+        stacks: 10,
+        duration: 6
       }
-    ]
+    ])
   },
   [ID.TACTICAL_BLOW]: {
     castTimeMs: 480,
     adrenalineGain: 5,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
     handlerId: 'warrior.resource',
-    effects: [
+    // Share impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2,
-        hits: 1,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 5,
-        duration: 8,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 8
       }
-    ]
+    ])
   }
 });

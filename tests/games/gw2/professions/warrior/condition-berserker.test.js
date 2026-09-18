@@ -5,6 +5,7 @@ import test from 'node:test';
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { migrateWarriorBuild } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
+import { strikeEffectTicks, conditionEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 const buildUrl = new URL(
@@ -94,8 +95,8 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     fan.effects.slice(0, 1).map(({ type, coefficient, hits, atMs }) => ({ type, coefficient, hits, atMs })),
     [{ type: 'strike', coefficient: 1.32, hits: 3, atMs: 240 }]
   );
-  // The burning packet lands with the arrows, so its tick owns the release timing and condition values.
-  assert.deepEqual(fan.effects[1].ticks, [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }]);
+  // Read packet payloads through the canonical helpers so shared impacts and timelines use the same checks.
+  assert.deepEqual(conditionEffectTicks(fan.effects[1]), [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }]);
 
   const gash = skill(ID.GASH);
   assert.equal(gash.retainsCastLockoutAfterInterrupt, true);
@@ -107,7 +108,9 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(arcingArrow.ammoCastLockout, 1);
   assert.equal(arcingArrow.comboFinishers[0].finisherType, 'Blast');
   assert.deepEqual(
-    arcingArrow.effects.map((effect) => effect.ticks),
+    arcingArrow.effects.map((effect) =>
+      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
+    ),
     [[{ atMs: 600, coefficient: 2.5 }], [{ atMs: 600, condition: 'Burning', stacks: 1, duration: 5 }]]
   );
 
@@ -128,7 +131,9 @@ test('Condition Berserker skill data uses configured values and packet timing', 
 
   assert.equal(pinDown.cooldown, 20);
   assert.deepEqual(
-    pinDown.effects.map((effect) => effect.ticks),
+    pinDown.effects.map((effect) =>
+      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
+    ),
     [
       [{ atMs: 560, coefficient: 0.44 }],
       [{ atMs: 560, condition: 'Bleeding', stacks: 6, duration: 12 }],
@@ -164,7 +169,8 @@ test('Condition Berserker skill data uses configured values and packet timing', 
 
   const savageLeap = skill(ID.SAVAGE_LEAP);
   const savageBleeding = savageLeap.effects
-    .flatMap((effect) => effect.ticks || [])
+    .filter((effect) => effect.type === 'condition')
+    .flatMap(conditionEffectTicks)
     .find((tick) => tick.condition === 'Bleeding');
 
   assert.equal(savageBleeding.stacks, 3);
@@ -187,7 +193,9 @@ test('Condition Berserker skill data uses configured values and packet timing', 
   assert.equal(blazeBreaker.totalCoefficient, 2);
   assert.equal(blazeBreaker.maximumHitsPerTarget, 1);
   assert.deepEqual(
-    blazeBreaker.effects.map((effect) => effect.ticks),
+    blazeBreaker.effects.map((effect) =>
+      effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
+    ),
     [
       [{ atMs: 400, coefficient: 0.4 }],
       [{ atMs: 400, condition: 'Burning', stacks: 1, duration: 6 }],
