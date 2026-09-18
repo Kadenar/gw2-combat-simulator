@@ -5,6 +5,8 @@ import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js'
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
+    // Gunsaber transitions use a five-second base recharge before recharge modifiers.
+    cooldown: 5,
     castTimeMs: 0,
     effects: [],
     // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
@@ -20,7 +22,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'warrior.dragon-trigger'
   },
   [ID.SHEATHE_GUNSABER]: {
-    cooldown: 0,
+    cooldown: 5,
     castTimeMs: 0,
     effects: [],
     // Custom: Stows Gunsaber and restores weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.

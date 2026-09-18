@@ -50,6 +50,23 @@ test('Dragon Trigger does not swap again when Gunsaber is already active', () =>
   assert.equal(result.endState.profession.gunsaberActive, true);
 });
 
+test('Gunsaber equip and stow each recharge in five seconds', () => {
+  // Offset the first stow so both transitions must independently wait for their recharge.
+  const result = simulate([
+    ID.UNSHEATHE_GUNSABER,
+    { type: 'wait', durationMs: 1000 },
+    ID.SHEATHE_GUNSABER,
+    ID.UNSHEATHE_GUNSABER,
+    ID.SHEATHE_GUNSABER
+  ]);
+
+  assert.deepEqual(result.warnings, []);
+  for (const name of ['Unsheathe Gunsaber', 'Sheathe Gunsaber']) {
+    const [first, second] = result.steps.filter((step) => step.skill === name);
+    assert.equal(second.start - first.end, 5000);
+  }
+});
+
 test('Gunsaber transitions start separate rotation lines', () => {
   const transition = warriorProfession.ui.timelineWeaponLineTransition;
   const rotation = [

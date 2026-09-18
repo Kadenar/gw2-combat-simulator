@@ -349,7 +349,7 @@ test('Bladesworn palette availability follows gunsaber and Dragon Trigger state'
     available: true,
     message: ''
   });
-  assert.equal(warriorCatalog.skillsById.get(ID.SHEATHE_GUNSABER).cooldown, 0);
+  assert.equal(warriorCatalog.skillsById.get(ID.SHEATHE_GUNSABER).cooldown, 5);
   assert.deepEqual(availability({ gunsaberActive: false }, ID.DRAGON_SLASH_FORCE), {
     available: false,
     message: 'Enter Dragon Trigger first'
