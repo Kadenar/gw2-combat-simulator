@@ -190,8 +190,6 @@ export function handleDarkSentry(
       emitSkillCondition(context, {
         at: proc.at,
         source: 'Trait',
-        sourceId: TRAIT.DARK_SENTRY,
-        actorType: 'player',
         skillId: TRAIT.DARK_SENTRY,
         skillName: 'Rot Wallow Venom',
         name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,

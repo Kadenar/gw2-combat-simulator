@@ -133,7 +133,6 @@ export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSk
     emitSkillCondition(context, {
       at,
       source: 'Trait',
-      actorType: 'player',
       skillId: context.skill?.id ?? null,
       skillName: context.skill?.name ?? null,
       condition: String(vulnerability?.condition || 'Vulnerability'),

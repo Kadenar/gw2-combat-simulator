@@ -59,7 +59,12 @@ function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
-function clearDragonTriggerState(state: ReturnType<typeof bladeswornState.from>): void {
+// Start recharge on exit so charging time never consumes Dragon Trigger's cooldown.
+function exitDragonTrigger(context: WarriorSchedulerContext, at: number): void {
+  const state = bladeswornState.from(context);
+  if (!state.dragonTriggerActive) return;
+  const skill = context.catalog.skillsById.get(ID.DRAGON_TRIGGER);
+  if (skill) context.state.cooldowns.set(skill.id, at + context.rechargeDurationFor(skill, at));
   state.dragonTriggerActive = false;
   state.dragonTriggerStartedAt = 0;
   state.dragonTriggerChargeDeadline = 0;
@@ -79,6 +84,7 @@ export function enterGunsaber(context: WarriorCastContext, skill: WarriorSkill):
 }
 
 export function exitGunsaber(context: WarriorCastContext, skill: WarriorSkill): void {
+  exitDragonTrigger(context, context.effectiveEnd);
   bladeswornState.from(context).gunsaberActive = false;
   emitGunsaberWeaponSwap(context, skill);
 }
@@ -168,12 +174,9 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   if (minimumBurningDuration > 0 && maximumBurningDuration > 0) {
     // Sharp as the Wind converts charge into both Burning intensity and duration on one linear scale.
     emitSkillCondition(context, {
+      skill,
       at: impactAt,
-      skillId: skill.id,
-      sourceId: skill.id,
-      skillName: skill.name,
       source: 'Warrior',
-      actorType: 'player',
       condition: 'Burning',
       stacks: dragonSlashCoefficient(1, 20, charges, maximumCharges),
       duration: dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges)
@@ -182,7 +185,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
 
   applyDragonSlashTraits(context, skill, impactAt);
 
-  clearDragonTriggerState(state);
+  exitDragonTrigger(context, context.effectiveEnd);
 }
 
 // Consume Artillery Slash ammo, preserve its recharge lockout, and select the
@@ -223,12 +226,9 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   if (sharpAsTheWind) {
     // The condition variant spends the same ammo pool while scaling its Bleeding payload by rounds consumed.
     emitSkillCondition(context, {
+      skill,
       at: context.effectiveEnd,
-      skillId: skill.id,
-      sourceId: skill.id,
-      skillName: skill.name,
       source: 'Warrior',
-      actorType: 'player',
       condition: 'Bleeding',
       stacks: charges >= 2 ? 4 : 3,
       duration: charges >= 2 ? 7 : 6
@@ -435,7 +435,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
   if (target > state.dragonTriggerChargeDeadline + context.epsilon) {
-    clearDragonTriggerState(state);
+    exitDragonTrigger(context, state.dragonTriggerChargeDeadline);
   }
 }
 

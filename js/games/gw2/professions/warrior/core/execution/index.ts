@@ -129,12 +129,9 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
     }
 
     emitSkillCondition(context, {
+      skill,
       at,
       source: 'Warrior',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: `${skill.name} - Burning`,
       condition: String(burning?.condition || 'Burning'),
       stacks: Number(burning?.stacks ?? 1),

@@ -97,13 +97,11 @@ export const untamedSkillHandlers = Object.freeze({
       // (defiant, disabled, or broken); it has no effect on normal enemies.
       if (context.config.target?.defiant || context.config.target?.disabled || context.config.target?.defianceBroken) {
         emitSkillCondition(context, {
+          skill,
           at: context.start,
           // Attributed to ranger-pet so Ferocious Symbiosis cross-triggers correctly.
           source: 'ranger-pet',
-          sourceId: skill.id,
           actorType: 'summon',
-          skillId: skill.id,
-          skillName: skill.name,
           condition: 'Vulnerability',
           duration: 10,
           stacks: 8

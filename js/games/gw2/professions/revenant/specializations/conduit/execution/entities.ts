@@ -113,7 +113,8 @@ export function castHexEaterVortex(context: RevenantCastContext, skill: Revenant
       skillWeapon: conduitSkillWeapon(context, skill),
       canCrit: null
     });
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at: projectileAt,
       condition: String(tormentTick.condition || 'Torment'),
       stacks: Number(tormentTick.stacks ?? 1),
@@ -142,7 +143,8 @@ export function castGladiatorsDefense(context: RevenantCastContext, skill: Reven
   for (const effect of skill.effects || []) {
     if (effect.type === 'condition') {
       for (const tick of conditionEffectTicks(effect)) {
-        emitSkillCondition(context, skill, {
+        emitSkillCondition(context, {
+          skill,
           at: context.effectiveEnd,
           condition: tick.condition,
           stacks: Number(tick.stacks ?? 1),
@@ -198,7 +200,8 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   });
   for (let index = 0; index < packets; index += 1) {
     const bleedingTick = bleedingTicks[index] || bleedingTicks[0];
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       condition: String(bleedingTick?.condition || 'Bleeding'),
       stacks: Number(bleedingTick?.stacks ?? 1),
@@ -219,7 +222,8 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   );
   const immobilizedTick = firstConditionTick(immobilized, 'Immobilized');
   if (hasLegend(context, LEGEND.ASSASSIN)) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       condition: String(immobilizedTick?.condition || 'Immobilized'),
       stacks: Number(immobilizedTick?.stacks ?? 1),
@@ -249,7 +253,8 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
 
     const confusionTicks = confusion?.type === 'condition' ? conditionEffectTicks(confusion) : [];
     for (const [index, tick] of confusionTicks.entries()) {
-      emitSkillCondition(context, skill, {
+      emitSkillCondition(context, {
+        skill,
         at: effectAt(context, confusion, tick.atMs),
         condition: String(tick.condition || 'Confusion'),
         stacks: Number(tick.stacks ?? 1),

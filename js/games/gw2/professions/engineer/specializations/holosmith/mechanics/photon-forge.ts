@@ -187,7 +187,6 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
     at: effectAt,
     source: 'Trait',
     sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
-    actorType: 'player',
     skillName: 'Photonic Blasting Module',
     name: 'Photonic Blasting Module — Burning',
     condition: 'Burning',

@@ -300,9 +300,6 @@ function emitForgedSurferPacket(
   });
   emitSkillCondition(context, {
     at: task.at,
-    source: 'thief',
-    sourceId: task.payload.skillId,
-    actorType: 'player',
     skillId: task.payload.skillId,
     skillName: 'Forged Surfer Dash',
     name: `${name} — Burning`,
@@ -396,9 +393,6 @@ function emitCannonBackfire(context: ThiefCastContext, at: number): void {
   });
   emitSkillCondition(context, {
     at: impactAt,
-    source: 'thief',
-    sourceId: ID.STONE_SUMMIT_CANNON,
-    actorType: 'player',
     skillId: ID.STONE_SUMMIT_CANNON,
     skillName: 'Stone Summit Cannon',
     name: 'Stone Summit Cannon — Backfire',
@@ -433,9 +427,6 @@ function emitCannonSuccess(context: ThiefCastContext): void {
     });
     emitSkillCondition(context, {
       at,
-      source: 'thief',
-      sourceId: ID.STONE_SUMMIT_CANNON,
-      actorType: 'player',
       skillId: ID.STONE_SUMMIT_CANNON,
       skillName: 'Stone Summit Cannon',
       name: 'Stone Summit Cannon — Burning',

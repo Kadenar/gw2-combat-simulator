@@ -368,6 +368,8 @@ function mountHitTimelineLane(
       detailHits = [...ticks.values()];
     }
 
+    // Show pulse state beside its hit instead of adding a second timeline to the skill details.
+    const showEmpowered = group.some((hit) => hit.empowered != null);
     // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
     const showCritical = group.some((hit) => hit.crit != null);
     const showAttribution = detailHits.some((hit) => hit.contributions?.length);
@@ -387,12 +389,12 @@ function mountHitTimelineLane(
         <div class="condition-payouts">${detailHits.map((hit) => tickAttributionHtml(hit.contributions || [], hit.t + timeOffsetMs, hit.v)).join('')}</div>`
           : `<div class="hit-detail-table"><table>
         <caption>${escapeHtml(detailLabel)}</caption>
-        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
+        <thead><tr><th scope="col">${isCondition ? 'Tick' : 'Hit'}</th><th scope="col">Time</th>${isCondition ? '<th scope="col">Condition type</th>' : ''}<th scope="col">Damage</th>${showEmpowered ? '<th scope="col">Pulse</th>' : ''}${showCritical ? '<th scope="col">Critical</th>' : ''}${showTriggeredBy ? '<th scope="col">Triggered by</th>' : ''}${showAttribution ? '<th scope="col">Attribution</th>' : ''}</tr></thead>
         <tbody>${detailHits
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
           ${isCondition ? `<td>${escapeHtml(hit.conditionType || 'Unknown')}</td>` : ''}
-          <td>${Math.round(hit.v).toLocaleString()}</td>${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showTriggeredBy ? `<td>${escapeHtml(hit.triggeredBy || '—')}</td>` : ''}</tr>`
+          <td>${Math.round(hit.v).toLocaleString()}</td>${showEmpowered ? `<td>${hit.empowered == null ? '—' : hit.empowered ? 'Empowered' : 'Normal'}</td>` : ''}${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showTriggeredBy ? `<td>${escapeHtml(hit.triggeredBy || '—')}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
       </table></div>`
@@ -464,6 +466,7 @@ function mountHitTimelineLane(
           ${group.length > 1 ? `<div>First ${noun}: ${hitTime(first.t + timeOffsetMs)}</div><div>Last ${noun}: ${hitTime(last.t + timeOffsetMs)}</div>` : ''}
           <div>Total damage: ${Math.round(group.reduce((sum, hit) => sum + hit.v, 0)).toLocaleString()}</div>
           ${isCondition && group.length === 1 ? `<div>Condition type: ${escapeHtml(first.conditionType || 'Unknown')}</div>` : ''}
+          ${group.length === 1 && first.empowered != null ? `<div>Pulse: ${first.empowered ? 'Empowered' : 'Normal'}</div>` : ''}
           ${group.length === 1 && first.crit != null ? `<div>Critical: ${first.crit ? 'Yes' : 'No'}</div>` : ''}
           ${group.length === 1 && first.triggeredBy ? `<div>Triggered by: ${escapeHtml(first.triggeredBy)}</div>` : ''}`;
         tooltip.style.display = 'block';

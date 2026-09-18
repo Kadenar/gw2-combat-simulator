@@ -79,8 +79,6 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
           emitSkillCondition(context, {
             at,
             source: familiar.name,
-            sourceId: familiar.id,
-            actorType: 'player',
             skillName: familiar.name,
             skillId: familiar.id,
             condition: String(tick.condition || effect.condition || ''),
@@ -248,12 +246,9 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       skillWeapon: 'Unequipped'
     });
     emitSkillCondition(context, {
+      skill,
       at,
       source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      skillId: skill.id,
       condition: String(burning?.condition || 'Burning'),
       stacks: Number(burning?.stacks ?? [1, 2, 3][tier]),
       duration: Number(burning?.duration ?? [3, 5, 5][tier])

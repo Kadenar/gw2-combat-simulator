@@ -185,9 +185,6 @@ export const rangerCoreSkillHandlers = Object.freeze({
       const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunSpirit), 'condition');
       emitSkillCondition(context, {
         at: context.effectiveEnd,
-        source: 'ranger',
-        sourceId: ID.SOLAR_FLARE,
-        actorType: 'player',
         skillId: ID.SOLAR_FLARE,
         skillName: 'Solar Flare',
         name: 'Solar Flare - Burning',

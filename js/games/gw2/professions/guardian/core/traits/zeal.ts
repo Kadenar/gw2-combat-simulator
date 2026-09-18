@@ -101,8 +101,6 @@ export function applySymbolicExposure(context: GuardianSchedulerContext, event: 
   const exposure = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolicExposure), 'condition');
   emitSkillCondition(context, {
     at: event.at,
-    source: 'guardian',
-    sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
     actorType: 'effect',
     skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
     skillName: 'Symbolic Exposure',

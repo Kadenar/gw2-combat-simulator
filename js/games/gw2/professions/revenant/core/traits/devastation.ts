@@ -269,9 +269,6 @@ export function applyExposeDefenses(context: RevenantSchedulerContext, event: Re
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
-    source: 'revenant',
-    sourceId: TRAIT.EXPOSE_DEFENSES,
-    actorType: 'player',
     skillId: TRAIT.EXPOSE_DEFENSES,
     skillName: 'Expose Defenses',
     name: `Expose Defenses — ${conditionName}`,

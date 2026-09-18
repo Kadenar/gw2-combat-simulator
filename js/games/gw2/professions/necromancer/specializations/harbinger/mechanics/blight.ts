@@ -122,7 +122,8 @@ function applyCascadingCorruption(
     parentSkillName: skill.name
   });
   const torment = balanceProfileEffect(profile, 'condition');
-  emitSkillCondition(context, CASCADING_CORRUPTION_EFFECT, {
+  emitSkillCondition(context, {
+    skill: CASCADING_CORRUPTION_EFFECT,
     at,
     source: 'Trait',
     sourceId: TRAIT.CASCADING_CORRUPTION,
@@ -156,7 +157,8 @@ function emitElixirEffects(
         }
       });
     } else if (effect.type === 'condition') {
-      emitSkillCondition(context, skill, {
+      emitSkillCondition(context, {
+        skill,
         at: impactAt,
         condition: String(effect.condition || ''),
         stacks: Number(effect.stacks ?? 1),
@@ -284,7 +286,8 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   if (empowered) {
     const condition = balanceProfileEffect(source, 'condition');
     if (condition) {
-      emitSkillCondition(context, skill, {
+      emitSkillCondition(context, {
+        skill,
         at: impactAt,
         condition: String(condition.condition || 'Torment'),
         stacks: Number(condition.stacks ?? 1),

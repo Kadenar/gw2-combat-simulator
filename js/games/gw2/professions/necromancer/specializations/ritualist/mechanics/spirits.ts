@@ -322,8 +322,20 @@ function emitAnguishInitial(
   at: number
 ): void {
   // Apply the opening control conditions before the profile-timed barrage begins.
-  emitSkillCondition(context, skill, { at, condition: 'Crippled', stacks: 1, duration: 4 });
-  emitSkillCondition(context, skill, { at, condition: 'Vulnerability', stacks: 8, duration: 10 });
+  emitSkillCondition(context, {
+    skill,
+    at,
+    condition: 'Crippled',
+    stacks: 1,
+    duration: 4
+  });
+  emitSkillCondition(context, {
+    skill,
+    at,
+    condition: 'Vulnerability',
+    stacks: 8,
+    duration: 10
+  });
   const ticks = spirit.summonTicks;
   if (!ticks.length) throw new Error('Anguish requires an explicit initial strike timeline.');
   // Painful Bond begins on the first barrage impact; the barrage shares one fixed shroud-strength roll.
@@ -382,9 +394,16 @@ function emitWanderlustInitial(
     });
   }
 
-  emitSkillCondition(context, skill, { at: fieldAt, condition: 'Chilled', stacks: 1, duration: 2 });
+  emitSkillCondition(context, {
+    skill,
+    at: fieldAt,
+    condition: 'Chilled',
+    stacks: 1,
+    duration: 2
+  });
   // Vulnerability lands after the second field hit, so only the final two packets benefit from it.
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: fieldAt + 1,
     source: 'Spirit',
     actorType: 'player',
@@ -393,7 +412,8 @@ function emitWanderlustInitial(
     duration: 6,
     ...spiritEventFields(context, 'wanderlust', 'initial')
   });
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: fieldAt + 2,
     source: 'Spirit',
     actorType: 'player',
@@ -402,7 +422,8 @@ function emitWanderlustInitial(
     duration: 4,
     ...spiritEventFields(context, 'wanderlust', 'initial')
   });
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: fieldAt + 3,
     source: 'Spirit',
     actorType: 'player',

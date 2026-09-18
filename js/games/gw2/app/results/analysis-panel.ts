@@ -795,6 +795,8 @@ export function mountRotationResults(
     const hits = chartSeries.skillDamage?.[selectedSkillKey] || [];
     // List only activations of the selected effect so its count and sources exclude downstream procs.
     const selectedRow = skillRows.find((row) => row.key === selectedSkillKey);
+    const skillName = String(selectedRow?.sourceSkill || selectedRow?.name || '');
+    const applications = chartSeries.skillApplications?.[skillName] || [];
     const procs = (model.procSteps || [])
       .filter((proc) => selectedRow?.group === 'Player' && proc.skill === selectedRow.sourceSkill)
       .sort((left, right) => left.start - right.start);
@@ -846,7 +848,12 @@ export function mountRotationResults(
     if (hits.length) {
       const damageTimeline = doc.createElement('div');
       timeline.append(damageTimeline);
-      mountHitTimeline(damageTimeline, hits, {
+      // Pair strikes with their pulse applications; later condition payouts do not represent pulse empowerment.
+      const empowerment = new Map(applications.map((application) => [application.t, application.empowered]));
+      const pulseHits = hits.map((hit) =>
+        hit.damageType !== 'condition' && empowerment.has(hit.t) ? { ...hit, empowered: empowerment.get(hit.t) } : hit
+      );
+      mountHitTimeline(damageTimeline, pulseHits, {
         durationMs: chartSeries.durationMs,
         color: options.chartOptions?.skillDamageColor,
         label: 'Damage Events'

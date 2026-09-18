@@ -13,6 +13,8 @@ export interface SkillHit {
   readonly t: number;
   readonly v: number;
   readonly crit?: boolean | null;
+  // Presentation-only pulse state; absent for hits without a matching application.
+  readonly empowered?: boolean;
   readonly activationId?: string;
   readonly damageType?: 'strike' | 'condition';
   readonly conditionType?: string;

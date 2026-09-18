@@ -1,5 +1,85 @@
 import { expect, test } from '@playwright/test';
 
+// Pulse state belongs beside individual strikes, without an extra strip or labels on condition payouts.
+test('skill details distinguish normal and empowered applications', async ({ page }, testInfo) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(async () => {
+    const { mountRotationResults, SKILL_COLS } = await import('/js/games/gw2/app/results/analysis-panel.ts');
+    document.body.innerHTML = '<div id="series"></div>';
+    mountRotationResults(document.querySelector('#series'), {
+      showSummary: false,
+      skillColumns: SKILL_COLS,
+      skillRows: [
+        {
+          key: 'embrace',
+          name: 'Embrace the Darkness',
+          sourceSkill: 'Embrace the Darkness',
+          group: 'Player',
+          total: 100
+        },
+        { key: 'other', name: 'Other Skill', sourceSkill: 'Other Skill', group: 'Player', total: 100 }
+      ],
+      chartSeries: {
+        durationMs: 8000,
+        dps: [
+          { t: 0, v: 0 },
+          { t: 8000, v: 100 }
+        ],
+        cumulativeDamage: [
+          { t: 0, v: 0 },
+          { t: 8000, v: 400 }
+        ],
+        effects: {},
+        skillDamage: {
+          embrace: [
+            ...[0, 1000, 2000, 3000, 3500, 6000].map((t) => ({ t, v: 100 })),
+            ...[1000, 2000].map((t) => ({ t, v: 20, damageType: 'condition', conditionType: 'Torment' }))
+          ],
+          other: [
+            { t: 0, v: 100 },
+            { t: 1000, v: 100 }
+          ]
+        },
+        skillNames: { embrace: 'Embrace the Darkness', other: 'Other Skill' },
+        skillApplications: {
+          'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
+            t,
+            label: 'Embrace the Darkness',
+            empowered: t === 1000 || t === 6000
+          }))
+        }
+      }
+    });
+  });
+  const embraceRow = page.locator('[data-skill-key="embrace"]');
+  const otherRow = page.locator('[data-skill-key="other"]');
+  await embraceRow.focus();
+  await embraceRow.press('Enter');
+  const timeline = page.locator('[data-role="skill-timeline"]');
+  const strikes = timeline.getByRole('group', { name: 'Strike damage', exact: true });
+  await strikes.getByRole('button', { name: '0.00s · 5 hits', exact: true }).click();
+  await expect(strikes.getByRole('columnheader', { name: 'Pulse', exact: true })).toBeVisible();
+  await expect(strikes.locator('tbody tr td:last-child')).toHaveText(['Normal', 'Empowered', 'Normal', 'Normal', '—']);
+  await expect(page.locator('[data-role="skill-applications"]')).toHaveCount(0);
+  await expect(page.getByText('Hover or focus a pulse for its application time.')).toHaveCount(0);
+  await strikes.getByRole('img', { name: '6.00s · 1 hit', exact: true }).focus();
+  await expect(strikes.locator('[data-role="hit-timeline-tooltip"]')).toContainText('Pulse: Empowered');
+  const conditions = timeline.getByRole('group', { name: 'Condition damage', exact: true });
+  await conditions.getByRole('button').click();
+  await expect(conditions.getByRole('columnheader', { name: 'Pulse', exact: true })).toHaveCount(0);
+  await timeline.screenshot({ path: testInfo.outputPath('skill-pulse-details.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(strikes.getByRole('cell', { name: 'Empowered', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await timeline.screenshot({ path: testInfo.outputPath('skill-pulse-details-mobile.png') });
+  await embraceRow.click();
+  await expect(timeline).toHaveCount(0);
+  await otherRow.click();
+  await timeline.getByRole('button', { name: '0.00s · 2 hits', exact: true }).click();
+  await expect(timeline.getByRole('columnheader', { name: 'Pulse', exact: true })).toHaveCount(0);
+});
+
 // Condition rows disclose actual payouts and application shares using the existing keyboard-accessible inspector.
 test('condition rows inspect full and partial payouts across sources', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });

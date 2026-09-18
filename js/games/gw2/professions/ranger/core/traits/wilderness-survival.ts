@@ -37,7 +37,6 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
   emitSkillCondition(context, {
     at,
     source: 'Trait',
-    sourceId: TRAIT.CHILD_OF_EARTH,
     actorType: 'effect',
     skillId: TRAIT.CHILD_OF_EARTH,
     skillName: 'Child of Earth',
@@ -59,7 +58,6 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
       emitSkillCondition(context, {
         at: at + application * interval,
         source: 'Trait',
-        sourceId: TRAIT.CHILD_OF_EARTH,
         actorType: 'effect',
         skillId: TRAIT.CHILD_OF_EARTH,
         skillName: 'Child of Earth',

@@ -320,7 +320,8 @@ function emitMinionCommandEffects(
   }
 
   if (definition.condition) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       source: 'Minion',
       actorType: 'summon',
@@ -331,7 +332,8 @@ function emitMinionCommandEffects(
   }
 
   for (const condition of definition.conditions || []) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       source: 'Minion',
       actorType: 'summon',

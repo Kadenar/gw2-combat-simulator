@@ -17,8 +17,8 @@ import type {
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-interface SkillEventOwnership extends UnvalidatedFields {
-  /** Optional identity for procedural events that do not have a catalog skill in scope. */
+interface SkillEventOwnership {
+  /** Default attribution; sourceId may independently identify the trait or effect that produced the packet. */
   readonly skill?: Skill;
   readonly cause?: SimulationEvent;
   readonly source?: string;
@@ -26,8 +26,11 @@ interface SkillEventOwnership extends UnvalidatedFields {
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   readonly summonKind?: string;
+  /** Undefined uses the skill identity; null omits attribution from the emitted event. */
   readonly skillId?: SkillId | null;
   readonly skillName?: string | null;
+  /** Undefined generates a label; null omits the label. */
+  readonly name?: string | null;
   readonly parentSkillName?: string;
   readonly activationId?: string;
   readonly triggeredBy?: string;
@@ -46,7 +49,7 @@ interface StandardSkillEventEnvelope {
   readonly actorType: SimulationActorType;
 }
 
-export interface EmitSkillDamageOptions extends SkillEventOwnership, SkillEventMetadata {
+export interface EmitSkillDamageOptions extends SkillEventOwnership, SkillEventMetadata, UnvalidatedFields {
   readonly at: number;
   /** Total coefficient across every emitted hit. */
   readonly coefficient: number;
@@ -55,7 +58,6 @@ export interface EmitSkillDamageOptions extends SkillEventOwnership, SkillEventM
   readonly interval?: number;
   readonly hitIndex?: number;
   readonly totalHits?: number;
-  readonly name?: string | null;
   readonly skillWeapon?: string;
   readonly canCrit?: boolean | null;
 }
@@ -65,10 +67,37 @@ export interface EmitSkillConditionOptions extends SkillEventOwnership, SkillEve
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
-  readonly name?: string | null;
+  /** Transferred conditions retain their remaining lifetime without applying duration modifiers again. */
+  readonly fixedDuration?: boolean;
+  readonly transferredCondition?: boolean;
+  readonly transferredFromSkillId?: SkillId;
+  readonly nonDamaging?: boolean;
+  readonly offTarget?: boolean;
+  readonly persistsAfterInterrupt?: boolean;
+  readonly applicationIndex?: number;
+  readonly totalApplications?: number;
+  readonly icon?: string;
+  readonly damageBreakdownName?: string;
+  readonly sourceSkill?: string;
+  readonly skillWeapon?: string;
+  readonly weaponStrength?: number;
+  readonly summonOwner?: string;
+  readonly summonInheritsAttributes?: boolean;
+  readonly summonIgnoresBoons?: boolean;
+  readonly summonUsesEquipmentModifiers?: boolean;
+  readonly independentConditionOwner?: boolean;
+  readonly elementalOwnedCondition?: boolean;
+  readonly crushingAbyssStacks?: number;
+  readonly triggeredByAlly?: number;
+  readonly venomProcEffectIndex?: number;
+  readonly cloneId?: number;
+  readonly blade?: boolean;
+  readonly shatter?: boolean;
+  readonly shatterTraitEligible?: boolean;
+  readonly instrument?: string;
 }
 
-export interface EmitSkillBuffOptions extends SkillEventOwnership, SkillEventMetadata {
+export interface EmitSkillBuffOptions extends SkillEventOwnership, SkillEventMetadata, UnvalidatedFields {
   readonly at: number;
   readonly name?: string;
   readonly kind: string;
@@ -79,29 +108,42 @@ export interface EmitSkillBuffOptions extends SkillEventOwnership, SkillEventMet
   readonly audience?: EffectAudience;
 }
 
-export interface EmitSkillControlOptions extends SkillEventOwnership, SkillEventMetadata {
+export interface EmitSkillControlOptions extends SkillEventOwnership, SkillEventMetadata, UnvalidatedFields {
   readonly at: number;
   readonly name?: string;
   readonly controlKind?: string;
 }
 
-function standardEnvelope<TProfessionState extends object>(
+function skillEventFields<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
-  options: SkillEventOwnership
-): StandardSkillEventEnvelope {
+  options: SkillEventOwnership & SkillEventMetadata,
+  internalFields: readonly string[] = []
+): StandardSkillEventEnvelope & UnvalidatedFields {
+  // Separate normalized attribution from pass-through fields so omitted values cannot leak back through a spread.
+  const {
+    skill: _skill,
+    cause: _cause,
+    name: _name,
+    source,
+    sourceId,
+    actorType,
+    skillId,
+    skillName,
+    metadata,
+    ...rest
+  } = options;
+  const fields: DynamicFields = rest;
+  for (const field of ['type', ...internalFields]) delete fields[field];
+  const normalizedMetadata = normalizeEffectMetadata(metadata);
   return {
-    source: options.source ?? context.profession.id,
-    sourceId: options.sourceId ?? skill.id,
-    actorType: options.actorType ?? 'player',
-    ...(options.ownerActorType ? { ownerActorType: options.ownerActorType } : {}),
-    ...(options.summonKind ? { summonKind: options.summonKind } : {}),
-    ...(options.skillId === null ? {} : { skillId: options.skillId ?? skill.id }),
-    ...(options.skillName === null ? {} : { skillName: options.skillName ?? skill.name }),
-    ...(options.parentSkillName ? { parentSkillName: options.parentSkillName } : {}),
-    ...(options.activationId ? { activationId: options.activationId } : {}),
-    ...(options.triggeredBy ? { triggeredBy: options.triggeredBy } : {}),
-    ...(options.priority == null ? {} : { priority: options.priority })
+    ...fields,
+    source: source ?? context.profession.id,
+    sourceId: sourceId ?? skill.id,
+    actorType: actorType ?? 'player',
+    ...(skillId === null ? {} : { skillId: skillId ?? skill.id }),
+    ...(skillName === null ? {} : { skillName: skillName ?? skill.name }),
+    ...(normalizedMetadata ? { metadata: normalizedMetadata } : {})
   };
 }
 
@@ -113,7 +155,7 @@ function proceduralSkill<TProfessionState extends object>(
   return (
     options.skill ?? {
       id,
-      name: options.skillName ?? String((options as UnvalidatedFields).name || id)
+      name: options.skillName ?? String(options.name || id)
     }
   );
 }
@@ -126,17 +168,6 @@ function skillEventArguments<TProfessionState extends object, TOptions extends S
   const options = (maybeOptions ?? skillOrOptions) as TOptions;
   const skill = maybeOptions ? (skillOrOptions as Skill) : proceduralSkill(context, options);
   return { skill, options };
-}
-
-function supplementalEventFields(
-  options: SkillEventOwnership & SkillEventMetadata,
-  internalFields: readonly string[] = []
-): UnvalidatedFields {
-  // Preserve nested metadata while keeping helper-only controls out of the emitted event.
-  const metadata = normalizeEffectMetadata(options.metadata);
-  const fields: DynamicFields = { ...options, ...(metadata ? { metadata } : {}) };
-  for (const field of ['skill', 'cause', 'type', ...internalFields]) delete fields[field];
-  return fields;
 }
 
 function emitProceduralEvent<TProfessionState extends object>(
@@ -167,13 +198,21 @@ export function emitSkillDamage<TProfessionState extends object>(
   const hits = Math.max(1, Math.trunc(Number(options.hits ?? 1)));
   const interval = Math.max(0, Number(options.interval ?? 0));
   const coefficient = Number(options.coefficient || 0) / hits;
-  const envelope = standardEnvelope(context, skill, options);
+  const fields = skillEventFields(context, skill, options, [
+    'at',
+    'interval',
+    'coefficient',
+    'hits',
+    'hitIndex',
+    'totalHits',
+    'skillWeapon',
+    'canCrit'
+  ]);
   const emitted: SimulationEvent[] = [];
 
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     const event: SimulationEventInput = {
-      ...supplementalEventFields(options, ['interval']),
-      ...envelope,
+      ...fields,
       type: 'damage',
       at: options.at + (hitIndex - 1) * interval,
       ...(options.name === null ? {} : { name: options.name ?? options.skillName ?? skill.name }),
@@ -194,25 +233,14 @@ export function emitSkillDamage<TProfessionState extends object>(
   return emitted;
 }
 
-/** Emits one condition application with canonical skill attribution. */
-export function emitSkillCondition<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
-  skill: Skill,
-  options: EmitSkillConditionOptions
-): SimulationEvent;
+/** Emits one condition application; explicit attribution overrides skill defaults, and null omits optional identity. */
 export function emitSkillCondition<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   options: EmitSkillConditionOptions
-): SimulationEvent;
-export function emitSkillCondition<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
-  skillOrOptions: Skill | EmitSkillConditionOptions,
-  maybeOptions?: EmitSkillConditionOptions
 ): SimulationEvent {
-  const { skill, options } = skillEventArguments(context, skillOrOptions, maybeOptions);
+  const skill = proceduralSkill(context, options);
   const event: SimulationEventInput = {
-    ...supplementalEventFields(options),
-    ...standardEnvelope(context, skill, options),
+    ...skillEventFields(context, skill, options, ['at', 'condition', 'stacks', 'duration']),
     type: 'condition',
     at: options.at,
     ...(options.name === null
@@ -251,8 +279,15 @@ export function emitSkillBuff<TProfessionState extends object>(
   const audience = normalizeEffectAudience(options.audience);
 
   const event: SimulationEventInput = {
-    ...supplementalEventFields(options, ['fixedDuration', 'maximumDuration']),
-    ...standardEnvelope(context, skill, options),
+    ...skillEventFields(context, skill, options, [
+      'at',
+      'kind',
+      'duration',
+      'stacks',
+      'audience',
+      'fixedDuration',
+      'maximumDuration'
+    ]),
     type: 'buff',
     at: options.at,
     ...(options.name ? { name: options.name } : {}),
@@ -281,8 +316,7 @@ export function emitSkillControl<TProfessionState extends object>(
 ): SimulationEvent {
   const { skill, options } = skillEventArguments(context, skillOrOptions, maybeOptions);
   const event: SimulationEventInput = {
-    ...supplementalEventFields(options),
-    ...standardEnvelope(context, skill, options),
+    ...skillEventFields(context, skill, options, ['at', 'controlKind']),
     type: 'control',
     at: options.at,
     ...(options.name ? { name: options.name } : {}),

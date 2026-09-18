@@ -97,7 +97,8 @@ export function createMesmerEventEmitters({
     return ticks.flatMap((tick, index) => {
       const name = canonicalTargetConditionName(tick.condition);
       if (!(Number(tick.duration) > 0)) return [];
-      const emitted = emitSkillCondition(emissionContext, skill, {
+      const emitted = emitSkillCondition(emissionContext, {
+        skill,
         ...fields,
         ...baseOwnership,
         at: at + Number(tick.atMs || 0) / 1000,

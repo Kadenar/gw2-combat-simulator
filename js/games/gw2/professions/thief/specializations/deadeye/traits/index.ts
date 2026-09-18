@@ -29,7 +29,6 @@ export function applyMaliciousAshenAssaultCondition(
   emitSkillCondition(context, {
     at,
     source: 'Trait',
-    actorType: 'player',
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(torment?.condition || 'Torment'),

@@ -130,7 +130,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     metadata: { necromancerShroudSkillOne: true, dhuumfireDuration: 2, dhuumfireInterval: 1 }
   });
   const shadeCondition = balanceProfileEffect(shadeProfile, 'condition');
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: impactAt,
     sourceId: ID.MANIFEST_SAND_SHADE,
     condition: String(shadeCondition?.condition || ''),
@@ -141,7 +142,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   // Sadistic Searing remains effect-sourced while player ownership lets equipment react to its Burning.
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(context, TRAIT.SADISTIC_SEARING)) {
     const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sadisticSearing), 'condition');
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       source: 'Trait',
       sourceId: TRAIT.SADISTIC_SEARING,
@@ -172,7 +174,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     for (const tick of ticks) {
       const pulseAt = at + Number(tick.atMs) / 1000;
       emitSkillDamage(context, skill, { at: pulseAt, coefficient: Number(tick.coefficient) });
-      emitSkillCondition(context, skill, {
+      emitSkillCondition(context, {
+        skill,
         at: pulseAt,
         condition: String(torment?.condition || ''),
         stacks: Number(torment?.stacks ?? 1),
@@ -214,7 +217,8 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
     emitSkillDamage(context, skill, { at: at + delay, coefficient: Number(strike?.coefficient ?? 3) });
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at: at + delay,
       condition: String(torment?.condition || ''),
       stacks: Number(torment?.stacks ?? 1),

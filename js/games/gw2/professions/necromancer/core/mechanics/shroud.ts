@@ -102,7 +102,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       coefficient: 1.5,
       skillWeapon: 'Unequipped'
     });
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,
@@ -111,7 +112,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       stacks: 2,
       duration: 10
     });
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,

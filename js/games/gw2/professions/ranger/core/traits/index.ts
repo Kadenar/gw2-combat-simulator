@@ -160,7 +160,6 @@ export function applyRangerBeastSkillTraits(
     emitSkillCondition(context, {
       at: context.effectiveEnd,
       source: 'Trait',
-      sourceId: TRAIT.WOLFSONG,
       actorType: 'effect',
       skillId: TRAIT.WOLFSONG,
       skillName: 'Wolfsong',
@@ -265,7 +264,6 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
     emitSkillCondition(context, {
       at,
       source: 'Trait',
-      sourceId: TRAIT.CLARION_BOND,
       actorType: 'effect',
       skillId: TRAIT.CLARION_BOND,
       skillName: 'Clarion Bond',

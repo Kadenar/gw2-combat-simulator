@@ -78,7 +78,6 @@ export function handlePrimordialStanceTick(
       at: task.at,
       source: 'Primordial Stance',
       sourceId,
-      actorType: 'player',
       skillName: 'Primordial Stance',
       condition: String(effect.condition),
       stacks: Number(effect.stacks),

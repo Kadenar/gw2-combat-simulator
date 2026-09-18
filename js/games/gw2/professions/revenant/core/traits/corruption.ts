@@ -35,9 +35,6 @@ export function applyAbyssalChill(context: RevenantSchedulerContext, event: Reve
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
-    source: 'revenant',
-    sourceId: TRAIT.ABYSSAL_CHILL,
-    actorType: 'player',
     skillId: TRAIT.ABYSSAL_CHILL,
     skillName: 'Abyssal Chill',
     name: `Abyssal Chill — ${conditionName}`,

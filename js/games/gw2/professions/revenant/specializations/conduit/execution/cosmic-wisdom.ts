@@ -47,9 +47,9 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
       skillWeapon: 'Unequipped',
       canCrit: null
     });
-    emitSkillCondition(context, mistfireSkill, {
+    emitSkillCondition(context, {
+      skill: mistfireSkill,
       at,
-      source: 'revenant',
       actorType: 'effect',
       ownerActorType: 'player',
       name: 'Mistfire — Burning',

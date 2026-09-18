@@ -15,6 +15,43 @@ const PLAYER_AUDIENCE = Object.freeze({
 /** Builds a resolved player buff so chart fixtures use the runtime audience contract. */
 const playerBuff = (fields) => ({ type: 'buff', resolvedAudience: PLAYER_AUDIENCE, ...fields });
 
+// Application markers use the observation clock and authored empowerment, independently of stack counts or payouts.
+test('Embrace application markers preserve pulse identity within the observation window', () => {
+  const application = (at, fields = {}) => ({
+    type: 'condition',
+    skillId: 28287,
+    skillName: 'Embrace the Darkness',
+    name: 'Embrace the Darkness — Torment',
+    condition: 'Torment',
+    at,
+    duration: 5,
+    stacks: 2,
+    ...fields
+  });
+  const series = buildChartSeries({
+    dpsStartTime: 1,
+    duration: 4,
+    resolvedEvents: [
+      application(0.5),
+      application(1),
+      application(2, {
+        name: 'Empowered application',
+        metadata: { trigger: 'empowered-upkeep-pulse' },
+        damageTicks: [
+          { at: 2.5, damage: 10 },
+          { at: 3.5, damage: 10 }
+        ]
+      }),
+      application(3, { skillId: 999 }),
+      application(4)
+    ]
+  });
+  assert.deepEqual(series.skillApplications['Embrace the Darkness'], [
+    { t: 0, label: 'Embrace the Darkness — Torment', empowered: false },
+    { t: 1000, label: 'Empowered application', empowered: true }
+  ]);
+});
+
 test('timeline times can reuse a precomputed combat reference', () => {
   const result = {
     events: [

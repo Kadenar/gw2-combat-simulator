@@ -255,12 +255,9 @@ export function handleRadiantHammerImpact(
     })
   );
   emitSkillCondition(context, {
+    skill,
     at,
-    source: 'guardian',
-    sourceId: skill.id,
     actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
     condition: 'Vulnerability',
     stacks: Number(vulnerability?.stacks ?? 8),
     duration: Number(vulnerability?.duration ?? 8)
@@ -325,7 +322,8 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   }
 
   // Apply vulnerability after the simultaneous strike so it affects later attacks, not its own packet.
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: impactAt,
     condition: 'Vulnerability',
     stacks: 1,

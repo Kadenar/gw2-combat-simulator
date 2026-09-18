@@ -52,7 +52,8 @@ function detonate(context: RevenantSchedulerContext, at: number): void {
   });
   for (const effect of skill.effects || []) {
     if (effect.type === 'condition' && effect.condition)
-      emitSkillCondition(context, skill, {
+      emitSkillCondition(context, {
+        skill,
         at,
         condition: effect.condition,
         stacks: Number(effect.stacks),

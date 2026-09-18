@@ -227,10 +227,7 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill:
     });
     emitSkillCondition(context, {
       at,
-      source: 'engineer',
-      sourceId: ID.FOCUSED_DEVASTATION,
       activationId,
-      actorType: 'player',
       skillId: ID.FOCUSED_DEVASTATION,
       skillName: 'Focused Devastation',
       name: 'Focused Devastation — Burning',

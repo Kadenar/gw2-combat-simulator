@@ -30,7 +30,6 @@ export function performThiefDodge(context: ThiefCastContext): void {
       emitSkillCondition(context, {
         at,
         source: 'Trait',
-        actorType: 'player',
         skillId: ID.LESSER_CALTROPS,
         skillName: 'Lesser Caltrops',
         icon: context.catalog.skillsById.get(ID.LESSER_CALTROPS)?.icon,
@@ -44,7 +43,6 @@ export function performThiefDodge(context: ThiefCastContext): void {
       emitSkillCondition(context, {
         at,
         source: 'Trait',
-        actorType: 'player',
         skillId: ID.LESSER_CALTROPS,
         skillName: 'Lesser Caltrops',
         icon: context.catalog.skillsById.get(ID.LESSER_CALTROPS)?.icon,

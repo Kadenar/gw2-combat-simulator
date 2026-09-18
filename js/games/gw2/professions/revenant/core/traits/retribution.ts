@@ -27,9 +27,6 @@ export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, ev
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
-    source: 'revenant',
-    sourceId: TRAIT.DWARVEN_BATTLE_TRAINING,
-    actorType: 'player',
     skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
     skillName: 'Dwarven Battle Training',
     name: `Dwarven Battle Training — ${conditionName}`,

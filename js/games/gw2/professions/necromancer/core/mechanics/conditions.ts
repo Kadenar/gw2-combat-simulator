@@ -340,7 +340,8 @@ function darkPactOnHit(
 ): void {
   if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
   applyNecromancerSelfCondition(context, skill, 'Bleeding', 2, 10, event.at);
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: event.at,
     condition: 'Immobilized',
     stacks: 1,
@@ -355,7 +356,13 @@ function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSk
   const count = Math.min(5, observeTargetConditionCount(context, impactAt, 5));
   emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
   if (count > 0) {
-    emitSkillCondition(context, skill, { at: impactAt, condition: 'Torment', stacks: count, duration: 4 });
+    emitSkillCondition(context, {
+      skill,
+      at: impactAt,
+      condition: 'Torment',
+      stacks: count,
+      duration: 4
+    });
   }
 
   return true;

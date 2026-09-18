@@ -431,8 +431,6 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
     });
     emitSkillCondition(context, {
       at: impactAt,
-      source: 'engineer',
-      sourceId: ID.JADE_BUSTER_CANNON,
       actorType: 'summon',
       skillId: ID.JADE_BUSTER_CANNON,
       skillName: 'Jade Buster Cannon',

@@ -121,7 +121,6 @@ export function handleThievesGuildAttack(
   for (const condition of attack.conditions || []) {
     emitSkillCondition(context, {
       at: task.at,
-      source: 'thief',
       sourceId: 'thief.thieves-guild',
       actorType: 'summon',
       skillId: attack.skillId ?? ID.THIEVES_GUILD,

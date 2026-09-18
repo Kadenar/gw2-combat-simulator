@@ -39,13 +39,13 @@ function emitMineField(
       ? [condition]
       : [];
   for (const application of applications) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at,
       activationId,
       condition: String(application.condition || ''),
       stacks: Number(application.stacks || 1),
-      duration: Number(application.duration || 0),
-      actorType: 'player'
+      duration: Number(application.duration || 0)
     });
   }
 }

@@ -32,7 +32,8 @@ export function darkBarrage(context: NecromancerCastContext, skill: NecromancerS
 
   // Each hit applies Torment independently so each stack receives its own expiry timestamp.
   for (let index = 0; index < landedHits; index += 1) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at: at + index * interval,
       condition: 'Torment',
       stacks: 1,

@@ -246,12 +246,9 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
   });
   for (const alliedProc of alliedProcs) {
     emitSkillCondition(context, {
+      skill,
       at: alliedProc.at,
-      source: 'revenant',
-      sourceId: skill.id,
       actorType: bleed.actorType || 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: `${skill.name} — Ally ${alliedProc.allyIndex} Bleeding`,
       condition: String(bleed.condition || ''),
       stacks: Number(bleed.stacks || 0),

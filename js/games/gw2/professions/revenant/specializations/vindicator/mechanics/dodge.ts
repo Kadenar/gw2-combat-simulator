@@ -159,7 +159,8 @@ export function completeVindicatorDodge(
       });
     } else if (secondary.type === 'condition') {
       for (const tick of conditionEffectTicks(secondary)) {
-        emitSkillCondition(context, profile, {
+        emitSkillCondition(context, {
+          skill: profile,
           at,
           condition: tick.condition,
           duration: tick.duration,

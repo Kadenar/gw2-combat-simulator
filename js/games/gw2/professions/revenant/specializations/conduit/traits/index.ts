@@ -162,10 +162,7 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: R
   state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
   emitSkillCondition(context, {
     cause: event,
-
     at: event.at,
-    source: 'revenant',
-    sourceId: TRAIT.MISTFIRE,
     actorType: 'effect',
     ownerActorType: 'player',
     skillId: TRAIT.MISTFIRE,

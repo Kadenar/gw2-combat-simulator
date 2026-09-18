@@ -16,7 +16,6 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
   emitSkillCondition(context, {
     at,
     source: 'Trait',
-    actorType: 'player',
     // Attribute the condition to its trait while retaining the triggering steal.
     skillId: TRAIT.DEADLY_AMBUSH,
     skillName: 'Deadly Ambush',
@@ -24,7 +23,6 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
     condition: String(bleeding?.condition || 'Bleeding'),
     duration: Number(bleeding?.duration ?? 10),
     stacks: Number(bleeding?.stacks ?? 3),
-    sourceId: TRAIT.DEADLY_AMBUSH,
     name: 'Deadly Ambush — Bleeding'
   });
 }

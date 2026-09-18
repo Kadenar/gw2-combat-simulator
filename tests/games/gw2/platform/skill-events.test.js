@@ -28,6 +28,80 @@ function captureContext(effectDuration) {
   };
 }
 
+// Attribution defaults must remain separate from the source that produced a condition packet.
+test('condition options distinguish skill attribution, source identity, and packet labels', () => {
+  const { context } = captureContext();
+  const skill = { id: 101, name: 'Trigger Skill' };
+  const options = { at: 0, condition: 'Burning', stacks: 1, duration: 2 };
+  const event = emitSkillCondition(context, {
+    ...options,
+    skill,
+    sourceId: 9001,
+    fixedDuration: true,
+    transferredCondition: true,
+    metadata: { procCount: 1 }
+  });
+
+  assert.equal(event.source, 'fixture');
+  assert.equal(event.actorType, 'player');
+  assert.equal(event.sourceId, 9001);
+  assert.equal(event.skillId, 101);
+  assert.equal(event.skillName, 'Trigger Skill');
+  assert.equal(event.name, 'Trigger Skill — Burning');
+  assert.equal(event.fixedDuration, true);
+  assert.equal(event.transferredCondition, true);
+  assert.equal(event.metadata.procCount, 1);
+  assert.equal(Object.hasOwn(event, 'skill'), false);
+
+  const overridden = emitSkillCondition(context, {
+    ...options,
+    skill,
+    sourceId: 9001,
+    skillId: 9002,
+    skillName: 'Triggered Effect',
+    name: 'Second pulse'
+  });
+  assert.equal(overridden.sourceId, 9001);
+  assert.equal(overridden.skillId, 9002);
+  assert.equal(overridden.skillName, 'Triggered Effect');
+  assert.equal(overridden.name, 'Second pulse');
+
+  const procedural = emitSkillCondition(context, { ...options, sourceId: 9001, skillName: 'Trait' });
+  assert.equal(procedural.skillId, 9001);
+  assert.equal(procedural.name, 'Trait — Burning');
+});
+
+// Null is an omission request, including before createEvent removes undefined properties.
+test('procedural emitters omit nullable identity fields without leaking helper controls', () => {
+  const cause = { type: 'marker', at: 0, eventOrder: 1 };
+  const context = {
+    profession: { id: 'fixture' },
+    emit: (event) => event,
+    emitDerived(actualCause, event) {
+      assert.equal(actualCause, cause);
+      return event;
+    }
+  };
+  const options = {
+    skill: { id: 101, name: 'Trigger Skill' },
+    cause,
+    at: 0,
+    skillId: null,
+    skillName: null,
+    name: null
+  };
+  const condition = emitSkillCondition(context, { ...options, condition: 'Burning', stacks: 1, duration: 2 });
+  const [damage] = emitSkillDamage(context, { ...options, coefficient: 1, canCrit: null });
+  for (const event of [condition, damage]) {
+    assert.equal(event.sourceId, 101);
+    for (const field of ['skill', 'cause', 'skillId', 'skillName', 'name']) {
+      assert.equal(Object.hasOwn(event, field), false, field);
+    }
+  }
+
+  assert.equal(Object.hasOwn(damage, 'canCrit'), false);
+});
+
 test('procedural damage packets share attribution, ownership, and timing defaults', () => {
   const { context, events } = captureContext();
   const skill = { id: 101, name: 'Summoned Volley', type: 'Utility' };
@@ -76,7 +150,8 @@ test('condition and control helpers retain explicit trait attribution and contro
   const { context, events } = captureContext();
   const skill = { id: 202, name: 'Trigger Skill' };
 
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: 2,
     source: 'Trait',
     sourceId: 9001,
@@ -248,7 +323,8 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
           controlKind: 'daze',
           priority: 5
         });
-        emitSkillCondition(context, skill, {
+        emitSkillCondition(context, {
+          skill,
           at: 1,
           condition: 'Vulnerability',
           stacks: 1,
@@ -269,7 +345,8 @@ test('procedural helpers retain scheduler timestamp, priority, and insertion ord
           sourceId: 'cause',
           skillName: 'Cause'
         });
-        emitSkillCondition(context, skill, {
+        emitSkillCondition(context, {
+          skill,
           cause,
           at: 1.5,
           condition: 'Burning',

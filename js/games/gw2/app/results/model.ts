@@ -1,4 +1,4 @@
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildTimeSeries, type ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
@@ -6,6 +6,7 @@ import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#g
 import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 
 const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(
   (presentation) => presentation != null
@@ -139,11 +140,11 @@ export function buildChartSeries(
   result: Gw2SimulationResult,
   sampleStepMs = 250,
   presentations: readonly ProfessionEffectPresentation[] = []
-) {
+): ChartSeries {
   // Attribute each per-hit event to the same breakdown row key the skill table
   // uses, so clicking a row highlights exactly its hits on the chart.
   const skillKeyByIdentity = skillDamageKeyByIdentity(result);
-  return buildTimeSeries(result, sampleStepMs, {
+  const series = buildTimeSeries(result, sampleStepMs, {
     effectName: (kind, event) => effectName(kind, event, presentations),
     effectType: (kind, event) => (event.type === 'condition' ? 'condition' : isStandardBoon(kind) ? 'boon' : 'buff'),
     replacementGroup: (kind) => effectPresentation(kind, presentations)?.replacementGroup || '',
@@ -170,4 +171,18 @@ export function buildChartSeries(
     // Row keys are `group|name`; the display name is everything after the group.
     skillName: (key) => key.slice(key.indexOf('|') + 1)
   });
+  // Show upkeep applications on the fight clock without splitting skill identity or damage totals.
+  const startMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;
+  const embrace = (result.resolvedEvents || [])
+    .filter((event) => event.type === 'condition' && event.skillId === REVENANT_SKILL_IDS.EMBRACE_THE_DARKNESS)
+    .map((event) => ({
+      t: event.at * 1000 - startMs,
+      label: event.name || 'Embrace the Darkness — Torment',
+      empowered: event.metadata?.trigger === 'empowered-upkeep-pulse'
+    }))
+    .filter((application) => application.t >= 0 && application.t < series.durationMs);
+  return {
+    ...series,
+    skillApplications: embrace.length ? { 'Embrace the Darkness': embrace } : {}
+  };
 }

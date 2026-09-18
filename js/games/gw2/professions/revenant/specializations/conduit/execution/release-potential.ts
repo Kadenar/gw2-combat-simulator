@@ -47,7 +47,8 @@ export function handleMesmerReleaseConditions(
   const selfTorment = conditions.find((effect) => effect.target === 'self');
   const tormentTick = firstConditionTick(torment, 'Torment');
   const selfTormentTick = firstConditionTick(selfTorment, 'Torment');
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at: task.at,
     activationId: task.payload.activationId,
     condition: String(tormentTick?.condition || 'Torment'),
@@ -128,7 +129,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       const bleeding = conditions.find((effect) => effect.metadata?.legendId === LEGEND.DEMON);
       const bleedingTick = firstConditionTick(bleeding, 'Bleeding');
       if (hasLegend(context, LEGEND.DEMON) || allLegendEffects) {
-        emitSkillCondition(context, skill, {
+        emitSkillCondition(context, {
+          skill,
           at: impactAt,
           condition: String(bleedingTick?.condition || 'Bleeding'),
           stacks: Number(bleedingTick?.stacks ?? 1),
@@ -193,7 +195,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
       for (const effect of conditions) {
         if (effect.type !== 'condition') continue;
         for (const tick of conditionEffectTicks(effect)) {
-          emitSkillCondition(context, skill, {
+          emitSkillCondition(context, {
+            skill,
             at: effectAt(context, effect, tick.atMs),
             condition: tick.condition,
             stacks: Number(tick.stacks ?? 1),

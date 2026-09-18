@@ -148,11 +148,11 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     coefficient: baseCoefficient + coefficientPerMight * cappedMight,
     skillWeapon: 'Unequipped'
   });
-  emitSkillCondition(context, elementalistEventSkill(context, 'Flame Expulsion', sourceId), {
+  emitSkillCondition(context, {
+    skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
     at: impactAt,
     source: 'Flame Expulsion',
     sourceId,
-    actorType: 'player',
     condition: 'Burning',
     stacks: balanceProfileValue(flameExpulsionCondition, 'stacks', 1),
     duration: Math.min(

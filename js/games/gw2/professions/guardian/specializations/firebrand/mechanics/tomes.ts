@@ -250,12 +250,9 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
       emitSkillCondition(context, {
+        skill,
         at: proc.at,
-        source: 'guardian',
         sourceId: 'guardian.ashes-of-the-just',
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
         name: `Ashes of the Just — Ally ${proc.allyIndex} Burning`,
         condition: String(burn?.condition || 'Burning'),
         stacks: Number(burn?.stacks ?? 1),

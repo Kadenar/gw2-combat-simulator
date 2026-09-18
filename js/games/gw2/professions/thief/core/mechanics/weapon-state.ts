@@ -89,12 +89,10 @@ export function grantThiefStealth(
 
   if (entering && hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
     emitSkillCondition(context, {
+      skill,
       at,
       source: 'Trait',
       sourceId: TRAIT.CLOAKED_IN_SHADOW,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: 'Cloaked in Shadow — Blindness',
       condition: 'Blindness',
       stacks: 1,

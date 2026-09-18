@@ -155,9 +155,6 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSi
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
-    source: 'revenant',
-    sourceId: ID.RAZORCLAWS_RAGE,
-    actorType: 'player',
     skillId: ID.RAZORCLAWS_RAGE,
     skillName: "Razorclaw's Rage",
     name: "Razorclaw's Rage — Bleeding",

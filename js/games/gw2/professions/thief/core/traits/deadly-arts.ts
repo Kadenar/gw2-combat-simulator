@@ -17,7 +17,6 @@ export function applySerpentsTouch(context: ThiefCastContext, at: number): void 
   emitSkillCondition(context, {
     at,
     source: 'Trait',
-    actorType: 'player',
     skillId: TRAIT.SERPENTS_TOUCH,
     skillName: "Serpent's Touch",
     triggeredBy: context.skill?.name,
@@ -26,7 +25,6 @@ export function applySerpentsTouch(context: ThiefCastContext, at: number): void 
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
       ? Number(profile?.playerStacks ?? 3)
       : Number(poison?.stacks ?? 2),
-    sourceId: TRAIT.SERPENTS_TOUCH,
     name: "Serpent's Touch — Poison"
   });
 }
@@ -54,7 +52,6 @@ export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
   emitSkillCondition(context, {
     at,
     source: 'Trait',
-    actorType: 'player',
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
     condition: String(vulnerability?.condition || 'Vulnerability'),

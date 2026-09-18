@@ -456,8 +456,6 @@ function emitPlayerOwnedCondition(
     activationId: task.payload?.activationId,
     at: task.at,
     source: `${elemental.element} Elemental`,
-    sourceId: skillId,
-    actorType: 'player',
     skillId,
     skillName,
     name: `${skillName} — ${condition}`,

@@ -106,11 +106,11 @@ export function emitProfiledCondition(
   triggeredBy = ''
 ): void {
   const effect = balanceProfileEffectFromContext(context, profileId, 'condition', 0, effectName);
-  emitSkillCondition(context, elementalistEventSkill(context, source, sourceId), {
+  emitSkillCondition(context, {
+    skill: elementalistEventSkill(context, source, sourceId),
     at,
     source,
     sourceId,
-    actorType: 'player',
     condition: String(effect?.condition || fallbackCondition),
     stacks: Number(effect?.stacks ?? fallbackStacks),
     duration: Number(effect?.duration ?? fallbackDuration),

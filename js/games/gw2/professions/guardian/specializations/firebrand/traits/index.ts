@@ -138,12 +138,9 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
 
     emitSkillCondition(context, {
+      skill,
       at,
-      source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: 'Weighty Terms — Slow',
       condition: String(slow?.condition || 'Slow'),
       stacks: Number(slow?.stacks ?? 1),
@@ -248,12 +245,8 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
       'condition'
     );
     emitSkillCondition(context, {
+      skill,
       at: event.at,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: 'Unrelenting Criticism — Bleeding',
       condition: String(bleeding?.condition || 'Bleeding'),
       stacks: Number(bleeding?.stacks ?? 1),

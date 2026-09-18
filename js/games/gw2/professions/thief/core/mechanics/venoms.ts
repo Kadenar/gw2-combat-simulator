@@ -113,9 +113,6 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
       const effect = effects[effectIndex];
       emitSkillCondition(context, {
         at: proc.at,
-        source: 'thief',
-        sourceId: venom.skillId,
-        actorType: 'player',
         skillId: venom.skillId,
         skillName: venom.skillName,
         name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,

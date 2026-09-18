@@ -178,8 +178,6 @@ function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, a
     emitSkillCondition(context, {
       at,
       source: 'Paragon',
-      sourceId: skillId,
-      actorType: 'player',
       skillId,
       skillName,
       name: `${skillName} — Echo Immobilized`,

@@ -55,7 +55,8 @@ function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
     controlKind: 'daze'
   });
   if (soulShardsAtActivation >= 3) {
-    emitSkillCondition(context, skill, {
+    emitSkillCondition(context, {
+      skill,
       at: context.effectiveEnd,
       condition: 'Immobilized',
       stacks: 1,

@@ -220,6 +220,54 @@ test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
   assert.equal(expired.endState.profession.dragonCharges, 0);
 });
 
+test('Dragon Trigger defers recharge while charging and still blocks re-entry', () => {
+  const active = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }], {
+    initialResource: 100
+  });
+  assert.deepEqual(active.warnings, []);
+  assert.equal(active.endState.profession.dragonTriggerActive, true);
+  assert.equal(active.endState.cooldowns['Dragon Trigger'], undefined);
+  assert.equal(active.events.find((event) => event.type === 'action').rechargeReadyAt, null);
+
+  const repeated = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_TRIGGER], { initialResource: 100 });
+  assert.match(repeated.warnings[0], /Dragon Trigger is already active/);
+});
+
+test('Every Dragon Slash starts Dragon Trigger recharge at cast completion', () => {
+  // Check both skill variants and recharge modifiers without depending on a saved rotation.
+  for (const skillId of [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]) {
+    for (const selectedTraitIds of [[], [TRAIT.SHARP_AS_THE_WIND]]) {
+      for (const alacrity of [false, true]) {
+        const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: 1 }], {
+          initialResource: 100,
+          selectedTraitIds,
+          boons: { alacrity }
+        });
+        const slash = result.steps.at(-1);
+        assert.deepEqual(result.warnings, []);
+        assert.equal(result.endState.profession.dragonTriggerActive, false);
+        assert.equal(result.endState.cooldowns['Dragon Trigger'].readyAt, slash.end + (alacrity ? 6400 : 8000));
+      }
+    }
+  }
+});
+
+test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
+  // Expiry uses its deadline even when a wait advances beyond it; sheathing exits immediately.
+  for (const [exit, exitAt] of [
+    [{ type: 'wait', durationMs: 31000 }, 30000],
+    [ID.SHEATHE_GUNSABER, 1000]
+  ]) {
+    const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit], {
+      initialResource: 100
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.endState.profession.dragonTriggerActive, false);
+    assert.equal(result.endState.profession.dragonCharges, 0);
+    assert.equal(result.endState.cooldowns['Dragon Trigger'].readyAt, exitAt + 8000);
+  }
+});
+
 test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', () => {
   const project = (overrides = {}) =>
     projectDragonCharges({

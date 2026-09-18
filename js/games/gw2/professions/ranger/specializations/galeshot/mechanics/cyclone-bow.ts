@@ -152,9 +152,6 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     });
     emitSkillCondition(context, {
       at: task.at,
-      source: 'ranger',
-      sourceId: ID.MISTRAL,
-      actorType: 'player',
       skillId: ID.MISTRAL,
       skillName: 'Mistral',
       name: 'Mistral - Chilled',

@@ -63,8 +63,12 @@ function emitEmbraceTheDarknessPulse(
     skillWeapon: 'Unequipped',
     canCrit: null
   });
-  emitSkillCondition(context, skill, {
+  emitSkillCondition(context, {
+    skill,
     at,
+    // Label empowered applications in chart attribution while keeping the shared skill identity.
+    name: active.empoweredNextPulse ? `${skill.name} — Empowered Torment` : undefined,
+    metadata: torment.metadata,
     condition: 'Torment',
     stacks: Number(tormentTick?.stacks || 0),
     duration: Number(tormentTick?.duration || 0)

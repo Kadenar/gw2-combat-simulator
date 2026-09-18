@@ -27,12 +27,8 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
     })
   );
   emitSkillCondition(context, {
+    skill,
     at,
-    source: 'guardian',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
     name: 'Soaring Devastation — Immobilized',
     condition: String(immobilized?.condition || 'Immobilized'),
     stacks: Number(immobilized?.stacks ?? 1),

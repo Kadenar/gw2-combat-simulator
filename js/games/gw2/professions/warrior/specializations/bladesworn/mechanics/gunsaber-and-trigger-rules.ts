@@ -277,5 +277,8 @@ export const bladeswornAttributeRules = Object.freeze({
 });
 export const bladeswornCastRules = Object.freeze({
   modifySkillId: resolveSharpAsTheWindSkillId,
+  // Entry opens the charge window; the exit handler commits the actual recharge.
+  commitRechargeDuration: (context: WarriorSchedulerContext & { skill?: WarriorSkill }, duration: number) =>
+    context.skill?.id === ID.DRAGON_TRIGGER ? 0 : duration,
   availability: { id: 'warrior.bladesworn', order: 20, handler: availability }
 });

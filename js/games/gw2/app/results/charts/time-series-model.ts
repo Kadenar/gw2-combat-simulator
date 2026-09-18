@@ -18,6 +18,13 @@ export interface ChartPoint {
 
 export type ChartEffectType = 'boon' | 'condition' | 'buff';
 
+/** Presentation-only application markers, independent of subsequent condition payouts. */
+export interface SkillApplication {
+  readonly t: number;
+  readonly label: string;
+  readonly empowered: boolean;
+}
+
 export interface ChartEffectSummary {
   readonly relic?: boolean;
   readonly uptime: number;
@@ -54,6 +61,7 @@ export interface ChartSeries {
   readonly skillNames?: Readonly<Record<string, string>>;
   // One payout per condition in fight time, retaining each application's full or partial share.
   readonly conditionDamage?: Readonly<Record<string, readonly SkillHit[]>>;
+  readonly skillApplications?: Readonly<Record<string, readonly SkillApplication[]>>;
 }
 
 export interface BuildChartSeriesOptions {

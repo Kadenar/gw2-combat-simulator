@@ -136,13 +136,12 @@ function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill):
   if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
     const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lastBlaze), 'condition');
     emitSkillCondition(context, {
+      skill,
       at: context.effectiveEnd,
       source: 'Trait',
       sourceId: TRAIT.LAST_BLAZE,
       actorType: 'effect',
       ownerActorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
       name: 'Last Blaze — Burning',
       condition: 'Burning',
       stacks: Number(burning?.stacks ?? 1),
