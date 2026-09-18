@@ -625,6 +625,44 @@ test('condition-only relic rows report their recorded activations as hits', () =
   assert.equal(peithaRow.hits, peithaProcs.length);
 });
 
+test('sigil rows report their recorded activations for hit counts and averages', () => {
+  const defaults = defaultSimulationConfig();
+  const critical = simulateMesmer(
+    ['Flying Cutter', { name: '__wait', waitMs: 5100 }, 'Flying Cutter', { name: '__wait', waitMs: 6000 }],
+    defaultSimulationConfig({
+      stats: { ...defaults.stats, precision: 4000 },
+      sigilSets: [{ names: ['Earth', 'Torment'], strike: 1, condition: 1 }, { names: [] }]
+    })
+  );
+  const doom = simulateMesmer(
+    ['Bladecall', 'Swap Weapons', 'Psycut', { name: '__wait', waitMs: 9000 }],
+    defaultSimulationConfig({
+      primaryWeapon: 'Dagger',
+      secondaryWeapon: 'Sword',
+      weaponSet2Primary: 'Spear',
+      weaponSet2Secondary: '',
+      sigilSets: [{ names: [] }, { names: ['Doom', 'Geomancy'], strike: 1, condition: 1 }]
+    })
+  );
+
+  // Sigils use canonical proc records for averages; condition-only rows also use them instead of condition ticks.
+  for (const [result, name] of [
+    [critical, 'Earth'],
+    [critical, 'Torment'],
+    [doom, 'Doom'],
+    [doom, 'Geomancy']
+  ]) {
+    const skill = `Sigil of ${name}`;
+    const row = skillBreakdownRows(result).find((candidate) => candidate.name === skill);
+    const procs = result.procSteps.filter((step) => step.type === 'sigil_proc' && step.skill === skill);
+
+    assert.ok(procs.length > 0);
+    assert.equal(row.hits, procs.length);
+    assert.equal(row.procCount, procs.length);
+    assert.equal(row.average, row.total / procs.length);
+  }
+});
+
 test('Relic of Akeem is reported when its trigger ends the rotation', () => {
   const result = simulateMesmer(
     ['Bladesong Sorrow', 'Bladecall', 'Bladesong Dissonance'],

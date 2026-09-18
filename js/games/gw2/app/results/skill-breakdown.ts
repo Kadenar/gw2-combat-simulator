@@ -230,13 +230,12 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     damageByTrigger.set(key, sources);
   }
 
-  // Relic procs are already recorded once per activation. A relic that strikes
-  // reports its own hits; one that only applies conditions has none, so its
-  // recorded activations fill that column instead.
-  const relicProcCounts = new Map<string, number>();
+  // Equipment procs are recorded once per activation. Keep that count separate
+  // from strike hits so mixed effects can average all of their damage per proc.
+  const equipmentProcCounts = new Map<string, number>();
   for (const step of result.procSteps || []) {
-    if (step.type !== 'relic_proc') continue;
-    relicProcCounts.set(step.skill, (relicProcCounts.get(step.skill) || 0) + 1);
+    if (step.type !== 'relic_proc' && step.type !== 'sigil_proc') continue;
+    equipmentProcCounts.set(step.skill, (equipmentProcCounts.get(step.skill) || 0) + 1);
   }
 
   // Canonical action events are the authoritative source for cast count/time.
@@ -309,10 +308,9 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
       const total = entry.strike + entry.condition;
       const castTime = sources.reduce((total, source) => total + Number(actionDurations.get(source) || 0), 0);
       const procCount =
-        procCounts.get(skillBreakdownKey(entry.group, entry.name)) ||
-        // A relic that strikes already counts its own hits; only a condition-only
-        // relic falls back to its recorded activations.
-        (entry.hits ? 0 : relicProcCounts.get(entry.name) || 0);
+        procCounts.get(skillBreakdownKey(entry.group, entry.name)) || equipmentProcCounts.get(entry.name) || 0;
+      // Proc-only rows have no cast events, so use their canonical activation count for average damage.
+      const averageCount = casts || procCount;
       return {
         name: entry.name,
         key: skillBreakdownKey(entry.group, entry.name),
@@ -336,7 +334,7 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
             dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
           })
         ),
-        average: casts > 0 ? total / casts : null,
+        average: averageCount > 0 ? total / averageCount : null,
         // DCT is damage divided by occupied cast time, not encounter duration.
         dct: castTime > 0 ? total / castTime : null,
         casts,
