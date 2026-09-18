@@ -3,7 +3,8 @@ import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/p
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, INFUSION_BONUS, INFUSION_STATS, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/stats.js';
-import { RELIC_DATA, RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import {
   candidatePicker,
   updatePicker,

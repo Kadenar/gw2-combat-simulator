@@ -1,6 +1,6 @@
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/critical-procs.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';

@@ -1,5 +1,5 @@
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export const PLACEHOLDER_ICON =

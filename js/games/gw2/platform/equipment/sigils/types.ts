@@ -28,3 +28,22 @@ export interface Gw2SigilProc {
   readonly duration?: number;
   readonly amount?: number;
 }
+
+export interface Gw2SigilDataEntry {
+  readonly stackingStats?: Readonly<Record<string, number>>;
+  readonly criticalChance?: number;
+  readonly strikeDamageA?: number;
+  readonly strikeDamageM?: number;
+  readonly nightStrikeDamageM?: number;
+  readonly conditionDamageA?: number;
+  readonly conditionDuration?: number;
+  readonly bleedingDuration?: number;
+  readonly burningDuration?: number;
+  readonly poisonDuration?: number;
+  readonly tormentDuration?: number;
+  readonly boonDuration?: number;
+  readonly procPrecision?: number;
+  readonly procFerocity?: number;
+  readonly icon: string;
+  readonly [field: string]: unknown;
+}

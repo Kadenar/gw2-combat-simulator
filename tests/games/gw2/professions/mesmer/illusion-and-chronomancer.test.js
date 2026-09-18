@@ -10,7 +10,7 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { formatConcurrentTimelineBadge, formatInterruptTimelineBadge } from '#gw2/app/rotation/timeline/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';

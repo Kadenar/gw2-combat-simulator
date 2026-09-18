@@ -9,7 +9,7 @@ import {
   OPTIMIZER_SEARCH_BUDGET
 } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
 import {
   groupOptimizerSpace,

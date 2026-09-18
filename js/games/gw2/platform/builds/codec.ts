@@ -4,7 +4,7 @@ import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS, GEAR_STATS, INFUSION_STATS } from '#gw2/platform/equipment/gear/stats.js';
 import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { clamp, finiteNumber } from '#gw2/platform/combat/numeric.js';
 import { boundedInteger, boundedNumber, enumValue } from '#gw2/platform/builds/normalization.js';

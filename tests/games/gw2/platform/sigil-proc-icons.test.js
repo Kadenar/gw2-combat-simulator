@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { SIGIL_DATA, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 
 // Selectable sigils need artwork, and proc views must inherit it without pinning asset hashes.
 test('all selectable sigils provide an icon', () => {

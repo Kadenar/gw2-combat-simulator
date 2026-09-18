@@ -1,22 +1,11 @@
-export interface Gw2SigilDataEntry {
-  readonly stackingStats?: Readonly<Record<string, number>>;
-  readonly criticalChance?: number;
-  readonly strikeDamageA?: number;
-  readonly strikeDamageM?: number;
-  readonly nightStrikeDamageM?: number;
-  readonly conditionDamageA?: number;
-  readonly conditionDuration?: number;
-  readonly bleedingDuration?: number;
-  readonly burningDuration?: number;
-  readonly poisonDuration?: number;
-  readonly tormentDuration?: number;
-  readonly boonDuration?: number;
-  readonly procPrecision?: number;
-  readonly procFerocity?: number;
-  readonly icon: string;
-  readonly [field: string]: unknown;
-}
+/** Owns the static sigil tables: passive stat entries and active proc declarations. */
+import type { Gw2SigilDataEntry } from '#gw2/platform/equipment/sigils/types.js';
 
+// ─── Sigil Data ───────────────────────────────────────────────────────────────
+// Stat values are percentages stored as numbers (e.g. 7 = 7%).
+// Only non-zero fields are listed; all others default to 0 when accessed with ||0.
+// Proc-only sigils have no passive numeric fields. Their active effect values
+// remain in the proc declarations below rather than being folded into aggregate stats.
 export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   // Stacking sigils assume 25 prebuilt stacks, retained while either equipped set carries the sigil.
   Bloodlust: {
@@ -130,4 +119,97 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   }
 };
 
-export const SIGIL_NAMES: readonly string[] = Object.keys(SIGIL_DATA).sort((left, right) => left.localeCompare(right));
+// ─── Sigil Procs ──────────────────────────────────────────────────────────────
+export const SIGIL_PROCS = Object.freeze({
+  Air: {
+    trigger: 'crit',
+    cooldown: 3,
+    effect: 'strike',
+    coefficient: 1.1,
+    canCrit: false,
+    icon: SIGIL_DATA.Air.icon
+  },
+  Torment: {
+    trigger: 'crit',
+    cooldown: 5,
+    effect: 'condition',
+    condition: 'Torment',
+    stacks: 2,
+    duration: 5,
+    icon: SIGIL_DATA.Torment.icon
+  },
+  Earth: {
+    trigger: 'crit',
+    cooldown: 2,
+    effect: 'condition',
+    condition: 'Bleeding',
+    stacks: 1,
+    duration: 6,
+    icon: SIGIL_DATA.Earth.icon
+  },
+  Blight: {
+    trigger: 'crit',
+    cooldown: 8,
+    effect: 'condition',
+    condition: 'Poisoned',
+    stacks: 2,
+    duration: 4,
+    icon: SIGIL_DATA.Blight.icon
+  },
+  Doom: {
+    trigger: 'swap',
+    cooldown: 9,
+    effect: 'next-hit-condition',
+    condition: 'Poisoned',
+    stacks: 3,
+    duration: 8,
+    icon: SIGIL_DATA.Doom.icon
+  },
+  Geomancy: {
+    trigger: 'swap',
+    cooldown: 9,
+    effect: 'strike-condition',
+    coefficient: 0.25,
+    canCrit: true,
+    condition: 'Bleeding',
+    stacks: 3,
+    duration: 8,
+    icon: SIGIL_DATA.Geomancy.icon
+  },
+  Hydromancy: {
+    trigger: 'swap',
+    cooldown: 9,
+    effect: 'strike-condition',
+    coefficient: 1,
+    canCrit: true,
+    condition: 'Chilled',
+    stacks: 1,
+    duration: 2,
+    icon: SIGIL_DATA.Hydromancy.icon
+  },
+  Ice: {
+    // "Chill a foe for 2s after striking ... when they are defiant." The sim
+    // target is always defiant, so any player strike arms the 10s cooldown.
+    trigger: 'strike',
+    cooldown: 10,
+    effect: 'condition',
+    condition: 'Chilled',
+    stacks: 1,
+    duration: 2,
+    icon: SIGIL_DATA.Ice.icon
+  },
+  Energy: {
+    trigger: 'swap',
+    cooldown: 9,
+    effect: 'endurance',
+    amount: 50,
+    icon: SIGIL_DATA.Energy.icon
+  },
+  Severance: {
+    trigger: 'control',
+    cooldown: 1,
+    effect: 'severance',
+    duration: 4,
+    icon: SIGIL_DATA.Severance.icon
+  }
+});

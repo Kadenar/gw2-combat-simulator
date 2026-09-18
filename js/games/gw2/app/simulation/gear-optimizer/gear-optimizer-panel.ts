@@ -4,8 +4,9 @@ import { EQUIPMENT_ICONS } from '#gw2/platform/equipment/icons.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { SIGIL_NAMES, SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import {
   prefixOptionLabel,

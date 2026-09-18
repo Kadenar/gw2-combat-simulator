@@ -7,8 +7,8 @@ import {
 } from '#gw2/platform/equipment/consumables/utilities.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/stats.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/catalog.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 
 type NumericValues = Readonly<Record<string, number>>;

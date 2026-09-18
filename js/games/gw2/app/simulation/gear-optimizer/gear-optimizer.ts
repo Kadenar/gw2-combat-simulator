@@ -2,7 +2,7 @@ import { GEAR_SLOTS, PREFIXES, INFUSION_STATS } from '#gw2/platform/equipment/ge
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
