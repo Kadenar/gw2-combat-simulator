@@ -1,21 +1,22 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BOLA_SHOT]: {
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.25 }],
+        coefficient: 0.25,
+        hits: 1,
         name: 'Bola Shot',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -27,19 +28,19 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 5,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1.5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 1.5,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SHADOW_STRIKE]: {
     castTimeMs: 0,
@@ -54,29 +55,30 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.3125 }],
-        name: 'Shot Damage',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 4, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1.3125,
+          hits: 1,
+          name: 'Shot Damage',
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'thief',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 4,
+          duration: 6,
+          actorType: 'player'
+        }
+      ])
     ],
     requiredMainHand: 'Pistol',
     requiredOffHand: 'Dagger'
@@ -145,14 +147,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.575 }],
+        coefficient: 0.575,
+        hits: 1,
         name: 'Vital Shot',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -165,12 +166,12 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.REPEATER]: {
     castTimeMs: 840,

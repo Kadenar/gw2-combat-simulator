@@ -1164,6 +1164,28 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   );
 });
 
+// Grouping the explosion must preserve the initial grant and the delayed strike-before-boons order.
+test('Holo-Dancer separates its initial Might from the shared explosion impact', () => {
+  const result = simulate('Antiquary', ['Skritt Swipe', 'Holo-Dancer Decoy', { type: 'wait', durationMs: 4000 }], {
+    selectedTraitIds: []
+  });
+  assert.deepEqual(result.warnings, []);
+  const packets = result.events.filter(
+    (event) => event.skillId === ID.HOLO_DANCER_DECOY && ['control', 'damage', 'buff'].includes(event.type)
+  );
+  const completedAt = packets.find((event) => event.type === 'control').at;
+  assert.deepEqual(
+    packets.map(({ type, at, kind }) => [type, at, kind]),
+    [
+      ['control', completedAt, undefined],
+      ['buff', completedAt, 'might'],
+      ['damage', completedAt + 3, undefined],
+      ['buff', completedAt + 3, 'might'],
+      ['buff', completedAt + 3, 'fury']
+    ]
+  );
+});
+
 test('Meticulous Custodian upgrades artifact packets and effect durations', () => {
   const config = {
     primaryWeapon: 'Sword',

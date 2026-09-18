@@ -1,8 +1,10 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DOUBLE_STRIKE]: {
     castTimeMs: 360,
@@ -89,14 +91,13 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 480,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.9 }],
+        coefficient: 0.9,
+        hits: 1,
         name: 'Dancing Dagger',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -108,19 +109,19 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Crippled', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SHADOW_SHOT]: {
     movementSkill: true,
@@ -161,23 +162,22 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     initiativeCost: 0,
     resourceGain: 10,
-    effects: [
+    effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 160, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Wild Strike',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 160, condition: 'Bleeding', stacks: 2, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 3,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.HEARTSEEKER]: {
     movementSkill: true,
@@ -214,23 +214,22 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     interruptCommitMs: 280,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 1.2 }],
+        coefficient: 1.2,
+        hits: 1,
         name: 'Lotus Strike',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Poisoned', stacks: 2, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        condition: 'Poisoned',
+        stacks: 2,
+        duration: 5,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.TWISTING_FANGS]: {
     castTimeMs: 360,

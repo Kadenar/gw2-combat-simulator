@@ -1,8 +1,10 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEATHS_ADVANCE]: {
     castTimeMs: 200,
@@ -32,14 +34,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.1 }],
+        coefficient: 1.1,
+        hits: 1,
         name: 'Deadly Aim',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -52,19 +53,19 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 2, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 2,
+        duration: 6,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ],
+    ]),
     kneelSkill: true
   },
   [ID.FREE_ACTION]: {
@@ -89,14 +90,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.75 }],
+        coefficient: 0.75,
+        hits: 1,
         name: 'Brutal Aim',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -109,48 +109,49 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SKIRMISHERS_SHOT]: {
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 3,
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
-        name: "Skirmisher's Shot",
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1,
+          hits: 1,
+          name: "Skirmisher's Shot",
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'thief',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 4,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'boon',
         boon: 'swiftness',
@@ -163,14 +164,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.3 }],
+        coefficient: 0.3,
+        hits: 1,
         name: "Death's Retreat",
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         // Retain a field crossed during the leap even when it expires before landing.
         comboFinishers: [
           {
@@ -184,12 +184,12 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 8,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.DOUBLE_TAP]: {
     castTimeMs: 520,
@@ -226,29 +226,30 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     cooldown: 0,
     initiativeCost: 3,
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.3 }],
-        name: "Spotter's Shot",
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1.3,
+          hits: 1,
+          name: "Spotter's Shot",
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'thief',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 4,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'boon',
         boon: 'fury',

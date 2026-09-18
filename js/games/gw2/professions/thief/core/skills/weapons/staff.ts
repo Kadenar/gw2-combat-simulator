@@ -1,8 +1,10 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WEAKENING_WHIRL]: {
     interruptMode: 'per-packet',
@@ -114,23 +116,22 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Debilitating Arc',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.VAULT]: {
     castTimeMs: 520,

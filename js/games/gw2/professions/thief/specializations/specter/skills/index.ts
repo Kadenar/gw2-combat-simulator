@@ -1,9 +1,11 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Shadow Shroud entry and exit are state-selected variants of one UI tile.
 const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SIPHON]: {
     stealTraitSkill: true,
@@ -84,30 +86,29 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 240,
     cooldown: 3,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 1000, coefficient: 1.66 }],
+        coefficient: 1.66,
+        hits: 1,
         name: 'Grasping Shadows',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1000, condition: 'Crippled', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1000, condition: 'Torment', stacks: 2, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 2,
+        duration: 6,
+        actorType: 'player'
       }
-    ],
+    ]),
     comboFinishers: [
       {
         ownerId: 'thief',
@@ -124,24 +125,20 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 960,
     cooldown: 8,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: "Dawn's Repose",
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'fear'
       }
-    ],
+    ]),
     comboFinishers: [
       {
         ownerId: 'thief',
@@ -370,21 +367,22 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     cooldown: 0,
     initiativeCost: 0,
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1.075 }],
-        name: 'Haunt Shot',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Torment', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
+      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 1.075,
+          hits: 1,
+          name: 'Haunt Shot',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 1,
+          duration: 6,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'boon',
         boon: 'might',

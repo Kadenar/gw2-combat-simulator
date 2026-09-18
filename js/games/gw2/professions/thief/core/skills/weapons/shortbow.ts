@@ -1,22 +1,23 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.TRICK_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.55 }],
+        coefficient: 0.55,
+        hits: 1,
         name: 'Trick Shot',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -29,12 +30,12 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.CHOKING_GAS]: {
     castTimeMs: 360,
@@ -78,14 +79,13 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.25 }],
+        coefficient: 2.25,
+        hits: 1,
         name: 'Large Explosion',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -97,12 +97,12 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.DETONATE_CLUSTER]: {
     castTimeMs: 680,
@@ -130,14 +130,13 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
+        coefficient: 0.5,
+        hits: 1,
         name: 'Disabling Shot (thief short bow skill)',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -149,12 +148,12 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SURPRISE_SHOT]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
@@ -162,14 +161,13 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.6 }],
+        coefficient: 0.6,
+        hits: 1,
         name: 'Surprise Shot',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -181,19 +179,19 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 5,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Shortbow',
     stealthAttack: true
   }

@@ -1,8 +1,10 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VENOMOUS_VOLLEY]: {
     castTimeMs: 520,
@@ -34,23 +36,22 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Spinning Axe',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.HARROWING_STORM]: {
     castTimeMs: 360,
@@ -105,23 +106,22 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Spinning Axe',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.CUNNING_SALVO]: {
     // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
@@ -129,14 +129,13 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.5 }],
+        coefficient: 1.5,
+        hits: 1,
         name: 'Cunning Salvo',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         comboFinishers: [
           {
             ownerId: 'thief',
@@ -148,19 +147,19 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFra
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 8,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Axe',
     stealthAttack: true
   }

@@ -1,4 +1,5 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -7,6 +8,7 @@ const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
 const PITFALL_PULSE_OFFSETS_MS = [1000, 2000, 3000];
 
 // EVTC-measured Quickness timings keep utility casts aligned with their observed cast-lane occupancy.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.WITHDRAW]: {
     castTimeMs: 0,
@@ -291,30 +293,29 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 1840,
     cooldown: 60,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.33 }],
+        coefficient: 1.33,
+        hits: 1,
         name: 'Dagger Storm',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 2, duration: 7 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 2,
+        duration: 7,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.DEVOURER_VENOM]: {
     // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.

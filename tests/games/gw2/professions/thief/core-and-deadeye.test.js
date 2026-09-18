@@ -186,7 +186,12 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
           if (effect.hits > 1) assert.ok(Number.isFinite(effect.atMs), skill.name);
         }
       } else if (effect.type === 'condition') {
-        assert.ok(Array.isArray(effect.ticks), skill.name);
+        // Single impacts carry their payload directly; repeated applications retain explicit timelines.
+        for (const packet of effect.ticks ?? [effect]) {
+          assert.ok(packet.condition, skill.name);
+          assert.ok(packet.stacks > 0 && packet.duration > 0, skill.name);
+          assert.ok(Number.isFinite(packet.atMs), skill.name);
+        }
       }
     }
   }
@@ -208,6 +213,27 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
       .filter((skill) => skill.artifactKind)
       .every((skill) => skill.type === 'Profession' && skill.slot === 'Profession_2')
   );
+});
+
+// Grouped payloads retain their effect indices so patches can target one packet without changing its neighbors.
+test('Thief shared impacts remain independently patchable beside separate strike timelines', () => {
+  const original = thiefCatalog.skillsById.get(ID.SHADOW_STRIKE);
+  const preview = applySkillPatch(thiefCatalog, {
+    skills: {
+      [ID.SHADOW_STRIKE]: {
+        effects: [
+          { effectIndex: 1, coefficient: { from: 1.3125, to: 2 } },
+          { effectIndex: 2, duration: { from: 6, to: 8 } }
+        ]
+      }
+    }
+  });
+  const patched = preview.skillsById.get(ID.SHADOW_STRIKE);
+  assert.deepEqual(patched.effects[0], original.effects[0]);
+  assert.deepEqual(patched.effects[1], { ...original.effects[1], coefficient: 2 });
+  assert.deepEqual(patched.effects[2], { ...original.effects[2], duration: 8 });
+  assert.equal(original.effects[1].coefficient, 1.3125);
+  assert.equal(original.effects[2].duration, 6);
 });
 
 test('Thief modules expose isolated balance-profile authoring', () => {

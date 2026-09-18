@@ -1,8 +1,10 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.LARCENOUS_STRIKE]: {
     castTimeMs: 360,
@@ -41,21 +43,21 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    // The strike, immobilize, and independent Swiftness grant all resolve at cast completion.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.8 }],
+        coefficient: 1.8,
+        hits: 1,
         name: "Infiltrator's Strike",
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       },
       {
         type: 'boon',
@@ -63,7 +65,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
         duration: 3,
         stacks: 1
       }
-    ]
+    ])
   },
   [ID.FLANKING_STRIKE]: {
     castTimeMs: 360,
@@ -149,30 +151,29 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.55 }],
+        coefficient: 1.55,
+        hits: 1,
         name: 'Crippling Strike',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.INFILTRATORS_RETURN]: {
     castTimeMs: 200,

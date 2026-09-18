@@ -1,30 +1,31 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.33 }],
+        coefficient: 0.33,
+        hits: 1,
         name: 'Shadow Bolt',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.ENDLESS_NIGHT]: {
     castTimeMs: 1920,
@@ -225,20 +226,22 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Chilled', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Poisoned', stacks: 1, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
+      ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'condition',
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 5,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'condition',
         ticks: [{ atMs: 800, condition: 'Torment', stacks: 3, duration: 5 }],
@@ -254,23 +257,22 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 560,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.33 }],
+        coefficient: 0.33,
+        hits: 1,
         name: 'Measured Shot',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 1,
+        actorType: 'player'
       }
-    ],
+    ]),
     movementSkill: true,
     shadowstepSkill: true,
     requiredMainHand: 'Scepter',

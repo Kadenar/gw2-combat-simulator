@@ -1,6 +1,8 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -196,37 +198,36 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 520,
     cooldown: 20,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Binding Shadow',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 2, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Poisoned',
+        stacks: 2,
+        duration: 10,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 15, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 15,
+        duration: 10,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.MERCY]: {
     // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark; see `deadeye/execution/index.ts`.
@@ -481,30 +482,29 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.6 }],
+        coefficient: 0.6,
+        hits: 1,
         name: 'Malicious Surprise Shot',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 5,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Shortbow',
     stealthAttack: true,
     malicious: true
@@ -524,20 +524,22 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 5,
+          duration: 5,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 1,
+          duration: 1,
+          actorType: 'player'
+        }
+      ])
     ],
     requiredMainHand: 'Pistol',
     stealthAttack: true,
@@ -670,37 +672,36 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.5 }],
+        coefficient: 1.5,
+        hits: 1,
         name: 'Malicious Cunning Salvo',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 1, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 8,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 1,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Crippled', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Crippled',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Axe',
     stealthAttack: true,
     malicious: true
@@ -725,35 +726,36 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.3 }],
-        name: 'Malicious Ashen Assault — Final Strike',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 3, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 3, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.3,
+          hits: 1,
+          name: 'Malicious Ashen Assault — Final Strike',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 5,
+          duration: 8,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 3,
+          duration: 4,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Poisoned',
+          stacks: 3,
+          duration: 4,
+          actorType: 'player'
+        }
+      ])
     ],
     requiredMainHand: 'Spear',
     stealthAttack: true,

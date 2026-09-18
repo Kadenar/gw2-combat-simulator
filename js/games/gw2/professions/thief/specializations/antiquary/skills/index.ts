@@ -1,7 +1,9 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
+// Share each impact's timing while preserving effect order and effect-local payloads.
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {
     // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
@@ -145,37 +147,33 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         controlKind: 'taunt'
       },
       {
-        type: 'strike',
-        ticks: [{ atMs: 3000, coefficient: 2 }],
-        name: 'Holo-Dancer Decoy',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
         type: 'boon',
         boon: 'might',
         duration: 8,
         stacks: 2
       },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 4,
-        atMs: 3000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 8,
-        stacks: 1,
-        atMs: 3000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      // The explosion shares its delayed impact with Might and Fury; the initial Might stays at cast completion.
+      ...impactEffects({ atMs: 3000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 2,
+          hits: 1,
+          name: 'Holo-Dancer Decoy',
+          actorType: 'player'
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 4
+        },
+        {
+          type: 'boon',
+          boon: 'fury',
+          duration: 8,
+          stacks: 1
+        }
+      ])
     ],
     artifactKind: 'defensive'
   },
@@ -223,28 +221,29 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 3 }],
-        name: 'Stone Summit Cannon — Packet 2',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Burning', stacks: 3, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Burning', stacks: 3, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 3,
+          hits: 1,
+          name: 'Stone Summit Cannon — Packet 2',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 3,
+          duration: 3,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 3,
+          duration: 4,
+          actorType: 'player'
+        }
+      ])
     ],
     doubleEdge: true
   },
@@ -255,23 +254,22 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.2 }],
+        coefficient: 1.2,
+        hits: 1,
         name: 'Zephyrite Sun Crystal',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Burning', stacks: 2, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 2,
+        duration: 4,
+        actorType: 'player'
       }
-    ],
+    ]),
     artifactKind: 'defensive'
   },
   [ID.CHAK_SHIELD]: {
