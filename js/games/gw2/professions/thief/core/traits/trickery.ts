@@ -1,6 +1,6 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';

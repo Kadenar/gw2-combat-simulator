@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';

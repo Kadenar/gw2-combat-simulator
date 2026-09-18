@@ -1,6 +1,6 @@
 /** Owns immediate Core Thief action callbacks; persistent summon behavior lives in mechanics. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';

@@ -2,7 +2,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -24,7 +24,7 @@ import {
   requestedDragonCharges,
   type DragonFlowRateSegment
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { applyWarriorBurstSpendTraits } from '#gw2/professions/warrior/core/traits/index.js';
 
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';

@@ -1,7 +1,7 @@
 /** Peitha relic rules. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 

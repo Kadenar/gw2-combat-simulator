@@ -1,4 +1,4 @@
-import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 
 /** Selects Tempest's aura boon payloads; each phase still owns eligibility, scaling, and reporting. */

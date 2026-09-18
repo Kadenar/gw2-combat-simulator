@@ -1,4 +1,4 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID

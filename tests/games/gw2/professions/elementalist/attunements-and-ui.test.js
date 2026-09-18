@@ -630,7 +630,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
 
 test('weapon bar excludes dual attacks outside Weaver', () => {
   const dual = elementalistCatalog.skillsByName.get('Twin Strike');
-  const matches = elementalistProfession.ui.weaponSkillMatchesSet;
+  const matches = elementalistProfession.weaponSkillMatchesSet;
 
   assert.equal(
     matches(dual, ['Sword', 'Warhorn'], {

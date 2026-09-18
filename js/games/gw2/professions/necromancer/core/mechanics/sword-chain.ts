@@ -6,7 +6,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   resetAutoattackChains,
   type AutoattackChainTransitionContext
-} from '#gw2/platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';

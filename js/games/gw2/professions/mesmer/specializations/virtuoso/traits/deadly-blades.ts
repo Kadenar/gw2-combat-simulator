@@ -2,7 +2,7 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';

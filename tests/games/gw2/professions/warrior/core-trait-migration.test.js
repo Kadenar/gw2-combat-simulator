@@ -4,6 +4,8 @@ import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import { observeWarriorEvent } from '#gw2/professions/warrior/core/traits/index.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -15,6 +17,58 @@ const baseConfig = Object.freeze({
     vitality: 1000
   },
   target: { armor: 2597, health: 3_970_000, defiant: true, conditions: {} }
+});
+
+// Keep the proc on the scheduler observer path, including eligibility and reentrant emission order.
+test('Opportunist claims its ICD before Fury and target-control bookkeeping', () => {
+  for (const internalCooldown of [1, 0]) {
+    const core = createWarriorCoreState();
+    const events = [];
+    const catalog = warriorProfession.catalog;
+    const profiles = new Map(catalog.balanceProfilesById);
+    profiles.set(TRAIT.OPPORTUNIST, { ...profiles.get(TRAIT.OPPORTUNIST), internalCooldown });
+    const control = { type: 'control', actorType: 'player', at: 1, skillName: 'Fixture control' };
+    const context = {
+      config: { selectedTraitIds: [TRAIT.OPPORTUNIST] },
+      catalog: { ...catalog, balanceProfilesById: profiles },
+      profession: warriorProfession,
+      state: { time: 1, profession: { core, specialization: { kind: 'Core', state: {} } } },
+      events,
+      emitDerived(_cause, event) {
+        assert.equal(core.traitProcReadyAt.opportunist, event.at + internalCooldown);
+        // The first grant precedes both the control window and any induced same-time opportunity.
+        if (events.length === 0) assert.equal(core.targetControlledUntil, 0);
+        events.push(event);
+        observeWarriorEvent(context, { ...control, at: event.at });
+        return event;
+      }
+    };
+    for (const event of [
+      { ...control, actorType: 'summon' },
+      { ...control, type: 'condition', condition: 'Bleeding' },
+      { ...control, type: 'condition', condition: 'Immobilized', actorType: 'effect' }
+    ])
+      observeWarriorEvent(context, event);
+    context.config.selectedTraitIds = [];
+    observeWarriorEvent(context, control);
+    assert.deepEqual(core.traitProcReadyAt, {});
+    assert.equal(core.adrenaline, 0);
+    assert.equal(events.length, 0);
+    core.targetControlledUntil = 0;
+    context.config.selectedTraitIds = [TRAIT.OPPORTUNIST];
+    observeWarriorEvent(context, control);
+    assert.equal(events.length, 1);
+    assert.equal(core.adrenaline, 5);
+    assert.equal(events[0].sourceId, TRAIT.OPPORTUNIST);
+    assert.equal(events[0].kind, 'fury');
+    assert.equal(events[0].duration, 3);
+    assert.equal(core.targetControlledUntil, 2);
+    observeWarriorEvent(context, { ...control, at: 1 + internalCooldown });
+    assert.equal(events.length, 1);
+    observeWarriorEvent(context, { ...control, type: 'condition', condition: 'Immobilized', at: 3 });
+    assert.equal(events.length, 2);
+    assert.equal(core.adrenaline, 10);
+  }
 });
 
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.

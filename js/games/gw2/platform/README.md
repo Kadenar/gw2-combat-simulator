@@ -11,10 +11,10 @@ The GW2 platform is organized by ownership. Put a module in the narrowest domain
 | `equipment/`             | Gear, consumables, relics, sigils, and weapons                                          |
 | `profession-definition/` | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
 | `resolver/`              | Event resolution and reaction processing                                                |
-| `results/`               | Simulation result queries                                                               |
+| `results/`               | Simulation result queries and rotation APM reporting                                    |
 | `scheduler/`             | GW2 event preparation, combat observation, and combo/equipment proc materialization     |
 | `simulation/`            | Simulation configuration, orchestration, and public result types                        |
-| `skills/`                | Shared skill timing and recharge behavior                                               |
+| `skills/`                | GW2 skill timing, recharge, transition delays, aliases, and autoattack-chain control    |
 
 Profession implementations live in `../professions/<profession>/`; their folder layout is described in
 [Simulator modules](../../../../docs/architecture/MODULES.md#profession-modules).
@@ -22,11 +22,19 @@ Profession implementations live in `../professions/<profession>/`; their folder 
 Optional patch-preview authoring, validation, and overlays belong in `../integrations/patches/`. See
 [Simulator modules](../../../../docs/architecture/MODULES.md#shared-guild-wars-2-platform) for the wider ownership map.
 
-Generic arithmetic is game-neutral and lives in `#kernel/core/numeric.js`; coercion of unvalidated build input
-belongs to `builds/normalization.ts`. Critical progress belongs to `combat/critical-procs.ts`; whole-millisecond
-duration rounding and absolute effect expiry remain separate operations in `skills/timing.ts`. Condition coefficients
-live in `combat/formulas.ts`. Boon queries share stack/pool calculations in `combat/boons.ts` while selecting their own
+Generic arithmetic is game-neutral and lives in `#kernel/core/numeric.js`; coercion of unvalidated build input belongs
+to `builds/normalization.ts`. Critical progress belongs to `combat/critical-procs.ts`; whole-millisecond duration
+rounding and absolute effect expiry remain separate operations in `skills/timing.ts`. Condition coefficients live in
+`combat/formulas.ts`. Boon queries share stack/pool calculations in `combat/boons.ts` while selecting their own
 phase-visible histories.
+
+Catalog indexing and balance-profile lookups belong in `engine/skills/`; GW2 autoattack-chain state transitions belong
+in `skills/autoattack-chain-controller.ts`. Shared event-to-skill lookup lives in `combat/query/event-skill.ts`, and
+damage-diagnostic event fields are declared alongside the event schema in `engine/events/events.ts`.
+
+Weapon eligibility is the profession's `weaponSkillMatchesSet` runtime callback. Simulation and application adapters
+consume that same policy; it is not a presentation hook. Equipment picker icons belong in
+`../app/shared/equipment-icons.ts`.
 
 ## Placement Rules
 

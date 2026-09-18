@@ -4,7 +4,7 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,

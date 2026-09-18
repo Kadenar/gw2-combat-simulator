@@ -1,4 +1,4 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState, type AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';

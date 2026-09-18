@@ -8,7 +8,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * be charged twice.
  */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';

@@ -5,7 +5,7 @@ import {
   balanceProfileEffectFromContext as profileEffect,
   balanceProfileFromContext,
   balanceProfileEffect
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';

@@ -1,5 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';

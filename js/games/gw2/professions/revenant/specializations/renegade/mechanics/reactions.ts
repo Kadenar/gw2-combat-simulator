@@ -5,7 +5,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';

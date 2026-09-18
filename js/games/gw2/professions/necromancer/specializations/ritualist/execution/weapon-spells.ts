@@ -2,7 +2,7 @@
  * Owns Ritualist weapon-spell application behavior and modeled allied-player proc scheduling.
  * Declarative weapon-spell fragments remain in `skills/index.ts`.
  */
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

@@ -1,5 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';

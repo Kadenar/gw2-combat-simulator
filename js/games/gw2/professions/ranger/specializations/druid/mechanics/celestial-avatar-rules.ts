@@ -9,7 +9,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';

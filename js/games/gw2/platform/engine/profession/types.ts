@@ -26,7 +26,7 @@ import type {
   ProfessionAssumptionControl
 } from '#gw2/platform/builds/types.js';
 import type { Gw2SimulationEndState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
@@ -347,10 +347,6 @@ export interface ProfessionSkillBarSelectionChange {
   readonly value?: string;
 }
 
-/** Weapon-bar matching for one equipped set. */
-export interface ProfessionWeaponMatcherContext<TProfessionState = unknown>
-  extends Omit<ProfessionPaletteContext<TProfessionState>, 'config'>, Gw2WeaponMatcherContext {}
-
 /**
  * Every field an application UI callback context can carry. Profession presenters that share one helper across
  * several callbacks read from this; each field is present only for the callbacks that supply it.
@@ -419,11 +415,6 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
   readonly updateSkillBarSelection: (
     context: ProfessionUiContext<TProfessionState>,
     selection: ProfessionSkillBarSelectionChange
-  ) => boolean;
-  readonly weaponSkillMatchesSet?: (
-    skill: Skill,
-    weapons: string[],
-    context: ProfessionWeaponMatcherContext<TProfessionState>
   ) => boolean;
   readonly weaponSwapChangesSet: boolean;
 }
@@ -519,6 +510,8 @@ export interface ProfessionResolverHookDefinition {
 }
 
 export interface ProfessionDefinition<TProfessionState extends object = object, TBuild extends object = object> {
+  /** One equipment eligibility policy used by simulation and application consumers. */
+  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog;
@@ -560,6 +553,8 @@ export interface ProfessionModuleDefinition<TModuleState extends object = object
 }
 
 export interface ProfessionFamilyDefinition<_TProfessionState extends object = object, TBuild extends object = object> {
+  /** One equipment eligibility policy used by simulation and application consumers. */
+  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;
@@ -581,6 +576,8 @@ export interface NormalizedProfessionContract<
   TEventReactions extends object = object,
   TBuild extends object = object
 > {
+  /** One equipment eligibility policy used by simulation and application consumers. */
+  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;
@@ -644,6 +641,8 @@ export interface ProfessionApplicationContract<
   TSimulation extends ProfessionSimulationDefinition = ProfessionSimulationDefinition,
   TBuild extends object = object
 > {
+  /** One equipment eligibility policy used by simulation and application consumers. */
+  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
   readonly name: string;
   readonly catalog: CanonicalCatalog;

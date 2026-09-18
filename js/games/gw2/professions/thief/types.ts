@@ -227,6 +227,5 @@ export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly state?: {
     readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
   };
-  readonly professionState?: ThiefRuntimeState | Partial<ThiefState>;
   readonly specialization?: string;
 }

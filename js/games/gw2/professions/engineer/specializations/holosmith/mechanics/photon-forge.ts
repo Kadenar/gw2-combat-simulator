@@ -1,10 +1,10 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
+import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';

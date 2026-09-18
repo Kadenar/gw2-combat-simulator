@@ -3,7 +3,7 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';

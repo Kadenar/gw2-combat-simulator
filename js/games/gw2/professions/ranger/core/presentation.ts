@@ -1,12 +1,11 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
@@ -164,17 +163,6 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
   return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
-function rangerWeaponSkillMatchesSet(skill: Skill, weapons: string[], context: RangerUiContext): boolean {
-  if (
-    isRangerHammerVariant(skill.id) &&
-    !selectedHammerSkillIds(context as RangerUiContext).includes(Number(skill.id))
-  ) {
-    return false;
-  }
-
-  return defaultWeaponSkillMatchesSet(skill, weapons, context);
-}
-
 // Project runtime hammer, weapon-flip, and active-pet gates into palette state so
 // unavailable alternatives remain visible with an actionable explanation.
 function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
@@ -330,7 +318,6 @@ export const rangerCoreUi: RangerUiSlice = Object.freeze({
     ];
   },
   paletteSkillAvailability: rangerCorePaletteAvailability,
-  weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
   eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
     RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
 });

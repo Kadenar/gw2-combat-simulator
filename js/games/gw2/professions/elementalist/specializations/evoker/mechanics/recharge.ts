@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Evoker recharge modification for the Elemental Balance one-use window.
  * The persistent window state remains in the Evoker state slice.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';

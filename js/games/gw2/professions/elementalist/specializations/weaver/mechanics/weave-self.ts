@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';

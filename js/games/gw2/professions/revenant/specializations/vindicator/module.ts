@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';

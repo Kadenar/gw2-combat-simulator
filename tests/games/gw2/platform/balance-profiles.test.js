@@ -9,7 +9,7 @@ import {
   balanceProfileFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 test('balance-profile authoring helpers attach canonical trait and variant metadata', () => {
   assert.deepEqual(defineTraitProfile(101, 'Test Trait', { threshold: 3 }), {

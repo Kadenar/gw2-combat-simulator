@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Guardian spear's persistent Illuminated state and conditional packets.
  * Declarative spear fragments remain in `skills/weapons/spear.ts`.
  */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';

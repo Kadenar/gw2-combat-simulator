@@ -7,7 +7,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';

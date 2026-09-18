@@ -5,7 +5,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
-import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
+import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';

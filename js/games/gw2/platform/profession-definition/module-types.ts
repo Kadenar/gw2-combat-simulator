@@ -1,3 +1,4 @@
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type {
   CanonicalCatalog,
   BalanceProfile,
@@ -19,7 +20,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chains.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 export interface NativeAutoattackChains {
   readonly additional?: readonly (readonly SkillId[])[];
@@ -284,6 +285,8 @@ export interface NativeProfessionDefinition<
   readonly catalog?: NativeCatalogOptions;
   /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */
   readonly autoattackChains?: Gw2AutoattackChainOptions;
+  /** Equipment eligibility is shared by every runtime and the application adapter. */
+  readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
 }
 
 export type NativeProfessionContract<

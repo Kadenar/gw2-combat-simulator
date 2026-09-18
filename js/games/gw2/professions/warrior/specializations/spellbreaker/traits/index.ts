@@ -1,4 +1,4 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';

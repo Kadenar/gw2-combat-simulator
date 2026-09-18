@@ -3,7 +3,7 @@ import {
   balanceProfileEffect,
   balanceProfileFromContext,
   procChanceFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

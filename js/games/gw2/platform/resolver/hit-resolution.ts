@@ -1,3 +1,4 @@
+import type { Gw2DamageCalculation } from '#gw2/platform/engine/events/events.js';
 import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2CriticalResult, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
@@ -248,27 +249,7 @@ export function createGw2HitResolution({
   });
 }
 
-/** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
-
-/** Detached formula facts captured only for requested detailed damage diagnostics. */
-export interface Gw2DamageCalculation {
-  readonly phase: 'Sample' | 'Settle' | 'Ordinary';
-  readonly targetHealthBefore: number | null;
-  readonly targetHealthFractionBefore: number | null;
-  readonly power: number;
-  readonly precision?: number;
-  readonly ferocity?: number;
-  readonly coefficientMultiplier: number;
-  readonly baseDamage: number;
-  readonly criticalMultiplier: number;
-  readonly outgoingMultiplier: number;
-  readonly unroundedDamage: number;
-  readonly rounding: 'floor' | 'half-even';
-}
-/** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-
-// Resolution consumes kernel randomness and generic records without execution dependencies.
-
+/** Aggregates resolved damage and critical-hit accounting for one skill or effect. */
 export interface Gw2DamageBreakdownEntry {
   name: string;
   sourceSkill: string;

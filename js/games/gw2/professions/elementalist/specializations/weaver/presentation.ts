@@ -19,7 +19,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,

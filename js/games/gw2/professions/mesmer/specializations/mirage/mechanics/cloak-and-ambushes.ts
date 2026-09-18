@@ -8,7 +8,7 @@ import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import type {
   MesmerActivePrimaryWeapon,

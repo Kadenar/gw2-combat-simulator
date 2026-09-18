@@ -7,7 +7,7 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
  * bonuses that must land on ferocity and condition damage before those
  * attributes feed into scaling.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';

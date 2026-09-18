@@ -1,5 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';

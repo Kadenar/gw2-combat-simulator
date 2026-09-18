@@ -1,6 +1,6 @@
 /** Owns Ranger pet-audience attributes and rules so player modifier composition stays explicit. */
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';

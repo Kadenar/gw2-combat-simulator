@@ -1,7 +1,8 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -95,6 +96,7 @@ export function applyAlliedLeechingVenoms(context: ThiefResolverContext, applica
   applyLeechingVenoms(context, application);
 }
 
+/** Claims the resolver-owned ICD only for eligible stealth strikes before queuing the siphon. */
 export function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||
@@ -107,9 +109,15 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
   if (!(skill || namedSkill)?.stealthAttack) return;
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.shadowSiphoning);
-  const readyAt = Number(state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0);
-  if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = event.at + Number(profile?.internalCooldown ?? 1);
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      TRAIT.SHADOW_SIPHONING,
+      event.at,
+      Number(profile?.internalCooldown ?? 1)
+    )
+  )
+    return;
   enqueueSiphon(
     context,
     event,

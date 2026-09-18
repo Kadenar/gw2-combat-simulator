@@ -1,5 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

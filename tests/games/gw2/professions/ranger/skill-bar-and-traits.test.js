@@ -218,7 +218,7 @@ describe('Ranger skill-bar selections', () => {
       false
     );
     assert.equal(
-      rangerProfession.ui.weaponSkillMatchesSet(
+      rangerProfession.weaponSkillMatchesSet(
         rangerCatalog.skillsById.get(ID.UNLEASHED_WILD_SWING),
         ['Hammer', ''],
         untamedContext

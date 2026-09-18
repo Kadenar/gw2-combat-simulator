@@ -12,7 +12,7 @@ import {
 } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
-import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,

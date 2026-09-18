@@ -1,5 +1,5 @@
 import { isTimeInWindow } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -20,7 +20,7 @@ import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/profession
 import { advanceNecromancerState, leaveShroud } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { addCarapace, gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { runNecromancerShroudEnter } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
+import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 // Snapshot current life-force-related state, arm the matching exit skill, and

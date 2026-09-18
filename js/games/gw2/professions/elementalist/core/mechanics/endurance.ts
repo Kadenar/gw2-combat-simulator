@@ -2,7 +2,7 @@
  * Owns Elementalist-specific endurance regeneration policy.
  * Shared capped resource arithmetic stays in the platform endurance primitive.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';

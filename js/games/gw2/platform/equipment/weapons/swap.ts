@@ -1,6 +1,6 @@
 import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
-import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';

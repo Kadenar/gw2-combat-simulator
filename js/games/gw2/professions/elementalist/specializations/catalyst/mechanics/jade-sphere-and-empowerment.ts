@@ -14,7 +14,7 @@ import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';

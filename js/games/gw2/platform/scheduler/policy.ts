@@ -26,7 +26,7 @@ import {
 import { ensurePermanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/simulation/transition-delays.js';
+import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/skills/transition-delays.js';
 import {
   buffApplicationStacks,
   buffMatchesAudience,

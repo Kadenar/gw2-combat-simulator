@@ -12,7 +12,7 @@ import {
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
+import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delays.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
 

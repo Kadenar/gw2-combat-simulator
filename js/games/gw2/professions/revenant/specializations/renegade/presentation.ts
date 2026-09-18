@@ -1,5 +1,5 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';

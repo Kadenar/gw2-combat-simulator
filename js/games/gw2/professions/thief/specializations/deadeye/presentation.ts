@@ -2,7 +2,6 @@ import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
-import { deadeyeWeaponSkillMatchesSet } from '#gw2/professions/thief/specializations/deadeye/mechanics/weapon-state.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
@@ -18,7 +17,6 @@ function deadeyeStolenSkillIds(context: ThiefUiContext = {}): number[] {
 }
 
 export const deadeyeUi = Object.freeze({
-  weaponSkillMatchesSet: deadeyeWeaponSkillMatchesSet,
   paletteGroups: (context: ThiefUiContext) => {
     const stolenSkillIds = deadeyeStolenSkillIds(context);
     // Keep every choice visible beside Mark; shared availability greys out skills that have not been stolen.

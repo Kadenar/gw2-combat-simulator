@@ -9,6 +9,61 @@ import {
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+
+// Equipment policy must survive native-family composition and gate headless casts without presentation hooks.
+test('profession weapon eligibility is shared with headless simulation', () => {
+  const weaponSkillMatchesSet = (_skill, _weapons, context) => context.config.specialization === 'Elite';
+  const family = defineNativeProfession({
+    id: 'weapon-contract',
+    name: 'Weapon Contract',
+    weaponSkillMatchesSet,
+    modules: [
+      defineNativeModule({
+        id: 'Core',
+        data: {
+          generatedSkills: [
+            {
+              id: 1,
+              name: 'Sword Strike',
+              type: 'Weapon',
+              weapon: 'Sword',
+              castTimeMs: 0,
+              effects: [{ type: 'strike', coefficient: 1 }]
+            }
+          ],
+          weapons: ['Sword'],
+          weaponHands: { Sword: 'mh' }
+        },
+        state: { scheduler: () => ({}) }
+      }),
+      defineNativeModule({ id: 'Elite', data: {}, state: { scheduler: () => ({}) } })
+    ]
+  });
+  assert.equal(family.weaponSkillMatchesSet, weaponSkillMatchesSet);
+  for (const specialization of ['Core', 'Elite']) {
+    const runtime = family.resolveRuntime({ specialization });
+    assert.equal(runtime.weaponSkillMatchesSet, weaponSkillMatchesSet);
+    assert.equal(runtime.ui.weaponSkillMatchesSet, undefined);
+    const result = simulateGw2({
+      profession: family,
+      rotation: ['Sword Strike'],
+      config: { primaryWeapon: 'Sword', specialization }
+    });
+    if (specialization === 'Core') {
+      assert.equal(result.totalDamage, 0);
+      assert.match(result.warnings.join(' '), /unavailable/);
+    } else {
+      assert.ok(result.totalDamage > 0);
+      assert.deepEqual(result.warnings, []);
+    }
+  }
+
+  assert.throws(
+    () => defineProfession({ id: 'invalid', name: 'Invalid', weaponSkillMatchesSet: true }),
+    /weaponSkillMatchesSet must be a function/
+  );
+});
 
 test('configured weapon accessors read the caller-selected set without fallback', () => {
   const config = {

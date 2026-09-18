@@ -1,7 +1,7 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EngineerSkill, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 
 const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.RADIANT_ARC_ID_69565,
@@ -12,10 +12,10 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
 ]);
 
 /** Selects the active sword identity at the Engineer family boundary. */
-function engineerWeaponSkillMatchesSet(
-  skill: EngineerSkill,
-  weapons: string[],
-  context: EngineerUiContext = {}
+export function engineerWeaponSkillMatchesSet(
+  skill: Skill,
+  weapons: readonly (string | undefined)[] = [],
+  context: Gw2WeaponMatcherContext = {}
 ): boolean {
   const specialization = String(
     context.specialization || context.config?.specialization || context.build?.specialization || 'Core'
@@ -23,7 +23,3 @@ function engineerWeaponSkillMatchesSet(
   if (specialization === 'Holosmith' && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill.id)) return false;
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }
-
-export const engineerFamilyUi: EngineerUiSlice = Object.freeze({
-  weaponSkillMatchesSet: engineerWeaponSkillMatchesSet
-});

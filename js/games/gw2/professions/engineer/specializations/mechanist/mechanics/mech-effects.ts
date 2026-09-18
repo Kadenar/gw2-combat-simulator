@@ -4,7 +4,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext,
   procChanceFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

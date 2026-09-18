@@ -28,10 +28,11 @@ import {
   composeModuleCatalog,
   composeStateFragments,
   defineProfessionModule,
-  mergeHandlerRegistries
+  mergeHandlerRegistries,
+  singleOwnerValue
 } from '#gw2/platform/engine/profession/module.js';
 import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
-import { composeModuleUi, createProfessionFamilyUi, singleOwnerValue } from '#gw2/platform/engine/profession/ui.js';
+import { composeModuleUi, createProfessionFamilyUi } from '#gw2/platform/engine/profession/ui.js';
 
 /**
  * Composes ordinary attribute hooks plus optional declarative rule fragments.
@@ -104,6 +105,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
   return {
     id: definition.id,
     name: definition.name,
+    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: composeModuleCatalog(genericModules),
     build: definition.build,
     resources: {
@@ -118,7 +120,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
       eventHandlers,
       eventReactions: composeEventReactions(genericModules)
     },
-    ui: composeModuleUi(genericModules, definition.ui),
+    ui: composeModuleUi(genericModules),
     simulation: definition.simulation
   };
 }
@@ -178,6 +180,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   const applicationSurface = defineProfession({
     id: definition.id,
     name: definition.name,
+    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog,
     build: definition.build,
     schedulerHooks: {
@@ -218,6 +221,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   return Object.freeze({
     id: applicationSurface.id,
     name: applicationSurface.name,
+    weaponSkillMatchesSet: applicationSurface.weaponSkillMatchesSet,
     catalog: applicationSurface.catalog,
     ui: applicationSurface.ui,
     simulation: applicationSurface.simulation,

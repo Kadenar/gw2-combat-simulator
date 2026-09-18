@@ -1,5 +1,5 @@
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { emitSkillControl } from '#gw2/platform/scheduler/skill-events.js';

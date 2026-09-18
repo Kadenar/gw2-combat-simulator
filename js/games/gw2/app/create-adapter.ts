@@ -93,7 +93,7 @@ export function defineProfessionApp({
     slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
     assumptionControls: (profession.ui.assumptionControls ||
       Object.freeze([])) as readonly ProfessionAssumptionControl[],
-    weaponSkillMatchesSet: profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
+    weaponSkillMatchesSet: profession.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     // Profession filters may add restrictions, but cannot bypass shared build eligibility.
     isSkillAvailable: (skill: Skill, context: ProfessionSkillAvailabilityContext = {}) =>
       isBuildSkillAvailable(skill, context) && (isSkillAvailable?.(skill, context) ?? true),

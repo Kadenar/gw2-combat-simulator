@@ -3,10 +3,11 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   procChanceFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -114,10 +115,10 @@ export function applyOpportunist(context: WarriorSchedulerContext, event: Warrio
     (event.type === 'condition' && event.actorType === 'player' && event.condition === 'Immobilized');
   if (!trigger || !hasTrait(context, TRAIT.OPPORTUNIST)) return;
   const state = professionCoreState(context);
-  if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.opportunist || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.opportunist);
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'opportunist', event.at, Number(profile?.internalCooldown ?? 1)))
+    return;
   const fury = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.opportunist = event.at + Number(profile?.internalCooldown ?? 1);
   gainWarriorAdrenaline(context, Number(profile?.resourceGain ?? 5));
   emitSkillBuff(context, {
     skill:

@@ -1,5 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,

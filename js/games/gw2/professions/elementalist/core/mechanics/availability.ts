@@ -7,7 +7,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

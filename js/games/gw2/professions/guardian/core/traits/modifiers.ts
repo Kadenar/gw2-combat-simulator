@@ -1,4 +1,4 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';

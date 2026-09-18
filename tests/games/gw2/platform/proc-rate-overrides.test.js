@@ -3,7 +3,7 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { procChanceFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 

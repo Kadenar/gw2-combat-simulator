@@ -20,7 +20,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {

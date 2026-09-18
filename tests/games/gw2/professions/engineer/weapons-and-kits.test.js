@@ -533,7 +533,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_ID_70771), true);
   assert.equal(
-    holosmithRuntime.ui.weaponSkillMatchesSet(
+    holosmithRuntime.weaponSkillMatchesSet(
       holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER_ID_70771),
       ['Sword'],
       { specialization: 'Holosmith' }
@@ -541,7 +541,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     false
   );
   assert.equal(
-    holosmithRuntime.ui.weaponSkillMatchesSet(holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER), ['Sword'], {
+    holosmithRuntime.weaponSkillMatchesSet(holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER), ['Sword'], {
       specialization: 'Holosmith'
     }),
     true

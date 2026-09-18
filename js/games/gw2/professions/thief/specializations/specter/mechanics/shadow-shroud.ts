@@ -1,12 +1,12 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitThiefShroudSwap } from '#gw2/professions/thief/core/mechanics/resource-events.js';
-import { emitTransitionLockout } from '#gw2/platform/simulation/transition-delays.js';
+import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 
 import { completeStealWithStoredSkills } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';

@@ -10,7 +10,7 @@ import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/family-presentation.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,

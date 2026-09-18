@@ -1,6 +1,6 @@
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
-import { rotationApm } from '#gw2/platform/simulation/rotation-apm.js';
+import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
@@ -20,7 +20,6 @@ import type {
 } from '#gw2/platform/simulation/types.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
 
@@ -104,7 +103,7 @@ function simulateDeclarativeGw2Pass({
     schedulerPolicy: createGw2SchedulerPolicy(config, {
       traits,
       catalog: runtimeProfession.catalog,
-      weaponSkillMatchesSet: runtimeProfession.ui.weaponSkillMatchesSet as Gw2WeaponSkillMatcher | undefined
+      weaponSkillMatchesSet: runtimeProfession.weaponSkillMatchesSet
     }),
     observationPolicy
   }).run(rotation);

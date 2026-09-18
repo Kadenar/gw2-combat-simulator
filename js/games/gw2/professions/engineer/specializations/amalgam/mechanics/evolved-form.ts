@@ -2,7 +2,7 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';

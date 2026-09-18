@@ -5,7 +5,7 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
-import { engineerFamilyUi } from '#gw2/professions/engineer/family-presentation.js';
+import { engineerWeaponSkillMatchesSet } from '#gw2/professions/engineer/build/weapon-matching.js';
 
 export {
   ENGINEER_GENERATED_SKILL_IDS,
@@ -22,7 +22,7 @@ export const engineerProfession = defineNativeProfession({
     validateBuild: validateEngineerBuild
   },
   modules: engineerNativeModules,
-  presentation: engineerFamilyUi
+  weaponSkillMatchesSet: engineerWeaponSkillMatchesSet
 });
 
 export default engineerProfession;

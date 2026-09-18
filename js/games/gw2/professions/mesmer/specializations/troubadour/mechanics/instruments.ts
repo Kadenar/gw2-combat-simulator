@@ -6,7 +6,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import {
   balanceProfileEffectFromContext as profileEffect,
   balanceProfileValueFromContext as profileValue
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';

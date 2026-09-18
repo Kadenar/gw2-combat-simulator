@@ -4,7 +4,7 @@
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import type { ElementalistRechargeQuery, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';

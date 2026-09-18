@@ -2,7 +2,7 @@ import {
   normalizeTransitionDelays,
   TRANSITION_DELAY_KEYS,
   type TransitionDelays
-} from '#gw2/platform/simulation/transition-delays.js';
+} from '#gw2/platform/skills/transition-delays.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export interface SimulationSettings {

@@ -7,7 +7,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

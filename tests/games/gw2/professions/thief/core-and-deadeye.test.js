@@ -9,7 +9,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
 import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/family-presentation.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';

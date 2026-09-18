@@ -12,7 +12,7 @@ import {
 } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
-import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';

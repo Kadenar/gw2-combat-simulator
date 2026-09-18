@@ -6,7 +6,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';

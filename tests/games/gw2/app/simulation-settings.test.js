@@ -5,7 +5,7 @@ import {
   saveSimulationSettings,
   SIMULATION_SETTINGS_STORAGE_KEY
 } from '#gw2/app/simulation/settings.js';
-import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
+import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delays.js';
 import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';

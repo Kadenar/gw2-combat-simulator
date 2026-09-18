@@ -35,8 +35,8 @@ import type {
   ProfessionAssumptionControl,
   Gw2ApplyBuildAttributeRules
 } from '#gw2/platform/builds/types.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionResourceView, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
 import type {
   ProfessionAttributeData,
   BuildTemplatePreset,
@@ -281,7 +281,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly capabilities: Gw2AppCapabilities;
   readonly slotLoadout: ProfessionSlotLoadout | null;
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
-  readonly weaponSkillMatchesSet: NonNullable<ProfessionUiContract['weaponSkillMatchesSet']>;
+  readonly weaponSkillMatchesSet: Gw2WeaponSkillMatcher;
 }
 
 export interface DefineProfessionAppOptions {

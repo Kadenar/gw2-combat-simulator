@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
-import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';

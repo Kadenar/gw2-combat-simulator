@@ -3,7 +3,7 @@ import {
   procChanceFromContext,
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';

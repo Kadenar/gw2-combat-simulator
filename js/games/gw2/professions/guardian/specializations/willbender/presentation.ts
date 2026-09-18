@@ -4,7 +4,7 @@ import {
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
   ProfessionEffectPresentation,

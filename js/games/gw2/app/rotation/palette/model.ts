@@ -31,7 +31,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { groupWeaponSkillsByAttunement } from '#gw2/app/rotation/palette/weapon-attunement-groups.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {

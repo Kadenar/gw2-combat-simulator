@@ -2,7 +2,7 @@
  * Owns Necromancer spear Soul Shard generation, consumption, and conditional cast behavior.
  * Spear skill fragments remain in `skills/weapons/spear.ts`; `index.ts` assigns cast phases.
  */
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

@@ -2,7 +2,7 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';

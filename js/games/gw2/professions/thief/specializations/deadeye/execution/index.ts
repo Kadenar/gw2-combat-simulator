@@ -1,6 +1,6 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

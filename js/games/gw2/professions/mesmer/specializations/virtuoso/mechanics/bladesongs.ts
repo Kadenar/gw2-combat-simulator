@@ -2,7 +2,7 @@ import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/m
 import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerShatterResolverRequest,

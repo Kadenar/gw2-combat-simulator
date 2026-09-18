@@ -1,8 +1,15 @@
 /** Owns the equipment/weapons/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
+/** Equipment selection and live state shared by scheduler eligibility and weapon-bar previews. */
 export interface Gw2WeaponMatcherContext {
+  readonly specialization?: string;
+  readonly build?: Gw2Build | null;
+  /** Matchers normalize the profession-specific projection before reading live state. */
+  readonly professionState?: unknown;
+  readonly weaponSet?: number;
   readonly catalog?: CanonicalCatalog | null;
   readonly config?: Gw2Config;
   readonly state?: object;

@@ -13,7 +13,7 @@ import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/simulation/transition-delays.js';
+import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delays.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 
 export interface GearOptimizerSelections {

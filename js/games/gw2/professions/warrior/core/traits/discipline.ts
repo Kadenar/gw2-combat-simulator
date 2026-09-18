@@ -1,5 +1,5 @@
 /** Owns imperative Discipline trait effects while the public dispatcher preserves cross-line ordering. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

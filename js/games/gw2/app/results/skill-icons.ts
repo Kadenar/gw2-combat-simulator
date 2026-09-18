@@ -1,7 +1,7 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { EQUIPMENT_ICONS } from '#gw2/platform/equipment/icons.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment-icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { baseBreakdownName } from '#gw2/app/results/skill-breakdown.js';
 import {

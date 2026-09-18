@@ -8,7 +8,7 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';

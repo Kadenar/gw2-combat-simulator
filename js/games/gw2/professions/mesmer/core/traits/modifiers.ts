@@ -1,5 +1,5 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';

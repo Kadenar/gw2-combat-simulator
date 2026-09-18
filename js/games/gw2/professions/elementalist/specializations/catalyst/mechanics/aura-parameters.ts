@@ -1,7 +1,7 @@
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 

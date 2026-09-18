@@ -3,7 +3,7 @@
  * mechanic hook - currently just Altruistic Aspect's meditation boons.
  */
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext } from '#gw2/professions/elementalist/types.js';

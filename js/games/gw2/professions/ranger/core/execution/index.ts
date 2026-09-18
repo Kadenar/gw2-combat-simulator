@@ -3,7 +3,7 @@ import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';

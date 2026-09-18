@@ -1,5 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorCastContext, WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';

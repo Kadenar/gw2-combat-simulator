@@ -9,22 +9,22 @@ For the reasoning behind the architecture, simulation phases, dependency rules, 
 
 ## Repository map
 
-| Path                                  | Purpose                                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Path                                  | Purpose                                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `js/kernel/`                          | Game-neutral clock, collections, numeric helpers, randomness, event-stream, queue, and observation contracts |
-| `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                    |
-| `js/app/`                             | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell |
-| `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine     |
-| `js/games/gw2/professions/`           | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI        |
-| `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters          |
-| `js/games/gw2/integrations/logs/`     | EVTC and dps.report parsing and rotation reconstruction                                     |
-| `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                 |
-| `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                            |
-| `data/games.json`                     | Canonical runtime game-data roots                                                           |
-| `data/gw2/builds/`                    | Saved GW2 build presets                                                                     |
-| `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                  |
-| `tests/`                              | Unit, integration, architecture, browser, and regression tests                              |
-| `scripts/`                            | Build, data generation, analysis, audit, and authoring tools                                |
+| `js/ui/`                              | Game-neutral simulation view models and reusable DOM/rotation primitives                                     |
+| `js/app/`                             | Game-neutral page entry, game plug-in boundary (browser and worker), page/host integration, and shell        |
+| `js/games/gw2/platform/`              | Shared Guild Wars 2 formulas, resolver logic, data, gear, relics, and simulation engine                      |
+| `js/games/gw2/professions/`           | Profession-owned builds, skills, state, mechanics, traits, resolver behavior, and UI                         |
+| `js/games/gw2/app/`                   | GW2 build editor, rotation workspace, browser lifecycle, and presentation adapters                           |
+| `js/games/gw2/integrations/logs/`     | EVTC and dps.report parsing and rotation reconstruction                                                      |
+| `js/games/gw2/integrations/keybinds/` | Optional GW2 keybind import                                                                                  |
+| `js/games/gw2/integrations/patches/`  | Patch-preview manifest, authoring model, and optional browser UI                                             |
+| `data/games.json`                     | Canonical runtime game-data roots                                                                            |
+| `data/gw2/builds/`                    | Saved GW2 build presets                                                                                      |
+| `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                                   |
+| `tests/`                              | Unit, integration, architecture, browser, and regression tests                                               |
+| `scripts/`                            | Build, data generation, analysis, audit, and authoring tools                                                 |
 
 At a high level:
 
@@ -72,7 +72,7 @@ Use this table as the first place to look.
 | Game-neutral browser shell behavior                                   | `js/app/`                                             |
 | GW2 browser behavior                                                  | `js/games/gw2/app/`                                   |
 | Shared presentation/view-model behavior                               | `js/ui/`                                              |
-| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`                 |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`              |
 | EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
 | dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
 | gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`             |
@@ -100,13 +100,13 @@ Game-specific browser behavior belongs under its game package; GW2 uses `js/game
 
 ## Application folders
 
-| Path           | Responsibility                                                                                         |
-| -------------- | ------------------------------------------------------------------------------------------------------ |
-| `entry.ts`     | Page script: startup watchdog and bootstrap call                                                       |
-| `bootstrap.ts` | Resolves the active game and content and starts its app                                                |
-| `game/`        | Game plug-in boundary: contracts and `GameContentAddress`, registry, worker driver, and worker harness |
+| Path           | Responsibility                                                                                            |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| `entry.ts`     | Page script: startup watchdog and bootstrap call                                                          |
+| `bootstrap.ts` | Resolves the active game and content and starts its app                                                   |
+| `game/`        | Game plug-in boundary: contracts and `GameContentAddress`, registry, worker driver, and worker harness    |
 | `page/`        | Host integration: iframe embed support, modal dismissal and embed-aware positioning, and hosting redirect |
-| `shell/`       | Result rendering, rotation workspace (config drawer, focus mode), and floating DPS badge               |
+| `shell/`       | Result rendering, rotation workspace (config drawer, focus mode), and floating DPS badge                  |
 
 ### Dependency direction
 
@@ -119,7 +119,7 @@ Non-type imports:
 | `js/ui/rotation/` | `js/ui/shared/`, other `js/ui/rotation/` files. **Not** `js/ui/results/`.                         |
 | `js/app/page/`    | other `js/app/page/` files (`dialog.ts` → `embed.ts`). Nothing else in `#app`, `#ui`, or `#gw2`.  |
 | `js/app/game/`    | other `js/app/game/` files; lazy `import('#gw2/…')` only in `registry.ts` and `worker-driver.ts`. |
-| `js/app/shell/`   | `#ui`, `js/app/page/`, `js/app/game/contracts.ts` (types). No `#gw2`.                           |
+| `js/app/shell/`   | `#ui`, `js/app/page/`, `js/app/game/contracts.ts` (types). No `#gw2`.                             |
 | `js/app/` root    | `js/app/page/`, `js/app/game/`.                                                                   |
 
 `shell/` → `game/` is type-only (`GameContentAddress`), so no module in `game/` ever loads shell code.
@@ -132,24 +132,24 @@ Non-type imports:
 
 The `js/games/gw2/app/` root holds only the composition root. Everything else lives in one folder per page area.
 
-| Module                   | Responsibility                                                  |
-| ------------------------ | --------------------------------------------------------------- |
-| `profession-app.ts`      | Session class; implements `ShellSession`                        |
-| `profession-registry.ts` | Lazy registry of every profession                               |
-| `create-runtime.ts`      | Connects application builds to `simulateGw2()`                  |
-| `create-adapter.ts`      | Composes native profession browser adapters                     |
-| `capabilities.ts`        | GW2 application capability flags                               |
-| `types.ts`             | Application state contracts                                     |
+| Module                   | Responsibility                                 |
+| ------------------------ | ---------------------------------------------- |
+| `profession-app.ts`      | Session class; implements `ShellSession`       |
+| `profession-registry.ts` | Lazy registry of every profession              |
+| `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
+| `create-adapter.ts`      | Composes native profession browser adapters    |
+| `capabilities.ts`        | GW2 application capability flags               |
+| `types.ts`               | Application state contracts                    |
 
-| Folder        | Owns                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
+| Folder        | Owns                                                                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `page/`       | Page chrome shared by the landing page and every profession page: `entry.ts` (the `<script>` in `index.html` and `templates/profession.html`), navigation, tutorial, icon fallback |
-| `shared/`     | Leaf helpers: HTML, icon constants, result clock formatting                                            |
-| `build/`      | Build editor, panels, and build state                                                                  |
-| `io/`         | Build and rotation import/export, with log importers under `io/logs/`                                  |
-| `rotation/`   | Rotation builder: palette, timeline, editing, state snapshot, comparison, warnings                     |
-| `results/`    | Result models, skill breakdown, summary metrics, charts, event log, and Analysis panel                 |
-| `simulation/` | Baseline simulation, gear optimizer, modifier contributions, RNG distribution, relic comparison        |
+| `shared/`     | Leaf helpers: HTML, icon constants, result clock formatting                                                                                                                        |
+| `build/`      | Build editor, panels, and build state                                                                                                                                              |
+| `io/`         | Build and rotation import/export, with log importers under `io/logs/`                                                                                                              |
+| `rotation/`   | Rotation builder: palette, timeline, editing, state snapshot, comparison, warnings                                                                                                 |
+| `results/`    | Result models, skill breakdown, summary metrics, charts, event log, and Analysis panel                                                                                             |
+| `simulation/` | Baseline simulation, gear optimizer, modifier contributions, RNG distribution, relic comparison                                                                                    |
 
 The registry is also where a completely new profession would be exposed to the application.
 
@@ -157,16 +157,16 @@ The registry is also where a completely new profession would be exposed to the a
 
 Non-type imports inside `js/games/gw2/app/` follow these rules:
 
-| Folder        | May import                                                                                                  |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                      |
+| Folder        | May import                                                                                                                                                                                                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                          |
 | `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionEndState`). |
-| `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                |
-| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint). |
-| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                  |
-| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                    |
-| root          | anything.                                                                                                   |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionEndState`).                                                                                                                                        |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                                                                                                                                                                                                    |
+| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                     |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                      |
+| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                                                                      |
+| root          | anything.                                                                                                                                                                                                                                                                                     |
 
 `rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
 load order is safe; don't add top-level code in either file that calls into the other.
@@ -239,18 +239,17 @@ random-distribution/
 relic-comparison/
 ```
 
-The root owns common config construction. `baseline/types.ts` retains baseline and patch-comparison
-contracts; modifier, RNG, and relic request/result contracts live in their feature directories. Optimizer contracts
-remain beside their implementations. Consumers import the owning module directly, without compatibility re-exports.
+The root owns common config construction. `baseline/types.ts` retains baseline and patch-comparison contracts; modifier,
+RNG, and relic request/result contracts live in their feature directories. Optimizer contracts remain beside their
+implementations. Consumers import the owning module directly, without compatibility re-exports.
 
 These modules orchestrate simulation work around the shared engine. They should not own profession mechanics.
 
 Shared-code assessment:
 
-- Worker lifecycle is already extracted into `js/app/game/worker-harness.ts`. `ManagedWorkerBatch` owns
-  cancellation, stale-response filtering, and failure cleanup for modifiers, RNG, and the optimizer.
-  `createGameWorkerEndpoint` shares driver loading, request IDs, progress envelopes, and error serialization for
-  baseline, modifier, and RNG workers.
+- Worker lifecycle is already extracted into `js/app/game/worker-harness.ts`. `ManagedWorkerBatch` owns cancellation,
+  stale-response filtering, and failure cleanup for modifiers, RNG, and the optimizer. `createGameWorkerEndpoint` shares
+  driver loading, request IDs, progress envelopes, and error serialization for baseline, modifier, and RNG workers.
 - Keep scheduling feature-specific. Modifiers debounce and defer to RNG work; RNG partitions reproducible seed ranges
   and merges statistical samples; the optimizer retains worker state across search chunks, refinement rounds, and
   verification. Its stateful protocol does not fit the existing single-request endpoint. Baseline execution coalesces
@@ -263,9 +262,9 @@ Shared-code assessment:
   layer. These shared pieces should stay outside individual feature directories.
 - Baseline and modifier requests share `deterministicSimulationConfig` in `config.ts`. The optimizer deliberately forces
   deterministic mode unconditionally, so it does not use the helper that only converts stochastic mode. Modifier
-  candidate enumeration and request assembly belong to `modifier-contributions/request.ts`; one config policy preserves finite target
-  health for Eagle and removes the death cutoff for other modifier comparisons. The runtime supplies profession identity
-  and config preparation, calculating each affected weapon set once per config.
+  candidate enumeration and request assembly belong to `modifier-contributions/request.ts`; one config policy preserves
+  finite target health for Eagle and removes the death cutoff for other modifier comparisons. The runtime supplies
+  profession identity and config preparation, calculating each affected weapon set once per config.
 - No general analysis-runner superclass, batch partitioner, or statistics utility is needed. Similar timer cleanup and
   hardware-concurrency arithmetic are small; the scheduling, partitioning, and result semantics differ. RNG statistics
   currently have one feature owner.
@@ -290,9 +289,8 @@ js/kernel/
 ```
 
 The kernel contains the small primitives that make sense for any deterministic simulator: monotonic clock helpers,
-collections, generic arithmetic (`core/numeric.ts` owns `clamp` and `roundHalfToEven`), seeded randomness, stable
-event queues, caller-owned event-stream identity, and observation windows. It must not import application or game
-packages.
+collections, generic arithmetic (`core/numeric.ts` owns `clamp` and `roundHalfToEven`), seeded randomness, stable event
+queues, caller-owned event-stream identity, and observation windows. It must not import application or game packages.
 
 ---
 
@@ -302,14 +300,14 @@ packages.
 js/ui/
 ```
 
-| Path        | Responsibility                                                                                     |
-| ----------- | -------------------------------------------------------------------------------------------------- |
+| Path        | Responsibility                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------- |
 | `results/`  | Shell-facing simulation view model and renderer, event log, and hit-timeline chart (model and view) |
-| `rotation/` | Rotation warnings, insertion cursor, ammo display, and floating/duration editors (`editing/`)      |
-| `shared/`   | DOM, HTML, error, and dropdown-search helpers                                                      |
+| `rotation/` | Rotation warnings, insertion cursor, ammo display, and floating/duration editors (`editing/`)       |
+| `shared/`   | DOM, HTML, error, and dropdown-search helpers                                                       |
 
-A `js/ui/` file lives in the folder with the same name as the `js/games/gw2/app/` folder that consumes it. GW2 adapts its
-existing output through `js/games/gw2/app/results/view.ts`. Neutral UI must not name GW2 skills, resources, or
+A `js/ui/` file lives in the folder with the same name as the `js/games/gw2/app/` folder that consumes it. GW2 adapts
+its existing output through `js/games/gw2/app/results/view.ts`. Neutral UI must not name GW2 skills, resources, or
 profession flags; those belong beside their GW2 consumer.
 
 ---
@@ -332,20 +330,20 @@ Examples include:
 
 Important modules include:
 
-| Module                                                                                    | Responsibility                                     |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `execution/scheduler.ts`                                                                  | Declarative scheduler and profession-hook dispatch |
-| `execution/state.ts`                                                                      | Profession-neutral scheduler state                 |
-| `execution/tasks.ts`                                                                      | Ordered delayed state work                         |
-| `events/scheduled-stream.ts`                                                              | Scheduler-to-resolver event boundary               |
-| `execution/cooldowns.ts`                                                                  | Cooldown and ammo state machine                    |
-| `effects/factories.ts`                                                                    | Canonical effect constructors                      |
-| `effects/materializer.ts`                                                                 | Converts effects into scheduled events             |
-| `skills/autoattack-chains.ts`                                                             | Autoattack-chain indexing                          |
-| `profession/family.ts`                                                                    | Core + specialization contract composition         |
-| `profession/module.ts`                                                                    | Profession module composition                      |
-| `profession/ui-combinators.ts`                                                            | Composition helpers for profession UI slices       |
-| `events/types.ts`, `skills/types.ts`, `execution/types.ts`, `profession/types.ts` | Domain-owned engine contracts                      |
+| Module                                                                             | Responsibility                                     |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `execution/scheduler.ts`                                                           | Declarative scheduler and profession-hook dispatch |
+| `execution/state.ts`                                                               | Profession-neutral scheduler state                 |
+| `execution/tasks.ts`                                                               | Ordered delayed state work                         |
+| `events/scheduled-stream.ts`                                                       | Scheduler-to-resolver event boundary               |
+| `execution/cooldowns.ts`                                                           | Cooldown and ammo state machine                    |
+| `effects/factories.ts`                                                             | Canonical effect constructors                      |
+| `effects/materializer.ts`                                                          | Converts effects into scheduled events             |
+| `skills/autoattack-chains.ts`                                                      | Autoattack-chain indexing                          |
+| `profession/family.ts`                                                             | Core + specialization contract composition         |
+| `profession/module.ts`                                                             | Profession module composition                      |
+| `profession/ui-combinators.ts`                                                     | Composition helpers for profession UI slices       |
+| `events/events.ts`, `skills/types.ts`, `execution/types.ts`, `profession/types.ts` | Domain-owned engine contracts                      |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -408,6 +406,18 @@ decoration and validation live under `js/games/gw2/integrations/patches/`.
 `engine/execution/` owns scheduler execution and runtime state. `scheduler/` prepares GW2 events, observes combat, and
 materializes combo/equipment procs; `resolver/` resolves those events and processes reactions. `simulation/` coordinates
 the phases without direct imports between scheduler and resolver implementations.
+
+`engine/skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/event-skill.ts` owns shared
+event-to-skill lookup without depending on resolver implementations. The shared damage-diagnostic contract lives beside
+the event schema in `engine/events/events.ts`.
+
+`results/rotation-apm.ts` owns input-rate reporting. `skills/transition-delays.ts` owns bar-transition timing, and
+`skills/autoattack-chain-controller.ts` owns live chain transitions; `engine/skills/autoattack-chains.ts` indexes
+catalog chains. Equipment picker icons live in `js/games/gw2/app/shared/equipment-icons.ts`.
+
+Profession definitions expose weapon eligibility as `weaponSkillMatchesSet`, consumed by both scheduling and the
+application adapter. Family-specific matching lives in `professions/<profession>/build/weapon-matching.ts`; it is not
+part of `ProfessionUiContract`.
 
 ---
 
@@ -527,13 +537,13 @@ Every profession uses the same layout:
     mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.ts for module-only skill fields]
 ```
 
-| Root file                | Owns                                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `profession.ts`          | Native profession contract (named and default export); re-exports the module tuple, catalog, and skill IDs   |
-| `catalog.ts`             | Core-first module tuple and assembled catalog. `build/` imports it; other outside code uses `profession.js` |
-| `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state                        |
-| `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                                          |
-| `types.ts`             | Build, config, runtime, context, and event types. Module-owned state types are imported from their `state.ts` |
+| Root file                | Owns                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `profession.ts`          | Native profession contract (named and default export); re-exports the module tuple, catalog, and skill IDs    |
+| `catalog.ts`             | Core-first module tuple and assembled catalog. `build/` imports it; other outside code uses `profession.js`   |
+| `family-state.ts`        | Snapshot, projection, and emission helpers that combine Core and specialization state                         |
+| `family-presentation.ts` | Optional family-level `ProfessionUiContract` pieces                                                           |
+| `types.ts`               | Build, config, runtime, context, and event types. Module-owned state types are imported from their `state.ts` |
 
 No other files belong at the profession root. `catalog.ts` stays separate from `profession.ts` because `profession.ts`
 imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
@@ -545,8 +555,8 @@ Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
 never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/shared/` helpers are not a profession. `eslint.config.js` and `tests/architecture/profession-layout.test.js`
-enforce this layout for every profession.
+`professions/shared/` helpers are not a profession. `eslint.config.js` and
+`tests/architecture/profession-layout.test.js` enforce this layout for every profession.
 
 The runtime composition is:
 

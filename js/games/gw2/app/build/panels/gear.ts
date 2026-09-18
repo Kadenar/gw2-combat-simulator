@@ -1,5 +1,5 @@
 import { getProfessionEntry } from '#gw2/app/profession-registry.js';
-import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/platform/equipment/icons.js';
+import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment-icons.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';

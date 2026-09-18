@@ -2,7 +2,7 @@
  * Owns Tempest resolver reactions to accepted Elementalist auras.
  * Core aura application and shared resolver helpers remain under Core mechanics.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tempestAuraBoons } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

@@ -14,7 +14,7 @@ import type {
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RotationApm } from '#gw2/platform/simulation/rotation-apm.js';
+import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 
 /** GW2 simulation policy: one optional refinement pass over the scheduler config. */
 export interface Gw2SimulationDefinition extends ProfessionSimulationDefinition {

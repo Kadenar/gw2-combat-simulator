@@ -7,7 +7,6 @@ import type {
   PaletteSkillAvailability,
   ProfessionChargeReleaseContext,
   ProfessionEventLogContext,
-  ProfessionModuleDefinition,
   ProfessionPaletteActionIdentity,
   ProfessionPaletteContext,
   ProfessionPaletteGroup,
@@ -16,7 +15,7 @@ import type {
 } from '#gw2/platform/engine/profession/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
+import { singleOwnerValue, type NamedModule } from '#gw2/platform/engine/profession/module.js';
 import {
   everyUiSlice,
   firstUiMatch,
@@ -35,7 +34,6 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
   'targetHealthThresholds',
   'rotationStateSnapshot'
 ] as const satisfies readonly UiCallbackName[]);
-const UI_SINGLE_CALLBACK_NAMES = Object.freeze(['weaponSkillMatchesSet'] as const satisfies readonly UiCallbackName[]);
 
 /** Selection fields composition reads from an arbitrary callback context before choosing slices. */
 interface UiSelectionCandidate {
@@ -44,23 +42,7 @@ interface UiSelectionCandidate {
   readonly build?: { readonly specialization?: unknown } | null;
 }
 
-export function singleOwnerValue(
-  modules: readonly NamedModule<object>[],
-  select: (module: ProfessionModuleDefinition<any>) => unknown,
-  label: string
-): unknown {
-  const owners = modules.filter((entry) => select(entry.module) != null);
-  if (owners.length > 1) {
-    throw new TypeError(`${label} has multiple owners: ${owners.map((entry) => entry.name).join(', ')}.`);
-  }
-
-  return owners.length ? select(owners[0].module) : undefined;
-}
-
-export function composeModuleUi(
-  modules: readonly NamedModule<object>[],
-  familyUi: Partial<ProfessionUiContract> | undefined = undefined
-): UiSlice {
+export function composeModuleUi(modules: readonly NamedModule<object>[]): UiSlice {
   // Callbacks are composed by name, so the slice under construction is a dynamic record until it is returned.
   const ui: Record<string, unknown> = {};
   const slices = modules.map((entry) => entry.module.ui).filter((slice): slice is UiSlice => slice != null);
@@ -143,12 +125,6 @@ export function composeModuleUi(
         (result) => result !== undefined && result !== '',
         name === 'timelineSkillIcon' ? '' : undefined
       );
-  }
-
-  for (const name of UI_SINGLE_CALLBACK_NAMES) {
-    const familyCallback = familyUi?.[name];
-    const callback = familyCallback ?? singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
-    if (callback != null) ui[name] = callback;
   }
 
   const slotLoadout = singleOwnerValue(modules, (module) => module.ui?.slotLoadout, 'ui.slotLoadout');
@@ -470,16 +446,5 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     if (owners.length) ui[name] = owners[0][name];
   }
 
-  const weaponMatcher =
-    family.weaponSkillMatchesSet ||
-    singleOwnerValue(
-      allSlices.map((slice, index) => ({
-        name: index === 0 ? 'Core' : `Specialization ${index}`,
-        module: { id: `ui-${index}`, ui: slice }
-      })),
-      (module) => module.ui?.weaponSkillMatchesSet,
-      'ui.weaponSkillMatchesSet'
-    );
-  if (weaponMatcher != null) ui.weaponSkillMatchesSet = weaponMatcher;
   return Object.freeze(ui) as UiSlice;
 }

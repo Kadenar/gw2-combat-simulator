@@ -1,3 +1,4 @@
+import { rangerWeaponSkillMatchesSet } from '#gw2/professions/ranger/build/weapon-matching.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createRangerBuildDefaults,
@@ -16,6 +17,7 @@ export const rangerProfession = defineNativeProfession({
     migrateBuild: migrateRangerBuild,
     validateBuild: validateRangerBuild
   },
+  weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
   modules: rangerNativeModules
 });
 

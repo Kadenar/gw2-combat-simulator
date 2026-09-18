@@ -32,7 +32,7 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import {
   createGw2AutoattackChainMechanics,
   type Gw2AutoattackChainOptions
-} from '#gw2/platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -358,6 +358,7 @@ export function defineNativeProfession<
   const engineDefinition: ProfessionFamilyDefinition<NativeProfessionRuntimeState<TModules>, TBuild> = {
     id: definition.id,
     name: definition.name,
+    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: assembly.catalog,
     build: definition.build,
     core: compileNativeModule(

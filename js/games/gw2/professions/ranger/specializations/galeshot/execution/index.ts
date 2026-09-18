@@ -1,7 +1,7 @@
 import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { applyGaleshotCycloneBowTraits } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';

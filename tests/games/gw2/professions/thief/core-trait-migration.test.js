@@ -6,6 +6,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
+import { handleThiefState } from '#gw2/professions/thief/family-state.js';
 
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -363,18 +364,62 @@ test('Spider Venom remains a base effect and Leeching Venoms stays nested after 
   assert.equal(withTrait.context.queue.dequeue().sourceId, TRAIT.LEECHING_VENOMS);
 });
 
-test('Shadow Siphoning reacts only to cataloged stealth attacks', () => {
-  const { context } = traitContext([TRAIT.SHADOW_SIPHONING]);
+// Exercise the real damage dispatcher and snapshot merge so scheduler checkpoints cannot reset the ICD.
+test('Shadow Siphoning gates eligible stealth attacks and preserves resolver cooldowns across snapshots', () => {
   const stealthAttack = thiefCatalog.skills.find((skill) => skill.stealthAttack);
-  reactToThiefCoreDamage(context, {
+  const hit = {
     type: 'damage',
     at: 1,
     actorType: 'player',
     coefficient: 1,
     skillId: stealthAttack.id,
     skillName: stealthAttack.name
-  });
-  assert.equal(context.queue.dequeue().sourceId, TRAIT.SHADOW_SIPHONING);
+  };
+  for (const internalCooldown of [1, 0]) {
+    const { context, core } = traitContext([TRAIT.SHADOW_SIPHONING]);
+    Object.assign(context.profession, context.state.profession);
+    const profiles = new Map(thiefCatalog.balanceProfilesById);
+    profiles.set(TRAIT.SHADOW_SIPHONING, { ...profiles.get(TRAIT.SHADOW_SIPHONING), internalCooldown });
+    context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
+    for (const event of [
+      { ...hit, actorType: 'summon' },
+      { ...hit, actorType: 'effect' },
+      { ...hit, coefficient: 0 },
+      { ...hit, skillId: STEAL.id, skillName: stealthAttack.name },
+      { ...hit, skillId: -1, skillName: 'Unknown attack' }
+    ])
+      reactToThiefCoreDamage(context, event);
+    context.config.selectedTraitIds = [];
+    reactToThiefCoreDamage(context, hit);
+    assert.deepEqual(core.traitProcReadyAt, {});
+    assert.equal(context.queue.length, 0);
+    context.config.selectedTraitIds = [TRAIT.SHADOW_SIPHONING];
+    const enqueue = context.queue.enqueue.bind(context.queue);
+    context.queue.enqueue = (event) => {
+      assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], event.at + internalCooldown);
+      // A child opportunity sees the armed ICD, and effect actors remain ineligible.
+      reactToThiefCoreDamage(context, { ...hit, at: event.at });
+      reactToThiefCoreDamage(context, event);
+      return enqueue(event);
+    };
+
+    reactToThiefCoreDamage(context, hit);
+    assert.equal(context.queue.length, 1);
+    const siphon = context.queue.dequeue();
+    assert.equal(siphon.sourceId, TRAIT.SHADOW_SIPHONING);
+    assert.equal(siphon.canCrit, false);
+    assert.equal(siphon.lifeSiphon, true);
+    const snapshot = { traitProcReadyAt: {}, initiative: 7 };
+    handleThiefState(context, { at: 1, state: snapshot });
+    assert.equal(core.initiative, 7);
+    assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
+    assert.deepEqual(snapshot.traitProcReadyAt, {});
+    reactToThiefCoreDamage(context, { ...hit, at: 1 + internalCooldown });
+    assert.equal(context.queue.length, 0);
+    // Retain the legacy name fallback when no catalog ID matches.
+    reactToThiefCoreDamage(context, { ...hit, at: 3, skillId: -1 });
+    assert.equal(context.queue.length, 1);
+  }
 });
 
 test('Panic Strike applies immobilize then its poison follow-up', () => {

@@ -1,4 +1,4 @@
-import { balanceProfileValue } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

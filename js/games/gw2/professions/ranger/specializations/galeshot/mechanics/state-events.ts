@@ -1,4 +1,4 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 

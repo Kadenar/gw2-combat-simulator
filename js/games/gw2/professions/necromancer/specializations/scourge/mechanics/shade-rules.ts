@@ -1,5 +1,5 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';

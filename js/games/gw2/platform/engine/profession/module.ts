@@ -305,3 +305,17 @@ export function composeStateFragments(
     specialization ? createStateFragment(specialization, config, resolver) : {}
   );
 }
+
+/** Rejects conflicting owners of a scalar module contribution before composing the runtime. */
+export function singleOwnerValue(
+  modules: readonly NamedModule<object>[],
+  select: (module: ProfessionModuleDefinition<any>) => unknown,
+  label: string
+): unknown {
+  const owners = modules.filter((entry) => select(entry.module) != null);
+  if (owners.length > 1) {
+    throw new TypeError(`${label} has multiple owners: ${owners.map((entry) => entry.name).join(', ')}.`);
+  }
+
+  return owners.length ? select(owners[0].module) : undefined;
+}

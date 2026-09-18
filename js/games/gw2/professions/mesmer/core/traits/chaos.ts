@@ -1,5 +1,5 @@
 /** Owns imperative Core Mesmer Chaos trait effects. */
-import { balanceProfileValueFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

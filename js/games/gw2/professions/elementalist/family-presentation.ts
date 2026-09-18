@@ -7,14 +7,13 @@ import type {
  * Family-level UI contract for the Elementalist.
  *
  * Holds the presentation rules that are true for every Elementalist build regardless of
- * elite specialization: which weapon skills belong to the equipped set, which palette
+ * elite specialization: which palette
  * skills the current attunement allows, and the start-attunement build controls.
  * Attunement is shown in the palette, so the active-state summary omits it.
  * Specialization modules contribute their own UI slices on top of this;
  * Weaver opts out of the attunement gates here
  * because its dual-attunement model is owned by the Weaver presentation.
  */
-import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionStartControl } from '#gw2/platform/engine/profession/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -79,18 +78,6 @@ function attunementControl(
   };
 }
 
-/** Selects specialization-specific weapon identities at the Elementalist family boundary. */
-function weaponSkillMatchesSet(
-  skill: Skill,
-  weapons: readonly (string | undefined)[],
-  context: ElementalistUiContext
-): boolean {
-  // Keep normal attunement rows visible while wielding a conjure; cast availability still enforces dropping it first.
-  // Dual-attunement ("Fire+Air") skills exist in the shared catalog but only Weaver has them.
-  if (String(skill.attunement || '').includes('+') && specialization(context) !== 'Weaver') return false;
-  return defaultWeaponSkillMatchesSet(skill, weapons, context);
-}
-
 // Apply family-level attunement and hammer-orb gates for non-Weavers; Weaver's
 // two-hand model is delegated to its specialization UI contract.
 function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) {
@@ -135,7 +122,6 @@ function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) 
  * specialization. Weaver additionally exposes a secondary-attunement start control.
  */
 export const elementalistFamilyUi: ElementalistUiSlice = Object.freeze({
-  weaponSkillMatchesSet,
   startControls: (context: ElementalistUiContext) =>
     specialization(context) === 'Weaver'
       ? [

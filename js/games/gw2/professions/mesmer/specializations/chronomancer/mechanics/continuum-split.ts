@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chains.js';
+import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */

@@ -3,7 +3,7 @@ import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/m
 import {
   balanceProfileFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';

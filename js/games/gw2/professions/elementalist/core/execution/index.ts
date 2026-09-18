@@ -6,7 +6,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

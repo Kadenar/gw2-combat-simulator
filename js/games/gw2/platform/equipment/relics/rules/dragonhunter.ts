@@ -1,6 +1,6 @@
 /** Dragonhunter relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const dragonhunter = defineRelic({

@@ -7,7 +7,7 @@ import {
   balanceProfileEffect,
   balanceProfileFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_SHATTERS, MESMER_CORE_TRAIT_DAMAGE } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';

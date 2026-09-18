@@ -1,4 +1,4 @@
-import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface RevenantEffectOwner {

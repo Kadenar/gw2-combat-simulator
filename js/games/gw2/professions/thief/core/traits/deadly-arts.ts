@@ -1,10 +1,10 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { skillForEvent } from '#gw2/platform/resolver/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';

@@ -12,7 +12,7 @@ import {
   resetAutoattackChains,
   type AutoattackChainTransition,
   type AutoattackChainTransitionContext
-} from '#gw2/platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { denySkillCast as unavailable } from '#gw2/professions/shared/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {

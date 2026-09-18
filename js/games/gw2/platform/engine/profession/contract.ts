@@ -100,8 +100,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
   'timelineWeaponLineTransition',
   'timelineSkillIcon',
   'updatePaletteControl',
-  'updateSkillBarSelection',
-  'weaponSkillMatchesSet'
+  'updateSkillBarSelection'
 ]);
 
 /**
@@ -241,6 +240,9 @@ export function assertDefinition(definition: unknown): void {
   if (!String(candidate.name || '').trim()) {
     throw new TypeError('Profession name is required.');
   }
+
+  // Equipment eligibility is a runtime policy shared with the application, independent of UI hooks.
+  assertOptionalCallback(candidate, 'weaponSkillMatchesSet', 'profession');
 }
 
 function assertOptionalCallback(container: object, name: string, scope: string): void {
@@ -499,6 +501,7 @@ export function defineProfession<TProfessionState extends object, TBuild extends
   const profession = {
     id: definition.id,
     name: definition.name,
+    weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog || {
       skills: [],
       traits: [],

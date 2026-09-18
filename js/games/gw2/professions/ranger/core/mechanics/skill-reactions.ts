@@ -2,7 +2,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {

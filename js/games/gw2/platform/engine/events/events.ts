@@ -1,5 +1,4 @@
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2DamageCalculation } from '#gw2/platform/resolver/hit-resolution.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /**
@@ -366,3 +365,19 @@ export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEve
 
 /** Input constructors share the envelope; runtime validation still owns external acceptance. */
 export type SimulationEventInput = SimulationEventBase;
+
+/** Detached formula facts captured only for requested detailed damage diagnostics. */
+export interface Gw2DamageCalculation {
+  readonly phase: 'Sample' | 'Settle' | 'Ordinary';
+  readonly targetHealthBefore: number | null;
+  readonly targetHealthFractionBefore: number | null;
+  readonly power: number;
+  readonly precision?: number;
+  readonly ferocity?: number;
+  readonly coefficientMultiplier: number;
+  readonly baseDamage: number;
+  readonly criticalMultiplier: number;
+  readonly outgoingMultiplier: number;
+  readonly unroundedDamage: number;
+  readonly rounding: 'floor' | 'half-even';
+}

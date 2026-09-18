@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import {
   balanceProfileFromContext,
   balanceProfileValueFromContext
-} from '#gw2/platform/combat/state/balance-profiles.js';
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';

@@ -1,5 +1,5 @@
 /** Owns imperative Core Necromancer Blood Magic trait behavior for ordered dispatcher calls. */
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedEffectRecipients, gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

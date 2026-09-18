@@ -25,7 +25,7 @@ import {
   weaponSkills,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chains.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';

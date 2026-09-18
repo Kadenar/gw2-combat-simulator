@@ -1,6 +1,6 @@
 /** Owns imperative Core Mesmer Illusions trait effects. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';

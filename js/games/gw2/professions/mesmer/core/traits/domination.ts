@@ -2,7 +2,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 /** Owns imperative Core Mesmer Domination trait effects. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
+import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';

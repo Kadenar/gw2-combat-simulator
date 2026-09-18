@@ -7,7 +7,7 @@ import {
   autoattackChainSkillAvailable,
   replaceAutoattackChains,
   resetAutoattackChains
-} from '#gw2/platform/skills/autoattack-chains.js';
+} from '#gw2/platform/skills/autoattack-chain-controller.js';
 
 const skill = (id, name, extra = {}) => ({
   id,

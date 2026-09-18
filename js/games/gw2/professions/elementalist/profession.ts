@@ -1,3 +1,4 @@
+import { elementalistWeaponSkillMatchesSet } from '#gw2/professions/elementalist/build/weapon-matching.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createElementalistBuildDefaults,
@@ -32,6 +33,7 @@ export const elementalistProfession = defineNativeProfession({
     validateBuild: validateElementalistBuild
   },
   modules: elementalistNativeModules,
+  weaponSkillMatchesSet: elementalistWeaponSkillMatchesSet,
   autoattackChains: {
     // Elementalist's explicit exceptions run before the shared damage-timing rule.
     overrides: [
