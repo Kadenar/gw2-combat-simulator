@@ -27,6 +27,7 @@ import type {
 } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 
 interface PhotonForgeHeatPayload {
   readonly skillId: string | number;
@@ -464,7 +465,7 @@ export function handlePhotonForgeHeat(
   const state = holosmithState.from(context);
   if (state.overheated || (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true)) return;
   const previousHeat = state.heat;
-  state.heat = Math.min(state.maximumHeat, state.heat + Math.max(0, Number(task.payload?.amount || 0)));
+  state.heat = grantCapped(state.heat, Number(task.payload?.amount || 0), state.maximumHeat);
   triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
   emitEngineerStateSnapshot(context, task.at, 'heat');
 }

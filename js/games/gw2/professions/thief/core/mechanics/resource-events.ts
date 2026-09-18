@@ -1,4 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import type { ThiefSchedulerContext, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -19,7 +20,7 @@ export function emitThiefShroudSwap(context: ThiefSchedulerContext, skill: Thief
 
 export function gainThiefInitiative(context: ThiefSchedulerContext, amount: number, at: number, reason: string): void {
   const state = professionCoreState(context);
-  state.initiative = Math.min(state.maximumInitiative, state.initiative + Math.max(0, Number(amount || 0)));
+  state.initiative = grantCapped(state.initiative, amount, state.maximumInitiative);
   // Publish the grant through the shared Thief envelope so observers see the updated state immediately.
   emitThiefStateSnapshot(context, at, reason);
 }

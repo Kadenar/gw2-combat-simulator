@@ -1,6 +1,7 @@
 import { balanceProfileFromContext } from '#gw2/platform/combat/state/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -31,13 +32,10 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   const maximum = Math.max(1, Number(affinityProfile?.maximumStacks ?? 1));
   state.affinityMaximum = maximum;
   const previous = Number(state.affinity || 0);
-  state.affinity = Math.min(maximum, previous + Math.max(0, Number(amount || 0)));
+  state.affinity = grantCapped(previous, amount, maximum);
   if (previous < maximum && state.affinity === maximum && hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)) {
     const expanded = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness);
-    coreState.energy = Math.min(
-      coreState.maximumEnergy,
-      coreState.energy + Math.max(0, Number(expanded?.resourceGain || 0))
-    );
+    coreState.energy = grantCapped(coreState.energy, Number(expanded?.resourceGain || 0), coreState.maximumEnergy);
   }
 
   if (state.affinity !== previous) {

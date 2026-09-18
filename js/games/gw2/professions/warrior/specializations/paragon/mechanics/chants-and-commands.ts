@@ -9,6 +9,7 @@ import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '#gw2/professions/warrior/family-state.js';
+import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 
 import type {
   WarriorCastContext,
@@ -44,7 +45,7 @@ function emitParagonState(context: WarriorSchedulerContext, at: number, reason: 
 
 function gainMotivation(context: WarriorSchedulerContext, amount: number): void {
   const state = paragonState.from(context);
-  state.motivation = Math.min(state.maximumMotivation, state.motivation + Math.max(0, amount));
+  state.motivation = grantCapped(state.motivation, amount, state.maximumMotivation);
 }
 
 function motivationLevel(context: WarriorSchedulerContext, motivation: number): 1 | 2 | 3 {

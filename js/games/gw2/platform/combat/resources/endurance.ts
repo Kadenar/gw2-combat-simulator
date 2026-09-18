@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 
-import { clamp } from '#kernel/core/numeric.js';
+import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
 
 export interface Gw2EnduranceState {
   readonly endurance: number;
@@ -13,10 +13,6 @@ export interface Gw2EnduranceInterval {
   readonly start: number;
   readonly end: number;
   readonly rate: number;
-}
-
-function cappedEndurance(value: number, maximumEndurance: number): number {
-  return clamp(value, 0, Math.max(0, maximumEndurance));
 }
 
 /** Advances capped endurance without allowing an older scheduler timestamp to regenerate or rewind state. */
@@ -36,7 +32,7 @@ export function advanceEndurance(
   // A zero rate must remain idle even when an observation window has no finite endpoint.
   const rate = Math.max(0, regenerationPerSecond);
   return {
-    endurance: cappedEndurance(
+    endurance: cappedResource(
       state.endurance + (rate === 0 ? 0 : (at - state.enduranceUpdatedAt) * rate),
       maximumEndurance
     ),
@@ -52,7 +48,7 @@ export function spendEndurance(
   maximumEndurance: number
 ): Gw2EnduranceState {
   return {
-    endurance: cappedEndurance(state.endurance - Math.max(0, amount), maximumEndurance),
+    endurance: cappedResource(state.endurance - Math.max(0, amount), maximumEndurance),
     enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
   };
 }
@@ -65,7 +61,7 @@ export function grantEndurance(
   maximumEndurance: number
 ): Gw2EnduranceState {
   return {
-    endurance: cappedEndurance(state.endurance + Math.max(0, amount), maximumEndurance),
+    endurance: grantCapped(state.endurance, amount, maximumEndurance),
     enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
   };
 }
@@ -112,7 +108,7 @@ export function enduranceIntervalsReadyAt(
 ): number | null {
   if (cost - Math.max(0, maximumEndurance) > Math.max(0, EPSILON)) return null;
   let current = {
-    endurance: cappedEndurance(state.endurance, maximumEndurance),
+    endurance: cappedResource(state.endurance, maximumEndurance),
     enduranceUpdatedAt: state.enduranceUpdatedAt
   };
   for (const interval of intervals) {
