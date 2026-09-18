@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FRIGID_BLITZ]: {
@@ -49,33 +50,27 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 15,
     energyCost: 10,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 0.75 }],
+        coefficient: 0.75,
+        hits: 1,
         name: 'Temporal Rift',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Torment', stacks: 4, duration: 10 }],
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 4,
+        duration: 10,
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        persistsAfterInterrupt: true,
-        atMs: 640,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         controlKind: 'pull'
       }
-    ]
+    ])
   }
 });

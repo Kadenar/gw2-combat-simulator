@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MIST_SLASH]: {
@@ -10,23 +11,23 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
 
     cooldown: 0,
     energyCost: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Mist Slash',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 1, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 10,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.MIST_UNLEASHED]: {
     castTimeMs: 520,
@@ -60,30 +61,30 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
 
     cooldown: 0,
     energyCost: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1.2 }],
+        coefficient: 1.2,
+        hits: 1,
         name: 'Arcing Mists',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Chilled', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 2, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 2,
+        duration: 10,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.TRUE_STRIKE]: {
     castTimeMs: 520,

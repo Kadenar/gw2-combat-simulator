@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BLOODBANE_PATH]: {
@@ -45,56 +46,54 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.65 }],
-        name: 'Shattershot',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        // Shattershot's Bleeding lands with the projectile on its 400 ms commit frame.
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.65,
+          hits: 1,
+          name: 'Shattershot',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          // Shattershot's Bleeding lands with the projectile on its 400 ms commit frame.
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.SCORCHRAZOR]: {
     castTimeMs: 360,
     cooldown: 12,
     energyCost: 16,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Scorchrazor',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       }
-    ]
+    ])
   },
   [ID.SEVENSHOT]: {
     castTimeMs: 440,

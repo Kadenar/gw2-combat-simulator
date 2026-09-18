@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -76,14 +77,14 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 480,
     cooldown: 15,
     energyCost: 15,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 1640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 1640, coefficient: 3.2 }],
+        coefficient: 3.2,
+        hits: 1,
         name: 'Drop the Hammer',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         metadata: {},
         comboFinishers: [
           {
@@ -96,12 +97,9 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         actorType: 'player',
-        atMs: 1640,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       }
-    ]
+    ])
   },
   [ID.COALESCENCE_OF_RUIN]: {
     castTimeMs: 720,

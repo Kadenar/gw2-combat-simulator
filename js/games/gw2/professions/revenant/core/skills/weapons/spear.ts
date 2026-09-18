@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -117,23 +118,21 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         ],
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 960, condition: 'Chilled', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        actorType: 'player'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 960,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        controlKind: 'pull'
-      }
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        {
+          type: 'condition',
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 2,
+          actorType: 'player'
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'pull'
+        }
+      ])
     ]
   },
   [ID.ABYSSAL_FORCE]: {
@@ -143,31 +142,31 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 6,
     energyCost: 4,
     rechargeReduction: 5,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 1160, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Abyssal Force',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         metadata: {}
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1160, condition: 'Burning', stacks: 1, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 8,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1160, condition: 'Chilled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.ABYSSAL_STRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -179,33 +178,33 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     energyCost: 0,
     rechargeReduction: 1,
     nextChainId: null,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 0.85 }],
-        name: 'Abyssal Strike',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Torment', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Vulnerability', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.85,
+          hits: 1,
+          name: 'Abyssal Strike',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 1,
+          duration: 6,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.ABYSSAL_RAZE]: {
     // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/execution/spear.ts`.
@@ -224,28 +223,28 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         damageIncreasePerStack: 0.33,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Abyssal Raze',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Torment', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 5,
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Torment', stacks: 2, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 5,
         actorType: 'player',
         metadata: { trigger: 'crushing-abyss' }
       },
@@ -255,12 +254,9 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         kind: 'crushing-abyss',
         duration: 10,
         stacks: 1,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Crushing Abyss',
         actorType: 'player'
       }
-    ]
+    ])
   }
 });

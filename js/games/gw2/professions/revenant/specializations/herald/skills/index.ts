@@ -4,6 +4,7 @@
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
 // the same profession-mechanic tile as the activating facet.
@@ -174,33 +175,27 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     castTimeMs: 600,
     cooldown: 20,
     energyCost: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 4 }],
+        coefficient: 4,
+        hits: 1,
         name: 'Chaotic Release',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'control',
         actorType: 'player',
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockback'
       },
       {
         type: 'buff',
         kind: 'superspeed',
         duration: 5,
-        stacks: 1,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 1
       }
-    ],
+    ]),
     legendId: 'LegendaryDragon',
     consume: true
   },

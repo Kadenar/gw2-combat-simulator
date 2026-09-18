@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MANIFEST_TOXIN]: {
@@ -8,75 +9,78 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     interruptCommitMs: 440,
     cooldown: 0,
     energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 0.6 }],
-        name: 'Manifest Toxin — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Poisoned', stacks: 1, duration: 12 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.6,
+          hits: 1,
+          name: 'Manifest Toxin — Packet 1',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 12,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.ANGUISH_SWIPE]: {
     castTimeMs: 360,
     interruptCommitMs: 320,
     cooldown: 0,
     energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.4 }],
-        name: 'Anguish Swipe',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.4,
+          hits: 1,
+          name: 'Anguish Swipe',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.MISERY_SWIPE]: {
     castTimeMs: 440,
     interruptCommitMs: 280,
     cooldown: 0,
     energyCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 280, coefficient: 0.35 }],
-        name: 'Misery Swipe',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Torment', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.35,
+          hits: 1,
+          name: 'Misery Swipe',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        }
+      ]
+    )
   },
   [ID.ECHOING_ERUPTION]: {
     castTimeMs: 960,
@@ -91,39 +95,36 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Echoing Eruption',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 800, condition: 'Torment', stacks: 4, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 4,
+        duration: 5,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 800, condition: 'Weakness', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'boon',
         boon: 'Might',
         duration: 9,
-        stacks: 3,
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        stacks: 3
       }
-    ]
+    ])
   },
   [ID.SEARING_FISSURE]: {
     castTimeMs: 600,

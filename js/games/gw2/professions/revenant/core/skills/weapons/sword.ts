@@ -1,6 +1,7 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
 export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -98,20 +99,23 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingScale: 'fixed',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Immobilized', stacks: 1, duration: 1 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Vulnerability', stacks: 8, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'condition',
+          condition: 'Immobilized',
+          stacks: 1,
+          duration: 1,
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 8,
+          duration: 5,
+          actorType: 'player'
+        }
+      ])
     ]
   },
   [ID.DEATHSTRIKE_ID_28625]: {
@@ -164,23 +168,23 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 320,
     cooldown: 0,
     energyCost: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 0.75 }],
+        coefficient: 0.75,
+        hits: 1,
         name: 'Preparation Thrust',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.CHILLING_ISOLATION]: {
     castTimeMs: 680,
@@ -222,22 +226,22 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 520,
     cooldown: 0,
     energyCost: 0,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 0.8 }],
+        coefficient: 0.8,
+        hits: 1,
         name: 'Brutal Blade',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Vulnerability', stacks: 2, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Vulnerability',
+        stacks: 2,
+        duration: 6,
+        actorType: 'player'
       }
-    ]
+    ])
   }
 });

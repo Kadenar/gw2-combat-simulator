@@ -4,6 +4,7 @@
  */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'revenant.core.resources',
@@ -364,41 +365,41 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'trait',
     categories: ['Trait'],
     skillFamily: 'Trait',
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        coefficient: 1,
+        hits: 1,
         name: 'Invoke Torment',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Torment', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Torment',
+        stacks: 1,
+        duration: 10,
         name: 'Invoke Torment',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Poisoned', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 10,
         name: 'Invoke Torment',
         actorType: 'player',
         metadata: { trigger: 'diabolic-inferno' }
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Burning', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
         name: 'Invoke Torment',
         actorType: 'player',
         metadata: { trigger: 'diabolic-inferno' }
       }
-    ]
+    ])
   }
 ] satisfies readonly BalanceProfile[]);

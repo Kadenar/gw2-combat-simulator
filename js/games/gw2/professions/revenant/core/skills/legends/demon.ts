@@ -1,6 +1,7 @@
 /** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -88,36 +89,33 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 800,
     cooldown: 3,
     energyCost: 30,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 800, coefficient: 1.2 }],
-        name: 'Call to Anguish',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 800, condition: 'Chilled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        controlKind: 'pull'
-      }
-    ],
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.2,
+          hits: 1,
+          name: 'Call to Anguish',
+          actorType: 'player',
+          metadata: {}
+        },
+        {
+          type: 'condition',
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 2,
+          actorType: 'player',
+          metadata: {}
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'pull'
+        }
+      ]
+    ),
     legendId: 'LegendaryDemon'
   },
   [ID.EMPOWERING_MISERY]: {
@@ -187,37 +185,37 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 680,
     cooldown: 0,
     energyCost: 5,
-    effects: [
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Unyielding Impact',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Burning', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Torment', stacks: 4, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Torment',
+        stacks: 4,
+        duration: 3,
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 3,
+        actorType: 'player'
       }
-    ],
+    ]),
     legendId: 'LegendaryDemon'
   }
 });

@@ -1,6 +1,7 @@
 /** Owns Legendary Alliance stance skill fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SELFISH_SPIRIT]: {
@@ -93,25 +94,26 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     interruptCommitMs: 400,
     cooldown: 12,
     energyCost: 20,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 2960, coefficient: 5 }],
-        name: 'Spear of Archemorus',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2960, condition: 'Torment', stacks: 5, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ],
+    // Share one impact timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 2960, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 5,
+          hits: 1,
+          name: 'Spear of Archemorus',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Torment',
+          stacks: 5,
+          duration: 8,
+          actorType: 'player'
+        }
+      ]
+    ),
     legendId: 'LegendaryAlliance'
   },
   [ID.SCAVENGER_BURST]: {

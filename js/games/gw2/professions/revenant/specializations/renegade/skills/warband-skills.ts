@@ -5,6 +5,7 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 const BASE_RAZORCLAW_EFFECTS = Object.freeze([
   {
@@ -118,24 +119,21 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
         timingScale: 'fixed'
       },
       { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 6,
-        stacks: 3,
-        audience: { recipients: 'party' as const },
-        atMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        controlKind: 'daze'
-      }
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'boon',
+          boon: 'stability',
+          duration: 6,
+          stacks: 3,
+          audience: { recipients: 'party' as const }
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'daze'
+        }
+      ])
     ],
     legendId: 'LegendaryRenegade'
   },
@@ -273,24 +271,21 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
       { type: 'boon', boon: 'stability', duration: 1, stacks: 1, audience: { recipients: 'self' as const } },
       { type: 'boon', boon: 'resistance', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
       { type: 'boon', boon: 'protection', duration: 4, stacks: 1, audience: { recipients: 'party' as const } },
-      {
-        type: 'boon',
-        boon: 'stability',
-        duration: 6,
-        stacks: 3,
-        audience: { recipients: 'party' as const },
-        atMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        atMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'daze'
-      }
+      // Share one impact timing while preserving independent payloads and declaration order.
+      ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'boon',
+          boon: 'stability',
+          duration: 6,
+          stacks: 3,
+          audience: { recipients: 'party' as const }
+        },
+        {
+          type: 'control',
+          actorType: 'player',
+          controlKind: 'daze'
+        }
+      ])
     ],
     legendId: 'LegendaryRenegade'
   },
