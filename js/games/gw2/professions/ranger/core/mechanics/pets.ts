@@ -27,12 +27,13 @@ import {
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
+import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
+
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
 const PET_AUTO_OWNER = 'ranger.active-pet';
-const QUICKNESS_ACTION_RATE = 1.5;
 
 export function rangerPetCompanionId(context: RangerSchedulerContext | RangerResolverContext): string {
   const state = professionCoreState(context);
@@ -328,7 +329,7 @@ export function handleRangerPetAutoTask(
   const openingBasic = state.petAutoOpeningBasic;
   const quickness = gw2BuffActiveForAudience(context, 'quickness', task.at, 'summon');
   const selected = autonomousSkill(context, profile, task.at, quickness);
-  const recovery = selected.recovery / (quickness ? QUICKNESS_ACTION_RATE : 1);
+  const recovery = selected.recovery / (quickness ? GW2_QUICKNESS_ACTION_RATE : 1);
   emitAutonomousSkill(context, selected.id, task.at, recovery);
   state.petAutoBusyUntil = task.at + recovery;
   if (selected.cooldown) {

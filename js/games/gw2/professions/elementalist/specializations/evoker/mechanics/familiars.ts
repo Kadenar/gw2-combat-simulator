@@ -15,7 +15,11 @@ import {
 } from '#gw2/platform/combat/state/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { castRelativeEffectTimingScale, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import {
+  GW2_QUICKNESS_ACTION_RATE,
+  castRelativeEffectTimingScale,
+  gw2EffectExpiresAt
+} from '#gw2/platform/skills/timing.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import type { Skill, SkillEffect, StrikeTick, ConditionTick } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
@@ -53,7 +57,7 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
       const effect = rawEffect;
       // Procession launches an independent familiar sequence rather than a
       // player cast, so its packets retain their unquickened runtime spacing.
-      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * 1.5);
+      const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
       const timingScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
       const ticks = Array.isArray(effect.ticks) ? effect.ticks : [effect];
       for (const rawTick of ticks) {
