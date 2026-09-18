@@ -3,6 +3,7 @@
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
@@ -202,60 +203,50 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 400,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
-    effects: [
-      // Once launched, the hammer's impact, boons and blast combo survive cancellation of its remaining animation.
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 8,
-        persistsAfterInterrupt: true,
-        duration: 8,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        audience: { recipients: 'party' }
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 6,
-        persistsAfterInterrupt: true,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        audience: { recipients: 'party' }
-      },
-      {
-        type: 'strike',
-        // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
-        persistsAfterInterrupt: true,
-        ticks: [{ atMs: 440, coefficient: 1.2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        comboFinishers: [
-          {
-            ownerId: 'guardian',
-            finisherType: 'Blast',
-            // Hammer can encounter a field from cast start through its committed impact, when it grants the aura.
-            fieldSelectionAnchor: 'castStart',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'control',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'daze',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Keep the hammer's boons, strike, and daze together in declaration order.
+    effects: impactEffects(
+      { atMs: 440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        // Once launched, the hammer's impact, boons and blast combo survive cancellation of its remaining animation.
+        {
+          type: 'boon',
+          boon: 'might',
+          stacks: 8,
+          duration: 8,
+          audience: { recipients: 'party' }
+        },
+        {
+          type: 'boon',
+          boon: 'fury',
+          duration: 6,
+          audience: { recipients: 'party' }
+        },
+        {
+          type: 'strike',
+          // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
+          coefficient: 1.2,
+          comboFinishers: [
+            {
+              ownerId: 'guardian',
+              finisherType: 'Blast',
+              // Hammer can encounter a field from cast start through its committed impact, when it grants the aura.
+              fieldSelectionAnchor: 'castStart',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'control',
+          controlKind: 'daze'
+        }
+      ]
+    )
   },
   [ID.LUCENT_THRUST]: {
     castTimeMs: 440,
     // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
     handlerId: 'guardian.radiant-weapon',
+    // Share the melee control and blind timing without moving the separate projectile declaration.
     effects: [
       {
         type: 'strike',
@@ -270,14 +261,15 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'control',
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'control'
-      },
-      { type: 'blind', atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }
+      ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'control',
+          controlKind: 'control'
+        },
+        {
+          type: 'blind'
+        }
+      ])
     ]
   }
 });

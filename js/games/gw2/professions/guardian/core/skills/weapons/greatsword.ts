@@ -1,6 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -8,35 +8,34 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     castTimeMs: 720,
     // Cancelling at or after 680 ms preserves the landing strike and blind.
     interruptCommitMs: 680,
-    effects: [
+    // Keep the landing strike and blind together, 80 ms before the animation ends.
+    effects: impactEffects(
       {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        // The normal landing impact precedes the end of the animation by 80 ms.
-        atMs: 640,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        // Leap of Faith only creates combo effects when this packet resolves through an active field.
-        comboFinishers: [
-          {
-            ownerId: 'guardian',
-            finisherType: 'Leap',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'blind',
-        duration: 3,
-        // Blind applies with the landing hit, rather than after the remaining animation.
         atMs: 640,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         persistsAfterInterrupt: true
-      }
-    ]
+      },
+      [
+        {
+          type: 'strike',
+          coefficient: 2,
+          hits: 1,
+          // Leap of Faith only creates combo effects when this packet resolves through an active field.
+          comboFinishers: [
+            {
+              ownerId: 'guardian',
+              finisherType: 'Leap',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'blind',
+          duration: 3
+        }
+      ]
+    )
   },
   [ID.WHIRLING_WRATH]: {
     interruptMode: 'per-packet',

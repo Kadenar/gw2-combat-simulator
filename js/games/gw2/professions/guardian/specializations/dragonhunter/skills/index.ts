@@ -3,6 +3,7 @@
  * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -35,22 +36,18 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.PURIFICATION]: {
     castTimeMs: 600,
-    effects: [
+    // Keep trap damage and blindness on the same delayed trigger.
+    effects: impactEffects({ atMs: 1560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Damage and blindness arrive after the trap's placement and trigger delay.
-        ticks: [{ atMs: 1560, coefficient: 0.1875 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 0.1875
       },
       {
         type: 'blind',
-        duration: 6,
-        atMs: 1560,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 6
       }
-    ]
+    ])
   },
   [ID.SHIELD_OF_COURAGE]: {
     castTimeMs: 0,
@@ -67,27 +64,25 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.DRAGONS_MAW]: {
     castTimeMs: 440,
+    // Group the closing jaws' effects while Might retains its earlier trigger.
     effects: [
-      {
-        type: 'strike',
-        // The closing maw deals damage and applies control after its initial trigger.
-        ticks: [{ atMs: 1400, coefficient: 3.6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        controlKind: 'pull',
-        atMs: 1400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1400, condition: 'Slow', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 1400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          // The closing maw deals damage and applies control after its initial trigger.
+          coefficient: 3.6
+        },
+        {
+          type: 'control',
+          controlKind: 'pull'
+        },
+        {
+          type: 'condition',
+          condition: 'Slow',
+          stacks: 1,
+          duration: 4
+        }
+      ]),
       {
         type: 'boon',
         boon: 'Might',

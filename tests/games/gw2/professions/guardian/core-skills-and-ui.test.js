@@ -102,6 +102,29 @@ const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(g
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
 
+// Singleton impact migration keeps patch selectors independent and leaves the base catalog intact.
+test('Guardian grouped impacts support payload patches without changing sibling effects', () => {
+  const id = GUARDIAN_SKILL_IDS.JURISDICTION;
+  const original = guardianCatalog.skillsById.get(id);
+  const preview = applySkillPatch(guardianCatalog, {
+    skills: {
+      [id]: {
+        coefficient: { from: 3, to: 4 },
+        conditions: { Burning: { stacks: { from: 5, to: 6 } } }
+      }
+    }
+  });
+  const patched = preview.skillsById.get(id);
+
+  assert.deepEqual(patched.effects, [
+    { ...original.effects[0], coefficient: 4 },
+    { ...original.effects[1], stacks: 6 },
+    original.effects[2]
+  ]);
+  assert.equal(original.effects[0].coefficient, 3);
+  assert.equal(original.effects[1].stacks, 5);
+});
+
 // Check evaluated offsets so generated timelines and direct status effects are covered too.
 test('Guardian authored effect offsets use ordered action ticks with explicit reference exceptions', () => {
   for (const kind of ['skills', 'balanceProfiles']) {

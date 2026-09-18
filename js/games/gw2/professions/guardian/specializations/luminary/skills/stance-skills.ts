@@ -3,6 +3,7 @@
  * Persistent stance windows and scheduled effects remain in `mechanics/stances.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
@@ -43,21 +44,17 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   },
   [ID.PIERCING_STANCE]: {
     castTimeMs: 200,
-    effects: [
+    // Keep the stance's strike and daze on one impact.
+    effects: impactEffects({ atMs: PIERCING_STANCE_IMPACT_MS, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: PIERCING_STANCE_IMPACT_MS, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 2
       },
       {
         type: 'control',
-        atMs: PIERCING_STANCE_IMPACT_MS,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'daze'
       }
-    ]
+    ])
   },
   [ID.VALOROUS_STANCE]: {
     // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.

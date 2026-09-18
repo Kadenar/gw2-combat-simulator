@@ -3,6 +3,7 @@
  * Persistent tome page state and behavior remain under `mechanics/`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -42,26 +43,25 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 480,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
-    effects: [
+    // Keep the page's strike, Burning, and Weakness on one impact.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 0.55 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 0.55
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 10
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Weakness', stacks: 1, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Weakness',
+        stacks: 1,
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.RADIANT_RECOVERY]: {
     castTimeMs: 200,
@@ -111,29 +111,28 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     interruptCommitMs: 480,
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 0.95 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Burning', stacks: 1, duration: 2.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 320, condition: 'Vulnerability', stacks: 2, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Keep the committed page's strike and conditions on one impact.
+    effects: impactEffects(
+      { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.95
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 1,
+          duration: 2.5
+        },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 2,
+          duration: 10
+        }
+      ]
+    )
   },
   [ID.STOW_TOME]: {
     // Tome transitions change the available bar without cancelling the active animation.

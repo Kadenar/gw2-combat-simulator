@@ -1,5 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -13,22 +14,18 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Helio occupies the action lane for at most 440 ms, but collision or a
     // queued cancel can release it on any action tick from 240 ms onward.
     interruptCommitMs: 240,
-    effects: [
+    // Grant Resolution with the charge's collision strike.
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 240, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 1.5
       },
       {
         type: 'boon',
         boon: 'Resolution',
-        duration: 4,
-        atMs: 240,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.GLEAMING_DISC]: {
     castTimeMs: 560,

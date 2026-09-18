@@ -1,4 +1,17 @@
-import type { ConditionEffect, ConditionTick, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
+import type {
+  ConditionEffect,
+  ConditionTick,
+  SkillEffect,
+  SkillEffectBase,
+  StrikeEffect,
+  StrikeTick
+} from '#gw2/platform/engine/skills/types.js';
+
+/** Shares one impact's timing without changing effect order, local overrides, or hit eligibility. */
+export const impactEffects = (
+  timing: Pick<SkillEffectBase, 'atMs' | 'timingAnchor' | 'timingScale' | 'persistsAfterInterrupt'>,
+  effects: readonly SkillEffect[]
+): SkillEffect[] => effects.map((effect) => ({ ...timing, ...effect }));
 
 const TIMELINE_RESERVED_OPTIONS = new Set(['type', 'ticks']);
 

@@ -1,26 +1,23 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
 export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DEFLECTING_SHOT]: {
     castTimeMs: 600,
-    effects: [
+    // Keep the shot's strike and control on one impact.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.8
       },
       {
         type: 'control',
-        atMs: 640,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'control'
       }
-    ]
+    ])
   },
   [ID.SYMBOL_OF_ENERGY]: {
     castTimeMs: 400,

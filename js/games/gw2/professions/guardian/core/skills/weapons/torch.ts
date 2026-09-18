@@ -1,5 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -27,23 +28,24 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 680,
     interruptCommitMs: 480,
     cooldown: 0,
-    effects: [
-      {
-        type: 'strike',
-        // The thrown flame uses the projectile ignition cooldown.
-        ticks: [{ atMs: 480, coefficient: 2.25, projectile: true }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Keep the thrown flame's strike and Burning on one impact.
+    effects: impactEffects(
+      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          // The thrown flame uses the projectile ignition cooldown.
+          coefficient: 2.25,
+          projectile: true
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 3,
+          duration: 3
+        }
+      ]
+    )
   },
   [ID.ZEALOTS_FLAME]: {
     // Fire sets this lockout; another actual skill clears it at commitment.

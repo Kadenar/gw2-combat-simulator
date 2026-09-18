@@ -1,5 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -117,19 +118,20 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLAZING_EDGE]: {
     castTimeMs: 520,
+    // Share the strike and Burning impact while the pull retains cast-completion timing.
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 480, coefficient: 0.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 480, condition: 'Burning', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 0.8
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3
+        }
+      ]),
       {
         type: 'control',
         controlKind: 'pull'

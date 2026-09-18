@@ -1,5 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -7,30 +8,27 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 800,
     interruptCommitMs: 640,
     cooldown: 20,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 3, projectile: true }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Burning', stacks: 5, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'control',
-        atMs: 640,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'stun',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Keep the projectile's strike, Burning, and stun on one committed impact.
+    effects: impactEffects(
+      { atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 3,
+          projectile: true
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 5,
+          duration: 6
+        },
+        {
+          type: 'control',
+          controlKind: 'stun'
+        }
+      ]
+    )
   },
   [ID.HAIL_OF_JUSTICE]: {
     castTimeMs: 1120,
@@ -143,22 +141,23 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 360,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.6, projectile: true }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        projectile: true
-      }
-    ]
+    // Keep the projectile strike and Bleeding on one committed impact.
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.6,
+          projectile: true
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 8,
+          projectile: true
+        }
+      ]
+    )
   }
 });

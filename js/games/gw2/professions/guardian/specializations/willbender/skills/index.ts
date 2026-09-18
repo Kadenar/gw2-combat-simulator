@@ -3,6 +3,7 @@
  * Runtime virtue behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -31,33 +32,26 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 680,
     // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
-    effects: [
+    // Grant the virtue's defensive boons with its initial strike.
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 520, coefficient: 1 }],
-        name: 'Crashing Courage — Initial Damage',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1,
+        name: 'Crashing Courage — Initial Damage'
       },
       {
         type: 'boon',
         boon: 'aegis',
         stacks: 1,
-        duration: 4,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 4
       },
       {
         type: 'boon',
         boon: 'stability',
         stacks: 1,
-        duration: 4,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.HEEL_CRACK]: {
     castTimeMs: 200,
@@ -179,22 +173,21 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     rechargeAnchor: 'castStart',
     // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
     handlerId: 'guardian.willbender-virtue',
-    effects: [
+    // Keep the virtue's impact strike and initial Burning together.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 1.5 }],
-        name: 'Rushing Justice — Impact Damage',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        coefficient: 1.5,
+        name: 'Rushing Justice — Impact Damage'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Burning', stacks: 1, duration: 4 }],
-        name: 'Rushing Justice — Initial Burning',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Burning',
+        stacks: 1,
+        duration: 4,
+        name: 'Rushing Justice — Initial Burning'
       }
-    ]
+    ])
   },
   [ID.REPOSE]: {
     castTimeMs: 200,

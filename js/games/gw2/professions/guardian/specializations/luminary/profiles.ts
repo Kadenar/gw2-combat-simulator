@@ -1,6 +1,7 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 
 export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   forge: 'guardian.luminary.radiant-forge',
@@ -53,25 +54,20 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Dazzling Hammer - Radiant Justice Impact',
     profileKind: 'skill-variant',
     parentId: ID.DAZZLING_HAMMER,
-    effects: [
+    // Keep the empowered hammer's extra strike and Vulnerability on one delayed impact.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
-        hits: 1,
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        hits: 1
       },
       {
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 8,
-        duration: 8,
-        atMs: 760,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        duration: 8
       }
-    ]
+    ])
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.effulgentStance,

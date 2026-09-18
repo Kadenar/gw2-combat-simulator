@@ -3,9 +3,79 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { strikeTimeline, conditionTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
+
+// Grouped authoring must retain the ordinary scheduler's ordering, ownership, and recipient contracts.
+test('shared impacts schedule ordered effects with local attribution and timing overrides', () => {
+  const timing = Object.freeze({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' });
+  const strike = Object.freeze({ type: 'strike', coefficient: 1, source: 'impact', sourceId: 2 });
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Impact',
+        type: 'Utility',
+        castTimeMs: 400,
+        effects: impactEffects(timing, [
+          strike,
+          { type: 'blind', duration: 3 },
+          {
+            type: 'boon',
+            boon: 'might',
+            duration: 2,
+            audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 2 },
+            actorType: 'effect',
+            ownerActorType: 'player',
+            metadata: { packetKind: 'impact-boon' }
+          },
+          { type: 'blind', duration: 1, atMs: 300 }
+        ])
+      }
+    ]
+  });
+  const profession = defineProfession({ id: 'impacts', name: 'Impacts', catalog });
+  const result = simulateGw2({ profession, rotation: ['Impact'] });
+  const packets = result.events.filter((event) => ['damage', 'blind', 'buff'].includes(event.type));
+  assert.deepEqual(
+    packets.map(({ type, at, source, sourceId, skillId }) => [type, at, source, sourceId, skillId]),
+    [
+      ['damage', 0.2, 'impact', 2, 1],
+      ['blind', 0.2, 'impacts', 1, 1],
+      ['buff', 0.2, 'impacts', 1, 1],
+      ['blind', 0.3, 'impacts', 1, 1]
+    ]
+  );
+  assert.deepEqual(packets[2].audience, { recipients: 'party', affectsSelf: false, maximumRecipients: 2 });
+  assert.equal(packets[2].actorType, 'effect');
+  assert.equal(packets[2].ownerActorType, 'player');
+  assert.deepEqual(packets[2].metadata, { packetKind: 'impact-boon' });
+  assert.equal(Object.hasOwn(strike, 'atMs'), false);
+});
+
+// Grouping is authoring sugar: malformed timing and payloads still fail at the catalog boundary.
+test('shared impacts retain canonical catalog validation', () => {
+  const load = (timing, effect = { type: 'blind', duration: 1 }) =>
+    createCanonicalCatalog({
+      generated: [{ id: 1, name: 'Invalid impact', effects: impactEffects(timing, [effect]) }]
+    });
+  for (const atMs of [NaN, Infinity, -1]) {
+    assert.throws(() => load({ atMs, timingAnchor: 'castStart' }), /Effect atMs must be finite/);
+  }
+
+  assert.throws(() => load({ atMs: 1, timingAnchor: 'invalid' }), /timingAnchor/);
+  assert.throws(() => load({ atMs: 1, timingScale: 'invalid' }), /timingScale/);
+  assert.throws(() => load({ atMs: 1 }, { type: 'invalid' }), /effect type/i);
+  assert.throws(
+    () => load({ atMs: 1 }, { type: 'strike', ticks: [{ atMs: 1, coefficient: 1 }] }),
+    /cannot use aggregate/
+  );
+  assert.throws(
+    () => load({ atMs: 1 }, { type: 'boon', boon: 'might', duration: 1, audience: { recipients: 'invalid' } }),
+    /audience recipients/
+  );
+});
 
 // Minimal packet sequences cover scheduling contracts without calibrating individual skills.
 test('declarative packets retain coefficients, shared timestamps, and application order', () => {
