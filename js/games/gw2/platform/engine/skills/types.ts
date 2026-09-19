@@ -79,7 +79,6 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly ticks?: readonly StrikeTick[];
   /** Strike intervals are invalid; distinct timestamps belong in ticks. */
   readonly intervalMs?: never;
-  readonly canCrit?: boolean;
   readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;
   readonly weaponStrength?: number;
@@ -91,6 +90,7 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly flatStrikeMultiplier?: number;
   readonly flatStrikeHealthThreshold?: number;
   readonly flatStrikeThresholdMultiplier?: number;
+  readonly canCrit?: boolean;
   readonly noCrit?: boolean;
   readonly forceCrit?: boolean;
   readonly damageKind?: string;
