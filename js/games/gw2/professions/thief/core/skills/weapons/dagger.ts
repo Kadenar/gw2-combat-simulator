@@ -248,28 +248,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 5,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.6 }],
-        name: 'Cloak and Dagger',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 5, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 1.6, hits: 1, name: 'Cloak and Dagger', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, actorType: 'player' }
+    ])
   }
 });

@@ -1,5 +1,6 @@
 import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -120,9 +121,8 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
     }
   }
 
-  const timedCarapace = (necromancerRuntimeCoreState(context).carapaceExpiries || []).filter(
-    (expiresAt: number) => expiresAt > context.time
-  ).length;
+  // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
+  const timedCarapace = activeStackCount(necromancerRuntimeCoreState(context).carapaceExpiries || [], context.time);
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(necromancerRuntimeCoreState(context).activeMinions || {}).reduce(
         (total: number, count: number) =>

@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -30,8 +31,9 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
   }
 
   // Expire each charge independently without changing FIFO grant order.
-  state.holoUtilityCooldownReductionExpirations = state.holoUtilityCooldownReductionExpirations.filter(
-    (expiresAt) => expiresAt > target
+  state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(
+    state.holoUtilityCooldownReductionExpirations,
+    target
   );
 
   for (const [skillId, penalty] of Object.entries(state.backfireState)) {

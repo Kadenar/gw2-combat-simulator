@@ -5,8 +5,8 @@
  *
  * Two cap policies live here and are chosen per resource, never inferred. `addTimedStacks` is
  * reject-on-overflow: a grant that would exceed the cap lands partially and never evicts a live
- * application. `grantTimedStacks` is evict-on-overflow: the grant always lands and an existing
- * application dies under an explicitly named retention rule.
+ * application. `grantTimedStacks` combines survivors and grants, then retains applications under
+ * an explicitly named rule; that rule can discard either an existing stack or the incoming grant.
  *
  * The comparison is strict (`expiresAt > at`); a stack expiring exactly at `at` is gone. Callers that
  * need an epsilon tolerance own that decision and must not push it down here.
@@ -58,9 +58,8 @@ export function addTimedStacks(
 /**
  * Purges, then removes the requested number of applications from the front of the array.
  *
- * Front-of-array is oldest only while the caller keeps the array in application order, which every
- * consumer does today by appending through `addTimedStacks`. Sorting here would reorder a caller that
- * deliberately keeps a different order, so it stays the caller's responsibility.
+ * Front-of-array is oldest only while the caller keeps application order. An expiry-sorted caller
+ * spends its earliest deadline instead. Sorting stays the caller's responsibility.
  */
 export function consumeOldestStacks(
   expiries: Gw2TimedStackExpiries,
@@ -77,9 +76,8 @@ export function consumeOldestStacks(
  * Purges, then removes the requested number of applications from the back of the array.
  *
  * The mirror of `consumeOldestStacks`, and it inherits the same caveat: back-of-array is the newest
- * application only while the caller keeps the array in application order. A resource that spends its
- * freshest stacks leaves the shortest-lived ones behind, so its total decays sooner than one spending
- * oldest-first, even though both remove the same count.
+ * application only while the caller keeps application order. Newest grant and latest expiry need
+ * not coincide when durations vary.
  */
 export function consumeNewestStacks(
   expiries: Gw2TimedStackExpiries,
@@ -117,12 +115,11 @@ export interface Gw2TimedStackGrantOptions {
 /**
  * Purges, adds `count` applications expiring at `expiresAt`, then evicts down to the cap.
  *
- * Unlike `addTimedStacks` this never rejects a grant: at the cap the grant lands and an existing
- * application dies under the selected policy. Resources that drop the grant instead keep using
- * `addTimedStacks`.
+ * Unlike `addTimedStacks`, this can evict existing applications. `latest-expiry` can discard an incoming
+ * grant if its deadline is shorter than every survivor; `newest-grant` retains it ahead of older grants.
  *
  * `count` and `maximumStacks` are truncated to non-negative integers here, so a caller whose count can
- * be fractional owns its own rounding before this boundary. A zero `count` is a prune-only request and
+ * be fractional owns its own rounding before this boundary. A zero `count` still prunes and caps, and
  * a zero cap returns empty. A grant already dead at `at` is never retained, matching the strict
  * `expiresAt > at` comparison every reader in this module uses.
  */

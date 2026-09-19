@@ -48,6 +48,43 @@ test('Splitblade shares an impact without merging hit or condition application i
   assert.equal(packets.at(-1).stacks, 5);
 });
 
+test('Whirling Defense pairs Vulnerability and whirl attempts with surviving channel ticks', () => {
+  // Full and interrupted channels keep one application/finisher per landed tick, never a final stack dump.
+  for (const interruptAfterMs of [undefined, 900]) {
+    const result = simulate(
+      'Core',
+      [ID.FROST_TRAP, { type: 'cast', skillId: ID.WHIRLING_DEFENSE, interruptAfterMs }, wait(6000)],
+      { primaryWeapon: 'Axe', secondaryWeapon: 'Axe' }
+    );
+    assert.deepEqual(result.warnings, []);
+    const packets = result.events.filter((event) => event.skillId === ID.WHIRLING_DEFENSE);
+    const hits = packets.filter((event) => event.type === 'damage');
+    const vulnerability = packets.filter((event) => event.type === 'condition' && event.condition === 'Vulnerability');
+    const finishers = packets.filter((event) => event.type === 'combo_finisher' && event.finisherType === 'Whirl');
+    assert.ok(hits.length > 0);
+    assert.deepEqual(
+      vulnerability.map((event) => event.at),
+      hits.map((event) => event.at)
+    );
+    assert.deepEqual(
+      finishers.map((event) => event.at),
+      hits.map((event) => event.at)
+    );
+    assert.ok(vulnerability.every((event) => event.stacks === 1));
+    assert.ok(finishers.some((event) => event.successfulCombos > 0));
+    for (let index = 0; index < hits.length; index += 1) {
+      assert.equal(vulnerability[index].applicationIndex, hits[index].hitIndex);
+      assert.ok(hits[index].eventOrder < vulnerability[index].eventOrder);
+    }
+
+    if (interruptAfterMs != null) {
+      const action = packets.find((event) => event.type === 'action');
+      assert.ok(hits.every((event) => event.at <= action.endsAt));
+      assert.ok(hits.length < hits[0].totalHits);
+    }
+  }
+});
+
 test('autonomous pet impacts retain summon attribution and strike-before-condition order', () => {
   // Tiger's opening Bite exercises the autonomous materializer independently of player cast scheduling.
   const result = simulate('Core', ['__combat_start', wait(1500)], { selectedPet: 'Tiger' });

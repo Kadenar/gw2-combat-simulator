@@ -23,6 +23,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
@@ -93,9 +94,8 @@ interface CatalystStateLike {
 function modifyCatalystAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
   if (!hasTrait(context, 'Elemental Empowerment')) return attributes;
 
-  const timedStacks = (catalystModifierState(context).elementalEmpowermentExpiries || []).filter(
-    (expiresAt) => expiresAt > context.time
-  ).length;
+  // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
+  const timedStacks = activeStackCount(catalystModifierState(context).elementalEmpowermentExpiries || [], context.time);
   const maximumStacks = balanceProfileValueFromContext(
     context,
     PROFILE.elementalEmpowerment,

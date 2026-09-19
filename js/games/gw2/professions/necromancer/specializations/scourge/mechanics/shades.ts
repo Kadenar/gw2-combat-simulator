@@ -1,4 +1,5 @@
 import { isTimeInWindow } from '#kernel/core/clock.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -77,9 +78,15 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       : shadeProfile;
     const maximum = Number(profile?.maximumStacks ?? 3);
     const duration = Number(balanceProfileEffect(profile, 'buff')?.duration ?? 15);
-    // Sort ascending then take the last `maximum` entries so that when the cap
-    // is exceeded the oldest (soonest-expiring) shade is evicted, not the newest
-    state.shades = [...state.shades, at + duration].sort((left, right) => left - right).slice(-maximum);
+    // Retain the longest-lived shades, preserving ascending order for snapshots.
+    // Disabled caps and expired grants cannot leave inactive shades in the pool.
+    state.shades = grantTimedStacks(state.shades, {
+      at,
+      expiresAt: at + duration,
+      count: 1,
+      maximumStacks: maximum,
+      retain: 'latest-expiry'
+    }).reverse();
     if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
       applyBarrierTraits(context, skill, at);
     }

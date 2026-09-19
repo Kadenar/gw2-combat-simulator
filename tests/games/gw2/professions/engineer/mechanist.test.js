@@ -728,6 +728,16 @@ describe('Mechanist grandmaster active effects', () => {
         (event) => event.type === 'control' && event.skillName === 'Sky Circus' && event.controlKind === 'knockback'
       )
     );
+    // Each companion follows its own impact rather than borrowing the other phase's timestamp.
+    const skyPackets = sky.events.filter((event) => event.skillName === 'Sky Circus');
+    const missile = skyPackets.find((event) => event.type === 'damage' && event.name === 'Missile Damage');
+    const burning = skyPackets.find((event) => event.type === 'condition' && event.condition === 'Burning');
+    const landing = skyPackets.find((event) => event.type === 'damage' && event.name === 'Landing Damage');
+    const knockback = skyPackets.find((event) => event.type === 'control' && event.controlKind === 'knockback');
+    assert.equal(burning.at, missile.at);
+    assert.equal(knockback.at, landing.at);
+    assert.ok(missile.eventOrder < burning.eventOrder);
+    assert.ok(landing.eventOrder < knockback.eventOrder);
 
     const base = simulate('Mechanist', ['Puncturing Jab'], {
       target: { conditions: {} }

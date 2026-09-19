@@ -6,7 +6,6 @@ import {
   emitSkillDamage
 } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -232,14 +231,11 @@ export function applyBladeswornCompletionTraits(
   dragonAdrenalineSpent: number,
   at: number
 ): void {
-  const state = bladeswornState.from(context);
   if (roundsSpent > 0 && hasTrait(context, TRAIT.FIERCE_AS_FIRE)) {
     const profile = balanceProfileFromContext(context, PROFILE.fierceAsFire);
     const effect = balanceProfileEffect(profile, 'buff');
     const duration = Number(effect?.duration ?? 15);
-    state.fierceAsFireExpiries = purgeExpiredStacks(state.fierceAsFireExpiries, at);
-    state.fierceAsFireExpiries.push(...Array(roundsSpent).fill(at + duration));
-    state.fierceAsFireExpiries = state.fierceAsFireExpiries.slice(-Number(profile?.maximumStacks ?? 10));
+    // Buff applications are the shared source for live stacks and their presentation.
     emitSkillBuff(context, {
       at,
       source: 'Trait',

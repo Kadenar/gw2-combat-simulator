@@ -3,6 +3,9 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// The channel's strikes, Vulnerability applications, and whirl attempts share the same packet grid.
+const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 1680, 1920, 2160, 2360, 2600] as const;
+
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.RICOCHET]: {
@@ -122,26 +125,31 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
   [ID.WHIRLING_DEFENSE]: {
     interruptMode: 'per-packet',
     effects: [
-      {
-        type: 'strike',
-        ticks: [200, 360, 600, 840, 1040, 1280, 1520, 1680, 1920, 2160, 2360, 2600].map((atMs) => ({
-          atMs,
-          coefficient: 0.66
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
+      // Each landed channel tick applies one stack and attempts a whirl; interruption drops the remaining pairs.
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          ticks: WHIRLING_DEFENSE_TICK_OFFSETS_MS.map((atMs) => ({
+            atMs,
+            coefficient: 0.66,
+            comboFinishers: [{ ownerId: 'ranger', finisherType: 'Whirl', ambiguousFieldSelection: 'oldest' }]
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: WHIRLING_DEFENSE_TICK_OFFSETS_MS.map((atMs) => ({
+            atMs,
+            condition: 'Vulnerability',
+            stacks: 1,
+            duration: 10
+          }))
+        }
+      ]),
       {
         type: 'boon',
         boon: 'resolution',
         duration: 4,
         stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 2600, condition: 'Vulnerability', stacks: 12, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
       }
     ],
     castTimeMs: 2720

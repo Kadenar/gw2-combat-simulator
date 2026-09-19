@@ -1,6 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
@@ -27,14 +27,14 @@ function gainAttackersInsight(
 ): void {
   const profile = balanceProfileFromContext(context, PROFILE.attackersInsight);
   const effect = balanceProfileEffect(profile, 'buff');
-  const expiries = Array.from(
-    { length: Math.max(1, Math.trunc(applications)) },
-    () => at + Number(effect?.duration ?? 15)
-  );
-  // slice(-max) drops the oldest stacks when at cap, matching game behavior.
-  state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, at)
-    .concat(expiries)
-    .slice(-Number(profile?.maximumStacks ?? 5));
+  // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
+  state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
+    at,
+    expiresAt: at + Number(effect?.duration ?? 15),
+    count: Math.max(1, Math.trunc(applications)),
+    maximumStacks: Number(profile?.maximumStacks ?? 5),
+    retain: 'newest-grant'
+  });
 }
 
 function attackerInsightApplications(

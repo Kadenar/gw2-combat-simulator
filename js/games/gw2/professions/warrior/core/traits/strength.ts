@@ -153,13 +153,11 @@ export function grantBerserkersPower(
   skill: WarriorSkill
 ): void {
   if (!hasTrait(context, TRAIT.BERSERKERS_POWER)) return;
-  const state = professionCoreState(context);
   const granted = Math.max(0, requestedStacks);
   if (!granted) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.berserkersPower), 'buff');
   const duration = Number(effect?.duration ?? 15);
-  // Keep overflow applications queued so older visible stacks can expire independently.
-  state.burstPowerExpiries.push(...Array(granted).fill(at + duration));
+  // Buff applications own expiry and retain overflow beyond the visible stack cap.
   emitSkillBuff(context, {
     at,
     // The triggering burst packet resolves before its same-time reward.

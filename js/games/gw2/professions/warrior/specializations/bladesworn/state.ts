@@ -32,7 +32,6 @@ export interface BladeswornState {
     burningDuration: number;
     supercharged: boolean;
   }>;
-  fierceAsFireExpiries: number[];
   gunsAndGloryUntil: number;
   ammoRoundsSpentByActivation: Record<string, number>;
   ammoStartedFullByActivation: Record<string, boolean>;
@@ -86,7 +85,6 @@ export function createBladeswornState(config: WarriorConfig = {}): BladeswornSta
     dragonTriggerEventActivationId: '',
     tacticalReloadUntil: 0,
     overchargedCartridgeWindows: [],
-    fierceAsFireExpiries: [],
     gunsAndGloryUntil: 0,
     ammoRoundsSpentByActivation: {},
     ammoStartedFullByActivation: {},

@@ -105,40 +105,22 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
     quicknessCastTimeMs: 2120,
     cooldown: 30,
     effects: [
-      {
-        type: 'strike',
-        // One missile per nearby foe; "targets per missile: 3" is its cleave cap.
-        coefficient: 0.6,
-        hits: 1,
-        atMs: 0,
-        name: 'Missile Damage',
-        actorType: 'summon'
-      },
-      {
-        type: 'strike',
-        coefficient: 1.2,
-        hits: 1,
-        atMs: 1320,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        name: 'Landing Damage',
-        actorType: 'summon'
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 5,
-        actorType: 'summon'
-      },
-      {
-        type: 'control',
-        actorType: 'summon',
-        atMs: 1320,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'knockback'
-      }
+      // Missiles carry Burning; the separate landing impact owns the knockback.
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          // One missile per nearby foe; "targets per missile: 3" is its cleave cap.
+          coefficient: 0.6,
+          hits: 1,
+          name: 'Missile Damage',
+          actorType: 'summon'
+        },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, actorType: 'summon' }
+      ]),
+      ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.2, hits: 1, name: 'Landing Damage', actorType: 'summon' },
+        { type: 'control', actorType: 'summon', controlKind: 'knockback' }
+      ])
     ],
     mechanicSlot: 3
   }),

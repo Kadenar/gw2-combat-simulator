@@ -122,28 +122,11 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2 }],
-        name: 'Tactical Strike',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 2, hits: 1, name: 'Tactical Strike', actorType: 'player' },
+      { type: 'control', actorType: 'player', controlKind: 'daze' },
+      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+    ]),
     requiredMainHand: 'Sword',
     stealthAttack: true
   },

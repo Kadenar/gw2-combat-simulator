@@ -2,92 +2,58 @@ import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
+// Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
+const METAL_LEGION_GUITAR_SKILL: SkillFragment = {
+  // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
+  handlerId: 'thief.artifact',
+  castTimeMs: 1920,
+  cooldown: 0,
+  initiativeCost: 0,
+  effects: [
+    {
+      type: 'strike',
+      coefficient: 3.2,
+      hits: 4,
+      atMs: 0,
+      name: 'Metal Legion Guitar — Packet 1',
+      actorType: 'player',
+      timingAnchor: 'castEnd',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'strike',
+      ticks: [{ atMs: 0, coefficient: 2.5 }],
+      name: 'Final Smash',
+      actorType: 'player',
+      timingAnchor: 'castEnd',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'condition',
+      ticks: [400, 920, 1400, 1920].map((atMs) => ({
+        atMs,
+        condition: 'Confusion',
+        stacks: 1,
+        duration: 8
+      })),
+      actorType: 'player',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    },
+    {
+      type: 'control',
+      actorType: 'player',
+      controlKind: 'stun'
+    }
+  ],
+  artifactKind: 'offensive'
+};
+
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
-  [ID.METAL_LEGION_GUITAR]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
-    handlerId: 'thief.artifact',
-    castTimeMs: 1920,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3.2,
-        hits: 4,
-        atMs: 0,
-        name: 'Metal Legion Guitar — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.5 }],
-        name: 'Final Smash',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [400, 920, 1400, 1920].map((atMs) => ({
-          atMs,
-          condition: 'Confusion',
-          stacks: 1,
-          duration: 8
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
-      }
-    ],
-    artifactKind: 'offensive'
-  },
-  [ID.METAL_LEGION_GUITAR_ID_76591]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
-    handlerId: 'thief.artifact',
-    castTimeMs: 1360,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.8 }],
-        name: 'Metal Legion Guitar — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2.5 }],
-        name: 'Final Smash',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Confusion', stacks: 1, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
-      }
-    ],
-    artifactKind: 'offensive'
-  },
+  [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
+  [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
   [ID.FORGED_SURFER_DASH_ID_76633]: {
     movementSkill: true,
     // Custom: Replaces the cast with its task-driven movement/strike sequence; see `antiquary/mechanics/artifacts.ts`.

@@ -10,35 +10,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Warmth',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'vigor',
-        duration: 10,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Chilled', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Warmth', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'vigor', duration: 10, stacks: 1 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, actorType: 'player' }
+    ])
   },
   [ID.STEAL_RESISTANCE]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -46,35 +24,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Resistance',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'resistance',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Torment', stacks: 3, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Resistance', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'resistance', duration: 5, stacks: 1 },
+      { type: 'condition', condition: 'Torment', stacks: 3, duration: 8, actorType: 'player' }
+    ])
   },
   [ID.STEAL_PRECISION]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -82,33 +38,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Precision',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 8,
-        stacks: 1
-      },
-      {
-        type: 'blind',
-        actorType: 'player',
-        duration: 6
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Precision', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'fury', duration: 8, stacks: 1 },
+      { type: 'blind', actorType: 'player', duration: 6 }
+    ])
   },
   [ID.STEAL_HEALTH]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -116,29 +52,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Health',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Bleeding', stacks: 5, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Health', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, actorType: 'player' }
+    ])
   },
   [ID.STEAL_STRENGTH]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -146,35 +65,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Strength',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 12,
-        stacks: 5
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Weakness', stacks: 1, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Strength', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'might', duration: 12, stacks: 5 },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 8, actorType: 'player' }
+    ])
   },
   [ID.SHADOW_FLARE]: {
     // Custom: Arms the temporary Shadow Swap follow-up; see `deadeye/execution/index.ts`.
@@ -246,36 +143,20 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1 }],
+        coefficient: 1,
+        hits: 1,
         name: 'Steal Time',
         actorType: 'player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'quickness',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Slow', stacks: 1, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
+      { type: 'condition', condition: 'Slow', stacks: 1, duration: 3, actorType: 'player' }
+    ])
   },
   [ID.STEAL_DURABILITY]: {
     // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits; see `deadeye/execution/index.ts`.
@@ -283,35 +164,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Durability',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Durability', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'protection', duration: 5, stacks: 1 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+    ])
   },
   [ID.DEADEYES_MARK]: {
     stealTraitSkill: true,
@@ -329,35 +188,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Defenses',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'boon',
-        boon: 'aegis',
-        duration: 5,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Poisoned', stacks: 2, duration: 8 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Defenses', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'boon', boon: 'aegis', duration: 5, stacks: 1 },
+      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8, actorType: 'player' }
+    ])
   },
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
     // Custom: Snapshots Malice, scales malicious packets, and consumes stealth; see `deadeye/execution/index.ts`.
@@ -385,29 +222,12 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.5 }],
-        name: 'Steal Mobility',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'buff',
-        kind: 'stealth',
-        duration: 3,
-        stacks: 1
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Immobilized', stacks: 1, duration: 1.5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.5, hits: 1, name: 'Steal Mobility', actorType: 'player' },
+      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, actorType: 'player' }
+    ])
   },
   [ID.MALICIOUS_RESTORATION]: {
     castTimeMs: 0,
@@ -571,33 +391,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 2 }],
-        name: 'Malicious Tactical Strike',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
-      },
-      {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'daze'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: 'Vulnerability', stacks: 10, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
+    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 2, hits: 1, name: 'Malicious Tactical Strike', actorType: 'player' },
+      { type: 'control', actorType: 'player', controlKind: 'daze' },
+      { type: 'control', actorType: 'player', controlKind: 'daze' },
+      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 5, actorType: 'player' }
+    ]),
     requiredMainHand: 'Sword',
     stealthAttack: true,
     malicious: true

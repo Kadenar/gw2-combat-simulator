@@ -1,6 +1,6 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -132,7 +132,13 @@ export function materializeThiefAxe(
   const event = context.eventByOrder(Number(task.payload.eventOrder));
   if (!event || event.cancelled === true) return;
   const state = professionCoreState(context);
-  state.spinningAxeExpirations = [...purgeExpiredStacks(state.spinningAxeExpirations, task.at), task.at + 10].slice(-6);
+  state.spinningAxeExpirations = grantTimedStacks(state.spinningAxeExpirations, {
+    at: task.at,
+    expiresAt: task.at + 10,
+    count: 1,
+    maximumStacks: 6,
+    retain: 'newest-grant'
+  });
   emitThiefStateSnapshot(context, task.at, 'spinning-axe');
 }
 
