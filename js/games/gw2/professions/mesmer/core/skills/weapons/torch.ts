@@ -1,5 +1,6 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -63,22 +64,18 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skill
     effects: [
       // Blind on activation; the later burning explosion performs the blast finisher.
       { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 3000, coefficient: 1 }],
-        comboFinishers: [{ ownerId: 'mesmer', finisherType: 'Blast' }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Damage',
-        actorType: 'player',
-        weapon: 'torch'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 3000, condition: 'Burning', stacks: 1, duration: 9 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 3000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1,
+          hits: 1,
+          comboFinishers: [{ ownerId: 'mesmer', finisherType: 'Blast' }],
+          name: 'Damage',
+          actorType: 'player',
+          weapon: 'torch'
+        },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 9 }
+      ])
     ]
   }
 });

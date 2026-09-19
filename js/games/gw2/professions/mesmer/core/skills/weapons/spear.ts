@@ -1,5 +1,6 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -149,16 +150,12 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Preserve the finisher's damage when interruption only skips the remaining recovery.
     interruptCommitMs: 400,
     nextChainId: null,
-    // The chain finisher applies weakness as a real target condition, independent of relic triggers.
-    effects: [
+    // The chain finisher's strike and Weakness share an impact before cast recovery ends.
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        // The finisher lands before its cast recovery ends.
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'spear'
@@ -167,12 +164,9 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skill
         type: 'condition',
         condition: 'Weakness',
         stacks: 1,
-        duration: 2,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        duration: 2
       }
-    ]
+    ])
   },
   [ID.IMAGINARY_INVERSION]: {
     castTimeMs: 680,

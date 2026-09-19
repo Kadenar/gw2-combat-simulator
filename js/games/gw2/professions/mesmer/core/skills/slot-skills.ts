@@ -1,5 +1,6 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
@@ -126,25 +127,21 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     },
     effects: [
       // Record the taunt's control trigger and three-second target condition at cast completion.
-      {
-        type: 'control',
-        controlKind: 'taunt',
-        source: 'Player',
-        actorType: 'player',
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        condition: 'Taunt',
-        stacks: 1,
-        duration: 3,
-        actorType: 'player',
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'control',
+          controlKind: 'taunt',
+          source: 'Player',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Taunt',
+          stacks: 1,
+          duration: 3,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'strike',
         coefficient: 0.4,

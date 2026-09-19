@@ -3,6 +3,7 @@
  * Canonical weapon and slot-skill fragments live in their named catalog files.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
@@ -42,34 +43,29 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
       atMs: 360
     },
     flipDuration: 2,
-    effects: [
-      // Blind lands with the projectile, including when the remaining animation is cancelled after commitment.
+    // Blind and Confusion land with the projectile, including after committed animation cancellation.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'blind',
         duration: 5,
         source: 'Player',
-        actorType: 'player',
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 320, coefficient: 0.1 }],
+        coefficient: 0.1,
+        hits: 1,
         name: 'Projectile',
         actorType: 'player',
-        weapon: 'scepter',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        weapon: 'scepter'
       },
       {
         type: 'condition',
-        // Confusion lands with the committed projectile so a weapon-swap cancellation does not discard it.
-        ticks: [{ atMs: 320, condition: 'Confusion', stacks: 5, duration: 7 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        condition: 'Confusion',
+        stacks: 5,
+        duration: 7
       }
-    ]
+    ])
   },
   [ID.SWAP]: {
     castTimeMs: 0,

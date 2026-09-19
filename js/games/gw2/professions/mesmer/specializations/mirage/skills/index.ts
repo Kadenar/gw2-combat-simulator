@@ -3,6 +3,7 @@
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -38,25 +39,23 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragme
         timingScale: 'fixed'
       }
     ],
-    effects: [
+    // Keep the six simultaneous hits together and apply Confusion at the same impact.
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2.4,
         hits: 6,
-        atMs: 320,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         name: 'Damage',
         actorType: 'player',
         weapon: 'utility'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 320, condition: 'confusion', stacks: 6, duration: 4 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        condition: 'confusion',
+        stacks: 6,
+        duration: 4
       }
-    ]
+    ])
   },
   [ID.MIRAGE_ADVANCE]: {
     shadowstepSkill: true,
