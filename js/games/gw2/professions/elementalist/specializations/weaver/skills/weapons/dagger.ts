@@ -10,6 +10,7 @@
  * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -18,6 +19,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair (Fire+Water,
  * Fire+Air, Fire+Earth, Air+Water, Water+Earth, Air+Earth).
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Fire+Water. The only dagger dual that lays a combo field: a four-second
   // Water field opening at cast end. Its own strike declares no finisher.
@@ -66,41 +68,22 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 600,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2,
+        comboFinishers: [
           {
-            atMs: 480,
-            coefficient: 2,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ],
+      },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 6, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Fire+Earth. Two stages: a token 0.1 packet at 440 ms that exists to carry
@@ -116,50 +99,14 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 440,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 920,
-            coefficient: 1.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 920,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.1 },
+        { type: 'blind', applications: 1, controlKind: 'blind' }
+      ]),
+      ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.4 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 8, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -178,78 +125,29 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     cooldown: 18,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 240,
-            coefficient: 0.1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        stacks: 1,
-        duration: 4,
-        atMs: 240,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 240,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1520,
-            coefficient: 1.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 1520,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.1,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {},
+          canCrit: true
+        },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} },
+        { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ]),
+      ...impactEffects({ atMs: 1520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.25, canCrit: true },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -265,28 +163,10 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 1000,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 960,
-            coefficient: 0.15
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 960,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ],
+    effects: impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.15, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ]),
     specialization: 'Weaver'
   },
   // Air+Earth. Six 0.275 pulses on a 520 ms cadence from 920 ms to 3520 ms,
@@ -303,166 +183,31 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 920,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 920,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Stability',
-        stacks: 1,
-        duration: 5,
-        atMs: 920,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1960,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1960,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2480,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2480,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 3000,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 3000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 3520,
-            coefficient: 0.275
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 3520,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} },
+        { type: 'boon', boon: 'Stability', stacks: 1, duration: 5, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1960, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 3000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 3520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.275 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   }

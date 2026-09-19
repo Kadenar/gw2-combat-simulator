@@ -8,7 +8,7 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
@@ -52,6 +52,7 @@ const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 86
  * Skill-id keyed fragments the catalog layers over the raw warhorn skill records so the
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HEAT_SYNC]: {
     name: 'Heat Sync',
@@ -63,28 +64,10 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 840,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Fury',
-        stacks: 1,
-        duration: 10,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 3,
-        duration: 10,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10, metadata: {} },
+      { type: 'boon', boon: 'Might', stacks: 3, duration: 10, metadata: {} }
+    ])
   },
   // Lays an 8s fire field and burns through seven packets, plus two packets on large targets.
   [ID.WILDFIRE]: {
@@ -105,30 +88,25 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: WILDFIRE_TICKS.map((tick) => ({
+    // Both field timelines share timing while keeping the final two pulses restricted to large targets.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      strikeTimeline(
+        WILDFIRE_TICKS.map((tick) => ({
           ...tick,
           coefficient: 0.44,
           damageKind: 'field-tick'
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: WILDFIRE_TICKS.map((tick) => ({
+        }))
+      ),
+      conditionTimeline(
+        WILDFIRE_TICKS.map((tick) => ({
           ...tick,
           condition: 'Burning',
           stacks: 1,
           duration: 3
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+        { metadata: {} }
+      )
+    ])
   },
   [ID.TIDAL_SURGE]: {
     name: 'Tidal Surge',
@@ -140,36 +118,23 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 440,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1,
+        comboFinishers: [
           {
-            atMs: 920,
-            coefficient: 1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'control',
-        atMs: 920,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.WATER_GLOBE]: {
@@ -202,48 +167,12 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 800,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 0.9
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'boon',
-        boon: 'Swiftness',
-        stacks: 1,
-        duration: 10,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'buff',
-        kind: 'superspeed',
-        stacks: 1,
-        duration: 2.5,
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 560,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.9, canCrit: true },
+      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // Travelling orb whose damage decays over nineteen hits down to a 0.05 floor; each hit also
   // applies one Vulnerability stack, and the second layer adds the extra simultaneous 4800ms hit.
@@ -317,34 +246,27 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       castTimeMs: 840,
       cooldown: 30,
       skillFamily: 'Weapon skill',
-      effects: [
-        {
-          type: 'strike',
-          ticks: DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
+      // Share pulse timing without changing the hitbox pairing or the independent Resistance grant.
+      effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        strikeTimeline(
+          DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
             coefficient: 0.3
-          })),
-          timingAnchor: 'castStart',
-          timingScale: 'cast'
-        },
-        {
-          type: 'condition',
-          ticks: DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
+          }))
+        ),
+        conditionTimeline(
+          DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
             atMs,
             condition: 'Bleeding',
             stacks: 2,
             duration: 10
           })),
-          timingAnchor: 'castStart',
-          timingScale: 'cast',
-          metadata: {}
-        },
+          { metadata: {} }
+        ),
         ...DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
           type: 'blind' as const,
           atMs,
           applications: 1,
-          timingAnchor: 'castStart' as const,
-          timingScale: 'cast' as const,
           controlKind: 'blind'
         })),
         {
@@ -353,11 +275,9 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 4,
           atMs: 1560,
-          timingAnchor: 'castStart',
-          timingScale: 'cast',
           metadata: {}
         }
-      ]
+      ])
     },
     6
   )

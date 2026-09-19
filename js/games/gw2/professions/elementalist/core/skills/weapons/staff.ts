@@ -8,7 +8,7 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
@@ -44,6 +44,7 @@ const METEOR_SHOWER_STRIKE_TICKS = [
  * Skill-id keyed fragments the catalog layers over the raw staff skill records so the
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FIREBALL]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -56,33 +57,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 960,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 720,
-            coefficient: 1.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.4 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 1, metadata: {} }
+    ])
   },
   // Four field-tick packets one second apart inside the 4s fire field, each burning.
   [ID.LAVA_FONT]: {
@@ -175,41 +153,11 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 360,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 320,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 320,
-            condition: 'Burning',
-            stacks: 3,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'blind',
-        atMs: 320,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      }
-    ]
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1 },
+      { type: 'condition', condition: 'Burning', stacks: 3, duration: 6, metadata: {} },
+      { type: 'blind', applications: 1, controlKind: 'blind' }
+    ])
   },
   // Leaves a burning trail: one strike as the skill starts plus six field-tick packets one
   // second apart across the 6s fire field.
@@ -232,31 +180,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 80,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 80,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
+      ...impactEffects({ atMs: 80, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.2 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ]),
       {
         type: 'strike',
         ticks: [
@@ -398,41 +325,22 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 520,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 1760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.5,
+        comboFinishers: [
           {
-            atMs: 1760,
-            coefficient: 1.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1760,
-            condition: 'Vulnerability',
-            stacks: 5,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10, metadata: {} }
+    ])
   },
   // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.GEYSER]: {
@@ -557,27 +465,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 1000,
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 800,
-            coefficient: 1.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 800,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      }
-    ]
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.8 },
+      { type: 'blind', applications: 1, controlKind: 'blind' }
+    ])
   },
   [ID.GUST]: {
     name: 'Gust',
@@ -610,28 +501,10 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 480,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Swiftness',
-        stacks: 1,
-        duration: 10,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'buff',
-        kind: 'superspeed',
-        stacks: 1,
-        duration: 3,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Two crowd-control pulses (the field's edges) at 200ms and 680ms, each with its own strike.
   [ID.STATIC_FIELD]: {
@@ -653,46 +526,14 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 200,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 680,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 680,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
+      ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.5, canCrit: true },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ]),
+      ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.5, canCrit: true },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ])
     ]
   },
   [ID.STONING]: {
@@ -706,41 +547,22 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 880,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.2,
+        comboFinishers: [
           {
-            atMs: 600,
-            coefficient: 1.2,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
   [ID.ERUPTION]: {
@@ -753,55 +575,23 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 840,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 4000, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.5,
+        comboFinishers: [
           {
-            atMs: 4000,
-            coefficient: 1.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 4000,
-            condition: 'Bleeding',
-            stacks: 6,
-            duration: 12
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 4000,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+      { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 12, metadata: {} },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
   // is only available while that aura is active and consumes it for a blast finisher.
@@ -884,54 +674,22 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.5,
+        comboFinishers: [
           {
-            atMs: 600,
-            coefficient: 2.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 20
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 20, metadata: {} },
+      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 2, metadata: {} }
+    ])
   }
 });

@@ -2,6 +2,7 @@
  * Owns Weaver stance, profession, heal, and elite skill fragments.
  * Dual-weapon fragments remain under `skills/weapons/`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -47,6 +48,7 @@ function primordialStance(attunement: ElementalistAttunement): SkillFragment {
 }
 
 /** Declares Weaver-owned non-weapon skills for composition by `index.ts`. */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.AQUATIC_STANCE]: {
     name: 'Aquatic Stance',
@@ -95,28 +97,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 0,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.75, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.UNRAVEL]: {
     name: 'Unravel',
@@ -146,37 +130,10 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Swiftness',
-        stacks: 1,
-        duration: 6,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Fury',
-        stacks: 1,
-        duration: 6,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Quickness',
-        stacks: 1,
-        duration: 6,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 6, metadata: {} },
+      { type: 'boon', boon: 'Fury', stacks: 1, duration: 6, metadata: {} },
+      { type: 'boon', boon: 'Quickness', stacks: 1, duration: 6, metadata: {} }
+    ])
   }
 });

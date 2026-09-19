@@ -11,6 +11,7 @@
  * scaling never moves these effects.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -18,6 +19,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * The six spear dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Fire+Water. The only spear dual that grants an aura: `aura: 'Fire|3'` is
   // read by the core cast hook as a three-second Fire Aura on cast end.
@@ -59,39 +61,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 0,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 2.6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'buff',
-        kind: 'superspeed',
-        stacks: 1,
-        duration: 3,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 3,
-        duration: 6,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.6 },
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'boon', boon: 'Might', stacks: 3, duration: 6, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Fire+Earth. Blast finisher into the oldest ambiguous field, plus Burning
@@ -106,55 +80,23 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 0,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.75,
+        comboFinishers: [
           {
-            atMs: 0,
-            coefficient: 1.75,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Bleeding',
-            stacks: 3,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} },
+      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.ELUTRIATE]: {
@@ -167,47 +109,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 1.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Vulnerability',
-            stacks: 5,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.25 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8, metadata: {} },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Water+Earth. Modelled purely as a Blast finisher: one strike, no conditions
@@ -255,41 +161,11 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 1.55
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 0,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.55 },
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   }
 });

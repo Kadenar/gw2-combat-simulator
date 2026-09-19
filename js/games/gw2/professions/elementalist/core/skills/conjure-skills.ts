@@ -5,7 +5,7 @@
  * Equip, pickup, and recharge state lives in `core/mechanics/conjures.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
@@ -13,6 +13,7 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
  * Skill-id → fragment table for the conjured-bundle weapon skills.
  * Entries are keyed by GW2 skill id and overlay the catalog entry of the same id.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // --- Frost Bow (conjure) ---------------------------------------------------
   // `skillWeapon` is the bundle gate: availability blocks these unless the matching conjure is
@@ -220,42 +221,11 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 1120,
     cooldown: 30,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1120,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1120,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 1120,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.8, canCrit: true },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 5, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // --- Lightning Hammer (conjure) --------------------------------------------
   // Weapon_1 is a three-step chain wired through `nextChainId`:
@@ -318,36 +288,22 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     nextChainId: ID.LIGHTNING_SWING,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.5,
+        comboFinishers: [
           {
-            atMs: 320,
-            coefficient: 1.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        metadata: {}
       },
-      {
-        type: 'blind',
-        atMs: 320,
-        duration: 3,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      }
-    ]
+      { type: 'blind', duration: 3, applications: 1, controlKind: 'blind' }
+    ])
   },
   [ID.LIGHTNING_LEAP]: {
     name: 'Lightning Leap',
@@ -358,37 +314,22 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 960,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1,
+        comboFinishers: [
           {
-            atMs: 800,
-            coefficient: 1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Leap',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Quickness',
-        stacks: 1,
-        duration: 3,
-        atMs: 800,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'boon', boon: 'Quickness', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   [ID.WIND_BLAST]: {
     name: 'Wind Blast',
@@ -399,38 +340,11 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 960,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 680,
-            coefficient: 0.33
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'buff',
-        kind: 'superspeed',
-        stacks: 1,
-        duration: 3,
-        atMs: 680,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 680,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'launch'
-      }
-    ]
+    effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.33, canCrit: true },
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'launch' }
+    ])
   },
   [ID.INVOKE_LIGHTNING]: withSmallHitboxCap(
     {
@@ -491,28 +405,10 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 200,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'stun'
-      }
-    ]
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'stun' }
+    ])
   },
   // --- Fiery Greatsword (conjure elite) ---------------------------------------
   // Weapon_1 is a single skill that fires four evenly spaced waves rather than a chain.

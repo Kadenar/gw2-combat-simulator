@@ -11,6 +11,7 @@
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -18,6 +19,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * Skill-id keyed fragments the catalog layers over the raw spear skill records so the
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.FLAME_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -58,41 +60,22 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 560,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.6,
+        comboFinishers: [
           {
-            atMs: 440,
-            coefficient: 2.6,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} }
+    ])
   },
   [ID.SEETHE]: {
     name: 'Seethe',
@@ -111,28 +94,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Fury',
-        stacks: 1,
-        duration: 4,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 5,
-        duration: 10,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: 'Fury', stacks: 1, duration: 4, metadata: {} },
+      { type: 'boon', boon: 'Might', stacks: 5, duration: 10, metadata: {} }
+    ])
   },
   [ID.METEOR]: {
     name: 'Meteor',
@@ -341,81 +306,18 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 0.7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 720,
-            coefficient: 0.7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.7 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.7 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.7 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1, metadata: {} }
+      ])
     ]
   },
   [ID.RIPPLE]: {
@@ -447,28 +349,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 1.7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 480,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.7, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.ETCHING_JO_KULHLAUP]: {
     name: 'Etching: Jökulhlaup',
@@ -552,35 +436,13 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     // EVTC damage lands 520ms after activation; once the projectile reaches that
     // commit point, preserve its strike and vulnerability if the animation is cancelled.
     interruptCommitMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 1.35
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1.35 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]
+    )
   },
   // Lingering aura: five pulses one second apart, each a strike plus one Vulnerability stack,
   // so most of the damage lands well after the 560ms cast.
@@ -595,131 +457,26 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1480,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1480,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2480,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2480,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 3480,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 3480,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 4480,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 4480,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 2480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 3480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 4480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.4 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ])
     ]
   },
   [ID.ENERGIZE]: {
@@ -762,50 +519,24 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.84,
+        comboFinishers: [
           {
-            atMs: 520,
-            coefficient: 1.84,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Vulnerability',
-            stacks: 10,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 520,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 10, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.ETCHING_DERECHO]: {
     name: 'Etching: Derecho',
@@ -848,28 +579,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 560,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.DERECHO]: {
     name: 'Derecho',
@@ -881,28 +594,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 560,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 4, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.STONE_STRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -915,33 +610,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 640,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 1.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.2 },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5, metadata: {} }
+    ])
   },
   [ID.EARTHEN_SPEAR]: {
     name: 'Earthen Spear',
@@ -953,41 +625,22 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 680,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 3,
+        comboFinishers: [
           {
-            atMs: 600,
-            coefficient: 3,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+    ])
   },
   [ID.HARDEN]: {
     name: 'Harden',
@@ -1018,47 +671,11 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 680,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 3.375
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 3.375 },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+    ])
   },
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
@@ -1091,41 +708,11 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 1.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 560,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.75 },
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+    ])
   },
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
   [ID.HABOOB]: {
@@ -1138,68 +725,12 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 560,
-            coefficient: 4.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 560,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Vulnerability',
-            stacks: 5,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 560,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 4.25 },
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 6, metadata: {} },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+    ])
   }
 });

@@ -10,6 +10,7 @@
  * `PISTOL_SKILL_ELEMENTS` table), so nothing in this file mutates bullet state.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -17,6 +18,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * The six pistol dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Fire+Water. Three-shot burst at 280/440/640 ms; the opening shot chills and
   // the two follow-ups each stack Burning.
@@ -31,81 +33,18 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 640,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 640,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2.5, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 5, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -121,49 +60,23 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 0.8,
+        comboFinishers: [
           {
-            atMs: 480,
-            coefficient: 0.8,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 480,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Vulnerability',
-            stacks: 5,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ],
+      },
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.MOLTEN_METEOR]: {
@@ -176,47 +89,11 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 480,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Bleeding',
-            stacks: 2,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 8, metadata: {} },
+      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Air+Water. The one dual with no offensive packet at all: it only self-boons
@@ -231,28 +108,10 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 880,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        stacks: 1,
-        duration: 5,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Stability',
-        stacks: 1,
-        duration: 5,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 5, metadata: {} },
+      { type: 'boon', boon: 'Stability', stacks: 1, duration: 5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Water+Earth. Two shots at 280/480 ms, each applying two Bleeding stacks.
@@ -267,56 +126,14 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Bleeding',
-            stacks: 2,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Bleeding',
-            stacks: 2,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 8, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -331,55 +148,23 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 560,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 0.7,
+        comboFinishers: [
           {
-            atMs: 520,
-            coefficient: 0.7,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+    ]),
     specialization: 'Weaver'
   }
 });

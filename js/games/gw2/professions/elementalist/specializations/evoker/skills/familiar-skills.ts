@@ -2,6 +2,7 @@
  * Owns Evoker familiar basic and empowered skill fragments.
  * Familiar charge, flip, and attunement state lives in `mechanics/familiars.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -13,6 +14,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * charge/empowered state in `mechanics/availability.ts`, not the `cooldown: 0`
  * declared here.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.IGNITE]: {
     name: 'Ignite',
@@ -26,33 +28,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 0,
     nextChainId: ID.CONFLAGRATION,
     skillFamily: 'Familiar',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 880,
-            coefficient: 0.63
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 880,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.63 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+    ])
   },
   [ID.CONFLAGRATION]: {
     name: 'Conflagration',
@@ -68,35 +47,13 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 0,
     nextChainId: ID.IGNITE,
     skillFamily: 'Familiar',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1040,
-            coefficient: 1.56
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1040,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 4.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1.56 },
+        { type: 'condition', condition: 'Burning', stacks: 2, duration: 4.5, metadata: {} }
+      ]
+    )
   },
   [ID.SPLASH]: {
     name: 'Splash',
@@ -272,28 +229,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 0,
     nextChainId: ID.SEISMIC_IMPACT,
     skillFamily: 'Familiar',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.65
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 200,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.65, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.SEISMIC_IMPACT]: {
     name: 'Seismic Impact',
@@ -307,49 +246,23 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 0,
     nextChainId: ID.CALCIFY,
     skillFamily: 'Familiar',
-    effects: [
+    effects: impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.15,
+        comboFinishers: [
           {
-            atMs: 2120,
-            coefficient: 1.15,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2120,
-            condition: 'Bleeding',
-            stacks: 6,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 2120,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 10, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   }
 });

@@ -7,7 +7,7 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
@@ -20,6 +20,7 @@ const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (i
  * Skill-id keyed fragments the Core module contributes to the hammer catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -32,33 +33,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 440,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.69
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.69 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5, metadata: {} }
+    ])
   },
   [ID.SURGING_FLAMES]: {
     name: 'Surging Flames',
@@ -70,33 +48,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 880,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 600,
-            coefficient: 2.07
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.07 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Fire orb creator. The near-zero-coefficient packets represent the orb's repeated contact damage; the
   // orb's real payoff is the projectile Grand Finale later fires for it. `hammer-orbs` marks the skill
@@ -148,81 +103,18 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} }
+      ])
     ]
   },
   // Blast finisher that also self-buffs, so its Fury and Might land on the same packet time as the strike.
@@ -236,47 +128,23 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 760,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.8,
+        comboFinishers: [
           {
-            atMs: 720,
-            coefficient: 2.8,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Fury',
-        stacks: 1,
-        duration: 10,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 6,
-        duration: 10,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10, metadata: {} },
+      { type: 'boon', boon: 'Might', stacks: 6, duration: 10, metadata: {} }
+    ])
   },
   // First link of the Water auto-attack chain: Stream Strike -> Water Rush -> Chilling Crack -> back to
   // Stream Strike, wired through `nextChainId`.
@@ -342,33 +210,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.STREAM_STRIKE,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 320,
-            coefficient: 1.38
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 320,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.38 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1.5, metadata: {} }
+    ])
   },
   // Four-hit channel where only the final blow applies Chilled; `per-packet` interruption keeps just the
   // hits that landed before the cancel.
@@ -417,31 +262,10 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 880,
-            coefficient: 0.575
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 880,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.575 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+      ])
     ]
   },
   // Water orb creator; same token-packet shape as Flame Wheel, applying Vulnerability instead of Burning.
@@ -647,38 +471,11 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 440,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'buff',
-        kind: 'superspeed',
-        stacks: 1,
-        duration: 3,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 440,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.3, canCrit: true },
+      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 3, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // Two-stage skill: a small hit at cast end, then the delayed blast finisher and crowd control together.
   [ID.SHOCK_BLAST]: {
@@ -703,34 +500,23 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 800,
-            coefficient: 0.925,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 800,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.925,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:2:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {},
+          canCrit: true
+        },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ])
     ]
   },
   [ID.STONESTRIKE]: {
@@ -771,131 +557,26 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 8,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 0.84
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 760,
-            coefficient: 0.84
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 960,
-            coefficient: 0.84
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 960,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1200,
-            coefficient: 0.84
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1200,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1400,
-            coefficient: 0.84
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1400,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.84 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.84 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 960, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.84 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.84 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.84 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ])
     ]
   },
   // Earth orb creator; same token-packet shape as Flame Wheel, applying Bleeding.
@@ -957,55 +638,23 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 760,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.8,
+        comboFinishers: [
           {
-            atMs: 720,
-            coefficient: 2.8,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Bleeding',
-            stacks: 5,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+      { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 6, metadata: {} },
+      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Orb spender, deliberately attunement-agnostic: it is offered in any attunement but availability
   // requires an active orb matching the current one. The declared single projectile only documents the

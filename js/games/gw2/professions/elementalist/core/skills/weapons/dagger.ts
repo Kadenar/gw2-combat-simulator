@@ -5,6 +5,7 @@
  * flipover pairs that swap between granting an aura and transmuting it.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -18,6 +19,7 @@ const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as con
  * Skill-id keyed fragments the Core module contributes to the dagger catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
@@ -55,15 +57,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1360,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share the channel timing while retaining each timeline's packet indices and interruption behavior.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: DRAKES_BREATH_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 1.05
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        }))
       },
       {
         type: 'condition',
@@ -73,11 +74,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 1,
           duration: 4
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       }
-    ]
+    ])
   },
   // Leap impact plus a lingering fire field: the trailing packets are tagged `field-tick` so Persisting
   // Flames can recognize and extend them along with the field itself.
@@ -100,53 +99,31 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     ],
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 800,
-            coefficient: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 800,
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 3 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      // The trail shares timing defaults while retaining its separate multi-packet field timelines.
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
+            atMs,
+            coefficient: 0.2,
+            damageKind: 'field-tick'
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
+            atMs,
             condition: 'Burning',
             stacks: 1,
             duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          coefficient: 0.2,
-          damageKind: 'field-tick'
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: BURNING_SPEED_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          condition: 'Burning',
-          stacks: 1,
-          duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+          })),
+          metadata: {}
+        }
+      ])
     ]
   },
   // Single hit that also lays a five-second fire field for other skills to finish in.
@@ -168,33 +145,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2 },
+      { type: 'condition', condition: 'Burning', stacks: 2, duration: 4, metadata: {} }
+    ])
   },
   [ID.FIRE_GRAB]: {
     name: 'Fire Grab',
@@ -235,56 +189,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.33
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1360,
-            coefficient: 0.33
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1360,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.33 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.33 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ])
     ]
   },
   // Four-tick channel, each tick declared as its own strike packet.
@@ -364,41 +276,22 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 0.4,
+        comboFinishers: [
           {
-            atMs: 200,
-            coefficient: 0.4,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 200,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Instant aura grant that flips the slot to Transmute Frost; `aura: 'Frost|10'` is the aura/duration
   // pair the cast-effects layer reads when applying it.
@@ -428,29 +321,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     nextChainId: ID.FROST_AURA,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 840,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        stacks: 1,
-        duration: 4,
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5 },
+      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} }
+    ])
   },
   // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.
   [ID.CLEANSING_WAVE]: {
@@ -513,51 +387,23 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 360,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.4,
+        comboFinishers: [
           {
-            atMs: 1320,
-            coefficient: 2.4,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1320,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
-      {
-        type: 'boon',
-        boon: 'Fury',
-        stacks: 1,
-        duration: 2.5,
-        atMs: 1320,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} },
+      { type: 'boon', boon: 'Fury', stacks: 1, duration: 2.5, metadata: {} }
+    ])
   },
   // Air-attunement counterpart of the Frost Aura pair: grants the aura and flips to Transmute Lightning.
   [ID.SHOCKING_AURA]: {
@@ -586,28 +432,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 840,
-            coefficient: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 840,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.5, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.RIDE_THE_LIGHTNING]: {
     name: 'Ride the Lightning',
@@ -643,40 +471,17 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 880,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         // Updraft's launch registers a 0-damage strike, which is what lets it
         // trigger on-hit effects such as Relic of Fireworks despite dealing no
         // damage.
         type: 'strike',
-        ticks: [
-          {
-            atMs: 880,
-            coefficient: 0
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        coefficient: 0
       },
-      {
-        type: 'boon',
-        boon: 'Swiftness',
-        stacks: 1,
-        duration: 10,
-        atMs: 880,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 880,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.IMPALE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -689,33 +494,10 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 600,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 640,
-            coefficient: 0.77
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 640,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.77 },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, metadata: {} }
+    ])
   },
   // Two impacts within one cast — the small initial hit and the larger delayed one — each carrying its
   // own Bleeding and Cripple application.
@@ -730,84 +512,16 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 6,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 200,
-            coefficient: 0.33
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 200,
-            condition: 'Bleeding',
-            stacks: 3,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 200,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 760,
-            coefficient: 1.9
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Bleeding',
-            stacks: 3,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.33 },
+        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
+        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.9 },
+        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, metadata: {} },
+        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 2, metadata: {} }
+      ])
     ]
   },
   [ID.EARTHEN_RUSH]: {
@@ -820,41 +534,22 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 640,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.3,
+        comboFinishers: [
           {
-            atMs: 280,
-            coefficient: 2.3,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Leap',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 2, metadata: {} }
+    ])
   },
   [ID.EARTHQUAKE]: {
     name: 'Earthquake',
@@ -867,36 +562,23 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 640,
     cooldown: 16,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 3,
+        comboFinishers: [
           {
-            atMs: 480,
-            coefficient: 3,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'control',
-        atMs: 480,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // The zero-coefficient packet at cast start exists only to fire the blast finisher at channel start;
   // the damage and conditions land with the eruption near cast end.
@@ -930,45 +612,11 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 800,
-            coefficient: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 800,
-            condition: 'Bleeding',
-            stacks: 10,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 800,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 10, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+      ])
     ]
   }
 });

@@ -8,7 +8,7 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // One Hurl input releases five rocks at fixed 200ms intervals.
@@ -18,6 +18,7 @@ const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
  * Skill-id keyed fragments the catalog layers over the raw scepter skill records so the
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Two-stage autoattack: each strike packet carries its own Burning application.
   [ID.FLAMESTRIKE]: {
@@ -34,60 +35,14 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 240,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        interruptCommitMs: 320
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        interruptCommitMs: 320,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 0.7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.5, interruptCommitMs: 320 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5, interruptCommitMs: 320, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.7 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2.5, metadata: {} }
+      ])
     ]
   },
   // The delayed drop commits after 640ms; its blast and Burning then survive the
@@ -103,43 +58,25 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     interruptCommitMs: 640,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2600,
-            coefficient: 2.25,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2600,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 2600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 2.25,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 10, metadata: {} }
+      ]
+    )
   },
   // Three closely spaced packets commit by 440ms; only the middle one is the blast
   // finisher and carries Burning, while the trailing packet grants Vigor.
@@ -166,60 +103,26 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 1.7,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 400,
-            coefficient: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Vigor',
-        stacks: 1,
-        duration: 5,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 1.7,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:2:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.75 },
+        { type: 'boon', boon: 'Vigor', stacks: 1, duration: 5, metadata: {} }
+      ])
     ]
   },
   [ID.ICE_SHARDS]: {
@@ -257,56 +160,14 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 3,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1040,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1040,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2, metadata: {} }
+      ])
     ]
   },
   // Both ammo charges commit at 640ms and share a 10s recharge behind a 1s per-cast cooldown.
@@ -380,33 +241,10 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 0,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 0,
-            coefficient: 1.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Vulnerability',
-            stacks: 5,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.2 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10, metadata: {} }
+    ])
   },
   // Instant ammo skill: two charges on a 10s recharge, applying blind plus Weakness.
   [ID.BLINDING_FLASH]: {
@@ -421,30 +259,10 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ammo: 2,
     ammoRecharge: 10,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'blind',
-        atMs: 0,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} }
+    ])
   },
   // Three-shard autoattack; each shard is an independent 20%-chance projectile finisher and
   // applies its own Bleeding stack.
@@ -461,108 +279,57 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 720,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                chance: 0.2,
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                chance: 0.2,
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1240,
-            coefficient: 0.5,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                chance: 0.2,
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1240,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:3:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1240, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:5:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6, metadata: {} }
+      ])
     ]
   },
   // Rock Barrier and Hurl are a two-state flip pair sharing the Weapon_2 slot: availability

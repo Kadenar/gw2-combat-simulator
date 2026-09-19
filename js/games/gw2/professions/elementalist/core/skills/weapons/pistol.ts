@@ -7,6 +7,7 @@
  * unlocks live in `core/mechanics/pistol-bullets.ts`, not in these fragments.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -17,6 +18,7 @@ const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
  * Skill-id keyed fragments the Core module contributes to the pistol catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.SCORCHING_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -31,35 +33,13 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5, metadata: {} }
+      ]
+    )
   },
   // Stocks a Fire bullet, or spends one for extra Might that the pistol cast handler adds on top of the
   // Might declared here. `pistol-bullets` marks the skill as bullet-state-gated for rotation analysis.
@@ -74,46 +54,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 320,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 1,
-        duration: 6,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 8, metadata: {} },
+        { type: 'boon', boon: 'Might', stacks: 1, duration: 6, metadata: {} }
+      ]
+    )
   },
   // Blast finisher up front, then a four-shot salvo landing together a second later. Spending a Fire
   // bullet additionally grants a Fire Aura through the pistol cast handler.
@@ -130,149 +78,38 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 7
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        {
+          type: 'strike',
+          coefficient: 1,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 7, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.25 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.25 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.25 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.25 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} }
+      ])
     ]
   },
   [ID.SOOTHING_SPLASH]: {
@@ -365,33 +202,10 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
         timingScale: 'cast',
         persistsAfterInterrupt: true
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.75 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1.5, metadata: {} }
+      ])
     ]
   },
   [ID.ELECTRIC_EXPOSURE]: {
@@ -407,35 +221,13 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.33
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.33 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+      ]
+    )
   },
   // Strike plus crowd control; spending an Air bullet opens the Dazing Discharge window tracked in
   // profession state rather than adding packets here.
@@ -449,42 +241,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 440,
     cooldown: 8,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Vulnerability',
-            stacks: 8,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 280,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.75, canCrit: true },
+      { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 10, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // First link of the three-step Aerial Agility flipover chain. The zero-coefficient packet exists only
   // to fire the leap finisher. The chain reads the Air bullet without spending it, and the two later
@@ -535,33 +296,10 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.AERIAL_AGILITY_DASH,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.8 },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   [ID.AERIAL_AGILITY_DASH]: {
     autoattack: false,
@@ -575,37 +313,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 0,
     nextChainId: ID.AERIAL_AGILITY,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 0,
+        comboFinishers: [
           {
-            atMs: 360,
-            coefficient: 0,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Leap',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Leap',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'Aegis',
-        stacks: 1,
-        duration: 3,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'boon', boon: 'Aegis', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   [ID.PIERCING_PEBBLE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -620,35 +343,13 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 320,
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.35
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.35 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 5, metadata: {} }
+      ]
+    )
   },
   [ID.SHATTERING_STONE]: {
     name: 'Shattering Stone',
@@ -661,33 +362,10 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 400,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 360,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 360,
-            condition: 'Bleeding',
-            stacks: 3,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.8 },
+      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10, metadata: {} }
+    ])
   },
   [ID.BOULDER_BLAST]: {
     name: 'Boulder Blast',
@@ -701,58 +379,26 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 360,
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 400,
-            coefficient: 0.44,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 400,
-            condition: 'Bleeding',
-            stacks: 5,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 400,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.44,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          metadata: {}
+        },
+        { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 1.5, metadata: {} }
+      ]
+    )
   },
   [ID.ELEMENTAL_EXPLOSION]: {
     name: 'Elemental Explosion',
@@ -773,114 +419,22 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ],
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 520,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 520,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 600,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 600,
-            condition: 'Bleeding',
-            stacks: 4,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 680,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 680,
-            condition: 'Vulnerability',
-            stacks: 4,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 760,
-            coefficient: 0.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.2 },
+        { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.2 },
+        { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 6, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.2 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 4, duration: 10, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        { type: 'strike', coefficient: 0.2 },
+        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+      ])
     ]
   }
 });

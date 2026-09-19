@@ -9,7 +9,7 @@
  * mechanic subsystem, while `mechanicTriggers` names handlers in `core/execution/index.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
@@ -17,6 +17,7 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
  * Skill-id → fragment table for the Core heal, utility, and elite slot skills. Entries are keyed
  * by GW2 skill id and overlay the catalog entry of the same id.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // --- Heals ------------------------------------------------------------------
   // Healing is not modelled, so the heal skills only carry their offensive/boon side effects
@@ -138,36 +139,23 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     ammo: 2,
     ammoRecharge: 25,
     skillFamily: 'Arcane',
-    effects: [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1.4,
+        comboFinishers: [
           {
-            atMs: 800,
-            coefficient: 1.4,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'control',
-        atMs: 800,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // --- Conjures ---------------------------------------------------------------
   // Summoning a bundle has no packets of its own; the cast swaps the equipped conjure and arms
@@ -208,33 +196,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 400,
-            coefficient: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 400,
-            condition: 'Burning',
-            stacks: 3,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.5 },
+      { type: 'condition', condition: 'Burning', stacks: 3, duration: 6, metadata: {} }
+    ])
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_WATER]: {
     name: 'Glyph of Elemental Power (Water)',
@@ -256,28 +221,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 480,
     cooldown: 25,
     skillFamily: 'Glyph',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 400,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 400,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5, canCrit: true },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: {
     name: 'Glyph of Elemental Power (Earth)',
@@ -391,66 +338,72 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       cooldown: 60,
       skillFamily: 'Glyph',
       effects: [
-        [
-          { atMs: 880, coefficient: 0.825 },
-          { atMs: 1400, coefficient: 0.70125 },
-          { atMs: 1560, coefficient: 0.66 },
-          { atMs: 1680, coefficient: 0.61875 },
-          { atMs: 1880, coefficient: 0.5775 },
-          { atMs: 2200, coefficient: 0.53625 },
-          { atMs: 2400, coefficient: 0.495 },
-          { atMs: 2480, coefficient: 0.45375 },
-          { atMs: 2840, coefficient: 0.4125 },
-          { atMs: 2880, coefficient: 0.37125 },
-          { atMs: 3280, coefficient: 0.33 },
-          { atMs: 3400, coefficient: 0.28875 },
-          { atMs: 3480, coefficient: 0.2475 },
-          { atMs: 3880, coefficient: 0.2475 },
-          { atMs: 4080, coefficient: 0.2475 },
-          { atMs: 4160, coefficient: 0.2475 },
-          { atMs: 4400, coefficient: 0.2475 },
-          { atMs: 4800, coefficient: 0.2475 },
-          { atMs: 4880, coefficient: 0.2475 },
-          { atMs: 5400, coefficient: 0.2475 },
-          { atMs: 5440, coefficient: 0.2475 },
-          { atMs: 5680, coefficient: 0.2475 },
-          { atMs: 5880, coefficient: 0.2475 },
-          { atMs: 6080, coefficient: 0.2475 },
-          { atMs: 6400, coefficient: 0.2475 },
-          { atMs: 6480, coefficient: 0.2475 },
-          { atMs: 6760, coefficient: 0.2475 },
-          { atMs: 7280, coefficient: 0.2475 },
-          { atMs: 7400, coefficient: 0.2475 },
-          { atMs: 8040, coefficient: 0.2475 },
-          { atMs: 8080, coefficient: 0.2475 },
-          { atMs: 8880, coefficient: 0.2475 },
-          { atMs: 9680, coefficient: 0.2475 }
-        ],
-        [
-          { atMs: 880, coefficient: 0.78375 },
-          { atMs: 4880, coefficient: 0.2475 }
-        ],
-        [{ atMs: 880, coefficient: 0.7425 }]
-      ].flatMap((ticks) => [
-        strikeTimeline(ticks, {
-          timingAnchor: 'castStart',
-          timingScale: 'cast',
-          persistsAfterInterrupt: true
-        }),
-        conditionTimeline(
-          ticks.map(({ atMs }) => ({
-            atMs,
-            condition: 'Vulnerability',
-            stacks: 2,
-            duration: 8
-          })),
-          {
+        ...[
+          [
+            { atMs: 880, coefficient: 0.825 },
+            { atMs: 1400, coefficient: 0.70125 },
+            { atMs: 1560, coefficient: 0.66 },
+            { atMs: 1680, coefficient: 0.61875 },
+            { atMs: 1880, coefficient: 0.5775 },
+            { atMs: 2200, coefficient: 0.53625 },
+            { atMs: 2400, coefficient: 0.495 },
+            { atMs: 2480, coefficient: 0.45375 },
+            { atMs: 2840, coefficient: 0.4125 },
+            { atMs: 2880, coefficient: 0.37125 },
+            { atMs: 3280, coefficient: 0.33 },
+            { atMs: 3400, coefficient: 0.28875 },
+            { atMs: 3480, coefficient: 0.2475 },
+            { atMs: 3880, coefficient: 0.2475 },
+            { atMs: 4080, coefficient: 0.2475 },
+            { atMs: 4160, coefficient: 0.2475 },
+            { atMs: 4400, coefficient: 0.2475 },
+            { atMs: 4800, coefficient: 0.2475 },
+            { atMs: 4880, coefficient: 0.2475 },
+            { atMs: 5400, coefficient: 0.2475 },
+            { atMs: 5440, coefficient: 0.2475 },
+            { atMs: 5680, coefficient: 0.2475 },
+            { atMs: 5880, coefficient: 0.2475 },
+            { atMs: 6080, coefficient: 0.2475 },
+            { atMs: 6400, coefficient: 0.2475 },
+            { atMs: 6480, coefficient: 0.2475 },
+            { atMs: 6760, coefficient: 0.2475 },
+            { atMs: 7280, coefficient: 0.2475 },
+            { atMs: 7400, coefficient: 0.2475 },
+            { atMs: 8040, coefficient: 0.2475 },
+            { atMs: 8080, coefficient: 0.2475 },
+            { atMs: 8880, coefficient: 0.2475 },
+            { atMs: 9680, coefficient: 0.2475 }
+          ],
+          [
+            { atMs: 880, coefficient: 0.78375 },
+            { atMs: 4880, coefficient: 0.2475 }
+          ]
+        ].flatMap((ticks) => [
+          strikeTimeline(ticks, {
             timingAnchor: 'castStart',
             timingScale: 'cast',
             persistsAfterInterrupt: true
-          }
-        )
-      ])
+          }),
+          conditionTimeline(
+            ticks.map(({ atMs }) => ({
+              atMs,
+              condition: 'Vulnerability',
+              stacks: 2,
+              duration: 8
+            })),
+            {
+              timingAnchor: 'castStart',
+              timingScale: 'cast',
+              persistsAfterInterrupt: true
+            }
+          )
+        ]),
+        // The single-packet layer shares an impact without splitting the earlier multi-packet layers.
+        ...impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+          { type: 'strike', coefficient: 0.7425 },
+          { type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
+        ])
+      ]
     },
     20
   ),
@@ -518,33 +471,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 10
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5 },
+      { type: 'condition', condition: 'Burning', stacks: 2, duration: 10, metadata: {} }
+    ])
   },
   [ID.SIGNET_OF_EARTH]: {
     name: 'Signet of Earth',
@@ -556,47 +486,11 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     interruptCommitMs: 480,
     cooldown: 15,
     skillFamily: 'Signet',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 440,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Bleeding',
-            stacks: 4,
-            duration: 9
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 440,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5 },
+      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 9, metadata: {} },
+      { type: 'condition', condition: 'Immobilize', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // --- Elites --------------------------------------------------------------------
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
@@ -609,33 +503,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1160,
     cooldown: 180,
     skillFamily: 'Conjure',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1440,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1440,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // The two Glyph of Elementals variants (Fire / Earth) share the elite slot and produce no
   // packets themselves. Their player activation uses the effective cast duration. The companion subsystem in
@@ -672,31 +543,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 0,
     cooldown: 20,
     skillFamily: 'Cantrip',
-    effects: [
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Burning',
-            stacks: 2,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 3,
-        duration: 9,
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} },
+      { type: 'boon', boon: 'Might', stacks: 3, duration: 9, metadata: {} }
+    ])
   }
 });

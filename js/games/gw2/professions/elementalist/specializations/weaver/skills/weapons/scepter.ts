@@ -10,6 +10,7 @@
  * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -17,6 +18,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * The six scepter dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Fire+Water. Single hit applying one condition from each element.
   [ID.FIERY_FROST]: {
@@ -29,47 +31,11 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 880,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 320,
-            coefficient: 1.1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 320,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 320,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.1 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 4, metadata: {} },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   // Fire+Air. Five equal 0.55 beam pulses across the cast (240/360/520/640/760
@@ -156,84 +122,16 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     cooldown: 12,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 240,
-            coefficient: 1.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 240,
-            condition: 'Vulnerability',
-            stacks: 3,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 840,
-            coefficient: 1.2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 840,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 840,
-            condition: 'Vulnerability',
-            stacks: 3,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.2 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1.2 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 2, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -249,52 +147,12 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 480,
-            coefficient: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 480,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Stability',
-        stacks: 1,
-        duration: 5,
-        atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 480,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ],
+    effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2, canCrit: true },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} },
+      { type: 'boon', boon: 'Stability', stacks: 1, duration: 5, metadata: {} },
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ]),
     specialization: 'Weaver'
   },
   // Water+Earth. Eight 0.3 pulses on a 280 ms cadence from 760 ms to 2720 ms,
@@ -311,332 +169,47 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     cooldown: 15,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 760,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 760,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1040,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1040,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1040,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1320,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1320,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1320,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1600,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1600,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1600,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1880,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1880,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1880,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2160,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2160,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2160,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2440,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2440,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2440,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 2720,
-            coefficient: 0.3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2720,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 2720,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
+      ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Cripple', stacks: 1, duration: 4, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1320, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1600, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 1880, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 2160, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 2440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ]),
+      ...impactEffects({ atMs: 2720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.3 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8, metadata: {} }
+      ])
     ],
     specialization: 'Weaver'
   },
@@ -664,26 +237,10 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 720,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'control',
-        atMs: 720,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
+      ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 1, canCrit: true },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ])
     ],
     specialization: 'Weaver'
   }

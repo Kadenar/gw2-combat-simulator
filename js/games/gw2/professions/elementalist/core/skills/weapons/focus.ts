@@ -5,6 +5,7 @@
  * Fire Shield / Transmute Fire flipover pair.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -15,6 +16,7 @@ const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560
  * Skill-id keyed fragments the Core module contributes to the focus catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Persistent fire field whose damage packets are tagged `field-tick`, letting Persisting Flames
   // recognize and extend both the field and its ticks.
@@ -93,46 +95,14 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 10,
     nextChainId: ID.FIRE_SHIELD,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 840,
-            coefficient: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 840,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      },
-      {
-        type: 'boon',
-        boon: 'Might',
-        stacks: 5,
-        duration: 6,
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
-        metadata: {}
-      }
-    ]
+    effects: impactEffects(
+      { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 6, metadata: {} },
+        { type: 'boon', boon: 'Might', stacks: 5, duration: 6, metadata: {} }
+      ]
+    )
   },
   [ID.FREEZING_GUST]: {
     name: 'Freezing Gust',
@@ -144,33 +114,10 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 440,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ]
+    effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.25 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, metadata: {} }
+    ])
   },
   // Blast finisher and crowd-control application landing together shortly after the cast ends.
   [ID.COMET]: {
@@ -183,36 +130,23 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 680,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 0.75,
+        comboFinishers: [
           {
-            atMs: 760,
-            coefficient: 0.75,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'control',
-        atMs: 760,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ]
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ])
   },
   // Projectile-destruction bubble with no offensive packets; the fragment only models its cast time and recharge.
   [ID.SWIRLING_WINDS]: {
@@ -260,41 +194,22 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 0,
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 1,
+        comboFinishers: [
           {
-            atMs: 0,
-            coefficient: 1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Blast',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 0,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
-      }
-    ]
+      },
+      { type: 'condition', condition: 'Cripple', stacks: 1, duration: 5, metadata: {} }
+    ])
   },
   // Defensive channel with no packets; its long cast time is the cost the rotation has to pay for it.
   [ID.OBSIDIAN_FLESH]: {

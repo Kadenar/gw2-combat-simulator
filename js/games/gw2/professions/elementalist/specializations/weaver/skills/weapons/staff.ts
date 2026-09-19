@@ -10,6 +10,7 @@
  * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -17,6 +18,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * The six staff dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   // Fire+Water. One packet bundling the strike, the blind and self-Regeneration.
   [ID.PRESSURE_BLAST]: {
@@ -29,37 +31,11 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 650,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 600,
-            coefficient: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 600,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
-      },
-      {
-        type: 'boon',
-        boon: 'Regeneration',
-        stacks: 1,
-        duration: 4,
-        atMs: 600,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2 },
+      { type: 'blind', applications: 1, controlKind: 'blind' },
+      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.PLASMA_BLAST]: {
@@ -111,31 +87,10 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     ],
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 720,
-            coefficient: 0.8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 720,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
+      ...impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: 'Burning', stacks: 1, duration: 3, metadata: {} }
+      ]),
       {
         type: 'strike',
         ticks: [
@@ -212,54 +167,12 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 280,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        canCrit: true
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Vulnerability',
-            stacks: 8,
-            duration: 8
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'control',
-        atMs: 280,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      },
+      ...impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.25, canCrit: true },
+        { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 8, metadata: {} },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4, metadata: {} },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ]),
       {
         type: 'strike',
         ticks: [
@@ -414,36 +327,23 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 1320,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
+    effects: impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
+        coefficient: 2.1,
+        comboFinishers: [
           {
-            atMs: 1160,
-            coefficient: 2.1,
-            comboFinishers: [
-              {
-                ownerId: 'elementalist',
-                finisherType: 'Projectile',
-                ambiguousFieldSelection: 'oldest'
-              }
-            ],
-            metadata: {}
+            attemptGroup: 'effect:1:tick:1',
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
           }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        metadata: {},
         canCrit: true
       },
-      {
-        type: 'control',
-        atMs: 1160,
-        applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'crowd-control'
-      }
-    ],
+      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+    ]),
     specialization: 'Weaver'
   }
 });

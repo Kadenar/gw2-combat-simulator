@@ -12,6 +12,7 @@
  * `applyWeaverHammerState` / `weaverHammerAvailability`, not by this table.
  */
 
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -25,6 +26,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * is the two conditions, one contributed by each element of the pair: Fire ->
  * Burning, Water -> Vulnerability, Air -> Weakness, Earth -> Bleeding.
  */
+// Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DUAL_ORBITS_FIRE_AND_WATER]: {
     name: 'Dual Orbits: Fire and Water',
@@ -36,48 +38,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.DUAL_ORBITS_FIRE_AND_AIR]: {
@@ -90,48 +55,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.DUAL_ORBITS_FIRE_AND_EARTH]: {
@@ -144,48 +72,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 0.75
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 0.75, metadata: {} },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.DUAL_ORBITS_WATER_AND_AIR]: {
@@ -198,48 +89,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.DUAL_ORBITS_WATER_AND_EARTH]: {
@@ -252,48 +106,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Vulnerability',
-            stacks: 1,
-            duration: 6
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6, metadata: {} }
+    ]),
     specialization: 'Weaver'
   },
   [ID.DUAL_ORBITS_AIR_AND_EARTH]: {
@@ -306,48 +123,11 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     castTimeMs: 0,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
-      {
-        type: 'strike',
-        ticks: [
-          {
-            atMs: 1000,
-            coefficient: 0.001,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 2.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      },
-      {
-        type: 'condition',
-        ticks: [
-          {
-            atMs: 1000,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        metadata: {}
-      }
-    ],
+    effects: impactEffects({ atMs: 1000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.001, damageKind: 'field-tick' },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2.5, metadata: {} },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 1.5, metadata: {} }
+    ]),
     specialization: 'Weaver'
   }
 });
