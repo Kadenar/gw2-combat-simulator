@@ -6,7 +6,8 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
-import { handleThiefState } from '#gw2/professions/thief/family-state.js';
+import { handleThiefState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
+import { completeThiefDodge } from '#gw2/professions/thief/core/execution/dodge.js';
 
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -22,6 +23,91 @@ import {
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 const STEAL = thiefCatalog.skillsById.get(ID.STEAL);
+
+test('Hidden Thief checkpoints stay detached and preserve resolver-owned proc deadlines', () => {
+  // Scheduler claims must not overwrite the resolver map when a later checkpoint arrives.
+  const scheduler = traitContext([TRAIT.HIDDEN_THIEF]);
+  emitStealTraitEffects(scheduler.context);
+  const snapshot = snapshotThiefState(scheduler.context.state.profession);
+  const resolver = traitContext([TRAIT.SHADOW_SIPHONING]);
+  Object.assign(resolver.context.profession, resolver.context.state.profession);
+  resolver.core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = 10;
+  handleThiefState(resolver.context, { at: 1, state: snapshot });
+  assert.deepEqual(resolver.core.traitProcReadyAt, { [TRAIT.SHADOW_SIPHONING]: 10 });
+  scheduler.context.effectiveEnd = 4;
+  emitStealTraitEffects(scheduler.context);
+  assert.equal(scheduler.core.traitProcReadyAt[TRAIT.HIDDEN_THIEF], 6);
+  assert.equal(snapshot.traitProcReadyAt[TRAIT.HIDDEN_THIEF], 3);
+});
+
+// Exercise owner-local claims through their real dispatchers, including synchronous re-entry.
+for (const [name, traitId, invoke, output] of [
+  ['Hidden Thief', TRAIT.HIDDEN_THIEF, (c) => emitStealTraitEffects(c), 'emit'],
+  ['Upper Hand', TRAIT.UPPER_HAND, (c) => completeThiefDodge(c), 'emit'],
+  [
+    'Panic Strike',
+    TRAIT.PANIC_STRIKE,
+    (c) => reactToThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }),
+    'applyCondition'
+  ],
+  [
+    "Assassin's Fury",
+    TRAIT.ASSASSINS_FURY,
+    (c) =>
+      reactToThiefCoreBuff(c, {
+        type: 'buff',
+        at: c.effectiveEnd,
+        kind: 'fury',
+        resolvedAudience: { includesSelf: true }
+      }),
+    'queue'
+  ]
+]) {
+  test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
+    for (const duration of [2, 0]) {
+      const { context, core } = traitContext([]);
+      const profiles = new Map(thiefCatalog.balanceProfilesById);
+      profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
+      context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
+      core.traitProcReadyAt.unrelated = 99;
+      invoke(context);
+      assert.deepEqual(core.traitProcReadyAt, { unrelated: 99 });
+      context.config.selectedTraitIds = [traitId];
+      const owner = output === 'queue' ? context.queue : context;
+      const method = output === 'queue' ? 'enqueue' : output;
+      const original = owner[method].bind(owner);
+      let emissions = 0;
+      let reenter = true;
+      owner[method] = (event) => {
+        assert.equal(core.traitProcReadyAt[traitId], context.effectiveEnd + duration);
+        emissions += 1;
+        if (reenter) {
+          reenter = false;
+          const before = emissions;
+          invoke(context);
+          assert.equal(emissions, before);
+        }
+
+        return original(event);
+      };
+
+      invoke(context);
+      assert.ok(emissions > 0);
+      const firstEmissions = emissions;
+      for (const at of [1 + duration, 1 + duration + 0.0000004]) {
+        context.effectiveEnd = at;
+        invoke(context);
+        assert.equal(emissions, firstEmissions);
+      }
+
+      context.effectiveEnd = 1 + duration + 0.000001;
+      invoke(context);
+      assert.ok(emissions > firstEmissions);
+      assert.equal(core.traitProcReadyAt.unrelated, 99);
+      assert.deepEqual(traitContext([traitId]).core.traitProcReadyAt, {});
+    }
+  });
+}
 
 /** Builds the smallest shared cast/resolver context needed to exercise Core Thief dispatchers. */
 function traitContext(selectedTraitIds = [], config = {}) {

@@ -1,3 +1,4 @@
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
@@ -514,10 +515,13 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
     const attunement = String(event.attunement || core.primaryAttunement) as ElementalistAttunement;
     if (
       hasTrait(context, 'Elemental Epitome') &&
-      isInternalCooldownReady(event.at, Number(state.elementalEpitomeReadyAt[attunement] || 0))
+      tryConsumeProcCooldown(
+        state.elementalEpitomeReadyAt,
+        attunement,
+        event.at,
+        balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10)
+      )
     ) {
-      state.elementalEpitomeReadyAt[attunement] =
-        event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
       const aura = elementalEpitomeAura(context, attunement);
       applyElementalistAura(context as never, {
         at: event.at,
@@ -530,10 +534,13 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
 
     if (
       hasTrait(context, 'Elemental Synergy') &&
-      isInternalCooldownReady(event.at, Number(state.elementalSynergyReadyAt[attunement] || 0))
+      tryConsumeProcCooldown(
+        state.elementalSynergyReadyAt,
+        attunement,
+        event.at,
+        balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10)
+      )
     ) {
-      state.elementalSynergyReadyAt[attunement] =
-        event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
       if (attunement === 'Fire' || attunement === 'Earth') {
         const boon = elementalSynergyBoon(context, attunement);
         emitSkillBuff(context, elementalistEventSkill(context, 'Elemental Synergy', event.sourceId), {

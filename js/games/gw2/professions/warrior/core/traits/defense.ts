@@ -1,8 +1,8 @@
 /** Owns imperative Defense trait effects while the public dispatcher preserves cross-line ordering. */
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -54,10 +54,18 @@ export function applyMercilessHammer(context: WarriorSchedulerContext, event: Wa
 export function applyStalwartStrength(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.STALWART_STRENGTH)) return;
   const state = professionCoreState(context);
-  if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.stalwartStrength || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.stalwartStrength);
   const stability = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.stalwartStrength = event.at + Number(profile?.internalCooldown ?? 0.32);
+  // Reserve this trait's own deadline before emitting its effects.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'stalwartStrength',
+      event.at,
+      Number(profile?.internalCooldown ?? 0.32)
+    )
+  )
+    return;
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||
@@ -81,14 +89,12 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
 // Apply Cull the Weak only once per burst activation and ICD window.
 export function applyCullTheWeak(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   const state = professionCoreState(context);
-  if (
-    !hasTrait(context, TRAIT.CULL_THE_WEAK) ||
-    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.cullTheWeak || 0))
-  ) {
+  if (!hasTrait(context, TRAIT.CULL_THE_WEAK)) {
     return;
   }
 
-  state.traitProcReadyAt.cullTheWeak = event.at + 5;
+  // Reserve this trait's own deadline before emitting its effects.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'cullTheWeak', event.at, 5)) return;
   emitSkillCondition(context, {
     cause: event,
     at: event.at,

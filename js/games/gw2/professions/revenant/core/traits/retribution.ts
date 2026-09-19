@@ -1,6 +1,6 @@
 /** Owns Core Retribution control and Resolution-dependent strike reactions. */
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
@@ -39,11 +39,7 @@ export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, ev
 /** Grants Vicious Reprisal Might from qualifying strikes while Resolution is active. */
 export function applyViciousReprisal(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const state = professionCoreState(context);
-  if (
-    !hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) ||
-    !context.hasBuff('resolution', event.at) ||
-    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.viciousReprisal || 0))
-  ) {
+  if (!hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) || !context.hasBuff('resolution', event.at)) {
     return;
   }
 
@@ -52,7 +48,9 @@ export function applyViciousReprisal(context: RevenantSchedulerContext, event: R
   const sourceSkill =
     context.catalog.skillsById.get(event.skillId ?? '') ||
     ({ id: TRAIT.VICIOUS_REPRISAL, name: 'Vicious Reprisal' } as RevenantSkill);
-  state.traitProcReadyAt.viciousReprisal = event.at + Number(profile.cooldown || 0);
+  // Arm the scheduler-owned claim before its boon can trigger another reaction.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'viciousReprisal', event.at, Number(profile.cooldown || 0)))
+    return;
   emitSkillBuff(context, {
     cause: event,
     at: event.at,

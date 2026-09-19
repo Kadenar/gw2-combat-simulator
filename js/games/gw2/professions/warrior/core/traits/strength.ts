@@ -1,8 +1,8 @@
 /** Owns imperative Strength trait effects while the public dispatcher preserves cross-line ordering. */
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -268,10 +268,18 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
   }
 
   const state = professionCoreState(context);
-  if (!isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.aggressiveOnslaught || 0))) return;
   const profile = balanceProfileFromContext(context, PROFILE.aggressiveOnslaught);
   const quickness = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.aggressiveOnslaught = event.at + Number(profile?.internalCooldown ?? 0.32);
+  // Reserve this trait's own deadline before emitting its effects.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'aggressiveOnslaught',
+      event.at,
+      Number(profile?.internalCooldown ?? 0.32)
+    )
+  )
+    return;
   emitSkillBuff(context, {
     skill:
       context.catalog.skillsById.get(event.skillId ?? '') ||

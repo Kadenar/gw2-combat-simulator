@@ -6,7 +6,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -46,14 +45,22 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     !(Number(event.coefficient || 0) > 0) ||
     !(targetHealth > 0) ||
     damageDone < targetHealth * 0.5 ||
-    !hasTrait(context, TRAIT.SIGNET_MASTERY) ||
-    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.lesserSignetMight || 0))
+    !hasTrait(context, TRAIT.SIGNET_MASTERY)
   ) {
     return;
   }
 
   const signetMastery = balanceProfileFromContext(context, PROFILE.signetMastery);
-  state.traitProcReadyAt.lesserSignetMight = event.at + Number(signetMastery?.internalCooldown ?? 20);
+  // Reserve this trait's own deadline before emitting its effects.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'lesserSignetMight',
+      event.at,
+      Number(signetMastery?.internalCooldown ?? 20)
+    )
+  )
+    return;
   for (const effect of signetMastery?.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
     context.queue.enqueue({
@@ -245,17 +252,17 @@ export function applySunderingBurst(
   criticals: number
 ): void {
   const state = professionCoreState(context);
-  if (
-    !firstBurstHit ||
-    !hasTrait(context, TRAIT.SUNDERING_BURST) ||
-    !isInternalCooldownReady(event.at, Number(state.traitProcReadyAt.sunderingBurst || 0))
-  ) {
+  if (!firstBurstHit || !hasTrait(context, TRAIT.SUNDERING_BURST)) {
     return;
   }
 
   const profile = balanceProfileFromContext(context, PROFILE.sunderingBurst);
   const effect = balanceProfileEffect(profile, 'condition', criticals > 0 ? 1 : 0);
-  state.traitProcReadyAt.sunderingBurst = event.at + Number(profile?.internalCooldown ?? 5);
+  // Reserve this trait's own deadline before emitting its effects.
+  if (
+    !tryConsumeProcCooldown(state.traitProcReadyAt, 'sunderingBurst', event.at, Number(profile?.internalCooldown ?? 5))
+  )
+    return;
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -274,16 +281,22 @@ export function applySunderingBurst(
 // Grant Furious Burst after Martial Cadence and Versatile Rage weapon-swap effects.
 export function applyFuriousBurst(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = professionCoreState(context);
-  if (
-    !hasTrait(context, TRAIT.FURIOUS_BURST) ||
-    !isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.furiousBurst || 0))
-  ) {
+  if (!hasTrait(context, TRAIT.FURIOUS_BURST)) {
     return;
   }
 
   const profile = balanceProfileFromContext(context, PROFILE.furiousBurst);
   const fury = balanceProfileEffect(profile, 'boon');
-  state.traitProcReadyAt.furiousBurst = context.effectiveEnd + Number(profile?.internalCooldown ?? 4);
+  // Reserve this trait's own deadline before emitting its effects.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'furiousBurst',
+      context.effectiveEnd,
+      Number(profile?.internalCooldown ?? 4)
+    )
+  )
+    return;
   emitSkillBuff(context, {
     at: context.effectiveEnd,
     source: 'Trait',

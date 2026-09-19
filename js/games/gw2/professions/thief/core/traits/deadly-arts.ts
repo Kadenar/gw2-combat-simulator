@@ -1,7 +1,7 @@
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
@@ -113,9 +113,16 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
   const immobilized = balanceProfileEffect(profile, 'condition', 0);
-  const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
-  if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + Number(profile?.internalCooldown ?? 20);
+  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      TRAIT.PANIC_STRIKE,
+      event.at,
+      Number(profile?.internalCooldown ?? 20)
+    )
+  )
+    return;
   context.applyCondition({
     type: 'condition',
     at: event.at,

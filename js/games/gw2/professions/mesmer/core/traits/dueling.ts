@@ -5,6 +5,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -179,13 +180,13 @@ export function triggerMasterFencer(
   );
   core.masterFencerProgress = tracker.progress;
 
-  const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
   // Master Fencer historically consumes expected threshold crossings during
   // its ICD, so cooldown gating remains after the shared progress advance.
-  if (!application || !isInternalCooldownReady(event.at, readyAt)) return;
+  if (!application) return;
 
   const profile = context.balanceProfile(TRAIT.MASTER_FENCER);
-  core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + Number(profile?.internalCooldown ?? 8);
+  if (!tryConsumeProcCooldown(core.traitReadyAt, TRAIT.MASTER_FENCER, event.at, Number(profile?.internalCooldown ?? 8)))
+    return;
   context.addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
   const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
   for (const [index, application] of [

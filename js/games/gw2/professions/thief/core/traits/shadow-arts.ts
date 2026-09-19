@@ -1,7 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -18,9 +17,9 @@ export function applyHiddenThief(context: ThiefCastContext, at: number): void {
   const profile = balanceProfileFromContext(context, PROFILE.hiddenThief);
   const blindness = balanceProfileEffect(profile, 'condition', 0);
   const weakness = balanceProfileEffect(profile, 'condition', 1);
-  const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
-  if (!isInternalCooldownReady(at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + Number(profile?.internalCooldown ?? 2);
+  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, TRAIT.HIDDEN_THIEF, at, Number(profile?.internalCooldown ?? 2)))
+    return;
   emitSkillCondition(context, {
     at,
     source: 'Trait',

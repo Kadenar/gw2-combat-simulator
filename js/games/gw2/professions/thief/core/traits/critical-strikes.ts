@@ -1,6 +1,6 @@
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -273,9 +273,16 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   const state = professionCoreState(context);
   const profile = balanceProfileFromContext(context, PROFILE.assassinsFury);
   const might = balanceProfileEffect(profile, 'boon');
-  const readyAt = Number(state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] || 0);
-  if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.traitProcReadyAt[TRAIT.ASSASSINS_FURY] = event.at + Number(profile?.internalCooldown ?? 2);
+  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      TRAIT.ASSASSINS_FURY,
+      event.at,
+      Number(profile?.internalCooldown ?? 2)
+    )
+  )
+    return;
   queueThiefBoon(context, event, {
     traitId: TRAIT.ASSASSINS_FURY,
     traitName: "Assassin's Fury",

@@ -12,7 +12,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -56,13 +56,13 @@ function consumeEvokerAttunementTraitCooldown(
   at: number,
   profileId: Skill['id']
 ): boolean {
-  const key = String(profileId);
-  if (!isInternalCooldownReady(at, Number(state.attunementTraitProcReadyAt[key] || 0))) return false;
-
-  // Evoker owns the shared per-trait timer used by both real and familiar-triggered attunement entries.
-  state.attunementTraitProcReadyAt[key] =
-    at + balanceProfileValueFromContext(context, PROFILE.evocation, 'internalCooldown', 5);
-  return true;
+  // Both real and familiar-triggered entries share a per-profile claim before downstream effects.
+  return tryConsumeProcCooldown(
+    state.attunementTraitProcReadyAt,
+    String(profileId),
+    at,
+    balanceProfileValueFromContext(context, PROFILE.evocation, 'internalCooldown', 5)
+  );
 }
 
 /**

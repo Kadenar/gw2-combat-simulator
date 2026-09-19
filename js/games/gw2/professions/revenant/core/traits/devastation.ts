@@ -1,6 +1,7 @@
 /** Owns Core Devastation boon, weapon-swap, and Battle Scar trait behavior. */
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -111,8 +112,7 @@ export function applyBrutality(context: RevenantSchedulerContext, event: Revenan
   if (
     !['action', 'sigil_swap'].includes(event.type) ||
     event.skillId !== ID.SWAP_WEAPONS ||
-    !hasTrait(context.config, TRAIT.BRUTALITY) ||
-    !isInternalCooldownReady(at, Number(state.traitProcReadyAt.brutality || 0))
+    !hasTrait(context.config, TRAIT.BRUTALITY)
   ) {
     return;
   }
@@ -122,7 +122,8 @@ export function applyBrutality(context: RevenantSchedulerContext, event: Revenan
   const sourceSkill =
     context.catalog.skillsById.get(event.skillId ?? '') ||
     ({ id: TRAIT.BRUTALITY, name: 'Brutality' } as RevenantSkill);
-  state.traitProcReadyAt.brutality = at + Number(profile.cooldown || 0);
+  // Arm the scheduler-owned claim before its boon can trigger another reaction.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'brutality', at, Number(profile.cooldown || 0))) return;
   emitSkillBuff(context, {
     cause: event,
     at,

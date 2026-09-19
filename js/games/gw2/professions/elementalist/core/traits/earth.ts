@@ -4,7 +4,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -79,13 +79,17 @@ export function grantElementalistRockSolid(
 export function applyEarthsEmbrace(context: ElementalistLifecycleContext, skill: Skill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  if (!hasTrait(context, "Earth's Embrace")) return;
+  // Claim the existing owner-local timer before any derived effect.
   if (
-    !hasTrait(context, "Earth's Embrace") ||
-    !isInternalCooldownReady(at, Number(state.procReadyAt.earthsEmbrace || 0))
+    !tryConsumeProcCooldown(
+      state.procReadyAt,
+      'earthsEmbrace',
+      at,
+      balanceProfileValueFromContext(context, PROFILE.earthsEmbrace, 'internalCooldown', 15)
+    )
   )
     return;
-  state.procReadyAt.earthsEmbrace =
-    at + balanceProfileValueFromContext(context, PROFILE.earthsEmbrace, 'internalCooldown', 15);
   emitProfiledBuff(context, at, PROFILE.earthsEmbrace, 'Resistance', 'Resistance', 1, 4, "Earth's Embrace", skill.id);
 }
 
@@ -119,9 +123,16 @@ export function applyWrittenInStone(
 export function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Strength of Stone')) return;
   const state = professionCoreState(context);
-  if (!isInternalCooldownReady(event.at, Number(state.procReadyAt.strengthOfStone || 0))) return;
-  state.procReadyAt.strengthOfStone =
-    event.at + balanceProfileValueFromContext(context, PROFILE.strengthOfStone, 'internalCooldown', 3);
+  // Claim the existing owner-local timer before any derived effect.
+  if (
+    !tryConsumeProcCooldown(
+      state.procReadyAt,
+      'strengthOfStone',
+      event.at,
+      balanceProfileValueFromContext(context, PROFILE.strengthOfStone, 'internalCooldown', 3)
+    )
+  )
+    return;
   const bleeding = balanceProfileEffectFromContext(
     context,
     PROFILE.strengthOfStone,

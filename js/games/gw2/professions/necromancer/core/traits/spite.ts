@@ -1,6 +1,6 @@
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -48,15 +48,19 @@ export function applyReapersMight(
 }
 
 export function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (
-    !hasTrait(context, TRAIT.SIPHONED_POWER) ||
-    !targetBelowHalfHealth(context) ||
-    !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.siphonedPower || 0))
-  )
-    return;
+  if (!hasTrait(context, TRAIT.SIPHONED_POWER) || !targetBelowHalfHealth(context)) return;
   const profile = balanceProfileFromContext(context, PROFILE.siphonedPower);
   const effect = balanceProfileEffect(profile, 'boon');
-  professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + Number(profile?.cooldown ?? 1);
+  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  if (
+    !tryConsumeProcCooldown(
+      professionCoreState(context).traitProcReadyAt,
+      'siphonedPower',
+      event.at,
+      Number(profile?.cooldown ?? 1)
+    )
+  )
+    return;
   context.queue.enqueue({
     type: 'buff',
     at: event.at,
@@ -97,14 +101,18 @@ export function applySpitefulFortitude(
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (!hasTrait(context, TRAIT.CHILL_OF_DEATH) || !targetBelowHalfHealth(context)) return;
+  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
+  // Claim only after local eligibility, before conditions, resources or queued strikes.
   if (
-    !hasTrait(context, TRAIT.CHILL_OF_DEATH) ||
-    !targetBelowHalfHealth(context) ||
-    !isInternalCooldownReady(event.at, Number(professionCoreState(context).traitProcReadyAt.chillOfDeath || 0))
+    !tryConsumeProcCooldown(
+      professionCoreState(context).traitProcReadyAt,
+      'chillOfDeath',
+      event.at,
+      Number(profile?.cooldown ?? 16)
+    )
   )
     return;
-  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
-  professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + Number(profile?.cooldown ?? 16);
   const boons = context.config.target?.boonless
     ? 0
     : Math.min(
@@ -164,13 +172,9 @@ export function applySignetsOfSuffering(context: NecromancerCastContext, skill: 
 
 export function applyMaliciousSwarm(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
-  if (
-    skill.type !== 'Heal' ||
-    !hasTrait(context, TRAIT.MALICIOUS_SWARM) ||
-    !isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.maliciousSwarm || 0))
-  )
-    return;
-  state.traitProcReadyAt.maliciousSwarm = context.effectiveEnd + 15;
+  if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.MALICIOUS_SWARM)) return;
+  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'maliciousSwarm', context.effectiveEnd, 15)) return;
   emitSkillDamage(context, skill, {
     at: context.effectiveEnd,
     name: 'Lesser Signet of the Locust',

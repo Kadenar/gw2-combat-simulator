@@ -20,6 +20,12 @@ export interface JsonExportChoice {
   readonly payload: unknown;
 }
 
+/** Normalize the submitted name once so every JSON export preserves a usable extension and default. */
+export function jsonExportFilename(entered: string, fallback: string): string {
+  const name = entered.trim() || fallback;
+  return /\.json$/i.test(name) ? name : name + '.json';
+}
+
 /**
  * Uses the app's modal controls to name an export, downloading only when the form is submitted.
  *
@@ -77,8 +83,7 @@ export function downloadJson(filenameOrChoices: string | readonly JsonExportChoi
   });
   dialog.querySelector('form')!.addEventListener('submit', (event) => {
     event.preventDefault();
-    let exportName = input.value.trim() || selected.filename;
-    if (!/\.json$/i.test(exportName)) exportName += '.json';
+    const exportName = jsonExportFilename(input.value, selected.filename);
 
     const blob = new Blob([JSON.stringify(selected.payload, null, 2)], {
       type: 'application/json'

@@ -6,6 +6,7 @@
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
@@ -92,19 +93,29 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
   const core = professionCoreState(context);
   const state = catalystState.from(context);
   const attunement = core.primaryAttunement;
-  const epitomeReadyAt = Number(state.elementalEpitomeReadyAt[attunement] || 0);
-  if (hasTrait(context, 'Elemental Epitome') && isInternalCooldownReady(event.at, epitomeReadyAt)) {
-    state.elementalEpitomeReadyAt[attunement] =
-      event.at + balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10);
+  if (
+    hasTrait(context, 'Elemental Epitome') &&
+    tryConsumeProcCooldown(
+      state.elementalEpitomeReadyAt,
+      attunement,
+      event.at,
+      balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10)
+    )
+  ) {
     const aura = elementalEpitomeAura(context, attunement);
     queueElementalistAura(context, event, aura.canonicalAura, aura.duration, 'Elemental Epitome');
     recordElementalistTraitProc(context, event, 'Elemental Epitome');
   }
 
-  const synergyReadyAt = Number(state.elementalSynergyReadyAt[attunement] || 0);
-  if (hasTrait(context, 'Elemental Synergy') && isInternalCooldownReady(event.at, synergyReadyAt)) {
-    state.elementalSynergyReadyAt[attunement] =
-      event.at + balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10);
+  if (
+    hasTrait(context, 'Elemental Synergy') &&
+    tryConsumeProcCooldown(
+      state.elementalSynergyReadyAt,
+      attunement,
+      event.at,
+      balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10)
+    )
+  ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
       const boon = elementalSynergyBoon(context, attunement);
       queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');

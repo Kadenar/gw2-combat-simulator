@@ -6,6 +6,49 @@ import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
+test('Master Fencer consumes blocked critical thresholds before its final cooldown claim', () => {
+  // Banking a blocked threshold or gating progress first would change the next Fury opportunity.
+  for (const duration of [8, 0]) {
+    const core = createMesmerCoreState();
+    core.traitReadyAt[TRAIT.MASTER_FENCER] = 2;
+    core.masterFencerProgress = 0.5;
+    const events = [];
+    const context = {
+      state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
+      traits: new Set(),
+      stochastic: false,
+      balanceProfile: () => ({ internalCooldown: duration }),
+      boonDuration: (_boon, duration) => duration,
+      addTraitProc(_name, at) {
+        assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], at + duration);
+      },
+      emitEvent(_cause, event) {
+        events.push(event);
+      }
+    };
+    const opportunity = (at, chance) =>
+      triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at }, chance);
+    opportunity(1, 0.5);
+    assert.equal(core.masterFencerProgress, 0.5);
+    context.traits.add(TRAIT.MASTER_FENCER);
+    opportunity(1, 0.5);
+    assert.equal(core.masterFencerProgress, 0);
+    assert.equal(events.length, 0);
+    opportunity(2, 1);
+    assert.equal(core.masterFencerProgress, 0);
+    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2);
+    opportunity(2.000001, 0.5);
+    assert.equal(events.length, 0);
+    opportunity(2.000001, 0.5);
+    assert.equal(events.length, 2);
+    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
+    opportunity(2.000001 + duration, 1);
+    assert.equal(events.length, 2);
+    opportunity(2.000002 + duration, 1);
+    assert.equal(events.length, 4);
+  }
+});
+
 // Catalog identity must let player ambush hits reach traits without counting clone ambushes as player hits.
 test("Mirage Thrust retains player and clone skill identity and grants one Fencer's Finesse stack", () => {
   const result = simulateMesmer(['Dodge / Mirage Cloak', 'Mirage Thrust', { type: 'wait', durationMs: 1 }], {

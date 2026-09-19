@@ -1,5 +1,5 @@
 /** Owns imperative Core Necromancer Death Magic trait behavior for ordered dispatcher calls. */
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
@@ -19,13 +19,9 @@ export function applyCorruptorsFervor(context: NecromancerResolverContext, event
 
 export function applyDarkDefense(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
-  if (
-    skill.type !== 'Heal' ||
-    !hasTrait(context, TRAIT.DARK_DEFENSE) ||
-    !isInternalCooldownReady(context.effectiveEnd, Number(state.traitProcReadyAt.darkDefense || 0))
-  )
-    return;
-  state.traitProcReadyAt.darkDefense = context.effectiveEnd + 5;
+  if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.DARK_DEFENSE)) return;
+  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'darkDefense', context.effectiveEnd, 5)) return;
   addCarapace(state, 10, context.effectiveEnd);
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,

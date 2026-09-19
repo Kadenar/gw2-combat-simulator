@@ -43,7 +43,8 @@ export interface RevenantCoreState {
   exposeDefensesUsed: boolean;
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
-  traitProcReadyAt: Record<string, number | boolean>;
+  // Brutality, Vicious Reprisal and Impossible Odds store only numeric deadlines here.
+  traitProcReadyAt: Record<string, number>;
 }
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,

@@ -6,6 +6,74 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { observeWarriorEvent } from '#gw2/professions/warrior/core/traits/index.js';
+import {
+  applyFuriousBurst,
+  applySunderingBurst,
+  reactToWarriorDamage
+} from '#gw2/professions/warrior/core/traits/arms.js';
+import { applyCullTheWeak, applyStalwartStrength } from '#gw2/professions/warrior/core/traits/defense.js';
+import { applyAggressiveOnslaught } from '#gw2/professions/warrior/core/traits/strength.js';
+
+// Each migrated final gate must keep its key, eligibility and claim-before-effect ordering.
+for (const [key, trait, handler, literalDuration] of [
+  ['lesserSignetMight', TRAIT.SIGNET_MASTERY, reactToWarriorDamage],
+  ['stalwartStrength', TRAIT.STALWART_STRENGTH, applyStalwartStrength],
+  ['aggressiveOnslaught', TRAIT.AGGRESSIVE_ONSLAUGHT, applyAggressiveOnslaught],
+  ['cullTheWeak', TRAIT.CULL_THE_WEAK, applyCullTheWeak, 5],
+  ['sunderingBurst', TRAIT.SUNDERING_BURST, (c, e) => applySunderingBurst(c, e, true, 1)],
+  ['furiousBurst', TRAIT.FURIOUS_BURST, (c) => applyFuriousBurst(c, { id: 1, name: 'Swap Weapons' })]
+]) {
+  test(`${key} reserves only its eligible opportunity before effects`, () => {
+    for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
+      const core = createWarriorCoreState();
+      core.traitProcReadyAt.unrelated = 99;
+      const catalog = warriorProfession.catalog;
+      const profiles = new Map(catalog.balanceProfilesById);
+      profiles.set(trait, { ...profiles.get(trait), internalCooldown: duration });
+      let emitted = 0;
+      const context = {
+        config: { selectedTraitIds: [], target: { health: 100, startingHealthFraction: 0.4 } },
+        catalog: { ...catalog, balanceProfilesById: profiles },
+        profession: warriorProfession,
+        state: { time: 1, profession: { core, specialization: { kind: 'Core', state: {} } } },
+        effectiveEnd: 1,
+        helpers: { skillsById: catalog.skillsById },
+        query: { statsAt: () => ({}) },
+        recordProc() {},
+        emit(event) {
+          assert.equal(core.traitProcReadyAt[key], event.at + duration);
+          emitted += 1;
+          return event;
+        },
+        emitDerived(_cause, event) {
+          return this.emit(event);
+        },
+        queue: {
+          enqueue(event) {
+            return context.emit(event);
+          }
+        }
+      };
+      const opportunity = (at) => {
+        context.effectiveEnd = at;
+        handler(context, { type: 'control', at, actorType: 'player', coefficient: 1 });
+      };
+
+      opportunity(1);
+      assert.deepEqual(core.traitProcReadyAt, { unrelated: 99 });
+      context.config.selectedTraitIds = [trait];
+      opportunity(1);
+      assert.ok(emitted > 0);
+      const count = emitted;
+      opportunity(1 + duration);
+      opportunity(1 + duration + 0.0000004);
+      assert.equal(emitted, count);
+      opportunity(1 + duration + 0.000001);
+      assert.ok(emitted > count);
+      assert.equal(core.traitProcReadyAt.unrelated, 99);
+    }
+  });
+}
 
 const baseConfig = Object.freeze({
   stats: {

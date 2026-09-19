@@ -4,7 +4,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -21,12 +21,20 @@ export function applySoothingIce(
 ): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  if (!hasTrait(context, 'Soothing Ice') || !isInternalCooldownReady(at, Number(state.procReadyAt.soothingIce || 0))) {
+  if (!hasTrait(context, 'Soothing Ice')) {
     return;
   }
 
-  state.procReadyAt.soothingIce =
-    at + balanceProfileValueFromContext(context, PROFILE.soothingIce, 'internalCooldown', 15);
+  // Claim the existing owner-local timer before any derived effect.
+  if (
+    !tryConsumeProcCooldown(
+      state.procReadyAt,
+      'soothingIce',
+      at,
+      balanceProfileValueFromContext(context, PROFILE.soothingIce, 'internalCooldown', 15)
+    )
+  )
+    return;
   applyAura(context, {
     at,
     aura: 'Frost Aura',
