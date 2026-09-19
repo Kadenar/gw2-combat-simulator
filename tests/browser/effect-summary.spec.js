@@ -76,7 +76,7 @@ test('boon charts switch between self, allies, and comparison without losing eff
 });
 
 // A real mount verifies audience averages and personal buff stacks remain visible during zoom and on mobile.
-test('effect summaries show average stacks and stay readable on narrow screens', async ({ page }, testInfo) => {
+test('effect summaries show average stacks and stay readable on narrow screens', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -174,12 +174,10 @@ test('effect summaries show average stacks and stay readable on narrow screens',
   await expect(primary.locator('caption')).toHaveText('Boons · 4 allies · full benchmark (60.00s)');
   await expect(quickness).toContainText('125.0%');
   await expect(quickness.getByRole('cell').first()).toHaveText('Ally: 0.25Self: 0.75');
-  await summary.screenshot({ path: testInfo.outputPath('effect-summary-desktop.png') });
   await expect(summary.locator('[data-role="effect-summary-help"]')).toHaveCount(0);
   await expect(summary).not.toContainText('Before window');
   await expect(summary.getByRole('rowheader', { name: 'Alacrity', exact: true })).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(summary).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await summary.screenshot({ path: testInfo.outputPath('effect-summary-mobile.png') });
 });

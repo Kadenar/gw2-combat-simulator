@@ -9,33 +9,27 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
 
 // Standalone and embedded pages share a compact header without mounting obsolete title markup.
 test('profession headers share the embed layout without a title block', async ({ page }) => {
-  for (const width of [1786, 700, 390]) {
-    await page.setViewportSize({ width, height: 844 });
-    const layouts = [];
-    for (const suffix of ['', '?embed=1']) {
-      await page.goto(`/guardian.html${suffix}`);
-      await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-      const header = page.locator('#app > header');
-      await expect(header.locator('h1, .header-brand, .home-link')).toHaveCount(0);
-      await expect(header.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
-      await expect(header.locator('.community-actions')).toBeInViewport({ ratio: 1 });
-      await expect(header.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
-      layouts.push(
-        await header.evaluate((element) => {
-          const style = getComputedStyle(element);
-          return [
-            style.display,
-            style.flexWrap,
-            style.gap,
-            style.paddingInline,
-            element.getBoundingClientRect().height
-          ];
-        })
-      );
-    }
-
-    expect(layouts[0]).toEqual(layouts[1]);
+  // Mobile exercises the shared header; the toolbar test covers desktop and resizing.
+  const width = 390;
+  await page.setViewportSize({ width, height: 844 });
+  const layouts = [];
+  for (const suffix of ['', '?embed=1']) {
+    await page.goto(`/guardian.html${suffix}`);
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    const header = page.locator('#app > header');
+    await expect(header.locator('h1, .header-brand, .home-link')).toHaveCount(0);
+    await expect(header.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
+    await expect(header.locator('.community-actions')).toBeInViewport({ ratio: 1 });
+    await expect(header.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+    layouts.push(
+      await header.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return [style.display, style.flexWrap, style.gap, style.paddingInline, element.getBoundingClientRect().height];
+      })
+    );
   }
+
+  expect(layouts[0]).toEqual(layouts[1]);
 });
 
 async function newBuild(page) {
@@ -447,24 +441,18 @@ test('build and rotation exports allow custom file names', async ({ page }) => {
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await expect(button).toBeFocused();
-    for (const [entered, expected] of [
-      [undefined, `mesmer-${kind}.json`],
-      ['   ', `mesmer-${kind}.json`],
-      [`  My ${kind}  `, `My ${kind}.json`],
-      [`My ${kind}.JSON`, `My ${kind}.JSON`]
-    ]) {
-      await button.click();
-      await expect(input).toHaveValue(`mesmer-${kind}.json`);
-      await expect(input).toBeFocused();
-      if (entered !== undefined) await input.fill(entered);
-      const download = page.waitForEvent('download');
-      await input.press('Enter');
-      expect((await download).suggestedFilename()).toBe(expected);
-      await expect(dialog).toHaveCount(0);
-    }
+    // Node covers filename normalization; each real button still has to produce a download.
+    await button.click();
+    await expect(input).toHaveValue(`mesmer-${kind}.json`);
+    await expect(input).toBeFocused();
+    await input.fill(`  My ${kind}  `);
+    const download = page.waitForEvent('download');
+    await input.press('Enter');
+    expect((await download).suggestedFilename()).toBe(`My ${kind}.json`);
+    await expect(dialog).toHaveCount(0);
   }
 
-  expect(downloads).toHaveLength(8);
+  expect(downloads).toHaveLength(2);
 });
 
 // Reparented controls keep their original listeners, and destructive actions still allow cancellation.

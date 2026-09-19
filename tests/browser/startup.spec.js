@@ -106,7 +106,7 @@ test('embedded loader follows the visible host viewport until startup completes'
 });
 
 // Hold real startup dependencies so loading, reduced motion, and the handoff can be checked without artificial delays.
-test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }, testInfo) => {
+test('loading workspace follows startup and stays accessible on narrow screens', async ({ page }) => {
   // Select the final specialization to verify artwork changes before profession data finishes loading.
   await page.addInitScript(() => {
     Math.random = () => 0.999;
@@ -137,7 +137,6 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await expect
       .poll(() => overlay.locator('.loader-crest').evaluate((image) => image.naturalWidth))
       .toBeGreaterThan(0);
-    await page.screenshot({ path: testInfo.outputPath('loading-desktop.png') });
 
     await page.setViewportSize({ width: 320, height: 568 });
     const preview = await overlay.locator('.loader-preview').boundingBox();
@@ -147,7 +146,6 @@ test('loading workspace follows startup and stays accessible on narrow screens',
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(slot).toHaveCSS('animation-name', 'none');
     await expect.poll(() => overlay.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
-    await page.screenshot({ path: testInfo.outputPath('loading-mobile.png') });
 
     releaseModule();
     await expect(overlay.getByRole('status')).toHaveText('Loading builds and controls…');

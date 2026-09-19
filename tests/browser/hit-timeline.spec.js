@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Pulse state belongs beside individual strikes, without an extra strip or labels on condition payouts.
-test('skill details distinguish normal and empowered applications', async ({ page }, testInfo) => {
+test('skill details distinguish normal and empowered applications', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -69,11 +69,9 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   const conditions = timeline.getByRole('group', { name: 'Condition damage', exact: true });
   await conditions.getByRole('button').click();
   await expect(conditions.getByRole('columnheader', { name: 'Pulse', exact: true })).toHaveCount(0);
-  await timeline.screenshot({ path: testInfo.outputPath('skill-pulse-details.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(strikes.getByRole('cell', { name: 'Empowered', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
-  await timeline.screenshot({ path: testInfo.outputPath('skill-pulse-details-mobile.png') });
   await embraceRow.click();
   await expect(timeline).toHaveCount(0);
   await otherRow.click();
@@ -82,7 +80,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
 });
 
 // Condition rows disclose actual payouts and application shares using the existing keyboard-accessible inspector.
-test('condition rows inspect full and partial payouts across sources', async ({ page }, testInfo) => {
+test('condition rows inspect full and partial payouts across sources', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -162,14 +160,12 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await expect(totals.locator('tbody tr').nth(1).locator('th, td')).toHaveText(['2.00s', '0', '0', '3', '735', '735']);
   await expect(totals.locator('tbody tr').nth(2).locator('th, td')).toHaveText(['6.00s', '0', '0', '2', '50', '50']);
   await expect(timeline.locator('.condition-payouts')).toHaveCount(0);
-  await inspector.screenshot({ path: testInfo.outputPath('condition-tick-totals.png') });
   await view.selectOption('sources');
   await expect(timeline.locator('.condition-payouts > details')).toHaveCount(3);
   await expect(timeline.locator('.condition-payouts > details').last().locator('summary')).toContainText(
     'Damage dealt at 6.00s · 50 damage'
   );
   await expect(timeline.locator('.hit-detail-header')).toContainText('All ticks · 3 ticks · 989 damage');
-  await inspector.screenshot({ path: testInfo.outputPath('condition-all-ticks.png') });
   const window = timeline.getByRole('button', { name: '0.00s–5.00s · 2 ticks', exact: true });
   await window.hover();
   const tooltip = timeline.locator('[data-role="hit-timeline-tooltip"]').first();
@@ -177,7 +173,6 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   const tooltipBounds = await tooltip.boundingBox();
   const bodyBounds = await inspector.locator('.condition-inspector-body').boundingBox();
   expect(tooltipBounds.y + tooltipBounds.height).toBeLessThanOrEqual(bodyBounds.y + bodyBounds.height);
-  await inspector.screenshot({ path: testInfo.outputPath('condition-tooltip.png') });
   await window.click();
   const details = timeline.locator('[data-role="hit-detail"]');
   const payoutRows = details.locator('.condition-payouts > details');
@@ -208,13 +203,11 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   ]);
   const table = attribution.locator('.condition-attribution-table');
   expect(await table.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
-  await inspector.screenshot({ path: testInfo.outputPath('condition-attribution.png') });
   await resizeToMobile(page);
   await expect(attribution).toHaveAttribute('open', '');
   expect((await inspector.boundingBox()).width).toBeLessThanOrEqual(390);
   const inspectorBody = inspector.locator('.condition-inspector-body');
   expect(await inspectorBody.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
-  await inspector.screenshot({ path: testInfo.outputPath('condition-attribution-mobile.png') });
   // Toggling the selected window restores all payouts without changing the selected view.
   await window.focus();
   await window.press('Enter');
@@ -229,7 +222,6 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   await expect(totals.locator('tbody tr')).toHaveCount(3);
   await expect(window).toBeFocused();
   expect(await inspectorBody.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
-  await inspector.screenshot({ path: testInfo.outputPath('condition-tick-totals-mobile.png') });
   await inspector.getByRole('button', { name: 'Close condition inspector', exact: true }).click();
   await expect(torment).toBeFocused();
   const bleeding = page.getByRole('button', { name: 'Inspect Bleeding ticks', exact: true });
@@ -270,7 +262,7 @@ async function resizeToMobile(page) {
 }
 
 // Expanded-row timeline controls retain precise ticks and stay usable on narrow screens.
-test('conditions use separate bounded windows with accessible tick details', async ({ page }, testInfo) => {
+test('conditions use separate bounded windows with accessible tick details', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -365,7 +357,6 @@ test('conditions use separate bounded windows with accessible tick details', asy
     expect(conditionBounds.width).toBe(strikeBounds.width);
   }
 
-  await page.locator('#standalone').screenshot({ path: testInfo.outputPath('condition-windows.png') });
   await resizeToMobile(page);
   await expect(
     page.locator('#standalone').getByRole('button', { name: '5.00s–10.00s · 5 ticks', exact: true })
@@ -408,7 +399,7 @@ test('condition details sum simultaneous ticks by type', async ({ page }) => {
 });
 
 // Hit details stay local while the separate DPS chart retains its phase clock.
-test('multi-hit groups support hover, keyboard inspection, resizing, and phase changes', async ({ page }, testInfo) => {
+test('multi-hit groups support hover, keyboard inspection, resizing, and phase changes', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -517,7 +508,6 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
   }
 
   await page.locator('#standalone').getByRole('button', { name: '5.51s · 5 hits', exact: true }).click();
-  await page.locator('#standalone').screenshot({ path: testInfo.outputPath('hit-burst.png') });
   await resizeToMobile(page);
   await expect(page.locator('#standalone [data-role="hit-detail"]')).toBeVisible();
   const width = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: innerWidth }));

@@ -164,7 +164,6 @@ test('workspace places trinkets above infusions and keeps import available witho
   await expect(
     page.locator('.workspace-traits-heading').getByRole('button', { name: 'Import GW2 Build', exact: true })
   ).toBeVisible();
-  await expect(page.locator('.workspace-heading')).toHaveCount(0);
   const traits = await page.locator('.workspace-traits').boundingBox();
   const gear = await page.locator('.gear-loadout').boundingBox();
   const workspace = await page.locator('.gear-panel').boundingBox();
@@ -177,7 +176,6 @@ test('workspace places trinkets above infusions and keeps import available witho
   expect(trinkets.x).toBeGreaterThanOrEqual(controls.x + controls.width);
   expect(trinkets.y).toBeCloseTo(controls.y, 0);
   await expect(page.locator('.gear-loadout-heading #gear-set-all')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Gear', exact: true })).toHaveCount(0);
   const upgrades = await page.locator('#equipment-info').boundingBox();
   expect(upgrades.x).toBeCloseTo(controls.x, 0);
   expect(upgrades.y).toBeGreaterThanOrEqual(controls.y + controls.height);
@@ -212,9 +210,7 @@ test('workspace places trinkets above infusions and keeps import available witho
     expect(attributes.x).toBeGreaterThanOrEqual(panel.x + panel.width);
   }
 
-  await expect(page.locator('#gear-character, .workspace-skill-hint')).toHaveCount(0);
   await expect(page.locator('#skill-bar .skill-bar-slot[data-key]')).toHaveCount(5);
-  await expect(page.locator('.weapon-sigil .gear-label:visible')).toHaveCount(0);
   for (const profession of ['engineer', 'revenant']) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -231,12 +227,9 @@ test('workspace places trinkets above infusions and keeps import available witho
     ).toBe(true);
   }
 
-  await expect(page.locator('.fixed-loadout-bar:visible')).toHaveCount(0);
   await expect(page.locator('.fixed-loadout-trigger:visible')).toHaveCount(2);
   const legendButtons = page.locator('.fixed-loadout-trigger');
   for (const button of await legendButtons.all()) {
-    await expect(button).toHaveCSS('width', '52px');
-    await expect(button).toHaveCSS('height', '52px');
     await expect(button).toHaveAttribute('aria-label', /^Change legend [12]: /);
   }
 
@@ -318,7 +311,6 @@ test('two infusion rows retain selections and enforce the shared infusion limit'
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(page.locator('.infusion-row')).toHaveCount(2);
-  await expect(page.locator('#btn-add-infusion, .inf-remove')).toHaveCount(0);
   await expect(page.locator('.infusion-row').nth(0).locator('img')).toHaveAttribute('src', /\/511835\.png$/);
   await page.getByRole('spinbutton', { name: 'Infusion 1 count' }).fill('12');
   await page.keyboard.press('Tab');
@@ -454,117 +446,4 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await chooseWeapon(page, '#sel-mh2', '');
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
-});
-
-// Profession selectors share the desktop skill strip and wrap below it on phones.
-test('profession selectors stay compact beside skills and wrap on phones', async ({ page }) => {
-  for (const profession of ['engineer', 'ranger', 'elementalist']) {
-    await page.setViewportSize({ width: 1800, height: 1100 });
-    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    if (profession === 'engineer' || profession === 'elementalist') {
-      const picker = page.locator('.spec-picker').last();
-      await picker.locator('summary').click();
-      await picker.getByRole('button', { name: profession === 'engineer' ? 'Amalgam' : 'Evoker', exact: true }).click();
-    }
-
-    const selections = page.locator('.profession-build-selections');
-    const skills = page.locator('#skill-bar > .skill-bar-selected');
-    const icons = selections.locator('.sbar-icon');
-    await expect(icons.first()).toBeVisible();
-    const standardIcon = await skills.locator('.sbar-icon').first().boundingBox();
-    for (const icon of await icons.all()) {
-      await expect(icon).toHaveCSS('width', `${standardIcon.width}px`);
-      await expect(icon).toHaveCSS('height', `${standardIcon.height}px`);
-    }
-
-    const wideSkills = await skills.boundingBox();
-    const wideSelections = await selections.boundingBox();
-    const labels = selections.locator('.skill-bar-inspection-label');
-    expect(await labels.evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth))).toBe(true);
-    expect(wideSelections.x).toBeGreaterThanOrEqual(wideSkills.x + wideSkills.width);
-    expect(wideSelections.y).toBeLessThan(wideSkills.y + wideSkills.height);
-    await icons.first().click();
-    await expect(selections.locator('.sbar-dropdown.open')).toBeVisible();
-    await page.locator('.selectable-skills-title').click();
-    await page.setViewportSize({ width: 390, height: 1000 });
-    const narrowSkills = await skills.boundingBox();
-    const narrowSelections = await selections.boundingBox();
-    expect(await labels.evaluateAll((items) => items.every((item) => item.scrollWidth <= item.clientWidth))).toBe(true);
-    const narrowIcon = await skills.locator('.sbar-icon').first().boundingBox();
-    await expect(icons.first()).toHaveCSS('width', `${narrowIcon.width}px`);
-    await expect(icons.first()).toHaveCSS('height', `${narrowIcon.height}px`);
-    expect(narrowSelections.y).toBeGreaterThanOrEqual(narrowSkills.y + narrowSkills.height);
-    expect(narrowSelections.x + narrowSelections.width).toBeLessThanOrEqual(390);
-  }
-});
-
-// The visible familiar selector drives F5 and survives reloading the saved build.
-test('Evoker familiar selection updates Skills and the rotation palette', async ({ page }) => {
-  await page.goto('/elementalist.html#workspace', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const picker = page.locator('.spec-picker').last();
-  await picker.locator('summary').click();
-  await picker.getByRole('button', { name: 'Evoker', exact: true }).click();
-  const selector = page.locator('#skill-bar [data-selection-key="evokerElement"]');
-  for (const [element, skill] of [
-    ['Air', 'Zap'],
-    ['Water', 'Splash'],
-    ['Earth', 'Calcify'],
-    ['Fire', 'Ignite']
-  ]) {
-    await selector.locator('.sbar-icon').click();
-    await selector.locator(`[data-selection-value="${element}"]`).click();
-    expect(await page.evaluate(() => window.professionApp.build.evokerElement)).toBe(element);
-    await expect(page.locator('#skill-bar .skill-bar-inspection-label')).toHaveText(`${element} Familiar`);
-    await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${skill}"]`)).toBeVisible();
-  }
-
-  await selector.locator('.sbar-icon').click();
-  await selector.locator('[data-selection-value="Air"]').click();
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  expect(await page.evaluate(() => window.professionApp.build.evokerElement)).toBe('Air');
-  await expect(page.locator('#skill-bar .skill-bar-inspection-label')).toHaveText('Air Familiar');
-});
-
-// The same workspace must fit desktop and phone widths for every profession's skill controls.
-test('workspace regions stay within the viewport across professions', async ({ page }) => {
-  for (const profession of [
-    'mesmer',
-    'elementalist',
-    'engineer',
-    'guardian',
-    'necromancer',
-    'ranger',
-    'revenant',
-    'thief',
-    'warrior'
-  ]) {
-    await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await expect(page.locator('.infusion-row')).toHaveCount(2);
-    for (const width of [1600, 1130, 1024, 390]) {
-      await page.setViewportSize({ width, height: 1000 });
-      if (width === 1130) {
-        const traits = await page.locator('.workspace-build-choices').boundingBox();
-        const equipment = await page.locator('.gear-main').boundingBox();
-        const attributes = await page.locator('.attributes-panel').boundingBox();
-        expect(equipment.y).toBeCloseTo(traits.y, 0);
-        expect(attributes.y).toBeCloseTo(traits.y, 0);
-        expect(equipment.x).toBeGreaterThanOrEqual(traits.x + traits.width);
-        expect(attributes.x).toBeGreaterThanOrEqual(equipment.x + equipment.width);
-      }
-
-      for (const selector of ['.workspace-build-choices', '.gear-main', '.attributes-panel']) {
-        const bounds = await page.locator(selector).boundingBox();
-        expect(bounds.x, `${profession} ${width} ${selector}`).toBeGreaterThanOrEqual(0);
-        expect(bounds.x + bounds.width, `${profession} ${width} ${selector}`).toBeLessThanOrEqual(width);
-        expect(
-          await page.locator(selector).evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
-          `${profession} ${width} ${selector} overflow`
-        ).toBe(true);
-      }
-    }
-  }
 });

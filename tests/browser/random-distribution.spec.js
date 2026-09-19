@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test';
 
 // The range remains readable for clustered or identical outcomes and exposes the same data by keyboard.
-test('RNG range and impact table fit the workspace and disclose percentile data', async ({ page }, testInfo) => {
+test('RNG range and impact table fit the workspace and disclose percentile data', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/mesmer.html');
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  // This supplied-data layout needs the results styles, not a profession simulation.
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div id="rotation-results"></div>';
+  });
   const render = async (equal = false) => {
     await page.evaluate(async (equal) => {
       const { mountRotationResults } = await import('/js/games/gw2/app/results/analysis-panel.ts');
@@ -79,7 +82,6 @@ test('RNG range and impact table fit the workspace and disclose percentile data'
   }
 
   await render();
-  await panel.screenshot({ path: testInfo.outputPath('rng-desktop.png') });
   await page.setViewportSize({ width: 700, height: 1000 });
   for (const selector of ['.rng-chart-scroll', '.rng-table-scroll']) {
     const bounds = await panel.locator(selector).last().boundingBox();

@@ -13,6 +13,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',
+    // Capture diagnostics only when an assertion fails, rather than on every successful run.
+    screenshot: 'only-on-failure',
     headless: true
   },
   webServer: {

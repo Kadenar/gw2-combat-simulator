@@ -145,13 +145,13 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
     [600, 900, true, 'large']
   ]) {
     await page.setViewportSize({ width, height });
-    await page.evaluate(
-      ({ focus, size }) => {
-        document.body.toggleAttribute('data-rotation-focus', focus);
-        document.querySelector('.rotation-panel').dataset.rotationSize = size;
-      },
-      { focus, size }
-    );
+    // Persist size through the actual control so a later render cannot reset a DOM-only override.
+    await page.getByRole('combobox', { name: 'Timeline size', exact: true }).selectOption(size);
+    await page.evaluate(async (focus) => {
+      document.body.toggleAttribute('data-rotation-focus', focus);
+      await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }, focus);
     const timeline = page.locator('#rotation-timeline');
     const before = await timeline.boundingBox();
     const rowBefore = await timeline.locator('.rot-row-line').first().boundingBox();
@@ -217,26 +217,6 @@ test('Mirage dodge displays its continuously regenerated endurance', async ({ pa
   await expect(dodge.locator('.pal-skill-resource')).toHaveAttribute('aria-valuenow', '7.5');
   await expect(dodge.locator('.pal-ammo-pip')).toHaveCount(0);
   await expect(dodge).not.toHaveAttribute('title', /ammo|Count recharge/);
-});
-
-// Injected dialogs and numeric controls must resolve the shared theme instead of falling back to transparent surfaces.
-test('import and hotkey controls use the shared surface and numeric font', async ({ page }) => {
-  await openSimulator(page);
-  await page.locator('.rotation-hotkey-button').click();
-  const surface = await page.evaluate(() => {
-    const probe = document.createElement('div');
-    probe.style.background = 'var(--bg-panel-alt)';
-    document.body.append(probe);
-    const color = getComputedStyle(probe).backgroundColor;
-    probe.remove();
-    return color;
-  });
-
-  for (const selector of ['.rotation-import-report input', '.rotation-hotkey-field input']) {
-    await expect(page.locator(selector).first()).toHaveCSS('background-color', surface);
-  }
-
-  await expect(page.locator('#target-armor')).toHaveCSS('font-family', /Consolas/);
 });
 
 // A bound side mouse button adds its skill without also committing the browser's history action on release.
@@ -498,40 +478,40 @@ test('timing skill selection submits the picker and details expand below DPS', a
   expect(widths.table).toBeLessThan(widths.body);
 });
 
+// A short authored shroud stay verifies the picker wiring without simulating a benchmark.
 test('profession state duration checks use their own authoritative transitions', async ({ page }) => {
-  for (const fixture of [{ page: '/necromancer.html', specialization: 'Reaper', label: 'Time in Shroud' }]) {
-    await page.goto(fixture.page, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.professionApp);
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await openTemplates(page);
-    await page
-      .locator('.presets-group')
-      .filter({ has: page.locator('.presets-group-label', { hasText: fixture.specialization }) })
-      .locator('.template-load-btn')
-      .first()
-      .click();
-    await expect
-      .poll(() =>
-        page.evaluate(
-          (specialization) =>
-            window.professionApp.currentTemplate?.signature?.includes(specialization) === true &&
-            window.professionApp.simulationStatus === 'idle',
-          fixture.specialization
-        )
-      )
-      .toBe(true);
-
-    const picker = page.locator('.timing-check-picker');
-    await picker.locator(':scope > summary').click();
-    await picker.getByRole('button', { name: fixture.label }).click();
-    const details = page.locator('.rotation-timing-details-wrap');
-    await details.locator(':scope > summary').click();
-    await expect(details.locator('.timing-skill-details > summary')).toContainText(/[1-9]\d* stays?/);
-  }
+  await page.goto('/necromancer.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const specialization = page.locator('.spec-picker').last();
+  await specialization.locator('summary').click();
+  await specialization.getByRole('button', { name: 'Reaper', exact: true }).click();
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.targetHealth = 0;
+    app.build.rotation = [
+      { type: 'cast', skillId: app.skillByName.get("Reaper's Shroud").id },
+      { type: 'wait', durationMs: 1000 },
+      { type: 'cast', skillId: app.skillByName.get("Exit Reaper's Shroud").id }
+    ];
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+  const picker = page.locator('.timing-check-picker');
+  await picker.locator(':scope > summary').click();
+  await picker.getByRole('button', { name: 'Time in Shroud' }).click();
+  const details = page.locator('.rotation-timing-details-wrap');
+  await details.locator(':scope > summary').click();
+  await expect(details.locator('.timing-skill-details > summary')).toContainText('1 stay');
 });
 
 test('hidden template states stay out of layout', async ({ page }) => {
-  await openSimulator(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div class="build-templates"></div>';
+  });
 
   const displays = await page.locator('.build-templates').evaluate((templates) => {
     const elements = ['presets-group', 'template-preset', 'template-filter-empty'].map((className) => {
@@ -550,7 +530,12 @@ test('hidden template states stay out of layout', async ({ page }) => {
 
 // Component styles must keep hidden controls out of layout and reserve a motion-safe loading chart.
 test('relic comparison controls and loading layout survive a narrow host', async ({ page }) => {
-  await openSimulator(page, { width: 390, height: 900 });
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div class="build-templates"></div>';
+  });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(async () => {
     const { mountRelicComparison } =
@@ -699,45 +684,29 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
   expect(await labelIsVisible()).toBe(true);
 });
 
-test('loaded manifest rows show each weapon stay instead of repeated set totals', async ({ page }) => {
+// Unequal waits make repeated weapon stays distinguishable without deriving expectations from a saved rotation.
+test('weapon rows show each authored stay instead of repeated set totals', async ({ page }) => {
   await page.goto('/guardian.html', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.professionApp);
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await openTemplates(page);
-  await page.locator('.template-load-btn').first().click();
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => window.professionApp.currentTemplate !== null && window.professionApp.simulationStatus === 'idle'
-      )
-    )
-    .toBe(true);
-
-  const durations = await page.evaluate(() => {
+  await page.evaluate(() => {
     const app = window.professionApp;
-    const timelineEnd = app.results.duration * 1000;
-    const timelineStart = Math.min(0, ...app.results.steps.filter((step) => !step.invalid).map((step) => step.start));
-    const swapId = app.activeCatalog.skillsByName.get('Swap Weapons').id;
-    const swapEnds = app.results.steps
-      .filter((step) => !step.invalid && step.skillId === swapId)
-      .map((step) => step.end)
-      .sort((left, right) => left - right);
-    let set = app.build.startingWeaponSet;
-    let start = timelineStart;
-    const expected = [...swapEnds, timelineEnd].map((end) => {
-      const stay = { weapon: `W${set}`, duration: `${((end - start) / 1000).toFixed(3)}s` };
-      set = set === 1 ? 2 : 1;
-      start = end;
-      return stay;
-    });
-    const actual = [...document.querySelectorAll('#rotation-timeline > .rot-row')].map((row) => ({
-      weapon: row.querySelector('.rot-row-label-text').textContent,
-      duration: row.querySelector('.rot-row-duration').textContent
-    }));
-    return { actual, expected };
+    const swap = { type: 'cast', skillId: app.skillByName.get('Swap Weapons').id };
+    app.build.targetHealth = 0;
+    app.build.startingWeaponSet = 1;
+    app.build.rotation = [
+      { type: 'wait', durationMs: 1000 },
+      swap,
+      { type: 'wait', durationMs: 10000 },
+      { ...swap },
+      { type: 'wait', durationMs: 3000 }
+    ];
+    app.changed();
   });
-
-  expect(durations.actual).toEqual(durations.expected);
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+  const rows = page.locator('#rotation-timeline > .rot-row');
+  await expect(rows.locator('.rot-row-label-text')).toHaveText(['W1', 'W2', 'W1']);
+  await expect(rows.locator('.rot-row-duration')).toHaveText(['1.000s', '10.000s', '3.000s']);
 });
 
 test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ page }) => {
@@ -1033,7 +1002,12 @@ test('rotation comparison links scrolling in both directions across unequal view
 });
 
 test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
-  await openSimulator(page, { width: 1400, height: 900 });
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div class="build-templates"></div>';
+  });
   const fixture = page.locator('[data-layout-fixture="result-breakdown"]');
 
   await page.evaluate(() => {

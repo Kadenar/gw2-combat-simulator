@@ -72,11 +72,9 @@ test('condition details show exceptions and preview controls sit beside attribut
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeHidden();
   await preview.locator('summary').press('Space');
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeVisible();
-  await page.locator('.gear-panel').screenshot({ path: '.scratch/attributes-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await expect(details).toBeVisible();
-  await page.locator('.gear-panel').screenshot({ path: '.scratch/attributes-mobile.png' });
 });
 
 // Both panels keep independent conditional inputs while using the same displayed-stat calculation.
@@ -123,12 +121,14 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await page.locator('#attribute-weapon-set').selectOption('2');
   await expect(controls.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('25');
   await page.locator('#attribute-weapon-set').selectOption('1');
-  await workspace.screenshot({ path: '.scratch/optimizer/conditional-workspace.png' });
 
   await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.', { timeout: 20000 });
+  // With no alternatives, the real search renders equipped gear only once, in the pinned row.
+  await expect(panel.locator('tbody tr')).toHaveCount(0);
+  await expect(panel.getByRole('row', { name: 'Equipped setup', exact: true })).toHaveCount(1);
   await panel.getByRole('row', { name: 'Equipped setup', exact: true }).click();
   const preview = panel.locator('[data-role="optimizer-preview"]');
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toBeHidden();
@@ -150,24 +150,12 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   );
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-  await preview
-    .getByRole('region', { name: 'Stats', exact: true })
-    .screenshot({ path: '.scratch/optimizer/conditional-stats-mobile.png' });
 });
 
-// Use each profession's real page and trait catalog; only the fixture build setup bypasses unrelated editor controls.
+// Numeric and checkbox controls cover browser wiring; Node tests cover the profession formula matrix.
 for (const [profession, traitName, controlName, value] of [
   ['elementalist', 'Elemental Empowerment', 'Elemental Empowerment', '5'],
-  ['engineer', 'Explosive Temper', 'Explosive Temper', '3'],
-  ['guardian', 'Righteous Instincts', 'Resolution', null],
-  ['mesmer', "Fencer's Finesse", "Fencer's Finesse", '5'],
-  ['necromancer', 'Sand Sage', 'Sand Sage', null],
-  ['necromancer', 'Death Perception', 'Shroud', null],
-  ['ranger', 'Vicious Quarry', 'Fury', null],
-  ['revenant', 'Brutal Momentum', 'Brutal Momentum', null],
-  ['revenant', 'Roiling Mists', 'Fury', null],
-  ['thief', 'Revealed Training', 'Revealed', null],
-  ['warrior', 'Signet Mastery', 'Signet Mastery', '2']
+  ['guardian', 'Righteous Instincts', 'Resolution', null]
 ]) {
   test(profession + ' previews ' + traitName, async ({ page }) => {
     await page.goto('/' + profession + '.html#workspace', { waitUntil: 'domcontentloaded' });

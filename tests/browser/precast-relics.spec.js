@@ -36,10 +36,15 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await expect(add).toHaveText('+');
   for (const name of ['Mount Balrior', 'Director', 'Brawler']) {
     await add.click();
-    await picker
-      .getByRole('option')
-      .filter({ has: page.locator('.gear-option-name', { hasText: name }) })
-      .click();
+    // Search and keyboard commit use the same decorated picker as ordinary equipment.
+    const search = picker.getByRole('searchbox', { name: 'Search precast relics' });
+    await expect(search).toHaveValue('');
+    await search.fill(name);
+    await search.press('ArrowDown');
+    await expect(picker.getByRole('option')).toHaveCount(1);
+    await expect(picker.getByRole('option')).toBeFocused();
+    await picker.getByRole('option').press('Enter');
+    await expect(search).toBeHidden();
     await expect(add).toBeFocused();
   }
 

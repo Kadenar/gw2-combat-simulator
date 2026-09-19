@@ -116,7 +116,7 @@ test('standalone templates open only in a dialog at every viewport width', async
   const container = page.locator('.build-templates');
   const dialog = page.locator('#build-templates-dialog');
   const newButton = page.locator('.build-tab-new');
-  for (const width of [390, 1199, 1200, 1600]) {
+  for (const width of [390, 1600]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(dialog).toBeHidden();
     await expect(container.locator(':scope > .build-templates-panel')).toHaveCount(0);

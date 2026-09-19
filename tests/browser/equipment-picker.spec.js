@@ -26,11 +26,10 @@ test('candidate search matches unordered word fragments and stats without submit
       form.dataset.submits = String(Number(form.dataset.submits) + 1);
     });
   });
-  for (const query of ['SOUP curry', 'squash butter', 'precision curry', '  curry, SOUP!  ']) {
-    await search.fill(query);
-    await expect(picker.getByRole('option').filter({ hasText: name })).toBeVisible();
-    await expect(picker.getByRole('option', { name: 'None', exact: true })).toHaveCount(0);
-  }
+  // One UI query checks filtering; the pure matcher owns the word and punctuation matrix.
+  await search.fill('soup curry');
+  await expect(picker.getByRole('option').filter({ hasText: name })).toBeVisible();
+  await expect(picker.getByRole('option', { name: 'None', exact: true })).toHaveCount(0);
 
   await search.fill('zzzzzzzz');
   await expect(picker.getByRole('status')).toHaveText('No matching choices');
@@ -78,7 +77,6 @@ test('candidate search matches unordered word fragments and stats without submit
   const menu = await picker.locator('.gear-select-menu').boundingBox();
   expect(menu.x).toBeGreaterThanOrEqual(0);
   expect(menu.x + menu.width).toBeLessThanOrEqual(390);
-  await page.screenshot({ path: '.scratch/optimizer/searchable-dropdown.png' });
 });
 
 // A matching equipped sigil remains visible but cannot be selected again in the other socket.
@@ -172,30 +170,4 @@ test('pet and legend menus use the shared word search', async ({ page }) => {
   await expect(menu.getByRole('status')).toHaveText('No matching choices');
   await menu.getByRole('searchbox').press('Escape');
   await expect(page.locator('.fixed-loadout-trigger').first()).toBeFocused();
-});
-
-// The gear editor's decorated version must hide the same matches and keep keyboard selection working.
-test('precast relic search filters its popover', async ({ page }) => {
-  await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const picker = page.locator('#precast-relics');
-  const search = picker.getByRole('searchbox', { name: 'Search precast relics' });
-  const add = picker.getByRole('button', { name: 'Add precast relics', exact: true });
-  await expect(add).toHaveCSS('width', '36px');
-  await expect(add).toHaveCSS('height', '36px');
-  await expect(add).toHaveCSS('padding', '0px');
-  await expect(search).toBeHidden();
-  await picker.getByRole('button', { name: 'Add precast relics', exact: true }).click();
-  await expect(search).toBeFocused();
-  await search.fill('balr mount');
-  await search.press('ArrowDown');
-  const menu = picker.getByRole('listbox');
-  await expect(menu.getByRole('option')).toHaveCount(1);
-  await expect(menu.getByRole('option')).toContainText('Mount Balrior');
-  await expect(menu.getByRole('option')).toBeFocused();
-  await menu.getByRole('option').press('Enter');
-  await expect(picker.locator('input[name="precastRelics"]')).toHaveValue('Mount Balrior');
-  await expect(search).toBeHidden();
-  await picker.getByRole('button', { name: 'Add precast relics', exact: true }).click();
-  await expect(search).toHaveValue('');
 });
