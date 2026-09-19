@@ -49,7 +49,7 @@
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
-        "benchmarkDps": 44159,
+        "benchmarkDps": 44476,
         "upToDate": true
       }
     ]
@@ -70,7 +70,7 @@
         "build": "data/gw2/builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
-        "benchmarkDps": 35246,
+        "benchmarkDps": 35265,
         "upToDate": true
       }
     ]
