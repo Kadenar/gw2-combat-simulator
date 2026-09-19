@@ -150,10 +150,9 @@ function simulateDeclarativeGw2Pass({
   return result;
 }
 
-/** Audited professions use compact reporting; feedback and new professions default to the ordinary pipeline. */
+/** Use compact reporting unless scheduler feedback needs the detailed simulation result. */
 export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOptions): Gw2SimulationScore {
-  const audited = ['elementalist', 'engineer', 'guardian', 'mesmer', 'ranger', 'revenant', 'thief', 'warrior'];
-  if (audited.includes(options.profession.id) && !options.profession.simulation?.refineSchedulerConfig) {
+  if (!options.profession.simulation?.refineSchedulerConfig) {
     return simulateDeclarativeGw2Pass({ ...options, output: 'score' });
   }
 

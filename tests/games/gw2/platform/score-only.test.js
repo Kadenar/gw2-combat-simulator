@@ -1,7 +1,27 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfession } from '#gw2/app/profession-registry.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+test('score skips end-state projection for a custom profession without feedback', () => {
+  let projections = 0;
+  const profession = defineProfession({
+    id: 'score-test',
+    name: 'Score test',
+    resources: {
+      projectEndState() {
+        projections += 1;
+        return {};
+      }
+    }
+  });
+  // Only detailed output needs projections, regardless of the profession's identity.
+  simulateGw2({ profession, rotation: [] });
+  assert.equal(projections, 1);
+  simulateGw2({ profession, rotation: [], output: 'score' });
+  assert.equal(projections, 1);
+});
 
 // Short casts exercise profession reporting writers; exact parity covers every numeric score field.
 async function parity(id, rotation, config, observationPolicy = { kind: 'tail', durationMs: 2500 }) {
