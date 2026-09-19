@@ -9,7 +9,8 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.POISONOUS_CLOUD]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [1000, 2000, 3000, 4000, 5000, 6000].map((atMs) => ({
@@ -21,8 +22,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
           summonInheritsAttributes: true,
           summonInheritsCriticalAttributes: true
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'player'
       },
@@ -36,12 +35,10 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 1,
           duration: 6
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger',
         actorType: 'player'
       }
-    ],
+    ]),
     // Match the commanded pet animation measured in the benchmark EVTC.
     quicknessCastTimeMs: 1800,
     comboFields: [
@@ -142,16 +139,11 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.TWIN_DARTS]: {
     // Autonomous projectiles commit when launched, so swapping pets does not erase packets already in flight.
     interruptCommitMs: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 840, coefficient: 0.15 },
-          { atMs: 920, coefficient: 0.15 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [840, 920].map((atMs) => ({ atMs, coefficient: 0.15 })),
         source: 'ranger-pet',
         actorType: 'summon',
         comboFinishers: [
@@ -172,13 +164,10 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 2,
           duration: 2
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 880,
     petSkill: true
   },

@@ -2,6 +2,7 @@
  * Owns Harbinger Shroud entry, exit, and weapon skill fragments.
  * Persistent Blight and shroud state remain under `mechanics/`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
@@ -32,27 +33,20 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.VITAL_DRAW]: {
     castTimeMs: 800,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 760, coefficient: 0.4 },
-          { atMs: 1760, coefficient: 0.4 },
-          { atMs: 2760, coefficient: 0.4 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [760, 1760, 2760].map((atMs) => ({ atMs, coefficient: 0.4 }))
       },
       {
         type: 'control',
         applications: 3,
         atMs: 760,
         intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'float'
       }
-    ],
+    ]),
     // Aggregate the three 3% siphons because the simulator assumes every strike connects.
     lifeForceGain: 9,
     type: 'Profession',
@@ -79,28 +73,17 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 600,
     // Committed bolts retain their strike and Torment packets even if the remaining cast is interrupted.
     interruptCommitMs: 520,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 320, coefficient: 0.6 },
-          { atMs: 600, coefficient: 0.6 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [320, 600].map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 320, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 600, condition: 'Torment', stacks: 1, duration: 3 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [320, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 3 }))
       }
-    ],
+    ]),
     type: 'Profession',
     slot: 'Weapon_1',
     shroud: 'harbinger',
@@ -112,34 +95,17 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
     interruptMode: 'per-packet',
     interruptCommitMs: 800,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 600, coefficient: 0.6 },
-          { atMs: 680, coefficient: 0.6 },
-          { atMs: 680, coefficient: 0.6 },
-          { atMs: 800, coefficient: 0.6 },
-          { atMs: 800, coefficient: 0.6 },
-          { atMs: 800, coefficient: 0.6 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [600, 680, 680, 800, 800, 800].map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 600, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 680, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 680, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 800, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 800, condition: 'Torment', stacks: 1, duration: 3 },
-          { atMs: 800, condition: 'Torment', stacks: 1, duration: 3 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [600, 680, 680, 800, 800, 800].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 3 }))
       }
-    ],
+    ]),
     type: 'Profession',
     slot: 'Weapon_2',
     shroud: 'harbinger',

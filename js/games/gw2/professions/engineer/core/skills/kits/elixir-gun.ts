@@ -1,4 +1,5 @@
 /** Core Engineer Elixir Gun skill mechanics. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -139,20 +140,17 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
   [ID.FUMIGATE]: {
     castTimeMs: 1520,
     cooldown: 12,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         name: 'Fumigate',
         actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         actorType: 'player'
       },
       {
@@ -163,11 +161,9 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillF
           stacks: 1,
           duration: 6
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Elixir Gun'
   },
   [ID.HEALING_MIST]: {

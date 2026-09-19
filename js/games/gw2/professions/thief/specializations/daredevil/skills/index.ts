@@ -1,3 +1,4 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -61,7 +62,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 480,
     cooldown: 15,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [
@@ -70,32 +72,24 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           { atMs: 520, coefficient: 1 }
         ],
         name: 'Impairing Daggers',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 3, duration: 10 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 440, condition: 'Slow', stacks: 1, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 520, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.CHANNELED_VIGOR]: {
     castTimeMs: 480,
@@ -203,29 +197,20 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 680,
     cooldown: 16,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 120, coefficient: 0.75 },
-          { atMs: 280, coefficient: 0.75 },
-          { atMs: 400, coefficient: 0.75 },
-          { atMs: 560, coefficient: 0.75 },
-          { atMs: 680, coefficient: 0.75 }
-        ],
+        ticks: [120, 280, 400, 560, 680].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Fist Flurry',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 120, condition: 'Vulnerability', stacks: 1, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.BOUND]: {
     castTimeMs: 520,
@@ -259,18 +244,13 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 200, coefficient: 0.1875 },
-          { atMs: 360, coefficient: 0.1875 },
-          { atMs: 520, coefficient: 0.1875 }
-        ],
+        ticks: [200, 360, 520].map((atMs) => ({ atMs, coefficient: 0.1875 })),
         name: 'Impaling Lotus',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -294,11 +274,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
             duration: 3
           }
         ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ],
+    ]),
     comboFinishers: [
       {
         ownerId: 'thief',

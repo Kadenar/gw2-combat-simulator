@@ -2,6 +2,7 @@
  * Owns Troubadour instrument, Tale, and simulator-action catalog data.
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -173,51 +174,32 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
     castTimeMs: 400,
     mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 360, coefficient: 1 },
-          { atMs: 1360, coefficient: 1 },
-          { atMs: 2360, coefficient: 1 },
-          { atMs: 3360, coefficient: 1 }
-        ],
+        ticks: [360, 1360, 2360, 3360].map((atMs) => ({ atMs, coefficient: 1 })),
         name: 'Damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        weapon: 'utility'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 360, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 1360, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 2360, condition: 'Torment', duration: 8, stacks: 1 },
-          { atMs: 3360, condition: 'Torment', duration: 8, stacks: 1 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [360, 1360, 2360, 3360].map((atMs) => ({ atMs, condition: 'Torment', duration: 8, stacks: 1 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Weakness', stacks: 1, duration: 5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 360, condition: 'Weakness', stacks: 1, duration: 5 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1360, condition: 'Vulnerability', stacks: 10, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1360, condition: 'Vulnerability', stacks: 10, duration: 4 }]
       },
       {
         type: 'control',
-        atMs: 3360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 3360
       }
-    ]
+    ])
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
     // Both Harp variants preserve packets independently when interrupted.

@@ -26,33 +26,18 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         ambiguousFieldSelection: 'oldest'
       }
     ],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      {
-        type: 'strike',
-        ticks: [
-          { atMs: 240, coefficient: 0.4 },
-          { atMs: 360, coefficient: 0.4 },
-          { atMs: 520, coefficient: 0.4 },
-          { atMs: 640, coefficient: 0.4 },
-          { atMs: 760, coefficient: 0.4 },
-          { atMs: 880, coefficient: 0.4 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 240, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 360, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 520, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 640, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 760, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 880, condition: 'Torment', stacks: 1, duration: 4 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
+        },
+        {
+          type: 'condition',
+          ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 }))
+        }
+      ]),
       {
         type: 'condition',
         condition: 'Vulnerability',

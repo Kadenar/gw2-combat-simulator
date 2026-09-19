@@ -150,12 +150,11 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1000,
     cooldown: 5,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'elementalist',
@@ -169,11 +168,9 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
       {
         type: 'condition',
         ticks: FRIGID_FLURRY_SHOT_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 7 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       }
-    ]
+    ])
   },
   // The released shot starts a four-second ice field. Its enhanced detonation
   // follows that field's expiry, independently of the remaining aftercast.

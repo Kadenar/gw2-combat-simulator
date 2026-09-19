@@ -56,19 +56,13 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     interruptCommitMs: 480,
     cooldown: 10,
     energyCost: 20,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         name: "Icerazor's Ire",
         actorType: 'player',
-        ticks: [
-          { atMs: 480, coefficient: 2 },
-          { atMs: 640, coefficient: 2 },
-          { atMs: 800, coefficient: 2 }
-        ],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [480, 640, 800].map((atMs) => ({ atMs, coefficient: 2 }))
       },
       {
         type: 'condition',
@@ -93,12 +87,9 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
             stacks: 1,
             duration: 2
           }
-        ],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ]
       }
-    ],
+    ]),
     legendId: 'LegendaryRenegade'
   },
   [ID.DARKRAZORS_DARING]: {
@@ -185,18 +176,13 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 0,
     cooldown: 10,
     energyCost: 20,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: "Icerazor's Ire",
         actorType: 'player',
-        ticks: [
-          { atMs: 640, coefficient: 2 },
-          { atMs: 800, coefficient: 2 },
-          { atMs: 960, coefficient: 2 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [640, 800, 960].map((atMs) => ({ atMs, coefficient: 2 }))
       },
       {
         type: 'condition',
@@ -224,11 +210,9 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
             duration: 2
           },
           { atMs: 960, condition: 'Chilled', stacks: 1, duration: 1.5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       }
-    ],
+    ]),
     legendId: 'LegendaryRenegade'
   },
   [ID.RAZORCLAWS_RAGE_ID_72363]: {

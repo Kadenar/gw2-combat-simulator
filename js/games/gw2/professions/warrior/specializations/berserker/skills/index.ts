@@ -136,43 +136,17 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 320, coefficient: 0.5 },
-          { atMs: 2320, coefficient: 0.5 },
-          { atMs: 4320, coefficient: 0.5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [320, 2320, 4320].map((atMs) => ({ atMs, coefficient: 0.5 }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 320,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 2320,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 4320,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [320, 2320, 4320].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 3 }))
       }
-    ],
+    ]),
     castTimeMs: 360,
     adrenalineCost: 10,
     burstTier: 1,
@@ -284,64 +258,22 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     // interruptions retain only the strike and burning packets already fired.
     interruptCommitMs: 1560,
     interruptMode: 'per-packet',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.33 },
-          { atMs: 640, coefficient: 0.33 },
-          { atMs: 880, coefficient: 0.33 },
-          { atMs: 1120, coefficient: 0.33 },
-          { atMs: 1320, coefficient: 0.33 },
-          { atMs: 1560, coefficient: 0.33 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [400, 640, 880, 1120, 1320, 1560].map((atMs) => ({ atMs, coefficient: 0.33 }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 400,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          },
-          {
-            atMs: 640,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          },
-          {
-            atMs: 880,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          },
-          {
-            atMs: 1120,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          },
-          {
-            atMs: 1320,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          },
-          {
-            atMs: 1560,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 3.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [400, 640, 880, 1120, 1320, 1560].map((atMs) => ({
+          atMs,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3.5
+        }))
       }
-    ],
+    ]),
     castTimeMs: 1600,
     adrenalineCost: 10,
     burstTier: 1,

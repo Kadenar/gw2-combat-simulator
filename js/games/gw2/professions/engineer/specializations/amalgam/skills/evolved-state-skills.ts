@@ -2,6 +2,7 @@
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -92,6 +93,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
   [ID.FLUX_STATE]: {
     castTimeMs: 640,
     cooldown: 50,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
@@ -100,36 +102,26 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
         name: 'Flux State — Packet 1',
         actorType: 'player'
       },
-      {
-        type: 'strike',
-        // EVTC field packets land on a measured ~520 ms cadence; preserving
-        // it also prevents exact-boundary distortion for 0.5-second ICDs.
-        ticks: Array.from({ length: 12 }, (_, index) => ({ atMs: 520 + index * 520, coefficient: 9 / 12 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Storm Damage',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 520, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 1040, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 1560, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 2080, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 2600, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 3120, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 3640, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 4160, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 4680, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 5200, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 5720, condition: 'Bleeding', stacks: 1, duration: 5 },
-          { atMs: 6240, condition: 'Bleeding', stacks: 1, duration: 5 }
-        ],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          // EVTC field packets land on a measured ~520 ms cadence; preserving
+          // it also prevents exact-boundary distortion for 0.5-second ICDs.
+          ticks: Array.from({ length: 12 }, (_, index) => ({ atMs: 520 + index * 520, coefficient: 9 / 12 })),
+          name: 'Storm Damage',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          ticks: [520, 1040, 1560, 2080, 2600, 3120, 3640, 4160, 4680, 5200, 5720, 6240].map((atMs) => ({
+            atMs,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 5
+          })),
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'control',
         actorType: 'player',
@@ -173,29 +165,20 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     cooldown: 25,
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: PLASMATIC_STATE_RECHARGE_OFFSET_MS,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 440, coefficient: 2.25 },
-          { atMs: 800, coefficient: 2.25 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [440, 800].map((atMs) => ({ atMs, coefficient: 2.25 })),
         name: 'Plasmatic State',
         actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 440, condition: 'Burning', stacks: 2, duration: 5 },
-          { atMs: 800, condition: 'Burning', stacks: 2, duration: 5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [440, 800].map((atMs) => ({ atMs, condition: 'Burning', stacks: 2, duration: 5 })),
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.LOCKED_ID_77388]: {
     castTimeMs: 0,

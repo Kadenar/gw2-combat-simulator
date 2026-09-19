@@ -54,7 +54,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     cooldown: 24,
     initiativeCost: 0,
     durationMultiplier: 3,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'condition',
         // Apply one bleed on placement, then ten more at one-second intervals.
@@ -63,10 +64,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           condition: 'Bleeding',
           stacks: 1,
           duration: 10
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -75,12 +73,9 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           condition: 'Crippled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ]
+    ])
   },
   [ID.SPIDER_VENOM]: {
     // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
@@ -346,6 +341,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 0,
     cooldown: 3,
     initiativeCost: 0,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
@@ -355,34 +351,30 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
-      {
-        type: 'strike',
-        ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
-        name: 'Pulse Damage',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'condition',
-        ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({
-          atMs,
-          condition: 'Vulnerability',
-          stacks: 2,
-          duration: 6
-        })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'control',
-        atMs: 0,
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        controlKind: 'knockdown'
-      }
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
+          name: 'Pulse Damage',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          ticks: PITFALL_PULSE_OFFSETS_MS.map((atMs) => ({
+            atMs,
+            condition: 'Vulnerability',
+            stacks: 2,
+            duration: 6
+          })),
+          actorType: 'player'
+        },
+        {
+          type: 'control',
+          atMs: 0,
+          actorType: 'player',
+          controlKind: 'knockdown'
+        }
+      ])
     ]
   },
   [ID.THOUSAND_NEEDLES]: {
@@ -391,31 +383,26 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, coefficient: 0.5 }],
-        name: 'Thousand Needles — Initial Strike',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        name: 'Thousand Needles — Initial Strike'
       },
       {
         type: 'strike',
         ticks: [
-          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 1000, coefficient: 0.2 },
-          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 2000, coefficient: 0.2 },
-          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 3000, coefficient: 0.2 },
-          { atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS + 4000, coefficient: 0.2 }
-        ],
-        name: 'Thousand Needles — Pulse',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+          THOUSAND_NEEDLES_INITIAL_DELAY_MS + 1000,
+          THOUSAND_NEEDLES_INITIAL_DELAY_MS + 2000,
+          THOUSAND_NEEDLES_INITIAL_DELAY_MS + 3000,
+          THOUSAND_NEEDLES_INITIAL_DELAY_MS + 4000
+        ].map((atMs) => ({ atMs, coefficient: 0.2 })),
+        name: 'Thousand Needles — Pulse'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, condition: 'Immobilized', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, condition: 'Immobilized', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
@@ -424,9 +411,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           condition: 'Poisoned',
           stacks: 1,
           duration: 8
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -435,9 +420,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           condition: 'Bleeding',
           stacks: 2,
           duration: 5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -446,10 +429,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFra
           condition: 'Crippled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ]
+    ])
   }
 });

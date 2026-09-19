@@ -150,27 +150,26 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         inclusiveExpiry: true
       }
     ],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Thunderclap',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 1000 + index * 1000,
-          condition: 'Vulnerability',
-          stacks: 1,
-          duration: 8
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4 / 5 })),
+          name: 'Thunderclap',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 5 }, (_, index) => ({
+            atMs: 1000 + index * 1000,
+            condition: 'Vulnerability',
+            stacks: 1,
+            duration: 8
+          })),
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'control',
         actorType: 'player',

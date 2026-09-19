@@ -1,4 +1,5 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -15,16 +16,15 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         startAnchor: 'castStart'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Model seven landed Smite hits, omitting the fifth spatial opportunity as in the reference build.
         ticks: [240, 760, 1240, 1760, 2760, 3240, 3760].map((atMs) => ({
           atMs,
           coefficient: 0.2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'strike',
@@ -32,9 +32,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         ticks: [1240, 2240, 3240, 4240].map((atMs) => ({
           atMs,
           coefficient: 0.5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       ...[240, 1240, 2240, 3240, 4240].map((atMs) => ({
         type: 'boon' as const,
@@ -42,11 +40,9 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
         stacks: 4,
         duration: 5,
         audience: { recipients: 'party' as const },
-        atMs,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const
+        atMs
       }))
-    ]
+    ])
   },
   [ID.ORB_OF_WRATH]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

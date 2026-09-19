@@ -51,7 +51,8 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 1600,
     cooldown: 6,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [360, 680, 1000, 1320, 1640].map((atMs) => ({
@@ -65,9 +66,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
             }
           ],
           metadata: {}
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        }))
       },
       {
         type: 'condition',
@@ -77,11 +76,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
           stacks: 1,
           duration: 15
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       }
-    ]
+    ])
   },
   // Fan fires all seven packets (and their Chilled applications) at the same 240ms offset.
   [ID.FROST_FAN]: {
@@ -93,66 +90,21 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 560,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 1.75,
         hits: 7,
-        atMs: 240,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        atMs: 240
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 240,
-            condition: 'Chilled',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        // Each projectile applies Chilled separately; author the shared payload once without merging applications.
+        ticks: Array.from({ length: 7 }, () => ({ atMs: 240, condition: 'Chilled', stacks: 1, duration: 1 })),
         metadata: {}
       }
-    ]
+    ])
   },
   // Channelled field: strikes reuse the shared tick timeline, and Bleeding rides every tick
   // except the opening one.
@@ -166,36 +118,34 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       castTimeMs: 2360,
       cooldown: 20,
       skillFamily: 'Weapon skill',
-      effects: [
-        strikeTimeline(
-          [
-            { atMs: 1040, coefficient: 0.7 },
-            { atMs: 1320, coefficient: 0.63 },
-            { atMs: 1520, coefficient: 0.56 },
-            { atMs: 1560, coefficient: 0.49 },
-            { atMs: 1800, coefficient: 0.42 },
-            { atMs: 1800, coefficient: 0.35 },
-            { atMs: 2000, coefficient: 0.28 },
-            { atMs: 2040, coefficient: 0.21 },
-            { atMs: 2280, coefficient: 0.14 },
-            { atMs: 2280, coefficient: 0.14 },
-            { atMs: 2480, coefficient: 0.14 },
-            { atMs: 2520, coefficient: 0.14 },
-            { atMs: 2760, coefficient: 0.14 },
-            { atMs: 2760, coefficient: 0.14 },
-            { atMs: 2960, coefficient: 0.14 },
-            { atMs: 3000, coefficient: 0.14 },
-            { atMs: 3240, coefficient: 0.14 },
-            { atMs: 3240, coefficient: 0.14 },
-            { atMs: 3480, coefficient: 0.14 },
-            { atMs: 3720, coefficient: 0.14 },
-            { atMs: 3960, coefficient: 0.14 },
-            { atMs: 4240, coefficient: 0.14 },
-            { atMs: 4480, coefficient: 0.14 },
-            { atMs: 4720, coefficient: 0.14 }
-          ],
-          { timingAnchor: 'castStart', timingScale: 'cast' }
-        ),
+      // Share timing defaults while preserving each packet, effect order, and local schedule.
+      effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        strikeTimeline([
+          { atMs: 1040, coefficient: 0.7 },
+          { atMs: 1320, coefficient: 0.63 },
+          { atMs: 1520, coefficient: 0.56 },
+          { atMs: 1560, coefficient: 0.49 },
+          { atMs: 1800, coefficient: 0.42 },
+          { atMs: 1800, coefficient: 0.35 },
+          { atMs: 2000, coefficient: 0.28 },
+          { atMs: 2040, coefficient: 0.21 },
+          { atMs: 2280, coefficient: 0.14 },
+          { atMs: 2280, coefficient: 0.14 },
+          { atMs: 2480, coefficient: 0.14 },
+          { atMs: 2520, coefficient: 0.14 },
+          { atMs: 2760, coefficient: 0.14 },
+          { atMs: 2760, coefficient: 0.14 },
+          { atMs: 2960, coefficient: 0.14 },
+          { atMs: 3000, coefficient: 0.14 },
+          { atMs: 3240, coefficient: 0.14 },
+          { atMs: 3240, coefficient: 0.14 },
+          { atMs: 3480, coefficient: 0.14 },
+          { atMs: 3720, coefficient: 0.14 },
+          { atMs: 3960, coefficient: 0.14 },
+          { atMs: 4240, coefficient: 0.14 },
+          { atMs: 4480, coefficient: 0.14 },
+          { atMs: 4720, coefficient: 0.14 }
+        ]),
         conditionTimeline(
           [
             1320, 1520, 1560, 1800, 1800, 2000, 2040, 2280, 2280, 2480, 2520, 2760, 2760, 2960, 3000, 3240, 3240, 3480,
@@ -205,10 +155,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
             condition: 'Bleeding',
             stacks: 1,
             duration: 3
-          })),
-          { timingAnchor: 'castStart', timingScale: 'cast' }
+          }))
         )
-      ]
+      ])
     },
     14
   ),
@@ -537,7 +486,8 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       castTimeMs: 1320,
       cooldown: 5,
       skillFamily: 'Weapon skill',
-      effects: [
+      // Share timing defaults while preserving each packet, effect order, and local schedule.
+      effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline(
           [
             { atMs: 280, coefficient: 0.688 },
@@ -550,8 +500,6 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
             { atMs: 1120, coefficient: 0.688 }
           ],
           {
-            timingAnchor: 'castStart',
-            timingScale: 'cast',
             comboFinishers: [
               {
                 ownerId: 'elementalist',
@@ -567,10 +515,9 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
             condition: 'Cripple',
             stacks: 1,
             duration: 3
-          })),
-          { timingAnchor: 'castStart', timingScale: 'cast' }
+          }))
         )
-      ]
+      ])
     },
     4
   ),

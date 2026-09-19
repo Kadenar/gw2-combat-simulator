@@ -37,14 +37,13 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     rechargeAnchor: 'castStart',
     rechargeOffsetMs: 420,
     energyCost: 10,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Deathstrike',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
@@ -53,20 +52,16 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         // Track the follow-up separately while retaining Deathstrike as the casting skill.
         damageBreakdownName: 'Deathstrike — Follow-up',
         sourceId: ID.DEATHSTRIKE_ID_28625,
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'boon',
         boon: 'fury',
         duration: 8,
         stacks: 1,
-        atMs: 320,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 320
       }
-    ]
+    ])
   },
   [ID.SHACKLING_WAVE]: {
     castTimeMs: 800,
@@ -192,33 +187,28 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     interruptCommitMs: 360,
     cooldown: 5,
     energyCost: 5,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 280, coefficient: 0.8 }],
         name: 'Chilling Isolation — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 1.6 }],
         name: 'Isolated Damage',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         persistsAfterInterrupt: true,
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [{ atMs: 280, condition: 'Chilled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.BRUTAL_BLADE]: {
     castTimeMs: 560,

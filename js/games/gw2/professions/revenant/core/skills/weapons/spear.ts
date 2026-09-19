@@ -12,57 +12,34 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 10,
     energyCost: 10,
     rechargeReduction: 3,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: 'Abyssal Blitz — Mine',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        ticks: [
-          { atMs: 560, coefficient: 0.5 },
-          { atMs: 720, coefficient: 0.5 },
-          { atMs: 960, coefficient: 0.5 }
-        ],
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 })),
         metadata: {}
       },
       {
         type: 'condition',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player',
-        ticks: [
-          { atMs: 560, condition: 'Slow', stacks: 1, duration: 3 },
-          { atMs: 720, condition: 'Slow', stacks: 1, duration: 3 },
-          { atMs: 960, condition: 'Slow', stacks: 1, duration: 3 }
-        ],
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Slow', stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player',
-        ticks: [
-          { atMs: 560, condition: 'Chilled', stacks: 1, duration: 3 },
-          { atMs: 720, condition: 'Chilled', stacks: 1, duration: 3 },
-          { atMs: 960, condition: 'Chilled', stacks: 1, duration: 3 }
-        ],
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Chilled', stacks: 1, duration: 3 })),
         metadata: {}
       },
       {
         type: 'condition',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player',
-        ticks: [
-          { atMs: 560, condition: 'Weakness', stacks: 1, duration: 3 },
-          { atMs: 720, condition: 'Weakness', stacks: 1, duration: 3 },
-          { atMs: 960, condition: 'Weakness', stacks: 1, duration: 3 }
-        ],
+        ticks: [560, 720, 960].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 3 })),
         metadata: {}
       }
-    ]
+    ])
   },
   [ID.ABYSSAL_BLOT]: {
     // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.

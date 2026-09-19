@@ -2,6 +2,7 @@
  * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
@@ -206,27 +207,24 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     interruptCommitMs: 400,
     cooldown: 6,
     heatGain: 10,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 400, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Initial Damage',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        damageKind: 'explosion'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1800, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        name: 'Explosion Damage',
-        actorType: 'player',
-        persistsAfterInterrupt: true,
-        damageKind: 'explosion'
-      },
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        {
+          type: 'strike',
+          ticks: [{ atMs: 400, coefficient: 1.5 }],
+          name: 'Initial Damage',
+          actorType: 'player',
+          damageKind: 'explosion'
+        },
+        {
+          type: 'strike',
+          ticks: [{ atMs: 1800, coefficient: 1.5 }],
+          name: 'Explosion Damage',
+          actorType: 'player',
+          damageKind: 'explosion'
+        }
+      ]),
       {
         type: 'condition',
         condition: 'Vulnerability',
@@ -235,67 +233,48 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         actorType: 'player',
         persistsAfterInterrupt: true
       },
-      {
-        type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Burning', stacks: 2, duration: 5 },
-          { atMs: 1800, condition: 'Burning', stacks: 2, duration: 5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 1,
-        atMs: 400,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 1,
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 1,
-        atMs: 1120,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 1,
-        atMs: 1480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 1,
-        atMs: 1800,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      }
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        {
+          type: 'condition',
+          ticks: [400, 1800].map((atMs) => ({ atMs, condition: 'Burning', stacks: 2, duration: 5 })),
+          actorType: 'player'
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 1,
+          atMs: 400
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 1,
+          atMs: 760
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 1,
+          atMs: 1120
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 1,
+          atMs: 1480
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 8,
+          stacks: 1,
+          atMs: 1800
+        }
+      ])
     ],
     forgeSkill: true
   },
@@ -367,42 +346,26 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 240, coefficient: 0.64 },
-          { atMs: 400, coefficient: 0.64 },
-          { atMs: 480, coefficient: 0.64 },
-          { atMs: 640, coefficient: 0.64 },
-          { atMs: 720, coefficient: 0.64 },
-          { atMs: 880, coefficient: 0.64 },
-          { atMs: 960, coefficient: 0.64 },
-          { atMs: 1120, coefficient: 0.64 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({ atMs, coefficient: 0.64 })),
         name: 'Photon Blitz',
         actorType: 'player',
         projectile: true
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 240, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 400, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 480, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 640, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 720, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 880, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 960, condition: 'Burning', stacks: 1, duration: 3 },
-          { atMs: 1120, condition: 'Burning', stacks: 1, duration: 3 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({
+          atMs,
+          condition: 'Burning',
+          stacks: 1,
+          duration: 3
+        })),
         actorType: 'player'
       }
-    ],
+    ]),
     forgeSkill: true
   },
   [ID.FLASH_CUTTER]: {

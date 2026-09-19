@@ -81,67 +81,18 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1160,
-            coefficient: 0.525,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 2160,
-            coefficient: 0.525,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 3160,
-            coefficient: 0.525,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 4160,
-            coefficient: 0.525,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, coefficient: 0.525, damageKind: 'field-tick' }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1160,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 2160,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 3160,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 4160,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [1160, 2160, 3160, 4160].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 1 })),
         metadata: {}
       }
-    ]
+    ])
   },
   [ID.FLAME_BURST]: {
     name: 'Flame Burst',

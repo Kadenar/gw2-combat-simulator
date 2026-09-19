@@ -13,15 +13,14 @@ const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
     castTimeMs: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [0, 1000, 2000, 3000, 4000, 5000].map((atMs) => ({
           atMs,
           coefficient: 1.75 / 6
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -33,12 +32,10 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           stacks: 1,
           duration: 1
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     comboFields: [
       {
         ownerId: 'ranger',
@@ -69,14 +66,13 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     handlerId: 'ranger.unleash-ranger'
   },
   [ID.EXPLODING_SPORES]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.583 * 6,
         hits: 6,
-        atMs: 1640,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 1640
       },
       {
         type: 'condition',
@@ -85,18 +81,14 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
           condition: 'Poisoned',
           stacks: 1,
           duration: 5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'control',
         atMs: 1640,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       }
-    ],
+    ]),
     castTimeMs: 480,
     // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/execution/index.ts`.
     handlerId: 'ranger.exploding-spores'

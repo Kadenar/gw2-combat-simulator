@@ -250,16 +250,15 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1120,
     cooldown: 25,
     skillFamily: 'Glyph',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           coefficient: 0.5,
           damageKind: 'field-tick'
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        }))
       },
       {
         type: 'condition',
@@ -269,11 +268,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 1,
           duration: 2
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       }
-    ]
+    ])
   },
   [ID.GLYPH_OF_STORMS_WATER]: withSmallHitboxCap(
     {
@@ -285,30 +282,28 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       castTimeMs: 1120,
       cooldown: 30,
       skillFamily: 'Glyph',
-      effects: [
-        strikeTimeline(
-          [
-            { atMs: 1600, coefficient: 0.8 },
-            { atMs: 1920, coefficient: 0.72 },
-            { atMs: 2240, coefficient: 0.64 },
-            { atMs: 2560, coefficient: 0.56 },
-            { atMs: 2880, coefficient: 0.48 },
-            { atMs: 3200, coefficient: 0.4 },
-            { atMs: 3520, coefficient: 0.32 },
-            { atMs: 3840, coefficient: 0.32 },
-            { atMs: 4160, coefficient: 0.32 },
-            { atMs: 4480, coefficient: 0.32 },
-            { atMs: 4800, coefficient: 0.32 },
-            { atMs: 5120, coefficient: 0.32 },
-            { atMs: 5440, coefficient: 0.32 },
-            { atMs: 5760, coefficient: 0.32 },
-            { atMs: 6080, coefficient: 0.32 },
-            { atMs: 6400, coefficient: 0.32 },
-            { atMs: 6720, coefficient: 0.32 },
-            { atMs: 7040, coefficient: 0.32 }
-          ],
-          { timingAnchor: 'castStart', timingScale: 'cast' }
-        ),
+      // Share timing defaults while preserving each packet, effect order, and local schedule.
+      effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        strikeTimeline([
+          { atMs: 1600, coefficient: 0.8 },
+          { atMs: 1920, coefficient: 0.72 },
+          { atMs: 2240, coefficient: 0.64 },
+          { atMs: 2560, coefficient: 0.56 },
+          { atMs: 2880, coefficient: 0.48 },
+          { atMs: 3200, coefficient: 0.4 },
+          { atMs: 3520, coefficient: 0.32 },
+          { atMs: 3840, coefficient: 0.32 },
+          { atMs: 4160, coefficient: 0.32 },
+          { atMs: 4480, coefficient: 0.32 },
+          { atMs: 4800, coefficient: 0.32 },
+          { atMs: 5120, coefficient: 0.32 },
+          { atMs: 5440, coefficient: 0.32 },
+          { atMs: 5760, coefficient: 0.32 },
+          { atMs: 6080, coefficient: 0.32 },
+          { atMs: 6400, coefficient: 0.32 },
+          { atMs: 6720, coefficient: 0.32 },
+          { atMs: 7040, coefficient: 0.32 }
+        ]),
         conditionTimeline(
           [
             1600, 1920, 2240, 2560, 2880, 3200, 3520, 3840, 4160, 4480, 4800, 5120, 5440, 5760, 6080, 6400, 6720, 7040
@@ -317,10 +312,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
             condition: 'Chilled',
             stacks: 1,
             duration: 3
-          })),
-          { timingAnchor: 'castStart', timingScale: 'cast' }
+          }))
         )
-      ]
+      ])
     },
     11
   ),
@@ -418,16 +412,15 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     castTimeMs: 1120,
     cooldown: 40,
     skillFamily: 'Glyph',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [880, 1880, 2880, 3880, 4880, 5880, 6880, 7880, 8880, 9880, 10880].map((atMs) => ({
           atMs,
           coefficient: 0.045454545454545456,
           damageKind: 'field-tick'
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        }))
       },
       {
         type: 'condition',
@@ -437,8 +430,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
           stacks: 1,
           duration: 3
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         metadata: {}
       },
       {
@@ -446,11 +437,9 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         atMs: 880,
         applications: 11,
         intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'blind'
       }
-    ]
+    ])
   },
   // --- Signets ------------------------------------------------------------------
   // Only the active is authored here. Signet of Fire is the one signet whose passive is

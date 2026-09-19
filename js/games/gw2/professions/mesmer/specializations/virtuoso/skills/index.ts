@@ -2,6 +2,7 @@
  * Owns Virtuoso slot-skill and bladesong catalog fragments only.
  * Blade storage and bladesong runtime behavior lives under `mechanics/`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -90,7 +91,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
   [ID.RAIN_OF_SWORDS]: {
     castTimeMs: 680,
     blade: true,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Rain begins after the ground-target delay observed in EVTC, then pulses once per second.
@@ -100,9 +102,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
         })),
         name: 'Damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        weapon: 'utility'
       },
       {
         type: 'condition',
@@ -111,11 +111,9 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFrag
           condition: 'Vulnerability',
           stacks: 3,
           duration: 10
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       }
-    ]
+    ])
   },
   [ID.TWIN_BLADE_RESTORATION]: {
     castTimeMs: 680,

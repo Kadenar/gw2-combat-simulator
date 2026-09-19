@@ -9,20 +9,17 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Store the measured effective action duration directly.
     castTimeMs: 2600,
     // Match the reference hit offsets, with Burning applied on the final strike.
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520].map((atMs) => ({ atMs, coefficient: 4 / 10 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [280, 520, 760, 1000, 1240, 1480, 1720, 1960, 2200, 2520].map((atMs) => ({ atMs, coefficient: 4 / 10 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2520, condition: 'Burning', stacks: 2, duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [{ atMs: 2520, condition: 'Burning', stacks: 2, duration: 4 }]
       }
-    ]
+    ])
   },
   [ID.ZEALOTS_FIRE]: {
     castTimeMs: 680,

@@ -51,31 +51,20 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 1040,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 560, coefficient: 0.21 },
-          { atMs: 640, coefficient: 0.21 },
-          { atMs: 800, coefficient: 0.21 }
-        ],
+        ticks: [560, 640, 800].map((atMs) => ({ atMs, coefficient: 0.21 })),
         name: 'Death Blossom',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 560, condition: 'Bleeding', stacks: 2, duration: 6 },
-          { atMs: 640, condition: 'Bleeding', stacks: 2, duration: 6 },
-          { atMs: 800, condition: 'Bleeding', stacks: 2, duration: 6 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [560, 640, 800].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        actorType: 'player'
       }
-    ],
+    ]),
     comboFinishers: [
       {
         ownerId: 'thief',

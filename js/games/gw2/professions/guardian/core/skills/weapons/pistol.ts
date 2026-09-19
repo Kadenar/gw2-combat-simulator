@@ -38,16 +38,15 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     ammo: 2,
     ammoRecharge: 10,
     ammoCastLockout: 1,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [280, 440, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.3,
           projectile: true
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -57,9 +56,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           stacks: 1,
           duration: 8,
           projectile: true
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -69,11 +66,9 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
           stacks: 1,
           duration: 1,
           projectile: true
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ]
+    ])
   },
   [ID.PEACEKEEPER]: {
     // EVTC impact offsets keep Burning aligned with each strike.
@@ -81,26 +76,21 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     interruptCommitMs: 960,
     cooldown: 6,
     rechargeAnchor: 'castStart',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [280, 480, 640, 800, 960].map((atMs) => ({
           atMs,
           coefficient: 0.25
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       // Each strike applies the same Burning packet at its impact time.
       ...[280, 480, 640, 800, 960].map((atMs) => ({
         type: 'condition' as const,
-        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 1.5 }],
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
-        persistsAfterInterrupt: true
+        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 1.5 }]
       }))
-    ]
+    ])
   },
   [ID.SYMBOL_OF_IGNITION]: {
     castTimeMs: 360,
@@ -113,16 +103,14 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [280, 960, 1640, 2320, 3000].map((atMs) => ({
           atMs,
           coefficient: 0.4
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       ...[280, 960, 1640, 2320, 3000].map((atMs) => ({
         type: 'boon' as const,
@@ -130,12 +118,9 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
         stacks: 1,
         duration: 5,
         audience: { recipients: 'party' as const },
-        atMs,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
-        persistsAfterInterrupt: true
+        atMs
       }))
-    ]
+    ])
   },
   [ID.THROUGH_THE_HEART]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

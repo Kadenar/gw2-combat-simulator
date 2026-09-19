@@ -48,12 +48,11 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ],
     castTimeMs: 520,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 5480, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 5480, coefficient: 1 }]
       },
       {
         type: 'condition',
@@ -94,10 +93,8 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Skil
             stacks: 2,
             duration: 6
           }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       }
-    ]
+    ])
   }
 });

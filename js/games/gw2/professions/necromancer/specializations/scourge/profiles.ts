@@ -117,12 +117,11 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.desertShroud,
     name: 'Desert Shroud - Pulses',
     profileKind: 'skill-variant',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 7 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.15 / 7 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
@@ -132,11 +131,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         duration: 5,
         applications: 7,
         intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       }
-    ]
+    ])
   },
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.sandstormShroud,

@@ -1,4 +1,5 @@
 /** Owns Renegade Citadel order skill fragments. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -12,14 +13,13 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
 
     cooldown: 15,
     energyCost: 35,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: 'Citadel Bombardment',
         actorType: 'player',
-        ticks: BOMBARDMENT_IMPACT_MS.map((atMs) => ({ atMs, coefficient: 0.6 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: BOMBARDMENT_IMPACT_MS.map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
       {
         type: 'condition',
@@ -29,11 +29,9 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
           condition: 'Burning',
           stacks: 1,
           duration: 1
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       }
-    ]
+    ])
   },
   [ID.HEROIC_COMMAND]: {
     // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.

@@ -139,33 +139,25 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.5 }],
         name: 'Initial Strike',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 1480 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Pulsing Strikes',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
         type: 'condition',
         ticks: [{ atMs: 480, condition: 'Burning', stacks: 3, duration: 3 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -175,11 +167,8 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
           stacks: 1,
           duration: 1
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       }
-    ]
+    ])
   }
 });

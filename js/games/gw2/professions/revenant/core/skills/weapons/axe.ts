@@ -10,38 +10,31 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     interruptMode: 'per-packet',
     cooldown: 10,
     energyCost: 10,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 680, coefficient: 0.15 }],
         name: 'Pass-Through Damage',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 1.5 }],
         name: 'Final Damage',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 680, condition: 'Chilled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 1000, condition: 'Torment', stacks: 3, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.TEMPORAL_RIFT]: {
     castTimeMs: 560,

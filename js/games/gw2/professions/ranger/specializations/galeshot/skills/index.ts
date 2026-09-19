@@ -1,4 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -30,12 +31,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     handlerId: 'ranger.cyclone-bow-enter'
   },
   [ID.PERFECT_STORM]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Perfect Storm - Traveling Tornado Damage'
       },
       {
@@ -44,18 +44,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
           atMs,
           coefficient: 0.7
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Perfect Storm - Stationary Tornado Damage'
       },
       {
         type: 'control',
         atMs: 600,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'launch'
       }
-    ],
+    ]),
     castTimeMs: 600,
     arrowsRestored: 2,
     // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/execution/index.ts`.

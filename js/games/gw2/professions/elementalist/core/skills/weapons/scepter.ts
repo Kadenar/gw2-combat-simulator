@@ -384,7 +384,8 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       strikeTimeline(
         HURL_PACKET_TIMES.map((atMs) => ({
           atMs,
@@ -396,8 +397,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
               ambiguousFieldSelection: 'oldest'
             }
           ]
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
+        }))
       ),
       conditionTimeline(
         HURL_PACKET_TIMES.map((atMs) => ({
@@ -405,10 +405,9 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           condition: 'Bleeding',
           stacks: 1,
           duration: 8
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
+        }))
       )
-    ]
+    ])
   },
   // The travelling projectile outlives the cast, so its pulses use fixed (cast-speed
   // independent) offsets and persist after an interrupt past the 160ms commit point.
@@ -424,62 +423,25 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     // EVTC shows the dust projectile committing at 160 ms and striking again at one-second intervals.
     interruptCommitMs: 160,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 160,
-            coefficient: 0.4
-          },
-          {
-            atMs: 1160,
-            coefficient: 0.4
-          },
-          {
-            atMs: 2160,
-            coefficient: 0.4
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        ticks: [160, 1160, 2160].map((atMs) => ({ atMs, coefficient: 0.4 })),
         persistsAfterInterrupt: true
       },
       {
         type: 'blind',
         atMs: 160,
         applications: 1,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'blind'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 160,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 1.5
-          },
-          {
-            atMs: 1160,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 1.5
-          },
-          {
-            atMs: 2160,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 1.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        ticks: [160, 1160, 2160].map((atMs) => ({ atMs, condition: 'Cripple', stacks: 1, duration: 1.5 })),
         persistsAfterInterrupt: true,
         metadata: {}
       }
-    ]
+    ])
   }
 });

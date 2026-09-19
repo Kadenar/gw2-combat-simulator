@@ -99,24 +99,19 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
         inclusiveExpiry: true
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 1 / 4 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         name: 'Fire Bomb',
         actorType: 'player',
-        persistsAfterInterrupt: true,
         damageKind: 'explosion'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 760, condition: 'Burning', stacks: 2, duration: 5 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -126,12 +121,9 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillFra
           stacks: 1,
           duration: 2
         })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player',
-        persistsAfterInterrupt: true
+        actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Bomb Kit'
   },
   [ID.SMOKE_BOMB_ENGINEER_SKILL]: {

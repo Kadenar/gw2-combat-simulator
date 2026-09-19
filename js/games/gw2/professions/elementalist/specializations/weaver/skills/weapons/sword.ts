@@ -88,78 +88,18 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 400,
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1240,
-            coefficient: 0.33,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 2240,
-            coefficient: 0.33,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 3240,
-            coefficient: 0.33,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 4240,
-            coefficient: 0.33,
-            damageKind: 'field-tick'
-          },
-          {
-            atMs: 5240,
-            coefficient: 0.33,
-            damageKind: 'field-tick'
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [1240, 2240, 3240, 4240, 5240].map((atMs) => ({ atMs, coefficient: 0.33, damageKind: 'field-tick' }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 2240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 3240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 4240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          },
-          {
-            atMs: 5240,
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [1240, 2240, 3240, 4240, 5240].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 1 })),
         metadata: {}
       }
-    ],
+    ]),
     specialization: 'Weaver'
   },
   [ID.SHEARING_EDGE]: {

@@ -39,17 +39,15 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: FLAMEWALL_TICK_OFFSETS_MS.map((atMs) => ({
           atMs,
           coefficient: 0.1,
           damageKind: 'field-tick'
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -59,12 +57,9 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
           stacks: 1,
           duration: 2.5
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true,
         metadata: {}
       }
-    ]
+    ])
   },
   // Instant Fire Aura grant that flips the slot to Transmute Fire; `aura: 'Fire|4'` is the aura/duration
   // pair the cast-effects layer reads when applying it.

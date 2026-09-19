@@ -44,25 +44,22 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     cooldown: 25,
     // Napalm fires independent volleys, so interruption retains only packets launched before the cutoff.
     interruptMode: 'per-packet',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // The EVTC records five visual volleys as ten damage packets. Each
         // packet has a 0.5 coefficient and a matching Burning application.
         ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Napalm',
         actorType: 'player'
       },
       {
         type: 'condition',
         ticks: NAPALM_TICK_OFFSETS_MS.map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 3.25 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Flamethrower'
   },
   [ID.AIR_BLAST]: {

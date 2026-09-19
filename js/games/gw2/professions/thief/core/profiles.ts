@@ -1,3 +1,4 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -144,7 +145,8 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.uncatchable, 'Uncatchable', {
     initialDelay: 0.8,
     pulseInterval: 1,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
         condition: 'Bleeding',
@@ -152,9 +154,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         duration: 5,
         applications: 3,
         atMs: 800,
-        intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        intervalMs: 1000
       },
       {
         type: 'condition',
@@ -163,11 +163,9 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
         duration: 1,
         applications: 3,
         atMs: 800,
-        intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        intervalMs: 1000
       }
-    ]
+    ])
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.upperHand, 'Upper Hand', {
     internalCooldown: 2,

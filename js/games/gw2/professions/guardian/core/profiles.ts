@@ -1,3 +1,4 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -156,12 +157,11 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.masterOfConsecrations, 'Master of Consecrations', {
     durationMultiplier: 1.4,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: index * 1000, coefficient: 0.4 / 2 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
@@ -171,41 +171,36 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         duration: 2,
         applications: 2,
         intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       }
-    ]
+    ])
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.writOfPersistence, 'Writ of Persistence', {
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      {
-        type: 'strike',
-        // Writ adds four more spatial Smite packets during its two-second symbol extension.
-        ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'strike',
-        ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        stacks: 4,
-        duration: 5,
-        applications: 2,
-        atMs: 5240,
-        intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          // Writ adds four more spatial Smite packets during its two-second symbol extension.
+          ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
+          actorType: 'player'
+        },
+        {
+          type: 'strike',
+          ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
+          actorType: 'player'
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          stacks: 4,
+          duration: 5,
+          applications: 2,
+          atMs: 5240,
+          intervalMs: 1000,
+          actorType: 'player'
+        }
+      ]),
       {
         type: 'buff',
         name: 'symbol-duration-extension',
@@ -252,12 +247,11 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.zealotsResolution, "Zealot's Resolution", {
     cooldown: 30,
     threshold: 0.25,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 2.5 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
@@ -267,11 +261,9 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         duration: 2,
         applications: 5,
         intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       }
-    ]
+    ])
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.righteousInstincts, 'Righteous Instincts', {
     pulseInterval: 1,

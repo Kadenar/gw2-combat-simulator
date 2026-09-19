@@ -401,18 +401,18 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 680,
     cooldown: 16,
     skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(QUANTUM_STRIKE_TICKS, { timingAnchor: 'castStart', timingScale: 'cast' }),
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      strikeTimeline(QUANTUM_STRIKE_TICKS),
       conditionTimeline(
         QUANTUM_STRIKE_TICKS.map(({ atMs }) => ({
           atMs,
           condition: 'Vulnerability',
           stacks: 1,
           duration: 8
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
+        }))
       )
-    ]
+    ])
   },
   [ID.CRYSTAL_SLASH]: {
     name: 'Crystal Slash',
@@ -502,20 +502,17 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 1400,
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    effects: [
-      strikeTimeline(
-        RUST_FRENZY_TICKS.map((atMs) => ({ atMs, coefficient: 0.33 })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
-      ),
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      strikeTimeline(RUST_FRENZY_TICKS.map((atMs) => ({ atMs, coefficient: 0.33 }))),
       conditionTimeline(
         RUST_FRENZY_TICKS.map((atMs) => ({
           atMs,
           condition: 'Bleeding',
           stacks: 1,
           duration: 6
-        })),
-        { timingAnchor: 'castStart', timingScale: 'cast' }
+        }))
       )
-    ]
+    ])
   }
 });

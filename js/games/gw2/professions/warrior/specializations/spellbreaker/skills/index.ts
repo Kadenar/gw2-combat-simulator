@@ -167,12 +167,11 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 800 + index * 1000, coefficient: 2.25 / 5 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 800 + index * 1000, coefficient: 2.25 / 5 }))
       },
       {
         type: 'custom',
@@ -180,13 +179,11 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         atMs: 800,
         intervalMs: 1000,
         applications: 5,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         event: {
           attemptedBoonRemovals: 1
         }
       }
-    ],
+    ]),
     castTimeMs: 1000
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {

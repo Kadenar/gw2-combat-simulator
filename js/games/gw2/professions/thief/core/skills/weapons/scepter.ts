@@ -31,7 +31,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 1920,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
@@ -39,63 +40,24 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
           coefficient: 2.31 / 7
         })),
         name: 'Endless Night',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 280, condition: 'Slow', stacks: 1, duration: 1.5 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 280,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          {
-            atMs: 560,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          {
-            atMs: 840,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          {
-            atMs: 1080,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          {
-            atMs: 1360,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          {
-            atMs: 1640,
-            condition: 'Torment',
-            stacks: 1,
-            duration: 6
-          },
-          { atMs: 1920, condition: 'Torment', stacks: 1, duration: 6 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
+          condition: 'Torment',
+          stacks: 1,
+          duration: 6
+        })),
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Scepter',
     requiredOffHand: 'Pistol'
   },
@@ -103,49 +65,39 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 1080,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
         name: 'Triple Bolt',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 0.45 }],
         name: 'Triple Bolt',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 1040, coefficient: 0.45 }],
         name: 'Triple Bolt',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 320, condition: 'Torment', stacks: 1, duration: 5 },
-          { atMs: 640, condition: 'Torment', stacks: 1, duration: 5 },
-          { atMs: 1040, condition: 'Torment', stacks: 1, duration: 5 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [320, 640, 1040].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 5 })),
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.TRIPLE_THREAT]: {
     castTimeMs: 1000,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [320, 680, 1000].map((atMs) => ({
@@ -153,22 +105,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
           coefficient: 1.35 / 3
         })),
         name: 'Triple Threat',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 320, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 680, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 1000, condition: 'Torment', stacks: 1, duration: 4 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [320, 680, 1000].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 })),
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Scepter',
     requiredOffHand: false
   },
@@ -176,34 +120,26 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 640,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.375 }],
         name: 'Double Bolt',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 0.375 }],
         name: 'Double Bolt',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 320, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [320, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 })),
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.TWILIGHT_COMBO]: {
     castTimeMs: 760,
@@ -284,32 +220,25 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     castTimeMs: 1960,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({ atMs, coefficient: 1.6 / 8 })),
         name: 'Shadowsquall',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 240, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 480, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 720, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1000, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1240, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1480, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1720, condition: 'Poisoned', stacks: 1, duration: 3 },
-          { atMs: 1960, condition: 'Poisoned', stacks: 1, duration: 3 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [240, 480, 720, 1000, 1240, 1480, 1720, 1960].map((atMs) => ({
+          atMs,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 3
+        })),
+        actorType: 'player'
       }
-    ],
+    ]),
     requiredMainHand: 'Scepter',
     stealthAttack: true
   },

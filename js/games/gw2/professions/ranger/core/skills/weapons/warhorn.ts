@@ -1,4 +1,5 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -7,21 +8,18 @@ const huntersCallHitTimes = Array.from({ length: 16 }, (_, index) => 1080 + inde
 
 export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.HUNTERS_CALL]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, coefficient: 0.15 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, coefficient: 0.15 }))
       },
       {
         type: 'condition',
         // Each bird hit adds its own stack so Vulnerability builds over the attack sequence.
-        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: huntersCallHitTimes.map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 5 }))
       }
-    ],
+    ]),
     castTimeMs: 1240
   },
   [ID.CALL_OF_THE_WILD]: {

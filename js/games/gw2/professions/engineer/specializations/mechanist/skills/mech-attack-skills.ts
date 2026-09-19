@@ -2,6 +2,7 @@
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -105,12 +106,11 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Replay metadata mirrors the measured Quickness packet schedule used by Overclock's handler.
     quicknessCastTimeMs: 3360,
     cooldown: 1,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 880 + index * 360, coefficient: 4.75 / 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         name: 'Jade Buster Cannon',
         actorType: 'summon'
       },
@@ -122,11 +122,9 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Skil
           stacks: 1,
           duration: 6
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         actorType: 'summon'
       }
-    ],
+    ]),
     toolbeltParentName: 'Overclock Signet'
   }
 });

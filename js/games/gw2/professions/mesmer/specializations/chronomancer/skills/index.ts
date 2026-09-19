@@ -2,6 +2,7 @@
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
  * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -12,6 +13,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
     castTimeMs: 800,
     // Protect allies during the well's three-second lifetime, then refund endurance when it ends.
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 3, startAnchor: 'castEnd' }],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'boon',
@@ -23,23 +25,21 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         timingScale: 'fixed'
       },
       { type: 'boon', boon: 'stability', stacks: 1, duration: 1 },
-      {
-        type: 'boon',
-        boon: 'stability',
-        stacks: 3,
-        duration: 5,
-        atMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'custom',
-        eventType: 'resource',
-        event: { resource: 'endurance', amount: 30, name: 'Well of Precognition' },
-        atMs: 3000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'boon',
+          boon: 'stability',
+          stacks: 3,
+          duration: 5,
+          atMs: 1000
+        },
+        {
+          type: 'custom',
+          eventType: 'resource',
+          event: { resource: 'endurance', amount: 30, name: 'Well of Precognition' },
+          atMs: 3000
+        }
+      ])
     ]
   },
   [ID.CONTINUUM_SPLIT]: {
@@ -73,54 +73,41 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
   },
   [ID.GRAVITY_WELL]: {
     castTimeMs: 1080,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 0, coefficient: 1.1 },
-          { atMs: 1000, coefficient: 1.1 },
-          { atMs: 2000, coefficient: 1.1 }
-        ],
+        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 1.1 })),
         name: 'Pulse damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        weapon: 'utility'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 2000, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        weapon: 'utility'
       },
       {
         type: 'control',
         actorType: 'player',
         atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         controlKind: 'knockdown'
       },
       {
         type: 'control',
         actorType: 'player',
         atMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         controlKind: 'pull'
       },
       {
         type: 'control',
         actorType: 'player',
         atMs: 2000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         controlKind: 'float'
       }
-    ]
+    ])
   },
   [ID.WELL_OF_CALAMITY]: {
     castTimeMs: 800,
@@ -135,30 +122,21 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
         startAnchor: 'castStart'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 560, coefficient: 1.3 },
-          { atMs: 1560, coefficient: 1.3 },
-          { atMs: 2560, coefficient: 1.3 }
-        ],
+        ticks: [560, 1560, 2560].map((atMs) => ({ atMs, coefficient: 1.3 })),
         name: 'Pulse damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        weapon: 'utility'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 3560, coefficient: 2.1 }],
         name: 'Final damage',
         actorType: 'player',
-        weapon: 'utility',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        weapon: 'utility'
       },
       {
         type: 'condition',
@@ -167,10 +145,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
           condition: 'Crippled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -179,12 +154,9 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
           condition: 'Weakness',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ]
+    ])
   },
   [ID.WELL_OF_ACTION]: {
     // Store the measured Quickness duration so the catalog derives the corresponding base cast consistently.

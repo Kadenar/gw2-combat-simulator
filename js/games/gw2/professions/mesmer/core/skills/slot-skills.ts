@@ -88,24 +88,21 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
     castTimeMs: 640,
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 5, startAnchor: 'castEnd' }],
     // Apply an immediate pulse when the field forms, then pulse once per second through its fifth second.
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'boon',
         boon: 'quickness',
         duration: 1,
         applications: 6,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        intervalMs: 1000
       },
       {
         type: 'buff',
         kind: 'superspeed',
         duration: 1.5,
         applications: 6,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        intervalMs: 1000
       },
       {
         type: 'condition',
@@ -113,11 +110,9 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFr
         stacks: 1,
         duration: 1,
         applications: 6,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        intervalMs: 1000
       }
-    ]
+    ])
   },
   [ID.PHANTASMAL_DEFENDER]: {
     phantasm: true,

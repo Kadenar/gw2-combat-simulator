@@ -47,30 +47,21 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 8,
     // Poison Dart Volley is a channel: interruption retains landed darts and cancels only its future packets.
     interruptMode: 'per-packet',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         name: 'Poison Dart Volley',
         actorType: 'player',
         projectile: true
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 160, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 320, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 520, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 680, condition: 'Poisoned', stacks: 1, duration: 7 },
-          { atMs: 840, condition: 'Poisoned', stacks: 1, duration: 7 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 1, duration: 7 })),
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.STATIC_SHOT]: {
     castTimeMs: 320,

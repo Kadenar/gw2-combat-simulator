@@ -146,7 +146,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
     stealthAttack: true,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         // Snap each strike to the nearest 40 ms action tick while preserving its coefficient.
@@ -154,17 +155,13 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
           { atMs: 400, coefficient: 1.25 },
           { atMs: 720, coefficient: 1.25 },
           { atMs: 960, coefficient: 2.5 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ]
       },
       {
         type: 'condition',
-        ticks: [400, 720, 960].map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 8 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [400, 720, 960].map((atMs) => ({ atMs, condition: 'Vulnerability', stacks: 1, duration: 8 }))
       }
-    ]
+    ])
   },
   {
     id: ID.OWLS_FLIGHT,

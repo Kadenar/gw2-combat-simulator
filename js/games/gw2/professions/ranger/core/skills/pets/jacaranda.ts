@@ -2,6 +2,7 @@
  * Owns Core Ranger pet skill fragments for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -10,13 +11,12 @@ const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.JACARANDAS_EMBRACE]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // EVTC records one projectile impact about 920 ms after each command, not one strike per control pulse.
         ticks: [{ atMs: 920, coefficient: 0.16 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -28,8 +28,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 8
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -41,12 +39,10 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 1480,
     petSkill: true
   },
@@ -68,16 +64,14 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.JACARANDA_CALL_LIGHTNING]: {
     // The autonomous storm commits when launched, so swapping pets does not erase its remaining pulses.
     interruptCommitMs: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({
           atMs,
           coefficient: 0.5
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -89,13 +83,10 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 6
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 500,
     petSkill: true
   }

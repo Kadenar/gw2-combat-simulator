@@ -1,4 +1,5 @@
 /** Core Engineer Grenade Kit skill mechanics. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -21,17 +22,11 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Poison Grenade',
         actorType: 'player',
         damageKind: 'explosion',
@@ -39,17 +34,10 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Poisoned', stacks: 3, duration: 8 },
-          { atMs: 440, condition: 'Poisoned', stacks: 3, duration: 8 },
-          { atMs: 440, condition: 'Poisoned', stacks: 3, duration: 8 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 3, duration: 8 })),
         actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Grenade Kit'
   },
   [ID.SHRAPNEL_GRENADE]: {
@@ -57,34 +45,21 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     cooldown: 5,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.63 },
-          { atMs: 440, coefficient: 0.63 },
-          { atMs: 440, coefficient: 0.63 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.63 })),
         name: 'Shrapnel Grenade',
         actorType: 'player',
         damageKind: 'explosion'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Bleeding', stacks: 1, duration: 7 },
-          { atMs: 440, condition: 'Bleeding', stacks: 1, duration: 7 },
-          { atMs: 440, condition: 'Bleeding', stacks: 1, duration: 7 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 7 })),
         actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Grenade Kit'
   },
   [ID.FLASH_GRENADE]: {
@@ -118,34 +93,21 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     cooldown: 20,
     interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 },
-          { atMs: 440, coefficient: 0.75 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Freeze Grenade',
         actorType: 'player',
         damageKind: 'explosion'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 400, condition: 'Chilled', stacks: 1, duration: 2 },
-          { atMs: 440, condition: 'Chilled', stacks: 1, duration: 2 },
-          { atMs: 440, condition: 'Chilled', stacks: 1, duration: 2 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
+        ticks: [400, 440, 440].map((atMs) => ({ atMs, condition: 'Chilled', stacks: 1, duration: 2 })),
         actorType: 'player'
       }
-    ],
+    ]),
     kit: 'Grenade Kit'
   },
   [ID.GRENADE_BARRAGE]: {

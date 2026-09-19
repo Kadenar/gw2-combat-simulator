@@ -9,29 +9,26 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     interruptCommitMs: 760,
     // The Light field begins with the first symbol pulse and lasts through the fifth.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 680, startAnchor: 'castStart' }],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
-      {
-        type: 'strike',
-        ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({
-          atMs,
-          coefficient: 0.6
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 680 + index * 1000,
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 3
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        {
+          type: 'strike',
+          ticks: [680, 1680, 2680, 3680, 4680].map((atMs) => ({
+            atMs,
+            coefficient: 0.6
+          }))
+        },
+        {
+          type: 'condition',
+          ticks: Array.from({ length: 5 }, (_, index) => ({
+            atMs: 680 + index * 1000,
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 3
+          }))
+        }
+      ]),
       {
         type: 'boon',
         boon: 'fury',
@@ -55,66 +52,46 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SEARING_SLASH]: {
     castTimeMs: 640,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 480, coefficient: 1.2 },
-          { atMs: 640, coefficient: 1.2 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 1.2 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Burning', stacks: 2, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 640, condition: 'Burning', stacks: 2, duration: 2 }]
       }
-    ]
+    ])
   },
   [ID.BLEEDING_EDGE]: {
     castTimeMs: 680,
     interruptCommitMs: 640,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 480, coefficient: 0.36 },
-          { atMs: 640, coefficient: 0.36 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [480, 640].map((atMs) => ({ atMs, coefficient: 0.36 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 1 }]
       }
-    ]
+    ])
   },
   [ID.CORE_CLEAVE]: {
     castTimeMs: 640,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 360, coefficient: 0.36 },
-          { atMs: 600, coefficient: 0.36 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [360, 600].map((atMs) => ({ atMs, coefficient: 0.36 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: 'Bleeding', stacks: 2, duration: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 600, condition: 'Bleeding', stacks: 2, duration: 1 }]
       }
-    ]
+    ])
   },
   [ID.BLAZING_EDGE]: {
     castTimeMs: 520,

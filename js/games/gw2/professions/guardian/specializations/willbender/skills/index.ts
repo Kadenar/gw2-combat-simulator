@@ -86,7 +86,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     castTimeMs: 960,
     interruptCommitMs: 920,
     cooldown: 15,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         // Resolve one bolt per strike so field expiry and ignition cooldowns apply to each pulse.
@@ -102,10 +103,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
               ambiguousFieldSelection: 'oldest' as const
             }
           ]
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -114,10 +112,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           condition: 'Weakness',
           stacks: 1,
           duration: 3
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -126,12 +121,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           condition: 'Burning',
           stacks: 1,
           duration: 3
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ]
+    ])
   },
   [ID.FLOWING_RESOLVE]: {
     castTimeMs: 520,

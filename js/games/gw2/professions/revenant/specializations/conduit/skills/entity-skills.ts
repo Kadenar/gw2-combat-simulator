@@ -2,6 +2,7 @@
  * Owns Conduit entity-legend weapon and stance skill fragments.
  * Cast behavior is routed through `execution/entities.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -45,23 +46,20 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
       ambiguousFieldSelection: 'oldest'
     }
   ],
-  effects: [
+  // Share timing defaults while preserving each packet, effect order, and local schedule.
+  effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
     {
       type: 'strike',
       ticks: [{ atMs: 880, coefficient: 2.5 }],
       name: 'Twin Moon Sweep — Player',
       actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed',
       metadata: { affinityOnHit: true }
     },
     {
       type: 'strike',
       ticks: [{ atMs: 880, coefficient: 2.5 }],
       name: 'Twin Moon Sweep — Fragment',
-      actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
+      actorType: 'player'
     },
     {
       type: 'condition',
@@ -71,9 +69,7 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
         stacks: 2,
         duration: 3
       })),
-      actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
+      actorType: 'player'
     },
     {
       type: 'boon',
@@ -82,16 +78,12 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
       duration: 8,
       applications: 2,
       intervalMs: 0,
-      atMs: 880,
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
+      atMs: 880
     },
     {
       type: 'condition',
       ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
       actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed',
       metadata: { legendId: LEGEND.ASSASSIN }
     },
     {
@@ -101,8 +93,6 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
       atMs: 1400,
       name: 'Twin Moon Sweep — Shatter',
       actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed',
       metadata: { legendId: LEGEND.DEMON }
     },
     {
@@ -114,11 +104,9 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
         duration: 3
       })),
       actorType: 'player',
-      timingAnchor: 'castStart',
-      timingScale: 'fixed',
       metadata: { legendId: LEGEND.DEMON }
     }
-  ],
+  ]),
   legendId: 'LegendaryEntity'
 };
 
@@ -135,7 +123,8 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     cooldown: 5,
     energyCost: 15,
     // Keep each projectile's strike and Torment on the same fixed impact tick.
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: 'Hex-Eater Vortex',
@@ -143,9 +132,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
         ticks: [440, 560, 680, 800, 920, 1040].map((atMs) => ({
           atMs,
           coefficient: 0.2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -156,11 +143,9 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
           condition: 'Torment',
           stacks: 1,
           duration: 1.5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ],
+    ]),
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {

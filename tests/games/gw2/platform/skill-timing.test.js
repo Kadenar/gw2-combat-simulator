@@ -54,6 +54,52 @@ test('shared impacts schedule ordered effects with local attribution and timing 
   assert.equal(Object.hasOwn(strike, 'atMs'), false);
 });
 
+// Shared defaults must preserve whole timelines and interval streams, including simultaneous hit identities.
+test('shared timeline defaults preserve packet indices and same-time scheduling order', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Pulses',
+        type: 'Utility',
+        castTimeMs: 400,
+        effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+          strikeTimeline([
+            { atMs: 100, coefficient: 1 },
+            { atMs: 300, coefficient: 1 },
+            { atMs: 300, coefficient: 1 }
+          ]),
+          conditionTimeline([
+            { atMs: 100, condition: 'Bleeding', stacks: 1, duration: 1 },
+            { atMs: 300, condition: 'Bleeding', stacks: 1, duration: 1 }
+          ]),
+          { type: 'boon', boon: 'might', duration: 1, applications: 2, atMs: 100, intervalMs: 200 }
+        ])
+      }
+    ]
+  });
+  const profession = defineProfession({ id: 'pulses', name: 'Pulses', catalog });
+  const result = simulateGw2({ profession, rotation: ['Pulses'] });
+  const packets = result.events.filter((event) => ['damage', 'condition', 'buff'].includes(event.type));
+  assert.deepEqual(
+    packets.map((event) => [
+      event.type,
+      Math.round(event.at * 1000),
+      event.hitIndex ?? event.applicationIndex,
+      event.totalHits ?? event.totalApplications
+    ]),
+    [
+      ['damage', 100, 1, 3],
+      ['condition', 100, 1, 2],
+      ['buff', 100, 1, 2],
+      ['damage', 300, 2, 3],
+      ['damage', 300, 3, 3],
+      ['condition', 300, 2, 2],
+      ['buff', 300, 2, 2]
+    ]
+  );
+});
+
 // Grouping is authoring sugar: malformed timing and payloads still fail at the catalog boundary.
 test('shared impacts retain canonical catalog validation', () => {
   const load = (timing, effect = { type: 'blind', duration: 1 }) =>

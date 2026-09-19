@@ -78,7 +78,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     // Resolve Soul Spiral per packet so interruption keeps landed hits while cancelling only later packets.
     interruptMode: 'per-packet',
     castTimeMs: 2160,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         comboFinishers: [
@@ -89,43 +90,21 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
             ambiguousFieldSelection: 'oldest'
           }
         ],
-        ticks: [
-          { atMs: 240, coefficient: 0.7 },
-          { atMs: 440, coefficient: 0.7 },
-          { atMs: 560, coefficient: 0.7 },
-          { atMs: 760, coefficient: 0.7 },
-          { atMs: 880, coefficient: 0.7 },
-          { atMs: 1080, coefficient: 0.7 },
-          { atMs: 1200, coefficient: 0.7 },
-          { atMs: 1400, coefficient: 0.7 },
-          { atMs: 1520, coefficient: 0.7 },
-          { atMs: 1720, coefficient: 0.7 },
-          { atMs: 1840, coefficient: 0.7 },
-          { atMs: 2040, coefficient: 0.7 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040].map((atMs) => ({
+          atMs,
+          coefficient: 0.7
+        }))
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 240, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 440, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 560, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 760, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 880, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1080, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1200, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1400, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1520, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1720, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 1840, condition: 'Poisoned', stacks: 1, duration: 2 },
-          { atMs: 2040, condition: 'Poisoned', stacks: 1, duration: 2 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040].map((atMs) => ({
+          atMs,
+          condition: 'Poisoned',
+          stacks: 1,
+          duration: 2
+        }))
       }
-    ],
+    ]),
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'reaper',

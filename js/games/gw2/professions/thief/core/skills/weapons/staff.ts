@@ -11,7 +11,8 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
     castTimeMs: 720,
     cooldown: 0,
     initiativeCost: 3,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [120, 240, 320].map((atMs) => ({
@@ -19,19 +20,15 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillF
           coefficient: 2.22 / 3
         })),
         name: 'Weakening Whirl',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         // Each connecting hit adds two seconds of weakness at the strike's timestamp.
         ticks: [120, 240, 320].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 2 })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       }
-    ],
+    ]),
     comboFinishers: [
       {
         ownerId: 'thief',

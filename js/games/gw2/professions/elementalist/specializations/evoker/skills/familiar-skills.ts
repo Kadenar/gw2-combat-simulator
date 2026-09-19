@@ -149,73 +149,18 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
     cooldown: 0,
     nextChainId: ID.ZAP,
     skillFamily: 'Familiar',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1120,
-            coefficient: 0.28
-          },
-          {
-            atMs: 1360,
-            coefficient: 0.28
-          },
-          {
-            atMs: 1600,
-            coefficient: 0.28
-          },
-          {
-            atMs: 1840,
-            coefficient: 0.28
-          },
-          {
-            atMs: 2080,
-            coefficient: 0.28
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({ atMs, coefficient: 0.28 }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1120,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 1360,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 1600,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 1840,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          },
-          {
-            atMs: 2080,
-            condition: 'Weakness',
-            stacks: 1,
-            duration: 3
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [1120, 1360, 1600, 1840, 2080].map((atMs) => ({ atMs, condition: 'Weakness', stacks: 1, duration: 3 })),
         metadata: {}
       }
-    ]
+    ])
   },
   [ID.CALCIFY]: {
     name: 'Calcify',

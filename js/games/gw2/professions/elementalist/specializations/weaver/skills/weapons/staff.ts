@@ -210,111 +210,28 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
     castTimeMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          {
-            atMs: 1280,
-            coefficient: 0.25
-          },
-          {
-            atMs: 2280,
-            coefficient: 0.25
-          },
-          {
-            atMs: 3280,
-            coefficient: 0.25
-          },
-          {
-            atMs: 4280,
-            coefficient: 0.25
-          },
-          {
-            atMs: 5280,
-            coefficient: 0.25
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.25 }))
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1280,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 2280,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 3280,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 4280,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 5280,
-            condition: 'Cripple',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, condition: 'Cripple', stacks: 1, duration: 2 })),
         metadata: {}
       },
       {
         type: 'condition',
-        ticks: [
-          {
-            atMs: 1280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 2280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 3280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 4280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          },
-          {
-            atMs: 5280,
-            condition: 'Immobilize',
-            stacks: 1,
-            duration: 2
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [1280, 2280, 3280, 4280, 5280].map((atMs) => ({
+          atMs,
+          condition: 'Immobilize',
+          stacks: 1,
+          duration: 2
+        })),
         metadata: {}
       }
-    ],
+    ]),
     specialization: 'Weaver'
   },
   [ID.PILE_DRIVER]: {

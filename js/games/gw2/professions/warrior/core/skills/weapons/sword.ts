@@ -159,36 +159,25 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
     dualWieldCastTimeMs: 720,
     // Interrupted replay keeps every Rend packet after its two-part attack commits.
     interruptCommitMs: 920,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 0.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        ticks: [{ atMs: 440, coefficient: 0.5 }]
       },
       {
         type: 'strike',
         ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Rend — Follow-Up Damage',
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        name: 'Rend — Follow-Up Damage'
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Immobilized', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        ticks: [{ atMs: 440, condition: 'Immobilized', stacks: 1, duration: 2 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 6, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
+        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 6, duration: 6 }]
       }
-    ]
+    ])
   }
 });

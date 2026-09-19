@@ -24,20 +24,17 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Each logged claw applies one Vulnerability stack at its own impact.
     interruptMode: 'per-packet',
     castTimeMs: 720,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 }))
       },
       {
         type: 'condition',
-        ticks: [400, 640].map((atMs) => ({ atMs, condition: 'Vulnerability', duration: 7, stacks: 1 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [400, 640].map((atMs) => ({ atMs, condition: 'Vulnerability', duration: 7, stacks: 1 }))
       }
-    ]
+    ])
   },
   [ID.UNHOLY_FEAST]: {
     // The impact precedes cast completion; its health-gated burst is scheduled from that impact.

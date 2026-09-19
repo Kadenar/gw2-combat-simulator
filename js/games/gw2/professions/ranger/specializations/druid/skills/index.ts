@@ -1,4 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -87,21 +88,18 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.NATURAL_CONVERGENCE]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [520, 1160, 1640].map((atMs) => ({
           atMs,
           coefficient: 0.75
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'strike',
-        ticks: [{ atMs: 2040, coefficient: 2 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 2040, coefficient: 2 }]
       },
       {
         type: 'condition',
@@ -113,9 +111,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
             duration: 1
           },
           { atMs, condition: 'Slow', stacks: 1, duration: 1 }
-        ]),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ])
       },
       {
         type: 'condition',
@@ -126,9 +122,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
             stacks: 1,
             duration: 4
           }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       },
       {
         type: 'strike',
@@ -145,9 +139,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
           coefficient: 0,
           flatDamage: 158,
           noCrit: true
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'control',
@@ -158,8 +150,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         applications: 4,
         atMs: 2640,
         intervalMs: 1520,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         controlKind: 'pull',
         skillName: 'Black Hole'
       },
@@ -169,11 +159,9 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
         duration: 10,
         stacks: 1,
         atMs,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }))
-    ],
+    ]),
     recharge: 10,
     cooldown: 10,
     castTimeMs: 2080,

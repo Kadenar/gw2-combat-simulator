@@ -1,4 +1,5 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -87,14 +88,12 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ammo: 3,
     ammoRecharge: 15,
     ammoCastLockout: 1,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         // Include the spirit's arrival delay: four strikes begin 1320 ms after cast start, 400 ms apart.
-        ticks: [1320, 1720, 2120, 2520].map((atMs) => ({ atMs, coefficient: 0.8 })),
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [1320, 1720, 2120, 2520].map((atMs) => ({ atMs, coefficient: 0.8 }))
       },
       {
         type: 'condition',
@@ -104,12 +103,9 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
           condition: 'Vulnerability',
           stacks: 3,
           duration: 8
-        })),
-        persistsAfterInterrupt: true,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ]
+    ])
   },
   [ID.PURGING_FLAMES]: {
     castTimeMs: 320,
@@ -122,24 +118,21 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
           atMs,
           coefficient: 0.2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       // Each field pulse applies the same Burning packet alongside its strike.
       ...[320, 1320, 2320, 3320, 4320, 5320].map((atMs) => ({
         type: 'condition' as const,
-        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 2 }],
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const
+        ticks: [{ atMs, condition: 'Burning', stacks: 1, duration: 2 }]
       }))
-    ]
+    ])
   },
   [ID.JUDGES_INTERVENTION]: {
     castTimeMs: 200,

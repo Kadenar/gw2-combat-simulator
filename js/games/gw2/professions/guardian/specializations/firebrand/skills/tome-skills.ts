@@ -13,15 +13,14 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
     handlerId: 'guardian.tome-page',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [440, 1440, 2440, 3440, 4440].map((atMs) => ({
           atMs,
           coefficient: 0.64
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       // Each pulse applies both conditions, retaining their separate durations and packet order.
       ...(
@@ -32,12 +31,10 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
       ).flatMap(({ condition, duration }) =>
         [440, 1440, 2440, 3440, 4440].map((atMs) => ({
           type: 'condition' as const,
-          ticks: [{ atMs, condition, stacks: 1, duration }],
-          timingAnchor: 'castStart' as const,
-          timingScale: 'fixed' as const
+          ticks: [{ atMs, condition, stacks: 1, duration }]
         }))
       )
-    ]
+    ])
   },
   [ID.IGNITING_BURST]: {
     castTimeMs: 480,

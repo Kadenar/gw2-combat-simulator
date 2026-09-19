@@ -240,12 +240,11 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   [ID.DISCHARGE_ARRAY]: mechCommand({
     castTimeMs: 0,
     cooldown: 30,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0 + index * 1000, coefficient: 1.5 / 5 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         name: 'Discharge Array',
         actorType: 'summon'
       },
@@ -257,8 +256,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
           stacks: 1,
           duration: 2
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'summon'
       },
       {
@@ -269,8 +266,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
           stacks: 2,
           duration: 3
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'summon'
       },
       {
@@ -281,11 +276,9 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
           stacks: 1,
           duration: 3
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         actorType: 'summon'
       }
-    ],
+    ]),
     mechanicSlot: 2
   })
 });

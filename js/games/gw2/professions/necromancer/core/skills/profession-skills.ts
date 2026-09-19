@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
@@ -63,68 +64,49 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   [ID.LIFE_TRANSFER]: {
     castTimeMs: 2920,
     // Snap each original 222 ms pulse independently to 40 ms, keeping strikes and bleeding synchronized.
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 240, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 680, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 680, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 880, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1120, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1120, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1320, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1320, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1560, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1560, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1760, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 1760, condition: 'Bleeding', stacks: 1, duration: 3 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2000, condition: 'Bleeding', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 2000, condition: 'Bleeding', stacks: 1, duration: 3 }]
       }
-    ],
+    ]),
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'death',

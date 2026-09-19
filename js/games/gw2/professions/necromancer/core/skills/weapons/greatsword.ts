@@ -39,6 +39,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     interruptCommitMs: 440,
     castTimeMs: 480,
     lifeForcePerPulse: 7,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
@@ -49,29 +50,25 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         timingScale: 'fixed',
         persistsAfterInterrupt: true
       },
-      {
-        type: 'blind',
-        applications: 4,
-        atMs: 400,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 2,
-        applications: 4,
-        atMs: 400,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      }
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+        {
+          type: 'blind',
+          applications: 4,
+          atMs: 400,
+          intervalMs: 1000,
+          intervalTimingScale: 'fixed'
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2,
+          applications: 4,
+          atMs: 400,
+          intervalMs: 1000,
+          intervalTimingScale: 'fixed'
+        }
+      ])
     ],
     // Custom: Checks field commitment and grants life force with each committed pulse; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.nightfall'

@@ -102,6 +102,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   [ID.REFRACTION_CUTTER_NON_HOLOSMITH]: {
     castTimeMs: 520,
     cooldown: 6,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
@@ -110,33 +111,31 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         name: 'Refraction Cutter (non-holosmith) — Packet 1',
         actorType: 'player'
       },
-      {
-        type: 'strike',
-        ticks: [40, 80].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        name: 'Refraction Cutter Blade',
-        // Report projectile damage separately while retaining the parent sword cast.
-        damageBreakdownName: 'Refraction Cutter Blade',
-        sourceId: ID.REFRACTION_CUTTER_BLADE,
-        actorType: 'player',
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: 'Projectile',
-            preferredFieldTypes: ['Fire'],
-            ambiguousFieldSelection: 'oldest'
-          }
-        ],
-        projectile: true
-      },
-      {
-        type: 'condition',
-        ticks: [40, 80].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 4 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: 'player'
-      }
+      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          ticks: [40, 80].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
+          name: 'Refraction Cutter Blade',
+          // Report projectile damage separately while retaining the parent sword cast.
+          damageBreakdownName: 'Refraction Cutter Blade',
+          sourceId: ID.REFRACTION_CUTTER_BLADE,
+          actorType: 'player',
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Projectile',
+              preferredFieldTypes: ['Fire'],
+              ambiguousFieldSelection: 'oldest'
+            }
+          ],
+          projectile: true
+        },
+        {
+          type: 'condition',
+          ticks: [40, 80].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 4 })),
+          actorType: 'player'
+        }
+      ])
     ]
   }
 });

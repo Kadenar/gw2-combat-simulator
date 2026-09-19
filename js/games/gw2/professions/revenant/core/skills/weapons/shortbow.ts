@@ -9,28 +9,21 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 760,
     cooldown: 3,
     energyCost: 4,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: 'Bloodbane Path',
         actorType: 'player',
-        ticks: [
-          { atMs: 600, coefficient: 0.4 },
-          { atMs: 720, coefficient: 0.4 },
-          { atMs: 840, coefficient: 0.4 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [600, 720, 840].map((atMs) => ({ atMs, coefficient: 0.4 }))
       },
       {
         type: 'condition',
         // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
         ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 1, duration: 6 })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.SHATTERSHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -109,41 +102,20 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         name: 'Sevenshot',
         actorType: 'player',
-        ticks: [
-          { atMs: 0, coefficient: 0.31 },
-          { atMs: 160, coefficient: 0.31 },
-          { atMs: 200, coefficient: 0.31 },
-          { atMs: 360, coefficient: 0.31 },
-          { atMs: 400, coefficient: 0.31 },
-          { atMs: 600, coefficient: 0.31 },
-          { atMs: 600, coefficient: 0.31 }
-        ],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({ atMs, coefficient: 0.31 }))
       },
       {
         type: 'condition',
         actorType: 'player',
-        ticks: [
-          { atMs: 0, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 160, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 200, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 360, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 400, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 },
-          { atMs: 600, condition: 'Torment', stacks: 1, duration: 4 }
-        ],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [0, 160, 200, 360, 400, 600, 600].map((atMs) => ({ atMs, condition: 'Torment', stacks: 1, duration: 4 }))
       }
-    ]
+    ])
   },
   [ID.SPIRITCRUSH]: {
     castTimeMs: 400,
@@ -158,22 +130,19 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 1320, coefficient: 1.25 }],
         name: 'Initial Damage',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 2320 + index * 1000, coefficient: 0.75 / 3 })),
         name: 'Spiritcrush — Fire Field',
         actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         metadata: {}
       },
       {
@@ -184,8 +153,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 3
         })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       },
       {
@@ -196,10 +163,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
           stacks: 1,
           duration: 1.5
         })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         actorType: 'player'
       }
-    ]
+    ])
   }
 });

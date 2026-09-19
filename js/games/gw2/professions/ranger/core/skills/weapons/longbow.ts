@@ -1,18 +1,18 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BARRAGE]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [1440, 1920, 2400, 2880, 3480, 4080, 4680, 5280, 5880, 6480, 7080, 7680].map((atMs) => ({
           atMs,
           coefficient: 0.5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -21,21 +21,18 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
           condition: 'Crippled',
           stacks: 1,
           duration: 1
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ],
+    ]),
     castTimeMs: 1880
   },
   [ID.RAPID_FIRE]: {
     interruptMode: 'per-packet',
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: [360, 520, 680, 840, 1000, 1160, 1320, 1480, 1640, 1800].map((atMs) => ({ atMs, coefficient: 0.6 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -52,11 +49,9 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillF
           condition: 'Vulnerability',
           stacks: 1,
           duration: 10
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        }))
       }
-    ],
+    ]),
     castTimeMs: 1800,
     missileHits: 10
   },

@@ -2,6 +2,7 @@
  * Owns Mechanist signet skill fragments.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -28,14 +29,12 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
     castTimeMs: 880,
     interruptCommitMs: 560,
     cooldown: 30,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 560 + index * 1000, coefficient: 2.4 / 6 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         intervalTimingScale: 'fixed',
-        persistsAfterInterrupt: true,
         comboFields: [{ ownerId: 'engineer', fieldType: 'Lightning', duration: 5, startAnchor: 'event' }],
         name: 'Superconducting Signet',
         actorType: 'player'
@@ -46,10 +45,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         atMs: 560,
         applications: 6,
         intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         intervalTimingScale: 'fixed',
-        persistsAfterInterrupt: true,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -60,10 +56,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         atMs: 560,
         applications: 6,
         intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         intervalTimingScale: 'fixed',
-        persistsAfterInterrupt: true,
         stacks: 1,
         duration: 3,
         actorType: 'player'
@@ -74,15 +67,12 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillFrag
         atMs: 560,
         applications: 6,
         intervalMs: 1000,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         intervalTimingScale: 'fixed',
-        persistsAfterInterrupt: true,
         stacks: 1,
         duration: 3,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.FORCE_SIGNET]: {
     castTimeMs: 520,

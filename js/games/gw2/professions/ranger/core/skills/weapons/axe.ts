@@ -92,7 +92,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [
@@ -100,9 +101,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
           // Use the short return window for normal, close-range throws.
           { atMs: 480, coefficient: 1.2 }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -115,12 +113,9 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragm
         type: 'control',
         // Pull and Claw activation belong to the returning contact.
         atMs: 480,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         controlKind: 'pull'
       }
-    ],
+    ]),
     castTimeMs: 440,
     missileHits: 2
   },
@@ -176,7 +171,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         timingAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         // Range changes the return timing, but both variants belong to the same damage breakdown row.
@@ -186,9 +182,6 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
           // Maximum range uses the long return window; the pull waits for this contact.
           { atMs: 1920, coefficient: 1.2 }
         ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -201,11 +194,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'control',
         // Keep the pull on the return contact, including when the player has already swapped weapons.
         atMs: 1920,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         controlKind: 'pull'
       }
-    ]
+    ])
   }
 ]);

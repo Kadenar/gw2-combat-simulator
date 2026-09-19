@@ -82,26 +82,23 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     handlerId: 'guardian.radiant-weapon',
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       // The initial staff impact grants Protection independently of the symbol's Resolution pulses.
       {
         type: 'boon',
         boon: 'protection',
         duration: 4,
         atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         audience: { recipients: 'party' }
       },
       {
         type: 'strike',
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
         ticks: [440, 1440, 2440, 3440].map((atMs) => ({ atMs, coefficient: 1.2 / 4 })),
-        name: 'Luminous Staff — Symbol Damage',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        name: 'Luminous Staff — Symbol Damage'
       }
-    ]
+    ])
   },
   [ID.SHINING_SPIN]: {
     castTimeMs: 480,

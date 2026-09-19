@@ -44,40 +44,30 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 760,
     cooldown: 8,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.5 / 2 })),
         name: 'Eternal Night',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Chilled', stacks: 1, duration: 2 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 680, condition: 'Weakness', stacks: 1, duration: 4 }],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        actorType: 'player'
       },
       {
         type: 'condition',
-        ticks: [
-          { atMs: 360, condition: 'Poisoned', stacks: 2, duration: 4 },
-          { atMs: 680, condition: 'Poisoned', stacks: 2, duration: 4 }
-        ],
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ticks: [360, 680].map((atMs) => ({ atMs, condition: 'Poisoned', stacks: 2, duration: 4 })),
+        actorType: 'player'
       }
-    ],
+    ]),
     shadowShroudSkill: true
   },
   [ID.GRASPING_SHADOWS]: {
@@ -249,14 +239,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     castTimeMs: 600,
     cooldown: 20,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 400 + index * 1000, coefficient: 1.11 / 5 })),
         name: 'Well of Sorrow',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -267,11 +256,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
           { atMs: 3400, condition: 'Poisoned', stacks: 3, duration: 6 },
           { atMs: 4400, condition: 'Torment', stacks: 2, duration: 6 }
         ],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.WELL_OF_GLOOM]: {
     movementSkill: true,

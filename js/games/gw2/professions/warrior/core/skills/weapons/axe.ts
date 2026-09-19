@@ -137,15 +137,11 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
     cooldown: 6,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 200, coefficient: 0.88 },
-          { atMs: 360, coefficient: 0.88 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
+        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 0.88 })),
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -162,9 +158,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         stacks: 1,
         applications: 2,
         intervalMs: 160,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 200
       },
       {
         type: 'condition',
@@ -173,10 +167,8 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillF
         duration: 8,
         applications: 2,
         intervalMs: 160,
-        atMs: 200,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 200
       }
-    ]
+    ])
   }
 });

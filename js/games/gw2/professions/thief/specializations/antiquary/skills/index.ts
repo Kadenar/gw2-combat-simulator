@@ -95,22 +95,19 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.4 }],
         name: 'Forged Surfer Dash — Packet 1',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [0, 120, 200, 320, 400].map((atMs) => ({ atMs, coefficient: 6 / 5 })),
         name: 'Additional Bomb Damage',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -120,18 +117,14 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           stacks: 1,
           duration: 3.5
         })),
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: 'Burning', stacks: 1, duration: 6 }],
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ],
+    ]),
     artifactKind: 'offensive'
   },
   [ID.HOLO_DANCER_DECOY]: {
@@ -382,14 +375,13 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 8 }, (_, index) => ({ atMs: 760 + index * 400, coefficient: 2.8 / 8 })),
         name: 'Summon Kryptis Turret',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -399,11 +391,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           stacks: 1,
           duration: 4
         })),
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ],
+    ]),
     artifactKind: 'offensive'
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309]: {
@@ -527,14 +517,13 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [520, 1520, 2520, 3520, 4520].map((atMs) => ({ atMs, coefficient: 2.5 / 5 })),
         name: 'Mistburn Mortar',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -544,11 +533,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           stacks: 1,
           duration: 1.5
         })),
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       }
-    ],
+    ]),
     artifactKind: 'offensive'
   },
   [ID.SKRITT_SWIPE]: {

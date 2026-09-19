@@ -41,15 +41,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
     castTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 400 + index * 120, coefficient: 1.2 / 3 })),
         name: 'Banish Enchantment',
         actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -60,9 +58,6 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
           stacks: 1,
           duration: 1
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {},
         actorType: 'player'
       },
@@ -74,13 +69,10 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
           stacks: 1,
           duration: 3
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         metadata: {},
         actorType: 'player'
       }
-    ],
+    ]),
     legendId: 'LegendaryDemon'
   },
   [ID.CALL_TO_ANGUISH]: {

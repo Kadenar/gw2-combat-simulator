@@ -10,23 +10,17 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MAUL_ID_41406]: {
     interruptCommitMs: 400,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 400, coefficient: 1.11 },
-          { atMs: 440, coefficient: 1.11 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [400, 440].map((atMs) => ({ atMs, coefficient: 1.11 }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 2, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 400, condition: 'Bleeding', stacks: 2, duration: 6 }]
       }
-    ],
+    ]),
     castTimeMs: 560
   },
   [ID.BRUTAL_CHARGE_ID_46432]: {

@@ -57,15 +57,11 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
     ],
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 440, coefficient: 1.25 },
-          { atMs: 520, coefficient: 1.25 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        ticks: [440, 520].map((atMs) => ({ atMs, coefficient: 1.25 })),
         comboFinishers: [
           {
             ownerId: 'warrior',
@@ -79,11 +75,9 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'control',
         atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
         controlKind: 'knockdown'
       }
-    ]
+    ])
   },
   [ID.POMMEL_BASH]: {
     cooldown: 10,

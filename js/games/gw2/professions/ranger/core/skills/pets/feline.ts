@@ -149,27 +149,24 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
     petSkill: true
   },
   [ID.FELINE_MAUL]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [360, 560].map((atMs) => ({
           atMs,
           coefficient: 0.4
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'condition',
         ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 4, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 840,
     petSkill: true
   },

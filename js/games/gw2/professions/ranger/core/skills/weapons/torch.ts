@@ -1,18 +1,18 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.BONFIRE]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 9 }, (_, index) => ({
           atMs: index * 1000,
           coefficient: 0.1
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -24,11 +24,9 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillFra
             stacks: 1,
             duration: 1
           }))
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       }
-    ],
+    ]),
     recharge: 25,
     cooldown: 25,
     // Match the measured Quickness animation from the benchmark EVTC.

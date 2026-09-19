@@ -76,7 +76,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     castTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         name: 'Elemental Blast',
@@ -97,9 +98,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
             coefficient: 1.5,
             name: 'Elemental Blast — Pulse 3'
           }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       },
       {
         type: 'condition',
@@ -123,11 +122,9 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
             stacks: 2,
             duration: 4
           }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        ]
       }
-    ],
+    ]),
     legendId: 'LegendaryDragon',
     consume: true
   },
@@ -205,25 +202,22 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     castTimeMs: 840,
     cooldown: 12,
     energyCost: 0,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.2 / 2 })),
         name: 'Burst of Strength',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         type: 'buff',
         kind: 'burst-of-strength',
         duration: 10,
         stacks: 1,
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 360
       }
-    ],
+    ]),
     legendId: 'LegendaryDragon',
     consume: true
   },

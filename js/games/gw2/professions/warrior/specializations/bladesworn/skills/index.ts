@@ -1,4 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
@@ -411,13 +412,13 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_BLOOMING_FIRE, ID.BLOOMING_FIRE, 'Blooming Fire', {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         name: 'Blooming Fire — Blade',
         coefficient: 0.5,
-        hits: 1,
-        persistsAfterInterrupt: true
+        hits: 1
       },
       {
         type: 'strike',
@@ -425,15 +426,13 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
         coefficient: 0.3,
         hits: 3,
         atMs: 0,
-        damageKind: 'explosion',
-        persistsAfterInterrupt: true
+        damageKind: 'explosion'
       },
       {
         type: 'condition',
-        ticks: Array.from({ length: 3 }, () => ({ atMs: 0, condition: 'Burning', stacks: 1, duration: 3 })),
-        persistsAfterInterrupt: true
+        ticks: Array.from({ length: 3 }, () => ({ atMs: 0, condition: 'Burning', stacks: 1, duration: 3 }))
       }
-    ]
+    ])
   }),
   sharpAsTheWindVariant(ID.SHARP_ARTILLERY_SLASH, ID.ARTILLERY_SLASH, 'Artillery Slash', {}),
   sharpAsTheWindVariant(ID.SHARP_CYCLONE_TRIGGER, ID.CYCLONE_TRIGGER, 'Cyclone Trigger', {

@@ -77,15 +77,14 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
     petSkill: true
   },
   [ID.NARCOTIC_SPORES_PET]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [720, 1720, 2720, 3720, 4720, 5720].map((atMs) => ({
           atMs,
           coefficient: 0.1
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       },
@@ -97,12 +96,10 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
           stacks: 1,
           duration: 8
         })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
+    ]),
     quicknessCastTimeMs: 720,
     comboFields: [
       {

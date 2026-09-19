@@ -1,4 +1,5 @@
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -29,14 +30,13 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         startAnchor: 'castEnd'
       }
     ],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
         name: 'Six pulses',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        actorType: 'player'
       },
       {
         // Only the first impact dazes; subsequent field pulses do not repeat the CC.
@@ -44,11 +44,9 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Skill
         controlKind: 'daze',
         source: 'Player',
         actorType: 'player',
-        atMs: CHAOS_STORM_PULSES_MS[0],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: CHAOS_STORM_PULSES_MS[0]
       }
-    ],
+    ]),
     castTimeMs: 480
   },
   [ID.PHANTASMAL_WARLOCK]: {

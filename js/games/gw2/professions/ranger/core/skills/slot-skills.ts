@@ -1,4 +1,5 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -35,31 +36,29 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 333
   },
   [ID.SIGNET_OF_THE_WILD]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [520, 1520, 2520, 3520].map((atMs) => ({
           atMs,
           coefficient: 0.2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       ...[520, 1520, 2520, 3520].map((atMs) => ({
         type: 'condition' as const,
         condition: 'Immobilized',
         stacks: 1,
         duration: 1,
-        atMs,
-        timingAnchor: 'castStart' as const,
-        timingScale: 'fixed' as const
+        atMs
       }))
-    ],
+    ]),
     castTimeMs: 520
   },
   [ID.FROST_TRAP]: {
     interruptCommitMs: 440,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'condition',
         ticks: [880, 1880, 2880, 3880, 4880].map((atMs) => ({
@@ -67,22 +66,16 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           condition: 'Chilled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'strike',
         ticks: [880, 1880, 2880, 3880, 4880].map((atMs) => ({
           atMs,
           coefficient: 1
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ],
+    ]),
     castTimeMs: 520,
     comboFields: [
       {
@@ -147,16 +140,14 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
   },
   [ID.VIPERS_NEST]: {
     interruptCommitMs: 440,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [1400, 2400, 3400].map((atMs) => ({
           atMs,
           coefficient: 0.3
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       },
       {
         type: 'condition',
@@ -165,12 +156,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           condition: 'Poisoned',
           stacks: 2,
           duration: 8
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ],
+    ]),
     // Match the measured Quickness animation from the benchmark EVTC.
     castTimeMs: 600,
     comboFields: [
@@ -236,13 +224,11 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     interruptCommitMs: 500,
     // Arm after placement, then preserve the trap's pulses and field independently of later casts.
     // ponytail: nominal half-second pulse spacing; calibrate these offsets against a live combat log if needed.
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [520, 520, 1000, 1520, 2000, 2520].map((atMs) => ({ atMs, coefficient: 0.3 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
         name: 'Flame Trap - Damage per Pulse'
       },
       {
@@ -252,12 +238,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           condition: 'Burning',
           stacks: 1,
           duration: 2.5
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ],
+    ]),
     comboFields: [{ ownerId: 'ranger', fieldType: 'Fire', duration: 3, startMs: 520, startAnchor: 'castEnd' }],
     castTimeMs: 333
   },
@@ -329,15 +312,14 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 1000
   },
   [ID.ENTANGLE]: {
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [1560, 3080, 4600, 6120, 7640].map((atMs) => ({
           atMs,
           coefficient: 0.16
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -346,9 +328,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           condition: 'Bleeding',
           stacks: 1,
           duration: 8
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -357,11 +337,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
           condition: 'Immobilized',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        }))
       }
-    ],
+    ]),
     // Match the measured Quickness animation from the benchmark EVTC.
     castTimeMs: 680
   },

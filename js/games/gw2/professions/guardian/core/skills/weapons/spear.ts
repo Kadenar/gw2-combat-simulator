@@ -99,29 +99,24 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 20,
     // The Light field begins on the initial impact and lasts four seconds.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 360, startAnchor: 'castStart' }],
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: [{ atMs: 360, coefficient: 1.5 }],
-        name: 'Symbol of Luminance — Initial',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        name: 'Symbol of Luminance — Initial'
       },
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 360 + index * 1000, coefficient: 2.5 / 5 })),
-        name: 'Symbol of Luminance',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        name: 'Symbol of Luminance'
       },
       {
         // The knockback belongs to the initial impact, not the recurring symbol pulses.
         type: 'control',
         controlKind: 'knockback',
-        atMs: 360,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
+        atMs: 360
       }
-    ]
+    ])
   }
 });

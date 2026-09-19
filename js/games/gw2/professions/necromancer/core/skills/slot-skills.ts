@@ -69,13 +69,11 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     // The well commits after 320 ms, allowing its remaining pulses to continue after a later interruption.
     interruptCommitMs: 320,
     castTimeMs: 480,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 1 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        ticks: [280, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 1 }))
       },
       {
         type: 'condition',
@@ -84,12 +82,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Vulnerability',
           stacks: 2,
           duration: 5
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
+        }))
       }
-    ]
+    ])
   },
   [ID.SUMMON_BLOOD_FIEND]: {
     castTimeMs: 680,
@@ -105,12 +100,11 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PLAGUELANDS]: {
     castTimeMs: 920,
-    effects: [
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 3.51 / 9 }))
       },
       {
         type: 'condition',
@@ -119,9 +113,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Bleeding',
           stacks: 1,
           duration: 8
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -130,9 +122,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Poisoned',
           stacks: 1,
           duration: 5
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -141,45 +131,31 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Torment',
           stacks: 1,
           duration: 5
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 4000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 5000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 6000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 7000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 8000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 9000, condition: 'Vulnerability', stacks: 1, duration: 8 }]
       },
       {
         type: 'condition',
@@ -188,9 +164,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Crippled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
@@ -199,17 +173,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Weakness',
           stacks: 1,
           duration: 3
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'blind',
         applications: 3,
         atMs: 7000,
         intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
         duration: 3
       },
       {
@@ -219,17 +189,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
           condition: 'Chilled',
           stacks: 1,
           duration: 2
-        })),
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        }))
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }],
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        ticks: [{ atMs: 9000, condition: 'Burning', stacks: 1, duration: 10 }]
       }
-    ],
+    ]),
     // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
@@ -340,6 +306,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_DARKNESS]: {
     castTimeMs: 480,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
@@ -348,28 +315,26 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'blind',
-        applications: 6,
-        atMs: 280,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        duration: 3
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        applications: 6,
-        atMs: 280,
-        intervalMs: 1000,
-        intervalTimingScale: 'fixed',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
+      ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'blind',
+          applications: 6,
+          atMs: 280,
+          intervalMs: 1000,
+          intervalTimingScale: 'fixed',
+          duration: 3
+        },
+        {
+          type: 'condition',
+          condition: 'Chilled',
+          stacks: 1,
+          duration: 2,
+          applications: 6,
+          atMs: 280,
+          intervalMs: 1000,
+          intervalTimingScale: 'fixed'
+        }
+      ])
     ]
   },
   [ID.SIGNET_OF_UNDEATH]: {
