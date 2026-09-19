@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -8,83 +9,43 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
     interruptCommitMs: 640,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 0.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 3, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.8 },
+        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10 }
+      ]
+    )
   },
   [ID.PUTRID_CURSE]: {
     castTimeMs: 600,
     interruptCommitMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Poisoned', stacks: 1, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.5 },
+        { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 },
+        { type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }
+      ]
+    )
   },
   [ID.BLOOD_CURSE]: {
     castTimeMs: 440,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.35 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.35 },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 }
+    ])
   },
   [ID.RENDING_CURSE]: {
     castTimeMs: 600,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 0.35 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Bleeding', stacks: 1, duration: 4.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.35 },
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4.5 }
+    ])
   },
   [ID.FEAST_OF_CORRUPTION]: {
     castTimeMs: 600,

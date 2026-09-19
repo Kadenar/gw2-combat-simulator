@@ -1,31 +1,17 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.VILE_BLAST]: {
     castTimeMs: 600,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 5, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'control',
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'control'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1 },
+      { type: 'condition', condition: 'Poisoned', stacks: 5, duration: 6 },
+      { type: 'control', controlKind: 'control' }
+    ]),
     lifeForceGain: 4
   },
   [ID.WEEPING_SHOTS]: {
@@ -88,19 +74,10 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 360, coefficient: 0.65 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 360, condition: 'Torment', stacks: 1, duration: 3.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.65 },
+      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3.5 }
+    ])
   }
 });

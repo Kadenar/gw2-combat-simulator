@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
@@ -800,7 +801,8 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     [840, 1840, 2840, 3840, 4840]
   );
   assert.deepEqual(
-    executionersScythe.effects.find((effect) => effect.type === 'strike').ticks.map((tick) => tick.atMs),
+    // The landing strike may share impact timing while the lingering field keeps its own timeline.
+    strikeEffectTicks(executionersScythe.effects.find((effect) => effect.type === 'strike')).map((tick) => tick.atMs),
     [840]
   );
   assert.deepEqual(

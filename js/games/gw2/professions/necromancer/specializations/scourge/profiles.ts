@@ -1,3 +1,4 @@
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -141,26 +142,12 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.sandstormShroud,
     name: 'Sandstorm Shroud - Pulses',
     profileKind: 'skill-variant',
+    // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        atMs: 3500,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
-      {
-        type: 'condition',
-        condition: 'Torment',
-        stacks: 6,
-        duration: 5,
-        atMs: 3500,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: 'player'
-      },
+      ...impactEffects({ atMs: 3500, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        { type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
+        { type: 'condition', condition: 'Torment', stacks: 6, duration: 5, actorType: 'player' }
+      ]),
       {
         type: 'boon',
         boon: 'protection',

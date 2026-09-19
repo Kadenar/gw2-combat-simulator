@@ -5,6 +5,7 @@ import test from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -455,7 +456,8 @@ test('Necromancer single-hit skills use their configured offsets', () => {
 
     assert.equal(strike?.timingAnchor, 'castStart', skill.name);
     assert.equal(strike?.timingScale, 'cast', skill.name);
-    assert.equal(Math.round(strike.ticks[0].atMs), expectedOffset, skill.name);
+    // Read either canonical effect form so shared impacts retain the same timing contract.
+    assert.equal(Math.round(effectFirstAtMs(strike)), expectedOffset, skill.name);
   }
 
   const devouringDarkness = simulate('Core', ['Devouring Darkness'], {

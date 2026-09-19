@@ -239,10 +239,11 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
 });
 
 test('Catalyst zero-damage finishers preserve combo metadata', () => {
+  // Finishers may live on a singleton impact or a timeline packet.
   const zeroCoefficientFinisher = (name, finisherType) =>
     elementalistCatalog.skillsByName
       .get(name)
-      .effects.flatMap((effect) => effect.ticks || [])
+      .effects.flatMap((effect) => effect.ticks ?? [effect])
       .some(
         (tick) =>
           tick.coefficient === 0 && tick.comboFinishers?.some((finisher) => finisher.finisherType === finisherType)

@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -43,20 +44,11 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Blood Is Power cannot cancel its remaining aftercast, so importers and the scheduler retain the full cast lane.
     interruptCommitMs: 600,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 0.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 4, duration: 15 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 0.5 },
+      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 15 }
+    ]),
     // Custom: Applies the skill's self-condition and Master of Corruption/Plague Sending rules; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.corruption'
   },
@@ -400,57 +392,17 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SIGNET_OF_SPITE]: {
     castTimeMs: 880,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 560, coefficient: 1 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Bleeding', stacks: 2, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Poisoned', stacks: 2, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Torment', stacks: 2, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'blind',
-        atMs: 560,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        duration: 5
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Crippled', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Vulnerability', stacks: 5, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 560, condition: 'Weakness', stacks: 1, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1 },
+      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
+      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 10 },
+      { type: 'condition', condition: 'Torment', stacks: 2, duration: 6 },
+      { type: 'blind', duration: 5 },
+      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 10 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10 },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 10 }
+    ])
   },
   [ID.SUMMON_FLESH_GOLEM]: {
     castTimeMs: 680,

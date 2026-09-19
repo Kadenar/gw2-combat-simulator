@@ -1,14 +1,16 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.EXTIRPATE]: {
     castTimeMs: 840,
-    effects: [
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 760, coefficient: 3.8 }],
+        coefficient: 3.8,
         comboFinishers: [
           {
             ownerId: 'necromancer',
@@ -16,35 +18,12 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             applications: 3,
             ambiguousFieldSelection: 'oldest'
           }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
+        ]
       },
-      {
-        type: 'boon',
-        boon: 'Might',
-        duration: 8,
-        stacks: 5,
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 760, condition: 'Weakness', stacks: 1, duration: 3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'buff',
-        kind: 'extirpation',
-        duration: 4,
-        stacks: 3,
-        atMs: 760,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+      { type: 'boon', boon: 'Might', duration: 8, stacks: 5 },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
+      { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
+    ]),
     lifeForceGain: 12,
     // Custom: Adds Soul Shards on the first committed hit; see `core/execution/spear.ts`.
     handlerId: 'necromancer.extirpate'
@@ -92,23 +71,11 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SINISTER_STAB]: {
     castTimeMs: 560,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 520, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        atMs: 520,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.8 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
+    ]),
     lifeForceGain: 5,
     // Custom: Adds one Soul Shard after the attack; see `core/execution/spear.ts`.
     handlerId: 'necromancer.sinister-stab'
@@ -166,29 +133,12 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.ISOLATE]: {
     castTimeMs: 480,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 440, coefficient: 2.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        atMs: 440,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        duration: 3
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 440, condition: 'Vulnerability', stacks: 8, duration: 8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.4 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 8, duration: 8 }
+    ]),
     flipDuration: 3,
     flipActivationAtMs: 440
   },

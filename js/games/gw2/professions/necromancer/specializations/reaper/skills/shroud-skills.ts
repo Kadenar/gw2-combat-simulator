@@ -2,6 +2,7 @@
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
  * Persistent shroud state remains in `mechanics/reaper-shroud.ts`.
  */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
@@ -136,25 +137,20 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     interruptCommitMs: 920,
     castTimeMs: 1320,
     // EVTC places the strike and first Chill at 840 ms, followed by four fixed one-second field pulses.
+    // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 840, coefficient: 4 }],
-        comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        coefficientModifiers: [
-          { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
-          { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
-        ]
-      },
-      {
-        type: 'control',
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'stun'
-      },
+      ...impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 4,
+          comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
+          coefficientModifiers: [
+            { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
+            { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
+          ]
+        },
+        { type: 'control', controlKind: 'stun' }
+      ]),
       {
         type: 'condition',
         ticks: [840, 1840, 2840, 3840, 4840].map((atMs) => ({
@@ -188,6 +184,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
   },
   [ID.DEATHS_CHARGE]: {
     castTimeMs: 1200,
+    // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
       {
         type: 'strike',
@@ -205,19 +202,10 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1160, coefficient: 1.625 }],
-        name: "Death's Charge — Final Strike",
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'blind',
-        atMs: 1160,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      ...impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+        { type: 'strike', coefficient: 1.625, name: "Death's Charge — Final Strike" },
+        { type: 'blind' }
+      ])
     ],
     type: 'Profession',
     slot: 'Weapon_2',

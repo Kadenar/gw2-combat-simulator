@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -21,33 +22,15 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     commitAtMs: 120,
     castTimeMs: 520,
     lifeForceOnHit: 10,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1440, coefficient: 1.3 }],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 4,
-        atMs: 1440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'control',
-        atMs: 1440,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        controlKind: 'pull'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 1440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1.3 },
+        { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 },
+        { type: 'control', controlKind: 'pull' }
+      ]
+    ),
     // Custom: Checks projectile commitment and grants life force on the committed hit; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.grasping-darkness'
   },
@@ -97,23 +80,11 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     castTimeMs: 920,
     // Once the strike lands, the next skill may safely cancel the remaining Chilling Scythe aftercast.
     interruptCommitMs: 720,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 720, coefficient: 1.8 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        condition: 'Chilled',
-        stacks: 1,
-        duration: 2,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 1.8 },
+      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
+    ]),
     lifeForceGain: 5,
     // Custom: Resets Gravedigger after a committed strike; see `core/execution/greatsword.ts`.
     handlerId: 'necromancer.chilling-scythe'

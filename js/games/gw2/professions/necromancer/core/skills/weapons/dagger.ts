@@ -1,24 +1,16 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.DARK_PACT]: {
     castTimeMs: 680,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 640, coefficient: 2.4 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 640, condition: 'Bleeding', stacks: 2, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ],
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.4 },
+      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
+    ]),
     // Dark Pact grants 5% life force only after ripping a boon; its impact handler owns the self-bleed and immobilize.
     lifeForceGain: 5,
     // Custom: Applies self-bleeding and target immobilize only after the first hit; see `core/mechanics/conditions.ts`.
@@ -79,29 +71,15 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     // The ground packet commits before its delayed impact; cancelling retains the full cast lockout.
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1200, coefficient: 1.5 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1200, condition: 'Bleeding', stacks: 3, duration: 10 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 1200, condition: 'Weakness', stacks: 1, duration: 6 }],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        persistsAfterInterrupt: true
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects(
+      { atMs: 1200, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1.5 },
+        { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10 },
+        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+      ]
+    )
   },
   [ID.LIFE_SIPHON]: {
     castTimeMs: 560,

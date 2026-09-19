@@ -329,9 +329,10 @@ test('Elementalist canonical strike timelines retain per-packet combat metadata'
 });
 
 test('Elementalist canonical timelines retain causal and hitbox order for same-time packets', () => {
+  // Mixed timeline and shared-impact layers keep the same offensive companion ordering.
   const glyphOfStormsAir = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
   const packets = glyphOfStormsAir.effects.flatMap((effect) =>
-    effect.ticks
+    (effect.ticks ?? [effect])
       .filter(({ atMs }) => atMs === 880)
       .map((tick) => [
         effect.type,

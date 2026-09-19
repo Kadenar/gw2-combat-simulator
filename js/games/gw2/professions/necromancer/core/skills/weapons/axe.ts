@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
@@ -43,25 +44,11 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 920,
     cooldown: 10,
     interruptCommitMs: 720,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        hits: 1,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        duration: 5,
-        stacks: 1,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      }
-    ]
+    // Share this impact's timing while preserving independent payloads and declaration order.
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.5, hits: 1 },
+      { type: 'condition', condition: 'Crippled', duration: 5, stacks: 1 }
+    ])
   }
 });
 
