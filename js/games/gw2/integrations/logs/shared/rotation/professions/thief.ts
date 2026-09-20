@@ -9,6 +9,8 @@ import type {
 
 const METAL_LEGION_GUITAR_FINISH_ID = 76_596;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;
+const SHADOW_SHROUD_TRANSITION_IDS: ReadonlySet<number> = new Set([ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD]);
+const DUPLICATE_SWAP_WINDOW_MS = 5;
 
 /** Combines represented Guitar and Twilight Combo animation segments into their single player input. */
 function mergeMetalLegionGuitar(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
@@ -36,7 +38,20 @@ function mergeMetalLegionGuitar(actions: readonly RecordedLogAction[]): Recorded
   );
 }
 
-/** Combines represented Thief animation segments without inventing inputs or random outcomes. */
+/** Combines represented Thief animations and removes swap signals caused by Shadow Shroud bar changes. */
 export function reconstructThiefDpsReportActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
-  return mergeMetalLegionGuitar(context.recordedActions);
+  const shroudTransitions = context.recordedActions.filter((action) =>
+    SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId)
+  );
+  return mergeMetalLegionGuitar(
+    context.recordedActions.filter(
+      (action) =>
+        !action.isSwap ||
+        SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId) ||
+        !shroudTransitions.some(
+          (transition) =>
+            action.start >= transition.start && action.start - transition.start <= DUPLICATE_SWAP_WINDOW_MS
+        )
+    )
+  );
 }

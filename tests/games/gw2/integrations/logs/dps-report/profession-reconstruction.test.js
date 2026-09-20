@@ -148,11 +148,12 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
   assert.equal(sim.planningState.profession.activeTome, '');
 });
 
-for (const [profession, entryId, exitId] of [
-  ['Necromancer', 10574, 10585],
-  ['Reaper', 30792, 30961],
-  ['Harbinger', 62567, 62540],
-  ['Ritualist', 77238, 76933]
+for (const [profession, catalog, entryId, exitId] of [
+  ['Necromancer', necromancerCatalog, 10574, 10585],
+  ['Reaper', necromancerCatalog, 30792, 30961],
+  ['Harbinger', necromancerCatalog, 62567, 62540],
+  ['Ritualist', necromancerCatalog, 77238, 76933],
+  ['Specter', thiefCatalog, 63155, 63251]
 ]) {
   test(`${profession} shroud transitions survive swap metadata without importing duplicate bar changes`, () => {
     // Shroud changes emit a swap row one millisecond later; only the independent weapon swap is player input.
@@ -165,12 +166,12 @@ for (const [profession, entryId, exitId] of [
       ],
       {
         's-2': { name: 'Weapon Swap', isSwap: true },
-        [`s${entryId}`]: { name: necromancerCatalog.skillsById.get(entryId).name, isSwap: true },
-        [`s${exitId}`]: { name: necromancerCatalog.skillsById.get(exitId).name, isSwap: true }
+        [`s${entryId}`]: { name: catalog.skillsById.get(entryId).name, isSwap: true },
+        [`s${exitId}`]: { name: catalog.skillsById.get(exitId).name, isSwap: true }
       }
     );
 
-    const result = reconstructDpsReportRotation(report, necromancerCatalog);
+    const result = reconstructDpsReportRotation(report, catalog);
 
     assert.deepEqual(
       result.actions.filter((action) => action.kind === 'weapon-swap').map((action) => action.timestampMs),
