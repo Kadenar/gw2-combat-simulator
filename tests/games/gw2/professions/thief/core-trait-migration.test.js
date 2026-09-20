@@ -45,6 +45,18 @@ for (const [name, traitId, invoke, output] of [
   ['Hidden Thief', TRAIT.HIDDEN_THIEF, (c) => emitStealTraitEffects(c), 'emit'],
   ['Upper Hand', TRAIT.UPPER_HAND, (c) => completeThiefDodge(c), 'emit'],
   [
+    'Lotus Poison',
+    TRAIT.LOTUS_POISON,
+    (c) =>
+      reactToThiefCoreCondition(c, {
+        type: 'condition',
+        at: c.effectiveEnd,
+        actorType: 'player',
+        condition: 'Poisoned'
+      }),
+    'queue'
+  ],
+  [
     'Panic Strike',
     TRAIT.PANIC_STRIKE,
     (c) => reactToThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }),
@@ -160,6 +172,33 @@ function traitContext(selectedTraitIds = [], config = {}) {
 
   return { context, core, events, conditions };
 }
+
+test('Lotus Poison grants self Might and target Weakness only for the player poisoning a target', () => {
+  // Ineligible poison sources cannot consume the cooldown before the player's own poison arrives.
+  const { context, core } = traitContext([TRAIT.LOTUS_POISON]);
+  const poison = { type: 'condition', at: 1, actorType: 'player', condition: 'Poisoned', skillName: 'Poison source' };
+  for (const overrides of [{ actorType: 'minion' }, { metadata: { triggeredByAlly: 1 } }, { condition: 'Torment' }]) {
+    reactToThiefCoreCondition(context, { ...poison, ...overrides });
+  }
+
+  assert.deepEqual(core.traitProcReadyAt, {});
+  assert.equal(context.queue.length, 0);
+  reactToThiefCoreCondition(context, poison);
+  const might = context.queue.dequeue();
+  const weakness = context.queue.dequeue();
+  assert.equal(might.kind, 'might');
+  assert.equal(might.stacks, 3);
+  assert.equal(might.duration, 10);
+  assert.deepEqual(might.audience, { recipients: 'self' });
+  assert.equal(weakness.condition, 'Weakness');
+  assert.equal(weakness.duration, 4);
+  assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
+  assert.equal(core.traitProcReadyAt[TRAIT.LOTUS_POISON], 11);
+  for (const at of [1, 10.999, 11]) reactToThiefCoreCondition(context, { ...poison, at });
+  assert.equal(context.queue.length, 0);
+  reactToThiefCoreCondition(context, { ...poison, at: 11.001 });
+  assert.equal(context.queue.length, 2);
+});
 
 const stealTraitCases = [
   ["Serpent's Touch", TRAIT.SERPENTS_TOUCH, (events) => events.some((event) => event.condition === 'Poisoned')],

@@ -30,6 +30,7 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   fluidStrikes: TRAIT.FLUID_STRIKES,
   hardToCatch: TRAIT.HARD_TO_CATCH,
   deadlyAmbition: TRAIT.DEADLY_AMBITION,
+  lotusPoison: TRAIT.LOTUS_POISON,
   unrelentingStrikes: TRAIT.UNRELENTING_STRIKES,
   noQuarter: TRAIT.NO_QUARTER,
   assassinsFury: TRAIT.ASSASSINS_FURY,
@@ -234,6 +235,13 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.deadlyAmbition, 'Deadly Ambition', {
     playerStacks: 2,
     effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+  }),
+  trait(THIEF_CORE_BALANCE_PROFILE_IDS.lotusPoison, 'Lotus Poison', {
+    internalCooldown: 10,
+    effects: [
+      { type: 'boon', boon: 'Might', stacks: 3, duration: 10, audience: { recipients: 'self' } },
+      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 }
+    ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.unrelentingStrikes, 'Unrelenting Strikes', {
     internalCooldown: 8,

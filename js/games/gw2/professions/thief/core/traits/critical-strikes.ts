@@ -32,8 +32,8 @@ type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
   ThiefResolverReactionDetails
 >;
 
-/** Queues Critical Strikes boon reactions while preserving live duration scaling and proc state. */
-function queueThiefBoon(
+/** Queues Thief trait boons while preserving live duration scaling and proc state. */
+export function queueThiefBoon(
   context: ThiefResolverContext,
   event: ThiefResolverEvent,
   {

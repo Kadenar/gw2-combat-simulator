@@ -10,6 +10,7 @@ import {
 import {
   applyDeadlyAmbition,
   applyEvenTheOdds,
+  applyLotusPoison,
   applyMug,
   applyPanicStrike,
   applyPanicStrikePoison,
@@ -115,6 +116,7 @@ function applyUnsuspectingStrikeBonus(context: ThiefResolverContext, application
 
 /** Routes resolved conditions through trait reactions before the base skill bonus. */
 export function reactToThiefCoreCondition(context: ThiefResolverContext, application: ThiefResolverEvent): void {
+  applyLotusPoison(context, application);
   applyAlliedLeechingVenoms(context, application);
   applyPanicStrikePoison(context, application);
   applyCloakedInShadow(context, application);

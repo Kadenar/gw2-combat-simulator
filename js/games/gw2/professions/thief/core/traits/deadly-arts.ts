@@ -7,6 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { queueThiefBoon } from '#gw2/professions/thief/core/traits/critical-strikes.js';
 import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 /** Attribute on-steal poison to Serpent's Touch while retaining the triggering skill. */
@@ -93,6 +94,51 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
       : Number(poison?.stacks ?? 1),
     sourceId: TRAIT.DEADLY_AMBITION,
     name: 'Deadly Ambition — Poison'
+  });
+}
+
+/** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
+export function applyLotusPoison(context: ThiefResolverContext, event: ThiefResolverEvent): void {
+  if (
+    event.condition !== 'Poisoned' ||
+    event.actorType !== 'player' ||
+    Number(event.metadata?.triggeredByAlly || 0) > 0 ||
+    !hasTrait(context.config, TRAIT.LOTUS_POISON)
+  )
+    return;
+  const profile = balanceProfileFromContext(context, PROFILE.lotusPoison);
+  if (
+    !tryConsumeProcCooldown(
+      professionCoreState(context).traitProcReadyAt,
+      TRAIT.LOTUS_POISON,
+      event.at,
+      Number(profile?.internalCooldown ?? 10)
+    )
+  )
+    return;
+  const might = balanceProfileEffect(profile, 'boon');
+  queueThiefBoon(context, event, {
+    traitId: TRAIT.LOTUS_POISON,
+    traitName: 'Lotus Poison',
+    boon: String(might?.boon || 'Might'),
+    stacks: Number(might?.stacks ?? 3),
+    duration: Number(might?.duration ?? 10)
+  });
+  const weakness = balanceProfileEffect(profile, 'condition');
+  context.queue.enqueue({
+    type: 'condition',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.LOTUS_POISON,
+    actorType: 'player',
+    skillId: TRAIT.LOTUS_POISON,
+    skillName: 'Lotus Poison',
+    name: 'Lotus Poison - Weakness',
+    condition: String(weakness?.condition || 'Weakness'),
+    stacks: Number(weakness?.stacks ?? 1),
+    duration: Number(weakness?.duration ?? 4),
+    activationId: event.activationId,
+    triggeredBy: event.skillName
   });
 }
 
