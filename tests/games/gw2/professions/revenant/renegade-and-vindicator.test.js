@@ -427,12 +427,13 @@ test('Citadel Bombardment burns on each hit and Vindication triggers once per ca
   );
 });
 
-test('Righteous Rebel extends Orders from Above with additional alacrity pulses', () => {
-  // The trait adds pulses while preserving the base pulse cadence and duration.
+test('Righteous Rebel extends Orders from Above and Bold Reversal adds Protection pulses', () => {
+  // The traits preserve the pulse cadence while independently extending Alacrity and adding Protection.
   const run = (selectedTraitIds) =>
     simulate('Renegade', ['Orders from Above'], { selectedTraitIds, initialEnergy: 100 }, observationTail(6000));
   const base = run([]);
   const improved = run([TRAIT.RIGHTEOUS_REBEL]);
+  const protectedRun = run([TRAIT.RIGHTEOUS_REBEL, TRAIT.BOLD_REVERSAL]);
   const pulses = (result) =>
     result.events
       .filter((event) => event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'alacrity')
@@ -442,6 +443,45 @@ test('Righteous Rebel extends Orders from Above with additional alacrity pulses'
   assert.ok(pulses(base).length > 0);
   assert.ok(pulses(improved).length > pulses(base).length);
   assert.deepEqual(pulses(improved).slice(0, pulses(base).length), pulses(base));
+  assert.deepEqual(
+    protectedRun.events
+      .filter((event) => event.skillId === SKILL.ORDERS_FROM_ABOVE && event.kind === 'protection')
+      .map(({ at, duration, stacks }) => ({ at, duration, stacks })),
+    pulses(improved).map(({ at }) => ({ at, duration: 1, stacks: 1 }))
+  );
+});
+
+test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-skill ICD', () => {
+  const result = simulate(
+    'Renegade',
+    ["Breakrazor's Bastion", 'Swap Legends', 'Enchanted Daggers'],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      selectedTraitIds: [TRAIT.ASHEN_DEMEANOR],
+      initialEnergy: 100
+    },
+    observationTail(1000)
+  );
+  const ashen = result.events.filter((event) => event.skillName === 'Ashen Demeanor');
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(revenantCatalog.balanceProfilesByName.get('Ashen Demeanor').cooldown, 10);
+  assert.deepEqual(
+    ashen
+      .filter((event) => event.kind === 'kallas-fervor')
+      .map(({ duration, stacks, resolvedAudience }) => ({ duration, stacks, resolvedAudience })),
+    Array(3).fill({ duration: 8, stacks: 1, resolvedAudience: PLAYER_AUDIENCE })
+  );
+  assert.deepEqual(
+    ashen
+      .filter((event) => ['might', 'resistance'].includes(event.kind))
+      .map(({ kind, duration, stacks, resolvedAudience }) => ({ kind, duration, stacks, resolvedAudience })),
+    [
+      { kind: 'might', duration: 6, stacks: 5, resolvedAudience: PLAYER_AUDIENCE },
+      { kind: 'resistance', duration: 6, stacks: 1, resolvedAudience: PLAYER_AUDIENCE }
+    ]
+  );
 });
 
 test("Kalla's Fervor chart uses the Renegade stack cap", () => {

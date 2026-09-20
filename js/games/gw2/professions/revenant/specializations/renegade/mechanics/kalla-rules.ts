@@ -28,6 +28,7 @@ import {
   handleRenegadeCriticalTraitsTask,
   handleRazorclawProcTask,
   initializeRenegadeTraits,
+  applyAshenDemeanor,
   modifyRenegadeCastDuration,
   modifyRenegadeRechargeDuration,
   observeRenegadeTraits,
@@ -132,6 +133,7 @@ export const renegadeCastRules = Object.freeze({
 });
 
 function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): void {
+  applyAshenDemeanor(context, skill);
   if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;

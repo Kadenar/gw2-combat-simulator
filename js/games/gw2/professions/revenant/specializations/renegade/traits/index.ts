@@ -4,6 +4,8 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   grantKallasFervor,
   isBandTogetherReady
@@ -12,6 +14,7 @@ import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/
 import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import type {
+  RevenantCastContext,
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantScheduledTask,
@@ -194,6 +197,46 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
     hasTrait(context.config, TRAIT.ALL_FOR_ONE)
     ? duration * Math.max(0, Number(allForOne?.rechargeMultiplier ?? 1))
     : duration;
+}
+
+/** Grants Ashen Demeanor's self boons and Fervor once per healing-skill ICD. */
+export function applyAshenDemeanor(context: RevenantCastContext, skill: RevenantSkill): void {
+  if (skill.slot !== 'Heal' || !hasTrait(context.config, TRAIT.ASHEN_DEMEANOR)) return;
+  const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.ashenDemeanor);
+  if (
+    !profile ||
+    !tryConsumeProcCooldown(
+      professionCoreState(context).traitProcReadyAt,
+      'ashenDemeanor',
+      context.effectiveEnd,
+      Number(profile.cooldown || 0)
+    )
+  ) {
+    return;
+  }
+
+  for (let stack = 0; stack < Math.max(0, Number(profile.fervorStacks || 0)); stack += 1) {
+    grantKallasFervor(context, context.action, {
+      at: context.effectiveEnd,
+      sourceId: TRAIT.ASHEN_DEMEANOR,
+      sourceName: profile.name
+    });
+  }
+
+  for (const effect of profile.effects?.filter((candidate) => candidate.type === 'boon') || []) {
+    emitSkillBuff(context, profile as RevenantSkill, {
+      cause: context.action,
+      at: context.effectiveEnd,
+      sourceId: TRAIT.ASHEN_DEMEANOR,
+      skillId: TRAIT.ASHEN_DEMEANOR,
+      skillName: profile.name,
+      name: `${profile.name} — ${String(effect.boon)}`,
+      kind: String(effect.boon),
+      duration: Number(effect.duration),
+      stacks: Number(effect.stacks ?? 1),
+      audience: effect.audience ?? { recipients: 'self' }
+    });
+  }
 }
 
 export function observeRenegadeTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {

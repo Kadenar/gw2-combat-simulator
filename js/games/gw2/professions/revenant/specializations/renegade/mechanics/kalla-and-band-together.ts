@@ -203,6 +203,11 @@ export function castOrdersFromAbove(context: RevenantCastContext, skill: Revenan
     ? balanceProfileById(context, RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel)
     : skill;
   if (profile) emitProfileEffects(context, skill, profile);
+  // Bold Reversal adds Protection to each pulse only for the Righteous Rebel extension.
+  if (hasTrait(context, TRAIT.BOLD_REVERSAL) && hasTrait(context, TRAIT.RIGHTEOUS_REBEL)) {
+    const protection = balanceProfileById(context, RENEGADE_PROFILE_IDS.boldReversalRighteousRebel);
+    if (protection) emitProfileEffects(context, skill, protection);
+  }
 }
 
 /** Consumes Band Together and materializes the selected enhanced profile. */

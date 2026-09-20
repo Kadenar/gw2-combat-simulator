@@ -10,6 +10,8 @@ export const RENEGADE_PROFILE_IDS = Object.freeze({
   ordersFromAboveRighteousRebel: 'revenant.renegade.orders-from-above-righteous-rebel',
   razorclawsRageProc: 'revenant.renegade.razorclaws-rage-proc',
   soulcleavesSummitProc: 'revenant.renegade.soulcleaves-summit-proc',
+  ashenDemeanor: 'revenant.renegade.ashen-demeanor',
+  boldReversalRighteousRebel: 'revenant.renegade.bold-reversal-righteous-rebel',
   endlessEnmity: 'revenant.renegade.endless-enmity',
   bloodFury: 'revenant.renegade.blood-fury',
   brutalMomentum: 'revenant.renegade.brutal-momentum',
@@ -131,6 +133,35 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
         type: 'boon',
         boon: 'alacrity',
         duration: 2,
+        stacks: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
+      }
+    ]
+  }),
+  renegadeBalanceProfile({
+    id: RENEGADE_PROFILE_IDS.ashenDemeanor,
+    name: 'Ashen Demeanor',
+    profileKind: 'trait',
+    cooldown: 10,
+    fervorStacks: 3,
+    effects: [
+      { type: 'boon', boon: 'might', duration: 6, stacks: 5, audience: { recipients: 'self' } },
+      { type: 'boon', boon: 'resistance', duration: 6, stacks: 1, audience: { recipients: 'self' } }
+    ]
+  }),
+  renegadeBalanceProfile({
+    id: RENEGADE_PROFILE_IDS.boldReversalRighteousRebel,
+    name: 'Orders from Above (Bold Reversal + Righteous Rebel)',
+    profileKind: 'skill-variant',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 1,
         stacks: 1,
         applications: 6,
         intervalMs: 1000,
