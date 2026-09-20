@@ -295,6 +295,12 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   }
 
   state.motivation = Math.max(0, motivation - cost);
+  // Invigorating Tempo rewards actual Motivation spent, including a final partial drain.
+  if (hasTrait(context, TRAIT.INVIGORATING_TEMPO)) {
+    const profile = balanceProfileFromContext(context, PROFILE.invigoratingTempo);
+    gainWarriorAdrenaline(context, (motivation - state.motivation) * Number(profile?.resourceGain ?? 1));
+  }
+
   if (state.motivation > 0) {
     state.nextRefrainAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
   } else {

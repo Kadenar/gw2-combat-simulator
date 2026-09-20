@@ -9,6 +9,7 @@ import { createBladeswornState } from '#gw2/professions/warrior/specializations/
 import {
   activateChant,
   activateCommand,
+  advanceParagon,
   updateParagonCast,
   handleParagonCommandEchoTask
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
@@ -84,6 +85,32 @@ function paragonContext() {
     scheduled: tasks
   };
 }
+
+test('Invigorating Tempo grants capped adrenaline for each point of Motivation actually spent', () => {
+  // Cover each refrain cost, the final partial drain, and the trait selection gate.
+  for (const [skillId, motivation, adrenaline, selected, spent, expected] of [
+    [ID.CHANT_OF_ACTION, 4, 0, true, 1, 1],
+    [ID.CHANT_OF_RECUPERATION, 4, 0, true, 2, 2],
+    [ID.CHANT_OF_FREEDOM, 7, 0, true, 3, 3],
+    [ID.CHANT_OF_RECUPERATION, 1, 0, true, 1, 1],
+    [ID.CHANT_OF_RECUPERATION, 0, 0, true, 0, 0],
+    [ID.CHANT_OF_FREEDOM, 7, 9, true, 3, 10],
+    [ID.CHANT_OF_RECUPERATION, 4, 0, false, 2, 0]
+  ]) {
+    const context = paragonContext();
+    context.config.selectedTraitIds = selected ? [TRAIT.INVIGORATING_TEMPO] : [];
+    const core = context.state.profession.core;
+    Object.assign(core, { adrenaline, resource: adrenaline, maximumAdrenaline: 10 });
+    const state = context.state.profession.specialization.state;
+    Object.assign(state, { motivation, activeRefrainId: skillId, nextRefrainAt: 3 });
+
+    advanceParagon(context, 3);
+
+    assert.equal(state.motivation, motivation - spent);
+    assert.equal(core.adrenaline, expected);
+    assert.equal(core.resource, expected);
+  }
+});
 
 test('cancelled Paragon activations leave Motivation, refrain and pending echoes untouched', () => {
   const context = paragonContext();

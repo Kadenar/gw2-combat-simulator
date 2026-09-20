@@ -9,6 +9,7 @@ export const PARAGON_BALANCE_PROFILE_IDS = Object.freeze({
   strengtheningStanzas: TRAIT.STRENGTHENING_STANZAS,
   briskPacing: TRAIT.BRISK_PACING,
   inspiringImplements: TRAIT.INSPIRING_IMPLEMENTS,
+  invigoratingTempo: TRAIT.INVIGORATING_TEMPO,
   enduringRefrain: TRAIT.ENDURING_REFRAIN,
   feverishPulse: TRAIT.FEVERISH_PULSE,
   callToAction: TRAIT.CALL_TO_ACTION,
@@ -63,6 +64,9 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     internalCooldown: 4,
     resourceGain: 5,
     minimumStacks: 2
+  }),
+  trait(PARAGON_BALANCE_PROFILE_IDS.invigoratingTempo, 'Invigorating Tempo', {
+    resourceGain: 1
   }),
   trait(PARAGON_BALANCE_PROFILE_IDS.enduringRefrain, 'Enduring Refrain', {
     resourceGain: 1
