@@ -246,8 +246,10 @@ export function bindRelicComparisonChartHover(
     tooltip.innerHTML = `<div><b>${(time / 1000).toFixed(2)}s</b></div>
       <div>${escapeHtml(opponentLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.opponentDps))} DPS</div>
       <div>${escapeHtml(targetLabel)}: ${formatDps(valueAt(plotPoints, time, (point) => point.targetDps))} DPS</div>`;
-    tooltip.style.left = `${pointerX + 12}px`;
-    tooltip.style.top = `${pointerY + 12}px`;
+    // Measure at the chart origin before clamping so the right edge cannot clip or shrink the tooltip.
+    tooltip.style.left = '0px';
     tooltip.style.display = 'block';
+    tooltip.style.left = `${clamp(pointerX + 12, 0, rect.width - tooltip.offsetWidth - 4)}px`;
+    tooltip.style.top = `${pointerY + 12}px`;
   };
 }
