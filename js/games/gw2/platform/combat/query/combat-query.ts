@@ -45,6 +45,8 @@ interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly resolvedTimelineEvents?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
   readonly conditionDurationBonus?: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
+  /** Isolated stat previews may vary health; simulation configs cannot supply this query-only input. */
+  readonly attributePreviewPlayerHealthFraction?: number;
 }
 
 interface HookContextOptions {
@@ -108,7 +110,8 @@ export function createGw2CombatQuery<TProfessionState extends object = object>({
   events = [],
   resolvedTimelineEvents,
   traits = selectedGw2TraitValues(config, profession?.catalog),
-  conditionDurationBonus
+  conditionDurationBonus,
+  attributePreviewPlayerHealthFraction
 }: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
     throw new TypeError('GW2 combat query requires a profession.');
@@ -340,6 +343,7 @@ export function createGw2CombatQuery<TProfessionState extends object = object>({
   ): Gw2ModifierContext => ({
     profession: activeProfession,
     config: activeConfigAt(time, runtime),
+    attributePreviewPlayerHealthFraction,
     time,
     event,
     skillId: event?.skillId ?? null,

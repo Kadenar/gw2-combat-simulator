@@ -221,6 +221,30 @@ test('Willbender utilities use the supplied physical skill profiles', () => {
   assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], 6.68);
 });
 
+test('Flash Combo schedules separate strikes and preserves only landed packets when interrupted', () => {
+  // A nonzero start checks the timing anchor; cancellation includes the boundary hit but drops later hits.
+  for (const interruptMs of [undefined, 400]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        { type: 'wait', durationMs: 1000 },
+        { name: 'Flash Combo', ...(interruptMs == null ? {} : { interruptMs }) },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      config: { ...config, specialization: 'Willbender', boons: { quickness: true } }
+    });
+    const strikes = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.FLASH_COMBO
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      strikes.map((event) => Math.round(event.at * 1000)),
+      interruptMs == null ? [1120, 1280, 1400, 1520, 1600] : [1120, 1280, 1400]
+    );
+    assert.ok(strikes.every((event) => event.coefficient === 0.9));
+  }
+});
+
 test('Whirling Light creates four Burning Bolts inside Purging Flames', () => {
   const inFireField = simulateGw2({
     profession: guardianProfession,
@@ -1018,11 +1042,58 @@ test('Guardian alias input loads canonical Sword of Justice while Shield of Abso
   assert.equal(guardianCatalog.skillsById.get(9224).flipParentId, GUARDIAN_SKILL_IDS.SHIELD_OF_ABSORPTION);
 });
 
+// Minimal shout rotations check loadout persistence, charge scheduling, and party boon duration scaling.
+for (const [name, recharge, boons, duration] of [
+  ['"Advance!"', 24, ['swiftness', 'aegis'], 20],
+  ['"Hold the Line!"', 20, ['protection', 'regeneration'], 6]
+]) {
+  test(`${name} remains selectable and shares instant boons with a two-charge cooldown`, () => {
+    const defaults = createGuardianBuildDefaults();
+    const migrated = migrateGuardianBuild({
+      ...defaults,
+      selectedSkills: { ...defaults.selectedSkills, Utility1: name }
+    });
+    assert.equal(migrated.selectedSkills.Utility1, name);
+
+    for (const alacrity of [false, true]) {
+      const result = simulateGw2({
+        profession: guardianProfession,
+        rotation: [name, name, name],
+        config: {
+          ...config,
+          selectedSkills: [name],
+          boons: { alacrity },
+          stats: { ...config.stats, concentration: alacrity ? 750 : 0 },
+          allies: { count: 4 }
+        }
+      });
+      const rate = alacrity ? 1.25 : 1;
+      assert.deepEqual(result.warnings, []);
+      assert.deepEqual(
+        result.steps.map((step) => step.start),
+        [0, 5000 / rate, (recharge * 1000) / rate]
+      );
+      assert.ok(result.steps.every((step) => step.end === step.start));
+      assert.equal(result.planningState.ammo[name].charges, 0);
+      const buffs = result.events.filter(
+        (event) => event.type === 'buff' && event.skillName === name && event.at === 0
+      );
+      assert.deepEqual(
+        buffs.map((event) => event.kind),
+        boons
+      );
+      for (const buff of buffs) {
+        assert.equal(buff.duration, duration * (alacrity ? 1.5 : 1));
+        assert.equal(buff.resolvedAudience.includesSelf, true);
+        assert.equal(buff.resolvedAudience.alliedPlayerCount, 4);
+      }
+    }
+  });
+}
+
 test('out-of-scope Guardian slot skills are absent and migrate out of saved builds', () => {
   const excludedNames = [
-    '"Advance!"',
     '"Save Yourselves!"',
-    '"Hold the Line!"',
     'Signet of Mercy',
     'Merciful Intervention',
     'Wall of Reflection',

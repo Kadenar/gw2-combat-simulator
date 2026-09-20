@@ -136,6 +136,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
   [ID.FLASH_COMBO]: {
     castTimeMs: 680,
     cooldown: 20,
+    interruptMode: 'per-packet',
     // Flash Combo exposes Repose for six seconds after the cast completes.
     mechanicTriggers: [
       {
@@ -146,9 +147,9 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>>
     effects: [
       {
         type: 'strike',
-        coefficient: 4.5,
-        hits: 5,
-        atMs: 0
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        ticks: [120, 280, 400, 520, 600].map((atMs) => ({ atMs, coefficient: 0.9 }))
       }
     ]
   },

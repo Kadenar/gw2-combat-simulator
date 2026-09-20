@@ -10,9 +10,100 @@ import { applyElementalistBuildAttributeRules } from '#gw2/professions/elemental
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
 const calculateAttributes = createCalculateAttributes(applyElementalistBuildAttributeRules);
+
+test('Persisting Flames grants stacks from Fire Sphere without extending profession fields', () => {
+  // Isolate the field trigger from Burning traits and autonomous elemental summons.
+  for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
+    for (const selected of [false, true]) {
+      const skillName = `Deploy Jade Sphere (${element})`;
+      const { app, commands } = createNativeApp({
+        lines: [['Fire'], ['Air'], ['Catalyst']],
+        startAttunement: element,
+        initialEnergy: 30,
+        selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+        rotation: [skillName, 6000]
+      });
+      const result = simulateGw2({
+        profession: elementalistProfession,
+        rotation: commands,
+        config: {
+          ...elementalistAppAdapter.simulationConfig(app),
+          selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
+        }
+      });
+      assert.deepEqual(result.warnings, []);
+      const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === skillName);
+      assert.equal(field.expiresAt - field.at, 5);
+      const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === skillName);
+      assert.ok(hits.length > 0);
+      assert.ok(hits.every((event) => event.at <= field.expiresAt));
+      const stacks = result.resolvedEvents.filter(
+        (event) => event.type === 'buff' && event.kind === 'persisting flames'
+      );
+      if (selected && element === 'Fire') {
+        assert.deepEqual(
+          stacks.map((event) => event.at),
+          hits.map((event) => event.at)
+        );
+        assert.ok(stacks.every((event) => event.stacks === 1 && event.duration === 15));
+      } else {
+        assert.deepEqual(stacks, []);
+      }
+    }
+  }
+});
+
+test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
+  // The weapon field gains two seconds while preserving its once-per-second pulse cadence.
+  for (const selected of [false, true]) {
+    const { app, commands } = createNativeApp({
+      lines: [['Fire'], ['Air'], ['Catalyst']],
+      startAttunement: 'Fire',
+      weapons: ['Scepter', 'Focus'],
+      selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+      rotation: ['Flamewall', 12000]
+    });
+    const result = simulateGw2({
+      profession: elementalistProfession,
+      rotation: commands,
+      config: {
+        ...elementalistAppAdapter.simulationConfig(app),
+        selectedTraitIds: selected ? [TRAIT.PERSISTING_FLAMES] : []
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Flamewall');
+    assert.equal(field.expiresAt - field.at, selected ? 10 : 8);
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flamewall');
+    assert.equal(hits.at(-1).at, field.expiresAt);
+    for (let index = 1; index < hits.length; index += 1) {
+      assert.ok(Math.abs(hits[index].at - hits[index - 1].at - 1) < 1e-9);
+    }
+  }
+});
+
+test('Persisting Flames extends weapon Fire fields using their metadata', () => {
+  // Etchings were absent from the old list; only the Fire combo field receives the weapon extension.
+  for (const [element, skillName, duration] of [
+    ['Fire', 'Etching: Volcano', 9],
+    ['Air', 'Etching: Derecho', 7]
+  ]) {
+    const result = runNative({
+      lines: [['Fire', '1-3-1'], ['Air'], ['Catalyst']],
+      startAttunement: element,
+      weapons: ['Spear', ''],
+      selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+      rotation: [skillName, 10000]
+    });
+    assert.deepEqual(result.warnings, []);
+    const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === skillName);
+    assert.equal(field.expiresAt - field.at, duration);
+  }
+});
 
 test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   // The flip interaction also cancels released Fire packets that survive ordinary animation cancellation.

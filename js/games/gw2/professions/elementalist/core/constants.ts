@@ -43,17 +43,6 @@ export const PISTOL_SKILL_ELEMENTS: Readonly<Record<number, ElementalistAttuneme
 export const PISTOL_NO_CONSUME = new Set<number>([ID.AERIAL_AGILITY, ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH]);
 /** Pistol chain links that must never stock a new bullet of their element. */
 export const PISTOL_NO_GRANT = new Set<number>([ID.AERIAL_AGILITY_CHAIN, ID.AERIAL_AGILITY_DASH]);
-/** Fire-field skills whose field duration and tick packets Persisting Flames extends. */
-export const PERSISTING_FLAMES_FIELD_SKILLS = new Set<number>([
-  ID.LAVA_FONT,
-  ID.PYROCLASTIC_BLAST,
-  ID.BURNING_RETREAT,
-  ID.BURNING_SPEED,
-  ID.FLAMEWALL,
-  ID.WILDFIRE,
-  ID.FLAME_UPRISING,
-  ID.RING_OF_FIRE
-]);
 /** Conjure utility skills, mapped to the bundle weapon they equip. */
 export const CONJURE_SKILLS: Readonly<Record<number, string>> = Object.freeze({
   [ID.CONJURE_FROST_BOW]: 'Frost Bow',

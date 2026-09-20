@@ -608,23 +608,16 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
   assert.equal(cosmic.ferocity, 300);
 });
 
-test('Empire Divided grants Power only above the build health threshold', () => {
+test('Empire Divided grants full-health Power regardless of legacy build health inputs', () => {
   const build = createRevenantBuildDefaults();
   build.specializations = [{ name: 'Vindicator', traits: '1-1-1' }];
 
-  // Exercise the UI's percentage input, including its full-health default and strict threshold.
-  for (const [health, expectedPower] of [
-    [undefined, 240],
-    [100, 240],
-    [51, 240],
-    [50, 0],
-    [25, 0],
-    [0, 0]
-  ]) {
+  // Old saved values must not change the fixed full-health attribute contract.
+  for (const health of [undefined, 100, 51, 50, 25, 0]) {
     build.assumptions.playerHealthPercent = health;
     assert.equal(
       traitDelta(calculateRevenantAttributes, build, 'Empire Divided', 'Power'),
-      expectedPower,
+      240,
       `player health: ${health ?? 'default'}`
     );
   }

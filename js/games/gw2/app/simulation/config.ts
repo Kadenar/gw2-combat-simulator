@@ -146,7 +146,6 @@ export function createGw2SimulationConfig({
       calculatedPrimaryWeapon
     }),
     initialResource,
-    playerHealthFraction: boundedNumber(Number(assumptions.playerHealthPercent ?? 100) / 100, 1, 0, 1),
     deterministicChoices: Object.fromEntries(
       professionAssumptionControls
         .filter((control) => control.type === 'select' && !isSimulationRandomnessControl(control))

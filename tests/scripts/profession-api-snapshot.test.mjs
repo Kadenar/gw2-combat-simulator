@@ -302,8 +302,8 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
         5913, 5960, 5968, 6113, 29739, 30101, 41218, 44646, 63050, 63089, 63210, 63300, 77018
       ],
       guardian: [
-        9084, 9085, 9150, 9152, 9153, 9163, 9175, 9182, 9245, 9246, 9248, 9251, 9253, 29786, 30461, 30871, 41571, 42864,
-        43565, 44248, 45460, 68676, 77321
+        9085, 9150, 9153, 9163, 9175, 9182, 9245, 9246, 9248, 9251, 9253, 29786, 30461, 30871, 41571, 42864, 43565,
+        44248, 45460, 68676, 77321
       ],
       mesmer: [10197, 10200, 10201, 10203, 10236, 62573],
       necromancer: [10583, 10609, 10612, 10685, 10687, 40274, 42917, 76752, 76941, 77022],
@@ -321,6 +321,14 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     // The profession updater owns these exclusions so refreshing generated data cannot restore unsupported skills.
     for (const [professionName, skillIds] of Object.entries(omittedSkillsByProfession)) {
       const fixture = omittedProfessionFixture(skillIds, professionName);
+      // Supported Guardian shouts must survive the same import filter that removes unsupported skills.
+      if (professionName === 'guardian') {
+        for (const id of [9084, 9152]) {
+          fixture.profession.skills.push({ id });
+          fixture.skills.push({ id, name: `Guardian shout ${id}`, type: 'Utility', slot: 'Utility', facts: [] });
+        }
+      }
+
       if (professionName === 'engineer') {
         fixture.profession.skills.push({ id: 63095 });
         fixture.skills.push({
@@ -362,6 +370,10 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
       );
       if (professionName === 'engineer') {
         assert.equal(snapshot.skills.find((skill) => skill.id === 63095).description, 'Fire the cannon.');
+      }
+
+      if (professionName === 'guardian') {
+        for (const id of [9084, 9152]) assert.ok(snapshot.skills.some((skill) => skill.id === id));
       }
 
       if (professionName === 'ranger') {

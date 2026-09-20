@@ -51,9 +51,9 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   return remainingTargetHealthFraction(context.config, context.runtime) ?? 1;
 }
 
-/** Normalizes the configured player-health assumption to the valid fraction range. */
+/** Simulations always use full health; only isolated stat-preview queries can vary it. */
 export function playerHealthFraction(context: Gw2ModifierContext): number {
-  return boundedNumber(context.config?.playerHealthFraction ?? 1, 1, 0, 1);
+  return boundedNumber(context.attributePreviewPlayerHealthFraction ?? 1, 1, 0, 1);
 }
 
 /** Keeps permanent player boons while using live state to hide later same-time applications. */

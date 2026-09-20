@@ -277,13 +277,45 @@ test('Roiling Mists adds its critical chance only while the Fury preview is enab
   }
 });
 
-test('Thief health conditionals preserve unconditional bonuses at and below the threshold', () => {
-  const app = previewApp('thief', ['Twin Fangs']);
-  const low = stats(app, { playerHealth: 50 });
-  const high = stats(app, { playerHealth: 51 });
-  close(high['Critical Chance'].final, low['Critical Chance'].final + 5);
-  close(high['Critical Damage'].final, (low['Critical Damage'].final / 1.05) * 1.07);
-  close(stats(app, { playerHealth: 0 })['Critical Chance'].final, low['Critical Chance'].final);
+test('player health changes only the isolated stat preview', () => {
+  // Preview health must affect conditional stats without leaking into builds or simulation configuration.
+  for (const [profession, traits] of [
+    ['thief', ['Twin Fangs', 'Keen Observer']],
+    ['revenant', ['Empire Divided']]
+  ]) {
+    const app = previewApp(profession, traits);
+    assert.ok(attributeEffectControls(app).some((control) => control.key === 'playerHealth'));
+    const original = structuredClone({ build: app.build, attributes: app.attributeData });
+    const config = app.adapter.simulationConfig(app);
+    const low = stats(app, { playerHealth: 50 });
+    const high = stats(app, { playerHealth: 51 });
+    if (profession === 'thief') {
+      close(high['Critical Chance'].final, low['Critical Chance'].final + 5);
+      close(high['Critical Damage'].final, (low['Critical Damage'].final / 1.05) * 1.07);
+    } else {
+      close(high.Power.final, low.Power.final + 240);
+    }
+
+    assert.deepEqual(stats(app, { playerHealth: 0 }), low);
+    assert.deepEqual(stats(app, { playerHealth: 100 }), high);
+    assert.deepEqual({ build: app.build, attributes: app.attributeData }, original);
+    assert.deepEqual(app.adapter.simulationConfig(app), config);
+  }
+});
+
+test('all professions remove legacy player-health assumptions and expose no simulation health input', () => {
+  // Exercise actual adapters so migration and simulation configuration share the same scope.
+  for (const profession of Object.keys(adapters)) {
+    const app = previewApp(profession);
+    app.build.assumptions.playerHealthPercent = 20;
+    app.build.assumptions.playerHealthFraction = 0.2;
+    app.build = app.adapter.toApplicationBuild(app.build);
+    assert.equal(Object.hasOwn(app.build.assumptions, 'playerHealthPercent'), false, profession);
+    assert.equal(Object.hasOwn(app.build.assumptions, 'playerHealthFraction'), false, profession);
+    assert.ok(!app.adapter.assumptionControls.some((control) => control.key === 'playerHealthPercent'), profession);
+    app.adapter.recalculate(app);
+    assert.equal(Object.hasOwn(app.adapter.simulationConfig(app), 'playerHealthFraction'), false, profession);
+  }
 });
 
 test('Revenant previews improved Might and full-endurance critical chance', () => {

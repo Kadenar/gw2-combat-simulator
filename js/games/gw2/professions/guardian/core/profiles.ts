@@ -22,6 +22,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   symbolicAvenger: TRAIT.SYMBOLIC_AVENGER,
   zealotsResolution: TRAIT.ZEALOTS_RESOLUTION,
   righteousInstincts: TRAIT.RIGHTEOUS_INSTINCTS,
+  healersResolution: TRAIT.HEALERS_RESOLUTION,
   zealousBlade: TRAIT.ZEALOUS_BLADE,
   rightHandStrength: TRAIT.RIGHT_HAND_STRENGTH,
   radiantPower: TRAIT.RADIANT_POWER,
@@ -34,6 +35,10 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.healersResolution, "Healer's Resolution", {
+    internalCooldown: 20,
+    effects: [{ type: 'boon', boon: 'resolution', duration: 8, stacks: 1 }]
+  }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice,
     name: 'Virtue of Justice',

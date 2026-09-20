@@ -23,7 +23,7 @@ const COMMON_BOOLEAN_ASSUMPTION_DEFAULTS: Readonly<Record<string, boolean>> = Ob
 });
 
 /**
- * Standard positioning and health assumptions available to professions.
+ * Standard target assumptions; player health is always 100% and is not configurable.
  */
 export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> = Object.freeze([
   Object.freeze({
@@ -34,15 +34,6 @@ export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssu
     minimum: 0,
     maximum: 2000,
     step: 10
-  }),
-  Object.freeze({
-    key: 'playerHealthPercent',
-    label: 'Player health %',
-    type: 'number',
-    defaultValue: 100,
-    minimum: 0,
-    maximum: 100,
-    step: 1
   }),
   Object.freeze({
     key: 'targetDefiant',
@@ -202,6 +193,9 @@ export function normalizeProfessionAssumptions(
   controls: ReadonlyArray<ProfessionAssumptionControl> = []
 ): Record<string, unknown> {
   const result = { ...assumptions };
+  // Drop legacy health inputs so saved builds cannot imply support for low-health scenarios.
+  delete result.playerHealthPercent;
+  delete result.playerHealthFraction;
   for (const control of controls) {
     const value = assumptions[control.key] ?? control.defaultValue;
     if (control.type === 'boolean') {

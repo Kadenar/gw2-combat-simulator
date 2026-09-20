@@ -26,7 +26,6 @@ export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
   aegis?: boolean;
   alliedPlayerCount?: number;
   sharePlayerBoonsWithSummons?: boolean;
-  playerHealthPercent?: number;
   targetDefiant?: boolean;
   targetDistance?: number;
   targetMoving?: boolean;

@@ -4,6 +4,29 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+  // Instant shouts share boons with the party while spent charges recharge independently of the use lockout.
+  [ID.ADVANCE]: {
+    castTimeMs: 0,
+    cooldown: 5,
+    ammo: 2,
+    ammoRecharge: 24,
+    ammoCastLockout: 5,
+    effects: [
+      { type: 'boon', boon: 'swiftness', duration: 20, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'aegis', duration: 20, audience: { recipients: 'party' } }
+    ]
+  },
+  [ID.HOLD_THE_LINE]: {
+    castTimeMs: 0,
+    cooldown: 5,
+    ammo: 2,
+    ammoRecharge: 20,
+    ammoCastLockout: 5,
+    effects: [
+      { type: 'boon', boon: 'protection', duration: 6, audience: { recipients: 'party' } },
+      { type: 'boon', boon: 'regeneration', duration: 6, audience: { recipients: 'party' } }
+    ]
+  },
   [ID.RECEIVE_THE_LIGHT]: {
     castTimeMs: 680,
     effects: []

@@ -19,10 +19,10 @@ export function calculateBuffedAttributes(
 ): NonNullable<ProfessionAppState['attributeData']> {
   const controls = attributeEffectControls(app);
   const values = normalizeAttributePreview(controls, input);
+  const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const boons = Object.fromEntries(
     GW2_STANDARD_BOONS.map((key) => [key, key === 'might' ? Number(values[key] || 0) : Boolean(values[key])])
   );
-  const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const preview = {
     ...app,
     build: {
@@ -30,9 +30,7 @@ export function calculateBuffedAttributes(
       startingWeaponSet: app.attributeWeaponSet,
       assumptions: {
         ...app.build.assumptions,
-        ...boons,
-        playerHealthPercent: playerHealth * 100,
-        playerHealthFraction: playerHealth
+        ...boons
       }
     },
     results: null
@@ -45,9 +43,14 @@ export function calculateBuffedAttributes(
     }
   }
 
-  app.adapter.recalculate(preview);
+  // Empire Divided's static Power must be removed before recalculation at low preview health.
+  const disabledTrait = playerHealth <= 0.5 ? 'Empire Divided' : null;
+  app.adapter.recalculate(preview, disabledTrait);
   const data = structuredClone(preview.attributeData!);
-  const config = app.adapter.simulationConfig(preview);
+  const config = app.adapter.simulationConfig(
+    preview,
+    disabledTrait ? { type: 'Trait', id: `Trait:${disabledTrait}`, name: disabledTrait, label: disabledTrait } : null
+  );
   const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
   // Supply defensive primaries omitted by the damage configuration so all-attribute effects preserve them.
   const primaries = Object.fromEntries(
@@ -73,7 +76,6 @@ export function calculateBuffedAttributes(
     weaponSetStats: [activeStats, activeStats],
     boons,
     selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraits.has(id)),
-    playerHealthFraction: playerHealth,
     targetHealthFraction: targetHealth,
     target: {
       ...config.target,
@@ -164,7 +166,12 @@ export function calculateBuffedAttributes(
     });
   }
 
-  const query = createGw2CombatQuery({ profession, config: queryConfig, events });
+  const query = createGw2CombatQuery({
+    profession,
+    config: queryConfig,
+    events,
+    attributePreviewPlayerHealthFraction: playerHealth
+  });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.
   const relic = values.aristocracy ? createRelicRuntime('Aristocracy') : undefined;
   if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy), event }];

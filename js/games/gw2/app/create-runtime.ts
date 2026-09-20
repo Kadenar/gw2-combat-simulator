@@ -98,11 +98,13 @@ export function createProfessionRuntime({
       .filter((skill): skill is Skill => skill != null);
   }
 
-  function recalculate(app: ProfessionAppState): void {
+  // Previews can omit a static trait before conversions without changing the saved build.
+  function recalculate(app: ProfessionAppState, disabledTrait: string | null = null): void {
     app.attributeData = calculateAttributes(
       app.build,
       selectedSkills(app),
-      app.attributeWeaponSet || 1
+      app.attributeWeaponSet || 1,
+      disabledTrait
     ) as ProfessionAttributeData;
   }
 

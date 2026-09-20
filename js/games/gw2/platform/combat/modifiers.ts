@@ -564,6 +564,8 @@ export type Gw2ModifierOperation = 'add' | 'damage-additive' | 'multiply';
 
 /** Modifier queries retain scheduler state and source identity when no event is available. */
 export interface Gw2ModifierContext {
+  /** Supplied only by the isolated attribute preview, outside persisted builds and simulation configuration. */
+  readonly attributePreviewPlayerHealthFraction?: number;
   readonly skillId?: SkillId | null;
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationEvent['actorType'] | null;

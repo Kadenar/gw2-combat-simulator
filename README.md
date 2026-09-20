@@ -28,6 +28,10 @@ Configure equipment and attributes, weapons, runes, sigils, relics, consumables,
 profession-specific mechanics, and boon/condition/target assumptions. Builds are saved locally in the browser and can be
 imported or exported as JSON.
 
+Simulations always assume player health is **100%**. Incoming damage and low-player-health combat scenarios are outside
+scope. The isolated attribute preview can vary player health to show conditional stats, without affecting saved builds
+or simulations. Target health remains configurable and decreases as damage is dealt.
+
 ### Rotation builder
 
 Build rotations from the selected build's skills, by clicking or with keyboard hotkeys. The simulator enforces cast
@@ -155,9 +159,9 @@ notes. Submissions are reviewed before being added. See [Community Build Submiss
 
 ## Accuracy and scope
 
-Results are controlled, reproducible estimates for comparing builds and rotations, not guaranteed in-game DPS.
-Encounter mechanics, movement, latency, player execution, undocumented behavior, incomplete modeling, and game updates
-can all cause differences. Validate against in-game testing and combat logs where possible.
+Results are controlled, reproducible estimates for comparing builds and rotations, not guaranteed in-game DPS. Encounter
+mechanics, movement, latency, player execution, undocumented behavior, incomplete modeling, and game updates can all
+cause differences. Validate against in-game testing and combat logs where possible.
 
 ---
 

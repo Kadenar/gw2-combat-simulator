@@ -223,7 +223,7 @@ export interface ProfessionRuntimeApi {
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult;
   eliteSpecialization(build: Gw2ApplicationBuild): string;
-  recalculate(app: ProfessionAppState): void;
+  recalculate(app: ProfessionAppState, disabledTrait?: string | null): void;
   simulationConfig(app: ProfessionAppState, disabled?: ProfessionModifier | null): Gw2Config;
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];

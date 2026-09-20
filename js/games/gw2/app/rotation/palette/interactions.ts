@@ -96,9 +96,9 @@ export function bindPaletteInteractions(
 
 const CONCURRENT_OFFSET_MS = 120;
 
-/** Defaults palette interruption to the skill's commit point, or its normal cast time when none is declared. */
+/** Honors authored interrupt defaults before falling back to the commit point or normal cast time. */
 export function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
-  return Math.round(Number(skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
+  return Math.round(Number(skill?.defaultInterruptMs ?? skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
 }
 
 function resolveProfessionPaletteAction(

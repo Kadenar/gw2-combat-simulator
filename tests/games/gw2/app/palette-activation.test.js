@@ -129,6 +129,26 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
   });
 });
 
+test('Ctrl-click initializes the editor with the authored interrupt default and accepts an override', () => {
+  const skill = {
+    id: 1,
+    name: 'Default Interrupted Cast',
+    castTimeMs: 2000,
+    interruptCommitMs: 240,
+    defaultInterruptMs: 480
+  };
+  const { app, added } = activationApp([skill]);
+  // Verify the editor receives the same default used when inserting a cast normally.
+  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id, { ctrlKey: true }), {
+    openActivation(options) {
+      assert.equal(options.interruptMs, 480);
+      assert.equal(options.suggestedInterruptMs, 480);
+      options.onApply(600);
+    }
+  });
+  assert.deepEqual(added, [{ name: skill.name, options: { skillId: skill.id, interruptAfterMs: 600 } }]);
+});
+
 test('Shift-click queues companion animations concurrently while respecting explicit prohibitions', () => {
   const command = { id: 1, name: 'Mech Command', castTimeMs: 750, independentCast: true };
   const { app, added } = activationApp([command]);

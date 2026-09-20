@@ -17,7 +17,6 @@ import type {
   ElementalistCastContext as ElementalistLifecycleContext,
   ElementalistSchedulerContext
 } from '#gw2/professions/elementalist/types.js';
-import { PERSISTING_FLAMES_FIELD_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   combatStarted,
@@ -211,9 +210,14 @@ export function elementalistAuraDuration(context: unknown, duration: number): nu
     : duration;
 }
 
-// Clone only the final authored field packet and its attached conditions at the measured cadence.
+// Extend weapon Fire-field packets identified by catalog metadata, preserving their authored cadence.
 export function extendPersistingFlamesPackets(context: ElementalistLifecycleContext, skill: Skill): void {
-  if (!hasTrait(context, 'Persisting Flames') || !PERSISTING_FLAMES_FIELD_SKILLS.has(Number(skill.id))) return;
+  if (
+    !hasTrait(context, 'Persisting Flames') ||
+    skill.type !== 'Weapon' ||
+    !skill.comboFields?.some((field) => field.fieldType === 'Fire')
+  )
+    return;
 
   const fieldPackets = context.events
     .filter(
@@ -246,12 +250,12 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
   }
 }
 
-/** Extends the active fire field selected for Persisting Flames and its scheduled field event. */
+/** Extend scheduled Fire fields from weapon skills; profession fields only qualify for stack generation. */
 export function extendPersistingFlamesField(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (
     event.type !== 'action' ||
     !hasTrait(context, 'Persisting Flames') ||
-    !PERSISTING_FLAMES_FIELD_SKILLS.has(Number(event.skillId ?? event.sourceId))
+    context.catalog.skillsById.get(event.skillId ?? event.sourceId ?? '')?.type !== 'Weapon'
   )
     return;
   const field = context.events.find(

@@ -350,8 +350,18 @@ test('health fractions preserve explicit precedence and dynamic damage fallback'
     0.4
   );
   assert.equal(targetHealthFraction(context()), 1);
-  assert.equal(playerHealthFraction(context({ config: { playerHealthFraction: -0.2 } })), 0);
-  assert.equal(playerHealthFraction(context({ config: { playerHealthFraction: 1.2 } })), 1);
+});
+
+test('player health stays full even when callers supply legacy health overrides', () => {
+  // Low-health scenarios are unsupported, including direct runtime-query callers.
+  for (const health of [undefined, 0, 0.2, 0.5, 1, 1.2, -0.2]) {
+    assert.equal(
+      playerHealthFraction(
+        context({ config: { playerHealthFraction: health, attributePreviewPlayerHealthFraction: health } })
+      ),
+      1
+    );
+  }
 });
 
 test('boon queries retain configured stacks and prefer live applications over scheduler state', () => {

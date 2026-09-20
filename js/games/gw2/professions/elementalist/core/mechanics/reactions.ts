@@ -20,7 +20,6 @@ import type {
   ElementalistResolverEvent,
   ElementalistState
 } from '#gw2/professions/elementalist/types.js';
-import { PERSISTING_FLAMES_FIELD_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { isElementalistAttunement, type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
@@ -229,9 +228,12 @@ export function applyElementalistResolvedDamage(
   event: Gw2ResolverEvent,
   _details: NativeResolvedDamageDetails = {}
 ): void {
+  // Fire-field hits grant stacks even from profession skills; only weapon fields receive duration extensions.
   if (
     event.damageKind === 'field-tick' &&
-    PERSISTING_FLAMES_FIELD_SKILLS.has(Number(event.skillId ?? event.sourceId))
+    context.helpers.skillsById
+      ?.get(event.skillId ?? event.sourceId ?? '')
+      ?.comboFields?.some((field) => field.fieldType === 'Fire')
   ) {
     grantPersistingFlames(context, event);
   }

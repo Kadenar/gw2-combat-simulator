@@ -16,6 +16,7 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
+import { updateGuardianTraitCastState } from '#gw2/professions/guardian/core/traits/index.js';
 import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
 import {
   handleVirtueActivation,
@@ -275,6 +276,63 @@ test('Furious Focus uses a separate stochastic weapon-strength activation from i
     symbol.every((event) => event.weaponStrengthProfileId === 'nonweapon.unequipped'),
     true
   );
+});
+
+test("Healer's Resolution grants eight seconds on committed heals with a shared twenty-second ICD", () => {
+  const events = [];
+  const core = createGuardianCoreState();
+  const context = {
+    profession: { core, specialization: { kind: 'Core', state: {} } },
+    catalog: guardianCatalog,
+    traits: new Set([GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION]),
+    action: {},
+    effectiveEnd: 0,
+    emit: (event) => events.push(event)
+  };
+  const heal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHELTER);
+  const otherHeal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE);
+  // Non-heals and cancelled casts must not grant the boon or consume its cooldown.
+  updateGuardianTraitCastState(context, { id: 'test-utility', type: 'Utility' });
+  context.action.cancelled = true;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(events.length, 0);
+  assert.equal(core.healersResolutionReadyAt, 0);
+  context.action.cancelled = false;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(core.healersResolutionReadyAt, 20);
+  for (const at of [1, 19.999, 20, 20.001]) {
+    context.effectiveEnd = at;
+    updateGuardianTraitCastState(context, otherHeal);
+  }
+
+  assert.deepEqual(
+    events.map(({ at, kind, duration }) => ({ at, kind, duration })),
+    [
+      { at: 0, kind: 'resolution', duration: 8 },
+      { at: 20.001, kind: 'resolution', duration: 8 }
+    ]
+  );
+  context.traits.clear();
+  context.effectiveEnd = 50;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(events.length, 2);
+
+  // The simulation must route the heal through the shared hook and apply boon-duration scaling.
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: ['Shelter', { type: 'wait', durationMs: 1000 }],
+    config: {
+      ...config,
+      stats: { ...config.stats, concentration: 750 },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION]
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  const resolution = result.events.find(
+    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION
+  );
+  assert.equal(resolution.kind, 'resolution');
+  assert.equal(resolution.duration, 12);
 });
 
 test('resolution traits affect strike damage, critical chance, and might', () => {

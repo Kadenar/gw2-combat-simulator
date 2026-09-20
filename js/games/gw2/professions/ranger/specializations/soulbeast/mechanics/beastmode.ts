@@ -39,8 +39,7 @@ function activeBuff(context: RangerModifierContext, kind: string): boolean {
   );
 }
 
-// Oppressive Superiority activates when the target's HP fraction is below the player's HP fraction —
-// playerHealthFraction defaults to 1 (full HP) if unset, making the condition always false unless configured.
+// With player health fixed at 100%, Oppressive Superiority activates when the target is below full health.
 function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
   return (
     hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) && targetHealthFraction(context) < playerHealthFraction(context)

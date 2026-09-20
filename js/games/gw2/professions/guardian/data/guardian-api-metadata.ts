@@ -1359,6 +1359,22 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: null
   },
   {
+    id: 9084,
+    name: '"Advance!"',
+    description: 'Shout. Grant aegis and swiftness to up to five nearby allies.',
+    icon: 'https://render.guildwars2.com/file/4EB81AB80FA319D32A1A11566EA10639A14AC708/103635.png',
+    type: 'Utility',
+    weapon: '',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Shout'],
+    recharge: 5,
+    ammo: 2,
+    ammoRecharge: 24,
+    nextChainId: null,
+    flipSkillId: null
+  },
+  {
     id: 9086,
     name: "Protector's Strike",
     description:
@@ -1945,6 +1961,22 @@ export const SKILLS: readonly GuardianSkill[] = [
     recharge: 18,
     ammo: 0,
     ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null
+  },
+  {
+    id: 9152,
+    name: '"Hold the Line!"',
+    description: 'Shout. Grant protection and regeneration to allies.',
+    icon: 'https://render.guildwars2.com/file/CA143E59076FDECC06DF0F209836104F359977E0/103663.png',
+    type: 'Utility',
+    weapon: '',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Shout'],
+    recharge: 5,
+    ammo: 0,
+    ammoRecharge: 20,
     nextChainId: null,
     flipSkillId: null
   },

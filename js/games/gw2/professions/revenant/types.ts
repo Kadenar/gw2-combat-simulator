@@ -54,7 +54,6 @@ export interface RevenantBuild extends Gw2Build {
   selectedLegends?: string[];
   startingLegend?: string;
   initialEnergy?: number;
-  playerHealthFraction?: number;
 }
 
 export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {

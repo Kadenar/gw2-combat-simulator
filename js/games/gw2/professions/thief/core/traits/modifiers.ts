@@ -8,6 +8,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   eventSkill,
   hasSelectedSkill,
+  playerHealthFraction,
   targetConditionActive,
   targetConditionCount,
   targetHealthFraction
@@ -100,8 +101,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.twin-fangs-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    // Preserve the unconditional bonus below the health threshold; only the additional bonus is conditional.
-    factor: (context) => (Number(context.config?.playerHealthFraction ?? 1) > 0.5 ? 1.07 : 1.05),
+    // Preserve low-health stat previews; simulation queries always return full player health.
+    factor: (context) => (playerHealthFraction(context) > 0.5 ? 1.07 : 1.05),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
   },
   {
@@ -211,8 +212,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.keen-observer',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    // Keen Observer retains its base critical chance when the high-health condition is inactive.
-    amount: (context) => (Number(context.config?.playerHealthFraction ?? 1) > 0.5 ? 0.15 : 0.1),
+    // Preserve low-health stat previews; simulation queries always return full player health.
+    amount: (context) => (playerHealthFraction(context) > 0.5 ? 0.15 : 0.1),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
   },
   {

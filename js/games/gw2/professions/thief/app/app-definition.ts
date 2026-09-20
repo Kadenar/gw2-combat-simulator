@@ -23,7 +23,6 @@ export const thiefAppAdapter = defineProfessionApp({
     buildConfigExtras: (app) => ({
       initialInitiative: (app.build as ThiefApplicationBuild).initialInitiative,
       initialShadowForce: (app.build as ThiefApplicationBuild).initialShadowForce,
-      playerHealthFraction: 1,
       selectedDodge: (app.build as ThiefApplicationBuild).selectedDodge
     })
   },

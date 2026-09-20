@@ -1,4 +1,6 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -8,7 +10,32 @@ import {
   queueGuardianResolverBuff,
   recordGuardianTraitProc
 } from '#gw2/professions/guardian/core/traits/shared.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
+import type {
+  GuardianCastContext,
+  GuardianResolverContext,
+  GuardianResolverEvent,
+  GuardianSkill
+} from '#gw2/professions/guardian/types.js';
+
+// Committed heal skills grant self Resolution, sharing one cooldown across all heal activations.
+export function applyHealersResolution(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
+  if (skill.type !== 'Heal' || !hasTrait(context, GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION)) return;
+  const state = professionCoreState(context);
+  if (!isInternalCooldownReady(at, state.healersResolutionReadyAt)) return;
+
+  const profile = balanceProfileFromContext(context, PROFILE.healersResolution);
+  const resolution = balanceProfileEffect(profile, 'boon');
+  state.healersResolutionReadyAt = at + Number(profile?.internalCooldown ?? 20);
+  emitSkillBuff(context, skill, {
+    at,
+    source: 'guardian',
+    sourceId: GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION,
+    name: "Healer's Resolution",
+    kind: 'resolution',
+    duration: Number(resolution?.duration ?? 8),
+    stacks: 1
+  });
+}
 
 /** Owns Righteous Instincts' Resolution window and recurring Might tick behavior. */
 function queueRighteousMight(context: GuardianResolverContext, at: number, detail: string): void {

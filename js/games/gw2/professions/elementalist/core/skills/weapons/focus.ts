@@ -9,7 +9,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
-// One tick per second across Flamewall's nine-second field, shared by its strike and Burning timelines.
+// Flamewall pulses on creation and each second through its eight-second duration, including the final boundary.
 const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560] as const;
 
 /**
@@ -34,7 +34,7 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         ownerId: 'elementalist',
         fieldType: 'Fire',
-        duration: 9,
+        duration: 8,
         startAnchor: 'castEnd'
       }
     ],

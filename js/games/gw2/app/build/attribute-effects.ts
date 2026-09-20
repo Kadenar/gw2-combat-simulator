@@ -254,6 +254,7 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
       initial: 100,
       description: 'Health-dependent critical bonuses'
     });
+  // Health is adjustable only for this isolated stat preview, never for simulations.
   if (has('Empire Divided', 'Keen Observer', 'Twin Fangs'))
     add({
       key: 'playerHealth',

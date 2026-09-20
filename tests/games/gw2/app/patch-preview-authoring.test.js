@@ -129,17 +129,13 @@ test('patch authoring omits unreachable skills for the remaining professions', (
   const guardianNames = namesFor(guardianProfession);
   const guardianIds = idsFor(guardianProfession);
 
-  for (const unusedName of [
-    '"Advance!"',
-    'Mantra of Lore',
-    'Opening Passage',
-    'Clarified Conclusion',
-    'Valorous Stance'
-  ]) {
+  for (const unusedName of ['Mantra of Lore', 'Opening Passage', 'Clarified Conclusion', 'Valorous Stance']) {
     assert.equal(guardianNames.has(unusedName), false, unusedName);
   }
 
   assert.equal(guardianNames.has('Chapter 1: Searing Spell'), true);
+  assert.equal(guardianNames.has('"Advance!"'), true);
+  assert.equal(guardianNames.has('"Hold the Line!"'), true);
   for (const unusedId of [44846, 62532, 78604, 78770]) {
     assert.equal(guardianIds.has(unusedId), false, String(unusedId));
   }

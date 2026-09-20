@@ -25,6 +25,7 @@ import {
   replaceVirtueOfResolutionDuration
 } from '#gw2/professions/guardian/core/traits/virtues.js';
 import {
+  applyHealersResolution,
   handleRighteousInstinctsTick,
   reactToRighteousInstincts
 } from '#gw2/professions/guardian/core/traits/radiance.js';
@@ -50,6 +51,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
   if (context.action.cancelled) return;
 
   const at = context.effectiveEnd;
+  applyHealersResolution(context, skill, at);
   applyWritOfPersistence(context, skill);
 
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {

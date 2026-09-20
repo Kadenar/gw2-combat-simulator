@@ -162,6 +162,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   [ID.HARMONIOUS_HARP]: {
     // Harp packets remain valid independently when the channel is interrupted.
     castTimeMs: 2000,
+    // End the channel early by default once Harp Playing is active.
+    defaultInterruptMs: 480,
     interruptMode: 'per-packet',
     instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
@@ -204,6 +206,8 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
     // Both Harp variants preserve packets independently when interrupted.
     castTimeMs: 2000,
+    // Use the same default early channel end for the alternate Harp.
+    defaultInterruptMs: 480,
     interruptMode: 'per-packet',
     instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0 },
     effects: []
