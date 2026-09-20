@@ -30,6 +30,7 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   openingStrike: TRAIT.OPENING_STRIKE,
   alphaFocus: TRAIT.ALPHA_FOCUS,
   huntersGaze: TRAIT.HUNTERS_GAZE,
+  leadTheWind: TRAIT.LEAD_THE_WIND,
   arachnophobia: TRAIT.ARACHNOPHOBIA,
   strengthOfThePack: 'ranger.core.strength-of-the-pack-proc',
   goForTheThroat: TRAIT.GO_FOR_THE_THROAT,
@@ -190,6 +191,13 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     internalCooldown: 1,
     maximumStacks: 3,
     effects: [{ type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
+  }),
+  trait(RANGER_CORE_BALANCE_PROFILE_IDS.leadTheWind, 'Lead the Wind', {
+    rechargeMultiplier: 0.8,
+    effects: [
+      { type: 'boon', boon: 'swiftness', duration: 10, stacks: 1 },
+      { type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }
+    ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.arachnophobia, 'Arachnophobia', {
     attributeBonus: 150,

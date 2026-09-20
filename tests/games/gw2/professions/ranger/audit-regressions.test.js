@@ -239,6 +239,30 @@ test('Counterattack Kick lands once and its knockback triggers control traits', 
   assert.ok(result.resolvedEvents.some((event) => event.sourceId === TRAIT.DEBILITATING_BLOWS));
 });
 
+test('Lead the Wind reduces longbow recharge and grants Point-Blank Shot boons', () => {
+  // Cover the trait's two supported contracts without modeling its piercing behavior.
+  const baseline = simulate('Core', [ID.RAPID_FIRE], { primaryWeapon: 'Longbow' });
+  const traited = simulate('Core', [ID.RAPID_FIRE, ID.POINT_BLANK_SHOT], {
+    primaryWeapon: 'Longbow',
+    selectedTraitIds: [TRAIT.LEAD_THE_WIND]
+  });
+  const recharge = (result) => {
+    const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.RAPID_FIRE);
+    return action.rechargeReadyAt - action.endsAt;
+  };
+
+  assert.ok(Math.abs(recharge(traited) - recharge(baseline) * 0.8) < 1e-9);
+  assert.deepEqual(
+    traited.events
+      .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.LEAD_THE_WIND)
+      .map((event) => [event.kind, event.duration]),
+    [
+      ['swiftness', 10],
+      ['quickness', 5]
+    ]
+  );
+});
+
 test('Flame Trap retains its double initial strike, later burning pulses, and a bounded Fire field', () => {
   const result = simulate('Core', [ID.FLAME_TRAP, wait(6000)]);
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FLAME_TRAP);

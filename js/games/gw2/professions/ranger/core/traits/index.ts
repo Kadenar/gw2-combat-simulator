@@ -101,6 +101,29 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
     });
   }
 
+  // Point-Blank Shot materializes Lead the Wind's self boons only when the trait is selected.
+  if (skill.id === ID.POINT_BLANK_SHOT && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
+    const profile = balanceProfileFromContext(context, PROFILE.leadTheWind);
+    for (let index = 0; index < 2; index += 1) {
+      const effect = balanceProfileEffect(profile, 'boon', index);
+      const kind = String(effect?.boon || ['swiftness', 'quickness'][index]);
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.LEAD_THE_WIND,
+        actorType: 'effect',
+        skillId: TRAIT.LEAD_THE_WIND,
+        skillName: 'Lead the Wind',
+        name: `Lead the Wind - ${kind}`,
+        kind,
+        boon: kind,
+        duration: Number(effect?.duration ?? [10, 5][index]),
+        stacks: Number(effect?.stacks ?? 1),
+        triggeredBy: skill.name
+      });
+    }
+  }
+
   if (String(skill.description || '').startsWith('Command.')) {
     applyRangerCommandTraits(context, skill);
   }

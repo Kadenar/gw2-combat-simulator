@@ -473,6 +473,11 @@ export const rangerCoreCastRules = Object.freeze({
       result *= balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
     }
 
+    // Lead the Wind reduces every supported longbow skill's base recharge before shared recharge-rate scaling.
+    if (skill?.weapon === 'Longbow' && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
+      result *= balanceProfileValueFromContext(context, PROFILE.leadTheWind, 'rechargeMultiplier', 0.8);
+    }
+
     if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
       result *= balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
     }
