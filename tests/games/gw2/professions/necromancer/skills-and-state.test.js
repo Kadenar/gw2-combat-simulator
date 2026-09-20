@@ -376,6 +376,25 @@ test('Tainted Bolts retains committed strike and Torment packets after interrupt
   }
 });
 
+// A released projectile keeps its impact while the canceled animation immediately frees the player cast lane.
+test('Elixir of Risk retains its committed impact without retaining cast lockout', () => {
+  const skill = necromancerCatalog.skillsById.get(ID.ELIXIR_OF_RISK);
+  const result = simulate(
+    'Harbinger',
+    [{ type: 'cast', skillId: skill.id, interruptAfterMs: skill.interruptCommitMs }],
+    { selectedSkills: ['Elixir of Risk'] },
+    observationTail(1000)
+  );
+  const step = result.steps[0];
+  const impact = result.events.find((event) => event.type === 'damage' && event.skillId === skill.id);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(step.cancelledBeforeCommit, undefined);
+  assert.equal(step.castLockoutEnd, undefined);
+  assert.ok(impact.at * 1000 > step.end);
+  assert.equal(skill.effects.find((effect) => effect.type === 'strike')?.persistsAfterInterrupt, true);
+});
+
 test('Wanderlust Vulnerability affects only its final two field hits', () => {
   const result = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
     initialResource: 100,
@@ -447,7 +466,10 @@ test('Necromancer single-hit skills use their configured offsets', () => {
     [ID.DEADLY_SLICE, 400],
     [ID.SINISTER_STAB, 520],
     [ID.ISOLATE, 440],
-    [ID.LIFE_SLASH, 400]
+    [ID.LIFE_SLASH, 400],
+    [ID.ELIXIR_OF_PROMISE, 400],
+    [ID.ELIXIR_OF_RISK, 504],
+    [ID.ELIXIR_OF_AMBITION, 400]
   ]);
 
   for (const [skillId, expectedOffset] of declarativeOffsets) {
@@ -517,6 +539,28 @@ test('Elixir of Anguish applies Cripple and Swiftness for their exact durations'
 
   assert.deepEqual(durations(base), { cripple: 5, swiftness: 10 });
   assert.deepEqual(durations(empowered), { cripple: 10, swiftness: 20 });
+});
+
+test('Elixirs apply all authored packets together at impact', () => {
+  for (const [name, skillId] of [
+    ['Elixir of Bliss', ID.ELIXIR_OF_BLISS],
+    ['Elixir of Risk', ID.ELIXIR_OF_RISK],
+    ['Elixir of Ignorance', ID.ELIXIR_OF_IGNORANCE],
+    ['Elixir of Anguish', ID.ELIXIR_OF_ANGUISH],
+    ['Elixir of Promise', ID.ELIXIR_OF_PROMISE],
+    ['Elixir of Ambition', ID.ELIXIR_OF_AMBITION]
+  ]) {
+    const result = simulate('Harbinger', [name], { selectedSkills: [name] });
+    const impacts = result.events
+      .filter(
+        (event) =>
+          event.skillId === skillId && ['damage', 'condition', 'buff', 'blind'].includes(String(event.type || ''))
+      )
+      .map((event) => event.at);
+
+    assert.ok(impacts.length, name);
+    assert.equal(new Set(impacts).size, 1, name);
+  }
 });
 
 test('Signet of Spite follows its live passive and active profile', () => {

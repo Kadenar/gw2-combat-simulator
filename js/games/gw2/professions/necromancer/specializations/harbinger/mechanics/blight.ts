@@ -186,7 +186,7 @@ function emitElixirEffects(
   boonOptions: Pick<EmitSkillBuffOptions, 'audience'> | undefined,
   blight: number
 ): void {
-  // Translate each declarative profile effect through the scheduler emitter that owns its event type.
+  // Every elixir payload shares its skill-authored impact while empowered profiles replace only effect values.
   for (const effect of (source.effects || []) as readonly SkillEffect[]) {
     if (effect.type === 'strike') {
       emitSkillDamage(context, skill, {
@@ -208,7 +208,7 @@ function emitElixirEffects(
       });
     } else if (effect.type === 'boon') {
       emitSkillBuff(context, skill, {
-        at: context.effectiveEnd,
+        at: impactAt,
         kind: String(effect.boon || ''),
         duration: Number(effect.duration || 0),
         stacks: Number(effect.stacks ?? 1),
@@ -217,7 +217,7 @@ function emitElixirEffects(
     } else if (effect.type === 'blind') {
       context.emit({
         type: 'blind',
-        at: context.effectiveEnd,
+        at: impactAt,
         source: 'necromancer',
         sourceId: skill.id,
         actorType: 'player',
@@ -231,17 +231,11 @@ function emitElixirEffects(
 /** Commits an elixir throw, consumes empowerment Blight, emits its profile, then grants fresh Blight. */
 function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const at = context.effectiveEnd;
-  // These three elixirs have a mid-cast impact time; others (Bliss, Ignorance, Anguish) impact at cast end.
-  // The fraction represents hit-frame / total-cast-time from wiki frame data.
-  const impactProgress =
-    (
-      {
-        [ID.ELIXIR_OF_PROMISE]: 10 / 17,
-        [ID.ELIXIR_OF_RISK]: 20 / 27,
-        [ID.ELIXIR_OF_AMBITION]: 10 / 17
-      } as Readonly<Record<string | number, number>>
-    )[skill.id] ?? 1;
-  const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
+  // Read the base strike's authored timing so empowered profiles retain the same projectile impact.
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  const timing = strike ? (context.schedulerPolicy.effectTiming?.(context, skill, strike) ?? strike) : undefined;
+  const impactAnchor = timing?.timingAnchor === 'castStart' ? context.start : context.fullEnd;
+  const impactAt = timing?.atMs == null ? context.fullEnd : impactAnchor + Number(timing.atMs) / 1000;
   const commitAt = skill.interruptCommitMs == null ? impactAt : context.start + Number(skill.interruptCommitMs) / 1000;
   // A canceled throw must reach its launch/impact commit before it can consume Blight or apply any effects.
   if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
