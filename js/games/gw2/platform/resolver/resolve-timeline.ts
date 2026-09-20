@@ -149,6 +149,7 @@ export function resolveGw2Timeline(options: ResolveGw2TimelineOptions): Gw2Resol
 export function resolveGw2Timeline({
   onPhase,
   damageDiagnostics = false,
+  sigilDiagnostics,
   output = 'detailed',
   stream,
   config,
@@ -207,6 +208,7 @@ export function resolveGw2Timeline({
   const ctx = createGw2ResolverRuntimeState({
     reporting: output !== 'score',
     damageDiagnostics,
+    sigilDiagnostics,
     config,
     traits,
     horizon: resolutionEndTime,

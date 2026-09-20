@@ -110,22 +110,42 @@ export function runGw2ResolverEventLoop(
     if (!queuedEvent) break;
     // Derived resolver grants bypass scheduler emission; apply the same final-duration contract before handlers run.
     const event = normalizeBoonDuration(queuedEvent);
-    if (event.at > horizon) break;
+    // Diagnostic draining records the exact rejection branch without executing suppressed work.
+    if (event.at > horizon) {
+      if (!ctx.sigilDiagnostics) break;
+      ctx.sigilDiagnostics.suppress(event, 'observation-end');
+      continue;
+    }
+
     if (ctx.deathTime != null) {
-      if (event.at > ctx.deathTime) break;
+      if (event.at > ctx.deathTime) {
+        if (!ctx.sigilDiagnostics) break;
+        ctx.sigilDiagnostics.suppress(event, 'target-death');
+        continue;
+      }
+
       // Finish the lethal activation and simultaneous condition-tick batch,
       // but reject a distinct attack ordered after the target already died.
       if (
         isCombatGatedEvent(event) &&
         event.type !== 'condition_tick' &&
         (lethalActivationKey == null || combatActivationKey(event) !== lethalActivationKey)
-      )
+      ) {
+        ctx.sigilDiagnostics?.suppress(event, 'target-death');
         continue;
+      }
     }
 
-    if (missesTarget(event)) continue;
+    if (missesTarget(event)) {
+      ctx.sigilDiagnostics?.suppress(event, 'miss');
+      continue;
+    }
+
     // Recurring condition wakes must advance their clock even when their damage is gated before combat.
-    if (combatStart != null && event.at < combatStart && isCombatGatedEvent(event) && !event.conditionGroup) continue;
+    if (combatStart != null && event.at < combatStart && isCombatGatedEvent(event) && !event.conditionGroup) {
+      ctx.sigilDiagnostics?.suppress(event, 'precombat');
+      continue;
+    }
 
     if (handlerRegistry.has(event.type)) {
       handlerRegistry.dispatch(event, ctx);

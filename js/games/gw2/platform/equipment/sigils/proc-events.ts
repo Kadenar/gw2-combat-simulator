@@ -2,13 +2,13 @@ import { timeKey } from '#kernel/core/clock.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
-export const RESOLVER_CRITICAL_SIGILS = Object.freeze(new Set(['Air', 'Earth', 'Torment']));
-
 export const GW2_SCHEDULER_SIGIL_PREDICTION = 'critical-sigil';
 
-/** Reports whether a sigil requires resolver-time critical-hit handling. */
-export function isResolverCriticalSigil(name: string): boolean {
-  return RESOLVER_CRITICAL_SIGILS.has(name);
+/** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
+export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
+  if (proc.effect === 'strike') return createSigilStrikeEvent(name, proc, sourceSkill);
+  if (proc.effect === 'condition') return createSigilConditionEvent(name, proc, sourceSkill);
+  throw new TypeError(`Unsupported critical sigil effect: ${name} (${proc.effect}).`);
 }
 
 /** Lets a sigil retrigger at its exact canonical ICD boundary without opening an early-proc window. */

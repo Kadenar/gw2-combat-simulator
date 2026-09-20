@@ -1,3 +1,4 @@
+import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -11,7 +12,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2TriggerMaterializer, MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { createGw2CombatObserver } from '#gw2/platform/scheduler/combat-observer.js';
-import { hasStochasticCriticalFood, resolveCriticalTrigger } from '#gw2/platform/scheduler/critical-facts.js';
+import { hasStochasticCriticalFood, sampleScheduledCritical } from '#gw2/platform/scheduler/critical-facts.js';
 import {
   createMaterializerState,
   type MaterializerProfessionState
@@ -19,6 +20,7 @@ import {
 import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/scheduler/sigil-proc-engine.js';
 
 interface CreateGw2TriggerMaterializerOptions {
+  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly traits?: ReadonlySet<string | number> | null;
 }
 
@@ -50,12 +52,12 @@ const MATERIALIZER_TASK_PRIORITY = -60;
  */
 export function createGw2TriggerMaterializer(
   config: Gw2Config = {},
-  { traits = null }: CreateGw2TriggerMaterializerOptions = {}
+  { traits = null, sigilDiagnostics }: CreateGw2TriggerMaterializerOptions = {}
 ): Readonly<Gw2TriggerMaterializer> {
   const sigilSupport = sigilCapabilities(config);
   const state = createMaterializerState(config, traits, sigilSupport.critical || hasStochasticCriticalFood(config));
   const observer = createGw2CombatObserver(state);
-  const sigils = createSigilProcEngine(config, state);
+  const sigils = createSigilProcEngine(config, state, sigilDiagnostics);
   const criticalFacts = new WeakMap<SimulationEvent, ReturnType<NonNullable<typeof state.query>['critical']>>();
 
   const capabilityEnabled: Readonly<Record<MaterializerCapability, () => boolean>> = Object.freeze({
@@ -67,7 +69,13 @@ export function createGw2TriggerMaterializer(
 
   const processEvent = (context: SchedulerContext, event: SimulationEvent): void => {
     // Missed hostile packets cannot establish combat facts or spend hit-dependent procs.
-    if (isSchedulerSigilPrediction(event) || missesTarget(event)) return;
+    if (missesTarget(event) || event.cancelled === true) return;
+    if (isSchedulerSigilPrediction(event)) {
+      // Predicted conditions supply scheduling facts, never recursive equipment reactions.
+      if (event.type === 'condition') observer.observe(context, event);
+      return;
+    }
+
     observer.observe(context, event);
 
     switch (event.type) {
@@ -90,17 +98,10 @@ export function createGw2TriggerMaterializer(
             : undefined;
         if (critical) criticalFacts.set(event, critical);
 
-        if (!state.combatActive) {
-          if (state.random.stochastic) {
-            resolveCriticalTrigger(context, event, state, critical);
-          }
-
-          break;
-        }
-
-        const criticalCause = resolveCriticalTrigger(context, event, state, critical);
-        if (criticalCause) {
-          sigils.materialize('crit', context, event, criticalCause);
+        const canonical = sampleScheduledCritical(context, event, state, critical);
+        if (!state.combatActive) break;
+        if (sigilSupport.critical && critical) {
+          sigils.materializeCritical(context, canonical, critical);
         }
 
         sigils.consumeDoom(context, event);
@@ -146,7 +147,10 @@ export function createGw2TriggerMaterializer(
     },
     onEventScheduled(context, event) {
       // A chronological trait task emits predictions after its hit's facts; expose them before the next same-time hit.
-      if (event.schedulerBoonPrediction === true && event.at <= context.state.time + EPSILON) {
+      if (
+        (event.schedulerBoonPrediction === true || (isSchedulerSigilPrediction(event) && event.type === 'condition')) &&
+        event.at <= context.state.time + EPSILON
+      ) {
         observer.observe(context, event);
         return;
       }

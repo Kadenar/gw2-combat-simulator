@@ -1,3 +1,4 @@
+import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
@@ -34,6 +35,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 export function createGw2ResolverRuntimeState({
   reporting = true,
   damageDiagnostics = false,
+  sigilDiagnostics,
   config,
   traits = new Set(),
   horizon,
@@ -49,6 +51,7 @@ export function createGw2ResolverRuntimeState({
   const runtime: Gw2ResolverRuntime = {
     reporting,
     damageDiagnostics: reporting && damageDiagnostics,
+    sigilDiagnostics: reporting ? sigilDiagnostics : undefined,
     config,
     traits,
     horizon,
@@ -226,6 +229,7 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
@@ -294,6 +298,7 @@ export interface Gw2ResolverRuntime {
 }
 
 export interface CreateGw2ResolverRuntimeStateOptions {
+  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;

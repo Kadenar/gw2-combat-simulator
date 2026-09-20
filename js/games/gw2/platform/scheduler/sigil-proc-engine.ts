@@ -1,3 +1,4 @@
+import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
@@ -8,14 +9,16 @@ import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   GW2_SCHEDULER_SIGIL_PREDICTION,
-  isResolverCriticalSigil,
+  createCriticalSigilEvent,
   isSigilInternalCooldownReady
 } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
+import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { MaterializerProfessionState, MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 
-export type SigilTrigger = 'crit' | 'swap' | 'control' | 'strike';
+export type SigilTrigger = 'swap' | 'control' | 'strike';
 
 export interface SigilCapabilities {
   readonly critical: boolean;
@@ -25,6 +28,7 @@ export interface SigilCapabilities {
 
 export interface SigilProcEngine {
   materialize(trigger: SigilTrigger, context: SchedulerContext, event: SimulationEvent, cause?: SimulationEvent): void;
+  materializeCritical(context: SchedulerContext, event: SimulationEvent, critical: Gw2CriticalResult): void;
   consumeDoom(context: SchedulerContext, event: SimulationEvent): void;
 }
 
@@ -34,7 +38,6 @@ interface SigilEffectContext {
   readonly name: string;
   readonly proc: Gw2SigilProc;
   readonly sourceSkill: string;
-  readonly schedulerPrediction: boolean;
 }
 
 type SigilEffectHandler = (effect: SigilEffectContext) => void;
@@ -52,7 +55,11 @@ export function sigilCapabilities(config: Gw2Config): SigilCapabilities {
   });
 }
 
-export function createSigilProcEngine(config: Gw2Config, state: MaterializerState): Readonly<SigilProcEngine> {
+export function createSigilProcEngine(
+  config: Gw2Config,
+  state: MaterializerState,
+  diagnostics?: CriticalSigilDiagnostics
+): Readonly<SigilProcEngine> {
   const sigilReady = (name: string, at: number): boolean =>
     isSigilInternalCooldownReady(at, state.sigil.readyAt.get(name) || 0);
 
@@ -60,8 +67,7 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
     state.sigil.readyAt.set(name, at + cooldown);
   };
 
-  const emitProc: SigilEffectHandler = ({ context, cause, name, sourceSkill, schedulerPrediction }) => {
-    if (schedulerPrediction) return;
+  const emitProc: SigilEffectHandler = ({ context, cause, name, sourceSkill }) => {
     context.emitDerived(cause, {
       type: 'proc',
       procType: 'sigil',
@@ -75,19 +81,17 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
     });
   };
 
-  const emitCondition: SigilEffectHandler = ({ context, cause, name, proc, sourceSkill, schedulerPrediction }) => {
+  const emitCondition: SigilEffectHandler = ({ context, cause, name, proc, sourceSkill }) => {
     context.emitDerived(cause, {
       ...createSigilConditionEvent(name, proc, sourceSkill),
-      at: cause.at,
-      ...(schedulerPrediction ? { schedulerPrediction: GW2_SCHEDULER_SIGIL_PREDICTION } : {})
+      at: cause.at
     });
   };
 
-  const emitStrike: SigilEffectHandler = ({ context, cause, name, proc, sourceSkill, schedulerPrediction }) => {
+  const emitStrike: SigilEffectHandler = ({ context, cause, name, proc, sourceSkill }) => {
     context.emitDerived(cause, {
       ...createSigilStrikeEvent(name, proc, sourceSkill),
-      at: cause.at,
-      ...(schedulerPrediction ? { schedulerPrediction: GW2_SCHEDULER_SIGIL_PREDICTION } : {})
+      at: cause.at
     });
   };
 
@@ -181,14 +185,33 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
         const proc = SIGIL_PROC_LOOKUP[name];
         if (proc?.trigger !== trigger || !sigilReady(name, event.at)) continue;
         armSigil(name, event.at, proc.cooldown);
-        const schedulerPrediction = trigger === 'crit' && isResolverCriticalSigil(name);
         (effectHandlers[proc.effect] || procOnly)({
           context,
           cause,
           name,
           proc,
-          sourceSkill,
-          schedulerPrediction
+          sourceSkill
+        });
+      }
+    },
+
+    materializeCritical(context: SchedulerContext, event: SimulationEvent, critical: Gw2CriticalResult) {
+      const decision = decideCriticalSigils(
+        event,
+        gw2SigilSet(config, state.activeWeaponSet).names || [],
+        { chance: critical.chance, didCrit: typeof event.didCrit === 'boolean' ? event.didCrit : undefined },
+        state.random.stochastic,
+        state.sigil
+      );
+      diagnostics?.record('prediction', event, critical.chance, decision);
+      state.sigil.criticalProgress = decision.criticalProgress;
+      for (const { name, readyAt } of decision.procs) {
+        state.sigil.readyAt.set(name, readyAt);
+        context.emitDerived(event, {
+          ...createCriticalSigilEvent(name, SIGIL_PROC_LOOKUP[name], event.skillName || ''),
+          at: event.at,
+          sigilCauseEventOrder: event.eventOrder,
+          schedulerPrediction: GW2_SCHEDULER_SIGIL_PREDICTION
         });
       }
     },
@@ -204,8 +227,7 @@ export function createSigilProcEngine(config: Gw2Config, state: MaterializerStat
         cause: event,
         name: 'Doom',
         proc: SIGIL_PROC_LOOKUP.Doom,
-        sourceSkill: event.skillName || '',
-        schedulerPrediction: false
+        sourceSkill: event.skillName || ''
       };
       emitCondition(effect);
       emitProc(effect);

@@ -11,6 +11,307 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
 import { isSigilInternalCooldownReady } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
+import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
+
+test('sigil diagnostics correlate same-time causes and retain explicit suppression evidence', () => {
+  const diagnostics = createCriticalSigilDiagnostics();
+  const event = (eventOrder) => ({
+    type: 'damage',
+    at: 1,
+    source: 'fixture',
+    sourceId: 'same-name',
+    actorType: 'player',
+    eventOrder
+  });
+  const proc = { criticalProgress: 0, procs: [{ name: 'Earth', readyAt: 3 }] };
+  const absent = { criticalProgress: 0.5, procs: [] };
+  for (const id of [1, 2, 3, 4]) diagnostics.record('prediction', event(id), 0.5, id === 3 ? absent : proc);
+  diagnostics.record('resolution', event(1), 0.5, proc);
+  diagnostics.suppress(event(2), 'target-death');
+  diagnostics.record('resolution', event(3), 1, proc);
+  diagnostics.record('resolution', event(4), 1, proc);
+  diagnostics.record('resolution', event(undefined), 1, proc);
+  assert.deepEqual(
+    diagnostics.results().map(({ causeEventOrder, status, suppression }) => ({ causeEventOrder, status, suppression })),
+    [
+      { causeEventOrder: 1, status: 'confirmed', suppression: undefined },
+      { causeEventOrder: 2, status: 'predicted-only', suppression: 'target-death' },
+      { causeEventOrder: 3, status: 'actual-only', suppression: undefined },
+      { causeEventOrder: 4, status: 'changed', suppression: undefined },
+      { causeEventOrder: null, status: 'resolver-only', suppression: undefined }
+    ]
+  );
+});
+
+test('sigil diagnostics preserve seeded output and explain suppression of a later planned hit', () => {
+  const profession = defineProfession({
+    id: 'sigil-diagnostic-fixture',
+    name: 'Sigil diagnostic fixture',
+    catalog: createCanonicalCatalog(),
+    schedulerHooks: {
+      initialize(context) {
+        for (const at of [0.1, 10])
+          context.emit({
+            type: 'damage',
+            at,
+            source: 'fixture',
+            sourceId: 'strike',
+            actorType: 'player',
+            coefficient: 1,
+            weaponStrength: 1000
+          });
+      }
+    }
+  });
+  const options = {
+    profession,
+    rotation: [{ type: 'wait', durationMs: 11000 }],
+    config: {
+      stats: { power: 1000, precision: 1945 },
+      sigilSets: [{ names: ['Blight'] }],
+      randomness: { mode: 'stochastic', seed: 42 }
+    }
+  };
+  const plain = simulateGw2(options);
+  const diagnostic = simulateGw2({ ...options, damageDiagnostics: true });
+  assert.equal(plain.totalDamage, diagnostic.totalDamage);
+  assert.deepEqual(
+    plain.events.map((event) => event.didCrit),
+    diagnostic.events.map((event) => event.didCrit)
+  );
+  assert.deepEqual(plain.procSteps, diagnostic.procSteps);
+  assert.equal(plain.criticalSigilDiagnostics, undefined);
+  assert.equal(
+    simulateGw2({ ...options, damageDiagnostics: true, output: 'score' }).criticalSigilDiagnostics,
+    undefined
+  );
+  assert.deepEqual(
+    diagnostic.criticalSigilDiagnostics,
+    simulateGw2({ ...options, damageDiagnostics: true }).criticalSigilDiagnostics
+  );
+  const lethal = simulateGw2({
+    ...options,
+    damageDiagnostics: true,
+    config: {
+      ...options.config,
+      stats: { power: 1000, precision: 4000 },
+      target: { health: 1 }
+    }
+  });
+  assert.deepEqual(
+    lethal.criticalSigilDiagnostics.map(({ status, suppression }) => [status, suppression]),
+    [
+      ['confirmed', undefined],
+      ['predicted-only', 'target-death']
+    ]
+  );
+});
+
+test('critical sigil decisions preserve inputs, spend cooldown opportunities, and reject ineligible hits', () => {
+  // Pure decisions update only their returned progress and the cooldowns of emitted intents.
+  const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
+  const state = Object.freeze({
+    criticalProgress: 0.5,
+    readyAt: new Map([
+      ['Earth', 2],
+      ['Air', 3],
+      ['Doom', 9]
+    ])
+  });
+  const decide = (event = hit, chance = 0.5, stochastic = false, didCrit) =>
+    decideCriticalSigils(event, ['Earth', 'Air', 'Earth'], { chance, didCrit }, stochastic, state);
+  assert.deepEqual(decide(), { criticalProgress: 0, procs: [{ name: 'Earth', readyAt: 4 }] });
+  assert.deepEqual(decide({ ...hit, at: 1.999999 }), { criticalProgress: 0, procs: [] });
+  assert.deepEqual(decide(hit, 0.25), { criticalProgress: 0.75, procs: [] });
+  assert.deepEqual(decide({ ...hit, at: 3 }), {
+    criticalProgress: 0,
+    procs: [
+      { name: 'Earth', readyAt: 5 },
+      { name: 'Air', readyAt: 6 }
+    ]
+  });
+  for (const change of [
+    { offTarget: true },
+    { cancelled: true },
+    { noCrit: true },
+    { flatDamage: 10 },
+    { coefficient: 0 },
+    { actorType: 'summon' }
+  ]) {
+    assert.deepEqual(decide({ ...hit, ...change }), { criticalProgress: 0.5, procs: [] });
+  }
+
+  assert.equal(decide({ ...hit, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 1);
+  assert.deepEqual(decide(hit, 0), { criticalProgress: 0.5, procs: [] });
+  assert.deepEqual(decide(hit, 0.5, true, false), { criticalProgress: 0.5, procs: [] });
+  assert.deepEqual(decide(hit, 0.5, true, true), { criticalProgress: 0.5, procs: [{ name: 'Earth', readyAt: 4 }] });
+  assert.equal(state.criticalProgress, 0.5);
+  assert.deepEqual(
+    [...state.readyAt],
+    [
+      ['Earth', 2],
+      ['Air', 3],
+      ['Doom', 9]
+    ]
+  );
+  assert.throws(
+    () => createCriticalSigilEvent('Future', { effect: 'unsupported' }, ''),
+    /Unsupported critical sigil effect/
+  );
+});
+
+test('all authored critical sigils are predictions until a surviving resolver hit commits them', () => {
+  // A later hit after death is still planned, but cannot create authoritative Blight or other sigil output.
+  for (const [name, proc] of Object.entries(SIGIL_PROCS).filter(([, proc]) => proc.trigger === 'crit')) {
+    const profession = defineProfession({
+      id: 'sigil-ownership-fixture',
+      name: 'Sigil ownership fixture',
+      catalog: createCanonicalCatalog(),
+      schedulerHooks: {
+        initialize(context) {
+          for (const at of [0.1, 10])
+            context.emit({
+              type: 'damage',
+              at,
+              source: 'fixture',
+              sourceId: 'strike',
+              actorType: 'player',
+              coefficient: 1,
+              weaponStrength: 1000
+            });
+        }
+      }
+    });
+    const config = { stats: { power: 1000, precision: 4000 }, sigilSets: [{ names: [name] }], target: { health: 1 } };
+    const rotation = [{ type: 'wait', durationMs: 11000 }];
+    const predicted = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
+      rotation
+    );
+    const packets = predicted.events.filter((event) => event.sourceId === `sigil.${name.toLowerCase()}`);
+    assert.deepEqual(
+      packets.map((event) => event.at),
+      [0.1, 10]
+    );
+    assert.ok(packets.every((event) => event.schedulerPrediction === 'critical-sigil'));
+    const result = simulateGw2({ profession, config, rotation });
+    assert.ok(result.events.every((event) => event.schedulerPrediction !== 'critical-sigil'));
+    assert.ok(
+      result.resolvedEvents.every((event) => event.sourceId !== `sigil.${name.toLowerCase()}` || event.at < 10)
+    );
+    // Conditions triggered by the lethal hit may settle; a separate Air strike follows the existing death boundary.
+    if (proc.effect === 'condition') {
+      assert.equal(
+        result.resolvedEvents.filter(
+          (event) => event.type === 'condition' && event.sourceId === `sigil.${name.toLowerCase()}`
+        ).length,
+        1
+      );
+    }
+  }
+});
+
+test('Blight predictions supply condition-dependent scheduling and expire without recursive relic output', () => {
+  // Poison creates a later scheduling opportunity, and the resolver sees the same condition at that time.
+  const observed = [];
+  const profession = defineProfession({
+    id: 'blight-facts-fixture',
+    name: 'Blight facts fixture',
+    catalog: createCanonicalCatalog(),
+    schedulerHooks: {
+      initialize(context) {
+        context.emit({
+          type: 'damage',
+          at: 0.1,
+          coefficient: 1,
+          weaponStrength: 1000,
+          source: 'fixture',
+          sourceId: 'strike',
+          actorType: 'player'
+        });
+        for (const at of [0.2, 4.1]) context.tasks.schedule({ type: 'fixture.consume-poison', at });
+      },
+      taskHandlers: {
+        'fixture.consume-poison': (context, task) => {
+          const poisoned = context.schedulerPolicy.targetHasCondition('Poisoned', task.at);
+          observed.push(poisoned);
+          if (poisoned)
+            context.emit({
+              type: 'marker',
+              at: task.at,
+              name: 'Poison opportunity',
+              source: 'fixture',
+              sourceId: 'follow-up',
+              actorType: 'player'
+            });
+        }
+      }
+    },
+    resolverHooks: {
+      eventReactions: {
+        'condition.applied': (context, event) => {
+          if (event.sourceId === 'sigil.blight')
+            assert.equal(context.query.targetConditionStacks('Poisoned', 0.2, context), 2);
+        }
+      }
+    }
+  });
+  const config = { stats: { power: 1000, precision: 4000 }, sigilSets: [{ names: ['Blight'] }], relic: 'Shackles' };
+  const result = simulateGw2({ profession, config, rotation: [{ type: 'wait', durationMs: 5000 }] });
+  assert.deepEqual(observed, [true, false]);
+  assert.equal(result.events.filter((event) => event.sourceId === 'follow-up').length, 1);
+  assert.equal(
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === 'sigil.blight').length,
+    1
+  );
+  assert.ok(result.events.every((event) => event.sourceId !== 'relic.shackles'));
+});
+
+// Identical short histories expose equipment eligibility without depending on a saved rotation.
+test('critical sigil progress pauses while unequipped and resumes across weapon swaps', () => {
+  for (const startingWeaponSet of [1, 2]) {
+    const otherSet = startingWeaponSet === 1 ? 2 : 1;
+    for (const startsEquipped of [false, true]) {
+      const profession = defineProfession({
+        id: 'sigil-progress-fixture',
+        name: 'Sigil progress fixture',
+        catalog: createCanonicalCatalog(),
+        schedulerHooks: {
+          initialize(context) {
+            const owner = { source: 'Fixture', sourceId: 'fixture', actorType: 'player' };
+            for (const at of [0.1, 0.3, 0.5]) {
+              context.emit({ ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 });
+            }
+
+            context.emit({ ...owner, type: 'weapon_set', at: 0.2, weaponSet: otherSet });
+            if (startsEquipped) {
+              context.emit({ ...owner, type: 'weapon_set', at: 0.4, weaponSet: startingWeaponSet });
+            }
+          }
+        }
+      });
+      const equippedSet = startsEquipped ? startingWeaponSet : otherSet;
+      const config = {
+        startingWeaponSet,
+        stats: { power: 1000, precision: 1945 },
+        sigilSets: [1, 2].map((set) => ({ names: set === equippedSet ? ['Earth'] : [] }))
+      };
+      const rotation = [{ type: 'wait', durationMs: 1000 }];
+      const scheduled = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
+        rotation
+      );
+      const resolved = simulateGw2({ profession, config, rotation });
+      for (const events of [scheduled.events, resolved.resolvedEvents]) {
+        assert.deepEqual(
+          events.filter((event) => event.sourceId === 'sigil.earth').map((event) => event.at),
+          [0.5]
+        );
+      }
+    }
+  }
+});
 
 test('sigil cooldown boundaries use exact canonical instants', () => {
   // A sigil may proc at its boundary, never before it, including across equivalent floating-point expressions.
@@ -303,7 +604,7 @@ test('one critical query supplies trigger decisions and survives same-time boon 
       assert.notEqual(canonical, hit);
     } else {
       assert.equal(roll.mock.callCount(), 0);
-      assert.equal(state.sigil.criticalProgress, observed.chance);
+      assert.equal(state.sigil.criticalProgress, 0, 'trait critical facts cannot bank unequipped sigil progress');
       assert.equal(canonical.didCrit, undefined);
     }
 

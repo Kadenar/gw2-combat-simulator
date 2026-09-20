@@ -1,3 +1,4 @@
+import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
@@ -94,11 +95,13 @@ function simulateDeclarativeGw2Pass({
   const runtimeProfession = resolveProfessionRuntime(profession, config);
   // Resolve traits once and share the exact selection between both phases.
   const traits = selectedGw2TraitValues(config, runtimeProfession.catalog);
+  const sigilDiagnostics = damageDiagnostics && output === 'detailed' ? createCriticalSigilDiagnostics() : undefined;
   const scheduled = createScheduler({
     profession: runtimeProfession,
     config,
     schedulerPolicy: createGw2SchedulerPolicy(config, {
       traits,
+      sigilDiagnostics,
       catalog: runtimeProfession.catalog,
       weaponSkillMatchesSet: runtimeProfession.weaponSkillMatchesSet
     }),
@@ -116,6 +119,7 @@ function simulateDeclarativeGw2Pass({
   const resolved = resolveGw2Timeline({
     onPhase,
     damageDiagnostics,
+    sigilDiagnostics,
     output,
     stream: resolverStream,
     profession: runtimeProfession,
@@ -134,6 +138,7 @@ function simulateDeclarativeGw2Pass({
   const detailed = resolved as Gw2ResolverResult;
   const result = {
     ...detailed,
+    ...(sigilDiagnostics ? { criticalSigilDiagnostics: sigilDiagnostics.results() } : {}),
     combatState: {
       atSeconds: detailed.combatEndTime,
       profession: structuredClone(flattenProfessionState(detailed.combatState.profession))
@@ -215,14 +220,26 @@ export function simulateDeclarativeGw2(options: Gw2DeclarativeSimulationOptions)
   // Feedback discovers its final configuration after resolution. Capture only by replaying that configuration and seed.
   let result = simulateDeclarativeGw2Pass({ ...options, config, damageDiagnostics: false });
 
+  let converged = false;
   for (let pass = 0; pass < MAX_SCHEDULER_REFINEMENT_PASSES; pass += 1) {
     const started = options.onPhase ? performance.now() : 0;
     const refined = refineConfig(config, result);
     options.onPhase?.('refinement', performance.now() - started);
-    if (!refined) break;
+    if (!refined) {
+      converged = true;
+      break;
+    }
+
     config = refined;
     result = simulateDeclarativeGw2Pass({ ...options, config, damageDiagnostics: false });
   }
 
-  return options.damageDiagnostics ? simulateDeclarativeGw2Pass({ ...options, config }) : result;
+  // Recheck the final pass: exhausting the budget must not silently present an unstable schedule as converged.
+  const exhausted = !converged && refineConfig(config, result) != null;
+  const final = options.damageDiagnostics ? simulateDeclarativeGw2Pass({ ...options, config }) : result;
+  if (exhausted)
+    final.warnings.push(
+      `Scheduler feedback did not converge after ${MAX_SCHEDULER_REFINEMENT_PASSES} refinement passes.`
+    );
+  return final;
 }

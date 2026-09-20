@@ -21,6 +21,70 @@ import {
   updateThiefTraitCastState
 } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
+import {
+  observeThiefCriticalBoons,
+  materializeThiefCriticalBoons
+} from '#gw2/professions/thief/core/traits/critical-strikes.js';
+
+test('Thief boon predictions and resolution share pre-hit Fury, same-time ordering, and expiry', () => {
+  // Two same-time hits distinguish the hit granting Fury from the next hit permitted to extend it.
+  for (const initialFury of [false, true]) {
+    const observed = [];
+    const reactions = Object.values(thiefCoreCriticalReactions)
+      .filter((reaction) => ['thief.unrelenting-strikes', 'thief.no-quarter'].includes(reaction.id))
+      .map(onResolvedCriticalHit);
+    const profession = defineProfession({
+      id: 'thief-boon-parity',
+      name: 'Thief boon parity',
+      catalog: thiefCatalog,
+      resources: { createProfessionState: (config) => ({ core: createThiefCoreState(config) }) },
+      schedulerHooks: {
+        initialize(context) {
+          context.schedulerPolicy.requireCriticalFacts();
+          const owner = { source: 'fixture', sourceId: 'strike', actorType: 'player' };
+          if (initialFury) context.emit({ ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 });
+          for (const at of [1, 1, initialFury ? 8 : 7])
+            context.emit({ ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 });
+        },
+        onEventScheduled: observeThiefCriticalBoons,
+        taskHandlers: { 'thief.critical-boons': materializeThiefCriticalBoons }
+      },
+      resolverHooks: {
+        eventReactions: {
+          'damage.resolved': (context, event, details) => {
+            observed.push(details.hitContext.critical.furyActive);
+            for (const reaction of reactions) reaction.handler(context, event, details);
+          }
+        }
+      }
+    });
+    const config = {
+      selectedTraitIds: [TRAIT.UNRELENTING_STRIKES, TRAIT.NO_QUARTER],
+      stats: { power: 1000, precision: 4000 }
+    };
+    const rotation = [{ type: 'wait', durationMs: 8500 }];
+    const scheduled = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) }).run(
+      rotation
+    );
+    const result = simulateGw2({ profession, config, rotation });
+    assert.deepEqual(observed, [initialFury, true, false]);
+    for (const traitId of config.selectedTraitIds) {
+      assert.equal(
+        scheduled.state.profession.core.traitProcReadyAt[traitId],
+        result.combatState.profession.core.traitProcReadyAt[traitId]
+      );
+      assert.equal(
+        scheduled.state.profession.core.traitProcProgress[traitId],
+        result.combatState.profession.core.traitProcProgress[traitId]
+      );
+    }
+  }
+});
 
 const STEAL = thiefCatalog.skillsById.get(ID.STEAL);
 

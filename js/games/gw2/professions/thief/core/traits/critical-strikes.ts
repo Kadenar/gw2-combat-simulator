@@ -31,6 +31,62 @@ type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
   ThiefResolverReactionDetails
 >;
 
+const CRITICAL_BOONS = [
+  {
+    traitId: TRAIT.UNRELENTING_STRIKES,
+    profileId: PROFILE.unrelentingStrikes,
+    id: 'thief.unrelenting-strikes',
+    name: 'Unrelenting Strikes',
+    duration: 4,
+    internalCooldown: 8
+  },
+  {
+    traitId: TRAIT.NO_QUARTER,
+    profileId: PROFILE.noQuarter,
+    id: 'thief.no-quarter',
+    name: 'No Quarter',
+    duration: 2,
+    internalCooldown: 2
+  }
+] as const;
+
+/** Both phases read the same patched effects and defaults, while each applies its own boon duration. */
+function criticalBoonDefinition(context: unknown, traitId: SkillId) {
+  const rule = CRITICAL_BOONS.find((rule) => rule.traitId === traitId)!;
+  const profile = balanceProfileFromContext(context, rule.profileId);
+  const effect = balanceProfileEffect(profile, 'boon');
+  return {
+    ...rule,
+    boon: String(effect?.boon || 'Fury'),
+    duration: Number(effect?.duration ?? rule.duration),
+    stacks: Number(effect?.stacks ?? 1),
+    internalCooldown: Number(profile?.internalCooldown ?? rule.internalCooldown)
+  };
+}
+
+/** Eligibility uses the hit's pre-reaction Fury fact in both phase adapters. */
+function criticalBoonEligible(
+  context: ThiefSchedulerContext | ThiefResolverContext,
+  event: ThiefSimulationEvent,
+  traitId: SkillId,
+  hadFury: boolean
+): boolean {
+  return (
+    event.type === 'damage' &&
+    event.actorType === 'player' &&
+    Number(event.coefficient) > 0 &&
+    event.cancelled !== true &&
+    !missesTarget(event) &&
+    !event.noCrit &&
+    event.canCrit !== false &&
+    !Number.isFinite(event.flatDamage) &&
+    !Number.isFinite(event.flatStrikeBase) &&
+    !Number.isFinite(event.flatStrikePowerCoeff) &&
+    hasTrait(context.config, traitId) &&
+    (traitId !== TRAIT.NO_QUARTER || hadFury)
+  );
+}
+
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
@@ -69,15 +125,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
 
 /** Predict Fury-producing critical traits chronologically; resolution recomputes them from surviving hits. */
 export function observeThiefCriticalBoons(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (
-    event.type !== 'damage' ||
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0) ||
-    (!event.forceCrit && (event.noCrit || event.canCrit === false)) ||
-    missesTarget(event) ||
-    ![TRAIT.NO_QUARTER, TRAIT.UNRELENTING_STRIKES].some((trait) => hasTrait(context.config, trait))
-  )
-    return;
+  if (!CRITICAL_BOONS.some(({ traitId }) => criticalBoonEligible(context, event, traitId, true))) return;
   context.tasks.schedule({
     type: 'thief.critical-boons',
     at: event.at,
@@ -97,30 +145,17 @@ export function materializeThiefCriticalBoons(
   const hadFury =
     (context.schedulerPolicy as Gw2SchedulerPolicy).critical(context as unknown as SchedulerContext, event)
       .furyActive === true;
-  for (const [traitId, profileId, name] of [
-    [TRAIT.UNRELENTING_STRIKES, PROFILE.unrelentingStrikes, 'Unrelenting Strikes'],
-    [TRAIT.NO_QUARTER, PROFILE.noQuarter, 'No Quarter']
-  ] as const) {
-    if (!hasTrait(context.config, traitId) || (traitId === TRAIT.NO_QUARTER && !hadFury)) continue;
-    const profile = balanceProfileFromContext(context, profileId);
+  for (const { traitId } of CRITICAL_BOONS) {
+    if (!criticalBoonEligible(context, event, traitId, hadFury)) continue;
+    const { id, name, boon, duration, stacks, internalCooldown } = criticalBoonDefinition(context, traitId);
     const tracker = {
       progress: Number(state.traitProcProgress[traitId] || 0),
       readyAt: Number(state.traitProcReadyAt[traitId] || 0)
     };
-    const proc = advanceScheduledCriticalProc(
-      context,
-      event,
-      {
-        id: traitId === TRAIT.NO_QUARTER ? 'thief.no-quarter' : 'thief.unrelenting-strikes',
-        internalCooldown: Number(profile?.internalCooldown ?? (traitId === TRAIT.NO_QUARTER ? 2 : 8))
-      },
-      tracker
-    );
+    const proc = advanceScheduledCriticalProc(context, event, { id, internalCooldown }, tracker);
     state.traitProcProgress[traitId] = tracker.progress;
     state.traitProcReadyAt[traitId] = tracker.readyAt;
     if (!proc) continue;
-    const effect = balanceProfileEffect(profile, 'boon');
-    const duration = Number(effect?.duration ?? (traitId === TRAIT.NO_QUARTER ? 2 : 4));
     context.emitDerived(event, {
       type: traitId === TRAIT.NO_QUARTER ? 'boon_extension' : 'buff',
       at: event.at,
@@ -129,13 +164,13 @@ export function materializeThiefCriticalBoons(
       actorType: 'effect',
       skillId: traitId,
       skillName: name,
-      kind: 'fury',
+      kind: boon.toLowerCase(),
       schedulerBoonPrediction: true,
       duration:
         traitId === TRAIT.NO_QUARTER
           ? duration
-          : gw2SchedulerBoonDuration(context, { id: traitId, name }, 'fury', duration),
-      stacks: Number(effect?.stacks ?? 1),
+          : gw2SchedulerBoonDuration(context, { id: traitId, name }, boon, duration),
+      stacks,
       audience: { recipients: traitId === TRAIT.NO_QUARTER ? 'self' : 'party' }
     });
   }
@@ -156,8 +191,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
     Boolean(details.hitContext?.critEligible) &&
-    Number(event.coefficient) > 0 &&
-    hasTrait(context.config, TRAIT.UNRELENTING_STRIKES),
+    criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES, details.hitContext?.critical?.furyActive === true),
   expectedProgress: {
     get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES),
     set: (context: ThiefResolverContext, value: number) =>
@@ -165,7 +199,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      Number(balanceProfileFromContext(context, PROFILE.unrelentingStrikes)?.internalCooldown ?? 8),
+      criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES).internalCooldown,
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -178,8 +212,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
-    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unrelentingStrikes), 'boon');
-    const boon = String(fury?.boon || 'Fury');
+    const { boon, duration, stacks } = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
     for (let proc = 0; proc < application.quantity; proc += 1) {
       queueResolverBoon(context, event, {
         type: 'buff',
@@ -191,8 +224,8 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
         skillName: 'Unrelenting Strikes',
         name: `Unrelenting Strikes - ${boon}`,
         kind: boon.toLowerCase(),
-        duration: Number(fury?.duration ?? 4),
-        stacks: Number(fury?.stacks ?? 1),
+        duration,
+        stacks,
         audience: { recipients: 'party' },
         triggeredBy: event.skillName
       });
@@ -207,16 +240,13 @@ export const noQuarterCriticalReaction = Object.freeze({
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
     Boolean(details.hitContext?.critEligible) &&
-    Number(event.coefficient) > 0 &&
-    hasTrait(context.config, TRAIT.NO_QUARTER) &&
-    context.query.furyActiveAt(event.at, context, event),
+    criticalBoonEligible(context, event, TRAIT.NO_QUARTER, details.hitContext?.critical?.furyActive === true),
   expectedProgress: {
     get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.NO_QUARTER),
     set: (context: ThiefResolverContext, value: number) => setTraitCriticalProgress(context, TRAIT.NO_QUARTER, value)
   },
   internalCooldown: {
-    duration: (context: ThiefResolverContext) =>
-      Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.internalCooldown ?? 2),
+    duration: (context: ThiefResolverContext) => criticalBoonDefinition(context, TRAIT.NO_QUARTER).internalCooldown,
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -226,9 +256,9 @@ export const noQuarterCriticalReaction = Object.freeze({
   attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.
-    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noQuarter), 'boon');
+    const { duration } = criticalBoonDefinition(context, TRAIT.NO_QUARTER);
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      extendActiveFury(context, event, Number(fury?.duration ?? 2));
+      extendActiveFury(context, event, duration);
     }
   }
 } satisfies ThiefCriticalHitDefinition);

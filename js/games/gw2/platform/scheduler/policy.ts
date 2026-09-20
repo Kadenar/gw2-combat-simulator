@@ -1,3 +1,4 @@
+import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 /**
  * Shared Guild Wars 2 scheduling rules used by `simulateGw2`.
@@ -52,6 +53,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 interface CreateGw2SchedulerPolicyOptions {
+  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly traits?: ReadonlySet<string | number> | null;
   readonly catalog?: CanonicalCatalog | null;
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
@@ -199,11 +201,12 @@ export function createGw2SchedulerPolicy(
   config: Gw2Config = {},
   {
     traits = null,
+    sigilDiagnostics,
     catalog = null,
     weaponSkillMatchesSet: matcher = defaultWeaponSkillMatchesSet
   }: CreateGw2SchedulerPolicyOptions = {}
 ): Readonly<Gw2SchedulerPolicy> {
-  const materializer = createGw2TriggerMaterializer(config, { traits });
+  const materializer = createGw2TriggerMaterializer(config, { traits, sigilDiagnostics });
   // Combo predictions reuse ordinary boon scaling while supplying their own effect time and actor.
   const boonDuration = (
     context: SchedulerContext,

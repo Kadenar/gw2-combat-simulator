@@ -2,14 +2,9 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
-import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/critical-procs.js';
+import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
-import {
-  createSigilConditionEvent,
-  createSigilStrikeEvent,
-  isResolverCriticalSigil,
-  isSigilInternalCooldownReady
-} from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
@@ -65,50 +60,32 @@ function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined
   return proc?.type === 'critStrike' ? proc : undefined;
 }
 
-function isResolvedCriticalSigilCause(
-  ctx: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-  details: NativeResolvedDamageDetails
-): boolean {
-  if (!(Number(event.coefficient) > 0) && event.canTriggerCriticalSigils !== true) {
-    return false;
-  }
-
-  if (!isGw2PlayerActorEvent(event) && event.canTriggerCriticalSigils !== true) {
-    return false;
-  }
-
-  const critical = details.hitContext?.critical;
-  if (!critical) return false;
-  if (ctx.random.stochastic) return critical.didCrit === true;
-  if (!(critical.chance > 0)) return false;
-  return consumeExpectedCriticalProgress(ctx.sigil, critical.chance);
-}
-
+/** Apply the same decision as prediction, using only surviving resolver hits and local state. */
 function createResolvedCriticalSigilEffects(
   ctx: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails
 ): void {
-  const names = (gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || []).filter(isResolverCriticalSigil);
-  if (!names.length || !isResolvedCriticalSigilCause(ctx, event, details)) {
-    return;
-  }
-
+  const critical = details.hitContext?.critical;
+  if (!critical) return;
+  const decision = decideCriticalSigils(
+    event,
+    gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [],
+    critical,
+    ctx.random.stochastic,
+    ctx.sigil
+  );
+  ctx.sigilDiagnostics?.record('resolution', event, critical.chance, decision);
+  ctx.sigil.criticalProgress = decision.criticalProgress;
   const sourceSkill = event.skillName || '';
-  for (const name of names) {
+  for (const { name, readyAt } of decision.procs) {
     const proc = SIGIL_PROC_LOOKUP[name];
-    const readyAt = ctx.sigil.readyAt.get(name) || 0;
-    if (proc?.trigger !== 'crit' || !isSigilInternalCooldownReady(event.at, readyAt)) {
-      continue;
-    }
-
-    ctx.sigil.readyAt.set(name, event.at + proc.cooldown);
-    const effect =
-      proc.effect === 'strike'
-        ? createSigilStrikeEvent(name, proc, sourceSkill)
-        : createSigilConditionEvent(name, proc, sourceSkill);
-    ctx.queue.enqueue({ ...effect, at: event.at } as Gw2ResolverEvent);
+    ctx.sigil.readyAt.set(name, readyAt);
+    ctx.queue.enqueue({
+      ...createCriticalSigilEvent(name, proc, sourceSkill),
+      at: event.at,
+      sigilCauseEventOrder: event.eventOrder
+    } as Gw2ResolverEvent);
     ctx.recordProc('sigil', `Sigil of ${name}`, event.at, sourceSkill, '', String(proc.icon || ''));
   }
 }

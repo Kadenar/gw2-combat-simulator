@@ -9,8 +9,6 @@ import {
   type CriticalProcState
 } from '#gw2/platform/combat/critical-procs.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { consumeExpectedCriticalProgress } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
@@ -49,63 +47,15 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
   return config.randomness?.mode === 'stochastic' && FOOD_DATA[String(config.food || '')]?.proc?.type === 'critStrike';
 }
 
-/**
- * Resolves the critical-strike fact shared by scheduler and resolver consumers.
- *
- * Only coefficient-bearing damage events are considered, and work is skipped
- * unless some configured mechanic requested critical facts. The current
- * critical chance is queried once for the event so every consumer observes the
- * same combat state.
- *
- * In stochastic mode, one actor-scoped roll is stored as `didCrit` on the
- * canonical event. Resolver reactions and critical-triggered equipment then
- * consume that stored result instead of rerolling the hit.
- *
- * In deterministic mode, eligible critical-sigil hits add their critical
- * chance to a scheduler-side prediction accumulator. Crossing one emits a
- * synthetic critical cause and retains the fractional remainder, producing a
- * stable low-discrepancy sequence without random rolls. Resolver-owned sigils
- * maintain separate causal progress from surviving damage packets. The
- * original event is returned because deterministic strikes do not receive a
- * binary `didCrit` result.
- *
- * This function only establishes whether the hit is a critical-sigil cause. It
- * does not check the active weapon set or individual sigil cooldowns; the sigil
- * proc engine applies those constraints after receiving the returned cause.
- *
- * The causal damage event when a critical-sigil trigger occurred, or
- * `null` when the event was ineligible or did not produce a critical trigger.
- */
-export function resolveCriticalTrigger(
+/** Sample once for every critical consumer, independently of equipped sigils and their progress. */
+export function sampleScheduledCritical(
   context: SchedulerContext,
   event: SimulationEvent,
   state: MaterializerState,
   observedCritical?: Gw2CriticalResult
-): SimulationEvent | null {
-  // Ignore non-strikes and skip critical work when no consumer requested it.
-  if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired) {
-    return null;
-  }
-
-  // Player strikes qualify by default; derived effects must explicitly opt in.
-  const canTriggerSigils = isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
-
-  // Reuse the hit's pre-reaction observation, querying only when no cached fact was supplied.
+): SimulationEvent {
+  if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired || !state.random.stochastic) return event;
   const critical = observedCritical ?? state.query!.critical(event, event.at, state);
-
-  // Stochastic mode creates one binary outcome shared by every consumer.
-  if (state.random.stochastic) {
-    const didCrit = state.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
-
-    // Persist the result on the canonical event for resolver reactions.
-    const cause = context.replaceEvent(event, { didCrit });
-
-    // Only an eligible actual crit can trigger critical sigils.
-    return didCrit && canTriggerSigils ? cause : null;
-  }
-
-  // Deterministic progress requires an eligible hit with a possible crit.
-  if (!canTriggerSigils || !(critical.chance > 0)) return null;
-
-  return consumeExpectedCriticalProgress(state.sigil, critical.chance) ? event : null;
+  const didCrit = state.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
+  return context.replaceEvent(event, { didCrit });
 }

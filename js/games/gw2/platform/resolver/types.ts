@@ -1,3 +1,4 @@
+import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2CombatQuery, Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
@@ -206,6 +207,7 @@ export interface Gw2ResolverResult {
 }
 
 export interface ResolveGw2TimelineOptions {
+  readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly damageDiagnostics?: boolean;
   readonly onPhase?: (phase: 'resolution' | 'reporting', durationMs: number) => void;
   readonly output?: 'detailed' | 'score';

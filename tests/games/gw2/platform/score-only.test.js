@@ -3,6 +3,33 @@ import { test } from 'node:test';
 import { loadProfession } from '#gw2/app/profession-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { MAX_SCHEDULER_REFINEMENT_PASSES } from '#gw2/platform/simulation/pipeline.js';
+
+test('feedback reports exhausted refinement but accepts convergence on the final allowed pass', () => {
+  // A bounded synthetic feedback rule distinguishes slow convergence from a permanently unstable schedule.
+  for (const required of [1, MAX_SCHEDULER_REFINEMENT_PASSES, Infinity]) {
+    const profession = defineProfession({
+      id: 'feedback-boundary',
+      name: 'Feedback boundary',
+      simulation: {
+        refineSchedulerConfig(config) {
+          return Number(config.feedbackStep || 0) >= required
+            ? null
+            : { ...config, feedbackStep: Number(config.feedbackStep || 0) + 1 };
+        }
+      }
+    });
+    for (const output of ['detailed', 'score']) {
+      const result = simulateGw2({ profession, rotation: [], output, damageDiagnostics: true });
+      assert.deepEqual(
+        result.warnings,
+        required === Infinity
+          ? [`Scheduler feedback did not converge after ${MAX_SCHEDULER_REFINEMENT_PASSES} refinement passes.`]
+          : []
+      );
+    }
+  }
+});
 
 test('score skips end-state projection for a custom profession without feedback', () => {
   let projections = 0;
