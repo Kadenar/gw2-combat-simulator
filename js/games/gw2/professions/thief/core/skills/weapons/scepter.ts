@@ -191,9 +191,17 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.MEASURED_SHOT]: {
     castTimeMs: 560,
+    // Commit the shot at 320 ms, preserving its impact and remaining cast lockout after interruption.
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     initiativeCost: 4,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({
+      atMs: 0,
+      timingAnchor: 'castEnd',
+      timingScale: 'fixed',
+      persistsAfterInterrupt: true
+    }, [
       {
         type: 'strike',
         coefficient: 0.33,
