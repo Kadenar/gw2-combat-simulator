@@ -7,7 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { queueThiefBoon } from '#gw2/professions/thief/core/traits/critical-strikes.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 /** Attribute on-steal poison to Serpent's Touch while retaining the triggering skill. */
@@ -117,12 +117,21 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
   )
     return;
   const might = balanceProfileEffect(profile, 'boon');
-  queueThiefBoon(context, event, {
-    traitId: TRAIT.LOTUS_POISON,
-    traitName: 'Lotus Poison',
-    boon: String(might?.boon || 'Might'),
+  const boon = String(might?.boon || 'Might');
+  queueResolverBoon(context, event, {
+    type: 'buff',
+    at: event.at,
+    source: 'Trait',
+    sourceId: TRAIT.LOTUS_POISON,
+    actorType: 'effect',
+    skillId: TRAIT.LOTUS_POISON,
+    skillName: 'Lotus Poison',
+    name: `Lotus Poison - ${boon}`,
+    kind: boon.toLowerCase(),
     stacks: Number(might?.stacks ?? 3),
-    duration: Number(might?.duration ?? 10)
+    duration: Number(might?.duration ?? 10),
+    audience: { recipients: 'self' },
+    triggeredBy: event.skillName
   });
   const weakness = balanceProfileEffect(profile, 'condition');
   context.queue.enqueue({

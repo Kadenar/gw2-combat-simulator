@@ -3,6 +3,7 @@ import test from 'node:test';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -250,6 +251,57 @@ test('resolver-owned boons sample timestamp stats and the currently active sigil
   assert.equal(gw2ResolverBoonDuration(context, event, 'profession-specific-buff', 4), 4);
   assert.equal(gw2ResolverBoonDuration(context, event, 'might', 4, { fixedDuration: true }), 4);
   assert.equal(observations.length, 1);
+});
+
+// Queueing preserves application ownership while sampling live stats from the supplied trigger for each grant.
+test('shared resolver boon queueing preserves metadata and scales each application once', () => {
+  const queued = [];
+  let concentration = 750;
+  const trigger = Object.freeze({ type: 'damage', at: 7, skillId: 2, actorType: 'player' });
+  const context = {
+    activeWeaponSet: 1,
+    config: { sigilSets: [{}, { boonDurationBonus: 10 }] },
+    queue: { enqueue: (application) => queued.push(application) },
+    query: {
+      statsAt(at, event) {
+        assert.equal(at, trigger.at);
+        assert.equal(event.skillId, trigger.skillId);
+        assert.equal(event.actorType, 'player');
+        return { concentration };
+      }
+    }
+  };
+  const application = Object.freeze({
+    type: 'buff',
+    at: 8,
+    priority: -5,
+    source: 'Trait',
+    sourceId: 3,
+    skillId: 3,
+    skillName: 'Boon trait',
+    actorType: 'effect',
+    kind: 'might',
+    duration: 10,
+    stacks: 3,
+    audience: { recipients: 'party' },
+    triggeredBy: 'Trigger skill'
+  });
+
+  queueResolverBoon(context, trigger, application);
+  assert.deepEqual(queued[0], { ...application, duration: 15 });
+  concentration = 0;
+  context.activeWeaponSet = 2;
+  queueResolverBoon(context, trigger, application);
+  assert.deepEqual(queued[1], { ...application, duration: 11 });
+  assert.equal(application.duration, 10);
+
+  // Custom buffs and explicitly fixed durations must bypass live boon scaling.
+  context.query.statsAt = () => assert.fail('unscaled buffs must not query stats');
+  const fixed = { ...application, fixedDuration: true };
+  const custom = { ...application, kind: 'profession-specific-buff' };
+  queueResolverBoon(context, trigger, fixed);
+  queueResolverBoon(context, trigger, custom);
+  assert.deepEqual(queued.slice(2), [fixed, custom]);
 });
 
 test('declarative boons can gate dynamic skill availability', () => {

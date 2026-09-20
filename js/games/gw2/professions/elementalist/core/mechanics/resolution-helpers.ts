@@ -1,7 +1,7 @@
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 
@@ -56,8 +56,8 @@ export function queueElementalistBuff(
   duration: number,
   source: string
 ): void {
-  const adjustedDuration = gw2ResolverBoonDuration(context, event, kind, duration);
-  const application: Gw2ResolverEvent = {
+  // The shared buff handler records the application when it actually resolves.
+  queueResolverBoon(context, event, {
     type: 'buff',
     at: event.at,
     source,
@@ -67,12 +67,10 @@ export function queueElementalistBuff(
     name: source,
     kind: kind.toLowerCase(),
     stacks,
-    duration: adjustedDuration,
+    duration,
     triggeredBy: elementalistSourceSkill(event),
     ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
-  };
-  // The shared buff handler records the application when it actually resolves.
-  context.queue.enqueue(application);
+  });
 }
 
 /** Returns active resolver-side applications of one boon kind at a timestamp. */

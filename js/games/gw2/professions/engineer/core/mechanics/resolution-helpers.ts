@@ -4,7 +4,7 @@ import {
   enqueueGw2OwnedComboFinisher,
   type EnqueueGw2OwnedComboFinisherOptions
 } from '#gw2/platform/resolver/combo-resolution.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
@@ -130,15 +130,14 @@ export function queueBuff(
   event: EngineerResolverEvent,
   { name, kind, stacks, duration, sourceId = event.skillId, actorType = 'player' }: QueueBuffOptions
 ): void {
-  const adjustedDuration = gw2ResolverBoonDuration(context, event, kind, duration);
-  context.queue.enqueue({
+  queueResolverBoon(context, event, {
     type: 'buff',
     at: event.at,
     name,
     skillName: name,
     kind,
     stacks,
-    duration: adjustedDuration,
+    duration,
     source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
