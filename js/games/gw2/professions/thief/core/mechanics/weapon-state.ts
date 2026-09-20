@@ -19,6 +19,33 @@ import type {
   ThiefWeaponMatcherContext
 } from '#gw2/professions/thief/types.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
+import {
+  resetAutoattackChains,
+  type AutoattackChainTransitionContext
+} from '#gw2/platform/skills/autoattack-chain-controller.js';
+
+export const THIEF_SCEPTER_CHAIN_EXPIRY_TASK = 'thief.scepter-chain-expire';
+
+/** Only a successful scepter chain step refreshes its three-second window from cast completion. */
+export function observeThiefAutoattackTransition(transition: AutoattackChainTransitionContext): void {
+  const change = transition.result.transitions.find((entry) => entry.chainRootId === ID.SHADOW_BOLT);
+  if (!transition.result.committed || !change || change.decision === 'preserve') return;
+  const context = transition.cast;
+  context.tasks.cancelOwner(THIEF_SCEPTER_CHAIN_EXPIRY_TASK);
+  if (change.decision !== 'advance') return;
+  context.tasks.schedule({
+    type: THIEF_SCEPTER_CHAIN_EXPIRY_TASK,
+    at: context.effectiveEnd + 3,
+    ownerId: THIEF_SCEPTER_CHAIN_EXPIRY_TASK,
+    payload: {}
+  });
+}
+
+/** Restore Shadow Bolt when the continuation window closes, including while other skills are casting. */
+export function expireThiefScepterChain(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
+  resetAutoattackChains(context, [ID.SHADOW_BOLT]);
+  emitThiefStateSnapshot(context, task.at, 'scepter-chain-expired');
+}
 
 // Match weapon skills against hand requirements while projecting live rifle
 // stance and spear-chain state outside the full weapon-bar preview.

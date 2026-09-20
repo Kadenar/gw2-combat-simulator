@@ -7,7 +7,9 @@ import { observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechan
 import {
   updateThiefWeaponState,
   observeThiefAxe,
-  materializeThiefAxe
+  materializeThiefAxe,
+  expireThiefScepterChain,
+  THIEF_SCEPTER_CHAIN_EXPIRY_TASK
 } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import {
   updateThiefTraitCastState,
@@ -62,6 +64,7 @@ export const thiefCoreSchedulerHooks = Object.freeze({
     }
   ]),
   taskHandlers: {
+    [THIEF_SCEPTER_CHAIN_EXPIRY_TASK]: expireThiefScepterChain,
     'thief.infiltrators-signet': pulseInfiltratorsSignet,
     ...thiefCoreTaskHandlers,
     'thief.critical-boons': materializeThiefCriticalBoons,

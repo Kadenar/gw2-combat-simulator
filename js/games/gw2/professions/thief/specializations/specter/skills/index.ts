@@ -14,12 +14,14 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     // Custom: Runs steal traits, grants the stolen skill, and updates shadow force; see `specter/execution/index.ts`.
     handlerId: 'thief.siphon',
     castTimeMs: 520,
+    interruptCommitMs: 480,
     cooldown: 18,
     initiativeCost: 0,
     effects: [
       {
         type: 'condition',
         ticks: [{ atMs: 0, condition: 'Slow', stacks: 1, duration: 5 }],
+        persistsAfterInterrupt: true,
         actorType: 'player',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
@@ -351,10 +353,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
     // Custom: Applies Shadow Shroud skill trait effects after the cast; see `specter/execution/index.ts`.
     handlerId: 'thief.shadow-shroud-skill',
     castTimeMs: 640,
+    interruptCommitMs: 560,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
-      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
           type: 'strike',
           coefficient: 1.075,
@@ -374,7 +377,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = 
         type: 'boon',
         boon: 'might',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        persistsAfterInterrupt: true
       }
     ],
     shadowShroudSkill: true

@@ -413,6 +413,121 @@ test('Specter conditions land with their associated strikes', () => {
   }
 });
 
+test('interrupted scepter autos advance only after a packet lands', () => {
+  // Before the first hit the same bolt stays available; landed packets advance or finish the chain.
+  for (const [name, skillId, setup, next, cutoffs] of [
+    [
+      'Double Bolt',
+      ID.DOUBLE_BOLT,
+      ['Shadow Bolt'],
+      ID.TRIPLE_BOLT,
+      [
+        [280, 0],
+        [320, 1],
+        [400, 1]
+      ]
+    ],
+    [
+      'Triple Bolt',
+      ID.TRIPLE_BOLT,
+      ['Shadow Bolt', 'Double Bolt'],
+      ID.SHADOW_BOLT,
+      [
+        [280, 0],
+        [320, 1],
+        [400, 1],
+        [680, 2]
+      ]
+    ]
+  ]) {
+    for (const [interruptMs, expectedHits] of cutoffs) {
+      const result = simulate(
+        'Specter',
+        [...setup, { name, interruptMs }],
+        {
+          primaryWeapon: 'Scepter',
+          secondaryWeapon: 'Dagger'
+        },
+        observationTail(1500)
+      );
+      const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
+      const torment = result.events.filter((event) => event.type === 'condition' && event.skillId === skillId);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(packets.length, expectedHits);
+      assert.deepEqual(
+        torment.map((event) => event.at),
+        packets.map((event) => event.at)
+      );
+      assert.equal(
+        result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT,
+        expectedHits ? next : skillId
+      );
+    }
+  }
+});
+
+test('scepter autoattack progress survives other damaging skill casts', () => {
+  // Measured Shot and its channel must preserve both a pending Double Bolt and a partially earned Triple Bolt.
+  for (const [rotation, expected] of [
+    [['Shadow Bolt', 'Measured Shot', 'Endless Night', 'Double Bolt'], ID.TRIPLE_BOLT],
+    [['Shadow Bolt', { name: 'Double Bolt', interruptMs: 400 }, 'Measured Shot', 'Triple Bolt'], ID.SHADOW_BOLT]
+  ]) {
+    const result = simulate('Specter', rotation, {
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol'
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
+  }
+});
+
+test('scepter chain expires three seconds after its last successful cast completes', () => {
+  // Other skills and empty interruptions cannot refresh the timer; advancing cancels the previous expiry.
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  for (const [rotation, expected] of [
+    [['Shadow Bolt', wait(2960)], ID.DOUBLE_BOLT],
+    [['Shadow Bolt', wait(3000)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', 'Double Bolt', wait(3000)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', wait(2000), { name: 'Double Bolt', interruptMs: 400 }, wait(1000)], ID.TRIPLE_BOLT],
+    [['Shadow Bolt', wait(2000), { name: 'Double Bolt', interruptMs: 200 }, wait(800)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', wait(2000), 'Shadow Sap', wait(400)], ID.SHADOW_BOLT],
+    [['Shadow Bolt', wait(3000), 'Shadow Bolt'], ID.DOUBLE_BOLT]
+  ]) {
+    const result = simulate('Specter', rotation, {
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Pistol'
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
+  }
+});
+
+test('committed Siphon preserves Slow and shadow force without retaining the cast lane', () => {
+  // The next cast can start before Slow lands; an early cancellation awards neither effect nor resource.
+  for (const [interruptMs, committed] of [
+    [1, false],
+    [480, true]
+  ]) {
+    const result = simulate(
+      'Specter',
+      [{ name: 'Siphon', interruptMs }, 'Shadow Bolt'],
+      {
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: 'Dagger'
+      },
+      observationTail(1000)
+    );
+    const siphon = result.events.find((event) => event.type === 'action' && event.skillId === ID.SIPHON);
+    const next = result.events.find((event) => event.type === 'action' && event.skillId === ID.SHADOW_BOLT);
+    const slow = result.events.find((event) => event.type === 'condition' && event.skillId === ID.SIPHON);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.shadowForce, committed ? 25 : 0);
+    assert.equal(Boolean(slow), committed);
+    assert.equal(next.at, siphon.endsAt);
+    if (committed) assert.ok(slow.at > next.at);
+  }
+});
+
 test('Measured Shot arms a five-second per-packet Endless Night flip', () => {
   // A committed shortened opener still flips the bar; an interrupted channel keeps only emitted packets and restores it.
   const config = {

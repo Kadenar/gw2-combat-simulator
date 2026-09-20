@@ -193,7 +193,12 @@ function transition(
   options: Gw2AutoattackChainOptions
 ): AutoattackChainTransitionResult {
   const chains = chainState(context);
-  const committed = context.action?.cancelled !== true;
+  // Interrupted packet-based autos advance only after a hit; an empty cast preserves its current step.
+  const committed =
+    context.action?.cancelled !== true &&
+    (skill.interruptMode !== 'per-packet' ||
+      context.action?.interrupted !== true ||
+      interruptsAutoattackChain(context, skill));
   const position = context.catalog.autoattackChainPositions.get(Number(skill.id));
   const castChainRootId = position?.root ?? null;
   if (!chains) {

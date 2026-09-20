@@ -71,6 +71,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.TRIPLE_BOLT]: {
     castTimeMs: 1080,
+    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -126,6 +127,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.DOUBLE_BOLT]: {
     castTimeMs: 640,
+    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

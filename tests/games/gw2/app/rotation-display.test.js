@@ -18,7 +18,7 @@ import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 
-// Cancellation styling respects committed non-damaging effects and excludes per-packet interruptions.
+// Interrupted packet casts turn red only without damage; committed non-damaging effects keep normal styling.
 test('timeline marks failed zero-damage casts without marking committed buffs as cancelled', () => {
   const skill = { id: 1, name: 'Example Skill' };
   const packetSkill = { id: 2, name: 'Packet Skill', interruptMode: 'per-packet' };
@@ -40,7 +40,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     { interrupted: true, invalid: true },
     { interrupted: true, skillId: packetSkill.id },
     { interrupted: true, skillId: buffSkill.id },
-    { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true }
+    { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true },
+    { interrupted: true, skillId: packetSkill.id },
+    { interrupted: false, skillId: packetSkill.id }
   ].map((state, ri) => ({
     ...state,
     ri,
@@ -62,7 +64,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     combatEndTime: 1,
     resolvedEvents: [
       { activationId: 'cast:0', damage: 0 },
-      { activationId: 'cast:1', damage: 10, at: 0.8 }
+      { activationId: 'cast:1', damage: 10, at: 0.8 },
+      { activationId: 'cast:4', damage: 0 },
+      { activationId: 'cast:7', damage: 10, at: 0.8 }
     ]
   };
   for (const readOnly of [false, true]) {
@@ -73,13 +77,13 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       html,
       /class="rot-skill rot-cancelled"[^>]*data-idx="0"[^>]*Cancelled without dealing damage[^>]*--att-border:#ff3b45/
     );
-    for (const index of [1, 2, 3, 4, 5]) {
+    for (const index of [1, 2, 3, 5, 7, 8]) {
       assert.match(html, new RegExp(`data-idx="${index}"[^>]*--att-border:#9d7bd0`));
     }
 
     assert.match(html, /class="rot-skill rot-cancelled"[^>]*data-idx="6"/);
 
-    assert.doesNotMatch(html, /class="[^"]*rot-cancelled[^"]*"[^>]*data-idx="4"/);
+    assert.match(html, /class="rot-skill rot-cancelled"[^>]*data-idx="4"[^>]*--att-border:#ff3b45/);
 
     const pending = timelineRowsView(app, build, null, readOnly, new Set(), false)
       .rows.map((row) => row.html)
