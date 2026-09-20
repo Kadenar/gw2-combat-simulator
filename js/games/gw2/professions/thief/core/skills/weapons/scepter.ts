@@ -196,27 +196,30 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     initiativeCost: 4,
-    effects: impactEffects({
-      atMs: 0,
-      timingAnchor: 'castEnd',
-      timingScale: 'fixed',
-      persistsAfterInterrupt: true
-    }, [
+    effects: impactEffects(
       {
-        type: 'strike',
-        coefficient: 0.33,
-        hits: 1,
-        name: 'Measured Shot',
-        actorType: 'player'
+        atMs: 0,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        persistsAfterInterrupt: true
       },
-      {
-        type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1,
-        actorType: 'player'
-      }
-    ]),
+      [
+        {
+          type: 'strike',
+          coefficient: 0.33,
+          hits: 1,
+          name: 'Measured Shot',
+          actorType: 'player'
+        },
+        {
+          type: 'condition',
+          condition: 'Immobilized',
+          stacks: 1,
+          duration: 1,
+          actorType: 'player'
+        }
+      ]
+    ),
     movementSkill: true,
     shadowstepSkill: true,
     requiredMainHand: 'Scepter',

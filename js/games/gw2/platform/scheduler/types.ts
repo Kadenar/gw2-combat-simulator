@@ -28,6 +28,7 @@ export interface Gw2SchedulerPolicy extends SchedulerPolicy {
     event: SimulationEvent
   ): Gw2CriticalResult;
   rollRandom(probability: number, stream?: string): boolean;
+  targetHasCondition(condition: string, time: number): boolean;
   isCombatActive(): boolean;
   combatBeganAt(): number | null;
   requireCriticalFacts(): void;

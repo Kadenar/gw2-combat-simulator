@@ -288,6 +288,10 @@ export function createGw2SchedulerPolicy(
       return materializer.rollRandom(probability, stream);
     },
 
+    targetHasCondition(condition, time) {
+      return materializer.state.query!.targetHasCondition(condition, time, materializer.state);
+    },
+
     isCombatActive() {
       return materializer.isCombatActive();
     },

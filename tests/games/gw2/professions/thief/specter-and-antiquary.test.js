@@ -1130,6 +1130,33 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
   assert.equal(summonConditionDamage(withRelic), summonConditionDamage(withoutRelic));
 });
 
+test('Specter Thieves Guild Well of Sorrow chooses conditions from target state on every packet', () => {
+  // Live applications and permanent golem conditions both participate in the same priority check.
+  const wellConditions = (conditions = {}) =>
+    simulate('Specter', ['Thieves Guild', { type: 'combat-start' }, { type: 'wait', durationMs: 9000 }], {
+      target: { conditions }
+    }).events.filter((event) => event.type === 'condition' && event.skillId === 67795);
+
+  assert.deepEqual(
+    wellConditions().map(({ condition, stacks, duration }) => [condition, stacks, duration]),
+    [
+      ['Bleeding', 2, 4],
+      ['Torment', 2, 4],
+      ['Torment', 1, 4],
+      ['Torment', 1, 4],
+      ['Torment', 1, 4]
+    ]
+  );
+  assert.deepEqual(
+    wellConditions({ Poisoned: true, Bleeding: true, Torment: true }).map(({ condition, stacks, duration }) => [
+      condition,
+      stacks,
+      duration
+    ]),
+    Array.from({ length: 5 }, () => ['Torment', 1, 4])
+  );
+});
+
 test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const expectedArtifactIds = [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE];
   const config = {

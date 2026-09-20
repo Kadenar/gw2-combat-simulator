@@ -1,6 +1,8 @@
 import { emitThiefStateSnapshot, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type {
   ThiefCastContext,
@@ -18,7 +20,17 @@ interface ThievesGuildTaskPayload {
   readonly expiresAt: number;
   readonly profile: ThiefSummonAttack;
   readonly summon: ThiefSummonDefinition;
+  readonly wellOfSorrowConditionsArePermanent: boolean;
 }
+
+const SPECTER_WELL_OF_SORROW = 67795;
+const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
+const WELL_OF_SORROW_CONDITIONS = Object.freeze([
+  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
+  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
+]);
 
 function thievesGuildSummons(context: ThiefSchedulerContext, profile: ThiefSummonAttack): ThiefSummonDefinition[] {
   const specializationSummon = thiefSpecializationGuildSummon(context.state.profession.specialization.kind);
@@ -36,6 +48,9 @@ function startThievesGuildAttacks(context: ThiefSchedulerContext, at: number): v
   const skill = context.catalog.skillsById.get(ID.THIEVES_GUILD) as ThiefSkill | undefined;
   const profile = skill?.summonAttack;
   if (!profile) return;
+  const wellOfSorrowConditionsArePermanent = WELL_OF_SORROW_PRIORITY.every(
+    (condition) => permanentTargetConditionStacks(context.config, condition) > 0
+  );
   for (const summon of thievesGuildSummons(context, profile)) {
     const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
     for (const attack of attacks) {
@@ -45,10 +60,21 @@ function startThievesGuildAttacks(context: ThiefSchedulerContext, at: number): v
         type: 'thief.thieves-guild-attack',
         at: attackAt,
         ownerId: 'thief.thieves-guild',
-        payload: { attack, expiresAt: active.expiresAt, profile, summon }
+        payload: { attack, expiresAt: active.expiresAt, profile, summon, wellOfSorrowConditionsArePermanent }
       });
     }
   }
+}
+
+/** Chooses each Well pulse from the target state at impact, skipping live lookups when all choices are permanent. */
+function attackConditions(context: ThiefSchedulerContext, task: ThiefScheduledTask<ThievesGuildTaskPayload>) {
+  const { attack, wellOfSorrowConditionsArePermanent } = task.payload;
+  if (attack.skillId !== SPECTER_WELL_OF_SORROW) return attack.conditions || [];
+  if (wellOfSorrowConditionsArePermanent) return [WELL_OF_SORROW_CONDITIONS[3]];
+
+  const policy = context.schedulerPolicy as Gw2SchedulerPolicy;
+  const missingIndex = WELL_OF_SORROW_PRIORITY.findIndex((condition) => !policy.targetHasCondition(condition, task.at));
+  return [WELL_OF_SORROW_CONDITIONS[missingIndex < 0 ? 3 : missingIndex]];
 }
 
 export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill): void {
@@ -118,7 +144,7 @@ export function handleThievesGuildAttack(
     summonUsesEquipmentModifiers: false,
     activationId
   });
-  for (const condition of attack.conditions || []) {
+  for (const condition of attackConditions(context, task)) {
     emitSkillCondition(context, {
       at: task.at,
       sourceId: 'thief.thieves-guild',

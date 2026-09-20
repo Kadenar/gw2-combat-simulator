@@ -28,21 +28,11 @@ function packet(
 function specterAttackPattern(): readonly ThiefSummonStrike[] {
   const attacks: ThiefSummonStrike[] = [
     packet('Shadow Bolt', SKILL.SHADOW_BOLT, 0.33, 2.517 - THIEVES_GUILD_CAST_TIME),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 4.358 - THIEVES_GUILD_CAST_TIME, [
-      { condition: 'Poisoned', stacks: 1, duration: 3 }
-    ]),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 5.357 - THIEVES_GUILD_CAST_TIME, [
-      { condition: 'Torment', stacks: 2, duration: 4 }
-    ]),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 6.358 - THIEVES_GUILD_CAST_TIME, [
-      { condition: 'Torment', stacks: 1, duration: 4 }
-    ]),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 7.356 - THIEVES_GUILD_CAST_TIME, [
-      { condition: 'Torment', stacks: 1, duration: 4 }
-    ]),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 8.355 - THIEVES_GUILD_CAST_TIME, [
-      { condition: 'Poisoned', stacks: 1, duration: 3 }
-    ])
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 4.358 - THIEVES_GUILD_CAST_TIME, []),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 5.357 - THIEVES_GUILD_CAST_TIME, []),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 6.358 - THIEVES_GUILD_CAST_TIME, []),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 7.356 - THIEVES_GUILD_CAST_TIME, []),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 8.355 - THIEVES_GUILD_CAST_TIME, [])
   ];
   let nextActionAt = AUTO_CHAIN_START;
   let tripleThreatUsed = false;
