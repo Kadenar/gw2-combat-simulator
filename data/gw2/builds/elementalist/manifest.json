@@ -16,7 +16,7 @@
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
         "dpsReportUrl": "https://dps.report/WFtY-20260414-233745_golem",
-        "benchmarkDps": 40491,
+        "benchmarkDps": 40496,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear"
       },
@@ -167,7 +167,7 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34737,
+        "benchmarkDps": 34685,
         "upToDate": false
       }
     ]
@@ -181,7 +181,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-sword-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-btth.json",
         "dpsReportUrl": "https://dps.report/SKgL-20260418-001356_golem",
-        "benchmarkDps": 41523,
+        "benchmarkDps": 41553,
         "upToDate": true
       },
       {
@@ -189,7 +189,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-fa.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/lvrB-20260416-105919_golem",
-        "benchmarkDps": 39165,
+        "benchmarkDps": 39174,
         "upToDate": true
       },
       {
@@ -198,7 +198,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/aAgi-20260414-165732_golem",
-        "benchmarkDps": 41232,
+        "benchmarkDps": 41235,
         "upToDate": true
       },
       {
@@ -206,7 +206,7 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-spear.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-spear",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-spear.json",
-        "benchmarkDps": 41615,
+        "benchmarkDps": 41683,
         "upToDate": true
       },
       {
@@ -215,7 +215,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-catalyst-sword-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-sword-fa.json",
         "dpsReportUrl": "https://dps.report/iKCM-20260416-002204_golem",
-        "benchmarkDps": 34526,
+        "benchmarkDps": 34531,
         "upToDate": true
       },
       {
@@ -224,7 +224,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
         "dpsReportUrl": "https://dps.report/63Dx-20260416-134815_golem",
-        "benchmarkDps": 35473,
+        "benchmarkDps": 35476,
         "upToDate": true
       },
       {
@@ -270,7 +270,7 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
         "dpsReportUrl": "https://dps.report/43o1-20260523-171228_golem",
-        "benchmarkDps": 39440,
+        "benchmarkDps": 39444,
         "upToDate": true
       },
       {

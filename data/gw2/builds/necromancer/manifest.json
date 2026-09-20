@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/necromancer/b-condi-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-scourge-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-scourge-scepter-torch-pistol",
-        "benchmarkDps": 39411,
+        "benchmarkDps": 39396,
         "upToDate": true
       },
       {
@@ -42,7 +42,7 @@
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 52425,
+        "benchmarkDps": 52399,
         "upToDate": true
       }
     ]

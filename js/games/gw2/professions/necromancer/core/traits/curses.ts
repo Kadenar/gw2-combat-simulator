@@ -17,7 +17,7 @@ import type {
   NecromancerResolverReactionDetails
 } from '#gw2/professions/necromancer/types.js';
 
-/** Preserves Barbed Precision's critical-fact reaction identity and deterministic progress. */
+/** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
 export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -29,7 +29,10 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   actorTypes: ['player', 'summon', 'unknown'],
   chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.barbedPrecision),
   randomStream: 'necromancer.barbed-precision',
-  when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.BARBED_PRECISION),
+  when: (context, event) =>
+    Number(event.coefficient) > 0 &&
+    hasTrait(context, TRAIT.BARBED_PRECISION) &&
+    (event.actorType !== 'summon' || event.summonKind === 'spirit'),
   expectedProgress: {
     get: (context) => professionCoreState(context).barbedPrecisionProgress,
     set: (context, value) => {

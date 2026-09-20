@@ -782,6 +782,27 @@ test('Barbed Precision uses centered deterministic expected procs', () => {
   assert.ok(applications.every((application) => Math.abs(application.effectiveDuration - 3.6) < 1e-12));
 });
 
+test('Barbed Precision excludes minion strikes but includes Ritualist spirit strikes', () => {
+  const minion = simulate('Core', ['Summon Shadow Fiend', { type: 'wait', durationMs: 9000 }], {
+    selectedSkills: ['Summon Shadow Fiend'],
+    selectedTraitIds: [TRAIT.BARBED_PRECISION]
+  });
+  const spirit = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 12_000 }], {
+    initialResource: 100,
+    stats: { precision: 4000 },
+    selectedTraitIds: [TRAIT.BARBED_PRECISION]
+  });
+  const applications = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.sourceId === TRAIT.BARBED_PRECISION && event.condition === 'Bleeding'
+    );
+
+  assert.equal(applications(minion).length, 0);
+  assert.equal(minion.combatState.profession.barbedPrecisionProgress, 0.5);
+  assert.ok(applications(spirit).length > 0);
+  assert.notEqual(spirit.combatState.profession.barbedPrecisionProgress, 0.5);
+});
+
 test('Devouring Darkness scales torment with distinct target conditions', () => {
   const result = simulate('Core', ['Devouring Darkness', { type: 'wait', durationMs: 4100 }], {
     primaryWeapon: 'Scepter',
