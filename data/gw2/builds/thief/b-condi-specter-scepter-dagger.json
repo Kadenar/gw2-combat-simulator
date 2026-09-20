@@ -17,6 +17,7 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
   "weapons": ["Scepter", "Dagger"],
   "alternateWeapons": ["Scepter", "Dagger"],
   "rune": "Trapper",
@@ -35,10 +36,6 @@
     },
     {
       "stat": "Power",
-      "count": 0
-    },
-    {
-      "stat": "Precision",
       "count": 0
     }
   ],
@@ -65,6 +62,8 @@
   },
   "selectedDodge": "Dodge",
   "assumptions": {
+    "simulationMode": "deterministic",
+    "permanentComboField": "none",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -89,11 +88,14 @@
       "Weakness": true,
       "Vulnerability": 25
     },
+    "targetDefiant": true,
     "forgedSurferBombsHit": "3"
   },
+  "startingWeaponSet": 2,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
   "initialInitiative": 15,
   "initialShadowForce": 100,
-  "startingWeaponSet": 1,
-  "targetHealth": 4000000,
-  "targetArmor": 2597
+  "precastRelics": []
 }
