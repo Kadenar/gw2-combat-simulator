@@ -17,6 +17,127 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
   });
 }
 
+// Minimal shared packets keep boundary checks independent of saved rotations and profession timing.
+const boundaryOwner = { source: 'combo-fixture', sourceId: 'boundary', actorType: 'player' };
+const boundaryField = {
+  ...boundaryOwner,
+  type: 'combo_field',
+  at: 0,
+  fieldId: 'boundary:fire',
+  fieldType: 'Fire',
+  expiresAt: 10,
+  ownerId: 'combo-fixture',
+  ownerActorType: 'player'
+};
+const boundaryHit = {
+  ...boundaryOwner,
+  type: 'damage',
+  at: 1,
+  coefficient: 1,
+  weaponStrength: 1000,
+  skillName: 'Boundary hit'
+};
+const boundaryConfig = {
+  stats: { power: 1000, precision: 2785, conditionDamage: 1000 },
+  target: { armor: 2597, conditions: {} }
+};
+
+test('combo boons and their relic grants settle before critical sampling in both phases', () => {
+  for (const mode of ['deterministic', 'stochastic']) {
+    const profession = fixtureProfession((context) => {
+      context.emit(boundaryField);
+      context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] });
+      context.emit({ ...boundaryHit, skillName: 'Next same-time hit' });
+    });
+    const options = {
+      profession,
+      rotation: [{ type: 'wait', durationMs: 2000 }],
+      config: {
+        ...boundaryConfig,
+        randomness: { mode, seed: 7 },
+        boons: { might: 6 },
+        relic: 'Mistburn',
+        sigilSets: [{ names: ['Earth'] }]
+      }
+    };
+    // Three combo Might plus the relic's fourth stack must all precede the two hits.
+    const result = simulateGw2({ ...options, damageDiagnostics: true });
+    assert.equal(result.criticalSigilDiagnostics[0]?.status, 'confirmed');
+    assert.equal(result.criticalSigilDiagnostics[0]?.predicted.chance, 1);
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+    assert.deepEqual(
+      hits.map((event) => event.criticalChance),
+      [1, 1]
+    );
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn' && event.type === 'buff').length,
+      1
+    );
+    assert.equal(
+      result.events.some((event) => event.schedulerBoonPrediction || event.schedulerPrediction),
+      false
+    );
+    assert.equal(simulateGw2(options).totalDamage, result.totalDamage);
+    assert.equal(simulateGw2({ ...options, output: 'score' }).totalDamage, result.totalDamage);
+    if (mode === 'stochastic')
+      assert.deepEqual(
+        hits.map((event) => event.didCrit),
+        [true, true]
+      );
+  }
+});
+
+test('rejected precombat combos cannot seed relic boons or critical progress after combat starts', () => {
+  const profession = fixtureProfession((context) => {
+    context.emit(boundaryField);
+    context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] });
+    context.emit({ ...boundaryHit, at: 2.5 });
+  });
+  const result = simulateGw2({
+    profession,
+    damageDiagnostics: true,
+    rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 1000 }],
+    config: { ...boundaryConfig, relic: 'Mistburn', boons: { might: 6 }, sigilSets: [{ names: ['Earth'] }] }
+  });
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'combo' || event.sourceId === 'relic.mistburn'),
+    false
+  );
+  assert.deepEqual(result.criticalSigilDiagnostics, []);
+});
+
+test('off-target combo packets suppress hostile outcomes while retaining beneficial Blast effects', () => {
+  for (const finisherType of ['Projectile', 'Blast']) {
+    const profession = fixtureProfession((context) => {
+      context.emit(boundaryField);
+      context.emit({ ...boundaryHit, offTarget: true, comboFinishers: [{ ownerId: 'combo-fixture', finisherType }] });
+    });
+    const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 3000 }], config: boundaryConfig });
+    assert.equal(result.totalDamage, 0);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'condition'),
+      false
+    );
+    assert.equal(
+      result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might').length,
+      finisherType === 'Blast' ? 1 : 0
+    );
+  }
+});
+
+test('a pending combo uses targeting replacements on its originating hit', () => {
+  const profession = fixtureProfession((context) => {
+    context.emit(boundaryField);
+    const hit = context.emit({
+      ...boundaryHit,
+      comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }]
+    });
+    context.replaceEvent(hit, { offTarget: true });
+  });
+  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 3000 }], config: boundaryConfig });
+  assert.equal(result.totalDamage, 0);
+});
+
 test('combo outcomes settle before their originating damage packet', () => {
   const profession = fixtureProfession((context) => {
     context.emit({

@@ -384,7 +384,8 @@ test('Mirage self-Might triggers Relic of Mistburn', () => {
       }
     })
   );
-  const bonusMight = result.events.filter((event) => event.sourceId === 'relic.mistburn');
+  // Count the resolver-owned grant, not its scheduling prediction.
+  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn');
 
   assert.deepEqual(
     bonusMight.map((event) => ({

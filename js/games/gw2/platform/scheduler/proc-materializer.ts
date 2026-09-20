@@ -46,6 +46,12 @@ export const GW2_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-event';
 // core cast completion tasks. Derived events still receive causal event order.
 const MATERIALIZER_TASK_PRIORITY = -60;
 
+/** Match resolver event precedence inside the shared fact/combination task band. */
+export function gw2MaterializerTaskPriority(event: SimulationEvent): number {
+  const priority = Number(event.priority || 0);
+  return MATERIALIZER_TASK_PRIORITY + (Number.isFinite(priority) ? priority / 1_000_000 : 0);
+}
+
 /**
  * Chronologically observes shared GW2 facts and delegates trigger effects
  * before resolver handoff. Numeric damage remains resolver-owned.
@@ -161,7 +167,7 @@ export function createGw2TriggerMaterializer(
       context.tasks.schedule({
         type: GW2_MATERIALIZE_EVENT_TASK,
         at: Math.max(context.state.time, event.at),
-        priority: MATERIALIZER_TASK_PRIORITY,
+        priority: gw2MaterializerTaskPriority(event),
         payload: { eventOrder: event.eventOrder }
       });
     },

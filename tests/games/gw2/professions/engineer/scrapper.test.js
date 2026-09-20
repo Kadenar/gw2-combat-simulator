@@ -8,6 +8,8 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { scrapperSchedulerHooks } from '#gw2/professions/engineer/specializations/scrapper/traits/modifiers.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { scrapperResolverEventReactions } from '#gw2/professions/engineer/specializations/scrapper/traits/reactions.js';
+import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 // Scrapper contracts cover trait procs, combo boons, and gyro fields.
@@ -192,10 +194,18 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
     false
   );
   assert.equal(result.procSteps.filter((step) => step.skill === 'Kinetic Accelerators').length, 1);
-  const quickness = result.events.find(
+  // Each surviving combo owns one set of resolver grants; predictions are absent from final output.
+  const quickness = result.resolvedEvents.find(
     (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — quickness'
   );
-  const might = result.events.find((event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — might');
+  const might = result.resolvedEvents.find(
+    (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — might'
+  );
+  assert.equal(
+    result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS)
+      .length,
+    2
+  );
 
   assert.equal(quickness.audience.recipients, 'party');
   assert.equal(quickness.duration, 3.52);
@@ -217,6 +227,45 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   );
 
   assertFlooredDamageMultiplier(acceleratedHit.damage, baseHit.damage, 2090 / 2000);
+});
+
+test('Kinetic Accelerators grants boons for a resolver-created Orbital Command Strike combo', () => {
+  // The fifth rocket creates its finisher only during resolution, with no scheduled boon prediction.
+  const rotation = [];
+  for (let index = 0; index < 4; index++) rotation.push('Fragmentation Shot', { type: 'wait', durationMs: 3100 });
+  rotation.push('Medic Gyro', 'Fragmentation Shot', { type: 'wait', durationMs: 2500 });
+  const result = simulate('Scrapper', rotation, {
+    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+    selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS, TRAIT.AIM_ASSISTED_ROCKET],
+    boons: { might: 0, quickness: false }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.resolvedEvents.filter((event) => event.type === 'combo' && event.skillName === 'Orbital Command Strike')
+      .length,
+    1
+  );
+  const boons = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS
+  );
+  assert.deepEqual(boons.map((event) => event.kind).sort(), ['might', 'quickness']);
+  assert.ok(boons.every((event) => event.resolvedAudience.includesSelf && event.audience.recipients === 'party'));
+});
+
+test('Kinetic Accelerators cannot grant boons from a rejected precombat combo', () => {
+  const result = simulate(
+    'Scrapper',
+    ['Medic Gyro', 'Function Gyro', { type: 'wait', durationMs: 2000 }, '__combat_start', 'Positive Strike'],
+    {
+      selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+      selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS),
+    false
+  );
 });
 
 test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {
@@ -280,6 +329,29 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
   );
   assert.ok(boons.every((event) => event.audience?.recipients === 'party'));
   assert.ok(boons.every((event) => event.schedulerPrediction == null));
+  assert.ok(boons.every((event) => event.schedulerBoonPrediction === true));
+});
+
+test('Scrapper snapshots cannot rewind or pre-spend the resolver Whirl cooldown', () => {
+  const grants = [];
+  const context = {
+    config: { selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS] },
+    profession: { core: {}, specialization: { kind: 'Scrapper', state: createScrapperState() } },
+    query: { statsAt: () => ({ concentration: 0 }) },
+    queue: { enqueue: (event) => grants.push(event) },
+    recordProc() {}
+  };
+  const whirl = (at) => scrapperResolverEventReactions.combo(context, { type: 'combo', at, finisherType: 'Whirl' });
+  // A stale snapshot must not allow a second grant, and a future prediction must not block the next valid grant.
+  whirl(1);
+  handleEngineerState(context, { state: { kineticAcceleratorsWhirlReadyAt: 0 } });
+  whirl(2);
+  handleEngineerState(context, { state: { kineticAcceleratorsWhirlReadyAt: 100 } });
+  whirl(4.001);
+  assert.deepEqual(
+    grants.filter((event) => event.kind === 'might').map((event) => event.at),
+    [1, 4.001]
+  );
 });
 
 test('Scrapper 1-3-2 converts 13% of Power into Concentration', () => {

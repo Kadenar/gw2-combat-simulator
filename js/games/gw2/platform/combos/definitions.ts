@@ -3,6 +3,8 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
+  // A missed finisher can still grant self effects, but its hostile outcomes must also miss.
+  'offTarget',
   'ownerActorType',
   'summonKind',
   'summonOwner',

@@ -864,7 +864,8 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
       boons: { might: 8, fury: false }
     }
   });
-  const bonusMight = result.events.filter((event) => event.sourceId === 'relic.mistburn');
+  // Authoritative relic grants now originate from surviving resolver boon applications.
+  const bonusMight = result.resolvedEvents.filter((event) => event.sourceId === 'relic.mistburn');
   const strikes = result.resolvedEvents.filter((event) => event.skillName === 'Mistburn Fixture Strike');
 
   assert.deepEqual(
@@ -878,6 +879,49 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
       .filter((step) => step.skill === 'Relic of Mistburn')
       .map((step) => ({ start: step.start, sourceSkill: step.sourceSkill })),
     [{ start: 0, sourceSkill: 'Grant Might' }]
+  );
+});
+
+test('Mistburn also grants once per eligible resolver-created player Might application', () => {
+  // A derived boon has no scheduler counterpart; both paths must enforce the same strict ICD.
+  const profession = defineProfession({
+    id: 'mistburn-resolved-fixture',
+    name: 'Mistburn Resolved Fixture',
+    catalog: createCanonicalCatalog(),
+    schedulerHooks: {
+      initialize(context) {
+        for (const at of [1, 2, 2.001])
+          context.emit({ type: 'fixture.might', at, source: 'fixture', sourceId: 930011, actorType: 'player' });
+      }
+    },
+    resolverHooks: {
+      eventHandlers: {
+        'fixture.might': (context, event) => {
+          context.queue.enqueue({
+            ...event,
+            type: 'buff',
+            kind: 'might',
+            stacks: 1,
+            duration: 3,
+            skillName: 'Resolved Might'
+          });
+        }
+      }
+    }
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: 'wait', durationMs: 3000 }],
+    config: { relic: 'Mistburn' }
+  });
+  const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === 'relic.mistburn');
+  assert.deepEqual(
+    grants.map((event) => event.at),
+    [1, 2.001]
+  );
+  assert.equal(
+    result.events.some((event) => event.sourceId === 'relic.mistburn'),
+    false
   );
 });
 

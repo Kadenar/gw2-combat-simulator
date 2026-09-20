@@ -86,6 +86,7 @@ export interface Gw2RelicContext {
 }
 
 export type Gw2EventDraft = {
+  readonly schedulerBoonPrediction?: boolean;
   readonly ownerActorType?: SimulationActorType;
   readonly triggeredBy?: string;
   readonly activationId?: string;

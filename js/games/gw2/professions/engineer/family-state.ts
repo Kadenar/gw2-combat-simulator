@@ -10,6 +10,7 @@ import type {
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/core/state.js';
 import {
   AMALGAM_PUBLIC_END_STATE_KEYS,
@@ -81,7 +82,10 @@ export function handleEngineerState(context: EngineerResolverContext, event: Eng
   const lens =
     context.profession.specialization.kind === 'Holosmith'
       ? Object.fromEntries(HOLOSMITH_RESOLVER_STATE_KEYS.map((key) => [key, holosmithState.from(context)[key]]))
-      : {};
+      : context.profession.specialization.kind === 'Scrapper'
+        ? // Predicted Whirl claims cannot pre-spend or rewind the resolver's independent cooldown.
+          { kineticAcceleratorsWhirlReadyAt: scrapperState.from(context).kineticAcceleratorsWhirlReadyAt }
+        : {};
   restoreFlatProfessionState(core, specialization, event.state);
 
   Object.assign(core, preserved);

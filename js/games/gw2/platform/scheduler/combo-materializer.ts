@@ -27,10 +27,9 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { gw2MaterializerTaskPriority } from '#gw2/platform/scheduler/proc-materializer.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
-
-const COMBO_TASK_PRIORITY = -59;
 
 interface OwnedFieldDescriptor extends UnvalidatedFields {
   readonly ownerId: string;
@@ -191,11 +190,6 @@ function descriptorBinding<TProfessionState extends object>(
     fieldAt: field?.at,
     warnOnUnbound: ambiguous && !field
   };
-}
-
-function taskPriority(event: SimulationEvent): number {
-  const eventPriority = Number(event.priority || 0);
-  return COMBO_TASK_PRIORITY + (Number.isFinite(eventPriority) ? eventPriority / 1_000_000 : 0);
 }
 
 function projectilePacketIdentity(event: SimulationEvent, parentEventOrder: number): string {
@@ -371,6 +365,14 @@ export function createGw2ComboMaterializer(
 
     // Keep field lifetimes and pending finishers aligned in prediction and final resolution.
     onEventReplaced(context: SchedulerContext, event: SimulationEvent, previous: SimulationEvent): void {
+      // Pending attempts must use the current targeting facts of their originating packet.
+      if (event.offTarget !== previous.offTarget) {
+        const parentOrder = Number(event.causalOrder ?? event.eventOrder);
+        for (const finisher of context.eventsOfType('combo_finisher')) {
+          if (finisher.parentEventOrder === parentOrder) context.replaceEvent(finisher, { offTarget: event.offTarget });
+        }
+      }
+
       // Cast-time trait changes must reach fields already materialized from the original action.
       if (event.type === 'action' && event.comboFields !== previous.comboFields) {
         fieldDescriptors(context, event).forEach((descriptor, index) => {
@@ -398,7 +400,7 @@ export function createGw2ComboMaterializer(
         context.tasks.schedule({
           type: GW2_COMBO_MATERIALIZE_EVENT_TASK,
           at: Math.max(context.state.time, event.at),
-          priority: taskPriority(event),
+          priority: gw2MaterializerTaskPriority(event),
           payload: { eventOrder: event.eventOrder }
         });
         return;
@@ -416,6 +418,9 @@ export function createGw2ComboMaterializer(
       }
 
       if (event.type !== 'combo_finisher') return;
+      // Rejected precombat attempts cannot spend progress/ICDs or seed later scheduling facts.
+      if (context.hasExplicitCombatStart && (context.combatStartTime == null || event.at < context.combatStartTime))
+        return;
       const combos = resolveComboAttempt(state, event as ComboFinisherEvent, {
         stochastic: random.stochastic,
         roll: random.roll,

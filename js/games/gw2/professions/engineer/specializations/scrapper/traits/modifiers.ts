@@ -1,11 +1,7 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,84 +10,16 @@ import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-he
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  EngineerMaximumAmmoContext,
-  EngineerSchedulerContext,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+
 import { applyScrapperCastTraits } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
 
-/** Determines whether a predicted combo may emit Kinetic Accelerators boons and consumes the whirl ICD. */
-function kineticAcceleratorsTriggerAllowed(context: EngineerSchedulerContext, event: SimulationEvent): boolean {
-  if (
-    !hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS) ||
-    event.type !== 'combo' ||
-    event.schedulerPrediction !== 'combo-result' ||
-    !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))
-  ) {
-    return false;
-  }
-
-  if (event.finisherType !== 'Whirl') return true;
-  const state = scrapperState.from(context);
-  if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) {
-    return false;
-  }
-
-  state.kineticAcceleratorsWhirlReadyAt =
-    event.at + balanceProfileValueFromContext(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
-  return true;
-}
-
-/** Materializes Kinetic Accelerators' boon packets when a qualifying predicted combo is scheduled. */
+/** Predict combo boons for scheduling; resolution alone commits their combat applications. */
 function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
-  if (!kineticAcceleratorsTriggerAllowed(context, event)) return;
-  const sourceSkill =
-    context.catalog?.skillsById.get(event.skillId ?? '') ||
-    context.catalog?.skillsByName.get(String(event.skillName || '')) ||
-    ({ id: TRAIT.KINETIC_ACCELERATORS, name: 'Kinetic Accelerators' } as EngineerSkill);
-  // Both packets share the triggering combo attribution but remain explicit canonical emissions.
-  for (const boon of [
-    {
-      kind: 'quickness',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon'),
-        'duration',
-        3
-      ),
-      stacks: 1
-    },
-    {
-      kind: 'might',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon', 1),
-        'duration',
-        10
-      ),
-      stacks: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.kineticAccelerators, 'boon', 1),
-        'stacks',
-        3
-      )
-    }
-  ]) {
-    emitSkillBuff(context, {
-      skill: sourceSkill,
-      cause: event,
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.KINETIC_ACCELERATORS,
-      actorType: 'effect',
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: `Kinetic Accelerators — ${boon.kind}`,
-      kind: boon.kind,
-      duration: boon.duration,
-      stacks: boon.stacks,
-      audience: { recipients: 'party' as const }
-    });
+  if (event.schedulerPrediction !== 'combo-result') return;
+  for (const boon of kineticAcceleratorBoons(context, event)) {
+    emitSkillBuff(context, { ...boon, cause: event, schedulerBoonPrediction: true });
   }
 }
 

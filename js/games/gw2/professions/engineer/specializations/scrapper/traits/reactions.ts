@@ -13,7 +13,8 @@ import {
   recordTrait
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 // Deduplicates pulse events: if one is already scheduled at or before `at`, skip.
@@ -115,25 +116,11 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
   if (kind === 'stability') triggerMassMomentum(context, event);
 }
 
-/** Confirms Kinetic Accelerators combo procs and advances the resolver's whirl-only cooldown. */
+/** Every surviving combo grants boons once, including finishers created only during resolution. */
 function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (
-    !hasTrait(context, TRAIT.KINETIC_ACCELERATORS) ||
-    !['Blast', 'Leap', 'Whirl'].includes(String(event.finisherType))
-  ) {
-    return;
-  }
-
-  const state = scrapperState.from(context);
-  if (event.finisherType === 'Whirl') {
-    if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return;
-    state.kineticAcceleratorsWhirlReadyAt =
-      event.at + balanceProfileValueFromContext(context, PROFILE.kineticAccelerators, 'internalCooldown', 3);
-  }
-
-  // Boons are emitted by the scheduler's resolved-combo prediction so they
-  // remain visible in the canonical result timeline. Resolver confirmation
-  // owns only proc attribution and its independent whirl ICD state.
+  const boons = kineticAcceleratorBoons(context, event);
+  if (!boons.length) return;
+  for (const boon of boons) queueResolverBoon(context, event, boon);
   recordTrait(context, 'Kinetic Accelerators', event);
 }
 
