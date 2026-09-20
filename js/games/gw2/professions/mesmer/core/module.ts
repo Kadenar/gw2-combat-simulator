@@ -9,7 +9,7 @@ import { mesmerCoreRifleSkillMechanicHandlers } from '#gw2/professions/mesmer/co
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { mesmerCoreAttributeRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { projectMesmerEndState, snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
+import { projectMesmerPlanningState, snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
@@ -30,7 +30,7 @@ export const mesmerCoreModule = defineNativeModule({
   state: {
     scheduler: createMesmerCoreState,
     resolver: createMesmerCoreResolverState,
-    project: projectMesmerEndState
+    project: projectMesmerPlanningState
   },
   mechanics: {
     modifiers: mesmerCoreAttributeRules,

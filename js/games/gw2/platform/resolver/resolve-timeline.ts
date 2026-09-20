@@ -80,7 +80,9 @@ function buildResolverResult(
 
   const score: Gw2SimulationScore = {
     output: 'score',
-    duration: scheduled.rotationEndTime,
+    rotationEndTime: scheduled.rotationEndTime,
+    observationEndTime: ctx.horizon,
+    combatEndTime: effectiveEnd,
     combatStartTime: handoff.hasExplicitCombatStart ? explicitCombatStart : ctx.firstHitTime,
     hasExplicitCombatStart: Boolean(handoff.hasExplicitCombatStart),
     dpsStartTime: dpsStart,
@@ -133,7 +135,7 @@ function buildResolverResult(
       mode: ctx.random.mode,
       seed: ctx.random.seed
     },
-    profession: ctx.profession
+    combatState: { atSeconds: effectiveEnd, profession: ctx.profession }
   };
 }
 

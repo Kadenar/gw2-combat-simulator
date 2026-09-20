@@ -147,7 +147,7 @@ const traitCases = [
     name: 'Thermal Vision',
     trait: TRAIT.THERMAL_VISION,
     rotation: ['Blowtorch', wait],
-    verify: (result) => assert.ok(result.profession.traitProcReadyAt.thermalVisionUntil > 0)
+    verify: (result) => assert.ok(result.combatState.profession.traitProcReadyAt.thermalVisionUntil > 0)
   },
   {
     name: 'Sanguine Array',

@@ -118,8 +118,8 @@ test('Catalyst grants one aura and one set of trait stacks per aura source', () 
     });
     const events = resolvedAndScheduledEvents(result);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.profession.activeAuras.length, 1);
-    assert.equal(result.profession.elementalEmpowermentExpiries.length, 4);
+    assert.equal(result.combatState.profession.activeAuras.length, 1);
+    assert.equal(result.combatState.profession.elementalEmpowermentExpiries.length, 4);
     assert.equal(
       events
         .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
@@ -140,9 +140,9 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.profession.activeAuras.length, 1);
-    assert.equal(result.profession.activeAuras[0].type, 'Frost Aura');
-    assert.equal(result.profession.elementalEmpowermentExpiries.length, 4);
+    assert.equal(result.combatState.profession.activeAuras.length, 1);
+    assert.equal(result.combatState.profession.activeAuras[0].type, 'Frost Aura');
+    assert.equal(result.combatState.profession.elementalEmpowermentExpiries.length, 4);
   }
 });
 

@@ -58,7 +58,7 @@ test('Sharpening Stone adds ten to six remaining charges, with one eight-second 
     { selectedSkills: ['Sharpening Stone'] }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.sharpeningStoneExpirations.length, 16);
+  assert.equal(result.combatState.profession.sharpeningStoneExpirations.length, 16);
   const bleeds = conditions(result, RANGER.SHARPENING_STONE);
   assert.equal(bleeds.length, 4);
   assert.ok(bleeds.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 8) < 1e-9));
@@ -71,7 +71,7 @@ test('Sharpening Stone applications expire independently at thirty seconds', () 
     { selectedSkills: ['Sharpening Stone'] }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.sharpeningStoneExpirations.length, 9);
+  assert.equal(result.combatState.profession.sharpeningStoneExpirations.length, 9);
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);
   const expired = ranger('Druid', ['Sharpening Stone', wait(30000), 'Groundwork Gouge'], {
     selectedSkills: ['Sharpening Stone']
@@ -90,7 +90,7 @@ for (const [name, id, charges] of [
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(
-      result.endState.profession.venomChargeBatches[id].reduce((sum, batch) => sum + batch.charges, 0),
+      result.combatState.profession.venomChargeBatches[id].reduce((sum, batch) => sum + batch.charges, 0),
       charges * 2 - 2
     );
     const expired = thief('Core', [name, wait(10000), '__cooldown_reset', name, wait(14000), 'Heartseeker'], {
@@ -98,7 +98,7 @@ for (const [name, id, charges] of [
     });
     assert.deepEqual(expired.warnings, []);
     assert.equal(
-      expired.endState.profession.venomChargeBatches[id].reduce((sum, batch) => sum + batch.charges, 0),
+      expired.combatState.profession.venomChargeBatches[id].reduce((sum, batch) => sum + batch.charges, 0),
       charges - 1
     );
     assert.ok(conditions(expired, id).length > 0);

@@ -91,7 +91,7 @@ test('Phoenix Vigor contributes to recovery and the next dodge after expiry', ()
   assert.ok(end > buff.at + buff.duration);
   // The first dodge is spent at completion; subsequent regeneration includes exactly the Vigor window.
   const expected = (end - firstDodge.endsAt) * 5 + buff.duration * 2.5;
-  assert.ok(Math.abs(recovery.endState.profession.endurance - expected) < 1e-6);
+  assert.ok(Math.abs(recovery.planningState.profession.endurance - expected) < 1e-6);
 
   const retry = runNative({ ...options, rotation: ['Dodge', 'Dodge', 'Phoenix', 'Dodge'] });
   const nextDodge = retry.events.filter((event) => event.type === 'action' && event.skillName === 'Dodge').at(-1);

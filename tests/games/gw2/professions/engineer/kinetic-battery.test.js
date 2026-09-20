@@ -26,10 +26,10 @@ test('every mech command retains tool-belt classification and Tools reactions', 
     ]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.kineticCharges, 1);
+  assert.equal(result.planningState.profession.kineticCharges, 1);
   assert.ok(result.events.some((event) => event.kind === 'vigor'));
   assert.ok(result.resolvedEvents.some((event) => event.name === 'Static Discharge'));
-  assert.equal(result.endState.cooldowns['Discharge Array'].readyAt, 25500);
+  assert.equal(result.planningState.cooldowns['Discharge Array'].readyAt, 25500);
 });
 
 test('mech command charges count when issued, before the independent animation completes', () => {
@@ -54,7 +54,7 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
   const config = { selectedTraitIds: [TRAIT.KINETIC_BATTERY] };
   const four = Array(4).fill('Discharge Array');
   const charging = simulate('Mechanist', four, config);
-  assert.equal(charging.endState.profession.kineticCharges, 4);
+  assert.equal(charging.planningState.profession.kineticCharges, 4);
   assert.equal(
     charging.events.some((event) => event.kind === 'kinetic-battery'),
     false
@@ -71,7 +71,7 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
   const disabled = simulate('Mechanist', rotation);
   assert.deepEqual(active.warnings, []);
   assert.deepEqual(disabled.warnings, []);
-  assert.equal(active.endState.profession.kineticCharges, 0);
+  assert.equal(active.planningState.profession.kineticCharges, 0);
   assert.equal(
     disabled.events.some((event) => event.kind === 'kinetic-battery'),
     false

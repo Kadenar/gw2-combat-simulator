@@ -60,9 +60,9 @@ function paletteContext(app) {
   return {
     specialization: 'Tempest',
     catalog,
-    professionState: app.results.endState.profession,
-    cooldowns: app.results.endState.cooldowns,
-    time: app.results.endState.time / 1000,
+    professionState: app.results.planningState.profession,
+    cooldowns: app.results.planningState.cooldowns,
+    time: app.results.planningState.atSeconds,
     build: app.build,
     traits: new Set(app.attributeData.activeTraits.flatMap((trait) => [trait.id, trait.name]))
   };
@@ -161,7 +161,7 @@ test('a time-zero attunement swap still enforces overload singularity', () => {
   const app = createTempestApp(['Fire Attunement', 'Overload Fire']);
   const overload = app.results.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
 
-  assert.equal(app.results.endState.profession.attunementEnteredAt, 0);
+  assert.equal(app.results.planningState.profession.attunementEnteredAt, 0);
   assert.equal(overload.at, 4.8);
 });
 

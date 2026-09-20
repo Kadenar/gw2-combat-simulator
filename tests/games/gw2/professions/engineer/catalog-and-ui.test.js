@@ -92,17 +92,17 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
     selectedSkills: [...baseConfig.selectedSkills.slice(0, 4), 'Overclock Signet']
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.mech.active, true);
+  assert.equal(result.planningState.profession.mech.active, true);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === ID.JADE_BUSTER_CANNON));
   assert.ok(result.events.some((event) => event.type === 'damage' && event.mechBasicAttack));
 
   const groups = engineerProfession.ui.paletteGroups({
     specialization: 'Mechanist',
-    professionState: result.endState.profession
+    professionState: result.planningState.profession
   });
   assert.deepEqual(
     groups.find((group) => group.id === 'engineer-profession').skillIds,
-    result.endState.profession.mech.commandSkillIds
+    result.planningState.profession.mech.commandSkillIds
   );
 });
 
@@ -794,7 +794,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.ok(result.totalDamage > 0);
-  assert.equal(result.endState.profession.activeKit, 'Grenade Kit');
+  assert.equal(result.planningState.profession.activeKit, 'Grenade Kit');
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
 
   const weaponDenied = simulate('Core', ['Grenade Kit', 'Blunderbuss']);
@@ -805,8 +805,8 @@ test('kits replace the weapon bar and trigger swap procs', () => {
     const exited = simulate('Core', ['Grenade Kit', exitSkill, 'Blunderbuss']);
 
     assert.equal(exited.warnings.length, 0, exitSkill);
-    assert.equal(exited.endState.profession.activeKit, '', exitSkill);
-    assert.equal(exited.endState.activeWeaponSet, 1, exitSkill);
+    assert.equal(exited.planningState.profession.activeKit, '', exitSkill);
+    assert.equal(exited.planningState.activeWeaponSet, 1, exitSkill);
   }
 
   const swapDenied = simulate('Core', ['Swap Weapons']);
@@ -857,8 +857,8 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
   const kit = mechanic('Grenade Kit');
   const context = {
     specialization: 'Holosmith',
-    professionState: result.endState.profession,
-    time: result.endState.time / 1000
+    professionState: result.planningState.profession,
+    time: result.planningState.atSeconds
   };
   const availability = engineerProfession.ui.paletteSkillAvailability(context, kit);
   const view = paletteSkillView(
@@ -869,7 +869,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
     availability.retryAt
   );
 
-  assert.equal(result.endState.profession.kitLockoutUntil, 4.8);
+  assert.equal(result.planningState.profession.kitLockoutUntil, 4.8);
   assert.deepEqual(availability, {
     available: false,
     message: 'Kits are disabled briefly after entering Photon Forge.',
@@ -1014,13 +1014,13 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     const result = simulate('Core', [parent, flip], config);
 
     assert.equal(result.warnings.length, 0, `${parent} -> ${flip}`);
-    assert.equal(result.endState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false);
+    assert.equal(result.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false);
   }
 
   const healing = simulate('Core', ['Healing Turret']);
 
-  assert.equal(healing.endState.cooldowns['Healing Turret'], undefined);
-  assert.deepEqual(healing.endState.cooldowns['Detonate Healing Turret'], {
+  assert.equal(healing.planningState.cooldowns['Healing Turret'], undefined);
+  assert.deepEqual(healing.planningState.cooldowns['Detonate Healing Turret'], {
     readyAt: healing.steps[0].end + 500,
     remaining: 500
   });
@@ -1205,7 +1205,7 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
     const used = simulate('Core', [parent, flip]);
 
     assert.equal(used.warnings.length, 0, flip);
-    assert.equal(used.endState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false, flip);
+    assert.equal(used.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false, flip);
   }
 });
 

@@ -626,7 +626,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
       { type: 'engineer.state', at: 1, heat: 20 }
     ],
     resolvedEvents: [],
-    endState: { profession: {} }
+    planningState: { profession: {} }
   };
   const profession = {
     ui: {
@@ -661,7 +661,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
     const [diagnostic] = simulationEventLogRows({
       events: [{ type: 'engineer.unknown', at: 0 }],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     });
 
     assert.equal(diagnostic.description, 'UNPRESENTED CUSTOM EVENT engineer.unknown');
@@ -686,7 +686,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
         { type: 'engineer.electric-artillery', at: 1.3 }
       ],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     },
     { specialization: 'Holosmith' },
     engineerProfession
@@ -708,7 +708,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
         }
       ],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     },
     null,
     thiefProfession
@@ -729,7 +729,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
       {
         events: [{ type: 'engineer.unhandled', at: 3 }],
         resolvedEvents: [],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       null,
       engineerProfession
@@ -759,7 +759,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
           { type: 'guardian.righteous-instincts-tick', at: 7 }
         ],
         resolvedEvents: [],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       { specialization: 'Core' },
       guardianProfession
@@ -777,7 +777,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
           }
         ],
         resolvedEvents: [],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       { specialization: 'Firebrand' },
       guardianProfession
@@ -795,7 +795,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
           }
         ],
         resolvedEvents: [],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       { specialization: 'Luminary' },
       guardianProfession
@@ -838,7 +838,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
             duration: 5
           }
         ],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       { specialization: 'Core' },
       necromancerProfession
@@ -851,7 +851,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
           { type: 'necromancer.weapon-spell-ally-trigger', at: 5 }
         ],
         resolvedEvents: [],
-        endState: { profession: {} }
+        planningState: { profession: {} }
       },
       { specialization: 'Ritualist' },
       necromancerProfession

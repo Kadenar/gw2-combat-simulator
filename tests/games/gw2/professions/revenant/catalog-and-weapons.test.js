@@ -701,8 +701,8 @@ test('legend palette shows only the destination legend with the shared swap cool
     paletteSkillView(
       {
         results: {
-          endState: {
-            time: 1000,
+          planningState: {
+            atSeconds: 1,
             cooldowns: {},
             profession: cooldownContext.professionState
           }
@@ -906,7 +906,7 @@ test('weapon swap changes the active Revenant weapon set', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.steps[0].fullCastMs, 0);
-  assert.equal(result.endState.activeWeaponSet, 2);
+  assert.equal(result.planningState.activeWeaponSet, 2);
   assert.ok(result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2));
 });
 
@@ -958,7 +958,7 @@ test('Temporal Rift preserves the Mace autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Misery Swipe', 'Temporal Rift', 'Anguish Swipe']
   );
-  assert.equal(result.endState.profession.autoattackChains[SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
+  assert.equal(result.planningState.profession.autoattackChains[SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
 });
 
 test('Temporal Rift preserves the Sword autoattack chain until its delayed hit', () => {
@@ -972,7 +972,7 @@ test('Temporal Rift preserves the Sword autoattack chain until its delayed hit',
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Temporal Rift', 'Brutal Blade']
   );
-  assert.equal(result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
+  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
 });
 
 test('Beguiling Haze resets the Sword autoattack chain', () => {
@@ -989,7 +989,7 @@ test('Beguiling Haze resets the Sword autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Brutal Blade', 'Beguiling Haze', 'Preparation Thrust']
   );
-  assert.equal(result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
+  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
 });
 
 test('Citadel Bombardment resets the Renegade autoattack chain', () => {
@@ -1010,7 +1010,7 @@ test('Citadel Bombardment resets the Renegade autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Brutal Blade', 'Citadel Bombardment', 'Preparation Thrust']
   );
-  assert.equal(result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
+  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
 });
 
 test('Renegade shortbow skills use supplied casts, packets, and combo data', () => {
@@ -1457,7 +1457,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   assert.equal(result.warnings.length, 0);
 
   assert.equal(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
-  assert.deepEqual(result.endState.cooldowns['Abyssal Raze'], {
+  assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
     readyAt: 14600,
     remaining: 1180
   });
@@ -1488,7 +1488,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
       nextRechargeAt: 29.6
     }
   );
-  assert.equal(result.endState.cooldowns['Abyssal Raze'], undefined);
+  assert.equal(result.planningState.cooldowns['Abyssal Raze'], undefined);
 });
 
 test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', () => {
@@ -1547,5 +1547,5 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
       [6, 5]
     ]
   );
-  assert.deepEqual(result.endState.profession.crushingAbyss, []);
+  assert.deepEqual(result.planningState.profession.crushingAbyss, []);
 });

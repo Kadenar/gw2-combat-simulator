@@ -14,7 +14,9 @@ test('skill details group proc counts by trigger and disclose only that skill’
       skillById: new Map(),
       build: { rotation: [{ type: 'wait', durationMs: 10000 }], targetHealth: 100000 },
       results: {
-        duration: 10,
+        rotationEndTime: 10,
+        observationEndTime: 10,
+        combatEndTime: 10,
         dpsStartTime: 1.5,
         dpsWindow: 8.5,
         totalDamage: 455,

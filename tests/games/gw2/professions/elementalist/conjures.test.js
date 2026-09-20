@@ -57,9 +57,9 @@ test('conjures expire their equipped and ground copies and restore the normal we
       rotation: [conjure, 30000, 'Flame Uprising']
     });
     assert.deepEqual(result.warnings, [], weapon);
-    assert.equal(result.endState.profession.conjureEquipped, null, weapon);
-    assert.equal(result.endState.profession.conjureExpiresAt, 0, weapon);
-    assert.deepEqual(result.endState.profession.conjurePickups, {}, weapon);
+    assert.equal(result.planningState.profession.conjureEquipped, null, weapon);
+    assert.equal(result.planningState.profession.conjureExpiresAt, 0, weapon);
+    assert.deepEqual(result.planningState.profession.conjurePickups, {}, weapon);
   }
 });
 
@@ -77,8 +77,8 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
   assert.deepEqual(result.warnings, []);
   const leaps = result.steps.filter((step) => step.skill === 'Lightning Leap');
   assert.equal(leaps[1].start - leaps[0].end, 8000);
-  assert.equal(result.endState.profession.conjureEquipped, 'Lightning Hammer');
-  assert.deepEqual(result.endState.profession.conjurePickups, {});
+  assert.equal(result.planningState.profession.conjureEquipped, 'Lightning Hammer');
+  assert.deepEqual(result.planningState.profession.conjurePickups, {});
 
   // The pickup starts while the ground copy exists and finishes after the original lifetime ends.
   const late = runNative({
@@ -87,8 +87,8 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
   });
   assert.deepEqual(late.warnings, []);
   const pickup = late.steps.find((step) => step.skill === '__pickup_Lightning Hammer');
-  assert.equal(late.endState.profession.conjureExpiresAt, pickup.end / 1000 + 30);
-  assert.equal(late.endState.profession.conjureEquipped, 'Lightning Hammer');
+  assert.equal(late.planningState.profession.conjureExpiresAt, pickup.end / 1000 + 30);
+  assert.equal(late.planningState.profession.conjureEquipped, 'Lightning Hammer');
 
   const expired = runNative({
     ...hammerOptions,
@@ -121,7 +121,7 @@ test('picking up the second conjure after twenty-nine seconds starts a fresh thi
       (event) => event.type === 'elementalist.conjure' && event.skillName === '__pickup_Lightning Hammer'
     );
     assert.equal(grant.conjureExpiresAt, pickup.end / 1000 + 30);
-    assert.equal(result.endState.profession.conjureEquipped, elapsedMs < 30000 ? 'Lightning Hammer' : null);
+    assert.equal(result.planningState.profession.conjureEquipped, elapsedMs < 30000 ? 'Lightning Hammer' : null);
   }
 });
 

@@ -26,11 +26,11 @@ export interface Gw2ProfessionContract<
   TBuild extends Gw2Build = Gw2Build
 > extends NormalizedProfessionContract<TProfessionState, Gw2ResolverEventHandlers, Gw2ResolverReactions, TBuild> {
   readonly simulation: Gw2SimulationDefinition | null;
-  readonly projectEndState: (options: {
+  readonly projectPlanningState: (options: {
     readonly config: Gw2Config;
     readonly schedulerContext: SchedulerContext;
+    /** Diagnostic scheduler state, with its own time in seconds at the planning boundary. */
     readonly schedulerState: SchedulerState;
-    readonly resolverState: object;
   }) => unknown;
 }
 
@@ -41,9 +41,10 @@ export type Gw2ProfessionSource<TProfessionState extends object = any> = Profess
 > &
   ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2SimulationDefinition, Gw2Build>;
 
-export interface Gw2SimulationEndState {
-  /** Resolution-end clock in milliseconds, including any observation tail. */
-  readonly time: number;
+export interface Gw2SimulationPlanningState {
+  /** Scheduler observation boundary in seconds; includes planned actions after target death. */
+  readonly atSeconds: number;
+  /** Public cooldown deadlines and remaining durations are milliseconds. */
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
   /** Name-keyed live scheduler ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
   readonly ammo: Readonly<Record<string, unknown>>;
@@ -56,9 +57,8 @@ export interface Gw2SimulationEndState {
 export interface Gw2SimulationResult extends Gw2ResolverResult {
   readonly rotationApm: RotationApm;
   readonly steps: readonly SchedulerStep[];
-  readonly endState: Gw2SimulationEndState;
+  readonly planningState: Gw2SimulationPlanningState;
   readonly schedulerState: SchedulerState;
-  readonly snapshot: unknown;
   readonly warnings: string[];
 }
 
@@ -76,7 +76,9 @@ export interface Gw2DeclarativeSimulationOptions {
 /** Numeric output deliberately omits histories and end-state projections. */
 export type Gw2SimulationScore = Pick<
   Gw2ResolverResult,
-  | 'duration'
+  | 'rotationEndTime'
+  | 'observationEndTime'
+  | 'combatEndTime'
   | 'combatStartTime'
   | 'hasExplicitCombatStart'
   | 'dpsStartTime'

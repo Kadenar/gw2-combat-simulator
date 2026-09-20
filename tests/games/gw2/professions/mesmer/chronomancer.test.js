@@ -58,8 +58,11 @@ test('Continuum restoration projects ammo without checkpoint-relative fields', (
     defaultSimulationConfig({ specialization: 'Chronomancer', initialResource: 3 })
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.endState.ammo['Power Spike']);
-  for (const ammo of [...Object.values(result.endState.ammo), ...Object.values(result.endState.ammoBySkillId)]) {
+  assert.ok(result.planningState.ammo['Power Spike']);
+  for (const ammo of [
+    ...Object.values(result.planningState.ammo),
+    ...Object.values(result.planningState.ammoBySkillId)
+  ]) {
     assert.equal(Object.hasOwn(ammo, 'nextRechargeRemaining'), false);
     assert.equal(Object.hasOwn(ammo, 'lockoutRemaining'), false);
   }
@@ -84,9 +87,9 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
     initialResource: 3
   });
 
-  assert.equal(fullShatter.endState.profession.resource, 1);
-  assert.equal(partialShatter.endState.profession.resource, 0);
-  assert.equal(continuumSplit.endState.profession.resource, 1);
+  assert.equal(fullShatter.planningState.profession.resource, 1);
+  assert.equal(partialShatter.planningState.profession.resource, 0);
+  assert.equal(continuumSplit.planningState.profession.resource, 1);
   assert.ok(
     simulationEventLogRows(fullShatter).some((event) =>
       event.description.includes('CLONE SPAWNED x1 -> 1/3 [Illusionary Reversion] (Clone #4 [Dagger])')

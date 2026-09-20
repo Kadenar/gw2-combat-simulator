@@ -10,7 +10,7 @@ test('score skips end-state projection for a custom profession without feedback'
     id: 'score-test',
     name: 'Score test',
     resources: {
-      projectEndState() {
+      projectPlanningState() {
         projections += 1;
         return {};
       }
@@ -44,7 +44,7 @@ async function parity(id, rotation, config, observationPolicy = { kind: 'tail', 
   }
 
   assert.equal('resolvedEvents' in score, false);
-  assert.equal('endState' in score, false);
+  assert.equal('planningState' in score, false);
   assert.ok(score.totalDamage > 0, `${id}: scenario must cause damage`);
   assert.ok(
     !score.warnings.some((warning) => /unknown|not found/i.test(warning)),
@@ -101,7 +101,7 @@ test('score preserves relic activation and weapon-swap condition procs', async (
     sigilSets: [{ names: ['Force', 'Accuracy'] }, { names: ['Geomancy', 'Doom'] }]
   });
   assert.ok(swap.score.conditionDamage > 0);
-  assert.equal(swap.detailed.endState.activeWeaponSet, 2);
+  assert.equal(swap.detailed.planningState.activeWeaponSet, 2);
 });
 
 test('Necromancer retains ordinary feedback passes for Gravedigger and condition/environment health', () =>

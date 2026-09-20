@@ -31,8 +31,8 @@ test('Celestial Avatar expires at its deadline and recovers force afterward', ()
       result.events.filter(({ type, kind }) => type === 'buff' && kind === 'natural-balance').map(({ at }) => at),
       [0, 15]
     );
-    assert.equal(result.endState.profession.celestialAvatarActive, false);
-    assert.equal(result.endState.profession.astralForce, expectedForce);
+    assert.equal(result.planningState.profession.celestialAvatarActive, false);
+    assert.equal(result.planningState.profession.astralForce, expectedForce);
   }
 });
 
@@ -48,7 +48,7 @@ test('manual Avatar exit cancels automatic exit and retains half the remaining f
     result.events.filter(({ type }) => type === 'sigil_swap').map(({ at }) => at),
     [0, 3]
   );
-  assert.equal(result.endState.profession.astralForce, 80);
+  assert.equal(result.planningState.profession.astralForce, 80);
 });
 
 test('Avatar depletion schedules an earlier exit than the duration limit', () => {

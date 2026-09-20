@@ -17,7 +17,9 @@ function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents =
     totalDamage,
     dpsStartTime: 0,
     dpsWindow: duration,
-    duration,
+    rotationEndTime: duration,
+    observationEndTime: duration,
+    combatEndTime: duration,
     steps: [],
     events: [],
     breakdown: [],
@@ -182,8 +184,8 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
     results: { dpsStartTime: 2 },
     rotationInsertionIndex: 1,
     adapter: {
-      rotationEndStateAt(_app, index) {
-        return { time: index === 0 ? 0 : 2750 };
+      rotationPlanningStateAt(_app, index) {
+        return { atSeconds: index === 0 ? 0 : 2.75 };
       }
     }
   };

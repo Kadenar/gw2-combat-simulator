@@ -25,7 +25,7 @@ function createHammerApp(hammerOrbs, time = 0) {
     skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
-      endState: {
+      planningState: {
         activeWeaponSet: 1,
         time,
         cooldowns: {},

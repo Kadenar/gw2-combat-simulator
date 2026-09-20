@@ -91,7 +91,9 @@ const result = simulate('Core', ['Grenade Kit', 'Grenade', { type: 'wait', durat
 });
 
 console.table({
-  duration: result.duration,
+  rotationEndTime: result.rotationEndTime,
+  observationEndTime: result.observationEndTime,
+  combatEndTime: result.combatEndTime,
   totalDamage: Math.round(result.totalDamage),
   dps: Math.round(result.dps),
   strikeDamage: Math.round(result.strikeDamage),
@@ -232,7 +234,7 @@ observationPolicy: { kind: "absolute", endTimeMs: 97_450 }
 ```
 
 The absolute timestamp cannot precede rotation end. Durations and timestamps must be finite and non-negative. Target
-death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `duration`; an
+death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `rotationEndTime`; an
 observation tail does not.
 
 Saved benchmark or imported-log metadata must not choose an observation policy. Logs and saved benchmark metrics are
@@ -300,7 +302,9 @@ The commonly useful result fields are:
 
 | Field                                       | Meaning                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------ |
-| `duration`                                  | Entered rotation timeline in seconds                               |
+| `rotationEndTime` | End of the entered rotation, in absolute timeline seconds |
+| `observationEndTime` | Requested observation end, including any tail, in seconds |
+| `combatEndTime` | Target death or observation end, in seconds |
 | `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it           |
 | `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                             |
 | `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                     |
@@ -310,13 +314,25 @@ The commonly useful result fields are:
 | `casts`                                     | Aggregate cast counts                                              |
 | `events`, `resolvedEvents`                  | Scheduler and resolver timelines                                   |
 | `warnings`                                  | Invalid or constrained rotation behavior                           |
-| `endState`                                  | Ending time, cooldowns, ammo, weapon set, and profession resources |
+| `planningState` | Scheduler-only prediction at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
+| `combatState` | Resolver-owned event state through its `atSeconds` boundary; not a complete player snapshot |
 | `randomness`                                | Actual resolution mode and seed                                    |
+
+All boundary times and both state projections' `atSeconds` values use absolute timeline seconds. Planning
+continues through the requested horizon after target death; combat effects stop at `combatEndTime`. Planning
+projections never receive resolver state. Cooldown `readyAt` and `remaining` values retain milliseconds;
+ammo recharge timestamps retain seconds. The editor obtains rotation/insertion state through
+`rotationPlanningStateAt`, excluding observation tails when appending.
+
+The old `duration`, `endState`, top-level `profession`, and standalone `snapshot` result fields are removed.
+Use `combatState.profession` for resolved effects and `planningState.profession` for predicted resources.
+Neither projection is a resumable checkpoint. Resolver records may retain expiry timestamps; evaluate active
+effects at `combatState.atSeconds`, never at the later planning time.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
 
 `dpsWindow` ends at target death or the selected observation boundary, so an explicit observation tail can make it
-longer than `duration`.
+longer than `rotationEndTime`.
 
 For UI-equivalent formatted data, the existing transforms are also callable headlessly:
 

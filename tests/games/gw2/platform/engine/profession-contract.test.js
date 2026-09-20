@@ -96,7 +96,7 @@ test('structured definition containers preserve state, recharge rules, and resol
     resources: {
       createProfessionState: (config) => ({ charges: config.charges }),
       createResolverState: () => ({ damage: 0 }),
-      projectEndState: ({ resolverState }) => ({ damage: resolverState.damage })
+      projectPlanningState: ({ resolverState }) => ({ damage: resolverState.damage })
     },
     castRules: {
       modifyRechargeDuration: [(_context, duration) => duration / 2, (_context, duration) => duration + 1]
@@ -122,6 +122,6 @@ test('structured definition containers preserve state, recharge rules, and resol
 
   assert.deepEqual(schedulerState, { charges: 2 });
   assert.deepEqual(profession.createResolverState({}), { damage: 0 });
-  assert.deepEqual(profession.projectEndState({ resolverState }), { damage: 4 });
+  assert.deepEqual(profession.projectPlanningState({ resolverState }), { damage: 4 });
   assert.equal(profession.modifyRechargeDuration({}, 10), 6);
 });

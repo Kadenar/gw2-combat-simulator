@@ -31,7 +31,9 @@ test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
   });
   const series = buildChartSeries(
     {
-      duration: 2,
+      rotationEndTime: 2,
+      observationEndTime: 2,
+      combatEndTime: 2,
       events: [
         {
           type: 'buff',

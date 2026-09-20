@@ -125,17 +125,7 @@ export function buildTimeSeries(
   // Chart time is relative to the DPS window, while simulation events use
   // absolute seconds. Keep the conversion at this boundary.
   const dpsStartMs = Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000);
-  const endMs = Math.max(
-    dpsStartMs,
-    Math.round(
-      Number(
-        result.deathTime ??
-          (result.dpsWindow != null
-            ? Number(result.dpsStartTime || 0) + Number(result.dpsWindow)
-            : Number(result.duration || 0))
-      ) * 1000
-    )
-  );
+  const endMs = Math.max(dpsStartMs, Math.round(result.combatEndTime * 1000));
   const durationMs = Math.max(1, endMs - dpsStartMs);
   const interval = clamp(Number(sampleStepMs) || 250, 50, 1000);
   const times: number[] = [];

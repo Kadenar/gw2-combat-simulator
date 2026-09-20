@@ -175,7 +175,8 @@ test('Mesmer conforms to native handler and state contracts', () => {
     )
   );
 
-  const projected = simulateMesmer(['Mind Stab'], createDefaultConfig({ specialization: 'Core' })).endState.profession;
+  const projected = simulateMesmer(['Mind Stab'], createDefaultConfig({ specialization: 'Core' })).planningState
+    .profession;
 
   assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
 });

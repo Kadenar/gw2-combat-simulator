@@ -52,7 +52,7 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   }),
   trait(SPECTER_BALANCE_PROFILE_IDS.larcenousTorment, 'Larcenous Torment', {
     resourceGain: 0.5,
-    effects: [{ type: 'strike', coefficient: 0.005, hits: 1 }]
+    effects: [{ type: 'strike', flatStrikeBase: 99, flatStrikePowerCoeff: 0.005, hits: 1 }]
   }),
   trait(SPECTER_BALANCE_PROFILE_IDS.darkSentry, 'Dark Sentry', {
     internalCooldown: 1,

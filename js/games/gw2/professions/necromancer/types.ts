@@ -172,9 +172,8 @@ export type NecromancerQueryRuntime = Gw2QueryRuntime & {
   };
 };
 
-export interface NecromancerEndStateProjectionOptions {
+export interface NecromancerPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<NecromancerRuntimeState>;
-  readonly resolverState?: Partial<NecromancerState> | null;
 }
 
 export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {

@@ -328,7 +328,7 @@ function compileNativeModule(
       createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => UnvalidatedFields,
       // Resolver state defaults to the scheduler state so simple modules share one state object.
       createResolverState: module.state.resolver || module.state.scheduler,
-      ...(module.state.project == null ? {} : { projectEndState: module.state.project })
+      ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
     },
     attributeRules: modifiers as ProfessionAttributeRuleDefinition | undefined,
     castRules,

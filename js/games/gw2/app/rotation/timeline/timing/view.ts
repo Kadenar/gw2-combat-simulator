@@ -370,7 +370,7 @@ function renderStateTimingDetail(
     const active = definition.eventActive(app, event);
     return active == null || !Number.isFinite(Number(event.at)) ? [] : [{ atMs: Number(event.at) * 1000, active }];
   });
-  const analysis = stateTimingAnalysis(transitions, Number(result?.duration || 0) * 1000);
+  const analysis = stateTimingAnalysis(transitions, Number(result?.rotationEndTime || 0) * 1000);
   const hiddenStays = Math.max(0, analysis.occurrences.length - TIMING_DETAIL_INITIAL_USES);
   const rows = analysis.occurrences.length
     ? analysis.occurrences

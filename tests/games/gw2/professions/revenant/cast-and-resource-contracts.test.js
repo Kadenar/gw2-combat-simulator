@@ -53,16 +53,16 @@ for (const [specialization, name, legend, config = {}] of [
       result.events.some((event) => ['damage', 'condition', 'buff'].includes(event.type)),
       false
     );
-    const state = result.endState.profession;
+    const state = result.planningState.profession;
     assert.equal(state.enchantedDaggers.charges, 0);
     assert.equal(state.razorclawsRage.charges, 0);
     assert.equal(state.bandTogetherReady, false);
     assert.equal(state.beguilingHazeCharges, 0);
     assert.equal(state.crushingAbyss.length, 0);
     assert.equal(state.activeUpkeeps.length, 0);
-    if (name === 'Ancient Echo') assert.equal(state.energy, 50 + result.duration * 5);
+    if (name === 'Ancient Echo') assert.equal(state.energy, 50 + result.rotationEndTime * 5);
     if (name === 'Twin Moon Sweep') assert.equal(state.affinity, 0);
-    if (name === 'Dodge Jump') assert.equal(state.endurance, 50 + result.duration * 5);
+    if (name === 'Dodge Jump') assert.equal(state.endurance, 50 + result.rotationEndTime * 5);
   });
 }
 
@@ -175,9 +175,9 @@ test('Diminish Solace stops upkeep drain, retires owned tasks, and starts the pa
   const released = simulate('Core', rotation, config);
   const recovered = simulate('Core', [...rotation, wait(2000)], config);
   assert.deepEqual(recovered.warnings, []);
-  assert.deepEqual(recovered.endState.profession.activeUpkeeps, []);
-  assert.equal(recovered.endState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
-  assert.equal(recovered.endState.profession.energy - released.endState.profession.energy, 10);
+  assert.deepEqual(recovered.planningState.profession.activeUpkeeps, []);
+  assert.equal(recovered.planningState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
+  assert.equal(recovered.planningState.profession.energy - released.planningState.profession.energy, 10);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
   assert.match(unavailable.warnings.join('\n'), /activate the matching upkeep/);
   const context = contextFor();

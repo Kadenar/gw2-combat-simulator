@@ -107,11 +107,11 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
       { type: 'cast', skillId: ID.ENDURING_SWING, ...(interrupted ? { interruptAfterMs: 50 } : {}) }
     ]);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.ENDURING_SWING);
-    close(result.endState.profession.endurance, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
+    close(result.planningState.profession.endurance, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
   }
 
   const capped = simulate('Core', [ID.SLASH_ID_12474, ID.SLICE, ID.ENDURING_SWING]);
-  assert.equal(capped.endState.profession.endurance, 100);
+  assert.equal(capped.planningState.profession.endurance, 100);
 });
 
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {

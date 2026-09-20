@@ -77,7 +77,9 @@ export type OptimizerScore = Pick<
   | 'totalDamage'
   | 'strikeDamage'
   | 'conditionDamage'
-  | 'duration'
+  | 'rotationEndTime'
+  | 'observationEndTime'
+  | 'combatEndTime'
   | 'dpsStartTime'
   | 'dpsWindow'
   | 'deathTime'
@@ -486,7 +488,9 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     totalDamage,
     strikeDamage,
     conditionDamage,
-    duration,
+    rotationEndTime,
+    observationEndTime,
+    combatEndTime,
     dpsStartTime,
     dpsWindow,
     deathTime,
@@ -494,9 +498,19 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     warnings
   } = result;
   if (
-    [dps, totalDamage, strikeDamage, conditionDamage, duration, dpsStartTime, dpsWindow, deathTime, lastHitTime].some(
-      (value) => value !== null && !Number.isFinite(value)
-    )
+    [
+      dps,
+      totalDamage,
+      strikeDamage,
+      conditionDamage,
+      rotationEndTime,
+      observationEndTime,
+      combatEndTime,
+      dpsStartTime,
+      dpsWindow,
+      deathTime,
+      lastHitTime
+    ].some((value) => value !== null && !Number.isFinite(value))
   )
     throw new TypeError('Optimizer simulation produced a non-finite score.');
   return {
@@ -504,7 +518,9 @@ export function optimizerScore(result: OptimizerScore & Partial<Pick<Gw2Simulati
     totalDamage,
     strikeDamage,
     conditionDamage,
-    duration,
+    rotationEndTime,
+    observationEndTime,
+    combatEndTime,
     dpsStartTime,
     dpsWindow,
     deathTime,

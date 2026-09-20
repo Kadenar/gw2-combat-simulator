@@ -116,7 +116,7 @@ export const exampleProfession = defineProfession({
   resources: {
     createProfessionState,
     createResolverState, // optional clean resolver-time initial state
-    projectEndState // optional public profession-state projection
+    projectPlanningState // optional public profession-state projection
   },
   attributeRules,
   castRules,
@@ -204,9 +204,11 @@ owner-local and never import inactive specialization code.
   serializable payloads to namespaced profession handlers.
 - **Policy.** The platform supplies Quickness-adjusted casts, Alacrity-adjusted recharge, ammo, and starting weapon
   set; profession hooks may modify cast duration, recharge, or max ammo.
-- **End state.** Results keep time, cooldowns, ammo, and weapon set under `endState`; profession data appears only in
-  `endState.profession`, built by `resources.projectEndState` as an allowlisted public view. Scheduler snapshots are a
-  separate contract and may hold task progress, choice indices, ICDs, and resolver bookkeeping.
+- **Result state.** `planningState` contains scheduler-only cooldowns, ammo, weapon set, and the allowlisted
+  `planningState.profession` from `resources.projectPlanningState`. `combatState.profession` contains resolved
+  event state. Each projection carries `atSeconds`; planning can extend past target death. Public results expose
+  `rotationEndTime`, `observationEndTime`, and `combatEndTime` in seconds. Editor insertion previews use planned
+  state without an observation tail. Scheduler snapshots remain an internal contract, not resumable checkpoints.
 - **Observation.** Callers choose `rotation`, `tail`, or absolute policies. The scheduler derives rotation end from
   commands and cast-lane reservations only, then drains finite tasks to the observation end. The resolver applies
   target-death clipping and uses one effective end everywhere. Skill/event metadata and saved benchmark metadata cannot

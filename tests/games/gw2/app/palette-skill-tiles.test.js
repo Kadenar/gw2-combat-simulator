@@ -31,8 +31,8 @@ function projectionApp(
     skillById: profession.catalog.skillsById,
     skillByName: profession.catalog.skillsByName,
     results: {
-      endState: {
-        time: time * 1000,
+      planningState: {
+        atSeconds: time,
         activeWeaponSet: 1,
         cooldowns,
         ammoBySkillId,

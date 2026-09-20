@@ -69,7 +69,7 @@ const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RevenantState>> 
 });
 
 /** Projects the public Revenant state while supplying stable defaults for inactive elite specializations. */
-export function projectRevenantEndState({
+export function projectRevenantPlanningState({
   schedulerState
 }: {
   schedulerState: SchedulerState<RevenantRuntimeState>;

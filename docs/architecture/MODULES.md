@@ -161,7 +161,7 @@ Non-type imports inside `js/games/gw2/app/` follow these rules:
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                          |
 | `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionEndState`).                                                                                                                                        |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                        |
 | `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                                                                                                                                                                                                    |
 | `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                     |
 | `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                      |
@@ -635,7 +635,7 @@ Core modules may also expose public end-state projection:
 state: {
   scheduler: createWarriorCoreState,
   resolver: createWarriorCoreState,
-  project: projectWarriorEndState,
+  project: projectWarriorPlanningState,
 },
 ```
 

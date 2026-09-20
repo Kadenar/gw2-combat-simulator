@@ -48,8 +48,8 @@ test('audited weapon flip families project one live palette identity', () => {
       skillById: catalog.skillsById,
       profession: { catalog },
       results: {
-        endState: {
-          time: 0,
+        planningState: {
+          atSeconds: 0,
           profession: { availableFlips: {} }
         }
       }
@@ -63,7 +63,7 @@ test('audited weapon flip families project one live palette identity', () => {
       `${parent.name} should display before its follow-up is armed`
     );
 
-    app.results.endState.profession.availableFlips[child.id] = true;
+    app.results.planningState.profession.availableFlips[child.id] = true;
     assert.deepEqual(
       displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [child.id],

@@ -61,7 +61,9 @@ test('shared chart lookup and series cover damage timing and configurable effect
 
   const series = buildTimeSeries(
     {
-      duration: 9,
+      rotationEndTime: 9,
+      observationEndTime: 9,
+      combatEndTime: 2,
       deathTime: 2,
       dpsStartTime: 0.5,
       resolvedEvents: [
@@ -121,7 +123,9 @@ test('shared chart lookup and series cover damage timing and configurable effect
 
 test('shared DPS charts start their sample grid at the first hit', () => {
   const series = buildTimeSeries({
-    duration: 2,
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
     dpsStartTime: 1.156,
     resolvedEvents: [
       { type: 'damage', at: 1.156, damage: 3567 },
@@ -139,7 +143,9 @@ test('shared DPS charts start their sample grid at the first hit', () => {
 // A sorted sweep must preserve inclusive sample boundaries, tick ownership, and the reporting window.
 test('DPS samples accumulate unordered hits and ticks without changing reporting metrics', () => {
   const result = {
-    duration: 9,
+    rotationEndTime: 9,
+    observationEndTime: 9,
+    combatEndTime: 2.1,
     dpsStartTime: 1,
     deathTime: 2.1,
     totalDamage: 212,
@@ -192,7 +198,9 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
   const app = {
     build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
     results: {
-      duration: 1,
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
       totalDamage: 100,
       dps: 100,
       procSteps: [
@@ -313,7 +321,9 @@ test('target health breakpoints use environment damage for timing but player dam
 
 test('summary metrics separate player attribution from right-grouped target damage', () => {
   const metrics = baseResultSummaryMetrics({
-    duration: 2,
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
     deathTime: null,
     totalDamage: 100,
     dps: 50,
@@ -472,7 +482,9 @@ for (const [startingHealthPercent, targetDied] of [
         targetStartingHealthPercent: startingHealthPercent
       },
       results: {
-        duration: 10,
+        rotationEndTime: 10,
+        observationEndTime: 10,
+        combatEndTime: 10,
         dpsStartTime: 0,
         deathTime: targetDied ? 10 : null,
         totalDamage: startingHealthPercent - (targetDied ? 0 : 10),

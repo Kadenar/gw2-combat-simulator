@@ -268,9 +268,9 @@ describe('Galeshot Cyclone Bow', () => {
     );
 
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.cycloneBowActive, true);
-    assert.equal(result.endState.profession.windForce, 0);
-    assert.equal(result.endState.profession.arrows < 8, true);
+    assert.equal(result.planningState.profession.cycloneBowActive, true);
+    assert.equal(result.planningState.profession.windForce, 0);
+    assert.equal(result.planningState.profession.arrows < 8, true);
     assert.equal(result.totalDamage > 0, true);
 
     const keenBlocked = simulate('Galeshot', [
@@ -374,7 +374,7 @@ describe('Galeshot Cyclone Bow', () => {
     assert.equal(rangerProfession.ui.paletteSkillAvailability(inactiveContext, dismiss).available, false);
     const activeContext = {
       specialization: 'Galeshot',
-      professionState: charged.endState.profession
+      professionState: charged.planningState.profession
     };
 
     assert.equal(
@@ -620,7 +620,8 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   });
 
   assert.ok(
-    ambidexterity.endState.cooldowns['Double Arc'].readyAt < daggerBaseline.endState.cooldowns['Double Arc'].readyAt
+    ambidexterity.planningState.cooldowns['Double Arc'].readyAt <
+      daggerBaseline.planningState.cooldowns['Double Arc'].readyAt
   );
 
   // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
@@ -796,11 +797,11 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   });
 
   assert.deepEqual(swapped.warnings, []);
-  assert.equal(swapped.endState.profession.petSwapCount, 1);
-  assert.equal(swapped.endState.profession.activePetSlot, 2);
-  assert.equal(swapped.endState.profession.activePet, 'Fanged Iboga');
-  assert.deepEqual(swapped.endState.profession.petNames, ['Carrion Devourer', 'Fanged Iboga']);
-  assert.equal(swapped.endState.profession.activePetSkillIds.includes(ID.CONSUMING_BITE), true);
+  assert.equal(swapped.planningState.profession.petSwapCount, 1);
+  assert.equal(swapped.planningState.profession.activePetSlot, 2);
+  assert.equal(swapped.planningState.profession.activePet, 'Fanged Iboga');
+  assert.deepEqual(swapped.planningState.profession.petNames, ['Carrion Devourer', 'Fanged Iboga']);
+  assert.equal(swapped.planningState.profession.activePetSkillIds.includes(ID.CONSUMING_BITE), true);
   assert.equal(
     swapped.events.some(
       (event) =>

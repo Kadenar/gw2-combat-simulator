@@ -168,8 +168,8 @@ const traitCases = [
     config: { initialResource: 30 },
     verify: (result) =>
       assert.equal(
-        result.endState.profession.endurance -
-          simulate(['Dodge', 'Eviscerate'], { initialResource: 30 }).endState.profession.endurance,
+        result.planningState.profession.endurance -
+          simulate(['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance,
         15
       )
   },
@@ -262,7 +262,7 @@ const traitCases = [
     trait: TRAIT.MERCILESS_HAMMER,
     rotation: ['Kick'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.endState.profession.adrenaline, 8)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 8)
   },
   {
     name: 'Stalwart Strength',
@@ -325,7 +325,7 @@ const traitCases = [
     trait: TRAIT.VERSATILE_RAGE,
     rotation: ['Swap Weapons'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.endState.profession.adrenaline, 5)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 5)
   },
   {
     name: 'Burst Mastery',

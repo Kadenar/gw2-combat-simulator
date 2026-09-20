@@ -201,7 +201,7 @@ test('Familiar and meditation enchantments expire during idle time and cannot en
           assert.equal(attack.electricEnchantmentConsumed === true, wait < duration, `${skill}: late strike`);
         } else {
           assert.equal(
-            result.endState.profession.electricEnchantmentStacks > 0,
+            result.planningState.profession.electricEnchantmentStacks > 0,
             wait < duration,
             `${skill}: idle expiry`
           );
@@ -244,8 +244,8 @@ test('Evoker mechanics execute through native hooks', () => {
     initialEvokerEmpowered: 3
   });
 
-  assert.equal(result.endState.profession.maximumCharges, 6);
-  assert.equal(result.endState.profession.empowered, 0);
+  assert.equal(result.planningState.profession.maximumCharges, 6);
+  assert.equal(result.planningState.profession.empowered, 0);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Electric Enchantment')
       .length,
@@ -272,7 +272,7 @@ test('Evoker weapon skills build familiar charges', () => {
 
   assert.ok(charge);
   assert.equal(charge.change, 2);
-  assert.equal(result.endState.profession.charges, 2);
+  assert.equal(result.planningState.profession.charges, 2);
 });
 
 test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent cooldowns', () => {
@@ -406,10 +406,10 @@ test('Specialized Elements grants three familiar charges per matching weapon ski
     (event) => event.type === 'resource' && event.kind === 'evoker-charges' && event.source === 'Flame Uprising'
   );
 
-  assert.equal(result.endState.profession.maximumCharges, 6);
+  assert.equal(result.planningState.profession.maximumCharges, 6);
   assert.ok(charge);
   assert.equal(charge.change, 3);
-  assert.equal(result.endState.profession.charges, 3);
+  assert.equal(result.planningState.profession.charges, 3);
 });
 
 test('Specialized Elements familiar casts reduce active weapon recharge', () => {
@@ -433,8 +433,8 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
     assert.deepEqual(specialized.warnings, []);
     assert.ok(
       Math.abs(
-        baseline.endState.cooldowns['Flame Uprising'].readyAt -
-          specialized.endState.cooldowns['Flame Uprising'].readyAt -
+        baseline.planningState.cooldowns['Flame Uprising'].readyAt -
+          specialized.planningState.cooldowns['Flame Uprising'].readyAt -
           reduction
       ) < 1e-6
     );
@@ -456,8 +456,8 @@ test('Evoker can cast a basic familiar after configured start charges fill', () 
     result.events.some((event) => event.type === 'action' && event.skillName === 'Ignite'),
     true
   );
-  assert.equal(result.endState.profession.charges, 0);
-  assert.equal(result.endState.profession.empowered, 1);
+  assert.equal(result.planningState.profession.charges, 0);
+  assert.equal(result.planningState.profession.empowered, 1);
 });
 
 test('Evoker preserves off-attunement recharge while waiting for a swap', () => {
@@ -524,8 +524,8 @@ test('Evoker does not award a completed parent charge grant twice', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.charges, 0);
-  assert.equal(result.endState.profession.empowered, 1);
+  assert.equal(result.planningState.profession.charges, 0);
+  assert.equal(result.planningState.profession.empowered, 1);
 });
 
 test('Evoker spends a completed Rejuvenate refill only once', () => {
@@ -552,8 +552,8 @@ test('Evoker spends a completed Rejuvenate refill only once', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.charges, 0);
-  assert.equal(result.endState.profession.empowered, 1);
+  assert.equal(result.planningState.profession.charges, 0);
+  assert.equal(result.planningState.profession.empowered, 1);
 });
 
 test('Evoker queues early familiar inputs only when pending charges can make them available', () => {
@@ -576,10 +576,10 @@ test('Evoker queues early familiar inputs only when pending charges can make the
       assert.deepEqual(result.warnings, []);
       if (initialEvokerCharges === 4) {
         assert.equal(familiar.at, parent.endsAt);
-        assert.equal(result.endState.profession.charges, 0);
+        assert.equal(result.planningState.profession.charges, 0);
       } else {
         assert.ok(familiar.at < parent.endsAt);
-        assert.equal(result.endState.profession.charges, 2);
+        assert.equal(result.planningState.profession.charges, 2);
       }
     }
   }
@@ -628,7 +628,7 @@ test('Evasive Arcana does not grant Evoker familiar charges', () => {
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Flame Burst (trait)'),
     true
   );
-  assert.equal(result.endState.profession.charges, 0);
+  assert.equal(result.planningState.profession.charges, 0);
 });
 
 test('Evoker familiar grants enchant only hits at or after the grant', () => {
@@ -681,7 +681,7 @@ test("Hare's Agility cannot spend new charges on pre-grant strikes", () => {
   assert.ok(enchantments.length > 0);
   assert.ok(enchantments.every((event) => event.at >= grant.at));
   // The meditation's own strike may consume one charge at the grant boundary.
-  assert.equal(result.endState.profession.electricEnchantmentStacks, 4);
+  assert.equal(result.planningState.profession.electricEnchantmentStacks, 4);
 });
 
 test('Specialized Elements forces and locks the selected attunement', () => {
@@ -692,8 +692,8 @@ test('Specialized Elements forces and locks the selected attunement', () => {
     evokerElement: 'Air'
   });
 
-  assert.equal(result.endState.profession.primaryAttunement, 'Air');
-  assert.equal(result.endState.profession.maximumCharges, 6);
+  assert.equal(result.planningState.profession.primaryAttunement, 'Air');
+  assert.equal(result.planningState.profession.maximumCharges, 6);
   assert.equal(
     result.events.some((event) => event.type === 'elementalist.attunement'),
     false

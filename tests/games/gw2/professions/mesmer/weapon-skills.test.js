@@ -48,7 +48,7 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
     })
   );
 
-  assert.equal(resetOnly.endState.cooldowns['Mind the Gap'], undefined);
+  assert.equal(resetOnly.planningState.cooldowns['Mind the Gap'], undefined);
 });
 
 // A shatter on the impact frame consumes existing clones before the attack's deferred clone arrives.
@@ -63,7 +63,7 @@ test('Mind the Gap preserves its deferred clone when shattering on its impact fr
       selectedTraitIds: [TRAIT.DUNE_CLOAK]
     })
   );
-  assert.equal(result.endState.profession.resource, 1);
+  assert.equal(result.planningState.profession.resource, 1);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -77,7 +77,7 @@ test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc'
     })
   );
 
-  assert.equal(result.endState.profession.clarityRemaining, 15000);
+  assert.equal(result.planningState.profession.clarityRemaining, 15000);
   assert.ok(
     result.procSteps.some(
       (proc) =>
@@ -100,7 +100,7 @@ test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
       })
     );
 
-    assert.equal(result.endState.profession.clarityRemaining, 0, consumer);
+    assert.equal(result.planningState.profession.clarityRemaining, 0, consumer);
   }
 });
 
@@ -345,8 +345,8 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
     counter.breakdown.some((entry) => entry.name === 'Illusionary Counter'),
     false
   );
-  assert.equal(counter.endState.profession.resource, 0);
-  assert.equal(counter.endState.profession.counterspellAvailable, true);
+  assert.equal(counter.planningState.profession.resource, 0);
+  assert.equal(counter.planningState.profession.counterspellAvailable, true);
   assert.equal(
     counter.resolvedEvents.some(
       (event) =>
@@ -364,8 +364,8 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
 
   assert.equal(flipped.steps.filter((step) => !step.invalid).length, 2);
   assert.equal(flipped.steps[1].start, 120);
-  assert.equal(flipped.endState.profession.resource, 1);
-  assert.equal(flipped.endState.profession.counterspellAvailable, false);
+  assert.equal(flipped.planningState.profession.resource, 1);
+  assert.equal(flipped.planningState.profession.counterspellAvailable, false);
   assert.ok(flipped.breakdown.some((entry) => entry.sourceSkill === 'Counterspell'));
 
   const interrupted = simulateMesmer(
@@ -376,7 +376,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
 
   assert.equal(counterspell.end - counterspell.start, 360);
   assert.equal(interrupted.steps.find((step) => step.skill === 'Swap Weapons').start, counterspell.end);
-  assert.equal(interrupted.endState.profession.resource, 1);
+  assert.equal(interrupted.planningState.profession.resource, 1);
   assert.ok(
     interrupted.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Counterspell' && event.condition === 'Confusion'
@@ -414,7 +414,7 @@ test('requested weapon flips require and consume their parent sequence skill', (
       [parent, flip],
       flip
     );
-    assert.equal(result.endState.profession.availableFlips[flip], undefined, flip);
+    assert.equal(result.planningState.profession.availableFlips[flip], undefined, flip);
   }
 });
 
@@ -455,8 +455,8 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
   const base = simulateMesmer(['Singularity Shot'], config);
   const aperture = simulateMesmer(['Singularity Shot', 'Dimensional Aperture'], config);
 
-  assert.equal(base.endState.cooldowns['Singularity Shot'].readyAt, 16333);
-  assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 24333);
+  assert.equal(base.planningState.cooldowns['Singularity Shot'].readyAt, 16333);
+  assert.equal(aperture.planningState.cooldowns['Singularity Shot'].readyAt, 24333);
 });
 
 // The image's natural expiry and early detonation must remain mutually exclusive.
@@ -485,7 +485,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.endState.cooldowns['Inspiring Imagery'].readyAt - cast.end, 12000);
+  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt - cast.end, 12000);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0], /Inspiring Imagery is not active/);
 });
@@ -541,7 +541,7 @@ test('cancelled Inspiring Imagery creates neither a field nor boons', () => {
     ),
     false
   );
-  assert.equal(result.endState.profession.availableFlips.Abstraction, undefined);
+  assert.equal(result.planningState.profession.availableFlips.Abstraction, undefined);
 });
 
 test('The Prestige has a 40ms quickness activation and explodes 3s later', () => {

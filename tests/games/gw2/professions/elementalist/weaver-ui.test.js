@@ -111,9 +111,9 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
     skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
-      endState: {
+      planningState: {
         activeWeaponSet: 1,
-        time: 1000,
+        atSeconds: 1,
         cooldowns: {},
         profession: {
           primaryAttunement: 'Fire',

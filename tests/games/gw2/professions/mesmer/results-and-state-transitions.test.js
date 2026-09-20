@@ -56,7 +56,9 @@ test('result summary uses the expected metric order', () => {
 
 test('result summary totals the same charge-aware dead-time gaps shown on the timeline', () => {
   const metrics = resultSummaryMetrics({
-    duration: 2,
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
     deathTime: null,
     events: [
       {
@@ -85,7 +87,9 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
 
 test('result summary includes explicit wait shapes in total idle time', () => {
   const metrics = resultSummaryMetrics({
-    duration: 1,
+    rotationEndTime: 1,
+    observationEndTime: 1,
+    combatEndTime: 1,
     deathTime: null,
     events: [],
     steps: [
@@ -105,7 +109,9 @@ test('result summary includes explicit wait shapes in total idle time', () => {
 
 test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
   const metrics = resultSummaryMetrics({
-    duration: 1,
+    rotationEndTime: 1,
+    observationEndTime: 1,
+    combatEndTime: 1,
     deathTime: null,
     events: [],
     resolvedEvents: [],
@@ -151,7 +157,9 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
 
 test('Kill Time accounts for an explicit Combat Start reference', () => {
   const metrics = resultSummaryMetrics({
-    duration: 93.89,
+    rotationEndTime: 93.89,
+    observationEndTime: 93.89,
+    combatEndTime: 93.89,
     deathTime: 93.89,
     firstHitTime: 2.06,
     events: [{ type: 'combat_start', at: 2.06 }]
@@ -163,7 +171,9 @@ test('Kill Time accounts for an explicit Combat Start reference', () => {
 
 test('result summary hides the internal effect horizon after the target dies', () => {
   const metrics = resultSummaryMetrics({
-    duration: 97.1,
+    rotationEndTime: 97.1,
+    observationEndTime: 97.1,
+    combatEndTime: 93.1,
     deathTime: 93.1
   });
 
@@ -385,7 +395,9 @@ test('chart hover values use the latest sample at the hovered timestamp', () => 
 test('Compounding Power chart series caps at five stacks', () => {
   const series = buildChartSeries(
     {
-      duration: 10,
+      rotationEndTime: 10,
+      observationEndTime: 10,
+      combatEndTime: 10,
       resolvedEvents: [],
       events: Array.from({ length: 7 }, (_, index) => ({
         type: 'buff',
@@ -409,7 +421,9 @@ test('Compounding Power chart series caps at five stacks', () => {
 test('Vulnerability chart series caps at 25 stacks', () => {
   const series = buildChartSeries(
     {
-      duration: 10,
+      rotationEndTime: 10,
+      observationEndTime: 10,
+      combatEndTime: 10,
       resolvedEvents: Array.from({ length: 30 }, (_, index) => ({
         type: 'condition',
         at: index * 0.01,
@@ -428,7 +442,9 @@ test('Vulnerability chart series caps at 25 stacks', () => {
 test('Might chart series caps at 25 stacks', () => {
   const series = buildChartSeries(
     {
-      duration: 10,
+      rotationEndTime: 10,
+      observationEndTime: 10,
+      combatEndTime: 10,
       resolvedEvents: [],
       events: Array.from({ length: 30 }, (_, index) => ({
         type: 'buff',
@@ -452,7 +468,9 @@ for (const [specialization, kind, name, maximumStacks] of [
   test(`${name} chart series uses its profession-owned stack cap`, () => {
     const series = buildChartSeries(
       {
-        duration: 10,
+        rotationEndTime: 10,
+        observationEndTime: 10,
+        combatEndTime: 10,
         resolvedEvents: [],
         events: Array.from({ length: maximumStacks + 2 }, (_, index) => ({
           type: 'buff',
@@ -481,12 +499,12 @@ test('Continuum Shift is available only while Continuum Split is active', () => 
   });
   const split = simulateMesmer(['Continuum Split'], config);
 
-  assert.equal(split.endState.profession.continuumActive, true);
-  assert.ok(split.endState.profession.continuumRemaining > 0);
+  assert.equal(split.planningState.profession.continuumActive, true);
+  assert.ok(split.planningState.profession.continuumRemaining > 0);
 
   const shifted = simulateMesmer(['Continuum Split', 'Continuum Shift'], config);
 
-  assert.equal(shifted.endState.profession.continuumActive, false);
+  assert.equal(shifted.planningState.profession.continuumActive, false);
 });
 
 test('expired Continuum Split is injected before the next rotation action', () => {
@@ -563,7 +581,7 @@ test('Continuum Split does not extend an existing weapon-swap cooldown', () => {
     config
   );
 
-  assert.equal(result.endState.cooldowns['Swap Weapons'].readyAt, 10000);
+  assert.equal(result.planningState.cooldowns['Swap Weapons'].readyAt, 10000);
 });
 
 test('a build can open combat on its second weapon set', () => {
@@ -580,7 +598,7 @@ test('a build can open combat on its second weapon set', () => {
     startingWeaponSet: 2
   });
 
-  assert.equal(onSetTwo.endState.activeWeaponSet, 2);
+  assert.equal(onSetTwo.planningState.activeWeaponSet, 2);
 
   // Swapping from a set-two opener lands on set one, proving t=0 was set two.
   const swappedFromTwo = simulateMesmer(['Swap Weapons'], {
@@ -588,14 +606,14 @@ test('a build can open combat on its second weapon set', () => {
     startingWeaponSet: 2
   });
 
-  assert.equal(swappedFromTwo.endState.activeWeaponSet, 1);
+  assert.equal(swappedFromTwo.planningState.activeWeaponSet, 1);
 
   const onSetOne = simulateMesmer([{ name: '__wait', waitMs: 1000 }], {
     ...base,
     startingWeaponSet: 1
   });
 
-  assert.equal(onSetOne.endState.activeWeaponSet, 1);
+  assert.equal(onSetOne.planningState.activeWeaponSet, 1);
 });
 
 test('starting on weapon set two is ignored without a second weapon set', () => {
@@ -612,7 +630,7 @@ test('starting on weapon set two is ignored without a second weapon set', () => 
     })
   );
 
-  assert.equal(result.endState.activeWeaponSet, 1);
+  assert.equal(result.planningState.activeWeaponSet, 1);
 });
 
 test('clone specs never open combat with clones', () => {
@@ -628,5 +646,5 @@ test('clone specs never open combat with clones', () => {
     })
   );
 
-  assert.equal(result.endState.profession.resource, 0);
+  assert.equal(result.planningState.profession.resource, 0);
 });

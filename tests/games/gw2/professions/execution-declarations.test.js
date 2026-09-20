@@ -58,7 +58,7 @@ test('Grand Finale uses its registered replacement handler and emits one packet 
   assert.equal(packets.length, 1);
   assert.equal(packets[0].coefficient, 1.4);
   assert.ok(Math.abs(packets[0].at - action.endsAt - 0.68) < 1e-9);
-  assert.equal(result.endState.profession.hammerOrbs.Fire, null);
+  assert.equal(result.planningState.profession.hammerOrbs.Fire, null);
 });
 
 test('native professions share one skill timing contract', async () => {

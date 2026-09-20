@@ -524,7 +524,7 @@ export function relicProcExpirationTimelineMarkers(
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
-  const effectiveEnd = result?.deathTime == null ? Number(result?.duration || 0) : Number(result.deathTime);
+  const effectiveEnd = Number(result?.combatEndTime || 0);
   const rotationEnd = Math.round(effectiveEnd * 1000);
   const windows = new Map<string, { proc: Gw2ProcStep; expiresAt: number; activations: Gw2ProcStep[] }>();
   const expired: ProcTimelineMarker[] = [];

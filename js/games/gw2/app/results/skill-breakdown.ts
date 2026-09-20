@@ -326,12 +326,12 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
         hits: entry.hits || procCount,
         procCount,
         total,
-        dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
+        dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0)),
         procDamage: [...(damageByTrigger.get(skillBreakdownKey(entry.group, entry.name)) || [])].map(
           ([sourceSkill, damage]) => ({
             sourceSkill,
             total: damage,
-            dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
+            dps: damage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
           })
         ),
         average: averageCount > 0 ? total / averageCount : null,

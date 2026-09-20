@@ -780,7 +780,9 @@ function minimalResult(damageAt1s) {
     dps: damageAt1s / 4,
     dpsStartTime: 0,
     dpsWindow: 4,
-    duration: 4,
+    rotationEndTime: 4,
+    observationEndTime: 4,
+    combatEndTime: 4,
     breakdown: [],
     events: [],
     resolvedEvents: [{ type: 'damage', at: 1, damage: damageAt1s }]

@@ -24,7 +24,7 @@ test('spear stealth choice is consumed on activation even when the attack is can
     const result = simulate('Soulbeast', [ID.PANTHERS_PROWL, cast(ID.WOLFS_ONSLAUGHT, interrupt), ID.FALCONS_STOOP]);
     assert.deepEqual(result.warnings, []);
     assert.ok(strike(result, ID.FALCONS_STOOP));
-    assert.deepEqual(result.endState.profession.availableFlips, {});
+    assert.deepEqual(result.planningState.profession.availableFlips, {});
     const attempt = result.steps.find((step) => step.skillId === ID.WOLFS_ONSLAUGHT);
     const contacts = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === ID.WOLFS_ONSLAUGHT
@@ -47,7 +47,7 @@ test('Panther charges recharge serially and do not share recharge with Spider', 
   const prowl = result.steps.filter((step) => step.skillId === ID.PANTHERS_PROWL);
   assert.ok(prowl[1].start < prowl[0].end + 10_000);
   assert.equal(prowl[2].start, prowl[0].end + 10_000);
-  assert.equal(result.endState.ammoBySkillId[ID.PANTHERS_PROWL].charges, 0);
+  assert.equal(result.planningState.ammoBySkillId[ID.PANTHERS_PROWL].charges, 0);
 });
 
 test('spear slots 2–4 commit identical cooldowns for base and stealth skills', () => {

@@ -967,7 +967,7 @@ test('a rotation swapping to a valid second set retains its independent equipmen
   for (const candidate of result.winners) {
     assert.equal(candidate.equipment.gear.Weapon1, captured.build.gear.Weapon1);
     const detailed = job.evaluator.evaluate(candidate.equipment);
-    assert.equal(detailed.endState.activeWeaponSet, 2);
+    assert.equal(detailed.planningState.activeWeaponSet, 2);
     assert.deepEqual(candidate.score, optimizerScore(detailed));
   }
 });

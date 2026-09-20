@@ -182,7 +182,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       profession: family,
       rotation: [],
       config
-    }).endState.profession;
+    }).planningState.profession;
 
     assert.ok(projected && typeof projected === 'object');
     assert.equal(Object.hasOwn(projected, 'core'), false);

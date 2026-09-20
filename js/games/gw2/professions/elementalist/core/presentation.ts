@@ -74,8 +74,8 @@ let elementalistCatalog: Readonly<CanonicalCatalog>;
 // run (projected end state); accept either shape.
 export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistState> {
   const professionState = context.professionState as Partial<ElementalistState> | undefined;
-  const endState = context.state as { profession?: Partial<ElementalistState> } | undefined;
-  return professionState || endState?.profession || {};
+  const planningState = context.state as { profession?: Partial<ElementalistState> } | undefined;
+  return professionState || planningState?.profession || {};
 }
 
 function pistolBulletRecord(value: unknown): ElementalistPistolBullets | null {

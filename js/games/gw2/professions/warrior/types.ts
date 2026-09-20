@@ -99,10 +99,9 @@ export type WarriorResolverContext = Gw2ResolverRuntime & {
   profession: WarriorRuntimeState;
 };
 
-export interface WarriorEndStateProjectionOptions {
+export interface WarriorPlanningStateProjectionOptions {
   readonly schedulerContext: WarriorSchedulerContext;
   readonly schedulerState: SchedulerState<WarriorRuntimeState>;
-  readonly resolverState?: Partial<WarriorState> | null;
 }
 
 export interface WarriorUiContext extends Omit<

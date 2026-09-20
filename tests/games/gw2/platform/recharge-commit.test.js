@@ -6,7 +6,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { projectThiefEndState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
+import { projectThiefPlanningState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
 
 // Small authored skills isolate reservation ownership from profession damage and cast timing data.
 function commitmentScheduler(ammo = false) {
@@ -200,7 +200,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   scheduler.advanceTo(1);
   // Grant order differs from expiry order: the first live grant must be consumed first.
   antiquary.holoUtilityCooldownReductionExpirations = [0, 10, 5];
-  const projected = () => projectThiefEndState({ schedulerState: state, resolverState: state.profession });
+  const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
   assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 10);
   assert.equal(Object.hasOwn(antiquary, 'holoUtilityCooldownReductionExpiresAt'), false);
   assert.equal(Object.hasOwn(snapshotThiefState(state.profession), 'holoUtilityCooldownReductionExpiresAt'), false);
@@ -273,7 +273,7 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   const { context, state } = scheduler;
   const antiquary = state.profession.specialization.state;
   antiquary.holoUtilityCooldownReductionExpirations = [30, 35, 40];
-  const projected = () => projectThiefEndState({ schedulerState: state, resolverState: state.profession });
+  const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
   const heal = context.catalog.skillsByName.get('Hide in Shadows');
   assert.equal(scheduler.cast({ type: 'cast', skillId: heal.id }), true);
   scheduler.advanceTo(scheduler.events.find((event) => event.type === 'action').endsAt);

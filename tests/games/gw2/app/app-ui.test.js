@@ -104,7 +104,7 @@ test('15-pip initiative uses specialization-neutral rows', () => {
         ]
       }
     },
-    results: { endState: { time: 0, profession: {} } }
+    results: { planningState: { atSeconds: 0, profession: {} } }
   });
 
   const rowPipCounts = [
@@ -407,7 +407,9 @@ test('proc timeline markers follow their simulated activation times', () => {
 
 test('timed relic expiration markers merge refreshes and stay within the rotation', () => {
   const result = {
-    duration: 12,
+    rotationEndTime: 12,
+    observationEndTime: 12,
+    combatEndTime: 12,
     steps: [
       { ri: 0, skill: 'Opening Strike', start: 0, end: 500 },
       { ri: 1, skill: 'Follow-up', start: 6000, end: 6500 },
@@ -865,7 +867,9 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
       buildRevision: 2,
       resultRevision: 1,
       results: {
-        duration: 1,
+        rotationEndTime: 1,
+        observationEndTime: 1,
+        combatEndTime: 1,
         totalDamage: 100,
         dps: 100,
         strikeDamage: 100,
@@ -1466,7 +1470,7 @@ test('Mesmer palette advances through autoattack chain skills', () => {
   const skill = (name) => mesmerProfession.catalog.skillsByName.get(name);
   const availabilityAfter = (rotation) => {
     const result = simulateMesmer(rotation, config);
-    const chainState = result.endState.profession.autoattackChains;
+    const chainState = result.planningState.profession.autoattackChains;
 
     return ['Mind Slash', 'Mind Gash', 'Mind Spike'].map((name) =>
       autoattackChainSkillAvailable(skill(name), chainState)
@@ -1490,7 +1494,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
     skillById,
     profession: { catalog: { skillsById: skillById } },
     results: {
-      endState: {
+      planningState: {
         profession: {
           autoattackChains: { 1: 2 },
           availableFlips: { 4: true }
@@ -1504,7 +1508,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
     ['Second Strike', 'Counter Attack']
   );
 
-  app.results.endState.profession = { autoattackChains: {}, availableFlips: {} };
+  app.results.planningState.profession = { autoattackChains: {}, availableFlips: {} };
   assert.deepEqual(
     displayedWeaponSkills(app, skills).map((skill) => skill.name),
     ['First Strike', 'Counter Stance']
@@ -1521,8 +1525,8 @@ test('palette flip projection infers catalog children and honors timed expiry', 
     skillById: skillsById,
     profession: { catalog: { skills, skillsById } },
     results: {
-      endState: {
-        time: 1500,
+      planningState: {
+        atSeconds: 1.5,
         profession: { availableFlips: { 11: 2 } }
       }
     }
@@ -1533,7 +1537,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
     ['Follow-up Skill']
   );
 
-  app.results.endState.time = 2000;
+  app.results.planningState.atSeconds = 2;
   assert.deepEqual(
     displayedSkillTiles(app, [parent]).map((skill) => skill.name),
     ['Opening Skill']
@@ -1791,7 +1795,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     false
   );
   engineer.results = {
-    endState: {
+    planningState: {
       profession: { activeKit: 'Grenade Kit' }
     }
   };
@@ -1869,12 +1873,12 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
   ]) {
     const parent = engineer.skillByName.get(parentName);
     const flip = engineer.skillByName.get(flipName);
-    engineer.results.endState.profession.availableFlips = { [flip.id]: true };
+    engineer.results.planningState.profession.availableFlips = { [flip.id]: true };
     assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
   const grenadeKit = engineer.skillByName.get('Grenade Kit');
-  engineer.results.endState.profession.availableFlips = {};
+  engineer.results.planningState.profession.availableFlips = {};
   assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
 });
 
@@ -1927,16 +1931,16 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const final = skillByName.get('Flame Surge');
   const app = {
     skillById,
-    results: { endState: { profession: { availableFlips: {} } } }
+    results: { planningState: { profession: { availableFlips: {} } } }
   };
 
   assert.equal(skillBarDisplaySkill(app, parent), parent);
-  app.results.endState.profession.availableFlips[normal.id] = Infinity;
+  app.results.planningState.profession.availableFlips[normal.id] = Infinity;
   assert.equal(skillBarDisplaySkill(app, parent), normal);
-  delete app.results.endState.profession.availableFlips[normal.id];
-  app.results.endState.profession.availableFlips[final.id] = Infinity;
+  delete app.results.planningState.profession.availableFlips[normal.id];
+  app.results.planningState.profession.availableFlips[final.id] = Infinity;
   assert.equal(skillBarDisplaySkill(app, parent), final);
-  delete app.results.endState.profession.availableFlips[final.id];
+  delete app.results.planningState.profession.availableFlips[final.id];
   assert.equal(skillBarDisplaySkill(app, parent), parent);
 });
 

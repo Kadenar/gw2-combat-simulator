@@ -70,11 +70,11 @@ test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(result.endState.profession.activeSpirits, {});
-  assert.ok(result.endState.profession.lifeForce > 50);
+  assert.deepEqual(result.planningState.profession.activeSpirits, {});
+  assert.ok(result.planningState.profession.lifeForce > 50);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Essence Blast'));
-  assert.equal(lingering.endState.profession.activeSpirits.anguish, true);
-  assert.ok(lingering.endState.profession.lifeForce < 90);
+  assert.equal(lingering.planningState.profession.activeSpirits.anguish, true);
+  assert.ok(lingering.planningState.profession.lifeForce < 90);
   assert.ok(lingering.breakdown.some((entry) => entry.name === 'Anguish Autoattack'));
 });
 
@@ -85,10 +85,10 @@ test('Soul Twisting refunds only the first spirit summon after entering Ritualis
     selectedTraitIds: [TRAIT.SOUL_TWISTING]
   });
 
-  assert.ok(baseline.endState.cooldowns.Anguish);
-  assert.equal(twisting.endState.cooldowns.Anguish, undefined);
-  assert.ok(twisting.endState.cooldowns.Wanderlust);
-  assert.equal(twisting.endState.profession.soulTwistingAvailable, false);
+  assert.ok(baseline.planningState.cooldowns.Anguish);
+  assert.equal(twisting.planningState.cooldowns.Anguish, undefined);
+  assert.ok(twisting.planningState.cooldowns.Wanderlust);
+  assert.equal(twisting.planningState.profession.soulTwistingAvailable, false);
 });
 
 test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
@@ -469,7 +469,7 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   const applications = result.events.filter((event) => event.type === 'necromancer.weapon-spell');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.profession.activeSpirits.anguish, true);
+  assert.equal(result.combatState.profession.activeSpirits.anguish, true);
   assert.deepEqual(
     applications.map((event) => event.spell),
     ['nightmare', 'splinter']
@@ -632,8 +632,8 @@ test('migrated Core trait lines retain previously uncovered threshold, blind, he
     heal.events.some((event) => event.type === 'buff' && event.kind === 'protection' && event.duration === 3),
     true
   );
-  assert.equal(heal.endState.profession.carapaceExpiries.length, 10);
-  assert.equal(fearOfDeath.endState.profession.lifeForce - plainFear.endState.profession.lifeForce, 15);
+  assert.equal(heal.planningState.profession.carapaceExpiries.length, 10);
+  assert.equal(fearOfDeath.planningState.profession.lifeForce - plainFear.planningState.profession.lifeForce, 15);
 });
 
 test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
@@ -652,7 +652,7 @@ test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
     transferred.some((event) => event.condition === 'Torment' && event.stacks === 2),
     true
   );
-  assert.deepEqual(result.endState.profession.selfConditions, []);
+  assert.deepEqual(result.planningState.profession.selfConditions, []);
   assert.equal(
     transferred.every((event) => Math.abs(event.effectiveDuration - 10) < 0.0001),
     true
@@ -675,7 +675,7 @@ test('Plague Sending treats Scourge F5 as entering shroud', () => {
       ['Torment', 2]
     ]
   );
-  assert.deepEqual(result.endState.profession.selfConditions, []);
+  assert.deepEqual(result.planningState.profession.selfConditions, []);
 });
 
 test('Dhuumfire uses the specialization duration split and Scourge ICD', () => {
@@ -861,7 +861,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     cascadingFromStartingStacks.breakdown.some((entry) => entry.name === 'Cascading Corruption'),
     true
   );
-  assert.equal(cascadingFromStartingStacks.endState.profession.cascadingCorruptionStacks, 0);
+  assert.equal(cascadingFromStartingStacks.planningState.profession.cascadingCorruptionStacks, 0);
   const riskWeakness = cascading.resolvedEvents.find(
     (event) => event.skillId === ID.ELIXIR_OF_RISK && event.condition === 'Weakness'
   );
@@ -1112,7 +1112,7 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
     malicious.breakdown.some((entry) => entry.name === 'Lesser Signet of the Locust'),
     true
   );
-  assert.equal(ashes.endState.profession.lifeForce, 10);
+  assert.equal(ashes.planningState.profession.lifeForce, 10);
 });
 
 test('remaining outgoing Necromancer trait families affect combat state', () => {
@@ -1143,7 +1143,7 @@ test('remaining outgoing Necromancer trait families affect combat state', () => 
   });
 
   assert.ok(carapace.strikeDamage > carapaceBase.strikeDamage);
-  assert.ok(armored.endState.profession.carapaceExpiries.length >= 5);
+  assert.ok(armored.planningState.profession.carapaceExpiries.length >= 5);
   assert.equal(
     augury.breakdown.some((entry) => entry.name === 'Augury of Death'),
     true
@@ -1191,8 +1191,8 @@ test('Corrupted Talent owns the Harbinger shroud-entry life-force gain', () => {
     selectedTraitIds: [TRAIT.CORRUPTED_TALENT]
   });
 
-  assert.equal(withoutTrait.endState.profession.lifeForce, 0);
-  assert.equal(withTrait.endState.profession.lifeForce, 15);
+  assert.equal(withoutTrait.planningState.profession.lifeForce, 0);
+  assert.equal(withTrait.planningState.profession.lifeForce, 15);
 });
 
 test('modifier candidates include every active Necromancer trait', () => {
@@ -1226,11 +1226,11 @@ test('Signet of Undeath grants four life force per passive pulse and suspends du
   const recharging = simulate('Core', ['Signet of Undeath', wait(6000)], config);
   const resumed = simulate('Core', ['Signet of Undeath', wait(78000)], config);
   for (const result of [first, second, recharging, resumed]) assert.deepEqual(result.warnings, []);
-  assert.equal(first.endState.profession.lifeForce, 4);
-  assert.equal(second.endState.profession.lifeForce, 8);
-  assert.equal(recharging.endState.profession.lifeForce, 0);
-  assert.ok(recharging.endState.cooldowns['Signet of Undeath'].remaining > 0);
-  assert.equal(resumed.endState.profession.lifeForce, 4);
+  assert.equal(first.planningState.profession.lifeForce, 4);
+  assert.equal(second.planningState.profession.lifeForce, 8);
+  assert.equal(recharging.planningState.profession.lifeForce, 0);
+  assert.ok(recharging.planningState.cooldowns['Signet of Undeath'].remaining > 0);
+  assert.equal(resumed.planningState.profession.lifeForce, 4);
 });
 
 test('signet passives and Soul Battery are profession-owned resources', () => {
@@ -1256,12 +1256,12 @@ test('signet passives and Soul Battery are profession-owned resources', () => {
     selectedTraitIds: [TRAIT.DEATH_PERCEPTION]
   });
 
-  assert.equal(signets.endState.profession.lifeForce, 4);
+  assert.equal(signets.planningState.profession.lifeForce, 4);
   assert.ok(signets.breakdown.some((entry) => entry.name === 'Signet of Vampirism - Passive Life Siphon'));
-  assert.equal(battery.endState.profession.maximumLifeForce, 120);
-  assert.equal(battery.endState.profession.lifeForce, 120);
-  assert.equal(eternal.endState.profession.lifeForce, 12);
-  assert.equal(eternalCap.endState.profession.lifeForce, 66);
+  assert.equal(battery.planningState.profession.maximumLifeForce, 120);
+  assert.equal(battery.planningState.profession.lifeForce, 120);
+  assert.equal(eternal.planningState.profession.lifeForce, 12);
+  assert.equal(eternalCap.planningState.profession.lifeForce, 66);
   const lifeBlast = perception.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.LIFE_BLAST
   );
@@ -1322,7 +1322,7 @@ test('the Power Harbinger trait set uses current critical and resource rules', (
     }
   });
 
-  assert.equal(fortitude.endState.profession.lifeForce, 2.2);
+  assert.equal(fortitude.planningState.profession.lifeForce, 2.2);
 });
 
 test('critical sigils follow the active weapon set', () => {

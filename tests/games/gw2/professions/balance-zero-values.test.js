@@ -49,7 +49,7 @@ test('Warrior zero Dodge cost does not spend endurance', () => {
     ['Dodge', 'Dodge', 'Dodge']
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.endurance, 100);
+  assert.equal(result.planningState.profession.endurance, 100);
 });
 
 test('Guardian zero recharge multiplier makes the trait-adjusted skill immediately reusable', () => {
@@ -121,7 +121,7 @@ test('Revenant zero Vigor regeneration multiplier stops endurance regeneration',
     { boons: { vigor: true } }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.endurance, 50);
+  assert.equal(result.planningState.profession.endurance, 50);
 });
 
 test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
@@ -145,7 +145,7 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
   );
   assert.deepEqual(zero.warnings, []);
   assert.ok(zero.events.some((event) => event.reason === 'quick-pockets'));
-  assert.equal(zero.endState.profession.initiative, baseline.endState.profession.initiative);
+  assert.equal(zero.planningState.profession.initiative, baseline.planningState.profession.initiative);
 });
 
 test('Zero periodic intervals disable signet pulses without stalling resource advancement', () => {
@@ -162,6 +162,6 @@ test('Zero periodic intervals disable signet pulses without stalling resource ad
       selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
     }
   );
-  assert.equal(result.endState.profession.lifeForce, 0);
+  assert.equal(result.planningState.profession.lifeForce, 0);
   assert.equal(result.strikeDamage, 0);
 });

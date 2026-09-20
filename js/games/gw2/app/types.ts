@@ -233,7 +233,7 @@ export interface ProfessionRuntimeApi {
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
-  rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'];
+  rotationPlanningStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['planningState'];
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;

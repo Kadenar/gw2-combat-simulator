@@ -1,34 +1,25 @@
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  snapshotProfessionState
-} from '#gw2/platform/engine/profession/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   activeSymbolicAvengerExpirations,
-  GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
-  GUARDIAN_CORE_RESOLVER_END_STATE_KEYS
+  GUARDIAN_CORE_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/guardian/core/state.js';
 import {
   DRAGONHUNTER_PUBLIC_END_STATE_DEFAULTS,
-  DRAGONHUNTER_PUBLIC_END_STATE_KEYS,
-  DRAGONHUNTER_RESOLVER_END_STATE_KEYS
+  DRAGONHUNTER_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import {
   FIREBRAND_PUBLIC_END_STATE_DEFAULTS,
-  FIREBRAND_PUBLIC_END_STATE_KEYS,
-  FIREBRAND_RESOLVER_END_STATE_KEYS
+  FIREBRAND_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
   LUMINARY_PUBLIC_END_STATE_DEFAULTS,
-  LUMINARY_PUBLIC_END_STATE_KEYS,
-  LUMINARY_RESOLVER_END_STATE_KEYS
+  LUMINARY_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import {
   WILLBENDER_PUBLIC_END_STATE_DEFAULTS,
-  WILLBENDER_PUBLIC_END_STATE_KEYS,
-  WILLBENDER_RESOLVER_END_STATE_KEYS
+  WILLBENDER_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianEndStateProjectionOptions, GuardianState } from '#gw2/professions/guardian/types.js';
+import type { GuardianPlanningStateProjectionOptions, GuardianState } from '#gw2/professions/guardian/types.js';
 
 const PUBLIC_STATE_SLICES = Object.freeze([
   GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
@@ -36,14 +27,6 @@ const PUBLIC_STATE_SLICES = Object.freeze([
   WILLBENDER_PUBLIC_END_STATE_KEYS,
   FIREBRAND_PUBLIC_END_STATE_KEYS,
   LUMINARY_PUBLIC_END_STATE_KEYS
-]);
-
-const RESOLVER_STATE_SLICES = Object.freeze([
-  GUARDIAN_CORE_RESOLVER_END_STATE_KEYS,
-  DRAGONHUNTER_RESOLVER_END_STATE_KEYS,
-  WILLBENDER_RESOLVER_END_STATE_KEYS,
-  FIREBRAND_RESOLVER_END_STATE_KEYS,
-  LUMINARY_RESOLVER_END_STATE_KEYS
 ]);
 
 const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<GuardianState>> = Object.freeze({
@@ -68,27 +51,12 @@ export const GUARDIAN_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianState)[] = 
   PUBLIC_STATE_SLICES.flatMap((keys) => keys) as (keyof GuardianState)[]
 );
 
-const GUARDIAN_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianState)[] = Object.freeze(
-  RESOLVER_STATE_SLICES.flatMap((keys) => keys) as (keyof GuardianState)[]
-);
-
-/** Projects resolver-authoritative fields without making Core enumerate elite state. */
-export function projectGuardianEndState({
-  schedulerState,
-  resolverState
-}: GuardianEndStateProjectionOptions): Partial<GuardianState> {
-  const state = flattenProfessionState<GuardianState>(schedulerState.profession);
-  const resolver = flattenProfessionState<Partial<GuardianState>>(resolverState || {});
-  // The same runtime key selects both sides; the writable view keeps the union of owned field values.
-  const mutableState: Partial<{ [Key in keyof GuardianState]: GuardianState[keyof GuardianState] }> = state;
-
-  for (const key of GUARDIAN_RESOLVER_END_STATE_KEYS) {
-    if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
-  }
-
-  // Derive mirrors only after resolver values win, including stacks expiring during a final wait.
+/** Projects scheduler predictions at the planning boundary without borrowing resolved combat effects. */
+export function projectGuardianPlanningState({
+  schedulerState
+}: GuardianPlanningStateProjectionOptions): Partial<GuardianState> {
   return projectPublicProfessionState(
-    snapshotGuardianState(state, schedulerState.time),
+    snapshotGuardianState(schedulerState.profession, schedulerState.time),
     GUARDIAN_PUBLIC_END_STATE_KEYS,
     GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS
   );

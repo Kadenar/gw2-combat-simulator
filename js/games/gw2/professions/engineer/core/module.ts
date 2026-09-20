@@ -17,7 +17,7 @@ import {
   ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/professions/engineer/core/skills/index.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { projectEngineerEndState, snapshotEngineerState } from '#gw2/professions/engineer/family-state.js';
+import { projectEngineerPlanningState, snapshotEngineerState } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
@@ -36,7 +36,7 @@ export const engineerCoreModule = defineNativeModule({
     // scheduler and resolver each need an independent initial state instance
     scheduler: createEngineerCoreState,
     resolver: createEngineerCoreState,
-    project: projectEngineerEndState
+    project: projectEngineerPlanningState
   },
   mechanics: {
     modifiers: engineerCoreAttributeRules,

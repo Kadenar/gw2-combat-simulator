@@ -146,8 +146,8 @@ test('Dark Pact gains life force only after ripping a boon and inflicts its targ
     boonless.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
     2.4
   );
-  assert.equal(withBoon.endState.profession.lifeForce, 5);
-  assert.equal(boonless.endState.profession.lifeForce, 0);
+  assert.equal(withBoon.planningState.profession.lifeForce, 5);
+  assert.equal(boonless.planningState.profession.lifeForce, 0);
   assert.deepEqual([targetCondition('Bleeding')?.stacks, targetCondition('Bleeding')?.duration], [2, 10]);
   assert.deepEqual([selfBleeding?.stacks, selfBleeding?.duration], [2, 10]);
   assert.equal(targetCondition('Immobilized')?.duration, 6);
@@ -168,7 +168,7 @@ test('Dark Pact preserves explicit zero-boon inputs when granting life force', (
       target
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.lifeForce, expectedLifeForce, JSON.stringify(target));
+    assert.equal(result.planningState.profession.lifeForce, expectedLifeForce, JSON.stringify(target));
   }
 });
 
@@ -500,7 +500,7 @@ test('main-hand sword skills use their complete PvE effects', () => {
   assert.equal(necromancerCatalog.skillsById.get(ID.PATH_OF_GLUTTONY).comboFinishers[0].finisherType, 'Leap');
   assert.equal(damage(ID.GORGE)?.coefficient, 2);
   assert.equal(necromancerCatalog.skillsById.get(ID.GORGE).comboFinishers[0].finisherType, 'Leap');
-  assert.equal(result.endState.profession.lifeForce, 12);
+  assert.equal(result.planningState.profession.lifeForce, 12);
 });
 
 test('Satiate expires after three seconds and base sword cooldowns continue during follow-ups', () => {
@@ -811,7 +811,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       .map((event) => event.coefficient),
     [1.3]
   );
-  assert.equal(grasp.endState.profession.lifeForce, 10);
+  assert.equal(grasp.planningState.profession.lifeForce, 10);
   assert.equal(
     grasp.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.GRASPING_DARKNESS
@@ -848,7 +848,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     ).length,
     4
   );
-  assert.equal(nightfall.endState.profession.lifeForce, 28);
+  assert.equal(nightfall.planningState.profession.lifeForce, 28);
   assert.deepEqual(
     nightfallEffects(interruptedNightfall).map(({ type, at, coefficient, condition, fieldType }) => ({
       type,
@@ -865,7 +865,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       fieldType
     }))
   );
-  assert.equal(interruptedNightfall.endState.profession.lifeForce, 28);
+  assert.equal(interruptedNightfall.planningState.profession.lifeForce, 28);
 });
 
 test('Lich Form swaps its bar and grants life force on exit', () => {
@@ -876,8 +876,8 @@ test('Lich Form swaps its bar and grants life force on exit', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.activeShroud, '');
-  assert.ok(result.endState.profession.lifeForce >= 15);
+  assert.equal(result.planningState.profession.activeShroud, '');
+  assert.ok(result.planningState.profession.lifeForce >= 15);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Deathly Claws'));
   assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
 });
@@ -892,7 +892,7 @@ test('minion summons persist, attack, and unlock their command', () => {
   const invalid = simulate('Core', ['Rigor Mortis']);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.activeMinions['bone-fiend'], 1);
+  assert.equal(result.planningState.profession.activeMinions['bone-fiend'], 1);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Bone Shard'));
   assert.ok(result.breakdown.some((entry) => entry.name === 'Rigor Mortis - Bone Shard'));
   assert.match(invalid.warnings.join(' '), /Rigor Mortis is unavailable/);
@@ -1421,7 +1421,7 @@ test('unequipped Necromancer slot skills cannot execute', () => {
     false
   );
   assert.equal(equipped.warnings.length, 0);
-  assert.equal(equipped.endState.profession.activeMinions['bone-minion'], 2);
+  assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 2);
 });
 
 test('persistent minion summons cannot recharge until their minions die', () => {
@@ -1432,10 +1432,10 @@ test('persistent minion summons cannot recharge until their minions die', () => 
 
     assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
     assert.match(result.warnings.join(' '), /summoned minion is still alive/, summon);
-    assert.equal(result.endState.cooldowns[summon], undefined, summon);
+    assert.equal(result.planningState.cooldowns[summon], undefined, summon);
     assert.equal(
       necromancerProfession.ui.paletteSkillAvailability(
-        { professionState: result.endState.profession },
+        { professionState: result.planningState.profession },
         necromancerCatalog.skillsByName.get(summon)
       ).available,
       false,
@@ -1460,7 +1460,7 @@ test('bone minion recharge starts after both minions are destroyed', () => {
   assert.equal(summons.length, 2);
   assert.equal(explosions[1].start, explosions[0].end + 1000);
   assert.equal(summons[1].start, explosions[1].end + 16000);
-  assert.equal(result.endState.profession.activeMinions['bone-minion'], 2);
+  assert.equal(result.planningState.profession.activeMinions['bone-minion'], 2);
 });
 
 test('minion attacks use their canonical cadence, coefficients, and icons', () => {
@@ -1699,7 +1699,7 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   assert.equal(blind.duration, 5);
   assert.equal(conditionDuration('Chilled'), 3);
   assert.equal(conditionDuration('Weakness'), 5);
-  assert.equal(result.endState.profession.lifeForce - summonOnly.endState.profession.lifeForce, 10);
+  assert.equal(result.planningState.profession.lifeForce - summonOnly.planningState.profession.lifeForce, 10);
 });
 
 test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {

@@ -49,13 +49,16 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
       tiles.map((skill) => skill.id),
       [expired ? parent.id : GUARDIAN_SKILL_IDS.PULL]
     );
-    assert.ok(result.endState.cooldowns[parent.name].remaining > 0);
+    assert.ok(result.planningState.cooldowns[parent.name].remaining > 0);
 
     const pull = simulateGw2({ profession: guardianProfession, rotation: [...rotation, 'Pull'], config: settings });
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
     if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
-    assert.equal(pull.endState.cooldowns[parent.name].readyAt, result.endState.cooldowns[parent.name].readyAt);
+    assert.equal(
+      pull.planningState.cooldowns[parent.name].readyAt,
+      result.planningState.cooldowns[parent.name].readyAt
+    );
   }
 });
 
@@ -407,9 +410,12 @@ test('Justice active burning resolves through simulateGw2', () => {
 
   assert.equal(withoutJustice.conditionDamage, 0);
   assert.ok(withJustice.conditionDamage > 0);
-  assert.equal(withJustice.endState.profession.justiceBurns, 1);
-  assert.equal(withJustice.endState.profession.justiceActiveBurns, 1);
-  assert.equal(withJustice.endState.profession.justiceArmed, false);
+  assert.equal(
+    withJustice.combatState.profession.justiceActiveBurns + withJustice.combatState.profession.justicePassiveBurns,
+    1
+  );
+  assert.equal(withJustice.combatState.profession.justiceActiveBurns, 1);
+  assert.equal(withJustice.combatState.profession.justiceActiveArmed, false);
   assert.equal(
     withJustice.procSteps.find((step) => step.skill === 'Justice Active')?.icon,
     guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE).icon
@@ -465,18 +471,18 @@ test('Justice passive counts individual hits and respects its active cooldown', 
     }
   });
 
-  assert.equal(passive.endState.profession.justicePassiveBurns, 2);
-  assert.equal(passive.endState.profession.justiceHitCount, 4);
-  assert.equal(activated.endState.profession.justiceActiveBurns, 1);
-  assert.equal(activated.endState.profession.justicePassiveBurns, 0);
-  assert.equal(activated.endState.profession.virtueReadyAt.justice, 20);
-  assert.equal(permeating.endState.profession.justicePassiveBurns, 4);
-  assert.equal(permeating.endState.profession.justiceHitCount, 2);
-  assert.equal(radiantPassive.endState.profession.justicePassiveBurns, 2);
-  assert.equal(radiantPassive.endState.profession.justiceHitCount, 4);
-  assert.equal(radiantPermeating.endState.profession.justicePassiveBurns, 4);
-  assert.equal(radiantPermeating.endState.profession.justiceHitCount, 2);
-  assert.equal(radiantActivated.endState.profession.justicePassiveBurns, 0);
+  assert.equal(passive.combatState.profession.justicePassiveBurns, 2);
+  assert.equal(passive.combatState.profession.justiceHitCount, 4);
+  assert.equal(activated.combatState.profession.justiceActiveBurns, 1);
+  assert.equal(activated.combatState.profession.justicePassiveBurns, 0);
+  assert.equal(activated.combatState.profession.virtueReadyAt.justice, 20);
+  assert.equal(permeating.combatState.profession.justicePassiveBurns, 4);
+  assert.equal(permeating.combatState.profession.justiceHitCount, 2);
+  assert.equal(radiantPassive.combatState.profession.justicePassiveBurns, 2);
+  assert.equal(radiantPassive.combatState.profession.justiceHitCount, 4);
+  assert.equal(radiantPermeating.combatState.profession.justicePassiveBurns, 4);
+  assert.equal(radiantPermeating.combatState.profession.justiceHitCount, 2);
+  assert.equal(radiantActivated.combatState.profession.justicePassiveBurns, 0);
 });
 
 test('Justice counts symbol packets and applies the measured two-second passive burn', () => {
@@ -490,7 +496,7 @@ test('Justice counts symbol packets and applies the measured two-second passive 
   );
   const proc = result.procSteps.find((step) => step.skill === 'Justice Passive');
 
-  assert.equal(result.endState.profession.justicePassiveBurns, 1);
+  assert.equal(result.combatState.profession.justicePassiveBurns, 1);
   assert.equal(burn.duration, 2);
   assert.equal(proc.sourceSkill, 'Symbol of Resolution');
 });
@@ -598,7 +604,7 @@ test('Solar Storm preserves its committed volley and rejects uncommitted illumin
     cancelled.procSteps.some((step) => step.skill === 'Illuminated' && step.sourceSkill === skill.name),
     false
   );
-  assert.equal(cancelled.endState.profession.spearIlluminatedArmed, true);
+  assert.equal(cancelled.planningState.profession.spearIlluminatedArmed, true);
   assert.deepEqual(committed.warnings, []);
 });
 
@@ -645,7 +651,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   });
 
   // Helio Rush is not illuminated itself but arms the buff for the next attack.
-  assert.equal(helioAlone.endState.profession.spearIlluminatedArmed, true);
+  assert.equal(helioAlone.planningState.profession.spearIlluminatedArmed, true);
   assert.equal(
     helioAlone.procSteps.some((step) => step.skill === 'Illuminated'),
     false
@@ -727,7 +733,7 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
 
   assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
-  assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
+  assert.ok(symbolThenHelio.planningState.profession.spearLuminanceUntil > 0);
   // Both spear proc notifications declare effect ownership before reaching timeline consumers.
   for (const name of ['Symbol of Luminance', 'Illuminated']) {
     const proc = symbolThenHelio.events.find((event) => event.type === 'proc' && event.name === name);
@@ -821,7 +827,7 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
     config
   });
 
-  assert.equal(result.endState.activeWeaponSet, 2);
+  assert.equal(result.planningState.activeWeaponSet, 2);
   assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
   assert.deepEqual(guardianProfession.ui.paletteGroups({})[0].skillIds, [
     GUARDIAN_SKILL_IDS.JUSTICE,

@@ -105,9 +105,9 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
     }
   });
 
-  assert.equal(alacrity.endState.cooldowns['Virtue of Justice'].readyAt, 16000);
-  assert.equal(virtuous.endState.cooldowns['Virtue of Justice'].readyAt, 17000);
-  assert.equal(ammo.endState.ammo['Hail of Justice'].charges, 0);
+  assert.equal(alacrity.planningState.cooldowns['Virtue of Justice'].readyAt, 16000);
+  assert.equal(virtuous.planningState.cooldowns['Virtue of Justice'].readyAt, 17000);
+  assert.equal(ammo.planningState.ammo['Hail of Justice'].charges, 0);
   assert.equal(ammo.steps[2].start, ammo.steps[0].end + 10000);
   assert.deepEqual(ammo.warnings, []);
 });
@@ -218,7 +218,7 @@ test('Willbender utilities use the supplied physical skill profiles', () => {
       .length,
     5
   );
-  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], 6.68);
+  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], 6.68);
 });
 
 test('Whirling Light creates four Burning Bolts inside Purging Flames', () => {
@@ -450,8 +450,8 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   );
   assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 3);
   assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 5);
-  assert.equal(full.endState.profession.justiceUntil, 10.04);
-  assert.equal(full.endState.profession.lethalTempoStacks, 5);
+  assert.equal(full.combatState.profession.justiceUntil, 10.04);
+  assert.equal(full.combatState.profession.lethalTempoStacks, 5);
   assert.equal(
     full.events.filter(
       (event) =>
@@ -516,7 +516,9 @@ test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots',
   });
   const series = buildChartSeries(
     {
-      duration: 3,
+      rotationEndTime: 3,
+      observationEndTime: 3,
+      combatEndTime: 3,
       events: [
         {
           type: 'buff',
@@ -928,7 +930,7 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
     flameActions.map((event) => event.at),
     [0, 1.08, 12]
   );
-  assert.equal(result.endState.ammo["Zealot's Flame"].maximum, 2);
+  assert.equal(result.planningState.ammo["Zealot's Flame"].maximum, 2);
   assert.equal(flameBurns.length, 12);
   assert.deepEqual(
     flameBurns.filter((event) => event.activationId === flameActions[0].activationId).map((event) => event.at),
@@ -981,10 +983,10 @@ test('Renewed Focus recharges all three core virtues', () => {
     config
   });
 
-  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Justice'), false);
-  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Resolve'), false);
-  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Virtue of Courage'), false);
-  assert.deepEqual(result.endState.profession.virtueReadyAt, {
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Justice'), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Resolve'), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Courage'), false);
+  assert.deepEqual(result.combatState.profession.virtueReadyAt, {
     justice: result.steps.at(-1).end / 1000,
     resolve: result.steps.at(-1).end / 1000,
     courage: result.steps.at(-1).end / 1000
@@ -1068,6 +1070,6 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
   const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
   assert.equal(casts[1].start - casts[0].start, 20000);
   assert.ok(result.steps.every((step) => !step.invalid));
-  assert.equal(result.endState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 20000);
+  assert.equal(result.planningState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 20000);
   assert.deepEqual(result.warnings, []);
 });

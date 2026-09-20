@@ -329,10 +329,10 @@ test('profession registry entries conform to the shared contracts', async () => 
     const result = simulateGw2({ profession, rotation: [], config: {} });
 
     assert.deepEqual(
-      Object.keys(result.endState).sort(),
-      ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'cooldowns', 'profession', 'time'].sort()
+      Object.keys(result.planningState).sort(),
+      ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'cooldowns', 'profession'].sort()
     );
-    assert.equal(typeof result.endState.profession, 'object');
+    assert.equal(typeof result.planningState.profession, 'object');
     const unknown = simulateGw2({
       profession,
       rotation: [{ type: 'cast', skillId: -999 }],
@@ -436,12 +436,12 @@ test('ready native professions expose deliberate public end-state keys', async (
     const result = simulateGw2({ profession, rotation: [], config: {} });
 
     assert.deepEqual(
-      Object.keys(result.endState.profession).sort(),
+      Object.keys(result.planningState.profession).sort(),
       [...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id]].sort(),
       entry.id
     );
     for (const key of internalKeys[entry.id]) {
-      assert.equal(Object.hasOwn(result.endState.profession, key), false, `${entry.id}.${key}`);
+      assert.equal(Object.hasOwn(result.planningState.profession, key), false, `${entry.id}.${key}`);
     }
   }
 });

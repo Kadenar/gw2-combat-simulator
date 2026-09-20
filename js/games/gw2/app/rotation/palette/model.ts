@@ -5,7 +5,12 @@ import {
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
 } from '#gw2/app/rotation/hotkeys.js';
-import { activeSpecialization, paletteEndState, paletteProfessionState, seconds } from '#gw2/app/rotation/context.js';
+import {
+  activeSpecialization,
+  palettePlanningState,
+  paletteProfessionState,
+  seconds
+} from '#gw2/app/rotation/context.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display.js';
@@ -141,7 +146,7 @@ function uniqueBySpecializedName(skills: readonly Skill[], specialization: strin
 
 export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   // Inactive equipment on non-swapping professions supplies persistent sigils, never rotation skills.
-  const activeWeaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1);
+  const activeWeaponSet = Number(palettePlanningState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1);
   if (app.profession?.ui?.weaponSwapChangesSet === false && weaponSet !== activeWeaponSet) return [];
   const [mainHand, offHand] = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   return uniqueBySpecializedName(
@@ -308,14 +313,14 @@ function paletteFlipFamilies(
 }
 
 function paletteProjectionContext(app: ProfessionAppState): ProfessionPaletteContext {
-  const endState = paletteEndState(app);
+  const planningState = palettePlanningState(app);
   return {
     specialization: app.adapter ? activeSpecialization(app) : '',
     catalog: app.activeCatalog || app.profession.catalog,
     professionState: paletteProfessionState(app),
-    cooldowns: endState?.cooldowns || {},
-    activeWeaponSet: endState?.activeWeaponSet || app.build?.startingWeaponSet || 1,
-    time: Number(endState?.time || 0) / 1000,
+    cooldowns: planningState?.cooldowns || {},
+    activeWeaponSet: planningState?.activeWeaponSet || app.build?.startingWeaponSet || 1,
+    time: Number(planningState?.atSeconds || 0),
     build: app.build
   };
 }
@@ -355,13 +360,13 @@ export function displayedSkillTiles(
   skills: readonly Skill[],
   context: ProfessionPaletteContext = paletteProjectionContext(app)
 ): Skill[] {
-  const endState = paletteEndState(app);
+  const planningState = palettePlanningState(app);
   const professionState = paletteProfessionState(app);
   const availableFlips =
     professionState.availableFlips && typeof professionState.availableFlips === 'object'
       ? professionState.availableFlips
       : {};
-  const at = Number(endState?.time || 0) / 1000;
+  const at = Number(planningState?.atSeconds || 0);
   const catalogSkills = app.skills || app.activeCatalog?.skills || app.profession.catalog.skills || skills;
   const skillById = new Map<number, Skill>(catalogSkills.map((skill) => [Number(skill.id), skill]));
   const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, skillById);
@@ -446,10 +451,10 @@ export function displayedSkillTiles(
 export function displayedWeaponSkills(
   app: ProfessionAppState,
   skills: readonly Skill[],
-  weaponSet = Number(paletteEndState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1),
+  weaponSet = Number(palettePlanningState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1),
   paletteContext: ProfessionPaletteContext = paletteProjectionContext(app)
 ): Skill[] {
-  const endState = paletteEndState(app);
+  const planningState = palettePlanningState(app);
   const professionState = paletteProfessionState(app);
   const equippedWeapons = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   const matcher = app.adapter?.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet;
@@ -468,7 +473,7 @@ export function displayedWeaponSkills(
   const projected = displayedSkillTiles(app, stagedSkills, paletteContext);
 
   const isWeaponOneReplacement = (skill: Skill): boolean => skill.slot === 'Weapon_1' && isReplacementAttack(skill);
-  const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
+  const activeWeaponSet = Number(planningState?.activeWeaponSet || app.build.startingWeaponSet || 1);
   const availableAmbushName = String(professionState.availableAmbush?.name || '');
   const activeReplacement =
     weaponSet === activeWeaponSet
@@ -530,8 +535,8 @@ export function weaponPaletteRows(
 }
 
 export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
-  const endState = paletteEndState(app);
-  const activeWeaponSet = Number(endState?.activeWeaponSet || app.build.startingWeaponSet || 1);
+  const planningState = palettePlanningState(app);
+  const activeWeaponSet = Number(planningState?.activeWeaponSet || app.build.startingWeaponSet || 1);
   const professionState = paletteProfessionState(app);
   const autoattackChains = professionState.autoattackChains;
   const chainState = autoattackChains && typeof autoattackChains === 'object' ? autoattackChains : {};
@@ -642,14 +647,14 @@ export type PaletteContext = ProfessionSlotLoadoutContext & ProfessionPaletteCon
 
 /** Builds the current context once for every palette render or interaction projection. */
 export function createPaletteContext(app: ProfessionAppState): PaletteContext {
-  const endState = paletteEndState(app);
+  const planningState = palettePlanningState(app);
   return {
     specialization: activeSpecialization(app),
     catalog: app.activeCatalog,
     professionState: paletteProfessionState(app),
-    cooldowns: endState?.cooldowns || {},
-    activeWeaponSet: endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
-    time: Number(endState?.time || 0) / 1000,
+    cooldowns: planningState?.cooldowns || {},
+    activeWeaponSet: planningState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    time: Number(planningState?.atSeconds || 0),
     build: app.build,
     activeAutoattack: currentAutoattackSkill(app),
     // Expose resolved traits so profession replacements only appear when their trait is selected.
@@ -661,15 +666,17 @@ function currentCooldown(
   app: ProfessionAppState,
   name: string
 ): { readonly remaining: number; readonly readyAt: number } {
-  return paletteEndState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
+  return palettePlanningState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
 }
 
 function currentAmmo(app: ProfessionAppState, skill: Skill): PaletteAmmo | null {
-  const endState = paletteEndState(app);
-  const ammoBySkillId = endState?.ammoBySkillId;
+  const planningState = palettePlanningState(app);
+  const ammoBySkillId = planningState?.ammoBySkillId;
   // Prefer exact IDs so duplicate API names cannot leak another variant's ammo into this skill.
   const rawAmmo =
-    ammoBySkillId && typeof ammoBySkillId === 'object' ? ammoBySkillId[String(skill.id)] : endState?.ammo?.[skill.name];
+    ammoBySkillId && typeof ammoBySkillId === 'object'
+      ? ammoBySkillId[String(skill.id)]
+      : planningState?.ammo?.[skill.name];
   if (!rawAmmo || typeof rawAmmo !== 'object') return null;
   const ammo = rawAmmo as PaletteAmmo;
   if (ammo.remaining != null) return ammo;
@@ -684,7 +691,7 @@ function currentAmmo(app: ProfessionAppState, skill: Skill): PaletteAmmo | null 
   return {
     ...ammo,
     nextChargeAt,
-    remaining: nextChargeAt ? Math.max(0, nextChargeAt - Number(endState?.time || 0)) : 0
+    remaining: nextChargeAt ? Math.max(0, nextChargeAt - Number(planningState?.atSeconds || 0) * 1000) : 0
   };
 }
 
@@ -703,7 +710,7 @@ export function paletteSkillView(
 ): PaletteSkillView {
   const displayName = skill.displayName || skill.name;
   const cd = currentCooldown(app, skill.name);
-  const endTime = Number(paletteEndState(app)?.time || 0);
+  const endTime = Number(palettePlanningState(app)?.atSeconds || 0) * 1000;
   const contextReadyAt = Number(contextRetryAt) * 1000;
   const contextRemaining = Number.isFinite(contextReadyAt) ? Math.max(0, Math.round(contextReadyAt - endTime)) : 0;
   // A future retryAt is scheduler-queueable: keep the countdown styling, but

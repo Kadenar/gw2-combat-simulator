@@ -50,11 +50,11 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     })
   };
   const first = resolveGw2Timeline(options);
-  assert.equal(first.profession.count, 11);
-  first.profession.count = 99;
+  assert.equal(first.combatState.profession.count, 11);
+  first.combatState.profession.count = 99;
   const second = resolveGw2Timeline(options);
-  assert.equal(second.profession.count, 11);
-  assert.notEqual(first.profession, second.profession);
+  assert.equal(second.combatState.profession.count, 11);
+  assert.notEqual(first.combatState.profession, second.combatState.profession);
 });
 
 // Generic event resolution preserves recipient, strike, and profession-state contracts.
@@ -253,8 +253,8 @@ test('resolver profession state changes are chronological and preserve counters'
         active: Boolean(config.initialActive),
         hitCount: 0
       }),
-      projectEndState: ({ resolverState }) => ({
-        active: resolverState.active
+      projectPlanningState: ({ schedulerState }) => ({
+        active: schedulerState.profession.active
       })
     },
     attributeRules: {
@@ -283,8 +283,9 @@ test('resolver profession state changes are chronological and preserve counters'
 
   assert.equal(Math.round(hits[1].damage / hits[0].damage), 2);
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
-  assert.equal(result.profession.hitCount, 3);
-  assert.deepEqual(result.endState.profession, { active: true });
+  assert.equal(result.combatState.profession.hitCount, 3);
+  assert.deepEqual(result.planningState.profession, { active: false });
+  assert.equal(result.combatState.profession.active, true);
 
   const configured = simulateGw2({
     profession,
@@ -321,7 +322,7 @@ test('off-target casts retain their activation while hostile packets miss the ta
     result.resolvedEvents.some((event) => event.type === 'damage'),
     false
   );
-  assert.equal(result.endState.profession.controlEvents, 0);
+  assert.equal(result.planningState.profession.controlEvents, 0);
 });
 
 test('test profession runs end to end without importing Mesmer', () => {
@@ -359,8 +360,8 @@ test('test profession runs end to end without importing Mesmer', () => {
   });
 
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
-  assert.equal(base.profession.charge, 1);
-  assert.equal(base.profession.controlEvents, 1);
+  assert.equal(base.combatState.profession.charge, 1);
+  assert.equal(base.combatState.profession.controlEvents, 1);
   assert.equal(base.schedulerState.profession.charge, 0);
   assert.equal(
     base.events.every((event) => event.type && Number.isFinite(event.at) && event.source && event.sourceId != null),

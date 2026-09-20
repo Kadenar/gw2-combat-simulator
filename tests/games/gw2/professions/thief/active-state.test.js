@@ -18,8 +18,8 @@ function activeState(result, specialization = 'Core', config = {}) {
     thiefProfession.ui
       .rotationStateSnapshot({
         specialization,
-        professionState: result.endState.profession,
-        atSeconds: result.endState.time / 1000,
+        professionState: result.planningState.profession,
+        atSeconds: result.planningState.atSeconds,
         build: { weapons: ['Axe', 'Dagger'] },
         config
       })
@@ -69,10 +69,10 @@ test('all recall variants consume axes and cancelled recalls preserve the pool',
 test('Prodigious Pincher projects spending progress and resets on a pilfer', () => {
   const config = { selectedTraitIds: [TRAIT.PRODIGIOUS_PINCHER] };
   const progress = simulate('Antiquary', ['Skritt Swipe', 'Venomous Volley'], config);
-  assert.equal(progress.endState.profession.initiativeSpentSincePilfer, 3);
+  assert.equal(progress.planningState.profession.initiativeSpentSincePilfer, 3);
   assert.equal(activeState(progress, 'Antiquary', config)['antiquary-prodigious-pincher'], '3/15');
   const pilfer = simulate('Antiquary', Array(5).fill('Venomous Volley'), config);
-  assert.equal(pilfer.endState.profession.initiativeSpentSincePilfer, 0);
+  assert.equal(pilfer.planningState.profession.initiativeSpentSincePilfer, 0);
   assert.equal(activeState(pilfer, 'Antiquary', config)['antiquary-prodigious-pincher'], '0/15');
   assert.equal(
     activeState(simulate('Antiquary', ['Venomous Volley']), 'Antiquary')['antiquary-prodigious-pincher'],

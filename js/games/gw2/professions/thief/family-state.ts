@@ -1,7 +1,6 @@
 import {
   professionCoreState,
   projectPublicProfessionState,
-  flattenProfessionState,
   restoreFlatProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
@@ -34,7 +33,7 @@ import { DAREDEVIL_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializ
 import { DEADEYE_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 import { SPECTER_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 import type {
-  ThiefEndStateProjectionOptions,
+  ThiefPlanningStateProjectionOptions,
   ThiefResolverContext,
   ThiefResolverEvent,
   ThiefState,
@@ -68,25 +67,11 @@ export function emitThiefStateSnapshot(
   return emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession), options);
 }
 
-export function projectThiefEndState({
-  schedulerState,
-  resolverState
-}: ThiefEndStateProjectionOptions): Record<string, unknown> {
+export function projectThiefPlanningState({
+  schedulerState
+}: ThiefPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotThiefState<ThiefState>(schedulerState.profession);
-  // Report resolved spending, since scheduler snapshots only know which charges were granted.
-  const resolver = flattenProfessionState<ThiefState>(resolverState);
-  if (schedulerState.profession.specialization.kind === 'Daredevil') {
-    state.weakeningStrikeReady =
-      Boolean(resolver.weakeningStrikeReady) && Number(resolver.weakeningStrikeExpiresAt || 0) > schedulerState.time;
-  }
-
-  state.venomChargeBatches = Object.fromEntries(
-    Object.entries(resolver.venomChargeBatches || {}).map(([skillId, batches]) => [
-      skillId,
-      batches.filter((batch) => batch.charges > 0 && batch.expiresAt > schedulerState.time)
-    ])
-  );
-
+  // Planned resources never borrow charges consumed by combat resolution.
   // Retain the public scalar as a derived value; expired or consumed charges report zero.
   const publicState = {
     ...state,

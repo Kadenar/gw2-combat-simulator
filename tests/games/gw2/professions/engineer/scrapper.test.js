@@ -91,7 +91,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'stability' && event.duration === 3));
   assert.ok(result.procSteps.filter((step) => step.skill === 'Mass Momentum').length >= 3);
   assert.ok(result.procSteps.some((step) => step.skill === 'Applied Force'));
-  assert.equal(result.endState.ammo['Function Gyro'].maximum, 2);
+  assert.equal(result.planningState.ammo['Function Gyro'].maximum, 2);
 
   const reconstructionField = simulate('Scrapper', ['Reconstruction Field'], {
     selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],

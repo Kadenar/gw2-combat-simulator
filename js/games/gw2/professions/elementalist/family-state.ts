@@ -20,7 +20,10 @@ import {
   WEAVER_PUBLIC_END_STATE_KEYS,
   WEAVER_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistEndStateProjectionOptions, ElementalistState } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistPlanningStateProjectionOptions,
+  ElementalistState
+} from '#gw2/professions/elementalist/types.js';
 
 // The family boundary composes public state fragments declared by their semantic owners.
 /** Every state field the Elementalist family publishes in simulation results. */
@@ -40,9 +43,9 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Elementalist
 });
 
 /** Projects the family aggregate while preserving the established public result shape. */
-export function projectElementalistEndState({
+export function projectElementalistPlanningState({
   schedulerState
-}: ElementalistEndStateProjectionOptions): Pick<
+}: ElementalistPlanningStateProjectionOptions): Pick<
   ElementalistState,
   (typeof ELEMENTALIST_PUBLIC_END_STATE_KEYS)[number]
 > {

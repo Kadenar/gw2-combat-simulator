@@ -16,7 +16,7 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
-import { projectGuardianEndState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
+import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
 import {
   handleVirtueActivation,
   reactToJusticeHitWithOptions
@@ -37,7 +37,7 @@ const config = {
   target: { armor: 2597 }
 };
 
-test('Justice compatibility fields derive from resolver counters without entering combat state', () => {
+test('Guardian planning projection uses only scheduler state and leaves combat counters detached', () => {
   // Activation and hits change canonical state; snapshots expose detached compatibility values.
   const state = createGuardianCoreState();
   const profession = { core: state, specialization: { kind: 'Core', state: {} } };
@@ -64,13 +64,13 @@ test('Justice compatibility fields derive from resolver counters without enterin
   }
 
   const scheduler = { ...createGuardianCoreState(), justiceActiveArmed: true, justiceActiveBurns: 9 };
-  const projected = projectGuardianEndState({
+  const projected = projectGuardianPlanningState({
     schedulerState: { profession: scheduler, time: 6 },
     // Ignore stale compatibility fields even when supplied by an older snapshot.
     resolverState: { ...state, justiceArmed: true, justiceBurns: 99, symbolicAvengerStacks: 99 }
   });
-  assert.equal(projected.justiceArmed, false);
-  assert.equal(projected.justiceBurns, 2);
+  assert.equal(projected.justiceArmed, true);
+  assert.equal(projected.justiceBurns, 9);
   assert.equal(projected.symbolicAvengerStacks, 0);
   projected.virtueReadyAt.justice = 99;
   assert.equal(state.virtueReadyAt.justice, 0);
@@ -108,7 +108,10 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     assert.equal(snapshot.symbolicAvengerStacks, stacks);
     assert.equal(snapshot.symbolicAvengerExpirations.length, stacks);
     assert.equal(state.symbolicAvengerExpirations.length, 5);
-    const projected = projectGuardianEndState({ schedulerState: { profession, time: at }, resolverState: profession });
+    const projected = projectGuardianPlanningState({
+      schedulerState: { profession, time: at },
+      resolverState: profession
+    });
     assert.equal(projected.symbolicAvengerStacks, stacks);
     const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });
     assert.equal(items.length, stacks ? 1 : 0);
@@ -156,7 +159,10 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     blades.every((event) => event.skillWeapon === 'Unequipped'),
     true
   );
-  assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
+  assert.equal(
+    snapshotGuardianState(symbols.combatState.profession, symbols.combatState.atSeconds).symbolicAvengerStacks,
+    5
+  );
   assert.ok(blades.at(-1).damage > blades[0].damage);
   assert.equal(
     symbols.events.filter(
@@ -174,7 +180,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     resolution.every((event) => event.skillWeapon === 'Unequipped'),
     true
   );
-  assert.equal(zealotsResolution.endState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
+  assert.equal(zealotsResolution.combatState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
 });
 
 test("Zealot's Resolution requires the enemy to be below its threshold before the hit", () => {
@@ -203,7 +209,7 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
     (event) => event.type === 'damage' && event.skillName === 'Pure Strike'
   );
   assert.equal(pulses(followup)[0].at, secondHit.at);
-  assert.equal(followup.endState.profession.zealotsResolutionReadyAt, secondHit.at + 30);
+  assert.equal(followup.combatState.profession.zealotsResolutionReadyAt, secondHit.at + 30);
 });
 
 test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
@@ -382,8 +388,8 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     activeBurning.every((event) => event.duration === 2),
     true
   );
-  assert.equal(result.endState.profession.tetherUntil, 12.56);
-  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], 12.56);
+  assert.equal(result.combatState.profession.tetherUntil, 12.56);
+  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], 12.56);
   assert.equal(
     buffs.some((event) => event.kind === 'aegis' && event.skillName === 'Shield of Courage' && event.duration === 20),
     true
@@ -556,7 +562,7 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
     maw.procSteps.some((step) => step.skill === "Hunter's Determination"),
     true
   );
-  assert.equal(maw.endState.profession.endurance, 100);
+  assert.equal(maw.planningState.profession.endurance, 100);
 });
 
 test('Dragonhunter relic boosts the triggering trap hit and expires for later attacks', () => {
@@ -688,11 +694,11 @@ test('Luminary UI excludes virtue aliases and lists the forge exit once', () => 
   });
   const professionSkillIds = guardianProfession.ui.paletteGroups({
     specialization: 'Luminary',
-    professionState: result.endState.profession
+    professionState: result.planningState.profession
   })[0].skillIds;
   const professionSkillNames = professionSkillIds.map((id) => guardianCatalog.skillsById.get(id)?.name);
 
-  assert.equal(result.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE], undefined);
+  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE], undefined);
   assert.equal(professionSkillNames.includes('Spear of Justice'), false);
   assert.equal(professionSkillNames.filter((name) => name === 'Exit Radiant Forge').length, 1);
 });
@@ -754,8 +760,8 @@ test('Guardian declarative scheduling respects the configured starting set', () 
     config: { ...config, startingWeaponSet: 2 }
   });
 
-  assert.equal(initial.endState.activeWeaponSet, 2);
-  assert.equal(swapped.endState.activeWeaponSet, 1);
+  assert.equal(initial.planningState.activeWeaponSet, 2);
+  assert.equal(swapped.planningState.activeWeaponSet, 1);
   assert.equal(swapped.events.find((event) => event.type === 'weapon_set').weaponSet, 1);
 });
 

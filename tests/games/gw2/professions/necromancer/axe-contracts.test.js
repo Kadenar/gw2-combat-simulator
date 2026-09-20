@@ -24,9 +24,9 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
   const completed = simulate('Core', ['Ghastly Claws']);
   const cancelled = simulate('Core', [{ name: 'Ghastly Claws', interruptMs: ticks[0].atMs / 2 }, wait(3000)]);
 
-  assert.equal(interrupted.endState.profession.lifeForce, 4.5);
-  assert.equal(completed.endState.profession.lifeForce, 12);
-  assert.equal(cancelled.endState.profession.lifeForce, 0);
+  assert.equal(interrupted.planningState.profession.lifeForce, 4.5);
+  assert.equal(completed.planningState.profession.lifeForce, 12);
+  assert.equal(cancelled.planningState.profession.lifeForce, 0);
   for (const result of [interrupted, completed, cancelled]) {
     const gains = result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain');
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS);
@@ -106,7 +106,7 @@ test('axe weapon cooldowns begin at completed cast recharge anchors', () => {
     ['Unholy Feast', 10]
   ]) {
     const result = simulate('Core', [name]);
-    assert.equal(result.endState.cooldowns[name].readyAt - result.steps[0].end, seconds * 1000);
+    assert.equal(result.planningState.cooldowns[name].readyAt - result.steps[0].end, seconds * 1000);
     assert.deepEqual(result.warnings, []);
   }
 });

@@ -3,7 +3,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/
 import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { activeSpecialization, paletteEndState } from '#gw2/app/rotation/context.js';
+import { activeSpecialization, palettePlanningState } from '#gw2/app/rotation/context.js';
 import { procStackLabel } from '#gw2/app/rotation/timeline/model.js';
 
 function percent(value: number, signed = false): string {
@@ -38,8 +38,8 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   readonly timeMs: number;
 } {
   const result = app.results;
-  const state = paletteEndState(app);
-  const timeMs = Number(state?.time || 0);
+  const state = palettePlanningState(app);
+  const timeMs = Number(state?.atSeconds || 0) * 1000;
   const rotationLength = app.build.rotation.length;
   const atInsertion = app.rotationInsertionIndex != null && app.rotationInsertionIndex !== rotationLength;
 

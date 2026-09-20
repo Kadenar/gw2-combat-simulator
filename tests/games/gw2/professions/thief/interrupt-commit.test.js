@@ -76,8 +76,8 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       const triggered = simulate('Core', [prepare.name, name], config);
       const context = (result) => ({
         specialization: 'Core',
-        professionState: result.endState.profession,
-        time: result.duration
+        professionState: result.planningState.profession,
+        time: result.rotationEndTime
       });
       const tile = (result) =>
         displayedSkillTiles(
@@ -99,7 +99,7 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       const availability = thiefProfession.ui.paletteSkillAvailability(context(placed), trigger);
       assert.equal(availability.available, false);
       assert.match(availability.message, /arming/);
-      assert.ok(Math.abs(availability.retryAt - placed.duration - (alacrity ? 2.4 : 3)) < 1e-9);
+      assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - (alacrity ? 2.4 : 3)) < 1e-9);
       assert.equal(
         thiefProfession.ui.paletteSkillAvailability({ ...context(placed), time: availability.retryAt }, trigger)
           .available,

@@ -258,6 +258,6 @@ test('automatic exit during final entry recovery extends only the overlapping de
     }
   });
   assert.equal(result.schedulerState.time, 0.7);
-  assert.equal(result.endState.profession.shadowShroudActive, false);
+  assert.equal(result.planningState.profession.shadowShroudActive, false);
   assert.deepEqual(result.warnings, []);
 });

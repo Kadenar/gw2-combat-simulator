@@ -42,9 +42,9 @@ test('every Elementalist specialization can prepare attunements without precomba
           swaps.every((step) => step.start === swaps[0].start),
           specialization
         );
-        assert.equal(result.endState.profession.primaryAttunement, 'Fire');
+        assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
         for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
-          assert.equal(result.endState.cooldowns[`${attunement} Attunement`]?.remaining ?? 0, 0, specialization);
+          assert.equal(result.planningState.cooldowns[`${attunement} Attunement`]?.remaining ?? 0, 0, specialization);
         }
       }
     }
@@ -101,17 +101,17 @@ test('autoattack chains carry across attunements until their third strike', () =
   });
 
   assert.deepEqual(carried.warnings, []);
-  assert.deepEqual(carried.endState.profession.autoattackCarryover, {
+  assert.deepEqual(carried.planningState.profession.autoattackCarryover, {
     root: fireRoot,
     attunement: 'Fire'
   });
-  assert.equal(carried.endState.profession.autoattackChains[fireRoot], fireSecond.id);
+  assert.equal(carried.planningState.profession.autoattackChains[fireRoot], fireSecond.id);
   assert.equal(
     elementalistProfession.ui.paletteSkillAvailability(
       {
         specialization: 'Core',
-        professionState: carried.endState.profession,
-        time: carried.endState.time / 1000,
+        professionState: carried.planningState.profession,
+        time: carried.planningState.atSeconds,
         catalog: elementalistCatalog,
         build: { startAttunement: 'Fire' }
       },
@@ -128,9 +128,9 @@ test('autoattack chains carry across attunements until their third strike', () =
   });
 
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.endState.profession.autoattackCarryover, null);
+  assert.equal(completed.planningState.profession.autoattackCarryover, null);
   assert.equal(
-    completed.endState.profession.autoattackChains[airRoot],
+    completed.planningState.profession.autoattackChains[airRoot],
     elementalistCatalog.skillsByName.get('Polaric Slash').id
   );
 });
@@ -143,7 +143,7 @@ test('a skill in the new attunement interrupts autoattack carryover', () => {
     weapons: ['Sword', 'Dagger']
   });
 
-  assert.equal(result.endState.profession.autoattackCarryover, null);
+  assert.equal(result.planningState.profession.autoattackCarryover, null);
   assert.equal(
     result.events.some((event) => event.type === 'action' && event.skillName === 'Fire Swipe'),
     false
@@ -249,8 +249,8 @@ test('Aerial Agility expires while its original cooldown keeps counting down', (
     weapons: ['Pistol', 'Dagger']
   });
 
-  assert.equal(result.endState.profession.autoattackChains[ID.AERIAL_AGILITY], undefined);
-  assert.ok(result.endState.cooldowns['Aerial Agility'].remaining > 0);
+  assert.equal(result.planningState.profession.autoattackChains[ID.AERIAL_AGILITY], undefined);
+  assert.ok(result.planningState.cooldowns['Aerial Agility'].remaining > 0);
 });
 
 test('using the first Aerial Agility follow-up restarts its full cooldown', () => {
@@ -266,11 +266,13 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
     startAttunement: 'Air',
     weapons: ['Pistol', 'Dagger']
   });
-  const initialDuration = unused.endState.cooldowns['Aerial Agility'].readyAt - unused.steps[0].end;
+  const initialDuration = unused.planningState.cooldowns['Aerial Agility'].readyAt - unused.steps[0].end;
   const followup = used.steps[2];
 
-  assert.equal(used.endState.cooldowns['Aerial Agility'].readyAt - followup.end, initialDuration);
-  assert.ok(used.endState.cooldowns['Aerial Agility'].readyAt > unused.endState.cooldowns['Aerial Agility'].readyAt);
+  assert.equal(used.planningState.cooldowns['Aerial Agility'].readyAt - followup.end, initialDuration);
+  assert.ok(
+    used.planningState.cooldowns['Aerial Agility'].readyAt > unused.planningState.cooldowns['Aerial Agility'].readyAt
+  );
 });
 
 test('rotation palette resolves equipped glyphs to the active attunement', () => {
@@ -289,7 +291,7 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,
     results: {
-      endState: { profession: { primaryAttunement: 'Air' } }
+      planningState: { profession: { primaryAttunement: 'Air' } }
     }
   };
 
@@ -571,7 +573,7 @@ test('conjured weapons enforce bundle access and preserve their pickup', () => {
     result.events.filter((event) => event.type === 'action').map((event) => event.skillName),
     ['Conjure Frost Bow', 'Frost Volley', '__drop_bundle', 'Flame Uprising', '__pickup_Frost Bow', 'Frost Volley']
   );
-  assert.equal(result.endState.profession.conjureEquipped, 'Frost Bow');
+  assert.equal(result.planningState.profession.conjureEquipped, 'Frost Bow');
   assert.equal(result.warnings.length, 0);
 });
 
@@ -598,7 +600,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
     weapons: ['Pistol', 'Warhorn']
   });
 
-  assert.equal(result.endState.profession.pistolBullets.Fire, false);
+  assert.equal(result.planningState.profession.pistolBullets.Fire, false);
   assert.equal(
     result.events.some(
       (event) => event.type === 'buff' && event.source === 'Raging Ricochet' && event.kind === 'might'
@@ -630,7 +632,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
     explosion.events.some((event) => event.type === 'action' && event.skillName === 'Elemental Explosion'),
     true
   );
-  assert.deepEqual(explosion.endState.profession.pistolBullets, {
+  assert.deepEqual(explosion.planningState.profession.pistolBullets, {
     Fire: false,
     Water: false,
     Air: false,
@@ -653,7 +655,7 @@ test('Hammer orbs block reuse and Grand Finale cancels future packets', () => {
   });
 
   assert.equal(result.events.filter((event) => event.type === 'action' && event.skillName === 'Flame Wheel').length, 1);
-  assert.equal(result.endState.profession.hammerOrbs.Fire, null);
+  assert.equal(result.planningState.profession.hammerOrbs.Fire, null);
   assert.equal(
     result.events.some((event) => event.cancelled && event.detail === 'cancelled by Grand Finale'),
     true
@@ -716,7 +718,7 @@ test('Spear etchings upgrade after three other casts', () => {
     result.events.some((event) => event.type === 'action' && event.skillName === 'Volcano'),
     true
   );
-  assert.equal(result.endState.profession.etchings['Etching: Volcano'], null);
+  assert.equal(result.planningState.profession.etchings['Etching: Volcano'], null);
 });
 
 test('Spear etchings expire at the field boundary and cannot charge afterward', () => {
@@ -732,10 +734,12 @@ test('Spear etchings expire at the field boundary and cannot charge afterward', 
       weapons: ['Spear', '']
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.etchings[root.name], null, root.name);
+    assert.equal(result.planningState.profession.etchings[root.name], null, root.name);
     assert.ok(
       elementalistProfession.ui
-        .paletteWeaponSkills({ build: { weapons: ['Spear', ''] }, professionState: result.endState.profession }, [root])
+        .paletteWeaponSkills({ build: { weapons: ['Spear', ''] }, professionState: result.planningState.profession }, [
+          root
+        ])
         .includes(root)
     );
   }
@@ -746,7 +750,7 @@ test('Spear etchings expire at the field boundary and cannot charge afterward', 
     ['Etching: Volcano', 'Flame Spear', 'Seethe', 'Blazing Barrage', 7000, 'Volcano']
   ]) {
     const result = runNative({ lines: [['Fire'], ['Air'], ['Arcane']], rotation, weapons: ['Spear', ''] });
-    assert.equal(result.endState.profession.etchings['Etching: Volcano'], null);
+    assert.equal(result.planningState.profession.etchings['Etching: Volcano'], null);
     assert.equal(
       result.events.some((event) => event.type === 'action' && ['Volcano', 'Lesser Volcano'].includes(event.skillName)),
       false
@@ -792,7 +796,7 @@ test('Tempest overloads retain their full etching charge only within the active 
       startAttunement: attunement,
       weapons: ['Spear', '']
     });
-    assert.equal(expired.endState.profession.etchings[etching], null);
+    assert.equal(expired.planningState.profession.etchings[etching], null);
     assert.equal(
       expired.events.some((event) => event.type === 'action' && event.skillName === payoff),
       false

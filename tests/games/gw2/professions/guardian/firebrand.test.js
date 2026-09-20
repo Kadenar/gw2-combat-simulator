@@ -40,7 +40,7 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.ashesCharges, 0);
+  assert.equal(result.combatState.profession.ashesCharges, 0);
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
   assert.equal(
@@ -153,8 +153,8 @@ test('stowing during a tome page preserves its effects and resource spend withou
   const spent = result.events.find((e) => e.type === 'guardian.tome-page-used');
   assert.equal(cast.interrupted, false);
   assert.ok(granted.at > cast.at && granted.at < cast.endsAt);
-  assert.equal(result.endState.profession.tomePages, 5 - spent.pageCost);
-  assert.equal(result.endState.profession.activeTome, '');
+  assert.equal(result.planningState.profession.tomePages, 5 - spent.pageCost);
+  assert.equal(result.planningState.profession.activeTome, '');
 });
 
 test('stowing during the third tome skill preserves its earned Swift Scholar refund', () => {
@@ -170,9 +170,9 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
     config: { ...config, specialization: 'Firebrand', initialTomePages: 3 }
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.tomePages, 1);
-  assert.equal(result.endState.profession.activeTome, '');
-  assert.equal(result.endState.profession.swiftScholarCount, 0);
+  assert.equal(result.planningState.profession.tomePages, 1);
+  assert.equal(result.planningState.profession.activeTome, '');
+  assert.equal(result.planningState.profession.swiftScholarCount, 0);
   assert.equal(
     result.events.some((event) => event.type === 'weapon_set' && event.automatic),
     false
@@ -208,8 +208,8 @@ for (const initialTomePages of [1, 5]) {
     assert.ok(refund.at > cast.at && refund.at < cast.endsAt);
     assert.equal(spent.at, cast.endsAt);
     assert.equal(spent.pagesRemaining, Math.min(5, initialTomePages + 2) - spent.pageCost);
-    assert.equal(result.endState.profession.tomePages, spent.pagesRemaining);
-    assert.equal(result.endState.profession.activeTome, 'justice');
+    assert.equal(result.planningState.profession.tomePages, spent.pagesRemaining);
+    assert.equal(result.planningState.profession.activeTome, 'justice');
     assert.equal(
       result.events.some((event) => event.type === 'weapon_set' && event.automatic),
       false
@@ -243,7 +243,7 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   );
 
   assert.equal(personalBurns.length, 2);
-  assert.equal(result.endState.profession.ashesCharges, 0);
+  assert.equal(result.combatState.profession.ashesCharges, 0);
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
@@ -267,12 +267,12 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
   });
 
   assert.deepEqual(exhausted.warnings, []);
-  assert.equal(exhausted.endState.profession.activeTome, 'resolve');
+  assert.equal(exhausted.planningState.profession.activeTome, 'resolve');
   assert.equal(exhausted.events.find((event) => event.type === 'guardian.tome-page-used').pagesRemaining, 0);
-  assert.equal(exhausted.endState.profession.tomePages, 1);
-  assert.equal(traited.endState.profession.maximumTomePages, 8);
-  assert.equal(traited.endState.profession.tomePages, 8);
-  assert.equal(traited.endState.profession.tomePageInterval, 5);
+  assert.equal(exhausted.planningState.profession.tomePages, 1);
+  assert.equal(traited.planningState.profession.maximumTomePages, 8);
+  assert.equal(traited.planningState.profession.tomePages, 8);
+  assert.equal(traited.planningState.profession.tomePageInterval, 5);
 });
 
 test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
@@ -292,7 +292,7 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
     });
     assert.deepEqual(result.warnings, []);
     const [first, last] = result.events.filter((event) => event.type === 'guardian.tome-page-used');
-    const state = result.endState.profession;
+    const state = result.planningState.profession;
     // Full-pool ticks advance the original clock without banking extra pages or restarting on the next spend.
     assert.equal(last.pagesRemaining, state.maximumTomePages - last.pageCost);
     assert.equal(last.nextTomePageAt, first.nextTomePageAt + 2 * state.tomePageInterval);
@@ -318,8 +318,8 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
   assert.ok(blocked.invalid);
   assert.equal(ready.invalid, undefined);
   assert.equal(result.steps.find((step) => step.skill === 'Stow Tome').invalid, undefined);
-  assert.equal(result.endState.profession.activeTome, '');
-  assert.equal(result.endState.profession.swiftScholarCount, 0);
+  assert.equal(result.planningState.profession.activeTome, '');
+  assert.equal(result.planningState.profession.swiftScholarCount, 0);
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
   const rows = timelineWeaponRows(rotation, {
     weaponLineTransition(entry, current) {
@@ -361,8 +361,8 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
   assert.deepEqual(result.warnings, []);
   assert.ok(epilogue && !epilogue.invalid);
   // A missing page delays the cast until the resource's next regeneration tick.
-  assert.equal(epilogue.start, result.endState.profession.tomePageInterval * 1000);
-  assert.equal(result.endState.profession.activeTome, 'resolve');
+  assert.equal(epilogue.start, result.planningState.profession.tomePageInterval * 1000);
+  assert.equal(result.planningState.profession.activeTome, 'resolve');
 });
 
 test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', () => {
@@ -603,9 +603,9 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
     }
   });
 
-  assert.ok(normal.endState.profession.availableFlips[rush.id]);
-  assert.equal(normal.endState.profession.availableFlips[surge.id], undefined);
-  assert.equal(normal.endState.ammo['Flame Rush'].charges, 2);
+  assert.ok(normal.planningState.profession.availableFlips[rush.id]);
+  assert.equal(normal.planningState.profession.availableFlips[surge.id], undefined);
+  assert.equal(normal.planningState.ammo['Flame Rush'].charges, 2);
 
   const final = simulateGw2({
     profession: guardianProfession,
@@ -617,8 +617,8 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
     }
   });
 
-  assert.equal(final.endState.profession.availableFlips[rush.id], undefined);
-  assert.ok(final.endState.profession.availableFlips[surge.id]);
+  assert.equal(final.planningState.profession.availableFlips[rush.id], undefined);
+  assert.ok(final.planningState.profession.availableFlips[surge.id]);
 
   const depleted = simulateGw2({
     profession: guardianProfession,
@@ -630,11 +630,11 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
     }
   });
 
-  assert.equal(depleted.endState.profession.availableFlips[rush.id], undefined);
-  assert.equal(depleted.endState.profession.availableFlips[surge.id], undefined);
-  assert.equal(depleted.endState.ammo['Flame Rush'], undefined);
-  assert.ok(depleted.endState.cooldowns['Mantra of Flame'].remaining > 0);
-  const rechargeReadyAt = depleted.endState.cooldowns['Mantra of Flame'].readyAt;
+  assert.equal(depleted.planningState.profession.availableFlips[rush.id], undefined);
+  assert.equal(depleted.planningState.profession.availableFlips[surge.id], undefined);
+  assert.equal(depleted.planningState.ammo['Flame Rush'], undefined);
+  assert.ok(depleted.planningState.cooldowns['Mantra of Flame'].remaining > 0);
+  const rechargeReadyAt = depleted.planningState.cooldowns['Mantra of Flame'].readyAt;
   // A queued normal charge waits for the root recharge, which restores the prepared pool.
   const rearmed = simulateGw2({
     profession: guardianProfession,
@@ -643,8 +643,8 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   });
   assert.deepEqual(rearmed.warnings, []);
   assert.equal(rearmed.steps.at(-1).start, rechargeReadyAt);
-  assert.equal(rearmed.endState.ammo['Flame Rush'].charges, normal.endState.ammo['Flame Rush'].charges);
-  assert.ok(rearmed.endState.profession.availableFlips[rush.id]);
+  assert.equal(rearmed.planningState.ammo['Flame Rush'].charges, normal.planningState.ammo['Flame Rush'].charges);
+  assert.ok(rearmed.planningState.profession.availableFlips[rush.id]);
 });
 
 test('mantra charge cooldowns carry across the final flip and scale with Alacrity', () => {
@@ -799,7 +799,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
         selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
       }
     });
-  const readyAt = simulate(['Tome of Justice']).endState.profession.virtueReadyAt.justice;
+  const readyAt = simulate(['Tome of Justice']).combatState.profession.virtueReadyAt.justice;
   const result = simulate([
     'Tome of Justice',
     'Stow Tome',
@@ -831,7 +831,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       .length,
     2
   );
-  assert.equal(result.endState.profession.virtueReadyAt.justice, readyAt * 2);
+  assert.equal(result.combatState.profession.virtueReadyAt.justice, readyAt * 2);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -842,8 +842,8 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
       rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage'],
       config: { ...config, specialization: 'Firebrand', selectedTraitIds }
     });
-  const baseline = simulate([]).endState.profession.tomeDormantReadyAt;
-  const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).endState.profession.tomeDormantReadyAt;
+  const baseline = simulate([]).planningState.profession.tomeDormantReadyAt;
+  const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).planningState.profession.tomeDormantReadyAt;
 
   // Apply the trait multiplier to each tome's own dormancy, not a copied cooldown table.
   for (const virtue of ['justice', 'resolve', 'courage']) {
@@ -870,7 +870,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     }
   });
 
-  assert.equal(lore.endState.profession.tomePages, 3);
+  assert.equal(lore.planningState.profession.tomePages, 3);
   assert.equal(
     lore.events.filter(
       (event) => event.type === 'buff' && event.skillName === 'Tome of Justice' && event.kind === 'quickness'
@@ -902,7 +902,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
   });
 
   assert.deepEqual(weighted.warnings, []);
-  assert.equal(weighted.endState.profession.tomePages, 3);
+  assert.equal(weighted.planningState.profession.tomePages, 3);
   assert.deepEqual(
     weighted.resolvedEvents
       .filter((event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS)
@@ -988,7 +988,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
     }
   });
 
-  assert.ok(passive.endState.profession.justicePassiveBurns > 0);
+  assert.ok(passive.combatState.profession.justicePassiveBurns > 0);
   assert.equal(
     passive.resolvedEvents
       .filter((event) => event.sourceId === 'guardian.justice-passive')

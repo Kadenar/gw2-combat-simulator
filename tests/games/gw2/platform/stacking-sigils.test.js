@@ -98,7 +98,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       config: adapter.simulationConfig(app)
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.activeWeaponSet, 2);
+    assert.equal(result.planningState.activeWeaponSet, 2);
     assert.equal(
       result.events.some((event) => event.type === 'weapon_set'),
       false

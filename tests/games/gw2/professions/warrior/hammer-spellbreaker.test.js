@@ -153,14 +153,14 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     },
     { condition: 'Weakness', duration: 3.5 }
   );
-  assert.equal(defense.endState.profession.adrenaline, 16);
+  assert.equal(defense.planningState.profession.adrenaline, 16);
 });
 
 test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insight", () => {
   const insightConfig = {
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
   };
-  const insightStacks = (result) => result.endState.profession.attackerInsightExpiries.length;
+  const insightStacks = (result) => result.planningState.profession.attackerInsightExpiries.length;
   const removals = (result, skillId) =>
     result.resolvedEvents.filter((event) => event.type === 'warrior.boon-removal' && event.skillId === skillId);
 
@@ -323,8 +323,8 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     selectedTraitIds: [TRAIT.THICK_SKIN]
   });
 
-  assert.equal(core.endState.profession.adrenaline, 30);
-  assert.equal(core.endState.profession.endurance, 100);
+  assert.equal(core.planningState.profession.adrenaline, 30);
+  assert.equal(core.planningState.profession.endurance, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
   assert.deepEqual({ boon: protection.boon, duration: protection.duration }, { boon: 'protection', duration: 3 });
@@ -333,5 +333,5 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     initialResource: 0
   });
 
-  assert.ok(bladesworn.endState.profession.flow >= 30);
+  assert.ok(bladesworn.planningState.profession.flow >= 30);
 });

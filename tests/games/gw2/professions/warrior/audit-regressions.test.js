@@ -37,7 +37,7 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     headButt.events.some((event) => event.type === 'action' && event.cancelled),
     true
   );
-  assert.equal(headButt.endState.profession.adrenaline, 0);
+  assert.equal(headButt.planningState.profession.adrenaline, 0);
   const config = { initialResource: 30, primaryWeapon: 'Greatsword', selectedSkills: { heal: 'Blood Reckoning' } };
   const primed = simulate('Berserker', ['Berserk', 'Arc Divider'], config);
   const cancelled = simulate(
@@ -46,12 +46,15 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     config
   );
   assert.deepEqual(cancelled.warnings, []);
-  assert.equal(cancelled.endState.profession.adrenaline, primed.endState.profession.adrenaline);
-  assert.equal(cancelled.endState.cooldowns['Arc Divider'].readyAt, primed.endState.cooldowns['Arc Divider'].readyAt);
+  assert.equal(cancelled.planningState.profession.adrenaline, primed.planningState.profession.adrenaline);
+  assert.equal(
+    cancelled.planningState.cooldowns['Arc Divider'].readyAt,
+    primed.planningState.cooldowns['Arc Divider'].readyAt
+  );
   const committed = simulate('Berserker', ['Berserk', 'Arc Divider', 'Blood Reckoning'], config);
   assert.deepEqual(committed.warnings, []);
-  assert.equal(committed.endState.cooldowns['Arc Divider'], undefined);
-  assert.equal(committed.endState.profession.adrenaline, 10);
+  assert.equal(committed.planningState.cooldowns['Arc Divider'], undefined);
+  assert.equal(committed.planningState.profession.adrenaline, 10);
 });
 
 // Direct command contexts expose scheduled occurrence identity and resource state without damage aggregates.
@@ -139,7 +142,7 @@ test('all accepted Staff and Spear burst variants spend resources and grant firs
         selectedTraitIds: [TRAIT.BERSERKERS_POWER]
       });
       assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
-      assert.equal(result.endState.profession.adrenaline, remaining, `${specialization}: ${skillId}`);
+      assert.equal(result.planningState.profession.adrenaline, remaining, `${specialization}: ${skillId}`);
       assert.equal(
         result.events.some((event) => event.kind === 'berserkers-power'),
         true
@@ -158,7 +161,7 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
     const baseline = simulate(specialization, rotation, config);
     const result = simulate(specialization, rotation, { ...config, selectedTraitIds: [TRAIT.AXE_MASTERY] });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.adrenaline - baseline.endState.profession.adrenaline, 2);
+    assert.equal(result.planningState.profession.adrenaline - baseline.planningState.profession.adrenaline, 2);
   }
 
   for (const [skill, primaryWeapon, precision] of [
@@ -171,7 +174,7 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
       selectedTraitIds: [TRAIT.AXE_MASTERY]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.adrenaline, 1);
+    assert.equal(result.planningState.profession.adrenaline, 1);
   }
 });
 

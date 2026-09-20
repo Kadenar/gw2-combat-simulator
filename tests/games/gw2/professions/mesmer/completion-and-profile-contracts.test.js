@@ -29,8 +29,8 @@ test('committed dagger casts preserve projectiles and their declared cast occupa
       firstCastHits(full).map((event) => event.at)
     );
     assert.equal(firstCastHits(cancelled).length, 0);
-    assert.equal(committed.endState.profession.resource, full.endState.profession.resource);
-    assert.equal(cancelled.endState.profession.resource, 0);
+    assert.equal(committed.planningState.profession.resource, full.planningState.profession.resource);
+    assert.equal(cancelled.planningState.profession.resource, 0);
     assert.equal(committed.steps[1].start, name === 'Bladecall' ? full.steps[1].start : committed.steps[0].end);
     assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
   }
@@ -54,9 +54,9 @@ test('committed Harmony spends its reservation while cancelled Harmony restores 
   assert.equal(spends(committed).length, 1);
   assert.equal(spends(committed)[0].amount, -5);
   assert.equal(spends(committed)[0].at, committed.events.find((event) => event.type === 'action').endsAt);
-  assert.equal(committed.endState.profession.resource, 2);
+  assert.equal(committed.planningState.profession.resource, 2);
   assert.equal(spends(cancelled).length, 0);
-  assert.equal(cancelled.endState.profession.resource, 5);
+  assert.equal(cancelled.planningState.profession.resource, 5);
   assert.ok(hits(committed).length > 0);
   assert.deepEqual(
     hits(committed).map((event) => event.at),
@@ -105,7 +105,7 @@ test('committed Duelist interruptions preserve the eventual clone while early ca
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.resource, interruptMs === 100 ? 0 : 1);
+    assert.equal(result.planningState.profession.resource, interruptMs === 100 ? 0 : 1);
     const duelist = result.steps.find((step) => step.skill === 'Phantasmal Duelist');
     const nextCast = result.steps.find((step) => step.skill === 'Winds of Chaos');
     assert.equal(nextCast.start, interruptMs === 100 ? duelist.end : duelist.start + duelist.fullCastMs);
@@ -122,8 +122,8 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
   assert.equal(ether.cancelled, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.endState.cooldowns['Phantasmal Swordsman']?.readyAt,
-    original.endState.cooldowns['Phantasmal Swordsman'].readyAt
+    result.planningState.cooldowns['Phantasmal Swordsman']?.readyAt,
+    original.planningState.cooldowns['Phantasmal Swordsman'].readyAt
   );
 });
 
@@ -134,7 +134,7 @@ test('cancelled Mimic cannot reset the next utility cooldown', () => {
 
   assert.equal(mimic.cancelled, true);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.cooldowns['Signet of Illusions']?.readyAt, utility.rechargeReadyAt * 1000);
+  assert.equal(result.planningState.cooldowns['Signet of Illusions']?.readyAt, utility.rechargeReadyAt * 1000);
   assert.equal(
     result.events.some((event) => event.type === 'proc' && event.source === 'Mimic'),
     false
@@ -153,11 +153,11 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
     assert.equal(cancelled.events.find((event) => event.type === 'action').cancelled, true);
     assert.deepEqual(cancelled.warnings, []);
-    assert.equal(cancelled.endState.profession.resource, 3);
-    assert.deepEqual(cancelled.endState.profession.activeInstruments, []);
-    assert.equal(completed.endState.profession.resource, 0);
-    assert.equal(completed.endState.profession.activeInstruments[0].name, instrument);
-    assert.ok(completed.endState.profession.activeInstruments[0].remaining > 0);
+    assert.equal(cancelled.planningState.profession.resource, 3);
+    assert.deepEqual(cancelled.planningState.profession.activeInstruments, []);
+    assert.equal(completed.planningState.profession.resource, 0);
+    assert.equal(completed.planningState.profession.activeInstruments[0].name, instrument);
+    assert.ok(completed.planningState.profession.activeInstruments[0].remaining > 0);
   }
 });
 

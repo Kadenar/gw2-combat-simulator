@@ -26,9 +26,9 @@ test('Mirage dodge spends 50 endurance and waits for continuous regeneration', (
     result.steps.map((step) => step.start),
     [0, 0, 10000]
   );
-  assert.ok(result.endState.profession.endurance < 0.01);
-  assert.equal(result.endState.profession.maximumEndurance, 100);
-  assert.equal(result.endState.ammo['Dodge / Mirage Cloak'], undefined);
+  assert.ok(result.planningState.profession.endurance < 0.01);
+  assert.equal(result.planningState.profession.maximumEndurance, 100);
+  assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
 });
 
 // Endurance grants preserve fractional regeneration and cap the total, independent of skill cooldown modifiers.
@@ -52,12 +52,12 @@ test('Mirage endurance preserves partial regeneration through Energy sigil grant
       ],
       config
     );
-    assert.ok(Math.abs(result.endState.profession.endurance - expected) < 0.01);
-    assert.equal(result.endState.ammo['Dodge / Mirage Cloak'], undefined);
+    assert.ok(Math.abs(result.planningState.profession.endurance - expected) < 0.01);
+    assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
     const view = mesmerProfession.ui
-      .resourceViews({ specialization: 'Mirage', professionState: result.endState.profession })
+      .resourceViews({ specialization: 'Mirage', professionState: result.planningState.profession })
       .find((resource) => resource.id === 'endurance');
-    assert.equal(view.value, result.endState.profession.endurance);
+    assert.equal(view.value, result.planningState.profession.endurance);
     assert.equal(view.maximum, 100);
     assert.equal(view.displayMode, 'bar');
     assert.equal(view.paletteSkillId, ID.DODGE_MIRAGE_CLOAK);
@@ -112,8 +112,8 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
     cloakOnly.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Imaginary Axes'),
     false
   );
-  assert.equal(cloakOnly.endState.profession.availableAmbush.name, 'Imaginary Axes');
-  assert.equal(cloakOnly.endState.profession.availableAmbush.source, 'Dodge / Mirage Cloak');
+  assert.equal(cloakOnly.planningState.profession.availableAmbush.name, 'Imaginary Axes');
+  assert.equal(cloakOnly.planningState.profession.availableAmbush.source, 'Dodge / Mirage Cloak');
   const axeSkillOne = mesmerCatalog.skills.filter(
     (skill) => skill.type === 'Weapon' && skill.weapon === 'Axe' && skill.slot === 'Weapon_1'
   );
@@ -141,7 +141,7 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
       (event) => event.type === 'damage' && event.skillName === 'Imaginary Axes' && event.source === 'Player'
     )
   );
-  assert.equal(used.endState.profession.availableAmbush, null);
+  assert.equal(used.planningState.profession.availableAmbush, null);
   paletteApp.results = used;
   assert.deepEqual(
     displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
@@ -178,7 +178,7 @@ test('cancelling an ambush preserves the cloak window across a weapon swap', () 
   );
   assert.deepEqual(result.warnings, []);
   assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
-  assert.equal(result.endState.profession.availableAmbush, null);
+  assert.equal(result.planningState.profession.availableAmbush, null);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Chaos Vortex'),
     false
@@ -470,7 +470,7 @@ test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () =>
     })
   );
 
-  assert.equal(result.endState.profession.resource, 1);
+  assert.equal(result.planningState.profession.resource, 1);
   assert.ok(
     result.resolvedEvents.some(
       (event) => event.type === 'damage' && event.skillName === 'Mirage Thrust' && event.source === 'Clone'
@@ -495,8 +495,8 @@ test('Self-Deception creates a clone only when another clone is active', () => {
     initialResource: 0
   });
 
-  assert.equal(activeClone.endState.profession.resource, 2);
-  assert.equal(noClone.endState.profession.resource, 0);
+  assert.equal(activeClone.planningState.profession.resource, 2);
+  assert.equal(noClone.planningState.profession.resource, 0);
 });
 
 test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () => {
@@ -509,8 +509,8 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     })
   );
 
-  assert.equal(distortion.endState.profession.availableAmbush.source, 'Desert Distortion');
-  assert.equal(distortion.endState.profession.availableMirrors, 2);
+  assert.equal(distortion.planningState.profession.availableAmbush.source, 'Desert Distortion');
+  assert.equal(distortion.planningState.profession.availableMirrors, 2);
   assert.ok(distortion.procSteps.some((proc) => proc.skill === 'Desert Distortion'));
 
   const dune = simulateMesmer(
@@ -526,8 +526,8 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     })
   );
 
-  assert.equal(dune.endState.profession.availableAmbush.source, 'Dune Cloak');
-  assert.equal(dune.endState.cooldowns['Mind Wrack'].readyAt, 11000);
+  assert.equal(dune.planningState.profession.availableAmbush.source, 'Dune Cloak');
+  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 11000);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],
@@ -538,7 +538,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     })
   );
 
-  assert.equal(twoClones.endState.profession.availableAmbush, null);
+  assert.equal(twoClones.planningState.profession.availableAmbush, null);
 });
 
 test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
@@ -676,8 +676,8 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   assert.equal(confusion.stacks, 6);
   assert.equal(confusion.duration, 4);
   assert.equal(mirror.coefficient, 0.6);
-  assert.equal(result.endState.profession.availableMirrors, 0);
-  assert.equal(result.endState.profession.availableAmbush.source, 'Pick Up Mirage Mirror');
+  assert.equal(result.planningState.profession.availableMirrors, 0);
+  assert.equal(result.planningState.profession.availableAmbush.source, 'Pick Up Mirage Mirror');
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Relic of Peitha').map((step) => step.sourceSkill),
     ['Crystal Sands']
@@ -703,8 +703,8 @@ test('False Oasis creates its Mirage Mirror three seconds after the first pulse'
   assert.equal(falseOasis.end - falseOasis.start, 960);
   assert.ok(mirror);
   assert.ok(Math.abs(mirror.at - (falseOasis.start / 1000 + 3.24)) < 0.00001);
-  assert.equal(result.endState.profession.availableMirrors, 0);
-  assert.equal(result.endState.profession.endurance, 100, 'Picking up a mirror must not spend endurance');
+  assert.equal(result.planningState.profession.availableMirrors, 0);
+  assert.equal(result.planningState.profession.endurance, 100, 'Picking up a mirror must not spend endurance');
 });
 
 test('Mirage Mirror palette availability follows active ground mirrors', () => {

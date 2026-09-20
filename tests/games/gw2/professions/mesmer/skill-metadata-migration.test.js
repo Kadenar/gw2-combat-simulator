@@ -75,7 +75,7 @@ test('mirror creation and pickup have separate state and effect requirements', (
   assert.equal(weakness.length, 1);
   assert.equal(weakness[0].duration, 4);
   assert.equal(weakness[0].stacks, 1);
-  assert.equal(picked.endState.profession.availableMirrors, 0);
+  assert.equal(picked.planningState.profession.availableMirrors, 0);
   assert.equal(procs(picked, 'Relic of Aristocracy').length, 1);
   const missing = simulateMesmer(['Pick Up Mirage Mirror'], settings);
   assert.equal(missing.events.filter((event) => event.condition === 'Weakness').length, 0);
@@ -131,7 +131,7 @@ test('shatter controls use the resources consumed by that activation', () => {
     assert.equal(controls.length, 1);
 
     assert.ok(controls[0].at >= cast.endsAt);
-    assert.equal(result.endState.profession.resource, 0);
+    assert.equal(result.planningState.profession.resource, 0);
   }
 });
 

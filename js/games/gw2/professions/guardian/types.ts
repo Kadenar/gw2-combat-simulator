@@ -71,9 +71,8 @@ export type GuardianPrecastContext = CastContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
 };
 
-export interface GuardianEndStateProjectionOptions {
+export interface GuardianPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<GuardianRuntimeState>;
-  readonly resolverState?: Partial<GuardianState> | null;
 }
 
 export interface GuardianAvailabilityContext {

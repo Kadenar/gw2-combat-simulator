@@ -34,7 +34,7 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
       ),
       false
     );
-    assert.equal(result.endState.profession.empowered, 1);
+    assert.equal(result.planningState.profession.empowered, 1);
   }
 });
 
@@ -551,7 +551,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
       .length,
     2
   );
-  assert.equal(offensive.endState.profession.maximumCharges, 6);
+  assert.equal(offensive.planningState.profession.maximumCharges, 6);
 
   const boons = runNative({
     lines: [['Fire'], ['Air'], ['Evoker', '2-2-2']],
@@ -623,8 +623,8 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.equal(fireball.summonInheritsAttributes, false);
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
-  assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
-  assert.equal(result.endState.cooldowns['Glyph of Elementals'], undefined);
+  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], Infinity);
+  assert.equal(result.planningState.cooldowns['Glyph of Elementals'], undefined);
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
@@ -642,7 +642,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.summonedElemental.element, 'Fire');
+  assert.equal(result.planningState.profession.summonedElemental.element, 'Fire');
   const barrageActions = elementalActions.filter((event) => event.skillName === 'Flame Barrage');
   assert.equal(barrageActions.length, 2);
   assert.equal(barrageActions[1].at - barrageActions[0].at, 15);
@@ -696,7 +696,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     )
   );
 
-  assert.equal(result.endState.profession.availableFlips['Flame Barrage'], Infinity);
+  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], Infinity);
 
   const armedResult = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -818,7 +818,7 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.summonedElemental.element, 'Earth');
+  assert.equal(result.planningState.profession.summonedElemental.element, 'Earth');
   assert.equal(
     result.events.some((event) => event.type === 'action' && String(event.skillName).startsWith('Glyph of Elementals')),
     false
@@ -848,8 +848,8 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
     result.procSteps.some((step) => step.skill === 'Vicious Empowerment' && step.sourceSkill === 'Stomp'),
     true
   );
-  assert.equal(result.endState.profession.availableFlips.Stomp, Infinity);
-  assert.equal(result.endState.profession.availableFlips['Flame Barrage'], undefined);
+  assert.equal(result.planningState.profession.availableFlips.Stomp, Infinity);
+  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], undefined);
 });
 
 test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () => {

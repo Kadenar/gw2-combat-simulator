@@ -13,7 +13,7 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
     block.events.some((event) => event.type === 'damage'),
     false
   );
-  assert.equal(block.endState.profession.adrenaline, 0);
+  assert.equal(block.planningState.profession.adrenaline, 0);
 
   const flipped = simulate('Core', [ID.COUNTERBLOW, ID.TACTICAL_BLOW, ID.TACTICAL_BLOW]);
   assert.deepEqual(
@@ -21,9 +21,9 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
     [ID.COUNTERBLOW, ID.TACTICAL_BLOW]
   );
   assert.equal(flipped.steps[1].start, block.steps[0].end);
-  assert.equal(flipped.endState.profession.adrenaline, 6); // Five from the skill plus one ordinary strike.
-  assert.equal(flipped.endState.profession.availableFlips[ID.TACTICAL_BLOW], undefined);
-  assert.ok(flipped.endState.cooldowns.Counterblow.remaining > 0);
+  assert.equal(flipped.planningState.profession.adrenaline, 6); // Five from the skill plus one ordinary strike.
+  assert.equal(flipped.planningState.profession.availableFlips[ID.TACTICAL_BLOW], undefined);
+  assert.ok(flipped.planningState.cooldowns.Counterblow.remaining > 0);
 
   for (const rotation of [
     [ID.TACTICAL_BLOW],

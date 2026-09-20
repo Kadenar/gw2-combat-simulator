@@ -40,10 +40,10 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
       config: { ...config, specialization: 'Willbender' }
     });
     assert.deepEqual(willbender.warnings, []);
-    const ammo = willbender.endState.ammo['Flowing Resolve'];
+    const ammo = willbender.planningState.ammo['Flowing Resolve'];
     assert.equal(ammo.charges, interrupted ? 0 : ammo.maximum);
     assert.equal(ammo.nextRechargeAt == null, !interrupted);
-    assert.equal(Object.hasOwn(willbender.endState.cooldowns, 'Flowing Resolve'), interrupted);
+    assert.equal(Object.hasOwn(willbender.planningState.cooldowns, 'Flowing Resolve'), interrupted);
   }
 });
 
@@ -62,7 +62,7 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
       config: { ...config, specialization: 'Firebrand' }
     });
     assert.deepEqual(result.warnings, []);
-    const state = result.endState.profession;
+    const state = result.planningState.profession;
     const focus = result.events.find((event) => event.type === 'action' && event.skillName === 'Renewed Focus');
     assert.equal(state.tomePages, state.maximumTomePages - Number(interrupted));
     // Refilling pages must preserve the regeneration phase established by the earlier spend.

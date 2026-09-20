@@ -5,7 +5,7 @@ import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { EVENT_LOG_ORDER, mountEventLog, normalizeEventLogDescriptor } from '#ui/results/event-log.js';
 import type { EventLogRow } from '#ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import { professionEndState } from '#gw2/app/rotation/context.js';
+import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
@@ -70,7 +70,7 @@ export function simulationEventLogRows(
         eventOrders.size);
   const professionUi = profession?.ui;
   const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
-  const endState = professionEndState(result);
+  const planningState = professionPlanningState(result);
   const eliteNames = new Set(
     (profession?.catalog?.specializations || [])
       .filter((specialization) => specialization.elite)
@@ -90,7 +90,9 @@ export function simulationEventLogRows(
       specialization
     }) || [];
   const resourceDefinition =
-    endState.resourceDefinition && typeof endState.resourceDefinition === 'object' ? endState.resourceDefinition : {};
+    planningState.resourceDefinition && typeof planningState.resourceDefinition === 'object'
+      ? planningState.resourceDefinition
+      : {};
   const maximumResource = Number(resourceDefinition.maximum || 0);
   const push = (
     event: SimulationEvent,

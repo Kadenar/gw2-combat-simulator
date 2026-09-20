@@ -123,9 +123,8 @@ export type RangerResolverContext = Gw2ResolverRuntime & {
 };
 export type RangerResolverEvent = Gw2ResolverEvent;
 
-export interface RangerEndStateProjectionOptions {
+export interface RangerPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<RangerRuntimeState>;
-  readonly resolverState?: Partial<RangerState> | null;
 }
 
 export interface RangerSkill extends Skill {

@@ -377,15 +377,15 @@ test('a final persistent Berserker packet does not extend the rotation horizon',
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.duration, 0.52);
-  assert.equal(result.endState.time, 520);
+  assert.equal(result.rotationEndTime, 0.52);
+  assert.equal(result.planningState.atSeconds * 1000, 520);
   assert.equal(result.deathTime, null);
   assert.equal(
-    result.events.every((event) => event.at <= result.duration),
+    result.events.every((event) => event.at <= result.rotationEndTime),
     true
   );
   assert.equal(
-    result.resolvedEvents.every((event) => event.at <= result.duration),
+    result.resolvedEvents.every((event) => event.at <= result.rotationEndTime),
     true
   );
   assert.equal(kingProc, undefined);

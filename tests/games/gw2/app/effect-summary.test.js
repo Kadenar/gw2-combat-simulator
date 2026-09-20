@@ -42,7 +42,7 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
   ];
   for (const sampleStep of [50, 1000]) {
     const summaries = buildChartSeries(
-      { dpsStartTime: 1, deathTime: 7, duration: 10, events },
+      { dpsStartTime: 1, deathTime: 7, rotationEndTime: 10, observationEndTime: 10, combatEndTime: 7, events },
       sampleStep,
       presentations
     ).effectSummaries;
@@ -51,14 +51,23 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
     close(summaries.Meltdown.averageStacks, 4 / 6);
   }
 
-  assert.deepEqual(buildChartSeries({ duration: 2, events: [state(0, '')] }, 250, presentations).effectSummaries, {});
+  assert.deepEqual(
+    buildChartSeries(
+      { rotationEndTime: 2, observationEndTime: 2, combatEndTime: 2, events: [state(0, '')] },
+      250,
+      presentations
+    ).effectSummaries,
+    {}
+  );
 });
 
 // Recipient caps apply before averaging, and personal grants/extensions cannot leak into allied state.
 test('allied boon state preserves recipient caps, extensions, expiry, and observation origin', () => {
   const series = buildChartSeries(
     {
-      duration: 10,
+      rotationEndTime: 10,
+      observationEndTime: 10,
+      combatEndTime: 10,
       combatStartTime: 0,
       dpsStartTime: 1,
       resolvedEvents: [
@@ -94,7 +103,9 @@ test('allied boon state preserves recipient caps, extensions, expiry, and observ
 test('allied averages integrate capped stacks and duration pools inside the observation window', () => {
   const party = { audience: { recipients: 'party', maximumRecipients: 3 } };
   const result = {
-    duration: 10,
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 5,
     combatStartTime: 0,
     dpsStartTime: 1,
     deathTime: 5,
@@ -116,7 +127,9 @@ test('allied averages integrate capped stacks and duration pools inside the obse
 
 test('duration supply can exceed a full window while caps and gaps reduce actual uptime', () => {
   const result = {
-    duration: 60,
+    rotationEndTime: 60,
+    observationEndTime: 60,
+    combatEndTime: 60,
     resolvedEvents: [buff('quickness', 0, 30), buff('quickness', 0, 30), buff('quickness', 40, 15)]
   };
   for (const sampleStep of [50, 1000]) {
@@ -124,13 +137,15 @@ test('duration supply can exceed a full window while caps and gaps reduce actual
     assert.equal(summary.uptime, 0.75);
     assert.equal(summary.averageStacks, 0.75);
     assert.equal(summary.generation.generatedStackSeconds, 75);
-    assert.equal(summary.generation.generatedStackSeconds / result.duration, 1.25);
+    assert.equal(summary.generation.generatedStackSeconds / result.rotationEndTime, 1.25);
   }
 });
 
 test('intensity averages apply caps and include downtime while generation retains raw stack-seconds', () => {
   const summary = buildChartSeries({
-    duration: 10,
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 10,
     resolvedEvents: [buff('might', 0, 5, 20), buff('might', 1, 3, 10)]
   }).effectSummaries.Might;
   assert.equal(summary.uptime, 0.5);
@@ -142,7 +157,9 @@ test('intensity averages apply caps and include downtime while generation retain
 
 test('pre-combat boons are stripped and the death boundary excludes later grants', () => {
   const summary = buildChartSeries({
-    duration: 20,
+    rotationEndTime: 20,
+    observationEndTime: 20,
+    combatEndTime: 8,
     dpsStartTime: 2,
     deathTime: 8,
     config: { boons: { quickness: true } },
@@ -168,7 +185,12 @@ test('extensions count only existing boons and retain independent intensity life
     { type: 'boon_extension', at: 2.5, duration: 2, kind: 'fury' },
     { type: 'boon_extension', at: 4, duration: 1, excludedKind: 'might' }
   ];
-  const summaries = buildChartSeries({ duration: 6, resolvedEvents: events }).effectSummaries;
+  const summaries = buildChartSeries({
+    rotationEndTime: 6,
+    observationEndTime: 6,
+    combatEndTime: 6,
+    resolvedEvents: events
+  }).effectSummaries;
   close(summaries.Fury.uptime, 5 / 6);
   assert.equal(summaries.Fury.generation.generatedStackSeconds, 5);
   close(summaries.Might.averageStacks, 10 / 6);
@@ -189,7 +211,9 @@ test('same-time extension accounting follows causal order and excludes the right
 test('effect summaries integrate sub-sample transitions and never resurrect replaced effects', () => {
   const summaries = buildChartSeries(
     {
-      duration: 1,
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
       resolvedEvents: [buff('first', 0.1, 10), buff('second', 0.3, 0.1)]
     },
     1000,
@@ -207,7 +231,12 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
   invokeRelicHook(context, 'afterHit', hit(0), { type: 'Weapon', cooldown: 1 });
   invokeRelicHook(context, 'afterHit', hit(1), { type: 'Weapon', cooldown: 1 });
-  const summary = buildChartSeries({ duration: 8, procSteps: context.procSteps }).effectSummaries['Relic of the Thief'];
+  const summary = buildChartSeries({
+    rotationEndTime: 8,
+    observationEndTime: 8,
+    combatEndTime: 8,
+    procSteps: context.procSteps
+  }).effectSummaries['Relic of the Thief'];
   assert.equal(summary.uptime, 7 / 8);
   assert.equal(summary.averageStacks, 13 / 8);
   assert.equal(summary.maximumStacks, 5);
@@ -216,15 +245,25 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
   const thorns = createGw2ResolverRuntimeState({ config: { relic: 'Thorns', initialThornsStacks: 9 } });
   invokeRelicHook(thorns, 'timeline', [], 5);
-  const ramp = buildChartSeries({ duration: 5, procSteps: thorns.procSteps }).effectSummaries['Relic of Thorns'];
+  const ramp = buildChartSeries({
+    rotationEndTime: 5,
+    observationEndTime: 5,
+    combatEndTime: 5,
+    procSteps: thorns.procSteps
+  }).effectSummaries['Relic of Thorns'];
   assert.equal(ramp.uptime, 1);
   assert.equal(ramp.averageStacks, 9.4);
   assert.equal(ramp.maximumStackUptime, 0.4);
 });
 
 test('empty observation windows do not accrue uptime or generated duration', () => {
-  const summary = buildChartSeries({ duration: 2, dpsStartTime: 2, resolvedEvents: [buff('might', 2, 10, 25)] })
-    .effectSummaries.Might;
+  const summary = buildChartSeries({
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
+    dpsStartTime: 2,
+    resolvedEvents: [buff('might', 2, 10, 25)]
+  }).effectSummaries.Might;
   assert.equal(summary.uptime, 0);
   assert.equal(summary.averageStacks, 0);
   assert.equal(summary.generation, undefined);
@@ -232,7 +271,9 @@ test('empty observation windows do not accrue uptime or generated duration', () 
 
 test('combat stripping uses the marker and causal order, retaining boons granted in combat before the first hit', () => {
   const series = buildChartSeries({
-    duration: 10,
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 10,
     dpsStartTime: 4,
     combatStartTime: 2,
     events: [{ type: 'combat_start', at: 2, causalOrder: 2 }],
@@ -257,7 +298,9 @@ test('combat stripping uses the marker and causal order, retaining boons granted
 
 test('personal boons and extensions cannot inflate shared generation, including partial recipient caps', () => {
   const series = buildChartSeries({
-    duration: 10,
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 10,
     alliedPlayerCount: 4,
     resolvedEvents: [
       buff('quickness', 0, 5),
@@ -279,7 +322,9 @@ test('personal boons and extensions cannot inflate shared generation, including 
 
 test('allied-only intensity grants extend each reached recipient once and exclude summons', () => {
   const series = buildChartSeries({
-    duration: 10,
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 10,
     alliedPlayerCount: 4,
     resolvedEvents: [
       buff('might', 0, 2, 2, {

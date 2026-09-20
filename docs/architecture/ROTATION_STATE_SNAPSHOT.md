@@ -45,6 +45,10 @@ The shared `templates/profession.html` page template includes it for every nativ
 
 ## How the snapshot gets its state
 
+`planningState` is a scheduler prediction at `atSeconds`, independent of target death. Its profession projection
+does not receive resolver state. Resolved effects belong to `combatState.profession` at `combatState.atSeconds`;
+never overlay those effects onto a later planning snapshot. These projections are not resumable checkpoints.
+
 The snapshot model and renderer live in:
 
 ```text
@@ -52,15 +56,15 @@ js/games/gw2/app/rotation/state-snapshot/model.ts
 js/games/gw2/app/rotation/state-snapshot/view.ts
 ```
 
-The model uses `paletteEndState(app)` to obtain the state associated with the current rotation position. The view only
+The model uses `palettePlanningState(app)` to obtain the state associated with the current rotation position. The view only
 renders that prepared snapshot.
 
 At the end of the rotation, the existing simulation result is reused unless it includes an observation tail. In that
-case, `rotationEndStateAt()` obtains the rotation-end checkpoint so the palette and snapshot do not inspect the tail
+case, `rotationPlanningStateAt()` obtains the rotation-end checkpoint so the palette and snapshot do not inspect the tail
 end.
 
 At an insertion point, the application evaluates the rotation prefix up to that insertion index through
-`rotationEndStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and
+`rotationPlanningStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and
 profession-resource displays.
 
 **Snapshot hooks should never run their own simulation.** The application provides the state and inspection time to the
@@ -142,7 +146,7 @@ Do you want to display a new value?
         +-- Is it tracked in runtime profession state,
         |   but missing from professionState?
         |       |
-        |       +-- YES → Project it into endState.profession
+        |       +-- YES → Project it into planningState.profession
         |                 → Add rotationStateSnapshot item
         |
         +-- Is it represented by simulation events/buffs?
@@ -160,7 +164,7 @@ Do you want to display a new value?
                     → expose it using one of the paths above
 ```
 
-The important distinction is that **not every snapshot value belongs in `endState.profession`**.
+The important distinction is that **not every snapshot value belongs in `planningState.profession`**.
 
 Use the simulator's existing source of truth whenever possible.
 
@@ -236,7 +240,7 @@ if (remaining <= 0) return [];
 
 # Case 2: the simulator tracks the value, but it is not projected
 
-Runtime profession state and the public `endState.profession` projection are not necessarily the same object.
+Runtime profession state and the public `planningState.profession` projection are not necessarily the same object.
 
 A profession may intentionally expose only selected state fields.
 
@@ -339,9 +343,9 @@ runtime state
     ↓
 profession mechanics update it
     ↓
-projectEndState()
+projectPlanningState()
     ↓
-endState.profession
+planningState.profession
     ↓
 context.professionState
     ↓
@@ -512,7 +516,7 @@ js/games/gw2/app/rotation/state-snapshot/model.ts
 The shared `rotationStateSnapshot()` function already receives the insertion-aware generic end state:
 
 ```ts
-const state = paletteEndState(app);
+const state = palettePlanningState(app);
 const timeMs = Number(state?.time || 0);
 ```
 
@@ -549,7 +553,7 @@ The snapshot system is a **view of simulation state**, not a second state-manage
 
 If the value you want is not available in:
 
-- `endState`;
+- `planningState`;
 - profession state;
 - `result.events`;
 - `result.resolvedEvents`;
@@ -706,7 +710,7 @@ Useful cases to cover are:
 - trait/build gating;
 - specialization gating.
 
-For projected profession state, also verify that the field exists in the simulation's `endState.profession`.
+For projected profession state, also verify that the field exists in the simulation's `planningState.profession`.
 
 Insertion behavior itself is shared infrastructure and does not need to be reimplemented by each profession.
 

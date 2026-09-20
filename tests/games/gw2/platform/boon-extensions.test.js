@@ -139,9 +139,13 @@ test('extensions preserve past duration and intensity observations across recipi
     );
   }
 
-  const chart = buildTimeSeries({ duration: 15, dpsStartTime: 0, resolvedEvents: events }, 1000, {
-    durationStackCaps: { fury: 30 }
-  });
+  const chart = buildTimeSeries(
+    { rotationEndTime: 15, observationEndTime: 15, combatEndTime: 15, dpsStartTime: 0, resolvedEvents: events },
+    1000,
+    {
+      durationStackCaps: { fury: 30 }
+    }
+  );
   assert.equal(chartValueAt(chart.effects.fury, 2000), 8);
   assert.equal(chartValueAt(chart.effects.fury, 7000), 7);
   assert.equal(chartValueAt(chart.effects.might, 6000), 5);

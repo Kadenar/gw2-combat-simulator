@@ -157,7 +157,10 @@ export interface Gw2ResolverReactionRegistry {
 }
 
 export interface Gw2ResolverResult {
-  readonly duration: number;
+  /** Absolute timeline boundaries in seconds, independent of the DPS start. */
+  readonly rotationEndTime: number;
+  readonly observationEndTime: number;
+  readonly combatEndTime: number;
   readonly combatStartTime: number | null;
   readonly hasExplicitCombatStart: boolean;
   readonly dpsStartTime: number;
@@ -195,7 +198,11 @@ export interface Gw2ResolverResult {
     mode: SimulationRandom['mode'];
     seed: number;
   };
-  readonly profession: object;
+  /** Resolved event state through combatEndTime, not a resumable player snapshot. */
+  readonly combatState: {
+    readonly atSeconds: number;
+    readonly profession: object;
+  };
 }
 
 export interface ResolveGw2TimelineOptions {

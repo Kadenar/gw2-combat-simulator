@@ -180,7 +180,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
           ? {
               label: 'Total Conditions',
               damage: result.conditionDamage,
-              dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0))
+              dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
             }
           : null,
         ...modifierContributionModel(app),

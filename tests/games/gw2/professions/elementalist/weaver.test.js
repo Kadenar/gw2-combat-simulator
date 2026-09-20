@@ -31,8 +31,8 @@ test('Weaver hammer orbs require both distinct hands and respect Unravel replace
       result.events.some((event) => event.type === 'action' && event.skillName === dual),
       ready
     );
-    assert.equal(Boolean(result.endState.profession.hammerOrbs.Fire), ready);
-    assert.equal(Boolean(result.endState.profession.hammerOrbs.Air), ready);
+    assert.equal(Boolean(result.planningState.profession.hammerOrbs.Fire), ready);
+    assert.equal(Boolean(result.planningState.profession.hammerOrbs.Air), ready);
     if (ready) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings[0], unravel ? /while Unravel is active/ : /matching Weaver hand/);
   }
@@ -119,9 +119,9 @@ test('Weaver can cancel a carried autoattack by starting the current primary cha
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.autoattackCarryover, null);
-  assert.equal(result.endState.profession.autoattackChains[airRoot], undefined);
-  assert.equal(result.endState.profession.autoattackChains[fireRoot], fireSecond);
+  assert.equal(result.planningState.profession.autoattackCarryover, null);
+  assert.equal(result.planningState.profession.autoattackChains[airRoot], undefined);
+  assert.equal(result.planningState.profession.autoattackChains[fireRoot], fireSecond);
 });
 
 test('Primordial Stance schedules unique authored pulse times without emitting placeholder packets', () => {
@@ -327,7 +327,7 @@ test('Weaver mechanics execute through native hooks', () => {
     result.events.some((event) => event.type === 'action' && event.skillName === 'Tailored Victory'),
     true
   );
-  assert.equal(result.endState.profession.perfectWeaveUntil, 0);
+  assert.equal(result.planningState.profession.perfectWeaveUntil, 0);
 
   const weaveSelf = result.events.find((event) => event.type === 'action' && event.skillName === 'Weave Self');
   const weaveSelfFire = result.events.find(

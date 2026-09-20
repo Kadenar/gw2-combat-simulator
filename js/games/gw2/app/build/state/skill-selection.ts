@@ -30,7 +30,7 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
       app.adapter.slotLoadout.normalizeBuild(app.build, {
         build: app.build,
         specialization: spec,
-        professionState: app.results?.endState?.profession,
+        professionState: app.results?.planningState?.profession,
         catalog: app.activeCatalog
       })
     );

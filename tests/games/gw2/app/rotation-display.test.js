@@ -57,7 +57,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
   };
   const results = {
     steps,
-    duration: 1,
+    rotationEndTime: 1,
+    observationEndTime: 1,
+    combatEndTime: 1,
     resolvedEvents: [
       { activationId: 'cast:0', damage: 0 },
       { activationId: 'cast:1', damage: 10, at: 0.8 }

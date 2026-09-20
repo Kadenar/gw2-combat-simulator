@@ -2,7 +2,7 @@ import { enterRotationFocus } from '#app/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/io/rotation-import-dialog.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { paletteEndState } from '#gw2/app/rotation/context.js';
+import { palettePlanningState } from '#gw2/app/rotation/context.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
@@ -43,10 +43,10 @@ function percentDifference(current: number, reference: number): number | null {
 export function rotationComparisonTimeMs(app: ProfessionAppState): number | null {
   const index = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
   if (index == null || index === app.build.rotation.length || !app.results) return null;
-  const state = paletteEndState(app);
+  const state = palettePlanningState(app);
   if (!state) return null;
   const startMs = Number(app.results.dpsStartTime ?? app.results.firstHitTime ?? 0) * 1000;
-  return Math.max(0, Number(state.time || 0) - startMs);
+  return Math.max(0, Number(state.atSeconds || 0) * 1000 - startMs);
 }
 
 /** Projects final or shared-time cumulative metrics from already prepared 250 ms chart series. */

@@ -16,12 +16,30 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { ThiefPrecastContext } from '#gw2/professions/thief/types.js';
+import type { ThiefPrecastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
   return readProfessionCoreState<ThiefCoreState>(context.runtime?.profession);
+}
+
+/** Lead Attacks also boosts owned flat life steal, which bypasses ordinary strike modifiers. */
+export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: ThiefResolverEvent) {
+  if (
+    !event.lifeSiphon ||
+    ![event.flatDamage, event.flatStrikeBase, event.flatStrikePowerCoeff].some(Number.isFinite) ||
+    !isGw2PlayerModifierOwnedEvent(event) ||
+    !hasTrait(context.config, TRAIT.LEAD_ATTACKS)
+  )
+    return;
+  const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
+  const state = readProfessionCoreState<ThiefCoreState>(context.profession);
+  const stacks = Math.min(Number(profile?.maximumStacks ?? 15), Number(state.leadAttacksStacks || 0));
+  return {
+    flatStrikeMultiplier:
+      Number(event.flatStrikeMultiplier ?? 1) * (1 + stacks * Number(profile?.damageIncreasePerStack ?? 0.01))
+  };
 }
 
 // Return specialization state only when its runtime kind matches, preventing

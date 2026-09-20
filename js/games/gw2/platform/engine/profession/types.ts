@@ -25,7 +25,7 @@ import type {
   Gw2BuildResources,
   ProfessionAssumptionControl
 } from '#gw2/platform/builds/types.js';
-import type { Gw2SimulationEndState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -259,7 +259,7 @@ export interface ProfessionUiContext<TProfessionState = unknown> {
 
 /** Live palette projection at the rotation insertion point. */
 export interface ProfessionPaletteContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
-  readonly cooldowns?: Gw2SimulationEndState['cooldowns'];
+  readonly cooldowns?: Gw2SimulationPlanningState['cooldowns'];
   readonly activeWeaponSet?: number;
   /** Scheduler clock in seconds. */
   readonly time?: number;
@@ -437,7 +437,7 @@ export interface ProfessionBuildDefinition<TBuild extends object = object> {
 export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
   readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
   readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
-  readonly projectEndState?: unknown;
+  readonly projectPlanningState?: unknown;
 }
 
 /** One composable hook: a bare function, or a function with ordering metadata. */
@@ -602,7 +602,7 @@ export interface NormalizedProfessionContract<
   readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly advance: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
   readonly snapshot: (context: SchedulerContext<TProfessionState>) => unknown;
-  readonly projectEndState: (...args: never[]) => unknown;
+  readonly projectPlanningState: (...args: never[]) => unknown;
   readonly onCastStart: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly onCastComplete: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly onCooldownReset: (context: SchedulerContext<TProfessionState>) => unknown;

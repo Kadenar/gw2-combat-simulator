@@ -229,7 +229,9 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
       skillId: TRAIT.LARCENOUS_TORMENT,
       skillName: 'Larcenous Torment',
       name: 'Larcenous Torment - Life Siphon',
-      coefficient: Number(strike?.coefficient ?? 0.005),
+      // Life steal scales directly with Power, bypassing armor and weapon-strike modifiers.
+      flatStrikeBase: Number(strike?.flatStrikeBase ?? 99),
+      flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff ?? 0.005),
       hits: 1,
       canCrit: false,
       noCrit: true,

@@ -88,7 +88,9 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
     const { buildTimeSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const chartSeries = buildTimeSeries({
       dpsStartTime: 0.36,
-      duration: 6.36,
+      rotationEndTime: 6.36,
+      observationEndTime: 6.36,
+      combatEndTime: 6.36,
       resolvedEvents: [
         {
           type: 'condition',
@@ -375,7 +377,9 @@ test('condition details sum simultaneous ticks by type', async ({ page }) => {
     const { buildTimeSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const series = buildTimeSeries(
       {
-        duration: 5,
+        rotationEndTime: 5,
+        observationEndTime: 5,
+        combatEndTime: 5,
         resolvedEvents: [
           { type: 'condition', condition: 'Bleeding', at: 0, damageTicks: [{ at: 1, damage: 10 }] },
           { type: 'condition', condition: 'Poisoned', at: 0, damageTicks: [{ at: 1, damage: 20 }] },

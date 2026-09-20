@@ -43,11 +43,11 @@ test('Radiant Forge precombat exits leave entry ready', () => {
   );
   for (const prefix of [[], [{ type: 'combat-start' }]]) {
     const combat = run([...prefix, 'Enter Radiant Forge', 'Exit Radiant Forge']);
-    assert.ok(combat.endState.cooldowns['Enter Radiant Forge'].remaining > 0);
+    assert.ok(combat.planningState.cooldowns['Enter Radiant Forge'].remaining > 0);
   }
 
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: 30000 }, { type: 'combat-start' }]);
-  assert.equal(expired.endState.cooldowns['Enter Radiant Forge'], undefined);
+  assert.equal(expired.planningState.cooldowns['Enter Radiant Forge'], undefined);
 });
 
 // Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
@@ -206,7 +206,7 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(regeneration.length, empowered ? 1 : 0);
-    assert.equal(result.endState.profession.radiantResolveArmed, false);
+    assert.equal(result.planningState.profession.radiantResolveArmed, false);
   }
 
   const interrupted = simulateGw2({
@@ -214,7 +214,7 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
     rotation: ['Radiant Resolve', 'Enter Radiant Forge', { name: 'Luminous Staff', interruptMs: 100 }],
     config: { ...config, specialization: 'Luminary' }
   });
-  assert.equal(interrupted.endState.profession.radiantResolveArmed, true);
+  assert.equal(interrupted.planningState.profession.radiantResolveArmed, true);
   assert.equal(
     interrupted.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'regeneration'),
     false
@@ -320,7 +320,9 @@ test('Luminary chart labels radiant weapons and replaces the previous armament',
   });
   const series = buildChartSeries(
     {
-      duration: 4,
+      rotationEndTime: 4,
+      observationEndTime: 4,
+      combatEndTime: 4,
       events: [radiantBuff(0, 'hammer'), radiantBuff(2, 'staff')]
     },
     1000,
@@ -350,12 +352,12 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
 
   assert.match(unavailable.warnings.join(' '), /Dazzling Hammer is unavailable/);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.radiantForge, true);
-  assert.equal(result.endState.profession.radiantWeapon, 'hammer');
+  assert.equal(result.planningState.profession.radiantForge, true);
+  assert.equal(result.planningState.profession.radiantWeapon, 'hammer');
   const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
 
   assert.equal(glaring.metadata?.radiantWeapon, 'hammer');
-  assert.equal(Object.hasOwn(result.endState.cooldowns, 'Enter Radiant Forge'), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Enter Radiant Forge'), false);
   assert.ok(result.totalDamage > 0);
 });
 
@@ -629,16 +631,16 @@ test('Radiant Forge expiry starts the same reduced recharge as manual exit', () 
   const run = (rotation) =>
     simulateGw2({ profession: guardianProfession, rotation, config: { ...config, specialization: 'Luminary' } });
   const entered = run(['Enter Radiant Forge']);
-  const expiresAt = entered.endState.profession.radiantForgeEndsAt;
+  const expiresAt = entered.planningState.profession.radiantForgeEndsAt;
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: expiresAt * 1000 }]);
   const manual = run(['Enter Radiant Forge', 'Exit Radiant Forge']);
   const exit = expired.events.find((event) => event.type === 'weapon_set' && event.automatic);
   assert.deepEqual(expired.warnings, []);
   assert.equal(exit.at, expiresAt);
-  assert.equal(expired.endState.profession.radiantForge, false);
+  assert.equal(expired.planningState.profession.radiantForge, false);
   assert.equal(
-    expired.endState.cooldowns['Enter Radiant Forge'].remaining,
-    manual.endState.cooldowns['Enter Radiant Forge'].remaining
+    expired.planningState.cooldowns['Enter Radiant Forge'].remaining,
+    manual.planningState.cooldowns['Enter Radiant Forge'].remaining
   );
 });
 
@@ -659,7 +661,7 @@ test('Forge transitions and weapon equips trigger swap sigils only in combat', (
     idle.procSteps.some((step) => step.type === 'sigil_proc'),
     false
   );
-  const expiryMs = idle.endState.profession.radiantForgeEndsAt * 1000;
+  const expiryMs = idle.planningState.profession.radiantForgeEndsAt * 1000;
   for (const [rotation, expectedSources] of [
     [
       ['Enter Radiant Forge', 'Exit Radiant Forge', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Enter Radiant Forge'],
@@ -795,8 +797,8 @@ test('Radiant-weapon traits require a committed equip cast', () => {
   assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Empowered Armaments').length, 0);
   assert.equal(completed.procSteps.filter((step) => step.skill === 'Radiant Armaments').length, 1);
   assert.equal(interrupted.procSteps.filter((step) => step.skill === 'Radiant Armaments').length, 0);
-  assert.deepEqual(completed.endState.profession.radiantWeaponsUsed, { hammer: true });
-  assert.deepEqual(interrupted.endState.profession.radiantWeaponsUsed, {});
+  assert.deepEqual(completed.planningState.profession.radiantWeaponsUsed, { hammer: true });
+  assert.deepEqual(interrupted.planningState.profession.radiantWeaponsUsed, {});
 });
 
 test('a committed radiant weapon cancel arms and consumes its flip while an uncommitted attempt does not', () => {
@@ -810,14 +812,14 @@ test('a committed radiant weapon cancel arms and consumes its flip while an unco
     });
   const committed = run(hammer.interruptCommitMs);
   assert.deepEqual(committed.warnings, []);
-  assert.equal(committed.endState.profession.radiantWeapon, 'hammer');
-  assert.equal(committed.endState.profession.radiantWeaponsUsed.hammer, true);
-  assert.equal(committed.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN], undefined);
+  assert.equal(committed.planningState.profession.radiantWeapon, 'hammer');
+  assert.equal(committed.planningState.profession.radiantWeaponsUsed.hammer, true);
+  assert.equal(committed.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN], undefined);
   assert.ok(committed.procSteps.some((step) => step.skill === 'Empowered Armaments'));
   assert.ok(committed.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Shining Spin'));
   const cancelled = run(0);
   assert.ok(cancelled.warnings.some((warning) => warning.includes('Shining Spin')));
-  assert.equal(cancelled.endState.profession.radiantWeaponsUsed.hammer, undefined);
+  assert.equal(cancelled.planningState.profession.radiantWeaponsUsed.hammer, undefined);
 });
 
 test('Radiant weapon equips replace the prior flip and preserve its parent cooldown', () => {
@@ -836,9 +838,9 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
       config: { ...config, specialization: 'Luminary' }
     });
 
-    assert.equal(result.endState.profession.availableFlips[flip], undefined, parent);
-    assert.ok(result.endState.profession.availableFlips[nextFlip], nextParent);
-    assert.ok(result.endState.cooldowns[parent].remaining > 0, parent);
+    assert.equal(result.planningState.profession.availableFlips[flip], undefined, parent);
+    assert.ok(result.planningState.profession.availableFlips[nextFlip], nextParent);
+    assert.ok(result.planningState.cooldowns[parent].remaining > 0, parent);
   }
 
   const glaringBurst = simulateGw2({
@@ -847,7 +849,7 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
     config: { ...config, specialization: 'Luminary' }
   });
 
-  assert.ok(glaringBurst.endState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN]);
+  assert.ok(glaringBurst.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.SHINING_SPIN]);
 });
 
 test('Guardian armaments share the additive sigil bucket', () => {
@@ -914,12 +916,12 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
   });
   const bladeHits = sword.resolvedEvents.filter((event) => event.name === 'Gleaming Blade');
 
-  assert.equal(armedHammer.endState.profession.radiantJusticeArmed, true);
+  assert.equal(armedHammer.planningState.profession.radiantJusticeArmed, true);
   assert.equal(
     hammer.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact').length,
     1
   );
-  assert.equal(hammer.endState.profession.radiantJusticeArmed, false);
+  assert.equal(hammer.planningState.profession.radiantJusticeArmed, false);
   assert.ok(
     hammer.procSteps.some(
       (step) =>
@@ -927,10 +929,10 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
     )
   );
 
-  assert.equal(armedSword.endState.profession.radiantCourageSwordArmed, true);
+  assert.equal(armedSword.planningState.profession.radiantCourageSwordArmed, true);
   assert.equal(bladeHits.length, 2);
   assertFlooredDamageMultiplier(bladeHits[0].damage, bladeHits[1].damage, 1.5);
-  assert.equal(sword.endState.profession.radiantCourageSwordArmed, false);
+  assert.equal(sword.planningState.profession.radiantCourageSwordArmed, false);
   assert.ok(
     sword.procSteps.some(
       (step) => step.type === 'skill_proc' && step.skill === 'Empowered Sword' && step.sourceSkill === 'Radiant Courage'
@@ -969,7 +971,7 @@ test('Radiant Justice selects the first committed hammer impact after activation
     assert.equal(extras.length, 1);
     assert.equal(extras[0].activationId, primaries[selectedIndex].activationId);
     assert.ok(extras[0].at > primaries[selectedIndex].at);
-    assert.equal(result.endState.profession.radiantJusticeArmed, false);
+    assert.equal(result.planningState.profession.radiantJusticeArmed, false);
     assert.deepEqual(result.warnings, []);
   }
 
@@ -997,7 +999,7 @@ test('Radiant Justice selects the first committed hammer impact after activation
     offTarget.resolvedEvents.some((event) => event.name === missedExtra.name && event.damage > 0),
     false
   );
-  assert.equal(offTarget.endState.profession.radiantJusticeArmed, false);
+  assert.equal(offTarget.planningState.profession.radiantJusticeArmed, false);
 });
 
 test('Guardian strike modifiers use their tested additive and mult buckets', () => {
@@ -1186,8 +1188,8 @@ test('off-target Luminary precasts retain setup without damaging the target', ()
       .length,
     4
   );
-  assert.equal(result.endState.profession.radiantWeapon, 'hammer');
-  assert.ok(result.endState.profession.lightAuraUntil > 0);
+  assert.equal(result.planningState.profession.radiantWeapon, 'hammer');
+  assert.ok(result.combatState.profession.lightAuraUntil > 0);
 });
 
 test('Luminary hidden actions restore supplied opening-state durations', () => {
@@ -1264,11 +1266,11 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
     bound.resolvedEvents.find((event) => event.name === 'Sovereign of Light').triggeredBy,
     'Piercing Stance'
   );
-  assert.equal(dazzlingUnbound.endState.profession.lightAuraUntil, 0);
+  assert.equal(dazzlingUnbound.combatState.profession.lightAuraUntil, 0);
   // Daring's field remains available to a subsequent finisher, while its own leap needs another field.
   assert.equal(combo(daring, 'Daring Advance'), undefined);
   assert.equal(combo(daring, 'Leap of Faith').fieldSourceId, GUARDIAN_SKILL_IDS.DARING_ADVANCE);
-  assert.ok(dazzlingBound.endState.profession.lightAuraUntil > 0);
+  assert.ok(dazzlingBound.combatState.profession.lightAuraUntil > 0);
 });
 
 test('Dazzling Hammer combos at the Symbol of Resolution expiry boundary', () => {
@@ -1318,7 +1320,7 @@ test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
     result.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
     false
   );
-  assert.ok(result.endState.profession.lightAuraUntil > 0);
+  assert.ok(result.combatState.profession.lightAuraUntil > 0);
 });
 
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
@@ -1396,11 +1398,11 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   );
   assert.ok(justice.events.some((event) => event.type === 'blind' && event.skillName === 'Justice is Blind'));
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
-  assert.equal(activationJustice.endState.profession.justiceHitCount, 1);
+  assert.equal(activationJustice.combatState.profession.justiceHitCount, 1);
   const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
 
-  assert.equal(sovereignJustice.endState.profession.justiceHitCount, 2);
+  assert.equal(sovereignJustice.combatState.profession.justiceHitCount, 2);
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,

@@ -258,7 +258,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     traits: '1-1-2'
   };
   app.results = {
-    endState: {
+    planningState: {
       profession: {
         lifeForce: 80,
         maximumLifeForce: 100,
@@ -284,7 +284,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     palette.innerHTML,
     /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
-  app.results.endState.profession.soulShards = 4;
+  app.results.planningState.profession.soulShards = 4;
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -372,7 +372,7 @@ test('Necromancer state events have a real event-log presentation', () => {
         }
       ],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     },
     null,
     necromancerProfession
@@ -393,7 +393,7 @@ test('Necromancer siphon bookkeeping events stay out of the event log', () => {
         { type: 'necromancer.vampiric-presence-allied-hit', at: 1, allyIndex: 1 }
       ],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     },
     null,
     necromancerProfession

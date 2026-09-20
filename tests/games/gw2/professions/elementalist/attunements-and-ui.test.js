@@ -54,7 +54,7 @@ test('Tempest mechanics execute through native hooks', () => {
     ['Air', 'Fire']
   );
   assert.ok(swaps[1].at >= overload.rechargeReadyAt);
-  assert.equal(result.endState.profession.primaryAttunement, 'Fire');
+  assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
 });
 
 test('Tempest overloads activate Relic of Fireworks as profession mechanics', () => {
@@ -96,8 +96,8 @@ test('Catalyst mechanics execute through native hooks', () => {
     initialCatalystEnergy: 30
   });
 
-  assert.equal(result.endState.profession.energy, 20);
-  assert.equal(result.endState.profession.maximumEnergy, 30);
+  assert.equal(result.planningState.profession.energy, 20);
+  assert.equal(result.planningState.profession.maximumEnergy, 30);
   assert.equal(
     resolvedAndScheduledEvents(result).some(
       (event) => event.type === 'combo' && event.fieldType === 'Fire' && event.finisherType === 'Blast'
@@ -301,7 +301,7 @@ test('Core mechanics execute through native hooks', () => {
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
 
   assert.ok(proc);
-  assert.equal(result.endState.profession.attunementReadyAt.Air, proc.at);
+  assert.equal(result.planningState.profession.attunementReadyAt.Air, proc.at);
 });
 
 test('Fresh Air resets both Air Attunement and Overload Air', () => {
@@ -313,9 +313,9 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
 
   assert.ok(proc);
-  assert.equal(result.endState.profession.attunementReadyAt.Air, proc.at);
-  assert.equal(result.endState.cooldowns['Air Attunement'], undefined);
-  assert.equal(result.endState.cooldowns['Overload Air'], undefined);
+  assert.equal(result.planningState.profession.attunementReadyAt.Air, proc.at);
+  assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
+  assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
 });
 
 test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode', () => {
@@ -347,9 +347,9 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
     );
   }
 
-  assert.equal(result.endState.profession.attunementReadyAt.Air, procs[0].at);
-  assert.equal(result.endState.cooldowns['Air Attunement'], undefined);
-  assert.equal(result.endState.cooldowns['Overload Air'], undefined);
+  assert.equal(result.planningState.profession.attunementReadyAt.Air, procs[0].at);
+  assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
+  assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
 });
 
 test('Fresh Air lookahead preserves a scheduled reset across an intervening attunement', () => {
@@ -551,9 +551,9 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
-      endState: {
+      planningState: {
         activeWeaponSet: 1,
-        time: 0,
+        atSeconds: 0,
         cooldowns: {
           'Pyro Vortex': { remaining: 3400, readyAt: 3400 }
         },
@@ -893,7 +893,7 @@ test('Evoker layers familiar charges beside F5', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    results: { endState: { profession: professionState } }
+    results: { planningState: { profession: professionState } }
   });
 
   assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
@@ -906,7 +906,7 @@ test('Evoker layers familiar charges beside F5', () => {
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     results: {
-      endState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
+      planningState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
     }
   });
   const empoweredReadyHtml = activeResourceGroup({
@@ -914,7 +914,7 @@ test('Evoker layers familiar charges beside F5', () => {
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     results: {
-      endState: { profession: { ...professionState, charges: 4, empowered: 3 } }
+      planningState: { profession: { ...professionState, charges: 4, empowered: 3 } }
     }
   });
 
@@ -1035,14 +1035,14 @@ test('core attunements enforce and report their individual recharge', () => {
     swaps.map((step) => step.start),
     [0, 1275, 8500]
   );
-  assert.equal(result.endState.profession.primaryAttunement, 'Fire');
-  assert.ok(result.endState.cooldowns['Air Attunement'].remaining > 1000);
-  assert.ok(result.endState.cooldowns['Water Attunement'].remaining > 1000);
+  assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
+  assert.ok(result.planningState.cooldowns['Air Attunement'].remaining > 1000);
+  assert.ok(result.planningState.cooldowns['Water Attunement'].remaining > 1000);
   const waterAvailability = elementalistProfession.ui.paletteSkillAvailability(
     {
       specialization: 'Core',
-      professionState: result.endState.profession,
-      time: result.endState.time / 1000,
+      professionState: result.planningState.profession,
+      time: result.planningState.atSeconds,
       catalog: elementalistCatalog,
       build: { startAttunement: 'Fire' }
     },
@@ -1145,6 +1145,6 @@ test('Unravel resets the current Weaver recharge, fully attunes for five seconds
       [8, 'Air Attunement', undefined, 'Air', 'Earth']
     ]
   );
-  assert.equal(result.endState.profession.unravelUntil, 5);
+  assert.equal(result.planningState.profession.unravelUntil, 5);
   assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'elements of rage').length, 4);
 });

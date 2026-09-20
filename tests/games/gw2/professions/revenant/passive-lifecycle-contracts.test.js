@@ -69,7 +69,7 @@ test('Vindicator Vigor produces equal endurance for equivalent public waits', ()
   const split = simulate('Vindicator', [...rotation, wait(6000), wait(6000)], config);
   assert.deepEqual(single.warnings, []);
   assert.deepEqual(split.warnings, []);
-  assert.equal(single.endState.profession.endurance, split.endState.profession.endurance);
+  assert.equal(single.planningState.profession.endurance, split.planningState.profession.endurance);
 });
 
 test('Ancient Echo selects exactly the active Core legend package', () => {
@@ -88,7 +88,7 @@ test('Ancient Echo selects exactly the active Core legend package', () => {
       result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.duration, event.stacks]),
       [[kind, duration, stacks]]
     );
-    assert.equal(result.endState.profession.energy, 75 + result.duration * 5);
+    assert.equal(result.planningState.profession.energy, 75 + result.rotationEndTime * 5);
   }
 });
 
@@ -152,10 +152,10 @@ test('Draconic Echo retains bounded facet pulses without upkeep drain, including
   const absent = simulate('Herald', [...rotation, wait(7000)], { ...config, selectedTraitIds: [] });
   const pulses = (result) =>
     result.events.filter((event) => event.type === 'buff' && event.skillId === SKILL.FACET_OF_STRENGTH);
-  const consumeAt = consumed.duration;
+  const consumeAt = consumed.rotationEndTime;
   assert.deepEqual(retained.warnings, []);
-  assert.deepEqual(retained.endState.profession.activeUpkeeps, []);
-  assert.equal(retained.endState.profession.energy - consumed.endState.profession.energy, 35);
+  assert.deepEqual(retained.planningState.profession.activeUpkeeps, []);
+  assert.equal(retained.planningState.profession.energy - consumed.planningState.profession.energy, 35);
   assert.ok(pulses(retained).some((event) => event.at > consumeAt));
   assert.ok(pulses(retained).every((event) => event.at < consumeAt + 6));
   assert.deepEqual(

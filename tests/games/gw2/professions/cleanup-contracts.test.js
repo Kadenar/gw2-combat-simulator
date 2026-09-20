@@ -35,7 +35,7 @@ import {
   observeParagonEvent
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
-import { projectWarriorEndState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
+import { projectWarriorPlanningState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 test('Forge exits finalize once at the exit time and clear weapon state even without an exit catalog entry', () => {
@@ -288,7 +288,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
   const rule = paragonAttributeRules.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
   assert.equal(rule.when({ config: renamed.config, runtime: { profession: renamed.state.profession } }), true);
   assert.equal(
-    projectWarriorEndState({ schedulerState: renamed.state, schedulerContext: renamed }).activeRefrain,
+    projectWarriorPlanningState({ schedulerState: renamed.state, schedulerContext: renamed }).activeRefrain,
     'Renamed ' + W.CHANT_OF_ACTION
   );
   // Direct activation needs the successful cast action normally supplied by the scheduler.

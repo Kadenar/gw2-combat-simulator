@@ -61,11 +61,15 @@ test('Fist Flurry flips its equipped tile only after connecting and restores it 
   ]) {
     const result = simulate('Daredevil', rotation);
     assert.deepEqual(result.warnings, []);
-    const context = { specialization: 'Daredevil', professionState: result.endState.profession, time: result.duration };
+    const context = {
+      specialization: 'Daredevil',
+      professionState: result.planningState.profession,
+      time: result.rotationEndTime
+    };
     const app = { profession: thiefProfession, skills: thiefCatalog.skills, build: { rotation: [] }, results: result };
     assert.equal(displayedSkillTiles(app, [parent], context)[0].id, expected);
     assert.equal(
-      Number(result.endState.profession.palmStrikeUntil || 0) > result.duration,
+      Number(result.planningState.profession.palmStrikeUntil || 0) > result.rotationEndTime,
       expected === ID.PALM_STRIKE
     );
   }

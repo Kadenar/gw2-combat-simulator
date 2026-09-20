@@ -22,7 +22,10 @@ import {
   SCOURGE_PUBLIC_END_STATE_DEFAULTS,
   SCOURGE_PUBLIC_END_STATE_KEYS
 } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import type { NecromancerEndStateProjectionOptions, NecromancerState } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerPlanningStateProjectionOptions,
+  NecromancerState
+} from '#gw2/professions/necromancer/types.js';
 
 /** Builds the stable flattened state boundary shared by scheduler snapshots and result projection. */
 export function snapshotNecromancerState(state: unknown): NecromancerState {
@@ -63,9 +66,9 @@ const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<NecromancerSt
 });
 
 /** Project the scheduler's resource state after timestamped resolver gains have been replayed. */
-export function projectNecromancerEndState({
+export function projectNecromancerPlanningState({
   schedulerState
-}: NecromancerEndStateProjectionOptions): Record<string, unknown> {
+}: NecromancerPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotNecromancerState(schedulerState.profession);
   return projectPublicProfessionState(
     state,

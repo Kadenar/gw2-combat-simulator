@@ -43,7 +43,7 @@ const HOOK_DEFINITIONS = Object.freeze([
   ['afterCast', 'scheduler'],
   ['advance', 'scheduler'],
   ['snapshot', 'scheduler'],
-  ['projectEndState', 'resource'],
+  ['projectPlanningState', 'resource'],
   ['onCastStart', 'scheduler'],
   ['onCastComplete', 'scheduler'],
   ['onCooldownReset', 'scheduler'],
@@ -410,7 +410,11 @@ export function defineProfession<TProfessionState extends object, TBuild extends
   const resolverHooks = definition.resolverHooks || {};
   const ui = definition.ui || {};
   assertCallbackContainer(build, ['createBuildDefaults', 'migrateBuild', 'validateBuild'], 'build');
-  assertCallbackContainer(resources, ['createProfessionState', 'createResolverState', 'projectEndState'], 'resources');
+  assertCallbackContainer(
+    resources,
+    ['createProfessionState', 'createResolverState', 'projectPlanningState'],
+    'resources'
+  );
   assertUiDefinition(ui);
   assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
   assertHandlerMap(schedulerHooks.skillMechanicHandlers, 'schedulerHooks.skillMechanicHandlers');
@@ -466,7 +470,7 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
-    projectEndState: resources.projectEndState,
+    projectPlanningState: resources.projectPlanningState,
     onCastStart: schedulerHooks.onCastStart,
     onCastComplete: schedulerHooks.onCastComplete,
     onCooldownReset: schedulerHooks.onCooldownReset,

@@ -11,6 +11,7 @@ test('condition payouts retain full and partial attribution independently of ski
     {
       dpsStartTime: 0.36,
       deathTime: 4.36,
+      combatEndTime: 4.36,
       resolvedEvents: [
         {
           type: 'condition',
@@ -94,6 +95,7 @@ test('chart projection preserves activation ownership across burst grouping', ()
     {
       dpsStartTime: 1,
       deathTime: 5,
+      combatEndTime: 5,
       resolvedEvents: [
         { type: 'damage', at: 1, damage: 10, activationId: 'cast:1' },
         { type: 'damage', at: 2, damage: 20, activationId: 'cast:2' },
@@ -139,6 +141,7 @@ test('condition windows preserve damage kind and stay aligned to fight time', ()
     {
       dpsStartTime: 0,
       deathTime: 12,
+      combatEndTime: 12,
       resolvedEvents: [
         { type: 'damage', at: 0.1, damage: 10, activationId: 'cast:1' },
         { type: 'damage', at: 9.1, damage: 20, activationId: 'cast:2' },

@@ -110,11 +110,11 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.ok(result.profession.willingHostUntil > 0);
-  assert.ok(result.profession.evolvedUntil > 0);
-  assert.equal(result.profession.rapaciousUntil, result.profession.evolvedUntil);
-  assert.equal(result.profession.predatorUntil, result.profession.evolvedUntil);
-  assert.equal(result.profession.titanicUntil, result.profession.evolvedUntil);
+  assert.ok(result.combatState.profession.willingHostUntil > 0);
+  assert.ok(result.combatState.profession.evolvedUntil > 0);
+  assert.equal(result.combatState.profession.rapaciousUntil, result.combatState.profession.evolvedUntil);
+  assert.equal(result.combatState.profession.predatorUntil, result.combatState.profession.evolvedUntil);
+  assert.equal(result.combatState.profession.titanicUntil, result.combatState.profession.evolvedUntil);
   assert.equal(
     result.events.filter(
       (event) => event.type === 'buff' && event.kind === 'alacrity' && event.skillName === 'New Genes'
@@ -147,7 +147,7 @@ test('Evolve raises attributes by ten percent for eight seconds', () => {
 
   assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.1);
   assert.equal(
-    evolved.endState.profession.evolvedUntil,
+    evolved.planningState.profession.evolvedUntil,
     evolved.events.find((event) => event.type === 'engineer.state' && event.reason === 'evolve').at + 8
   );
 });
@@ -213,7 +213,7 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
 
   assert.equal(berserker.stacks, 5);
   assert.equal(berserker.duration, 8);
-  assert.equal(result.endState.profession.berserkerUntil, result.endState.profession.evolvedUntil);
+  assert.equal(result.planningState.profession.berserkerUntil, result.planningState.profession.evolvedUntil);
 
   const demolish = simulate('Amalgam', [76954], {
     selectedMorphSkillIds: [77103, 77203, 76954]
@@ -669,5 +669,5 @@ test('Plasmatic State models both phases as one cast', () => {
     (event) => event.type === 'damage' && event.name === 'Plasmatic State'
   );
 
-  assert.ok(Math.abs(result.endState.profession.plasmaticStateUntil - firstPacket.at - 6) < 1e-12);
+  assert.ok(Math.abs(result.planningState.profession.plasmaticStateUntil - firstPacket.at - 6) < 1e-12);
 });

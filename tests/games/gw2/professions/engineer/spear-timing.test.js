@@ -29,15 +29,15 @@ test('Lightning Rod charges expire after twelve seconds', () => {
 // An unused flip disappears at its deadline, including its palette flag and stored charges.
 test('Electric Artillery availability ends eight seconds after arming', () => {
   const charging = simulate('Core', ['Lightning Rod']);
-  const deadline = charging.endState.profession.electricArtilleryReadyAt + 8;
+  const deadline = charging.planningState.profession.electricArtilleryReadyAt + 8;
   const waitMs = deadline * 1000 - charging.steps[0].end;
   const before = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs - 40 }]);
   const expired = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs }, 'Electric Artillery']);
-  assert.equal(before.endState.profession.electricArtilleryAvailable, true);
-  assert.equal(before.endState.profession.electricArtilleryExpiresAt, deadline);
-  assert.equal(expired.endState.profession.electricArtilleryAvailable, false);
-  assert.equal(expired.endState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], false);
-  assert.deepEqual(expired.endState.profession.lightningRodChargeExpiries, []);
+  assert.equal(before.planningState.profession.electricArtilleryAvailable, true);
+  assert.equal(before.planningState.profession.electricArtilleryExpiresAt, deadline);
+  assert.equal(expired.planningState.profession.electricArtilleryAvailable, false);
+  assert.equal(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], false);
+  assert.deepEqual(expired.planningState.profession.lightningRodChargeExpiries, []);
   assert.equal(expired.warnings.length, 1);
   assert.match(expired.warnings[0], /Lightning Rod has not finished charging/);
 });
@@ -51,8 +51,8 @@ test('Artillery damage and conditions wait for impact without delaying the next 
     artilleryEvents(released).some((event) => ['damage', 'condition'].includes(event.type)),
     false
   );
-  assert.equal(released.endState.profession.electricArtilleryAvailable, false);
-  assert.deepEqual(released.endState.profession.lightningRodChargeExpiries, []);
+  assert.equal(released.planningState.profession.electricArtilleryAvailable, false);
+  assert.deepEqual(released.planningState.profession.lightningRodChargeExpiries, []);
 
   const landed = simulate('Core', [...rotation, 'Conduit Surge', { type: 'wait', durationMs: 1000 }]);
   assert.deepEqual(landed.warnings, []);

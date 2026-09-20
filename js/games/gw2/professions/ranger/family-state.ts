@@ -1,10 +1,5 @@
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  snapshotProfessionState
-} from '#gw2/platform/engine/profession/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   DRUID_PUBLIC_END_STATE_KEYS,
   DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS
@@ -19,10 +14,9 @@ import {
 } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import {
   UNTAMED_PUBLIC_END_STATE_KEYS,
-  UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS,
-  UNTAMED_RESOLVER_END_STATE_KEYS
+  UNTAMED_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import type { RangerEndStateProjectionOptions, RangerState } from '#gw2/professions/ranger/types.js';
+import type { RangerPlanningStateProjectionOptions, RangerState } from '#gw2/professions/ranger/types.js';
 
 /** Aggregates Core and active-specialization state at the Ranger family boundary. */
 export function snapshotRangerState(state: unknown): RangerState {
@@ -46,20 +40,10 @@ const RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Ob
 });
 
 /** Projects the family aggregate while preserving the existing public shape. */
-export function projectRangerEndState({
-  schedulerState,
-  resolverState
-}: RangerEndStateProjectionOptions): Record<string, unknown> {
+export function projectRangerPlanningState({
+  schedulerState
+}: RangerPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotRangerState(schedulerState.profession);
-  const resolver = flattenProfessionState(resolverState || {});
-  // Remaining stones are owned by landed-hit resolution and retain their original expiry.
-  const stones = (resolver.sharpeningStoneExpirations as number[] | undefined) || [];
-  state.sharpeningStoneExpirations = purgeExpiredStacks(stones, schedulerState.time);
-  // Ferocious Symbiosis advances from resolved player/pet hits, so its resolver
-  // values supersede the scheduler copy in the public insertion-aware state.
-  for (const key of UNTAMED_RESOLVER_END_STATE_KEYS) {
-    if (Object.hasOwn(resolver, key)) state[key] = resolver[key] as never;
-  }
-
+  // Landed-hit consumption belongs only to the separately observed combat state.
   return projectPublicProfessionState(state, RANGER_PUBLIC_END_STATE_KEYS, RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }

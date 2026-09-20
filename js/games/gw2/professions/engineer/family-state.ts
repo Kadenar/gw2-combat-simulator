@@ -26,7 +26,7 @@ import {
   MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS
 } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type {
-  EngineerEndStateProjectionOptions,
+  EngineerPlanningStateProjectionOptions,
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerState
@@ -62,17 +62,11 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> 
 });
 
 /** Projects the family aggregate while preserving the existing public shape. */
-export function projectEngineerEndState({
-  schedulerState,
-  resolverState
-}: EngineerEndStateProjectionOptions): Pick<EngineerState, (typeof ENGINEER_PUBLIC_END_STATE_KEYS)[number]> {
+export function projectEngineerPlanningState({
+  schedulerState
+}: EngineerPlanningStateProjectionOptions): Pick<EngineerState, (typeof ENGINEER_PUBLIC_END_STATE_KEYS)[number]> {
   const state = snapshotEngineerState(schedulerState.profession);
-  // Report consumed charges from the resolver instead of the scheduler's initial values.
-  if (resolverState?.specialization.kind === 'Holosmith') {
-    const resolved = resolverState.specialization.state;
-    for (const key of HOLOSMITH_RESOLVER_STATE_KEYS) state[key] = resolved[key];
-  }
-
+  // Scheduler predictions remain independent from combat-time charge consumption.
   return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS);
 }
 

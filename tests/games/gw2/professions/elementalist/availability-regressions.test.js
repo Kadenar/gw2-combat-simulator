@@ -120,7 +120,7 @@ test('elemental glyphs require equipment while matching command flips and summon
       rotation: [name]
     });
     assert.match(rejected.warnings[0], /not equipped/);
-    assert.equal(rejected.endState.profession.summonedElemental.element, null);
+    assert.equal(rejected.planningState.profession.summonedElemental.element, null);
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
       selectedSkills: { Elite: name },
@@ -128,7 +128,7 @@ test('elemental glyphs require equipment while matching command flips and summon
       rotation: [name, command]
     });
     assert.deepEqual(summoned.warnings, []);
-    assert.equal(summoned.endState.profession.summonedElemental.element, element);
+    assert.equal(summoned.planningState.profession.summonedElemental.element, element);
   }
 });
 
@@ -168,22 +168,22 @@ test('native rotations reject nonexistent pickups and consume summoned ground co
   };
   const missing = runNative({ ...options, rotation: ['__pickup_Frost Bow'] });
   assert.match(missing.warnings[0], /pickup is unavailable or expired/);
-  assert.equal(missing.endState.profession.conjureEquipped, null);
+  assert.equal(missing.planningState.profession.conjureEquipped, null);
 
   const pickedUp = runNative({
     ...options,
     rotation: ['Conjure Frost Bow', '__drop_bundle', '__pickup_Frost Bow']
   });
   assert.deepEqual(pickedUp.warnings, []);
-  assert.equal(pickedUp.endState.profession.conjureEquipped, 'Frost Bow');
-  assert.equal(Object.hasOwn(pickedUp.endState.profession.conjurePickups, 'Frost Bow'), false);
+  assert.equal(pickedUp.planningState.profession.conjureEquipped, 'Frost Bow');
+  assert.equal(Object.hasOwn(pickedUp.planningState.profession.conjurePickups, 'Frost Bow'), false);
 
   const expired = runNative({
     ...options,
     rotation: ['Conjure Frost Bow', '__drop_bundle', 36000, '__pickup_Frost Bow']
   });
   assert.match(expired.warnings[0], /pickup is unavailable or expired/);
-  assert.equal(expired.endState.profession.conjureEquipped, null);
+  assert.equal(expired.planningState.profession.conjureEquipped, null);
 });
 
 test('Weaver autoattack roots require the primary attunement, even when the off hand matches', () => {
@@ -222,7 +222,7 @@ test('Weaver preserves the next autoattack link across completed and concurrent 
       result.events.some((event) => event.type === 'action' && event.skillName === 'Searing Slash'),
       true
     );
-    assert.equal(result.endState.profession.autoattackCarryover, null);
-    assert.equal(result.endState.profession.autoattackChains[root], undefined);
+    assert.equal(result.planningState.profession.autoattackCarryover, null);
+    assert.equal(result.planningState.profession.autoattackChains[root], undefined);
   }
 });

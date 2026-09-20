@@ -38,7 +38,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
       ? result
       : {
           ...result,
-          duration: Math.max(0, Number(result.duration || 0) - referenceSeconds),
+          combatEndTime: Math.max(0, result.combatEndTime - referenceSeconds),
           deathTime: result.deathTime == null ? null : Math.max(0, Number(result.deathTime) - referenceSeconds)
         };
   const metrics = baseResultSummaryMetrics(normalizedResult);

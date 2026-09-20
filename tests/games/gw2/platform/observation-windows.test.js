@@ -300,7 +300,7 @@ test('explicit combat start keeps precombat projectiles that land afterward', ()
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
   );
-  assert.ok(result.dpsWindow < result.duration);
+  assert.ok(result.dpsWindow < result.rotationEndTime);
 });
 
 test('delayed combat start uses its offset instead of the preceding cast end', () => {
@@ -332,7 +332,7 @@ test('DPS duration starts at the first hit in the supplied delayed-start rotatio
 
   assert.equal(result.steps[1].start, 700);
   assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
-  assert.ok(Math.abs(result.duration - 1.32) < 1e-12);
+  assert.ok(Math.abs(result.rotationEndTime - 1.32) < 1e-12);
   assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
@@ -342,7 +342,7 @@ test('standalone Combat Start uses the first subsequent hit like Elementalist', 
 
   assert.equal(result.steps[0].start, 0);
   assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
-  assert.ok(Math.abs(result.duration - 1.32) < 1e-12);
+  assert.ok(Math.abs(result.rotationEndTime - 1.32) < 1e-12);
   assert.equal(result.dpsStartTime, result.firstHitTime);
   assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
@@ -359,7 +359,7 @@ test('zero-length combat windows report zero DPS instead of epsilon DPS', () => 
     })
   );
 
-  assert.equal(result.dpsStartTime, result.duration);
+  assert.equal(result.dpsStartTime, result.rotationEndTime);
   assert.equal(result.dpsWindow, 0);
   assert.equal(result.dps, 0);
 });

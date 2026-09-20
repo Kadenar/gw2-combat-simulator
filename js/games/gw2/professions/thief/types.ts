@@ -200,9 +200,8 @@ export interface ThiefResolverReactionDetails {
   readonly hitContext?: Gw2HitResolutionContext;
 }
 
-export interface ThiefEndStateProjectionOptions {
+export interface ThiefPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<ThiefRuntimeState>;
-  readonly resolverState?: Partial<ThiefState> | null;
 }
 
 export interface ThiefUiContext extends Omit<

@@ -85,7 +85,7 @@ export function createProfessionRuntime({
         .selectedSkillIds({
           build: app.build,
           specialization: eliteSpecialization(app.build),
-          professionState: app.results?.endState?.profession,
+          professionState: app.results?.planningState?.profession,
           catalog
         })
         .map((id) => catalog.skillsById.get(Number(id)))
@@ -218,19 +218,22 @@ export function createProfessionRuntime({
     return deterministicSimulationConfig(simulationConfig(app));
   }
 
-  function rotationEndStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['endState'] {
+  function rotationPlanningStateAt(
+    app: ProfessionAppState,
+    insertionIndex: number
+  ): Gw2SimulationResult['planningState'] {
     const rotation = app.build.rotation;
     const index = clamp(rotation.length, 0, Math.floor(Number(insertionIndex) || 0));
     // A tail-resolved result cannot supply availability at the insertion boundary.
     if (
       index === rotation.length &&
       app.results &&
-      app.results.endState.time === Math.round(app.results.duration * 1000)
+      app.results.planningState.atSeconds === app.results.rotationEndTime
     ) {
-      return app.results.endState;
+      return app.results.planningState;
     }
 
-    return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app), { kind: 'rotation' }).endState;
+    return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app), { kind: 'rotation' }).planningState;
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
@@ -270,7 +273,7 @@ export function createProfessionRuntime({
     randomDistributionRequest,
     relicComparisonRequest,
     calculateRandomDistribution,
-    rotationEndStateAt,
+    rotationPlanningStateAt,
     baselineSimulationRequest,
     calculateBaselineSimulation,
     runSimulation

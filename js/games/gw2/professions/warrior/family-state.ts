@@ -2,7 +2,7 @@ import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/plat
 import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
 import type {
   WarriorCastContext,
-  WarriorEndStateProjectionOptions,
+  WarriorPlanningStateProjectionOptions,
   WarriorSkill,
   WarriorState,
   WarriorSchedulerContext
@@ -65,10 +65,10 @@ const INACTIVE_DEFAULTS: Readonly<Partial<WarriorState>> = Object.freeze({
 });
 
 /** Projects the stable public end state after the active slice has been flattened. */
-export function projectWarriorEndState({
+export function projectWarriorPlanningState({
   schedulerState,
   schedulerContext
-}: WarriorEndStateProjectionOptions): Record<string, unknown> {
+}: WarriorPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotWarriorState(schedulerState.profession, schedulerContext.catalog.skillsById);
   return projectPublicProfessionState(state, WARRIOR_PUBLIC_END_STATE_KEYS, INACTIVE_DEFAULTS);
 }

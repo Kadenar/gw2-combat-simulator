@@ -59,7 +59,7 @@ test('Time Warp schedules immediate and one-second pulses throughout its etherea
   assert.equal(field.fieldType, 'Ethereal');
   assert.equal(field.at, castEnd);
   assert.equal(field.expiresAt - field.at, 5);
-  assert.equal(result.endState.cooldowns['Time Warp'].readyAt - result.steps[0].end, 120000);
+  assert.equal(result.planningState.cooldowns['Time Warp'].readyAt - result.steps[0].end, 120000);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -75,7 +75,7 @@ test('Feedback instantly creates a six-second ethereal field with a 32-second re
   assert.equal(field.fieldType, 'Ethereal');
   assert.equal(field.at, cast.start / 1000);
   assert.equal(field.expiresAt - field.at, 6);
-  assert.equal(result.endState.cooldowns.Feedback.readyAt - cast.start, 32000);
+  assert.equal(result.planningState.cooldowns.Feedback.readyAt - cast.start, 32000);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -119,7 +119,7 @@ test('Signet of the Ether re-locks 300ms after its cast completes', () => {
     })
   );
   const cast = result.steps[0];
-  const cooldown = result.endState.cooldowns['Signet of the Ether'];
+  const cooldown = result.planningState.cooldowns['Signet of the Ether'];
 
   assert.equal(cooldown.readyAt - cast.end, 30300);
 });
@@ -214,8 +214,8 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     })
   );
 
-  assert.ok(chronomancer.endState.cooldowns['Continuum Split']);
-  assert.equal(chronomancer.endState.cooldowns['Split Second'], undefined);
+  assert.ok(chronomancer.planningState.cooldowns['Continuum Split']);
+  assert.equal(chronomancer.planningState.cooldowns['Split Second'], undefined);
 
   const troubadour = simulateMesmer(
     ['Lively Lute', 'Crescendo', 'Signet of Illusions'],
@@ -226,8 +226,8 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     })
   );
 
-  assert.ok(troubadour.endState.cooldowns.Crescendo);
-  assert.equal(troubadour.endState.cooldowns['Lively Lute'], undefined);
+  assert.ok(troubadour.planningState.cooldowns.Crescendo);
+  assert.equal(troubadour.planningState.cooldowns['Lively Lute'], undefined);
 });
 
 test('Signet of the Ether does not generate a clone', () => {
@@ -239,7 +239,7 @@ test('Signet of the Ether does not generate a clone', () => {
     })
   );
 
-  assert.equal(result.endState.profession.resource, 0);
+  assert.equal(result.planningState.profession.resource, 0);
   assert.equal(
     result.events.some((event) => event.type === 'resource' && event.reason === 'Signet of the Ether'),
     false
@@ -255,8 +255,8 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
   });
   const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }], config);
 
-  assert.equal(result.endState.time, 100);
-  assert.equal(result.endState.profession.resource, 2);
+  assert.equal(result.planningState.atSeconds * 1000, 100);
+  assert.equal(result.planningState.profession.resource, 2);
 });
 
 test('shift-queued Mirror Images after a resource-generating cast grants both clones', () => {
@@ -272,7 +272,7 @@ test('shift-queued Mirror Images after a resource-generating cast grants both cl
   );
 
   assert.equal(mirrorImagesResource?.amount, 2);
-  assert.equal(result.endState.profession.resource, 3);
+  assert.equal(result.planningState.profession.resource, 3);
 });
 
 test('clones from shift-queued Mirror Images are available to the next shatter', () => {
@@ -286,7 +286,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
 
   assert.equal(result.steps.length, 3);
   assert.equal(result.steps[2].start, 100);
-  assert.equal(result.endState.profession.resource, 0);
+  assert.equal(result.planningState.profession.resource, 0);
 });
 
 test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
@@ -302,9 +302,9 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   );
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 0);
-  assert.equal(result.endState.profession.availableFlips['Power Spike'], undefined);
-  assert.equal(result.endState.ammo['Power Spike'], undefined);
-  assert.equal(result.endState.ammoBySkillId[ID.POWER_SPIKE], undefined);
+  assert.equal(result.planningState.profession.availableFlips['Power Spike'], undefined);
+  assert.equal(result.planningState.ammo['Power Spike'], undefined);
+  assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
 });
 
@@ -318,12 +318,12 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
     result.steps.map((step) => step.skill),
     ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike']
   );
-  assert.ok(result.endState.profession.availableFlips['Power Spike']);
-  assert.equal(result.endState.profession.availableFlips['Power Spike'].persistent, true);
+  assert.ok(result.planningState.profession.availableFlips['Power Spike']);
+  assert.equal(result.planningState.profession.availableFlips['Power Spike'].persistent, true);
   assert.deepEqual(
     {
-      charges: result.endState.ammo['Power Spike'].charges,
-      maximum: result.endState.ammo['Power Spike'].maximum
+      charges: result.planningState.ammo['Power Spike'].charges,
+      maximum: result.planningState.ammo['Power Spike'].maximum
     },
     { charges: 1, maximum: 2 }
   );
@@ -346,8 +346,8 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
   // Only the two opener spikes are simulated; the woven one is skipped, so the
   // refilled mantra keeps both charges.
   assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
-  assert.equal(result.endState.profession.availableFlips['Power Spike'].persistent, true);
-  assert.equal(result.endState.ammo['Power Spike'].charges, 2);
+  assert.equal(result.planningState.profession.availableFlips['Power Spike'].persistent, true);
+  assert.equal(result.planningState.ammo['Power Spike'].charges, 2);
   assert.match(result.warnings.at(-1), /Mantra of Pain is still channeling/);
 });
 
@@ -369,5 +369,5 @@ test('Power Spike stays invalid even when another instant is chained into the ch
 
   assert.equal(woven.invalid, true);
   assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
-  assert.equal(result.endState.ammo['Power Spike'].charges, 2);
+  assert.equal(result.planningState.ammo['Power Spike'].charges, 2);
 });

@@ -152,7 +152,7 @@ test('Mechanist commands are selected by traits and mech attacks persist', () =>
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.profession.mech.commandSkillIds.map((id) => engineerCatalog.skillsById.get(id).name),
+    result.combatState.profession.mech.commandSkillIds.map((id) => engineerCatalog.skillsById.get(id).name),
     ['Spark Revolver', 'Crisis Zone', 'Barrier Burst']
   );
   assert.ok(
@@ -1235,8 +1235,8 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
     ).duration,
     5
   );
-  assert.deepEqual(unfocused.endState.profession.lightningRodChargeExpiries, []);
-  assert.equal(unfocused.endState.profession.electricArtilleryAvailable, false);
+  assert.deepEqual(unfocused.planningState.profession.lightningRodChargeExpiries, []);
+  assert.equal(unfocused.planningState.profession.electricArtilleryAvailable, false);
   for (const [result, rodStacks, artilleryStacks] of [
     [focused, 2, 8],
     [unfocused, 1, 4]
@@ -1276,12 +1276,12 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
     selectedMorphSkillIds: [77103, 77104, 76705]
   });
   const chargingContext = {
-    professionState: charging.endState.profession,
-    time: charging.duration
+    professionState: charging.planningState.profession,
+    time: charging.rotationEndTime
   };
   const chargedContext = {
-    professionState: charged.endState.profession,
-    time: charged.duration
+    professionState: charged.planningState.profession,
+    time: charged.rotationEndTime
   };
   const rod = engineerCatalog.skillsByName.get('Lightning Rod');
   const artillery = engineerCatalog.skillsByName.get('Electric Artillery');
@@ -1289,8 +1289,8 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, rod).available, false);
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, artillery).available, false);
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargedContext, artillery).available, true);
-  assert.equal(charging.endState.profession.availableFlips[artillery.id], false);
-  assert.equal(charged.endState.profession.availableFlips[artillery.id], true);
+  assert.equal(charging.planningState.profession.availableFlips[artillery.id], false);
+  assert.equal(charged.planningState.profession.availableFlips[artillery.id], true);
 });
 
 test('Roiling Skies changes control branch with focus and always cripples', () => {

@@ -15,7 +15,7 @@ import {
   RANGER_CORE_BASE_SKILL_MECHANICS,
   RANGER_CORE_EXTRA_SKILLS
 } from '#gw2/professions/ranger/core/skills/index.js';
-import { projectRangerEndState } from '#gw2/professions/ranger/family-state.js';
+import { projectRangerPlanningState } from '#gw2/professions/ranger/family-state.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { rangerCoreEventHandlers, rangerCoreEventReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
@@ -32,7 +32,7 @@ export const rangerCoreModule = defineNativeModule({
   state: {
     scheduler: createRangerCoreState,
     resolver: createRangerCoreState,
-    project: projectRangerEndState
+    project: projectRangerPlanningState
   },
   mechanics: {
     modifiers: rangerCoreAttributeRules,

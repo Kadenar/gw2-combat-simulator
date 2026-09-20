@@ -30,7 +30,9 @@ test('Embrace application markers preserve pulse identity within the observation
   });
   const series = buildChartSeries({
     dpsStartTime: 1,
-    duration: 4,
+    rotationEndTime: 4,
+    observationEndTime: 4,
+    combatEndTime: 4,
     resolvedEvents: [
       application(0.5),
       application(1),
@@ -69,7 +71,9 @@ test('timeline times can reuse a precomputed combat reference', () => {
 
 test('total idle time excludes explicit waits before combat start', () => {
   const metrics = resultSummaryMetrics({
-    duration: 1,
+    rotationEndTime: 1,
+    observationEndTime: 1,
+    combatEndTime: 1,
     deathTime: null,
     events: [{ type: 'combat_start', at: 0.5 }],
     steps: [
@@ -92,7 +96,9 @@ test('total idle time excludes explicit waits before combat start', () => {
 test('profession effect descriptors supply chart labels and stack caps', () => {
   const series = buildChartSeries(
     {
-      duration: 8,
+      rotationEndTime: 8,
+      observationEndTime: 8,
+      combatEndTime: 8,
       events: [
         playerBuff({
           at: 0,
@@ -126,7 +132,9 @@ test('profession effect descriptors supply chart labels and stack caps', () => {
 test('generic buffs remain visible on the timed-effects chart', () => {
   const series = buildChartSeries(
     {
-      duration: 3,
+      rotationEndTime: 3,
+      observationEndTime: 3,
+      combatEndTime: 3,
       events: [playerBuff({ at: 0, kind: 'custom-effect', stacks: 3, duration: 2 })]
     },
     1000
@@ -143,7 +151,9 @@ test('resolved buffs supply final audiences and stack caps without counting sche
   const scheduled = playerBuff({ at: 0, kind: 'might', stacks: 3, duration: 2 });
   const series = buildChartSeries(
     {
-      duration: 2,
+      rotationEndTime: 2,
+      observationEndTime: 2,
+      combatEndTime: 2,
       events: [scheduled, playerBuff({ at: 0, kind: 'fury', duration: 5 })],
       resolvedEvents: [
         { ...scheduled },
@@ -165,7 +175,9 @@ test('resolved buffs supply final audiences and stack caps without counting sche
 test('timed relic proc chart series shows binary uptime across refreshes', () => {
   const series = buildChartSeries(
     {
-      duration: 8,
+      rotationEndTime: 8,
+      observationEndTime: 8,
+      combatEndTime: 8,
       dpsStartTime: 1,
       procSteps: [
         {
@@ -212,7 +224,9 @@ test('timed relic proc chart series shows binary uptime across refreshes', () =>
 test('chart series classify boons, conditions, and profession buffs', () => {
   const series = buildChartSeries(
     {
-      duration: 2,
+      rotationEndTime: 2,
+      observationEndTime: 2,
+      combatEndTime: 2,
       resolvedEvents: [
         {
           type: 'condition',
@@ -244,7 +258,9 @@ test('chart series classify boons, conditions, and profession buffs', () => {
 test('duration-stacking boon charts show remaining stacked seconds', () => {
   const series = buildChartSeries(
     {
-      duration: 7,
+      rotationEndTime: 7,
+      observationEndTime: 7,
+      combatEndTime: 7,
       events: [
         playerBuff({ at: 0, kind: 'quickness', duration: 3 }),
         playerBuff({ at: 1, kind: 'quickness', duration: 3 }),
@@ -301,7 +317,9 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
 test('duration-stacking boon charts discard grants above the 30-second cap', () => {
   const series = buildChartSeries(
     {
-      duration: 32,
+      rotationEndTime: 32,
+      observationEndTime: 32,
+      combatEndTime: 32,
       events: [
         playerBuff({ at: 0, kind: 'quickness', duration: 29 }),
         playerBuff({ at: 1, kind: 'quickness', duration: 5 })
@@ -318,7 +336,9 @@ test('duration-stacking boon charts discard grants above the 30-second cap', () 
 test('Swiftness duration stacking caps at 60 seconds', () => {
   const series = buildChartSeries(
     {
-      duration: 62,
+      rotationEndTime: 62,
+      observationEndTime: 62,
+      combatEndTime: 62,
       events: [
         playerBuff({ at: 0, kind: 'swiftness', duration: 59 }),
         playerBuff({ at: 1, kind: 'swiftness', duration: 5 })
@@ -334,7 +354,9 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
 
 test('chart series excludes buffs that do not affect the simulated player', () => {
   const series = buildChartSeries({
-    duration: 2,
+    rotationEndTime: 2,
+    observationEndTime: 2,
+    combatEndTime: 2,
     events: [
       {
         type: 'buff',

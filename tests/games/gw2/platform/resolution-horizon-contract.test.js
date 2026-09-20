@@ -277,7 +277,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
   const delayed = nonlethal.resolvedEvents.find((event) => event.type === 'damage' && event.at === 0.8);
 
   assert.ok(delayed);
-  assert.equal(nonlethal.duration, 2.2);
+  assert.equal(nonlethal.rotationEndTime, 2.2);
 
   const lethal = simulateGw2({
     profession,
@@ -286,7 +286,7 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
   });
 
   assert.equal(lethal.deathTime, 0.8);
-  assert.equal(lethal.duration, 2.2);
+  assert.equal(lethal.rotationEndTime, 2.2);
   assert.ok(Math.abs(lethal.dpsWindow - 0.7) < 1e-12);
   assert.equal(
     lethal.resolvedEvents.some((event) => event.at > 0.8),
@@ -307,7 +307,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     config: fixtureConfig()
   });
 
-  assert.equal(defaultResult.duration, 0.2);
+  assert.equal(defaultResult.rotationEndTime, 0.2);
   assert.equal(
     defaultResult.resolvedEvents.some((event) => event.at === 0.8),
     false
@@ -320,7 +320,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     observationPolicy: { kind: 'tail', durationMs: 1000 }
   });
 
-  assert.equal(tailed.duration, 0.2);
+  assert.equal(tailed.rotationEndTime, 0.2);
   assert.ok(tailed.resolvedEvents.some((event) => event.at === 0.8));
   assert.ok(Math.abs(tailed.dpsWindow - 1.1) < 1e-12);
 
@@ -330,7 +330,7 @@ test('terminal packets require an explicit observation tail or wait', () => {
     config: fixtureConfig()
   });
 
-  assert.equal(waited.duration, 1.2);
+  assert.equal(waited.rotationEndTime, 1.2);
   assert.ok(waited.resolvedEvents.some((event) => event.at === 0.8));
 });
 
@@ -342,7 +342,7 @@ test('absolute observation is finite and target death clips it', () => {
     observationPolicy: { kind: 'absolute', endTimeMs: 900 }
   });
 
-  assert.equal(absolute.duration, 0.2);
+  assert.equal(absolute.rotationEndTime, 0.2);
   assert.equal(
     absolute.events.every((event) => event.at <= 0.9),
     true
@@ -625,7 +625,7 @@ test('event metadata cannot extend an unrelated condition', () => {
   });
 
   assert.equal(withMetadataBait.conditionDamage, clean.conditionDamage);
-  assert.equal(withMetadataBait.duration, 0.2);
+  assert.equal(withMetadataBait.rotationEndTime, 0.2);
   assert.equal(
     withMetadataBait.resolvedEvents.some((event) => event.at === 2.1),
     false

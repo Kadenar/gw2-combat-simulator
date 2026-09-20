@@ -97,10 +97,10 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
     (module) => module.resolverHooks?.eventHandlers,
     'event handler'
   );
-  const projectEndState = singleOwnerValue(
+  const projectPlanningState = singleOwnerValue(
     genericModules,
-    (module) => module.resources?.projectEndState,
-    'resources.projectEndState'
+    (module) => module.resources?.projectPlanningState,
+    'resources.projectPlanningState'
   );
   return {
     id: definition.id,
@@ -111,7 +111,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
     resources: {
       createProfessionState: (config) => composeStateFragments(genericModules, config, false) as TProfessionState,
       createResolverState: (config) => composeStateFragments(genericModules, config, true),
-      ...(projectEndState == null ? {} : { projectEndState })
+      ...(projectPlanningState == null ? {} : { projectPlanningState })
     },
     attributeRules: composeModuleAttributeRules(genericModules),
     castRules: composeHookContainer(genericModules, 'castRules', CAST_HOOK_NAMES),

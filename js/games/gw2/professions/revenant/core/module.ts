@@ -8,7 +8,7 @@ import {
   revenantCastRules
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { projectRevenantEndState, snapshotRevenantState } from '#gw2/professions/revenant/family-state.js';
+import { projectRevenantPlanningState, snapshotRevenantState } from '#gw2/professions/revenant/family-state.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
@@ -29,7 +29,7 @@ export const revenantCoreModule = defineNativeModule({
   state: {
     scheduler: createRevenantCoreState,
     resolver: createRevenantCoreState,
-    project: projectRevenantEndState
+    project: projectRevenantPlanningState
   },
   mechanics: {
     modifiers: revenantCoreAttributeRules,

@@ -281,7 +281,7 @@ test('shared attribute provenance applies profession static rules once', () => {
         specialization: 'Daredevil',
         selectedTraitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE]
       }
-    }).endState.profession;
+    }).planningState.profession;
   const thiefDirect = simulateDaredevil({
     stats: { vitality: 1000, power: 1000 }
   });

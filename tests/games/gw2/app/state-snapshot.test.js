@@ -49,8 +49,10 @@ test('active state shows one countdown per active relic and ignores future, expi
   const app = {
     build: { relic: 'Claw', rotation: ['a', 'b'] },
     results: {
-      duration: 15,
-      endState: { time: 15000 },
+      rotationEndTime: 15,
+      observationEndTime: 15,
+      combatEndTime: 15,
+      planningState: { atSeconds: 15 },
       procSteps: [
         proc('Relic of the Claw', 8000, 16000),
         proc('Relic of the Claw', 0, 8000),
@@ -60,7 +62,7 @@ test('active state shows one countdown per active relic and ignores future, expi
         proc('Sigil of Test', 0, 10000, 'sigil_proc')
       ]
     },
-    adapter: { eliteSpecialization: () => 'Core', rotationEndStateAt: () => ({ time: 3000 }) },
+    adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 3 }) },
     profession: { ui: { rotationStateSnapshot: () => [] } },
     rotationInsertionIndex: 1
   };
@@ -75,8 +77,8 @@ test('active state shows one countdown per active relic and ignores future, expi
   );
   app.rotationInsertionIndex = null;
   assert.equal(rotationStateSnapshot(app).items[0].value, '1.0s');
-  app.results.endState.time = 16000;
-  app.results.duration = 16;
+  app.results.planningState.atSeconds = 16;
+  app.results.rotationEndTime = 16;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
   app.results = null;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
@@ -117,22 +119,22 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
   const app = {
     build: { rotation: ['a', 'b'] },
     results: {
-      endState: { time: 11000 },
+      planningState: { atSeconds: 11 },
       procSteps: [proc(2000, 3), proc(11000, 1), proc(0, 1), proc(1000, 2)]
     },
     profession: { ui: { rotationStateSnapshot: () => [] } },
-    adapter: { eliteSpecialization: () => 'Core', rotationEndStateAt: () => ({ time: 1500 }) },
+    adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 1.5 }) },
     rotationInsertionIndex: 1
   };
   const item = rotationStateSnapshot(app).items[0];
   assert.equal(item.value, '2/5 stacks');
   assert.equal(item.title, 'Relic of Aristocracy: 2/5 stacks, 7.5s remaining');
   app.rotationInsertionIndex = null;
-  app.results.endState.time = 2500;
+  app.results.planningState.atSeconds = 2.5;
   assert.equal(rotationStateSnapshot(app).items[0].value, '3/5 stacks');
-  app.results.endState.time = 10000;
+  app.results.planningState.atSeconds = 10;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
-  app.results.endState.time = 11000;
+  app.results.planningState.atSeconds = 11;
   assert.equal(rotationStateSnapshot(app).items[0].value, '1/5 stacks');
 });
 
@@ -164,7 +166,7 @@ test('Chronomancer active state shows only pending conversions from phantasms al
       rotationInsertionIndex: 1,
       adapter: {
         eliteSpecialization: () => 'Chronomancer',
-        rotationEndStateAt: () => ({ time: at * 1000, profession: {} })
+        rotationPlanningStateAt: () => ({ atSeconds: at, profession: {} })
       }
     }).items.filter((item) => item.id.startsWith('chronomancer-phantasm:'));
 

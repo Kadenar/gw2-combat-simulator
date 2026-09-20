@@ -43,7 +43,7 @@ test('native wells and uncommitted interrupted effects obey caller observation',
     well.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Well of Suffering').length,
     6
   );
-  assert.ok(well.dpsWindow > well.duration);
+  assert.ok(well.dpsWindow > well.rotationEndTime);
 
   const projectile = simulateNecromancer(
     'Reaper',
@@ -84,7 +84,7 @@ test('native summons and condition builds stop at the observation boundary', () 
 
   assert.ok(summonAttacks.length >= 2);
   assert.equal(
-    summonAttacks.every((event) => event.at <= summon.duration + 7),
+    summonAttacks.every((event) => event.at <= summon.rotationEndTime + 7),
     true
   );
 
@@ -96,9 +96,9 @@ test('native summons and condition builds stop at the observation boundary', () 
   );
 
   assert.ok(condition.conditionDamage > 0);
-  assert.ok(condition.dpsWindow > condition.duration);
+  assert.ok(condition.dpsWindow > condition.rotationEndTime);
   assert.equal(
-    condition.resolvedEvents.every((event) => event.at <= condition.duration + 10),
+    condition.resolvedEvents.every((event) => event.at <= condition.rotationEndTime + 10),
     true
   );
 });
@@ -118,11 +118,11 @@ test('native upkeep recurrence terminates at starvation inside a finite tail', (
     observationPolicy: { kind: 'tail', durationMs: 50_000 }
   });
 
-  assert.equal(result.endState.profession.activeUpkeeps.length, 0);
-  assert.ok(Math.abs(result.endState.profession.energy - 25) < 0.01);
-  assert.ok(result.dpsWindow > result.duration);
+  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
+  assert.ok(Math.abs(result.planningState.profession.energy - 25) < 0.01);
+  assert.ok(result.dpsWindow > result.rotationEndTime);
   assert.equal(
-    result.events.every((event) => event.at <= result.duration + 50),
+    result.events.every((event) => event.at <= result.rotationEndTime + 50),
     true
   );
 });

@@ -29,8 +29,8 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
       [0, 1000, 2000, 3000, 4000]
     );
     assert.equal(damage.at(-1).coefficient, 2.5);
-    assert.equal(result.endState.cooldowns['Blossoming Aura'].readyAt, 8000);
-    assert.equal(result.endState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
+    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
+    assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
 
@@ -49,8 +49,8 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
       damage.filter((event) => event.name === 'Final Damage').map((event) => event.coefficient),
       [1 + tier * 0.5]
     );
-    assert.equal(result.endState.cooldowns['Blossoming Aura'].readyAt, 8000);
-    assert.equal(result.endState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
+    assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
+    assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
 
@@ -61,7 +61,7 @@ test('Aura stays attached and remains manually detonatable across a legend swap'
     auraDamage(result).map((event) => event.name),
     ['Pulsing Damage', 'Final Damage']
   );
-  assert.equal(result.endState.cooldowns['Blossoming Aura'].readyAt, 8000);
+  assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 8000);
 });
 
 test('Staff attacks divide their total coefficients per hit and Rejuvenating Assault owns a whirl finisher', () => {

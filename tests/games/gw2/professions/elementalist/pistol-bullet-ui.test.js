@@ -32,9 +32,9 @@ function createPistolApp() {
     skillById: elementalistCatalog.skillsById,
     weaponData: elementalistAppAdapter.weaponData,
     results: {
-      endState: {
+      planningState: {
         activeWeaponSet: 1,
-        time: 0,
+        atSeconds: 0,
         cooldowns: {},
         profession: {
           primaryAttunement: 'Air',
@@ -118,7 +118,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   assert.match(partialStock, /data-skill="Electric Exposure"/);
   assert.doesNotMatch(partialStock, />Special<\/div>/);
 
-  app.results.endState.profession.pistolBullets = {
+  app.results.planningState.profession.pistolBullets = {
     Fire: true,
     Water: true,
     Air: true,
@@ -149,8 +149,8 @@ test('pistol controls and Elemental Explosion follow the active equipment set', 
   app.build.startingWeaponSet = 2;
   app.build.pistolBullets = { Fire: true, Water: true, Air: true, Earth: true };
   const live = app.results;
-  live.endState.activeWeaponSet = 2;
-  live.endState.profession.pistolBullets = { ...app.build.pistolBullets };
+  live.planningState.activeWeaponSet = 2;
+  live.planningState.profession.pistolBullets = { ...app.build.pistolBullets };
   for (const results of [null, live]) {
     app.results = results;
     const html = renderPaletteMarkup(app);
@@ -161,7 +161,7 @@ test('pistol controls and Elemental Explosion follow the active equipment set', 
     );
   }
 
-  live.endState.activeWeaponSet = 1;
+  live.planningState.activeWeaponSet = 1;
   assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);
   assert.doesNotMatch(renderPaletteMarkup(app), /data-skill="Elemental Explosion"/);
 });

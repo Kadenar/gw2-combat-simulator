@@ -122,9 +122,8 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly staticDischarge?: boolean;
 };
 
-export interface EngineerEndStateProjectionOptions {
+export interface EngineerPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<EngineerRuntimeState>;
-  readonly resolverState?: EngineerRuntimeState;
 }
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;

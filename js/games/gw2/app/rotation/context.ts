@@ -12,34 +12,34 @@ export interface RotationProfessionState {
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
-type RotationEndState = ProfessionAppResult['endState'];
+type RotationPlanningState = ProfessionAppResult['planningState'];
 
 const paletteStateCache = new WeakMap<
   ProfessionAppState,
   {
     readonly result: ProfessionAppResult;
     readonly insertionIndex: number;
-    readonly state: RotationEndState;
+    readonly state: RotationPlanningState;
   }
 >();
 
 export const seconds = (ms: number): string => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 
-export const professionEndState = (result: ProfessionAppResult | null | undefined): RotationProfessionState =>
-  result?.endState?.profession && typeof result.endState.profession === 'object'
-    ? (result.endState.profession as RotationProfessionState)
+export const professionPlanningState = (result: ProfessionAppResult | null | undefined): RotationProfessionState =>
+  result?.planningState?.profession && typeof result.planningState.profession === 'object'
+    ? (result.planningState.profession as RotationProfessionState)
     : {};
 
-export function paletteEndState(app: ProfessionAppState): RotationEndState | null {
+export function palettePlanningState(app: ProfessionAppState): RotationPlanningState | null {
   const result = app.results;
   if (!result) return null;
   const rotation = Array.isArray(app.build?.rotation) ? app.build.rotation : [];
   const insertionIndex =
     normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length) ?? rotation.length;
   // Appending still needs rotation-end availability when the displayed result includes a tail.
-  const hasTail = (result.endState?.time ?? 0) > Math.round(result.duration * 1000);
-  if ((insertionIndex === rotation.length && !hasTail) || typeof app.adapter?.rotationEndStateAt !== 'function') {
-    return result.endState;
+  const hasTail = (result.planningState?.atSeconds ?? 0) > result.rotationEndTime;
+  if ((insertionIndex === rotation.length && !hasTail) || typeof app.adapter?.rotationPlanningStateAt !== 'function') {
+    return result.planningState;
   }
 
   const cached = paletteStateCache.get(app);
@@ -47,13 +47,13 @@ export function paletteEndState(app: ProfessionAppState): RotationEndState | nul
     return cached.state;
   }
 
-  const state = app.adapter.rotationEndStateAt(app, insertionIndex);
+  const state = app.adapter.rotationPlanningStateAt(app, insertionIndex);
   paletteStateCache.set(app, { result, insertionIndex, state });
   return state;
 }
 
 export const paletteProfessionState = (app: ProfessionAppState): RotationProfessionState => {
-  const profession = paletteEndState(app)?.profession;
+  const profession = palettePlanningState(app)?.profession;
   return profession && typeof profession === 'object' ? (profession as RotationProfessionState) : {};
 };
 

@@ -15,7 +15,9 @@ test('boon charts switch between self, allies, and comparison without losing eff
       recipientCount: 1
     };
     const series = buildChartSeries({
-      duration: 10,
+      rotationEndTime: 10,
+      observationEndTime: 10,
+      combatEndTime: 10,
       resolvedEvents: [
         { type: 'buff', kind: 'might', at: 0, duration: 10, stacks: 20, resolvedAudience },
         {
@@ -90,7 +92,9 @@ test('effect summaries show average stacks and stay readable on narrow screens',
       recipientCount: 1
     };
     const series = buildChartSeries({
-      duration: 60,
+      rotationEndTime: 60,
+      observationEndTime: 60,
+      combatEndTime: 60,
       alliedPlayerCount: 0,
       resolvedEvents: [
         { type: 'buff', kind: 'alacrity', at: -1, duration: 30, audience: { recipients: 'party' }, resolvedAudience },

@@ -4,7 +4,7 @@ import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
 import type {
-  MesmerEndState,
+  MesmerPlanningState,
   MesmerProfessionState,
   MesmerProjectedFlip,
   MesmerRuntimeState,
@@ -82,11 +82,11 @@ export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
 }
 
 /** Projects the family aggregate while exposing only the active specialization's optional fields. */
-export function projectMesmerEndState({
+export function projectMesmerPlanningState({
   schedulerContext: context
 }: {
   readonly schedulerContext: MesmerSchedulerContext;
-}): MesmerEndState {
+}): MesmerPlanningState {
   const runtime = mesmerRuntimeFor(context);
   const { state, config } = context;
   const endTime = state.time;

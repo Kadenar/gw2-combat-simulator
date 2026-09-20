@@ -140,7 +140,7 @@ for (const profession of professions.length
       verificationMs: verified - searched,
       totalMs: verified - searchStart
     },
-    duration: result.duration,
+    rotationEndTime: result.rotationEndTime,
     events: result.resolvedEvents.length,
     ticks: result.resolvedEvents.reduce((sum, event) => sum + (event.damageTicks?.length || 0), 0),
     schedulingPasses,

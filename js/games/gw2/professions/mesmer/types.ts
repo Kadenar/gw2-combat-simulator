@@ -110,7 +110,7 @@ export interface MesmerProjectedFlip {
   readonly persistent: boolean;
 }
 
-export interface MesmerEndState {
+export interface MesmerPlanningState {
   readonly endurance?: number;
   readonly maximumEndurance?: number;
   readonly resource: number;
@@ -272,7 +272,8 @@ export interface MesmerRuntime {
 }
 
 /** UI callbacks read both live state and the named public projection fields. */
-export type MesmerUiState = Partial<MesmerProfessionState> & Partial<Omit<MesmerEndState, keyof MesmerProfessionState>>;
+export type MesmerUiState = Partial<MesmerProfessionState> &
+  Partial<Omit<MesmerPlanningState, keyof MesmerProfessionState>>;
 
 export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<MesmerUiState>, 'build'> {
   readonly config?: Partial<MesmerConfig>;

@@ -3,13 +3,18 @@ import {
   onBuffApplied,
   onConditionApplied,
   onResolvedCriticalHit,
-  onResolvedDamage
+  onResolvedDamage,
+  onResolvingDamage
 } from '#gw2/platform/profession-definition/mechanics.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from '#gw2/professions/thief/core/mechanics/reactions.js';
-import { thiefCoreAttributeRules, thiefCoreCastRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import {
+  thiefCoreAttributeRules,
+  thiefCoreCastRules,
+  modifyThiefLifeSiphon
+} from '#gw2/professions/thief/core/traits/modifiers.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { projectThiefEndState } from '#gw2/professions/thief/family-state.js';
+import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCoreSkillHandlers } from '#gw2/professions/thief/core/execution/index.js';
@@ -26,7 +31,7 @@ export const thiefCoreModule = defineNativeModule({
   state: {
     scheduler: createThiefCoreState,
     resolver: createThiefCoreState,
-    project: projectThiefEndState
+    project: projectThiefPlanningState
   },
   mechanics: {
     modifiers: thiefCoreAttributeRules,
@@ -37,6 +42,7 @@ export const thiefCoreModule = defineNativeModule({
     },
     resolution: {
       reactions: [
+        onResolvingDamage({ id: 'thief.life-siphon', handler: modifyThiefLifeSiphon }),
         ...thiefCoreEventReactions.critical.map(onResolvedCriticalHit),
         ...thiefCoreEventReactions.damage.map(onResolvedDamage),
         ...thiefCoreEventReactions.condition.map(onConditionApplied),

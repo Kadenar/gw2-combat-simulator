@@ -368,7 +368,14 @@ async function showOptimizerResults(page) {
     const runner = app.gearOptimizerRunner;
     const request = captureGearOptimizerRequest(app, { food: ['', app.build.food], utility: ['', app.build.utility] });
     const equipment = optimizerEquipment(request.build);
-    const baseline = { dps: 1000, totalDamage: 1000, duration: 1, warnings: [] };
+    const baseline = {
+      dps: 1000,
+      totalDamage: 1000,
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
+      warnings: []
+    };
     const winners = [{ food: '', utility: '' }, { food: '' }, { utility: '' }, {}].map((changes, index) => ({
       key: String(index),
       equipment: { ...structuredClone(equipment), ...changes },

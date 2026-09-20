@@ -52,10 +52,10 @@ test('Conduit upkeep resources are independent of wait segmentation', () => {
   );
   for (const result of results) {
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.affinity, 4);
+    assert.equal(result.planningState.profession.affinity, 4);
   }
 
-  assert.equal(results[0].endState.profession.energy, results[1].endState.profession.energy);
+  assert.equal(results[0].planningState.profession.energy, results[1].planningState.profession.energy);
 });
 
 test('Conduit upkeep snapshots use the due tick timestamp', () => {
@@ -75,8 +75,8 @@ test('Conduit dagger cadence survives long waits and stops at form expiry', () =
   assert.deepEqual(daggerTimes(results[0]), daggerTimes(results[1]));
   assert.ok(daggerTimes(results[0]).includes(1));
   assert.ok(!daggerTimes(results[0]).includes(9));
-  assert.equal(results[0].endState.profession.conduitForm, '');
-  assert.equal(results[0].endState.profession.activeUpkeeps.length, 1);
+  assert.equal(results[0].planningState.profession.conduitForm, '');
+  assert.equal(results[0].planningState.profession.activeUpkeeps.length, 1);
 });
 
 test('allied Soulcleave cadence uses ally intervals across idle waits', () => {
@@ -103,7 +103,7 @@ test('starvation cancels Conduit resource and dagger ticks at the boundary', () 
   assert.equal(result.events.find((event) => event.reason === 'upkeep-starved').at, 3);
   assert.deepEqual(affinityTicks(result), []);
   assert.deepEqual(daggerTimes(result), [1, 2]);
-  assert.equal(result.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
 });
 
 test('release and reactivation start a fresh Conduit cadence', () => {
@@ -130,7 +130,7 @@ test('legend swap cancels queued upkeep owners immediately', () => {
   assert.equal(tasks.nextAt('revenant.upkeep-pulse'), Infinity);
   assert.equal(tasks.nextAt('revenant.conduit-upkeep-affinity'), Infinity);
   assert.equal(tasks.nextAt('revenant.conduit-upkeep-daggers'), Infinity);
-  assert.equal(result.endState.profession.affinity, 0);
+  assert.equal(result.planningState.profession.affinity, 0);
 });
 
 test('Conduit upkeep ticks precede same-time cast completion', () => {
@@ -182,7 +182,7 @@ test('releasing Conduit upkeep cancels both specialization tasks', () => {
   const { tasks, result } = simulateWithTasks('Conduit', ['Impossible Odds', wait(100), 'Relinquish Power']);
   assert.equal(tasks.nextAt('revenant.conduit-upkeep-affinity'), Infinity);
   assert.equal(tasks.nextAt('revenant.conduit-upkeep-daggers'), Infinity);
-  assert.equal(result.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
 });
 
 test('starved Conduit upkeep can reactivate with a fresh deadline', () => {

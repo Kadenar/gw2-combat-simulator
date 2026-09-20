@@ -783,12 +783,12 @@ test('Necromancer public projection keeps inactive compatibility fields', () => 
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.endState.profession.blight, 0);
-  assert.deepEqual(result.endState.profession.blightExpiries, []);
-  assert.deepEqual(result.endState.profession.shades, []);
-  assert.deepEqual(result.endState.profession.activeSpirits, {});
-  assert.equal(result.endState.profession.soulTwistingAvailable, false);
-  assert.equal(result.endState.profession.meltdownUntil, 0);
+  assert.equal(result.planningState.profession.blight, 0);
+  assert.deepEqual(result.planningState.profession.blightExpiries, []);
+  assert.deepEqual(result.planningState.profession.shades, []);
+  assert.deepEqual(result.planningState.profession.activeSpirits, {});
+  assert.equal(result.planningState.profession.soulTwistingAvailable, false);
+  assert.equal(result.planningState.profession.meltdownUntil, 0);
 });
 
 const guardianInactiveStateKeys = Object.freeze({
@@ -953,10 +953,10 @@ test('Guardian runtime UI and public projection preserve their contracts', () =>
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.endState.profession.activeTome, '');
-  assert.equal(result.endState.profession.tomePages, 5);
-  assert.equal(result.endState.profession.radiantForge, false);
-  assert.deepEqual(result.endState.profession.radiantWeaponsUsed, {});
+  assert.equal(result.planningState.profession.activeTome, '');
+  assert.equal(result.planningState.profession.tomePages, 5);
+  assert.equal(result.planningState.profession.radiantForge, false);
+  assert.deepEqual(result.planningState.profession.radiantWeaponsUsed, {});
 });
 
 const mesmerSlices = Object.freeze([
@@ -1073,11 +1073,11 @@ test('Mesmer runtime UI and ammo output expose only the active specialization st
     const result = simulateGw2({ profession: mesmerProfession, config, rotation: [] });
     const liveAmmo = [...result.schedulerState.ammo];
     assert.deepEqual(
-      result.endState.ammo,
+      result.planningState.ammo,
       Object.fromEntries(liveAmmo.map(([id, ammo]) => [runtime.catalog.skillsById.get(id).name, ammo])),
       active
     );
-    assert.deepEqual(result.endState.ammoBySkillId, Object.fromEntries(liveAmmo), active);
+    assert.deepEqual(result.planningState.ammoBySkillId, Object.fromEntries(liveAmmo), active);
   }
 });
 
@@ -1218,9 +1218,9 @@ test('Revenant runtime UI and public projection preserve their contracts', () =>
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.endState.profession.affinity, 0);
-  assert.equal(result.endState.profession.bandTogetherReady, false);
-  assert.deepEqual(result.endState.profession.kallasFervor, []);
+  assert.equal(result.planningState.profession.affinity, 0);
+  assert.equal(result.planningState.profession.bandTogetherReady, false);
+  assert.deepEqual(result.planningState.profession.kallasFervor, []);
 });
 
 const engineerSlices = Object.freeze([
@@ -1422,8 +1422,8 @@ test('Engineer runtime UI and public projection preserve their contracts', () =>
     config: { specialization: 'Core' }
   });
 
-  assert.equal(result.endState.profession.heat, 0);
-  assert.equal(result.endState.profession.photonForgeActive, false);
-  assert.equal(result.endState.profession.mech.enabled, false);
-  assert.deepEqual(result.endState.profession.selectedMorphSkillIds, []);
+  assert.equal(result.planningState.profession.heat, 0);
+  assert.equal(result.planningState.profession.photonForgeActive, false);
+  assert.equal(result.planningState.profession.mech.enabled, false);
+  assert.deepEqual(result.planningState.profession.selectedMorphSkillIds, []);
 });

@@ -133,6 +133,6 @@ export type ElementalistResolverContext = Gw2ResolverRuntime & {
 };
 
 /** Input to the family end-state projection: the scheduler state at the end of a run. */
-export interface ElementalistEndStateProjectionOptions {
+export interface ElementalistPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<ElementalistRuntimeState>;
 }

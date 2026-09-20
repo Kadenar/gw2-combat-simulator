@@ -179,7 +179,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
       (event) => event.type === 'damage' && event.skillName === 'Embrace the Darkness' && event.coefficient === 0.3
     )
   );
-  assert.equal(baseline.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(baseline.planningState.profession.activeUpkeeps.length, 0);
 
   const empowered = simulate(
     'Core',
@@ -205,7 +205,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
     empoweredPulses.map((event) => event.stacks),
     [1, 2, 2]
   );
-  assert.equal(empowered.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(empowered.planningState.profession.activeUpkeeps.length, 0);
 
   const freeSkill = simulate(
     'Core',
@@ -254,7 +254,7 @@ test('Dwarf upkeep stops dealing damage when released', () => {
   assert.deepEqual(result.warnings, []);
   assert.ok(hits.length > 0);
   assert.ok(hits.every((event) => event.at <= release.end / 1000));
-  assert.equal(result.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
 });
 
 // Measure the interval from the triggering hit, so a new hit may land 120 ms after the prior delayed strike.
@@ -395,8 +395,8 @@ test('Icerazor grants Fervor only after its projectiles land', () => {
   // Summoning reserves future impacts; it must not grant their stacks during the cast.
   const pending = simulate('Renegade', ["Icerazor's Ire"], config);
   const landed = simulate('Renegade', ["Icerazor's Ire", { type: 'wait', durationMs: 1000 }], config);
-  assert.equal(pending.endState.profession.kallasFervor.length, 0);
-  assert.equal(landed.endState.profession.kallasFervor.length, 3);
+  assert.equal(pending.planningState.profession.kallasFervor.length, 0);
+  assert.equal(landed.planningState.profession.kallasFervor.length, 3);
 });
 
 test('Citadel Bombardment burns on each hit and Vindication triggers once per cast', () => {
@@ -451,7 +451,9 @@ test("Kalla's Fervor chart uses the Renegade stack cap", () => {
   });
   const series = buildChartSeries(
     {
-      duration: 2,
+      rotationEndTime: 2,
+      observationEndTime: 2,
+      combatEndTime: 2,
       events: Array.from({ length: 7 }, (_, index) => ({
         type: 'buff',
         at: index * 0.01,
@@ -544,7 +546,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   const rotation = ['Citadel Bombardment', { type: 'wait', durationMs: 2000 }, 'Heroic Command'];
   const base = simulate('Renegade', rotation, config);
 
-  assert.equal(base.endState.profession.kallasFervor.length, 5);
+  assert.equal(base.planningState.profession.kallasFervor.length, 5);
   assert.ok(
     base.events.some(
       (event) =>
@@ -660,7 +662,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
     initialEnergy: 100
   });
 
-  assert.equal(critical.endState.profession.kallasFervor.length, 2);
+  assert.equal(critical.planningState.profession.kallasFervor.length, 2);
   assert.ok(
     critical.events.some(
       (event) =>
@@ -978,8 +980,8 @@ describe('Band Together summon enhancement', () => {
       paletteSkillIsInstant(
         { profession: revenantProfession },
         {
-          professionState: primed.endState.profession,
-          time: primed.endState.time / 1000
+          professionState: primed.planningState.profession,
+          time: primed.planningState.atSeconds
         },
         razorclaw
       ),
@@ -1036,14 +1038,14 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   const traited = simulate('Renegade', rotation, { ...config, selectedTraitIds: [TRAIT.ALL_FOR_ONE] });
   assert.deepEqual(base.warnings, []);
   assert.deepEqual(traited.warnings, []);
-  assert.ok(traited.endState.profession.energy > base.endState.profession.energy);
+  assert.ok(traited.planningState.profession.energy > base.planningState.profession.energy);
   assert.equal(
-    traited.endState.cooldowns["Icerazor's Ire"].remaining,
-    base.endState.cooldowns["Icerazor's Ire"].remaining / 2
+    traited.planningState.cooldowns["Icerazor's Ire"].remaining,
+    base.planningState.cooldowns["Icerazor's Ire"].remaining / 2
   );
   assert.equal(
-    traited.endState.cooldowns["Razorclaw's Rage"].readyAt,
-    base.endState.cooldowns["Razorclaw's Rage"].readyAt
+    traited.planningState.cooldowns["Razorclaw's Rage"].readyAt,
+    base.planningState.cooldowns["Razorclaw's Rage"].readyAt
   );
   assert.equal(
     traited.events.filter((event) => event.type === 'revenant.state' && event.reason === 'all-for-one').length,
@@ -1138,7 +1140,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   // Each hit consumes one dagger and schedules its siphon after the triggering strike.
   assert.ok(siphon.at > traversal.at);
   assert.ok(siphon.flatStrikeBase > 0);
-  assert.equal(daggers.endState.profession.enchantedDaggers.charges, 5);
+  assert.equal(daggers.planningState.profession.enchantedDaggers.charges, 5);
 
   const odds = simulate('Core', ['Impossible Odds', 'Phase Traversal', 'Relinquish Power', 'Impossible Odds'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -1197,7 +1199,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   );
   assert.equal(starvation?.at, 1);
   assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, impossible.starvationCooldown);
-  assert.equal(starved.endState.profession.activeUpkeeps.length, 0);
+  assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 
 test('Spear of Archemorus applies torment with its delayed impact', () => {
@@ -1238,7 +1240,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   assert.equal(dodges.length, 3);
   assert.equal(dodges[1].coefficient, dodges[0].coefficient * 2);
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
-  assert.equal(result.endState.profession.reaversCurseUntil, 0);
+  assert.equal(result.planningState.profession.reaversCurseUntil, 0);
   assert.equal(
     revenantAttributeRules.modifyStrikeDamage(
       {
@@ -1260,8 +1262,8 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   );
   const baseline = simulate('Vindicator', ['Dodge', 'Energy Meld'], { ...config, selectedTraitIds: [] });
   assert.ok(
-    result.endState.cooldowns['Energy Meld'].readyAt - meld.end <
-      baseline.endState.cooldowns['Energy Meld'].readyAt - baseline.steps.at(-1).end
+    result.planningState.cooldowns['Energy Meld'].readyAt - meld.end <
+      baseline.planningState.cooldowns['Energy Meld'].readyAt - baseline.steps.at(-1).end
   );
   assert.ok(
     result.events.some(
@@ -1285,7 +1287,7 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
       assert.equal(meld.length, interruptAfterMs == null ? 1 : 0);
       const passiveEnergy = (5 * result.steps.at(-1).end) / 1000;
       assert.ok(
-        Math.abs(result.endState.profession.energy - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) < 1e-9
+        Math.abs(result.planningState.profession.energy - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) < 1e-9
       );
       if (meld.length) assert.equal(meld[0].at, result.steps.at(-1).end / 1000);
     }
@@ -1490,7 +1492,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     skillById: revenantCatalog.skillsById,
     skillByName: revenantCatalog.skillsByName,
     results: {
-      endState: {
+      planningState: {
         activeWeaponSet: 1,
         profession: { autoattackChains: {} }
       }
@@ -1584,7 +1586,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.equal(app.rotationInsertionIndex, 2);
   assert.equal(changeCount, 2);
 
-  app.results.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
+  app.results.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
   assert.equal(currentAutoattackSkill(app).name, 'Brutal Blade');
 
   const combined = simulate(
@@ -1683,8 +1685,8 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
     profession: revenantProfession,
     skills: revenantCatalog.skills,
     results: {
-      endState: {
-        time: 720,
+      planningState: {
+        atSeconds: 0.72,
         cooldowns: {
           Deathstrike: { readyAt: 12420, remaining: 11700 }
         }

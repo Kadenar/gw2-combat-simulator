@@ -15,7 +15,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
   Gw2DeclarativeSimulationOptions,
   Gw2ProfessionContract,
-  Gw2SimulationEndState,
+  Gw2SimulationPlanningState,
   Gw2SimulationResult
 } from '#gw2/platform/simulation/types.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
@@ -23,15 +23,13 @@ import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 
 export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
 
-function endState(
+function planningState(
   profession: Gw2ProfessionContract,
   config: Gw2Config,
-  scheduled: SchedulerRunResult,
-  resolved: Gw2ResolverResult
-): Gw2SimulationEndState {
-  // Scheduler state owns clocks/cooldowns/ammo; resolver state owns profession
-  // effects. Use the final scheduler clock so tail-recovered resources and
-  // remaining cooldowns describe the same observation instant.
+  scheduled: SchedulerRunResult
+): Gw2SimulationPlanningState {
+  // Planning describes the completed schedule, even when combat ended earlier.
+  // Never mix resolver-owned effects at death into this later prediction.
   const endTime = scheduled.state.time;
   const skillName = (id: SkillId): string => profession.catalog?.skillsById?.get(id)?.name || String(id);
   const cooldowns = Object.fromEntries(
@@ -50,21 +48,20 @@ function endState(
   const ammoBySkillId = Object.fromEntries(
     [...scheduled.state.ammo].map(([id, value]) => [String(id), structuredClone(value)])
   );
-  // Project profession effects once; cooldowns and ammo remain owned by the scheduler.
-  const projected = profession.projectEndState({
+  // Profession projections receive only scheduler-owned inputs.
+  const projected = profession.projectPlanningState({
     config,
     schedulerContext: scheduled.context,
-    schedulerState: scheduled.state,
-    resolverState: resolved.profession
+    schedulerState: scheduled.state
   });
   return {
-    time: Math.round(endTime * 1000),
+    atSeconds: endTime,
     cooldowns,
     ammo,
     ammoBySkillId,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
-    profession: structuredClone(projected ?? resolved.profession)
+    profession: structuredClone(projected ?? flattenProfessionState(scheduled.state.profession))
   };
 }
 
@@ -137,13 +134,15 @@ function simulateDeclarativeGw2Pass({
   const detailed = resolved as Gw2ResolverResult;
   const result = {
     ...detailed,
-    profession: structuredClone(flattenProfessionState(detailed.profession)),
+    combatState: {
+      atSeconds: detailed.combatEndTime,
+      profession: structuredClone(flattenProfessionState(detailed.combatState.profession))
+    },
     steps: scheduled.steps,
     // Detailed results preserve the full rotation's input rate even when damage reporting uses another window.
     rotationApm: rotationApm(scheduled, rotation, runtimeProfession.catalog),
-    endState: endState(runtimeProfession, config, scheduled, detailed),
+    planningState: planningState(runtimeProfession, config, scheduled),
     schedulerState: scheduled.state,
-    snapshot: scheduled.snapshot,
     warnings
   };
   onPhase?.('reporting', performance.now() - reportingStarted);
@@ -165,7 +164,9 @@ export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOpt
     observationPolicy: options.observationPolicy
   });
   const {
-    duration,
+    rotationEndTime,
+    observationEndTime,
+    combatEndTime,
     combatStartTime,
     hasExplicitCombatStart,
     dpsStartTime,
@@ -183,7 +184,9 @@ export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOpt
   } = result;
   return {
     output: 'score',
-    duration,
+    rotationEndTime,
+    observationEndTime,
+    combatEndTime,
     combatStartTime,
     hasExplicitCombatStart,
     dpsStartTime,

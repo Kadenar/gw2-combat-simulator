@@ -19,9 +19,9 @@ import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.j
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   activeSpecialization,
-  paletteEndState,
+  palettePlanningState,
   paletteProfessionState,
-  professionEndState
+  professionPlanningState
 } from '#gw2/app/rotation/context.js';
 import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
@@ -110,7 +110,7 @@ function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceV
     specialization,
     build: app.build,
     // Profession views use scheduler seconds for their live cooldown labels.
-    simulationTime: Number(paletteEndState(app)?.time || 0) / 1000,
+    simulationTime: Number(palettePlanningState(app)?.atSeconds || 0),
     value: professionState.resource ?? app.build?.initialResource,
     professionState,
     initialResource: app.build?.initialResource,
@@ -328,7 +328,7 @@ export function activeResourceGroup(
 export function renderStartResource(app: ProfessionAppState): void {
   const element = document.getElementById('start-att-selector');
   if (!element) return;
-  const professionState = professionEndState(app.results);
+  const professionState = professionPlanningState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
     specialization: activeSpecialization(app),
     build: app.build,

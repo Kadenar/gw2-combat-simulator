@@ -7,7 +7,7 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { projectRangerEndState } from '#gw2/professions/ranger/family-state.js';
+import { projectRangerPlanningState } from '#gw2/professions/ranger/family-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -161,7 +161,7 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
   assert.equal(untamed['untamed-ferocious-symbiosis-player'], '3/5 · 5.0s');
   assert.equal(untamed['untamed-ferocious-symbiosis-pet'], '5/5 · 4.0s');
 
-  const projected = projectRangerEndState({
+  const projected = projectRangerPlanningState({
     schedulerState: {
       profession: {
         core: {},
@@ -176,8 +176,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       }
     }
   });
-  assert.equal(projected.ferociousSymbiosisPlayerStacks, 4);
-  assert.equal(projected.ferociousSymbiosisPlayerUntil, 10);
+  assert.equal(projected.ferociousSymbiosisPlayerStacks, 0);
+  assert.equal(projected.ferociousSymbiosisPlayerUntil, 0);
 
   const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { mistralUntil: 7.5 }, 4));
   assert.equal(galeshot['galeshot-mistral'], '3.5s');

@@ -31,7 +31,7 @@ test('two off-target Resolve precasts keep two Tempo applications and deal zero 
     r.procSteps.filter((e) => e.skill === 'Lethal Tempo').map((e) => e.detail),
     ['1/5 stacks', '2/5 stacks']
   );
-  assert.equal(r.endState.ammo['Flowing Resolve'].charges, 0);
+  assert.equal(r.planningState.ammo['Flowing Resolve'].charges, 0);
   assert.equal(r.resolvedEvents.filter((e) => e.type === 'damage' || e.type === 'condition').length, 0);
 });
 

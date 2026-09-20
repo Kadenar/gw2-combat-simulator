@@ -62,12 +62,12 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
   const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.SNIPERS_COVER);
   assert.equal(field.fieldType, 'Smoke');
   near(field.expiresAt - field.at, 5);
-  near(result.endState.profession.availableFlips[ID.DEATHS_ADVANCE], field.expiresAt);
+  near(result.planningState.profession.availableFlips[ID.DEATHS_ADVANCE], field.expiresAt);
   const followup = simulate('Deadeye', ['Kneel', "Sniper's Cover", "Death's Advance"], config);
   assert.deepEqual(followup.warnings, []);
-  assert.equal(followup.endState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
+  assert.equal(followup.planningState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
   const expired = simulate('Deadeye', ['Kneel', "Sniper's Cover", wait(5000)], config);
-  assert.equal(expired.endState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
+  assert.equal(expired.planningState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
 });
 
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
@@ -104,7 +104,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
   });
   assert.deepEqual(step.warnings, []);
   assert.ok(step.events.some((event) => event.type === 'peitha' && event.skillId === ID.INFILTRATORS_SIGNET));
-  assert.ok(step.endState.profession.fluidStrikesUntil > 1);
+  assert.ok(step.planningState.profession.fluidStrikesUntil > 1);
   assert.ok(
     step.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'
@@ -324,7 +324,7 @@ test('THF-003: cancelled activations preserve persistent state while successful 
       const result = simulate(specialization, [cancelled ? { name, interruptMs: 100 } : name], config);
       assert.deepEqual(result.warnings, [], name);
       assert.equal(result.events.find((event) => event.type === 'action').cancelled === true, cancelled, name);
-      assert.equal(committed(result.endState.profession), !cancelled, name);
+      assert.equal(committed(result.planningState.profession), !cancelled, name);
     }
   }
 });
@@ -437,7 +437,7 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
   const split = simulate('Core', [...rotation, wait(10000), wait(2000)], config);
   assert.deepEqual(whole.warnings, []);
   assert.deepEqual(split.warnings, []);
-  near(whole.endState.profession.endurance, split.endState.profession.endurance);
+  near(whole.planningState.profession.endurance, split.planningState.profession.endurance);
 });
 
 test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice snapshot', () => {
@@ -549,9 +549,9 @@ test('THF-012: manual shroud exit waits for entry lockout while forced depletion
   const manual = simulate('Specter', ['Enter Shadow Shroud', 'Exit Shadow Shroud'], { initialShadowForce: 100 });
   assert.deepEqual(manual.warnings, []);
   assert.equal(manual.steps[1].start, 500);
-  assert.equal(manual.endState.profession.shadowShroudActive, false);
+  assert.equal(manual.planningState.profession.shadowShroudActive, false);
   const depleted = simulate('Specter', ['Enter Shadow Shroud', wait(1000)], { initialShadowForce: 0.5 });
   assert.deepEqual(depleted.warnings, []);
   assert.equal(depleted.events.find((event) => event.reason === 'shadow-shroud-depleted').at, 0.25);
-  assert.equal(depleted.endState.profession.shadowShroudActive, false);
+  assert.equal(depleted.planningState.profession.shadowShroudActive, false);
 });

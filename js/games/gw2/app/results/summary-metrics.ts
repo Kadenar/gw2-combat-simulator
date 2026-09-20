@@ -36,7 +36,7 @@ export function baseResultSummaryMetrics(
   locale: string | string[] | undefined = undefined
 ): ResultSummaryMetric[] {
   const format = (value: unknown): string => Math.round(Number(value || 0)).toLocaleString(locale);
-  const duration = Number(result.duration);
+  const duration = Number(result.combatEndTime);
   const deathTime = result.deathTime == null ? null : Number(result.deathTime);
   const metrics: ResultSummaryMetric[] =
     deathTime == null

@@ -11,7 +11,7 @@ import {
   GUARDIAN_CORE_SKILL_MECHANICS
 } from '#gw2/professions/guardian/core/skills/index.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { projectGuardianEndState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
+import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import type { GuardianSchedulerContext } from '#gw2/professions/guardian/types.js';
 import { GUARDIAN_CORE_BALANCE_PROFILES } from '#gw2/professions/guardian/core/profiles.js';
@@ -28,7 +28,7 @@ export const guardianCoreModule = defineNativeModule({
   state: {
     scheduler: createGuardianCoreState,
     resolver: createGuardianCoreState,
-    project: projectGuardianEndState
+    project: projectGuardianPlanningState
   },
   mechanics: {
     modifiers: guardianCoreAttributeRules,

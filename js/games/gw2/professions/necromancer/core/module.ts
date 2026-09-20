@@ -15,7 +15,10 @@ import {
   necromancerCoreResolverEventReactions
 } from '#gw2/professions/necromancer/core/mechanics/reactions.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { projectNecromancerEndState, snapshotNecromancerState } from '#gw2/professions/necromancer/family-state.js';
+import {
+  projectNecromancerPlanningState,
+  snapshotNecromancerState
+} from '#gw2/professions/necromancer/family-state.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
@@ -42,7 +45,7 @@ export const necromancerCoreModule = defineNativeModule({
   state: {
     scheduler: createNecromancerCoreState,
     resolver: createNecromancerCoreState,
-    project: projectNecromancerEndState
+    project: projectNecromancerPlanningState
   },
   mechanics: {
     modifiers: necromancerCoreAttributeRules,

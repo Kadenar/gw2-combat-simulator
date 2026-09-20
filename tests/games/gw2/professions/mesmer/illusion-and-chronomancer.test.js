@@ -36,8 +36,8 @@ test('queueing a cooling-down icon waits until it is available', () => {
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[0].end, 440);
   assert.equal(result.steps[1].start, 4440);
-  assert.equal(result.endState.cooldowns.Bladecall.readyAt, 8880);
-  assert.equal(result.endState.cooldowns.Bladecall.remaining, 4000);
+  assert.equal(result.planningState.cooldowns.Bladecall.readyAt, 8880);
+  assert.equal(result.planningState.cooldowns.Bladecall.remaining, 4000);
 });
 
 test('Lingering Thoughts recharges one ammo count every six seconds', () => {
@@ -64,7 +64,7 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
     result.steps.map((step) => step.start),
     [0, 1170, 6920]
   );
-  assert.equal(result.endState.ammo['Lingering Thoughts'].rechargeDuration, 6);
+  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeDuration, 6);
 });
 
 test('Lingering Thoughts applies its packets and grants its clone 160ms later', () => {
@@ -185,7 +185,7 @@ test('clone state remains capped at three when input or new summons exceed the c
     })
   );
 
-  assert.equal(initial.endState.profession.resource, 3);
+  assert.equal(initial.planningState.profession.resource, 3);
 
   const replaced = simulateMesmer(
     ['Mirror Images', { name: '__wait', waitMs: 1 }],
@@ -197,7 +197,7 @@ test('clone state remains capped at three when input or new summons exceed the c
   );
   const resourceEvents = replaced.events.filter((event) => event.type === 'resource' && event.resource === 'clones');
 
-  assert.equal(replaced.endState.profession.resource, 3);
+  assert.equal(replaced.planningState.profession.resource, 3);
   assert.ok(resourceEvents.every((event) => event.value <= 3));
 });
 
@@ -207,7 +207,7 @@ test('clone resource pips render without a redundant numeric count', () => {
     adapter: { eliteSpecialization: () => 'Chronomancer' },
     build: { initialResource: 0 },
     results: {
-      endState: {
+      planningState: {
         profession: { clones: [{}, {}, {}] }
       }
     }
@@ -248,7 +248,7 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
   );
 
   assert.equal(result.steps[1].start, 2010);
-  assert.equal(result.endState.cooldowns['Continuum Split'].readyAt, 61510);
+  assert.equal(result.planningState.cooldowns['Continuum Split'].readyAt, 61510);
 });
 
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
@@ -474,8 +474,8 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
 
   assert.equal(result.steps[1].start, 100);
   assert.equal(result.steps[1].end, 100);
-  assert.equal(result.endState.time, 440);
-  assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 40100);
+  assert.equal(result.planningState.atSeconds * 1000, 440);
+  assert.equal(result.planningState.cooldowns['Bladesong Distortion'].readyAt, 40100);
 });
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
@@ -609,7 +609,7 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
 
   assert.equal(full.steps[0].end, 1920);
   assert.equal(full.steps[1].start, 9120);
-  assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
+  assert.equal(interrupted.planningState.cooldowns['Confusing Images'].readyAt, 7450);
 });
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
@@ -1364,7 +1364,7 @@ test('Well of Precognition schedules protection pulses and an endurance grant at
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.endState.cooldowns['Well of Precognition'].readyAt - cast.end, 60000);
+  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 60000);
   assert.deepEqual(result.warnings, []);
 });
 

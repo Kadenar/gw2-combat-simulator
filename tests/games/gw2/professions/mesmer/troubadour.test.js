@@ -209,7 +209,7 @@ test('Harmonious Harp replays at 480ms after its Harp Playing packet commits wit
   assert.equal(interrupted.steps[0].fullCastMs, full.steps[0].fullCastMs);
   assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
   assert.equal(interrupted.steps[0].interrupted, true);
-  assert.equal(interrupted.endState.profession.resource, 0);
+  assert.equal(interrupted.planningState.profession.resource, 0);
   const instrument = interrupted.events.find(
     (event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'
   );
@@ -313,7 +313,7 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
       (event) => event.type === 'damage' && event.skillName === 'Syncopate' && event.at === 3.92
     )
   );
-  assert.equal(result.endState.profession.resource, 1);
+  assert.equal(result.planningState.profession.resource, 1);
 });
 
 test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind delayed control lands', () => {
@@ -332,7 +332,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
 
   assert.equal(proc?.at, 3.92);
   assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
-  assert.equal(result.endState.cooldowns['Phantasmal Warlock'].readyAt, 7440);
+  assert.equal(result.planningState.cooldowns['Phantasmal Warlock'].readyAt, 7440);
 });
 
 test('Troubadour tales grant their boons and instrument-specific notes', () => {
@@ -370,7 +370,7 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       })
     );
 
-    assert.equal(result.endState.profession.resource, expectedNotes, tale);
+    assert.equal(result.planningState.profession.resource, expectedNotes, tale);
     assert.ok(
       result.events.some((event) => event.type === 'mesmer.instrument' && instrument.includes(event.instrument))
     );
@@ -418,7 +418,7 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
     casts.map((step) => step.start),
     [0, 4000, 25000]
   );
-  assert.equal(result.endState.profession.resource, 0);
+  assert.equal(result.planningState.profession.resource, 0);
   assert.equal(aegis.length, 3);
   assert.ok(aegis.every((event) => event.duration === 4));
 });
@@ -439,18 +439,18 @@ test('Honorable Rogue restores dodge readiness and stops recharge only when the 
       ];
       const before = simulateMesmer(rotation, config);
       const after = simulateMesmer([...rotation, 'Tale of the Honorable Rogue'], config);
-      const priorAmmo = before.endState.ammoBySkillId[ID.DODGE_TROUBADOUR];
-      const restoredAmmo = after.endState.ammoBySkillId[ID.DODGE_TROUBADOUR];
+      const priorAmmo = before.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR];
+      const restoredAmmo = after.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR];
       assert.deepEqual(before.warnings, []);
       assert.deepEqual(after.warnings, []);
       assert.equal(priorAmmo.charges, 2 - dodges);
       assert.equal(restoredAmmo.charges, 3 - dodges);
-      assert.equal(Object.hasOwn(before.endState.cooldowns, 'Dodge'), dodges === 2);
-      assert.equal(Object.hasOwn(after.endState.cooldowns, 'Dodge'), false);
+      assert.equal(Object.hasOwn(before.planningState.cooldowns, 'Dodge'), dodges === 2);
+      assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
       // Partial refunds keep the original recharge deadline, including Flute's faster recovery.
       assert.equal(restoredAmmo.rechargeDuration, flute ? 8 : 10);
       assert.equal(restoredAmmo.nextRechargeAt, dodges === 1 ? null : priorAmmo.nextRechargeAt);
-      assert.ok(after.endState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
+      assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
     }
   }
 });
@@ -476,7 +476,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     sourceSkill: 'Flustering Flute'
   });
   assert.deepEqual(
-    result.endState.profession.activeInstruments.map((instrument) => instrument.name),
+    result.planningState.profession.activeInstruments.map((instrument) => instrument.name),
     ['Lute', 'Flute']
   );
   const resourceViews = mesmerProfession
@@ -485,7 +485,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     })
     .ui.resourceViews({
       specialization: 'Troubadour',
-      professionState: result.endState.profession
+      professionState: result.planningState.profession
     });
   const notesView = resourceViews.find((view) => view.id === 'notes');
   const playingView = resourceViews.find((view) => view.id === 'playing-instruments');
@@ -645,7 +645,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     harmonize.events.filter((event) => event.type === 'resource').map((event) => event.reason),
     ['Harmonize', 'Phantasmal Swordsman phantasm conversion']
   );
-  assert.equal(harmonize.endState.profession.resource, 2);
+  assert.equal(harmonize.planningState.profession.resource, 2);
 
   const response = simulateMesmer(
     ['Lively Lute', { name: '__wait', waitMs: 2500 }],
@@ -746,7 +746,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
         initialResource,
         selectedTraitIds: [TRAIT.ALTERED_CHORD]
       })
-    ).endState.cooldowns.Crescendo.readyAt;
+    ).planningState.cooldowns.Crescendo.readyAt;
 
   assert.equal(crescendoReadyAt(0) - crescendoReadyAt(1), 1600);
 });

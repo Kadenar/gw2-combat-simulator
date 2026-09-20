@@ -40,7 +40,7 @@ export function skillBarDisplaySkill(
   selected: Skill | null | undefined
 ): Skill | null | undefined {
   if (!selected) return selected;
-  const professionState = app.results?.endState?.profession as RotationProfessionState | undefined;
+  const professionState = app.results?.planningState?.profession as RotationProfessionState | undefined;
   const availableFlips = professionState?.availableFlips;
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
   const flips = availableFlips;
@@ -131,7 +131,7 @@ export function renderSkills(app: ProfessionAppState): void {
     build: app.build,
     specialization: spec,
     catalog: app.activeCatalog,
-    professionState: app.results?.endState?.profession,
+    professionState: app.results?.planningState?.profession,
     traits: new Set((app.attributeData?.activeTraits || []).flatMap((trait) => [trait.id, trait.name]))
   };
   // Profession contracts now expose only editable build selectors here.
@@ -226,7 +226,7 @@ export function renderSkills(app: ProfessionAppState): void {
             {
               build: app.build,
               specialization: spec,
-              professionState: app.results?.endState?.profession,
+              professionState: app.results?.planningState?.profession,
               catalog: app.activeCatalog
             },
             {
@@ -255,7 +255,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const context = {
     build: app.build,
     specialization: spec,
-    professionState: app.results?.endState?.profession,
+    professionState: app.results?.planningState?.profession,
     catalog: app.activeCatalog
   };
   const view = loadout.view(context);

@@ -229,9 +229,9 @@ test('a recorded Mirage dodge restores the state required to replay an ambush', 
 
   assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.endState.profession.endurance < 100);
+  assert.ok(result.planningState.profession.endurance < 100);
   assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
-  assert.equal(result.endState.profession.availableAmbush, null);
+  assert.equal(result.planningState.profession.availableAmbush, null);
 });
 
 test('Frigid Blitz imports retain completed packets without inventing the missing follow-up', async () => {

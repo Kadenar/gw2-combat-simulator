@@ -39,15 +39,15 @@ test('Gunsaber equip and stow count as weapon swaps', () => {
     [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]
   );
   assert.ok(swaps.every((event) => event.weaponSet === 1));
-  assert.equal(result.endState.activeWeaponSet, 1);
-  assert.equal(result.endState.profession.gunsaberActive, true);
+  assert.equal(result.planningState.activeWeaponSet, 1);
+  assert.equal(result.planningState.profession.gunsaberActive, true);
 });
 
 test('Dragon Trigger does not swap again when Gunsaber is already active', () => {
   const result = simulate([ID.UNSHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 1);
-  assert.equal(result.endState.profession.gunsaberActive, true);
+  assert.equal(result.planningState.profession.gunsaberActive, true);
 });
 
 test('Gunsaber equip and stow put the opposite action on a five-second cooldown', () => {
@@ -67,8 +67,8 @@ test('Gunsaber equip and stow put the opposite action on a five-second cooldown'
 
   const unsheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER]);
   const sheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
-  assert.equal(unsheathed.endState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
-  assert.equal(sheathed.endState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
+  assert.equal(unsheathed.planningState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
+  assert.equal(sheathed.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
 });
 
 test('Dragon Trigger starts Unsheathe recharge only when entering from normal weapons', () => {
@@ -81,9 +81,9 @@ test('Dragon Trigger starts Unsheathe recharge only when entering from normal we
   ]) {
     const result = simulate(['__combat_start', ...beforeTrigger, ID.DRAGON_TRIGGER]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.cooldowns['Unsheathe Gunsaber'].remaining, remaining);
-    assert.equal(result.endState.cooldowns['Sheathe Gunsaber'].remaining, remaining);
-    assert.equal(result.endState.cooldowns['Dragon Trigger'], undefined);
+    assert.equal(result.planningState.cooldowns['Unsheathe Gunsaber'].remaining, remaining);
+    assert.equal(result.planningState.cooldowns['Sheathe Gunsaber'].remaining, remaining);
+    assert.equal(result.planningState.cooldowns['Dragon Trigger'], undefined);
   }
 });
 
@@ -100,8 +100,8 @@ test('Gunsaber swaps and Dragon Trigger entry leave both swap actions ready befo
     ]);
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.start === 0));
-    assert.equal(result.endState.cooldowns['Unsheathe Gunsaber'].remaining, 0);
-    assert.equal(result.endState.cooldowns['Sheathe Gunsaber'].remaining, 0);
+    assert.equal(result.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 0);
+    assert.equal(result.planningState.cooldowns['Sheathe Gunsaber'].remaining, 0);
   }
 });
 

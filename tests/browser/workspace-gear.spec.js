@@ -386,12 +386,12 @@ for (const profession of ['elementalist', 'engineer']) {
     await expect(skill).toBeVisible();
     await expect(skill).not.toHaveClass(/unavailable/);
     await skill.click();
-    expect(await page.evaluate(() => window.professionApp.results.endState.activeWeaponSet)).toBe(2);
+    expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
     expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
     if (profession === 'engineer') {
       await page.locator('.utility-palette-group .pal-skill[data-skill="Grenade Kit"]').click();
       await expect
-        .poll(() => page.evaluate(() => window.professionApp.results.endState.profession.activeKit))
+        .poll(() => page.evaluate(() => window.professionApp.results.planningState.profession.activeKit))
         .toBe('Grenade Kit');
       await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
       await expect

@@ -8,7 +8,7 @@ import {
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
-import { professionEndState } from '#gw2/app/rotation/context.js';
+import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,
@@ -142,7 +142,7 @@ export function timelineRowsView(
   });
   const weaponDurationOptions = {
     startingWeaponSet,
-    timelineEndMs: Number(results?.duration || 0) * 1000,
+    timelineEndMs: Number(results?.rotationEndTime || 0) * 1000,
     hasSecondWeaponSet,
     weaponSwapSkillIds: new Set(app.skills.filter((skill) => skill.name === 'Swap Weapons').map((skill) => skill.id))
   };
@@ -213,7 +213,7 @@ export function timelineRowsView(
     app.profession.ui.targetHealthThresholds?.({
       specialization,
       build,
-      professionState: professionEndState(results)
+      professionState: professionPlanningState(results)
     }) || [];
   const healthMarkers = targetHealthTimelineMarkers(
     results,

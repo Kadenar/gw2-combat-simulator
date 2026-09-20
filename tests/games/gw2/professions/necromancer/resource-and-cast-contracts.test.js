@@ -41,7 +41,7 @@ test('Blight skill consumption follows earlier shroud gains', () => {
   const updates = result.events.filter((event) => event.kind === 'harbinger-blight');
   assert.ok(updates.every((event, index) => index === 0 || event.at >= updates[index - 1].at));
   assert.equal(updates.find((event) => event.at === 1).stacks, 6);
-  assert.equal(result.endState.profession.blight, 1);
+  assert.equal(result.planningState.profession.blight, 1);
   assert.equal(
     result.events.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT).metadata
       .blightEmpowered,
@@ -57,7 +57,7 @@ test('Blight accrual and expiry are independent of wait granularity', () => {
   const fine = run(Array.from({ length: 30 }, () => wait(1000)));
   assert.deepEqual(coarse.warnings, []);
   assert.deepEqual(fine.warnings, []);
-  assert.deepEqual(coarse.endState.profession.blightExpiries, fine.endState.profession.blightExpiries);
+  assert.deepEqual(coarse.planningState.profession.blightExpiries, fine.planningState.profession.blightExpiries);
 });
 
 // Initial resource windows contribute before any skill emits a change, including through precombat waits.
@@ -66,7 +66,7 @@ test('Blight chart includes initial stacks and expires them at their actual dead
   const series = buildChartSeries(result, 250, harbingerUi.effectPresentations());
   assert.equal(series.effects.Blight[0].v, 12);
   assert.equal(series.effectSummaries.Blight.averageStacks, (12 * 20) / 25);
-  assert.equal(result.endState.profession.blight, 0);
+  assert.equal(result.planningState.profession.blight, 0);
   assert.ok(result.events.some((event) => event.kind === 'harbinger-blight' && event.at === 25 && event.stacks === 0));
 });
 
@@ -84,11 +84,11 @@ test('shroud exits before combat leave entry ready without weakening combat rech
     assert.equal(precombat.steps.filter((step) => step.skill === entry).at(-1).start / 1000, precombat.combatStartTime);
     for (const prefix of [[], [{ type: 'combat-start' }]]) {
       const combat = simulate(specialization, [...prefix, entry, exit], { initialResource: 100 });
-      assert.ok(combat.endState.cooldowns[entry].remaining > 0, specialization);
+      assert.ok(combat.planningState.cooldowns[entry].remaining > 0, specialization);
     }
 
     const depleted = simulate(specialization, [entry, wait(40000), { type: 'combat-start' }], { initialResource: 100 });
-    assert.equal(depleted.endState.cooldowns[entry], undefined, specialization);
+    assert.equal(depleted.planningState.cooldowns[entry], undefined, specialization);
   }
 });
 
@@ -184,7 +184,7 @@ test('NEC-006 condition scaling observes live distinct conditions and their expi
     const observations = result.resolvedEvents.filter((event) => event.type === 'necromancer.target-condition-count');
     assert.equal(observations[0].conditionCount, expected);
     // The completion-time resource query includes conditions present at that gain boundary.
-    assert.equal(result.endState.profession.lifeForce, 8 + observations.at(-1).conditionCount);
+    assert.equal(result.planningState.profession.lifeForce, 8 + observations.at(-1).conditionCount);
   }
 
   const torch = simulate('Core', ['Blood Curse', 'Oppressive Collapse'], {
@@ -240,8 +240,8 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
       target: { health: 1000000, startingHealthFraction }
     });
-    assert.equal(result.endState.profession.activeShroud === 'death', accepted);
-    assert.equal(result.endState.profession.lifeForce, accepted ? 11 : 9);
+    assert.equal(result.planningState.profession.activeShroud === 'death', accepted);
+    assert.equal(result.planningState.profession.lifeForce, accepted ? 11 : 9);
     if (accepted) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings.join(' '), /requires 10 life force/);
   }
@@ -252,7 +252,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
     target: { health: 1000000, startingHealthFraction: 0.4 }
   });
-  assert.equal(minion.endState.profession.lifeForce, 0);
+  assert.equal(minion.planningState.profession.lifeForce, 0);
   // Percentage gains normalize to the enlarged pool, apply Gluttony once, and cannot overflow its cap.
   for (const [initialResource, expected] of [
     [0, 2.64],
@@ -264,7 +264,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE, TRAIT.GLUTTONY, TRAIT.SOUL_BATTERY],
       target: { health: 1000000, startingHealthFraction: 0.4 }
     });
-    assert.ok(Math.abs(result.endState.profession.lifeForce - expected) < 1e-8);
+    assert.ok(Math.abs(result.planningState.profession.lifeForce - expected) < 1e-8);
   }
 });
 
@@ -284,8 +284,8 @@ test('NEC-007 resource gains preserve Harbinger damage observations before the B
   assert.deepEqual(feedback.warnings, []);
   assert.ok(strikes(baseline).length > 0);
   assert.deepEqual(strikes(feedback), strikes(baseline));
-  assert.equal(feedback.endState.profession.blight, baseline.endState.profession.blight);
-  assert.ok(feedback.endState.profession.lifeForce > baseline.endState.profession.lifeForce);
+  assert.equal(feedback.planningState.profession.blight, baseline.planningState.profession.blight);
+  assert.ok(feedback.planningState.profession.lifeForce > baseline.planningState.profession.lifeForce);
 });
 
 test('NEC-009 interrupted minion summons commit no creature, command, or attacks', () => {
@@ -299,8 +299,8 @@ test('NEC-009 interrupted minion summons commit no creature, command, or attacks
       { selectedSkills: { heal: 'Summon Blood Fiend' } }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(Number(result.endState.profession.activeMinions['blood-fiend'] || 0), interrupted ? 0 : 1);
-    assert.equal(Boolean(result.endState.profession.availableFlips[ID.TASTE_OF_DEATH]), !interrupted);
+    assert.equal(Number(result.planningState.profession.activeMinions['blood-fiend'] || 0), interrupted ? 0 : 1);
+    assert.equal(Boolean(result.planningState.profession.availableFlips[ID.TASTE_OF_DEATH]), !interrupted);
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'damage' && event.actorType === 'summon'),
       !interrupted
@@ -318,7 +318,7 @@ test('NEC-010 Lich grants its ending life force exactly once', () => {
   ]) {
     const result = simulate('Core', ['Lich Form', ...actions], config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.endState.profession.lifeForce, lifeForce);
+    assert.equal(result.planningState.profession.lifeForce, lifeForce);
   }
 });
 
@@ -330,8 +330,8 @@ test('NEC-012 passive gains, cap, and depletion are invariant under wait partiti
       const split = simulate('Core', ['Death Shroud', ...[1000, 2000, 1000, 1000, 1000, 2000].map(wait)], config);
       assert.deepEqual(whole.warnings, []);
       assert.deepEqual(split.warnings, []);
-      assert.ok(Math.abs(whole.endState.profession.lifeForce - split.endState.profession.lifeForce) < 1e-8);
-      assert.equal(whole.endState.profession.activeShroud, split.endState.profession.activeShroud);
+      assert.ok(Math.abs(whole.planningState.profession.lifeForce - split.planningState.profession.lifeForce) < 1e-8);
+      assert.equal(whole.planningState.profession.activeShroud, split.planningState.profession.activeShroud);
     }
   }
 

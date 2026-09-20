@@ -47,10 +47,10 @@ test('Mesmer production simulation is reached through simulateGw2', () => {
   assert.equal(canonical.conditionDamage, compatibility.conditionDamage);
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
-    Object.keys(canonical.endState).sort(),
-    ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'cooldowns', 'profession', 'time'].sort()
+    Object.keys(canonical.planningState).sort(),
+    ['activeWeaponSet', 'ammo', 'ammoBySkillId', 'atSeconds', 'cooldowns', 'profession'].sort()
   );
-  assert.equal(canonical.endState.profession.resource, 5);
+  assert.equal(canonical.planningState.profession.resource, 5);
 });
 
 test('canonical catalog validation rejects duplicate ids and missing handlers', () => {
@@ -231,8 +231,8 @@ test('summon-owned cooldowns require Alacrity applied to summons', () => {
     config: { boons: { alacrity: true } }
   });
 
-  assert.equal(playerAlacrity.endState.cooldowns['Summon Skill'].readyAt, 20000);
-  assert.equal(summonAlacrity.endState.cooldowns['Summon Skill'].readyAt, 16000);
+  assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 20000);
+  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 16000);
 });
 
 test('canonical augmenting skill handlers observe declarative effects', () => {

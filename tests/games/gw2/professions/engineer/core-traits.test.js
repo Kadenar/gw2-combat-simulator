@@ -62,7 +62,7 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder — Burning')
   );
-  assert.ok(result.profession.traitProcReadyAt.thermalVisionUntil > 0);
+  assert.ok(result.combatState.profession.traitProcReadyAt.thermalVisionUntil > 0);
 });
 
 test('Explosives traits use the requested packets, gates, and health modifiers', () => {
@@ -210,7 +210,7 @@ test('Electric Artillery and Devastator each contribute their explosion to Shrap
     );
     assert.equal(bleeds.length, 1, name);
     assert.equal(bleeds[0].triggeredBy, name);
-    assert.ok(Math.abs(result.profession.traitProcReadyAt.shrapnelProgress - 0.32) < 1e-12, name);
+    assert.ok(Math.abs(result.combatState.profession.traitProcReadyAt.shrapnelProgress - 0.32) < 1e-12, name);
   }
 });
 
@@ -546,21 +546,21 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.ok(
     toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 5)
   );
-  assert.equal(toolbelt.endState.profession.kineticCharges, 1);
+  assert.equal(toolbelt.planningState.profession.kineticCharges, 1);
 
   const wrench = simulate('Core', ['Supply Crate', 'Dodge'], {
     selectedTraitIds: [TRAIT.POWER_WRENCH]
   });
 
-  assert.equal(wrench.endState.cooldowns['Supply Crate'].readyAt, wrench.steps[0].end + 72000);
+  assert.equal(wrench.planningState.cooldowns['Supply Crate'].readyAt, wrench.steps[0].end + 72000);
 
   const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
     boons: { vigor: true }
   });
 
-  assert.equal(adrenal.endState.cooldowns['Grenade Barrage'].readyAt, adrenal.steps[0].end + 20250);
-  assert.equal(adrenal.endState.profession.endurance, 65.75);
+  assert.equal(adrenal.planningState.cooldowns['Grenade Barrage'].readyAt, adrenal.steps[0].end + 20250);
+  assert.equal(adrenal.planningState.profession.endurance, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {
     selectedTraitIds: [TRAIT.STREAMLINED_KITS]
@@ -597,7 +597,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   });
 
   // Amalgam F2-F5 mechanics replace tool-belt slots and retain every Tools interaction attached to those slots.
-  assert.equal(amalgamToolbelt.endState.cooldowns['Defensive Protocol: Thorns'].readyAt, 16000);
+  assert.equal(amalgamToolbelt.planningState.cooldowns['Defensive Protocol: Thorns'].readyAt, 16000);
   assert.equal(
     amalgamToolbelt.events.filter(
       (event) => event.type === 'buff' && event.kind === 'vigor' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION

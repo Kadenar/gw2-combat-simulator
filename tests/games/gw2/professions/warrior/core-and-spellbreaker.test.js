@@ -210,7 +210,7 @@ test('Warrior core and elite profession resources remain isolated', () => {
     ['Paragon', 10],
     ['Bladesworn', 0]
   ]) {
-    const state = simulate(specialization, [], { initialResource: 100 }).endState.profession;
+    const state = simulate(specialization, [], { initialResource: 100 }).planningState.profession;
     assert.equal(state.maximumAdrenaline, maximumAdrenaline, specialization);
     assert.equal(state.adrenaline, maximumAdrenaline, specialization);
   }
@@ -371,9 +371,12 @@ test('Bladesworn palette availability follows gunsaber and Dragon Trigger state'
     initialResource: 100
   });
 
-  assert.equal(charging.endState.profession.dragonTriggerActive, true);
-  assert.equal(charging.endState.profession.dragonCharges, 0);
-  assert.deepEqual(availability(charging.endState.profession, ID.DRAGON_SLASH_FORCE), { available: true, message: '' });
+  assert.equal(charging.planningState.profession.dragonTriggerActive, true);
+  assert.equal(charging.planningState.profession.dragonCharges, 0);
+  assert.deepEqual(availability(charging.planningState.profession, ID.DRAGON_SLASH_FORCE), {
+    available: true,
+    message: ''
+  });
 });
 
 test('Dragon Trigger charge time is excluded from timeline dead time', () => {
@@ -417,7 +420,10 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
     });
 
     return chain.map((skillId) =>
-      autoattackChainSkillAvailable(warriorCatalog.skillsById.get(skillId), result.endState.profession.autoattackChains)
+      autoattackChainSkillAvailable(
+        warriorCatalog.skillsById.get(skillId),
+        result.planningState.profession.autoattackChains
+      )
     );
   };
 
@@ -448,7 +454,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
   const result = simulate('Core', [], { initialResource: 25 });
   const coreResources = warriorProfession.ui.resourceViews({
     specialization: 'Core',
-    professionState: result.endState.profession
+    professionState: result.planningState.profession
   });
   const resource = coreResources.find((view) => view.id === 'adrenaline');
 
@@ -496,7 +502,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
   const motivation = warriorProfession.ui
     .resourceViews({
       specialization: 'Paragon',
-      professionState: result.endState.profession
+      professionState: result.planningState.profession
     })
     .find((view) => view.id === 'motivation');
 
@@ -523,7 +529,7 @@ test('Core bursts require and consume adrenaline', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.totalDamage > 0, true);
-  assert.equal(result.endState.profession.adrenaline < 30, true);
+  assert.equal(result.planningState.profession.adrenaline < 30, true);
 });
 
 test('Core Warrior weapon swap toggles the active set', () => {
@@ -534,21 +540,21 @@ test('Core Warrior weapon swap toggles the active set', () => {
     precombat.steps.map((step) => step.start),
     [0, 0]
   );
-  assert.equal(precombat.endState.activeWeaponSet, 1);
-  assert.equal(precombat.endState.cooldowns['Swap Weapons'], undefined);
+  assert.equal(precombat.planningState.activeWeaponSet, 1);
+  assert.equal(precombat.planningState.cooldowns['Swap Weapons'], undefined);
 
   const result = simulate('Core', ['__combat_start', 'Swap Weapons']);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.activeWeaponSet, 2);
-  assert.equal(result.endState.cooldowns['Swap Weapons'].readyAt, 5000);
+  assert.equal(result.planningState.activeWeaponSet, 2);
+  assert.equal(result.planningState.cooldowns['Swap Weapons'].readyAt, 5000);
   assert.equal(
     result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2),
     true
   );
 
   const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { relic: 'Warrior' });
-  assert.equal(relic.endState.cooldowns['Swap Weapons'].readyAt, 2500);
+  assert.equal(relic.planningState.cooldowns['Swap Weapons'].readyAt, 2500);
 });
 
 test('Berserker gates primal bursts behind berserk mode', () => {
@@ -563,7 +569,7 @@ test('Berserker gates primal bursts behind berserk mode', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.berserkActive, true);
+  assert.equal(result.planningState.profession.berserkActive, true);
   assert.equal(result.totalDamage > 0, true);
 });
 
@@ -606,8 +612,8 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.maximumAdrenaline, 10);
-  assert.equal(result.endState.profession.berserkUntil, 25);
+  assert.equal(result.planningState.profession.maximumAdrenaline, 10);
+  assert.equal(result.planningState.profession.berserkUntil, 25);
   assert.equal(
     result.events.some((event) => event.kind === 'quickness' && event.duration === 3),
     true
@@ -729,7 +735,7 @@ test('Berserker rage and primal-burst traits use the supplied behavior', () => {
   });
 
   assert.deepEqual(nearbyOutrage.warnings, []);
-  assert.equal(nearbyOutrage.endState.profession.berserkUntil, 23);
+  assert.equal(nearbyOutrage.planningState.profession.berserkUntil, 23);
 
   const berserkersPowerTiming = simulate('Berserker', ['Berserk', 'Wild Throw'], {
     initialResource: 30,
@@ -920,8 +926,8 @@ test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.maximumAdrenaline, 20);
-  assert.equal(result.endState.profession.adrenaline < 20, true);
+  assert.equal(result.planningState.profession.maximumAdrenaline, 20);
+  assert.equal(result.planningState.profession.adrenaline < 20, true);
   assert.equal(result.totalDamage, 0);
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.FULL_COUNTER),
@@ -1296,11 +1302,11 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
   });
 
   assert.deepEqual(
-    [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => result.endState.ammoBySkillId[String(id)].charges),
+    [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => result.planningState.ammoBySkillId[String(id)].charges),
     [2, 2, 2]
   );
-  assert.equal(result.endState.cooldowns['Kill Shot'], undefined);
-  assert.equal(result.endState.cooldowns['Rifle Butt'].remaining, 12_000);
+  assert.equal(result.planningState.cooldowns['Kill Shot'], undefined);
+  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 12_000);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {
@@ -1311,8 +1317,8 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.profession.attackerInsightExpiries.length, 1);
-  assert.equal(result.endState.profession.attackerInsightExpiries.length, 1);
+  assert.equal(result.combatState.profession.attackerInsightExpiries.length, 1);
+  assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
   assert.equal(
     result.events.some(
       (event) =>
@@ -1352,8 +1358,8 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     target: { defiant: true }
   });
 
-  assert.equal(kick.profession.attackerInsightExpiries.length, 2);
-  assert.equal(kick.endState.profession.attackerInsightExpiries.length, 2);
+  assert.equal(kick.combatState.profession.attackerInsightExpiries.length, 2);
+  assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
 });
 
 test('Dagger autos use a 15% critical-damage factor', () => {
@@ -1472,7 +1478,10 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
     selectedTraitIds: [TRAIT.MERCILESS_HAMMER, TRAIT.STALWART_STRENGTH]
   });
 
-  assert.equal(traitControl.endState.profession.adrenaline - baselineControl.endState.profession.adrenaline, 7);
+  assert.equal(
+    traitControl.planningState.profession.adrenaline - baselineControl.planningState.profession.adrenaline,
+    7
+  );
   const stability = traitControl.events.find(
     (event) => event.type === 'buff' && event.sourceId === TRAIT.STALWART_STRENGTH
   );
@@ -1636,5 +1645,5 @@ test('Spellbreaker offensive traits use multiplicative damage modifiers', () => 
   );
 
   assert.equal(internalCooldown.procSteps.filter((step) => step.skill === 'Magebane Tether').length, 1);
-  assert.ok(internalCooldown.profession.magebaneTetherUntil < internalCooldown.duration);
+  assert.ok(internalCooldown.combatState.profession.magebaneTetherUntil < internalCooldown.rotationEndTime);
 });

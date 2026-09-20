@@ -11,7 +11,7 @@ import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/executio
 import { warriorCoreSkillMechanicHandlers } from '#gw2/professions/warrior/core/traits/index.js';
 import { warriorCoreAttributeRules, warriorCoreCastRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { projectWarriorEndState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
+import { projectWarriorPlanningState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
 import { bindWarriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
 import {
@@ -31,7 +31,7 @@ export const warriorCoreModule = defineNativeModule({
   state: {
     scheduler: createWarriorCoreState,
     resolver: createWarriorCoreState,
-    project: projectWarriorEndState
+    project: projectWarriorPlanningState
   },
   mechanics: {
     modifiers: warriorCoreAttributeRules,

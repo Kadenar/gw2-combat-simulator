@@ -12,7 +12,7 @@ import {
 } from '#gw2/professions/elementalist/core/execution/index.js';
 import { elementalistCoreCastRules } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistCoreAttributeRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
-import { projectElementalistEndState } from '#gw2/professions/elementalist/family-state.js';
+import { projectElementalistPlanningState } from '#gw2/professions/elementalist/family-state.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import {
@@ -47,7 +47,7 @@ export const elementalistCoreModule = defineNativeModule({
   state: {
     scheduler: createElementalistCoreState,
     resolver: createElementalistCoreState,
-    project: projectElementalistEndState
+    project: projectElementalistPlanningState
   },
   mechanics: {
     modifiers: elementalistCoreAttributeRules,

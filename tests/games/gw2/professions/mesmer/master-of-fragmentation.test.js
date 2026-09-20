@@ -112,7 +112,7 @@ test('Fragmentation adds one second to Continuum Split regardless of clone count
       });
       const shift = result.events.find((event) => event.type === 'marker' && event.name === 'Continuum Shift');
       assert.equal(shift.at, 1.5 * (initialResource + 1) + Number(enabled));
-      assert.equal(result.endState.profession.continuumActive, false);
+      assert.equal(result.planningState.profession.continuumActive, false);
     }
   }
 });
@@ -130,7 +130,7 @@ test('Fragmentation appends one Requiem pulse without changing existing pulses o
     const extended = pulses(improved);
     assert.deepEqual(extended.slice(0, -1), original);
     assert.deepEqual(extended.at(-1), { at: original.at(-1).at + 1, coefficient: original.at(-1).coefficient });
-    assert.equal(improved.endState.profession.resource, baseline.endState.profession.resource);
+    assert.equal(improved.planningState.profession.resource, baseline.planningState.profession.resource);
   }
 });
 

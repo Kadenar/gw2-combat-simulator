@@ -88,7 +88,7 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
     );
 
     assert.equal(result.steps[0].start, result.steps[0].end);
-    assert.equal(result.endState.profession.resource, 0);
+    assert.equal(result.planningState.profession.resource, 0);
     assert.equal(torment.length, 1);
     assert.equal(torment[0].stacks, testCase.expectedStacks);
     assert.equal(torment[0].duration, 6);
@@ -444,8 +444,8 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
   assert.equal(result.steps[2].start, 8000);
   assert.deepEqual(
     {
-      charges: result.endState.ammo['Split Second'].charges,
-      maximum: result.endState.ammo['Split Second'].maximum
+      charges: result.planningState.ammo['Split Second'].charges,
+      maximum: result.planningState.ammo['Split Second'].maximum
     },
     { charges: 0, maximum: 2 }
   );
@@ -463,8 +463,8 @@ test('Shatter Storm initializes Split Second ammo before first cast', () => {
 
   assert.deepEqual(
     {
-      charges: result.endState.ammo['Split Second'].charges,
-      maximum: result.endState.ammo['Split Second'].maximum
+      charges: result.planningState.ammo['Split Second'].charges,
+      maximum: result.planningState.ammo['Split Second'].maximum
     },
     { charges: 2, maximum: 2 }
   );

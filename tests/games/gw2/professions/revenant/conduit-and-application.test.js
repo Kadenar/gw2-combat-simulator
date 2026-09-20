@@ -195,7 +195,7 @@ describe('Power Conduit skill profiles', () => {
       [320, 'Deathstrike', 0.45],
       [600, 'Deathstrike — Follow-up', 2.67]
     ]);
-    assert.deepEqual(deathstrike.endState.cooldowns.Deathstrike, {
+    assert.deepEqual(deathstrike.planningState.cooldowns.Deathstrike, {
       readyAt: 12420,
       remaining: 11700
     });
@@ -263,7 +263,7 @@ describe('Power Conduit skill profiles', () => {
       ),
       440
     );
-    assert.deepEqual(onslaught.endState.cooldowns["Phantom's Onslaught"], {
+    assert.deepEqual(onslaught.planningState.cooldowns["Phantom's Onslaught"], {
       readyAt: 6440,
       remaining: 6000
     });
@@ -428,9 +428,9 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(result.endState.profession.affinity, 2);
-  assert.equal(result.endState.profession.conduitForm, 'Assassin');
-  assert.ok(result.endState.profession.cosmicWisdomUntil > 0);
+  assert.equal(result.planningState.profession.affinity, 2);
+  assert.equal(result.planningState.profession.conduitForm, 'Assassin');
+  assert.ok(result.planningState.profession.cosmicWisdomUntil > 0);
 
   for (const [legend, generator, release, expectedAffinity] of [
     [LEGEND.ASSASSIN, 'Phase Traversal', 'Release Potential: Assassin', 2],
@@ -446,7 +446,7 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
     });
 
     assert.equal(variant.warnings.length, 0, release);
-    assert.equal(variant.endState.profession.affinity, expectedAffinity, release);
+    assert.equal(variant.planningState.profession.affinity, expectedAffinity, release);
   }
 });
 
@@ -470,7 +470,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
         ['resolution', 5]
       ]
     );
-    assert.ok(Math.abs(base.endState.profession.energy - (base.endState.time / 1000) * 5) < 1e-9);
+    assert.ok(Math.abs(base.planningState.profession.energy - base.planningState.atSeconds * 5) < 1e-9);
     assert.match(simulate('Conduit', [skillId], { ...config, initialEnergy: 29 }).warnings[0], /requires 30 energy/);
     assert.match(
       simulate('Conduit', ['Cosmic Wisdom', skillId], { ...config, initialEnergy: 9 }).warnings[0],
@@ -493,7 +493,9 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
 
       assert.equal(actions.length, 2);
       assert.ok(Math.abs(actions[1].at - actions[0].rechargeReadyAt) < 1e-9);
-      assert.ok(Math.abs(formed.endState.profession.energy - (10 - 20 + (formed.endState.time / 1000) * 5)) < 1e-9);
+      assert.ok(
+        Math.abs(formed.planningState.profession.energy - (10 - 20 + formed.planningState.atSeconds * 5)) < 1e-9
+      );
     }
 
     const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, skillId], config);
@@ -503,7 +505,9 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
         .rechargeReadyAt,
       null
     );
-    assert.ok(Math.abs(expired.endState.profession.energy - (20 + (expired.endState.time / 1000 - 7) * 5)) < 1e-9);
+    assert.ok(
+      Math.abs(expired.planningState.profession.energy - (20 + (expired.planningState.atSeconds - 7) * 5)) < 1e-9
+    );
   }
 });
 
@@ -516,7 +520,7 @@ test('Empowering Misery and its alias cost one energy in Mesmer form', () => {
       initialEnergy: 1
     });
     assert.deepEqual(result.warnings, []);
-    assert.ok(Math.abs(result.endState.profession.energy - (result.endState.time / 1000) * 5) < 1e-9);
+    assert.ok(Math.abs(result.planningState.profession.energy - result.planningState.atSeconds * 5) < 1e-9);
   }
 });
 
@@ -628,7 +632,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   });
 
   assert.equal(affordableEmbrace.warnings.length, 0);
-  assert.equal(affordableEmbrace.endState.profession.activeUpkeeps[0].startsAt, 0.44);
+  assert.equal(affordableEmbrace.planningState.profession.activeUpkeeps[0].startsAt, 0.44);
 });
 
 test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', () => {
@@ -764,15 +768,15 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     beguiling.steps.map((step) => step.fullCastMs),
     [560, 240, 240]
   );
-  assert.equal(beguiling.endState.profession.beguilingHazeCharges, 0);
+  assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
   const beguilingAmmo = beguiling.schedulerState.ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
-  assert.equal(beguilingAmmo.nextRechargeAt, beguiling.endState.profession.beguilingHazeReadyAt);
+  assert.equal(beguilingAmmo.nextRechargeAt, beguiling.planningState.profession.beguilingHazeReadyAt);
   // Above the precombat cap, regeneration resumes only when the first hit starts combat.
-  const combatDuration = beguiling.steps.at(-1).end / 1000 - beguiling.endState.profession.combatBeganAt;
-  assert.ok(Math.abs(beguiling.endState.profession.energy - (80 + 5 * combatDuration)) < 1e-9);
+  const combatDuration = beguiling.steps.at(-1).end / 1000 - beguiling.planningState.profession.combatBeganAt;
+  assert.ok(Math.abs(beguiling.planningState.profession.energy - (80 + 5 * combatDuration)) < 1e-9);
 
   const recharged = simulate(
     'Conduit',
@@ -785,7 +789,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   );
   const rechargedAmmo = recharged.schedulerState.ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
-  assert.equal(recharged.endState.profession.beguilingHazeCharges, 0);
+  assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
   assert.equal(rechargedAmmo.maximum, 1);
   assert.equal(rechargedAmmo.charges, 1);
   assert.equal(rechargedAmmo.nextRechargeAt, null);
@@ -861,7 +865,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     4
   );
   assert.ok(assassin.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
-  assert.equal(assassin.endState.profession.affinity, 2);
+  assert.equal(assassin.planningState.profession.affinity, 2);
 
   const demon = simulate(
     'Conduit',
@@ -902,7 +906,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
   assert.equal(affinityAtImpact.at, 0.88);
   assert.equal(affinityAtImpact.state.activeLegendId, LEGEND.ASSASSIN);
   assert.equal(affinityAtImpact.state.affinity, 2);
-  assert.equal(swappedBeforeImpact.endState.profession.affinity, 2);
+  assert.equal(swappedBeforeImpact.planningState.profession.affinity, 2);
 });
 
 test('Revenant Peitha triggers resolve at the observed projectile impact', () => {
@@ -1044,7 +1048,7 @@ test('Mesmer release reads enemy and self Torment affinity at impact after a leg
       (event) => event.type === 'condition' && event.skillId === SKILL.RELEASE_POTENTIAL_MESMER
     );
     assert.ok(Math.abs(torment.duration - 3 * (1 + expectedAffinity * 0.1)) < 1e-9);
-    const self = result.endState.profession.selfConditions.find(
+    const self = result.planningState.profession.selfConditions.find(
       (entry) => entry.sourceId === SKILL.RELEASE_POTENTIAL_MESMER
     );
     assert.ok(Math.abs(self.expiresAt - self.at - 8 * (1 - expectedAffinity * 0.15)) < 1e-9);
@@ -1093,10 +1097,12 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
   );
 
   assert.ok(Math.abs(enemyTorment.duration - 3.9) < 1e-9);
-  assert.equal(mesmer.endState.profession.selfConditions.length, 1);
+  assert.equal(mesmer.planningState.profession.selfConditions.length, 1);
   assert.ok(
     Math.abs(
-      mesmer.endState.profession.selfConditions[0].expiresAt - mesmer.endState.profession.selfConditions[0].at - 4.4
+      mesmer.planningState.profession.selfConditions[0].expiresAt -
+        mesmer.planningState.profession.selfConditions[0].at -
+        4.4
     ) < 1e-9
   );
   assert.ok(mesmer.events.some((event) => event.type === 'control' && event.controlKind === 'daze'));
@@ -1127,7 +1133,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
     }
   );
 
-  assert.equal(dervishAllEffects.endState.profession.affinity, 3);
+  assert.equal(dervishAllEffects.planningState.profession.affinity, 3);
   assert.ok(
     dervishAllEffects.events.some(
       (event) =>
@@ -1179,7 +1185,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(enigmatic.endState.profession.affinity, 3);
+  assert.equal(enigmatic.planningState.profession.affinity, 3);
 
   const withoutConductive = simulate('Conduit', ['Chilling Isolation'], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
@@ -1193,8 +1199,8 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
   });
 
-  assert.equal(withoutConductive.endState.profession.affinity, 0);
-  assert.equal(withConductive.endState.profession.affinity, 1);
+  assert.equal(withoutConductive.planningState.profession.affinity, 0);
+  assert.equal(withConductive.planningState.profession.affinity, 1);
 
   const reset = simulate('Conduit', ['Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1202,7 +1208,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(reset.endState.profession.affinity, 0);
+  assert.equal(reset.planningState.profession.affinity, 0);
 
   const lingering = simulate('Conduit', ['__combat_start', 'Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1211,7 +1217,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.LINGERING_DETERMINATION]
   });
 
-  assert.equal(lingering.endState.profession.affinity, 2);
+  assert.equal(lingering.planningState.profession.affinity, 2);
 
   const upkeep = simulate('Conduit', ['Impossible Odds', { type: 'wait', durationMs: 3100 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1219,7 +1225,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(upkeep.endState.profession.affinity, 2);
+  assert.equal(upkeep.planningState.profession.affinity, 2);
 
   const expandedRotation = ['Phase Traversal', 'Jade Winds', 'Impossible Odds'];
   const ordinary = simulate('Conduit', expandedRotation, {
@@ -1234,8 +1240,8 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS]
   });
 
-  assert.equal(expanded.endState.profession.affinity, 5);
-  assert.ok(Math.abs(expanded.endState.profession.energy - ordinary.endState.profession.energy - 15) < 1e-9);
+  assert.equal(expanded.planningState.profession.affinity, 5);
+  assert.ok(Math.abs(expanded.planningState.profession.energy - ordinary.planningState.profession.energy - 15) < 1e-9);
 });
 
 test('Conduit affinity gains only after combat starts', () => {
@@ -1252,9 +1258,9 @@ test('Conduit affinity gains only after combat starts', () => {
   });
   const combatCast = simulate('Conduit', ['__combat_start', 'Phase Traversal'], config);
 
-  assert.equal(skillPrecast.endState.profession.affinity, 0);
-  assert.equal(swapPrecast.endState.profession.affinity, 0);
-  assert.equal(combatCast.endState.profession.affinity, 2);
+  assert.equal(skillPrecast.planningState.profession.affinity, 0);
+  assert.equal(swapPrecast.planningState.profession.affinity, 0);
+  assert.equal(combatCast.planningState.profession.affinity, 2);
 });
 
 test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => {
@@ -1276,8 +1282,8 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
   });
 
-  assert.equal(cosmic.endState.profession.legendSwapReadyAt, 6);
-  assert.equal(cosmic.endState.profession.cosmicWisdomUntil, 8);
+  assert.equal(cosmic.planningState.profession.legendSwapReadyAt, 6);
+  assert.equal(cosmic.planningState.profession.cosmicWisdomUntil, 8);
   assert.ok(
     cosmic.events.some(
       (event) => event.type === 'damage' && event.skillName === 'Mistfire' && event.coefficient === 0.6
@@ -1404,8 +1410,8 @@ test("Conduit runtime rejects Vindicator's Alliance legend", () => {
     startingLegend: LEGEND.ALLIANCE
   });
 
-  assert.deepEqual(result.endState.profession.selectedLegendIds, [LEGEND.ENTITY, LEGEND.ASSASSIN]);
-  assert.equal(result.endState.profession.activeLegendId, LEGEND.ASSASSIN);
+  assert.deepEqual(result.planningState.profession.selectedLegendIds, [LEGEND.ENTITY, LEGEND.ASSASSIN]);
+  assert.equal(result.planningState.profession.activeLegendId, LEGEND.ASSASSIN);
 });
 
 test('Alacrity changes cooldowns but never passive energy regeneration', () => {
@@ -1419,8 +1425,8 @@ test('Alacrity changes cooldowns but never passive energy regeneration', () => {
     boons: { alacrity: true }
   });
 
-  assert.equal(without.endState.profession.energy, 25);
-  assert.equal(withAlacrity.endState.profession.energy, 25);
+  assert.equal(without.planningState.profession.energy, 25);
+  assert.equal(withAlacrity.planningState.profession.energy, 25);
 });
 
 test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => {
@@ -1460,7 +1466,7 @@ test('Revenant state events use the shared event-log row contract', () => {
         }
       ],
       resolvedEvents: [],
-      endState: { profession: {} }
+      planningState: { profession: {} }
     },
     null,
     revenantProfession

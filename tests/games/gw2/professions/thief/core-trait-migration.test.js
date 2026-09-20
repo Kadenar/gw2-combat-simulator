@@ -255,7 +255,9 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
     );
     const series = buildChartSeries(
       {
-        duration: 14,
+        rotationEndTime: 14,
+        observationEndTime: 14,
+        combatEndTime: 14,
         events: events
           .filter((event) => event.type === 'buff')
           .map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }))

@@ -205,7 +205,7 @@ test('loaded manifest rotations keep repeated weapon stays independent', async (
   const swapId = adapter.profession.catalog.skillsByName.get('Swap Weapons').id;
   const segments = weaponSetActiveSegments(result.steps, {
     startingWeaponSet: build.startingWeaponSet,
-    timelineEndMs: result.duration * 1000,
+    timelineEndMs: result.rotationEndTime * 1000,
     hasSecondWeaponSet: true,
     weaponSwapSkillIds: new Set([swapId])
   });
@@ -215,7 +215,7 @@ test('loaded manifest rotations keep repeated weapon stays independent', async (
   assert.ok(segments.some((segment, index) => index > 0 && segment.weaponSet === segments[0].weaponSet));
   assert.equal(
     segments.reduce((total, segment) => total + segment.durationMs, 0),
-    result.duration * 1000
+    result.rotationEndTime * 1000
   );
   assert.ok(
     result.steps
