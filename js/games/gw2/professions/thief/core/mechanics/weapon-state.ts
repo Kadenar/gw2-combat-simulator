@@ -146,6 +146,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const completed = castCompleted(context);
+  const committed = context.action?.cancelled !== true;
   if (completed && !(skill.categories || []).includes('stolen skill')) {
     grantThiefStealth(context, skill, at);
   }
@@ -175,10 +176,9 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     emitThiefStateSnapshot(context, at, 'axes-recalled');
   }
 
-  // Weapon sequence skills share one state contract: completing the opener
-  // arms its replacement for the declared window, and using the child restores
-  // the opener. This covers dual attacks plus sword, shortbow, staff, and rifle.
-  if (completed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
+  // Weapon sequence skills share one state contract: a committed opener arms
+  // its replacement for the declared window, and a committed child restores it.
+  if (committed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
       state.availableFlips[flip.id] = at + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5));
@@ -186,7 +186,7 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     }
   }
 
-  if (completed && skill.type === 'Weapon' && skill.flipParentId != null) {
+  if (committed && skill.type === 'Weapon' && skill.flipParentId != null) {
     delete state.availableFlips[skill.id];
     emitThiefStateSnapshot(context, at, 'weapon-flip-used');
   }

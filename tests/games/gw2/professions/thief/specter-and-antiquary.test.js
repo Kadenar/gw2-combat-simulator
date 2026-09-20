@@ -413,6 +413,49 @@ test('Specter conditions land with their associated strikes', () => {
   }
 });
 
+test('Measured Shot arms a five-second per-packet Endless Night flip', () => {
+  // A committed shortened opener still flips the bar; an interrupted channel keeps only emitted packets and restores it.
+  const config = {
+    primaryWeapon: 'Scepter',
+    secondaryWeapon: 'Pistol'
+  };
+  const armed = simulate('Specter', [{ name: 'Measured Shot', interruptMs: 400 }], config);
+  const measuredShot = armed.events.find((event) => event.type === 'action' && event.skillId === ID.MEASURED_SHOT);
+
+  assert.equal(armed.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], measuredShot.endsAt + 5);
+
+  const channel = simulate(
+    'Specter',
+    ['Measured Shot', { name: 'Endless Night', interruptMs: 700 }],
+    config,
+    observationTail(2000)
+  );
+  const endlessNight = channel.steps.find((step) => step.skillId === ID.ENDLESS_NIGHT);
+  const packets = channel.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.ENDLESS_NIGHT
+  );
+  const conditions = channel.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillId === ID.ENDLESS_NIGHT
+  );
+
+  assert.deepEqual(channel.warnings, []);
+  assert.deepEqual(
+    packets.map((event) => Math.round(event.at * 1000 - endlessNight.start)),
+    [280, 560]
+  );
+  assert.deepEqual(
+    packets.map((packet) => conditions.filter((event) => event.at === packet.at).map((event) => event.condition)),
+    [
+      ['Slow', 'Torment'],
+      ['Slow', 'Torment']
+    ]
+  );
+  assert.equal(channel.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], undefined);
+
+  const expired = simulate('Specter', ['Measured Shot', { type: 'wait', durationMs: 5000 }], config);
+  assert.equal(expired.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], undefined);
+});
+
 test('Twilight Combo activates Deadly Ambition once for the dual-wield cast', () => {
   const result = simulate('Specter', [ID.TWILIGHT_COMBO], {
     primaryWeapon: 'Scepter',

@@ -29,6 +29,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENDLESS_NIGHT]: {
     castTimeMs: 1920,
+    // Retain each beam packet already emitted when the channel is interrupted.
+    interruptMode: 'per-packet',
     cooldown: 0,
     initiativeCost: 3,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -44,7 +46,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 280, condition: 'Slow', stacks: 1, duration: 1.5 }],
+        // Every beam pulse applies Slow alongside its Torment packet.
+        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+          atMs,
+          condition: 'Slow',
+          stacks: 1,
+          duration: 1.5
+        })),
         actorType: 'player'
       },
       {
@@ -194,6 +202,8 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     // Commit the shot at 320 ms, preserving its impact and remaining cast lockout after interruption.
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
+    // Endless Night replaces Measured Shot for five seconds after the shot commits.
+    flipDuration: 5,
     cooldown: 0,
     initiativeCost: 4,
     effects: impactEffects(
