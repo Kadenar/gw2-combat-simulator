@@ -1,6 +1,6 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -34,7 +34,7 @@ export function untamedCastAvailability(context: RangerCastContext, skill: Range
     }
 
     // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
-    if (context.start >= state.ambushReadyUntil - EPSILON) {
+    if (context.start >= state.ambushReadyUntil) {
       return deny(skill, 'ranger.ambush-unavailable', 'unleash to make an ambush available.');
     }
   }
@@ -142,6 +142,15 @@ export const untamedSkillMechanicHandlers = Object.freeze({
 });
 
 export const untamedSchedulerHooks = Object.freeze({
+  advance: {
+    id: 'ranger.untamed-ambush-expiry',
+    order: 20,
+    handler(context: RangerSchedulerContext, at: number): void {
+      // Expiry clears the grant without resetting the cooldown that controls the next grant.
+      const state = untamedState.from(context);
+      if (state.ambushReadyUntil <= at) state.ambushReadyUntil = 0;
+    }
+  },
   // Let Loose extends the shared swap only while combat is active.
   onWeaponSwap(context: RangerCastContext): void {
     if (
@@ -160,9 +169,10 @@ export const untamedSchedulerHooks = Object.freeze({
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
     if (state.rangerUnleashed) {
-      // Weapon-swap ambush window is counted from effectiveEnd (post-cast), not cast start.
-      state.ambushReadyUntil =
-        context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4);
+      // Keep an exact deadline from swap completion, shared by cast and palette queries.
+      state.ambushReadyUntil = canonicalTime(
+        context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4)
+      );
     }
   }
 });

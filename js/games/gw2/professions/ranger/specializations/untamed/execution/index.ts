@@ -5,7 +5,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -33,9 +33,10 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
     return;
   }
 
-  // 4-second window from the cast start, not effectiveEnd, matching the in-game timing.
-  state.ambushReadyUntil =
-    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4);
+  // The exact ambush deadline is anchored to cast start; no combat-tick rounding applies.
+  state.ambushReadyUntil = canonicalTime(
+    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4)
+  );
   state.unleashedPowerReadyAt =
     context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'internalCooldown', 9);
 }

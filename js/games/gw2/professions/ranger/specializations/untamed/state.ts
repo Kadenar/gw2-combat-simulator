@@ -49,7 +49,7 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {
     // Default is Pet unleashed; "Ranger" must be explicitly requested.
     rangerUnleashed: config.initialUntamedState === 'Ranger',
-    // Zero means no ambush window is open (ambush is only available while < current time).
+    // Zero means no grant; an armed ambush is available only before its deadline while Ranger is unleashed.
     ambushReadyUntil: 0,
     // Tracks the 9-second cooldown before Unleashed Power can grant another ambush window.
     unleashedPowerReadyAt: 0,
