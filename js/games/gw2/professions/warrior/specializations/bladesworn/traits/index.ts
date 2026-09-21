@@ -7,6 +7,7 @@ import {
 } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -107,11 +108,12 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
   state.gunsaberSwapTraitReadyAt = at + Number(profile?.internalCooldown ?? 4);
   const positiveFlow = balanceProfileEffect(profile, 'buff');
   const positiveFlowDuration = Number(positiveFlow?.duration ?? 5);
-  if (state.traitPositiveFlowUntil <= at + EPSILON) {
+  // Keep a continuous regeneration window across live refreshes; reopen only after its exact endpoint.
+  if (state.traitPositiveFlowUntil <= at) {
     state.traitPositiveFlowStartedAt = at;
   }
 
-  state.traitPositiveFlowUntil = at + positiveFlowDuration;
+  state.traitPositiveFlowUntil = gw2EffectExpiresAt(at, positiveFlowDuration);
   emitSkillBuff(context, {
     at,
     source: 'Trait',

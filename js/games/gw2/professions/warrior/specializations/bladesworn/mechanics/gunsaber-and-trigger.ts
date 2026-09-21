@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -114,9 +115,9 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
     context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS);
   state.dragonCharges = 0;
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
-  // so it only applies to the single Dragon Trigger entry it was active for.
+  // so it only applies to the single Dragon Trigger entry it was active for, including entry exactly at expiry.
   state.dragonChargesPerInterval =
-    state.tacticalReloadUntil > 0 && state.tacticalReloadUntil + EPSILON >= context.effectiveEnd ? 2 : 1;
+    state.tacticalReloadUntil > 0 && context.effectiveEnd <= state.tacticalReloadUntil ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonChargeTickCount = 0;
   state.nextDragonChargeAt =
@@ -560,7 +561,8 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
       state.flow = Math.min(state.maximumFlow, state.flow + 15);
     }
 
-    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
+    // Passive Flow integration uses the same tick-rounded lifetime as the emitted Positive Flow buff.
+    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: gw2EffectExpiresAt(at, 8) });
     refreshDragonTriggerEntryProjection(context);
   },
   'warrior.bladesworn.tactical-reload': ({
@@ -573,7 +575,8 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     reloadBladeswornAmmo(context, at);
-    bladeswornState.from(context).tacticalReloadUntil = at + 10;
+    // Consumption and the displayed buff share one absolute effect-tick deadline.
+    bladeswornState.from(context).tacticalReloadUntil = gw2EffectExpiresAt(at, 10);
     emitSkillBuff(context, {
       at,
       source: 'Warrior',

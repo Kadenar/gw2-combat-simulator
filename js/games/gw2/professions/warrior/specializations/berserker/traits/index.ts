@@ -15,7 +15,7 @@ import type {
 
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
+import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 
@@ -211,7 +211,8 @@ function emitFireAura(
   const fromTrait = source === 'Trait';
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.kingOfFires), 'buff');
   const duration = Number(effect?.duration ?? 5);
-  berserkerState.from(context).fireAuraUntil = event.at + duration;
+  // Trait and combo auras use the same absolute effect clock as their visible buffs.
+  berserkerState.from(context).fireAuraUntil = gw2EffectExpiresAt(event.at, duration);
   const common = {
     at: event.at,
     source,
@@ -254,7 +255,7 @@ export function observeBerserkerEvent(context: WarriorSchedulerContext, event: W
   if (event.type === 'aura' && event.aura === 'Fire Aura') {
     berserkerState.from(context).fireAuraUntil = Math.max(
       berserkerState.from(context).fireAuraUntil,
-      event.at + Number(event.duration || 0)
+      gw2EffectExpiresAt(event.at, Number(event.duration || 0))
     );
     return;
   }
@@ -316,7 +317,8 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
   const skill = context.catalog.skillsById.get(Number(payload?.skillId));
   if (!skill) return;
   const state = berserkerState.from(context);
-  if (state.fireAuraUntil <= task.at + EPSILON) return;
+  // The aura is consumed only inside its half-open lifetime, without rejecting its final microseconds.
+  if (state.fireAuraUntil <= task.at) return;
   const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
   const strike = balanceProfileEffect(profile, 'strike');
   const burning = balanceProfileEffect(profile, 'condition');
