@@ -11,7 +11,8 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -198,7 +199,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   const kind = String(event.kind || '').toLowerCase();
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
     const state = catalystState.from(context);
-    state.shatteringIceUntil = event.at + Math.max(0, Number(event.duration || 0));
+    state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, Number(event.duration || 0)));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
     state.shatteringIceReadyAt = 0;
     return;
@@ -231,7 +232,7 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     (event.actorType !== 'player' && event.actorType !== 'effect') ||
     event.skillName === 'Shattering Ice Proc' ||
     !(Number(event.coefficient) > 0) ||
-    state.shatteringIceUntil <= event.at + EPSILON ||
+    state.shatteringIceUntil <= event.at ||
     !isInternalCooldownReady(event.at, state.shatteringIceReadyAt)
   ) {
     return;

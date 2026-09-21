@@ -147,7 +147,7 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
   // Weave is up.
   if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
   const state = weaverState.from(context);
-  return state.perfectWeaveUntil > context.start + EPSILON
+  return state.perfectWeaveUntil > context.start
     ? { ready: true }
     : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
 }

@@ -12,6 +12,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
@@ -70,9 +71,9 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;
-      // Keep the reported window consistent with the duration selected by a balance patch.
+      // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
-      state.elementalBalanceUntil = event.at + duration;
+      state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
       emitElementalistProc(context as never, {
         at: event.at,
         name: 'Elemental Balance',

@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -86,17 +86,16 @@ export function grantCatalystElementalEmpowerment(
   stacks = 1,
   maximumStacks = CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS
 ): void {
-  const expiresAt = at + Math.max(0, duration);
-  const active = state.elementalEmpowermentExpiries
-    .filter((expiry) => expiry > at + EPSILON)
-    .sort((left, right) => left - right);
+  // Timed stacks use the same tick-aligned expiry as their emitted buff applications.
+  const expiresAt = gw2EffectExpiresAt(at, Math.max(0, duration));
+  const active = state.elementalEmpowermentExpiries.filter((expiry) => expiry > at).sort((left, right) => left - right);
 
   for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
     if (active.length >= maximumStacks) {
       active.shift();
     }
 
-    if (expiresAt > at + EPSILON) active.push(expiresAt);
+    if (expiresAt > at) active.push(expiresAt);
     active.sort((left, right) => left - right);
   }
 

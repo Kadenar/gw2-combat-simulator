@@ -1,3 +1,5 @@
+import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /**
  * Mutable Evoker specialization state.
  *
@@ -116,7 +118,7 @@ export function expireElectricEnchantments(state: EvokerState, at: number): void
 
 /** Arms a separate lifetime for each grant; earliest-expiring eligible charges are spent first. */
 export function grantElectricEnchantments(state: EvokerState, at: number, stacks: number, duration: number): void {
-  state.electricEnchantmentGrants.push({ at, expiresAt: at + duration, stacks });
+  state.electricEnchantmentGrants.push({ at: canonicalTime(at), expiresAt: gw2EffectExpiresAt(at, duration), stacks });
   state.electricEnchantmentGrants.sort((left, right) => left.expiresAt - right.expiresAt);
   expireElectricEnchantments(state, at);
 }

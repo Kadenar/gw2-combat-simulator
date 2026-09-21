@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /**
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
@@ -62,7 +63,8 @@ export function handleWeaveSelfActivation(
   const at = task.at;
   const sourceId = task.payload?.sourceId ?? ID.WEAVE_SELF;
   const duration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 20);
-  state.weaveSelfUntil = at + duration;
+  // Availability and emitted temporary buffs expire on the same combat tick.
+  state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
   state.perfectWeaveUntil = 0;
   if (core.primaryAttunement !== 'Fire' && core.primaryAttunement !== 'Air') return;
@@ -118,7 +120,7 @@ export function applyWeaveSelfAttunement(
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
   const perfectWeaveDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', 10);
-  state.perfectWeaveUntil = at + perfectWeaveDuration;
+  state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
       at,

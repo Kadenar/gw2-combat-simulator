@@ -18,6 +18,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -284,7 +285,8 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
     state.sphereExpiry.Water > at
       ? balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'durationPerTier', 8)
       : balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'durationMultiplier', 5);
-  state.shatteringIceUntil = at + duration;
+  // Scheduler and resolver use the emitted buff's tick-aligned expiry.
+  state.shatteringIceUntil = gw2EffectExpiresAt(at, duration);
   // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
   state.shatteringIceReadyAt = 0;
   emitSkillBuff(context, {
