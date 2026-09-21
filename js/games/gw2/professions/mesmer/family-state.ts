@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -89,12 +89,13 @@ export function projectMesmerPlanningState({
 }): MesmerPlanningState {
   const runtime = mesmerRuntimeFor(context);
   const { state, config } = context;
-  const endTime = state.time;
+  const endTime = canonicalTime(state.time);
   const definition = runtime.resourceDefinition;
   const publicState = flattenProfessionState(state.profession) as unknown as MesmerProfessionState;
   const availableFlips: Record<string, MesmerProjectedFlip> = {};
   for (const [skillId, flip] of Object.entries(publicState.availableFlips)) {
-    if (flip.expiresAt < endTime - EPSILON) continue;
+    // Expiry-task bookkeeping must not expose an expired flip to the editor.
+    if (flip.expiresAt <= endTime) continue;
     const name = context.catalog.skillsById.get(Number(skillId))?.name;
     if (!name) continue;
     const persistent = !Number.isFinite(flip.expiresAt);

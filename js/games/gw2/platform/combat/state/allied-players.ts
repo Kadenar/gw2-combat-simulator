@@ -1,4 +1,5 @@
 import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import type {
   EffectAudience,
@@ -164,7 +165,7 @@ export function gw2BuffApplicationRecipients(
 
 /**
  * Materializes deterministic allied strike opportunities within a buff window.
- * A per-player ICD caps the effective trigger rate.
+ * A per-player ICD caps the effective trigger rate; strikes at expiry resolve before effect cleanup.
  */
 export function gw2AlliedPlayerProcTimeline(
   config: Gw2AlliedPlayerConfig,
@@ -180,15 +181,14 @@ export function gw2AlliedPlayerProcTimeline(
   const allyCount = boundedInteger(maximumAllies, 0, 0, assumptions.count);
   if (!allyCount || !assumptions.strikesPerSecond) return [];
   const interval = Math.max(Number(internalCooldown || 0), 1 / assumptions.strikesPerSecond);
-  const end = Number(start) + Math.max(0, Number(duration || 0));
+  const end = canonicalTime(Number(start) + Math.max(0, Number(duration || 0)));
   const limit = Math.max(0, Math.trunc(Number(maximumPerAlly)));
   const events: Gw2AlliedPlayerProc[] = [];
   for (let allyIndex = 1; allyIndex <= allyCount; allyIndex += 1) {
-    for (
-      let procIndex = 1, at = Number(start) + interval;
-      procIndex <= limit && at < end + 1e-9;
-      procIndex += 1, at += interval
-    ) {
+    for (let procIndex = 1; procIndex <= limit; procIndex += 1) {
+      // Canonicalize each absolute opportunity without accumulating rounded interval drift.
+      const at = canonicalTime(Number(start) + procIndex * interval);
+      if (at > end) break;
       events.push({ allyIndex, procIndex, at });
     }
   }

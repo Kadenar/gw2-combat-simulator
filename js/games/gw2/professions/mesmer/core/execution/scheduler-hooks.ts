@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
@@ -66,9 +66,11 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
  */
 export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: number): void {
   const profession = professionCoreState(context);
+  target = canonicalTime(target);
   for (const [skillId, flip] of Object.entries(profession.availableFlips)) {
-    if (flip.expiresAt < target - EPSILON) {
-      delete profession.availableFlips[skillId];
+    if (flip.expiresAt <= target) {
+      // The image's expiry task needs its identity to emit natural boons after this advance; the flip is already uncastable.
+      if (Number(skillId) !== ID.ABSTRACTION || flip.expiresAt < target) delete profession.availableFlips[skillId];
       if (Number(skillId) === ID.COUNTERSPELL) {
         profession.counterspellAvailable = false;
       }

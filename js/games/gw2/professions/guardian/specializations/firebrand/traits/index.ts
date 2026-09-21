@@ -4,6 +4,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-p
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -299,19 +300,22 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   const ashesBuff = balanceProfileEffect(quickfire, 'buff');
   const burn = balanceProfileEffect(ashes, 'condition');
   const duration = Number(ashesBuff?.duration ?? 10);
+  const expiresAt = gw2EffectExpiresAt(event.at, duration);
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown ?? 7);
   // Prefer an allied Quickfire recipient when present; otherwise the simulated player receives the charge.
   if (alliedPlayerCount <= 0 && includesSelf) {
-    const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt - EPSILON;
-    state.ashesCharges = Math.max(0, Number(state.ashesCharges || 0)) + 1;
+    // Same-time refreshes retain only live charges, even when the old expiry event has not drained yet.
+    const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt;
+    state.ashesCharges = (hadAshes ? state.ashesCharges : 0) + 1;
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
     // Don't reset the trigger timer when stacking onto an active Ashes buff;
     // resetting would skip a burn that should have fired at the next hit.
     state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : 0;
-    state.ashesExpiresAt = event.at + duration;
+    state.ashesExpiresAt = expiresAt;
     context.queue.enqueue({
       type: 'guardian.ashes-expired',
       at: state.ashesExpiresAt,
+      // Match tome Ashes: same-time strikes consume charges before expiry cleanup.
       priority: 10,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.QUICKFIRE,
@@ -323,7 +327,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   } else {
     const [proc] = gw2AlliedPlayerProcTimeline(context.config, {
       start: event.at,
-      duration,
+      duration: expiresAt - event.at,
       maximumAllies: 1,
       maximumPerAlly: 1,
       internalCooldown: Number(ashes?.internalCooldown ?? 1)

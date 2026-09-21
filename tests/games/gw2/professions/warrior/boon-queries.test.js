@@ -80,6 +80,39 @@ test('Flow Stabilizer reads accumulated pre-cast Fury and excludes its own activ
   assert.equal(state.flow, 0);
 });
 
+// Fury is sampled at the cast instant: neither imminent expiry nor a future application may shift that decision.
+test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => {
+  for (const [castStart, expectedFlow] of [
+    [0.999999, 0],
+    [1, 15],
+    [1.999999, 15],
+    [2, 0]
+  ]) {
+    const state = createBladeswornState();
+    bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
+      context: {
+        config: {},
+        events: [
+          {
+            type: 'buff',
+            kind: 'fury',
+            at: 1,
+            duration: 1,
+            stacks: 1,
+            activationId: 'prior',
+            resolvedAudience: { includesSelf: true }
+          }
+        ],
+        state: { profession: { core: {}, specialization: { kind: 'Bladesworn', state } } }
+      },
+      at: castStart,
+      castStart,
+      activationId: 'current'
+    });
+    assert.equal(state.flow, expectedFlow, `cast at ${castStart}`);
+  }
+});
+
 // Core and Bladesworn count only live self stacks; configured boons and future timeline entries cannot grant them.
 test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and same-time visibility', () => {
   const applications = [

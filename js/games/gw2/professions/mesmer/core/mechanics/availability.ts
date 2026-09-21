@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
@@ -7,7 +7,7 @@ import type { MesmerPrecastContext, MesmerRuntime } from '#gw2/professions/mesme
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-// Gate equipped slots and parent-controlled flip timing after shared build eligibility.
+// Flip windows open exactly at availability and close at expiry, independently of cooldown readiness tolerance.
 export function mesmerAvailability(
   context: MesmerPrecastContext & {
     readonly mesmerRuntime?: MesmerRuntime;
@@ -18,10 +18,10 @@ export function mesmerAvailability(
   if (selection) return selection;
   const runtime = mesmerRuntimeFor(context);
   const { state } = context;
-  const at = context.start;
+  const at = canonicalTime(context.start);
   if (skill.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
-    if (!flip || flip.expiresAt < at - EPSILON) {
+    if (!flip || flip.expiresAt <= at) {
       const parent = runtime.skillsById.get(skill.flipParentId);
       if (parent && context.inFlight.get(parent.id)?.size) {
         return {
@@ -40,7 +40,7 @@ export function mesmerAvailability(
       };
     }
 
-    if (flip.availableAt > at + EPSILON) {
+    if (flip.availableAt > at) {
       return {
         ready: false,
         retryAt: flip.availableAt,

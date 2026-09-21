@@ -1,6 +1,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
@@ -207,7 +208,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
     // A newly granted charge is unarmed so its first hit can trigger immediately.
     state.ashesNextTriggerAt = 0;
-    state.ashesExpiresAt = at + ashesDuration;
+    // Charges, expiry events, and allied triggers share the displayed buff's absolute effect-tick deadline.
+    state.ashesExpiresAt = gw2EffectExpiresAt(at, ashesDuration);
     emitGuardianEvent(context, skill, 'guardian.ashes-granted', {
       at,
       ashesCharges: state.ashesCharges,
@@ -243,7 +245,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,
-      duration: ashesDuration,
+      duration: state.ashesExpiresAt - at,
       maximumPerAlly: state.ashesCharges,
       internalCooldown: Number(ashes?.internalCooldown ?? 1)
     });
@@ -265,6 +267,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     context.emit({
       type: 'guardian.ashes-expired',
       at: state.ashesExpiresAt,
+      // Consume charges on expiry-tick strikes before removing the remaining effect.
+      priority: 10,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
@@ -319,7 +323,7 @@ function handleAshesExpired(context: GuardianResolverContext, event: GuardianRes
   // A newer Ashes application extends ashesExpiresAt beyond the queued event
   // time; re-check the stored expiry so a stale expiry event doesn't clear
   // charges that were refreshed by a Quickfire proc after this event was queued.
-  if (Number(firebrandState.from(context).ashesExpiresAt || 0) <= Number(event.at) + EPSILON) {
+  if (Number(firebrandState.from(context).ashesExpiresAt || 0) <= event.at) {
     firebrandState.from(context).ashesCharges = 0;
   }
 }
@@ -346,7 +350,8 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
     state.nextTomePageAt += state.tomePageInterval;
   }
 
-  if (state.ashesCharges > 0 && state.ashesExpiresAt <= target + EPSILON) {
+  // Advancing to the deadline precedes its strikes; retain charges until those have resolved.
+  if (state.ashesCharges > 0 && state.ashesExpiresAt < target) {
     state.ashesCharges = 0;
   }
 
@@ -401,7 +406,7 @@ export function reactToAshesHit(
   const state = firebrandState.from(context);
   if (
     state.ashesCharges <= 0 ||
-    event.at >= state.ashesExpiresAt - EPSILON ||
+    event.at > state.ashesExpiresAt ||
     !isInternalCooldownReady(event.at, state.ashesNextTriggerAt)
   )
     return;

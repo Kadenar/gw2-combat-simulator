@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -89,20 +89,20 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
   const armedFlip = runtime.flipSkillsByParent.get(skill.id);
   if (armedFlip && context.maximumAmmoFor(armedFlip)) {
     professionCoreState(state).availableFlips[armedFlip.id] = {
-      availableAt: at,
+      availableAt: canonicalTime(at),
       expiresAt: Infinity
     };
     state.ammo.delete(armedFlip.id);
     state.cooldowns.delete(armedFlip.id);
     context.cooldownController.ensureAmmo(armedFlip, at);
   } else if (armedFlip) {
-    // Abstraction remains available for the image's full lifetime after creation.
+    // Canonical exact deadlines keep flip availability and expiry tasks on the same clock; Abstraction starts at creation.
     const flipStart = armedFlip.id === ID.ABSTRACTION ? at : context.start;
     const flip = {
-      availableAt: flipStart + Number(armedFlip.flipDelay || 0),
-      expiresAt: flipStart + Number(armedFlip.flipDuration || 0)
+      availableAt: canonicalTime(flipStart + Number(armedFlip.flipDelay || 0)),
+      expiresAt: canonicalTime(flipStart + Number(armedFlip.flipDuration || 0))
     };
-    if (flip.expiresAt >= at - EPSILON) {
+    if (flip.expiresAt > canonicalTime(at)) {
       professionCoreState(state).availableFlips[armedFlip.id] = flip;
       if (armedFlip.id === ID.COUNTERSPELL) {
         professionCoreState(state).counterspellAvailable = true;

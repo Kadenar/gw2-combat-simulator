@@ -342,7 +342,7 @@ function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill
   });
 }
 
-// Accumulate pre-cast Fury duration, excluding this activation so Flow Stabilizer cannot grant its own bonus.
+// Sample Fury at the exact cast instant, excluding this activation so Flow Stabilizer cannot grant its own bonus.
 function furyActiveBeforeCurrentCast(
   context: WarriorSchedulerContext,
   activationId: string,
@@ -355,9 +355,9 @@ function furyActiveBeforeCurrentCast(
       boonApplicationsAt(
         context.events.filter((event) => event.activationId !== activationId),
         'fury',
-        castStart + EPSILON
+        castStart
       ),
-      castStart + EPSILON,
+      castStart,
       {
         includes: (application) => application.resolvedAudience.includesSelf,
         maximum: durationStackingBoonCapSeconds('fury')
