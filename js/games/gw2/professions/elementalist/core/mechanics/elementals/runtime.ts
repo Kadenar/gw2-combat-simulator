@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
  *
@@ -130,13 +130,13 @@ export function elementalistElementalCompanionId(summonGeneration: number): stri
 }
 
 // True if the given summon generation is still the live elemental at time `at`.
-// Guards scheduled tasks against firing for an expired or replaced summon.
+// Already queued impacts may land exactly at expiry, before the priority-50 teardown.
 function activeElemental(context: ElementalistSchedulerContext, summonGeneration: number, at: number): boolean {
   const elemental = professionCoreState(context).summonedElemental;
   return (
     (elemental.element === 'Fire' || elemental.element === 'Earth') &&
     elemental.summonGeneration === summonGeneration &&
-    elemental.activeUntil > at - EPSILON
+    elemental.activeUntil >= at
   );
 }
 
@@ -614,6 +614,8 @@ function handleElementalAiTask(context: ElementalistSchedulerContext, task: Sche
   const elemental = professionCoreState(context).summonedElemental;
   if (
     !activeElemental(context, payload.summonGeneration, task.at) ||
+    // New attacks require a live window even though final queued impacts can still land.
+    task.at >= elemental.activeUntil ||
     payload.actionGeneration !== elemental.actionGeneration
   ) {
     return;
@@ -682,7 +684,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   if (
     (elemental.element !== 'Fire' && elemental.element !== 'Earth') ||
     elemental.started ||
-    elemental.activeUntil <= at + EPSILON
+    elemental.activeUntil <= at
   ) {
     return;
   }
@@ -725,14 +727,20 @@ function summonElemental(
 ): void {
   const state = professionCoreState(context);
   const profile = elementalRuntimeProfile(element);
+  // Replacement ends the old action and flip together with its queued work.
+  interruptCurrentAction(context, at);
+  const previousElement = state.summonedElemental.element;
+  if (previousElement === 'Fire' || previousElement === 'Earth')
+    delete state.availableFlips[commandName(previousElement)];
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
   state.summonedElemental = {
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil:
-      at + balanceProfileValueFromContext(context, PROFILE.summonedElemental, 'durationMultiplier', profile.lifetime),
+    activeUntil: canonicalTime(
+      at + balanceProfileValueFromContext(context, PROFILE.summonedElemental, 'durationMultiplier', profile.lifetime)
+    ),
     busyUntil: at,
     nextActionAt: 0,
     secondaryAttackReadyAt: at,
@@ -751,7 +759,7 @@ function summonElemental(
     name: `${element} Elemental expires`
   });
   scheduleTask(context, ELEMENTAL_EXPIRE_TASK, expiresAt, { summonGeneration }, 50);
-  state.availableFlips[commandName(element)] = Number.POSITIVE_INFINITY;
+  state.availableFlips[commandName(element)] = expiresAt;
   if (startImmediately) startElemental(context, at);
 }
 
@@ -793,10 +801,7 @@ export function armElementalistElementalLightningJolt(
   coefficient: number
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
-  if (
-    (elemental.element === 'Fire' || elemental.element === 'Earth') &&
-    elemental.activeUntil > context.effectiveEnd + EPSILON
-  ) {
+  if ((elemental.element === 'Fire' || elemental.element === 'Earth') && elemental.activeUntil > context.effectiveEnd) {
     // Only represented allied actors are armed; unmodeled party members cannot contribute synthetic damage.
     elemental.pendingLightningJolt = { coefficient, skillId };
   }
@@ -815,7 +820,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
   const autoSummon = automaticSummoningEnabled(context) && selected != null;
   if (
     autoSummon &&
-    state.summonedElemental.activeUntil <= event.at + EPSILON &&
+    state.summonedElemental.activeUntil <= event.at &&
     event.type === 'action' &&
     event.actorType === 'player' &&
     elementalForGlyph({
@@ -833,7 +838,7 @@ export function observeElementalistElementalEvent(context: ElementalistScheduler
       ['damage', 'condition', 'control', 'blind'].includes(event.type) &&
       ['player', 'summon'].includes(String(event.actorType)));
   if (!combatStarted) return;
-  if (state.summonedElemental.activeUntil <= event.at + EPSILON && autoSummon) {
+  if (state.summonedElemental.activeUntil <= event.at && autoSummon) {
     const glyph = glyphSkillForElement(context, selected);
     if (glyph) summonElemental(context, glyph, event.at, true, selected);
     return;
@@ -853,9 +858,9 @@ export function elementalistElementalAvailability(
 ): AvailabilityResult | null {
   const elemental = professionCoreState(context).summonedElemental;
   if (skill.id === FLAME_BARRAGE_ID) {
-    const active = elemental.element === 'Fire' && elemental.activeUntil > context.start + EPSILON;
+    const active = elemental.element === 'Fire' && elemental.activeUntil > context.start;
     return active ||
-      (elemental.activeUntil <= context.start + EPSILON &&
+      (elemental.activeUntil <= context.start &&
         automaticSummoningEnabled(context as unknown as ElementalistSchedulerContext) &&
         selectedElemental(context as unknown as ElementalistSchedulerContext) === 'Fire')
       ? ready()
@@ -863,9 +868,9 @@ export function elementalistElementalAvailability(
   }
 
   if (skill.id === STOMP_ID) {
-    const active = elemental.element === 'Earth' && elemental.activeUntil > context.start + EPSILON;
+    const active = elemental.element === 'Earth' && elemental.activeUntil > context.start;
     return active ||
-      (elemental.activeUntil <= context.start + EPSILON &&
+      (elemental.activeUntil <= context.start &&
         automaticSummoningEnabled(context as unknown as ElementalistSchedulerContext) &&
         selectedElemental(context as unknown as ElementalistSchedulerContext) === 'Earth')
       ? ready()
@@ -878,7 +883,7 @@ export function elementalistElementalAvailability(
     return denyCast('elementalist.not-equipped', 'the skill is not equipped.');
   }
 
-  return elemental.activeUntil > context.start + EPSILON
+  return elemental.activeUntil > context.start
     ? unavailable(`the ${elemental.element || 'summoned'} elemental is still active.`, elemental.activeUntil)
     : ready();
 }

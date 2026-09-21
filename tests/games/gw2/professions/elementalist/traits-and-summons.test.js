@@ -714,7 +714,10 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.equal(fireball.summonInheritsAttributes, false);
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
-  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], Infinity);
+  assert.equal(
+    result.planningState.profession.availableFlips['Flame Barrage'],
+    result.planningState.profession.summonedElemental.activeUntil
+  );
   assert.equal(result.planningState.cooldowns['Glyph of Elementals'], undefined);
 });
 
@@ -787,7 +790,10 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     )
   );
 
-  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], Infinity);
+  assert.equal(
+    result.planningState.profession.availableFlips['Flame Barrage'],
+    result.planningState.profession.summonedElemental.activeUntil
+  );
 
   const armedResult = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
@@ -939,7 +945,10 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
     result.procSteps.some((step) => step.skill === 'Vicious Empowerment' && step.sourceSkill === 'Stomp'),
     true
   );
-  assert.equal(result.planningState.profession.availableFlips.Stomp, Infinity);
+  assert.equal(
+    result.planningState.profession.availableFlips.Stomp,
+    result.planningState.profession.summonedElemental.activeUntil
+  );
   assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], undefined);
 });
 

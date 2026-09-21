@@ -138,11 +138,11 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start + EPSILON) {
+  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start + EPSILON) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',

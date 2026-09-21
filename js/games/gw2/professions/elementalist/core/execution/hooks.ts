@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import {
   elementalistAfterCast,
   elementalistOnCastComplete,
@@ -43,11 +42,10 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
       id: 'elementalist.boon-companion-candidates',
       order: 5,
       // A live summoned elemental is an extra boon target, so it must be
-      // offered as a companion candidate on every event while it is alive.
+      // offered through its final impact timestamp, before the expiry task removes it.
       handler(context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
         const elemental = professionCoreState(context).summonedElemental;
-        const active =
-          elemental.element !== null && elemental.activeUntil > Number(event.at ?? context.state.time) - EPSILON;
+        const active = elemental.element !== null && elemental.activeUntil >= Number(event.at ?? context.state.time);
         return prepareGw2BuffCompanionCandidates(
           event,
           active ? [elementalistElementalCompanionId(elemental.summonGeneration)] : []
