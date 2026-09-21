@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -61,10 +60,13 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
     const triggersCloneAmbush =
       traitId === TRAIT.DECEPTIVE_EVASION ||
       (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
+    // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
+    const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
     if (
       triggersCloneAmbush &&
       runtime.traits.has(TRAIT.INFINITE_HORIZON) &&
-      mirageState.from(context).cloneAmbushUntil >= at - EPSILON
+      cloneAmbushUntil > 0 &&
+      at <= cloneAmbushUntil
     ) {
       mirage.executeCloneAmbushes(at, createdClones);
     }

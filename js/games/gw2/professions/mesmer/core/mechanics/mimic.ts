@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
@@ -11,19 +11,17 @@ import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 export function completeMimicCast(context: MesmerCastContext, skill: MesmerSkill): void {
   if (context.action.cancelled) return;
 
-  const at = context.fullEnd;
+  const at = canonicalTime(context.fullEnd);
   const core = professionCoreState(context.state);
   if (skill.id === ID.MIMIC) {
-    core.mimicUntil = at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10);
+    // Mimic has an exact cast-start window, including its deadline even if the utility finishes later.
+    core.mimicUntil = canonicalTime(
+      at + balanceProfileValueFromContext(context, PROFILE.mimic, 'durationMultiplier', 10)
+    );
     return;
   }
 
-  if (
-    skill.type !== 'Utility' ||
-    skill.flipParentId ||
-    core.mimicUntil <= 0 ||
-    core.mimicUntil < context.start - EPSILON
-  ) {
+  if (skill.type !== 'Utility' || skill.flipParentId || core.mimicUntil <= 0 || core.mimicUntil < context.start) {
     return;
   }
 

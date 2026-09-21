@@ -1,4 +1,4 @@
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -122,7 +122,7 @@ export function projectMesmerPlanningState({
     clarityRemaining: Math.max(0, Math.round((publicState.clarityUntil - endTime) * 1000)),
     counterspellAvailable: publicState.counterspellAvailable,
     availableAmbush:
-      publicState.ambushSource && publicState.ambushUntil > endTime + EPSILON
+      publicState.ambushSource && publicState.ambushUntil > endTime
         ? {
             name: runtime.ambushAttacks[activeWeapon]?.name || '',
             source: publicState.ambushSource,
@@ -132,11 +132,11 @@ export function projectMesmerPlanningState({
         : null,
     ...(config.specialization === 'Mirage'
       ? {
-          // Publish real endurance for the palette bar and projected availability.
           endurance: publicState.endurance,
           maximumEndurance: publicState.maximumEndurance,
-          availableMirrors: (publicState.mirrors || []).filter(
-            (mirror) => mirror.availableAt <= endTime + EPSILON && mirror.expiresAt > endTime + EPSILON
+          // Mirror counts use pickup's exact half-open window so palette and scheduler availability agree.
+          availableMirrors: (publicState.mirrors || []).filter((mirror) =>
+            isTimeInWindow(endTime, mirror.availableAt, mirror.expiresAt)
           ).length
         }
       : {}),

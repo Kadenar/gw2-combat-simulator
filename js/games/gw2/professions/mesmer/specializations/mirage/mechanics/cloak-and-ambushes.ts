@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
@@ -81,12 +81,13 @@ export function createMirageActionController({
     stacks: Number(effect?.stacks ?? fallback.stacks ?? 1)
   });
 
-  // Creates Mirage Mirrors at the trigger's resolved timestamp; skill metadata owns any delay.
+  // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number, source: string) => {
+    at = canonicalTime(at);
     for (let index = 0; index < Math.max(0, count); index += 1) {
       mirageState.from(state).mirrors.push({
         availableAt: at,
-        expiresAt: at + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration ?? 8),
+        expiresAt: canonicalTime(at + Number(profileEffect(PROFILE.mechanics, 'buff')?.duration ?? 8)),
         source
       });
     }
@@ -221,14 +222,15 @@ export function createMirageActionController({
     }
   };
 
-  // Grants an ambush window at the specified time, with the given source and optional duration
+  // Refresh the exact ambush deadline without shortening an existing window or snapping it to a buff tick.
   const grantAmbushWindow = (
     at: number,
     source: string,
     duration = profileValue(PROFILE.mechanics, 'durationPerTier', 1.5)
   ) => {
     if (config.specialization !== 'Mirage') return;
-    mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, at + duration);
+    at = canonicalTime(at);
+    mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, canonicalTime(at + duration));
     mirageState.from(state).ambushSource = source;
     addEvent({
       type: 'marker',
@@ -262,6 +264,7 @@ export function createMirageActionController({
     }: MesmerMirageCloakOptions = {}
   ) => {
     if (config.specialization !== 'Mirage') return;
+    at = canonicalTime(at);
     grantAmbushWindow(at, source);
     addEvent({
       type: 'buff',
@@ -294,7 +297,7 @@ export function createMirageActionController({
 
     reduceDuneCloakShatters(at, source);
     if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
-      mirageState.from(state).cloneAmbushUntil = at + duration;
+      mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
       executeCloneAmbushes(at, professionCoreState(state).clones);
     }
   };
@@ -437,7 +440,7 @@ export function createMirageActionController({
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
   const pickUpMirror = (at: number, source: string) => {
     const mirrors = mirageState.from(state).mirrors;
-    const index = mirrors.findIndex((mirror) => mirror.availableAt <= at + EPSILON && mirror.expiresAt > at + EPSILON);
+    const index = mirrors.findIndex((mirror) => isTimeInWindow(at, mirror.availableAt, mirror.expiresAt));
     if (index < 0) return false;
     mirrors.splice(index, 1);
     const pseudo = {

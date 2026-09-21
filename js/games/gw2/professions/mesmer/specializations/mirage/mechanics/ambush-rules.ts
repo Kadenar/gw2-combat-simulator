@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
@@ -102,11 +102,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
 
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
     const mirrors = mirageState.from(context).mirrors;
-    if (
-      mirrors.some(
-        (mirror) => mirror.availableAt <= context.start + EPSILON && mirror.expiresAt > context.start + EPSILON
-      )
-    ) {
+    if (mirrors.some((mirror) => isTimeInWindow(context.start, mirror.availableAt, mirror.expiresAt))) {
       return { ready: true };
     }
 
@@ -114,7 +110,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     // the mirror does not enter specialization state until that task executes.
     const retryAt = Math.min(
       context.tasks.nextAt('mesmer.mirage.create-mirror'),
-      ...mirrors.filter((mirror) => mirror.expiresAt > context.start + EPSILON).map((mirror) => mirror.availableAt)
+      ...mirrors.filter((mirror) => mirror.expiresAt > context.start).map((mirror) => mirror.availableAt)
     );
     return {
       ready: false,
@@ -135,7 +131,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     .some(
       (action) =>
         action.actorType === 'player' &&
-        action.at < state.ambushUntil - EPSILON &&
+        action.at < state.ambushUntil &&
         action.at < context.start - EPSILON &&
         Number(action.castLockoutEndsAt ?? action.endsAt) >= context.start - EPSILON
     );
@@ -143,7 +139,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     activeAmbush &&
     activeAmbush.name === skill.name &&
     state.ambushSource &&
-    (state.ambushUntil > context.start + EPSILON || queuedAmbush)
+    (state.ambushUntil > context.start || queuedAmbush)
   ) {
     return { ready: true };
   }
@@ -197,7 +193,8 @@ function advanceMirageScheduler(context: MesmerSchedulerContext, target: number)
       state.maximumEndurance
     )
   );
-  state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > target + EPSILON);
+  // Cleanup shares pickup's exclusive deadline so the final live microsecond remains usable.
+  state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > target);
 }
 
 /** Updates Mirage dodge recovery for timed Vigor and Sigil of Energy's endurance grant. */
