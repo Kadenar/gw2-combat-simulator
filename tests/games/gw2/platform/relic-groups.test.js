@@ -3,49 +3,17 @@ import test from 'node:test';
 import { RELIC_GROUPS, RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 
-function assertCompleteGroups(groups, names, data) {
-  const groupedNames = groups.flatMap((group) => group.items);
+test('shared relic groups include every relic once under its declared category', () => {
+  // Verify catalog completeness and metadata membership without maintaining another list of relic names.
   const sortNames = (values) => [...values].sort((left, right) => left.localeCompare(right));
-
   assert.deepEqual(
-    groups.map((group) => group.label),
+    RELIC_GROUPS.map((group) => group.label),
     ['Power', 'Condition', 'Hybrid']
   );
-  assert.equal(groupedNames.length, names.length);
-  assert.equal(new Set(groupedNames).size, names.length);
-  assert.deepEqual(sortNames(groupedNames), names);
-  assert.ok(groups.every((group) => group.items.length > 0));
-  assert.ok(names.every((name) => data[name]));
-}
-
-test('shared relics are grouped by their damage effect', () => {
-  assertCompleteGroups(RELIC_GROUPS, RELIC_NAMES, RELIC_DATA);
-  assert.deepEqual(RELIC_GROUPS, [
-    {
-      label: 'Power',
-      items: [
-        'Brawler',
-        'Bloodstone',
-        'Claw',
-        'Deadeye',
-        'Director',
-        'Dragonhunter',
-        'Eagle',
-        'Fireworks',
-        'Mist Stranger',
-        'Mistburn',
-        'Mount Balrior',
-        'Shackles',
-        'Thief'
-      ]
-    },
-    {
-      label: 'Condition',
-      items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Last Tyrant', 'Mirage', 'Steamshrieker', 'Thorns']
-    },
-    {
-      label: 'Hybrid',
-      items: ['Nourys', 'Peitha', 'Visionary', 'Warrior']
-    }
-  ]);
+  assert.deepEqual(sortNames(RELIC_GROUPS.flatMap((group) => group.items)), RELIC_NAMES);
+  for (const { label, items } of RELIC_GROUPS) {
+    assert.ok(items.length > 0);
+    assert.deepEqual(items, sortNames(items));
+    for (const name of items) assert.equal(RELIC_DATA[name].category, label);
+  }
 });

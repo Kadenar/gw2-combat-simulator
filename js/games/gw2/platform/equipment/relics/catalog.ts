@@ -16,31 +16,8 @@ export function normalizePrecastRelics(value: unknown): string[] {
   return Array.isArray(value) ? PRECAST_RELIC_NAMES.filter((name) => value.includes(name)) : [];
 }
 
-export const RELIC_GROUPS = [
-  {
-    label: 'Power',
-    items: [
-      'Brawler',
-      'Bloodstone',
-      'Claw',
-      'Deadeye',
-      'Director',
-      'Dragonhunter',
-      'Eagle',
-      'Fireworks',
-      'Mist Stranger',
-      'Mistburn',
-      'Mount Balrior',
-      'Shackles',
-      'Thief'
-    ]
-  },
-  {
-    label: 'Condition',
-    items: ['Akeem', 'Aristocracy', 'Blightbringer', 'Fractal', 'Last Tyrant', 'Mirage', 'Steamshrieker', 'Thorns']
-  },
-  {
-    label: 'Hybrid',
-    items: ['Nourys', 'Peitha', 'Visionary', 'Warrior']
-  }
-];
+// Derive alphabetized membership from relic metadata so both selectors include new relics automatically.
+export const RELIC_GROUPS = ['Power', 'Condition', 'Hybrid'].map((label) => ({
+  label,
+  items: RELIC_NAMES.filter((name) => RELIC_DATA[name as keyof typeof RELIC_DATA].category === label)
+}));
