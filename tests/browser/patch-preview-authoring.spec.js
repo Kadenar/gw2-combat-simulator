@@ -1,5 +1,109 @@
 import { expect, test } from '@playwright/test';
 
+// Replace only the browser's active-preview module so composition tests never edit repository patch data.
+for (const mode of ['preview', 'absent', 'invalid']) {
+  test(`profession app composition handles ${mode} active preview`, async ({ page }) => {
+    const preview =
+      mode === 'absent'
+        ? null
+        : {
+            id: 'fixture-preview',
+            label: 'Fixture Preview',
+            ...(mode === 'invalid'
+              ? { constants: { factor: 2 } }
+              : { professions: { fixture: { skills: { 1: { coefficient: { multiply: 2 } } } } } })
+          };
+    await page.route('**/integrations/patches/active-preview.ts', (route) =>
+      route.fulfill({
+        contentType: 'text/javascript',
+        body: `export const activePatchPreview = ${JSON.stringify(preview)}; export default activePatchPreview;`
+      })
+    );
+    await page.route('**/composition-test', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Composition test</title>' })
+    );
+    await page.goto('/composition-test');
+    const result = await page.evaluate(async (mode) => {
+      const { definePatchedProfessionApp } = await import('/js/games/gw2/app/create-patched-adapter.ts');
+      const { defineProfessionApp } = await import('/js/games/gw2/app/create-adapter.ts');
+      const { defineNativeModule, defineNativeProfession } =
+        await import('/js/games/gw2/platform/profession-definition/profession.ts');
+      // Reuse the isolated strike scenario from the native patch-preview contract coverage.
+      const native = defineNativeProfession({
+        id: 'fixture',
+        name: 'Fixture',
+        modules: [
+          defineNativeModule({
+            id: 'Core',
+            data: {
+              generatedSkills: [
+                {
+                  id: 1,
+                  name: 'Previewed Skill',
+                  type: 'Utility',
+                  castTimeMs: 0,
+                  effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+                }
+              ]
+            },
+            state: { scheduler: () => ({}) }
+          })
+        ]
+      });
+      const options = {
+        profession: native,
+        applyBuildAttributeRules: () => {},
+        toApplicationBuild: (build) => build,
+        specializationFallback: 'Core'
+      };
+      const plain = defineProfessionApp(options);
+      if (mode === 'invalid') {
+        try {
+          definePatchedProfessionApp(options);
+        } catch (error) {
+          return { error: error.message, plainIsNative: plain.profession === native };
+        }
+
+        return { error: null };
+      }
+
+      const adapter = definePatchedProfessionApp(options);
+      const patchId = mode === 'preview' ? 'fixture-preview' : 'current';
+      const config = {
+        specialization: 'Core',
+        stats: { power: 1000, precision: 0, ferocity: 0, conditionDamage: 0, expertise: 0, concentration: 0 },
+        target: { armor: 1000 }
+      };
+      const current = plain.simulateBuild([1], config);
+      const patched = adapter.simulateBuild([1], { ...config, patchId });
+      return {
+        coefficient: adapter.profession.catalogFor(patchId).skillsById.get(1).effects[0].coefficient,
+        nativeCoefficient: native.catalog.skillsById.get(1).effects[0].coefficient,
+        nativeHasPreview: 'preview' in native,
+        currentDamage: current.totalDamage,
+        patchedDamage: patched.totalDamage,
+        warnings: patched.warnings,
+        previewId: adapter.profession.preview?.id ?? null
+      };
+    }, mode);
+
+    if (mode === 'invalid') {
+      expect(result.error).toContain('unsupported field constants');
+      expect(result.plainIsNative).toBe(true);
+      return;
+    }
+
+    const multiplier = mode === 'preview' ? 2 : 1;
+    expect(result.coefficient).toBe(multiplier);
+    expect(result.nativeCoefficient).toBe(1);
+    expect(result.nativeHasPreview).toBe(false);
+    expect(result.currentDamage).toBeGreaterThan(0);
+    expect(Math.abs(result.patchedDamage - result.currentDamage * multiplier)).toBeLessThan(multiplier);
+    expect(result.warnings).toEqual([]);
+    expect(result.previewId).toBe(mode === 'preview' ? 'fixture-preview' : null);
+  });
+}
+
 // Hold API responses in memory to exercise draft ownership without writing a preview to disk.
 for (const operation of ['save', 'reset']) {
   for (const succeeds of [true, false]) {

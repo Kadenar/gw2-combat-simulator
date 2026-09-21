@@ -1,17 +1,16 @@
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 // Browser-facing Mesmer composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import type { MesmerApplicationBuild } from '#gw2/professions/mesmer/types.js';
 
 // Exposes Mesmer only through the shared browser application contract.
-export const mesmerAppAdapter = defineProfessionApp({
-  profession: withActivePatchPreview(mesmerProfession),
+export const mesmerAppAdapter = definePatchedProfessionApp({
+  profession: mesmerProfession,
   applyBuildAttributeRules: applyMesmerBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Domination',

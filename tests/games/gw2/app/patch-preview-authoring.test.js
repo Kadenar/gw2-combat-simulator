@@ -2,6 +2,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 import {
   authoringNumericFieldLabel,
@@ -43,6 +44,21 @@ const rangerProfession = withActivePatchPreview(baseRangerProfession);
 const revenantProfession = withActivePatchPreview(baseRevenantProfession);
 const thiefProfession = withActivePatchPreview(baseThiefProfession);
 const warriorProfession = withActivePatchPreview(baseWarriorProfession);
+
+// Browser composition must retain profession-specific inputs and extras when it decorates the runtime.
+test('patched Engineer adapter forwards starting heat and morph selections', () => {
+  const build = engineerAppAdapter.toApplicationBuild(baseEngineerProfession.createBuildDefaults());
+  build.initialHeat = 37;
+  const app = { build, profession: engineerAppAdapter.profession, attributeWeaponSet: 1 };
+  engineerAppAdapter.recalculate(app);
+  const config = engineerAppAdapter.simulationConfig(app);
+
+  assert.equal(config.initialResource, 37);
+  assert.equal(config.initialHeat, 37);
+  assert.deepEqual(config.selectedMorphSkillIds, build.selectedMorphSkillIds);
+  assert.notEqual(config.selectedMorphSkillIds, build.selectedMorphSkillIds);
+  assert.equal(engineerAppAdapter.defaultOffhand({ offHands: ['Shield', 'Pistol'] }), 'Pistol');
+});
 
 test('patch preview decorates the neutral profession without changing its runtime contract', () => {
   assert.equal('patchAuthoring' in baseWarriorProfession, false);

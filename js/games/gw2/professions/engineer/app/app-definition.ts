@@ -1,17 +1,17 @@
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 // Browser-facing Engineer composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../profession.js.
 
-import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { preferOffhand } from '#gw2/app/create-adapter.js';
+import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import type { EngineerApplicationBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
-export const engineerAppAdapter = defineProfessionApp({
-  profession: withActivePatchPreview(engineerProfession),
+export const engineerAppAdapter = definePatchedProfessionApp({
+  profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Explosives',

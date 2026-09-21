@@ -1,9 +1,9 @@
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 // Browser-facing Necromancer composition. It adds attribute calculation,
 // runtime config mapping, persistence metadata, and shared-shell adapter
 // behavior to the engine contract exported by ../profession.js.
 
-import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { preferOffhand } from '#gw2/app/create-adapter.js';
+import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -11,8 +11,8 @@ import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.j
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 
 // Exposes Necromancer only through the shared browser application contract.
-export const necromancerAppAdapter = defineProfessionApp({
-  profession: withActivePatchPreview(necromancerProfession),
+export const necromancerAppAdapter = definePatchedProfessionApp({
+  profession: necromancerProfession,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Spite',

@@ -1,17 +1,16 @@
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 // Browser-facing Thief composition. It adds attribute calculation, runtime
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../profession.js.
 
-import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import type { ThiefApplicationBuild } from '#gw2/professions/thief/types.js';
 
 // Exposes Thief only through the shared browser application contract.
-export const thiefAppAdapter = defineProfessionApp({
-  profession: withActivePatchPreview(thiefProfession),
+export const thiefAppAdapter = definePatchedProfessionApp({
+  profession: thiefProfession,
   applyBuildAttributeRules: applyThiefBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Trickery',

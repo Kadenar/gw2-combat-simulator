@@ -1,5 +1,5 @@
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { defineProfessionApp, preferOffhand } from '#gw2/app/create-adapter.js';
+import { preferOffhand } from '#gw2/app/create-adapter.js';
+import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -58,8 +58,8 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
  * that carry the build's starting resources into the simulation.
  */
 // Exposes Elementalist only through the shared browser application contract.
-export const elementalistAppAdapter = defineProfessionApp({
-  profession: withActivePatchPreview(elementalistProfession),
+export const elementalistAppAdapter = definePatchedProfessionApp({
+  profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Fire',
