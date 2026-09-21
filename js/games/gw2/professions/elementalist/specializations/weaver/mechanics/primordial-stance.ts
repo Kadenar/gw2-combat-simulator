@@ -7,8 +7,7 @@ import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/bal
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
+import { replaceSkill, timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
@@ -33,14 +32,11 @@ function schedulePrimordialStance(context: ElementalistCastContext, skill: Skill
     }
   }
 
-  for (const at of tickTimes) {
-    context.tasks.schedule({
-      type: 'elementalist.primordial-stance',
-      at,
-      ownerId: context.reservationId,
-      payload: { sourceId: skill.id }
-    });
-  }
+  primordialStance.start(context, {
+    times: [...tickTimes].sort((a, b) => a - b),
+    ownerId: context.reservationId,
+    captured: { sourceId: skill.id }
+  });
 }
 
 /** Weaver owns dynamic pulse emission while retaining the skills' patchable effect metadata. */
@@ -49,20 +45,21 @@ export const weaverSkillHandlers = Object.freeze({
 });
 
 /** Resolves one Primordial Stance pulse against the attunements live at its timestamp. */
-export function handlePrimordialStanceTick(
+function emitPrimordialStancePulse(
   context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly sourceId: Skill['id'] }>
+  at: number,
+  captured: { readonly sourceId: Skill['id'] }
 ): void {
   const core = professionCoreState(context);
   const state = weaverState.from(context);
-  const sourceId = task.payload?.sourceId || 'primordial-stance';
+  const sourceId = captured.sourceId;
   const attunements = state.secondaryAttunement
     ? [core.primaryAttunement, state.secondaryAttunement]
     : [core.primaryAttunement];
   const strike = balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'strike');
   if (strike)
     emitSkillDamage(context, {
-      at: task.at,
+      at,
       source: 'elementalist',
       sourceId,
       actorType: 'player',
@@ -76,7 +73,7 @@ export function handlePrimordialStanceTick(
     const effect = balanceProfileEffectFromContext(context, PROFILE.primordialStance, 'condition', 0, attunement);
     if (!effect) continue;
     emitSkillCondition(context, {
-      at: task.at,
+      at,
       source: 'Primordial Stance',
       sourceId,
       skillName: 'Primordial Stance',
@@ -86,3 +83,9 @@ export function handlePrimordialStanceTick(
     });
   }
 }
+
+/** The shared sequence owns occurrences; each pulse reads the live attunement pair. */
+export const primordialStance = timedEffect({
+  id: 'elementalist.primordial-stance',
+  effectsAt: emitPrimordialStancePulse
+});

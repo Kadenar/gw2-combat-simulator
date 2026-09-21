@@ -1,3 +1,4 @@
+import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -126,12 +127,8 @@ export function handleLarcenousTorment(
 ): void {
   const stacks = Math.max(0, Number(task.payload.stacks || 0));
   if (!(stacks > 0)) return;
-  const state = specterState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
-  state.shadowForce = Math.min(
-    state.maximumShadowForce,
-    state.shadowForce + stacks * Number(profile?.resourceGain ?? 0.5)
-  );
+  gainShadowForce(context, stacks * Number(profile?.resourceGain ?? 0.5));
   emitThiefStateSnapshot(context, task.at, 'larcenous-torment');
 }
 

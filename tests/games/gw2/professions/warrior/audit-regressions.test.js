@@ -11,7 +11,7 @@ import {
   activateCommand,
   advanceParagon,
   updateParagonCast,
-  handleParagonCommandEchoTask
+  commandEchoes
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import {
   advanceWarriorResources,
@@ -76,7 +76,7 @@ function paragonContext() {
         specialization: { kind: 'Paragon', state: createParagonState() }
       }
     },
-    tasks: { schedule: (task) => tasks.push(task) },
+    tasks: { schedule: (task) => tasks.push(task), cancel: () => {} },
     emit: (event) => {
       events.push(event);
       return event;
@@ -116,7 +116,7 @@ test('cancelled Paragon activations leave Motivation, refrain and pending echoes
   const context = paragonContext();
   const state = context.state.profession.specialization.state;
   activateCommand(context, warriorCatalog.skillsById.get(ID.WE_SHALL_RETURN));
-  const pending = structuredClone(state.pendingCommandEchoes);
+  const pending = commandEchoes.nextAt(context);
   context.action.cancelled = true;
   const chant = warriorCatalog.skillsById.get(ID.CHANT_OF_ACTION);
   activateChant(context, chant);
@@ -124,7 +124,7 @@ test('cancelled Paragon activations leave Motivation, refrain and pending echoes
   activateCommand(context, warriorCatalog.skillsById.get(ID.FIND_THEIR_WEAKNESS));
   assert.equal(state.motivation, 0);
   assert.equal(state.activeRefrainId, null);
-  assert.deepEqual(state.pendingCommandEchoes, pending);
+  assert.equal(commandEchoes.nextAt(context), pending);
   assert.equal(context.scheduled.length, 1);
   assert.equal(context.events.length, 0);
   assert.equal(context.state.profession.core.adrenaline, 20, 'cancelled activation retains its resource spend');
@@ -132,7 +132,6 @@ test('cancelled Paragon activations leave Motivation, refrain and pending echoes
 
 test('burst-flushed echoes invalidate the old task and repeat after the new interval', () => {
   const context = paragonContext();
-  const state = context.state.profession.specialization.state;
   context.state.profession.core.adrenaline = 0;
   activateCommand(context, warriorCatalog.skillsById.get(ID.WE_SHALL_RETURN));
   const oldTask = context.scheduled[0];
@@ -141,12 +140,12 @@ test('burst-flushed echoes invalidate the old task and repeat after the new inte
   const nextTask = context.scheduled[1];
   assert.equal(context.state.profession.core.adrenaline, 10);
   assert.equal(nextTask.at, 4);
-  handleParagonCommandEchoTask(context, oldTask);
+  commandEchoes.taskHandlers['warrior.paragon-command-echo'](context, oldTask);
   assert.equal(context.state.profession.core.adrenaline, 10);
-  assert.equal(state.pendingCommandEchoes.length, 1);
-  handleParagonCommandEchoTask(context, nextTask);
+  assert.equal(commandEchoes.nextAt(context), 4);
+  commandEchoes.taskHandlers['warrior.paragon-command-echo'](context, nextTask);
   assert.equal(context.state.profession.core.adrenaline, 20);
-  assert.equal(state.pendingCommandEchoes.length, 0);
+  assert.equal(commandEchoes.nextAt(context), Infinity);
 });
 
 test('all accepted Staff and Spear burst variants spend resources and grant first-hit burst traits', () => {

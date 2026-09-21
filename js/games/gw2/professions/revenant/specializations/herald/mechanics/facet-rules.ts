@@ -32,10 +32,9 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import {
   afterHeraldFacetCast,
-  handleElevatedCompassionPulse,
-  handleHeraldFacetPulse,
-  expireHeraldEcho,
-  HERALD_ELEVATED_COMPASSION_TASK,
+  elevatedCompassion,
+  facetPulses,
+  facetExpiry,
   syncElevatedCompassion
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
@@ -219,9 +218,9 @@ export const heraldSchedulerHooks = Object.freeze({
     handler: observeHeraldEvent
   },
   taskHandlers: Object.freeze({
-    'revenant.herald-facet-pulse': handleHeraldFacetPulse,
-    'revenant.herald-echo-expiry': expireHeraldEcho,
-    [HERALD_ELEVATED_COMPASSION_TASK]: handleElevatedCompassionPulse,
+    ...facetPulses.taskHandlers,
+    ...facetExpiry.taskHandlers,
+    ...elevatedCompassion.taskHandlers,
     [HERALD_SHARED_EMPOWERMENT_TASK]: handleSharedEmpowerment
   })
 });

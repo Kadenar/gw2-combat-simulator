@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -133,29 +134,25 @@ export function handleBladeSpendTask(context: MesmerSchedulerContext, task: Mesm
   details.shatterSpendCommitted = true;
 }
 
-export function handleInfiniteForgeTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'infiniteForge'>
-): void {
-  const runtime = mesmerRuntimeFor(context);
-  runtime.resources.gainResources(
-    task.at,
-    balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks', 1),
-    runtime.activePrimaryWeapon(),
-    'Infinite Forge',
-    {
-      traitId: TRAIT.INFINITE_FORGE,
-      traitName: 'Infinite Forge'
-    }
-  );
-  context.tasks.schedule({
-    type: 'mesmer.infinite-forge',
-    at: task.at + balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
-    priority: -20,
-    ownerId: 'mesmer.infinite-forge',
-    payload: {}
-  });
-}
+export const infiniteForge = timedEffect({
+  id: 'mesmer.infinite-forge',
+  priority: -20,
+  interval: (context: MesmerSchedulerContext) =>
+    balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
+  effectsAt(context: MesmerSchedulerContext, at: number) {
+    const runtime = mesmerRuntimeFor(context);
+    runtime.resources.gainResources(
+      at,
+      balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks', 1),
+      runtime.activePrimaryWeapon(),
+      'Infinite Forge',
+      {
+        traitId: TRAIT.INFINITE_FORGE,
+        traitName: 'Infinite Forge'
+      }
+    );
+  }
+});
 
 export const virtuosoSchedulerHooks = Object.freeze({
   onEventScheduled: Object.freeze([
@@ -172,7 +169,7 @@ export const virtuosoSchedulerHooks = Object.freeze({
   ]),
   taskHandlers: Object.freeze({
     'mesmer.blade-spend': handleBladeSpendTask,
-    'mesmer.infinite-forge': handleInfiniteForgeTask,
+    ...infiniteForge.taskHandlers,
     'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask,
     'mesmer.virtuoso-expected-proc': handleVirtuosoExpectedProcTask
   })

@@ -1,3 +1,4 @@
+import { infiniteForge } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/blades-and-bladesongs.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -56,12 +57,11 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
 
   // Infinite Forge's recurring blade generation starts only for the active Virtuoso specialization.
   if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
-    context.tasks.schedule({
-      type: 'mesmer.infinite-forge',
+    infiniteForge.start(context, {
+      key: 'forge',
       at: balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
-      priority: -20,
       ownerId: 'mesmer.infinite-forge',
-      payload: {}
+      captured: {}
     });
   }
 }

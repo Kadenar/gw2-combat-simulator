@@ -1,11 +1,9 @@
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface NecromancerWeaponSpellRecipient {
-  stacks: number;
-  nextAt: number;
-}
+export type NecromancerWeaponSpellRecipient = ChargeGrant;
 
 export interface NecromancerWeaponSpellState {
   readonly skillId?: SkillId;

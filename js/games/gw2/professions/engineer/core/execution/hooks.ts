@@ -1,11 +1,7 @@
 import { observeEngineerMineFieldEvent } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
 import { applyEngineerCastTraits, observeEngineerHghEvent } from '#gw2/professions/engineer/core/traits/index.js';
-import {
-  handleElectricArtilleryExpire,
-  handleElectricArtilleryReady,
-  handleLightningRodCharge
-} from '#gw2/professions/engineer/core/mechanics/spear.js';
-import { handleHealingTurretSwapToCleansingBurst } from '#gw2/professions/engineer/core/mechanics/healing-turret.js';
+import { lightningRod } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { healingTurretWindow } from '#gw2/professions/engineer/core/mechanics/healing-turret.js';
 import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
 
 /** Registers Core Engineer resources, weapons, traits, and tasks in scheduler order. */
@@ -35,9 +31,7 @@ export const engineerCoreSchedulerHooks = Object.freeze({
     }
   ]),
   taskHandlers: Object.freeze({
-    'engineer.lightning-rod-charge': handleLightningRodCharge,
-    'engineer.electric-artillery-ready': handleElectricArtilleryReady,
-    'engineer.electric-artillery-expire': handleElectricArtilleryExpire,
-    'engineer.healing-turret-swap-to-cleansing-burst': handleHealingTurretSwapToCleansingBurst
+    ...lightningRod.taskHandlers,
+    ...healingTurretWindow.taskHandlers
   })
 });

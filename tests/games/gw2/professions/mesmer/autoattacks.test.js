@@ -339,7 +339,7 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
   assert.equal(result.casts.length, chain.length);
 });
 
-test('clone attack tasks rearm on dispatch and ignore destroyed clones', () => {
+test('clone attack selection returns the next cadence and ignores destroyed clones', () => {
   // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
   const state = { clones: [] };
   const damage = [];
@@ -372,13 +372,12 @@ test('clone attack tasks rearm on dispatch and ignore destroyed clones', () => {
   assert.deepEqual(tasks, [{ cloneId: 1, at: 3 }]);
   assert.equal(damage.length, 0);
   const first = tasks.shift();
-  scheduler.handleTask(first.cloneId, first.at);
+  const nextAt = scheduler.handleTask(first.cloneId, first.at);
   assert.equal(damage.length, 1);
   assert.equal(conditions.length, 1);
-  assert.deepEqual(tasks, [{ cloneId: 1, at: 5 }]);
+  assert.equal(nextAt, 5);
   state.clones.length = 0;
-  const next = tasks.shift();
-  scheduler.handleTask(next.cloneId, next.at);
+  assert.equal(scheduler.handleTask(first.cloneId, nextAt), null);
   assert.equal(damage.length, 1);
   assert.equal(conditions.length, 1);
   assert.deepEqual(tasks, []);

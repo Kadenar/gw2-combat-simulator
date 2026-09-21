@@ -4,7 +4,7 @@
  */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -191,51 +191,28 @@ function executeCommandEcho(context: WarriorSchedulerContext, skillId: number, a
   }
 }
 
-function executePendingEcho(context: WarriorSchedulerContext, echoId: number, at: number): void {
-  const state = paragonState.from(context);
-  const index = state.pendingCommandEchoes.findIndex((echo) => echo.id === echoId);
-  if (index < 0) return;
-  const [echo] = state.pendingCommandEchoes.splice(index, 1);
-  executeCommandEcho(context, Number(echo.skillId), at);
-  if (echo.repeats > 1) {
-    const next = {
-      ...echo,
-      // Each repeat owns a new occurrence so a previously scheduled task cannot consume it.
-      id: ++state.commandEchoSequence,
-      dueAt: at + Number(balanceProfileFromContext(context, PROFILE.commands)?.pulseInterval ?? 3),
-      repeats: echo.repeats - 1
-    };
-    state.pendingCommandEchoes.push(next);
-    context.tasks.schedule({
-      type: 'warrior.paragon-command-echo',
-      at: next.dueAt,
-      priority: -20,
-      payload: { echoId: next.id }
-    });
-  }
-}
+/** Echoes precede ordinary same-time tasks; burst consumption restarts the next repeat's delay. */
+export const commandEchoes = timedEffect({
+  id: 'warrior.paragon-command-echo',
+  priority: -20,
+  interval: (context: WarriorSchedulerContext) =>
+    Number(balanceProfileFromContext(context, PROFILE.commands)?.pulseInterval ?? 3),
+  effectsAt: (context: WarriorSchedulerContext, at: number, captured: { readonly skillId: WarriorSkill['id'] }) =>
+    executeCommandEcho(context, Number(captured.skillId), at)
+});
 
 export function activateCommand(context: WarriorCastContext, skill: WarriorSkill): void {
   // Only successful commands grant resources and queue echoes.
   if (context.action.cancelled) return;
   if (skill.id === ID.FIND_THEIR_WEAKNESS) gainWarriorAdrenaline(context, 3);
 
-  const state = paragonState.from(context);
   const commands = balanceProfileFromContext(context, PROFILE.commands);
-  const echo = {
-    id: ++state.commandEchoSequence,
-    skillId: skill.id,
-    dueAt: context.effectiveEnd + Number(commands?.pulseInterval ?? 3),
-    repeats: hasTrait(context, TRAIT.REVERBERATION)
+  commandEchoes.start(context, {
+    captured: { skillId: skill.id },
+    at: context.effectiveEnd + Number(commands?.pulseInterval ?? 3),
+    count: hasTrait(context, TRAIT.REVERBERATION)
       ? Number(balanceProfileFromContext(context, PROFILE.reverberation)?.maximumStacks ?? commands?.maximumStacks ?? 2)
       : 1
-  };
-  state.pendingCommandEchoes.push(echo);
-  context.tasks.schedule({
-    type: 'warrior.paragon-command-echo',
-    at: echo.dueAt,
-    priority: -20,
-    payload: { echoId: echo.id }
   });
 }
 
@@ -337,12 +314,7 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
 export function updateParagonCast(context: WarriorCastContext, skill: WarriorSkill): void {
   // Cancellation leaves pending echoes available for the next committed burst.
   if (context.action.cancelled) return;
-  const state = paragonState.from(context);
-  if (skill.burst && state.pendingCommandEchoes.length) {
-    for (const echo of [...state.pendingCommandEchoes]) {
-      executePendingEcho(context, echo.id, context.effectiveEnd);
-    }
-  }
+  if (skill.burst) commandEchoes.consumeAll(context, context.effectiveEnd);
 }
 
 /** Applies Inspiring Implements after the shared weapon swap is committed. */
@@ -376,9 +348,4 @@ export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkil
 
   gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.rallyTheValiant)?.resourceGain ?? 4));
   emitParagonState(context, context.start, 'rally');
-}
-
-export function handleParagonCommandEchoTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
-  const payload = task.payload as { readonly echoId?: number } | null;
-  executePendingEcho(context, Number(payload?.echoId), task.at);
 }

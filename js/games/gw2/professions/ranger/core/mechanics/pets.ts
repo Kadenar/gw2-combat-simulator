@@ -1,3 +1,4 @@
+import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -179,22 +180,16 @@ function schedulePetAuto(context: RangerSchedulerContext, at: number): void {
 
   const nextAt = Math.max(context.state.time, at, state.petAutoBusyUntil);
   state.petAutoNextAt = nextAt;
-  state.petAutoTaskId = context.tasks.schedule({
-    type: PET_AUTO_TASK,
-    at: nextAt,
-    priority: 10,
-    ownerId: PET_AUTO_OWNER,
-    payload: { generation: state.petAutoGeneration }
-  });
+  petActions.replace(context, { key: 'pet', ownerId: PET_AUTO_OWNER, firstAt: nextAt, state: {} });
 }
 
 function startPetAuto(context: RangerSchedulerContext, at: number, reset = false): void {
   const state = professionCoreState(context);
   // Retire the outgoing attack loop even when the incoming pet has no profile; launched effects persist separately.
   if (reset) {
+    petActions.cancel(context, 'pet');
     context.tasks.cancelOwner(PET_AUTO_OWNER);
     state.petAutoGeneration += 1;
-    state.petAutoTaskId = '';
     state.petAutoNextAt = 0;
   }
 
@@ -311,52 +306,57 @@ export function handleRangerPetAutoEffectTask(
 
 // Run one serialized pet activation, applying summon Quickness and Alacrity to
 // recovery and recharge before scheduling the next autonomous choice.
-export function handleRangerPetAutoTask(
-  context: RangerSchedulerContext,
-  task: ScheduledTask<PetAutoTaskPayload>
-): void {
+function stepPetAuto(context: RangerSchedulerContext, at: number): { at: number; state: object } | null {
   const state = professionCoreState(context);
-  if (Number(task.payload?.generation) !== state.petAutoGeneration) return;
-  state.petAutoTaskId = '';
   state.petAutoNextAt = 0;
-  if (!state.petActive) return;
+  if (!state.petActive) return null;
   const profile = activeProfile(context);
-  if (!profile) return;
-  if (task.at < state.petAutoBusyUntil - EPSILON) {
-    schedulePetAuto(context, state.petAutoBusyUntil);
-    return;
-  }
-
+  if (!profile) return null;
   const openingBasic = state.petAutoOpeningBasic;
-  const quickness = gw2BuffActiveForAudience(context, 'quickness', task.at, 'summon');
-  const selected = autonomousSkill(context, profile, task.at, quickness);
+  const quickness = gw2BuffActiveForAudience(context, 'quickness', at, 'summon');
+  const selected = autonomousSkill(context, profile, at, quickness);
   const recovery = selected.recovery / (quickness ? GW2_QUICKNESS_ACTION_RATE : 1);
-  emitAutonomousSkill(context, selected.id, task.at, recovery);
-  state.petAutoBusyUntil = task.at + recovery;
+  emitAutonomousSkill(context, selected.id, at, recovery);
+  state.petAutoBusyUntil = at + recovery;
   if (selected.cooldown) {
     const rechargeRate =
-      !profile.ignoresAlacrity && gw2BuffActiveForAudience(context, 'alacrity', task.at, 'summon')
+      !profile.ignoresAlacrity && gw2BuffActiveForAudience(context, 'alacrity', at, 'summon')
         ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
         : 1;
     const cooldown =
       selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
         ? 12
         : Number(selected.cooldown) * (hasTrait(context, TRAIT.PACK_ALPHA) ? 0.8 : 1);
-    state.petAutoCooldowns[String(selected.id)] = task.at + cooldown / Math.max(Number.EPSILON, rechargeRate);
+    state.petAutoCooldowns[String(selected.id)] = at + cooldown / Math.max(Number.EPSILON, rechargeRate);
     state.petAutoActivationUses[String(selected.id)] =
       Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;
   }
 
-  schedulePetAuto(
-    context,
-    task.at +
-      recovery +
-      (openingBasic
-        ? Number(profile.openingRecoveryDelay || 0) +
-          (quickness ? Number(profile.quicknessOpeningRecoveryDelay || 0) : 0)
-        : 0)
-  );
+  const nextAt =
+    at +
+    recovery +
+    (openingBasic
+      ? Number(profile.openingRecoveryDelay || 0) + (quickness ? Number(profile.quicknessOpeningRecoveryDelay || 0) : 0)
+      : 0);
+  state.petAutoNextAt = nextAt;
+  return { at: nextAt, state: {} };
 }
+
+/** The shared actor owns recurrence; commands keep their reservation and recovery policy beside pet selection. */
+const petActions = actorLoop({
+  id: PET_AUTO_TASK,
+  priority: 10,
+  readyAt(context: RangerSchedulerContext, at: number) {
+    const state = professionCoreState(context);
+    if (at < state.petAutoBusyUntil - EPSILON) {
+      state.petAutoNextAt = state.petAutoBusyUntil;
+      return state.petAutoBusyUntil;
+    }
+
+    return at;
+  },
+  step: stepPetAuto
+});
 
 // Shift command-owned packets to the pet's actual start, stamp summon metadata,
 // and start or reset autonomous scheduling at combat and swap boundaries.
@@ -455,9 +455,9 @@ export function setRangerPetActive(context: RangerSchedulerContext, active: bool
   const state = professionCoreState(context);
   if (state.petActive === active) return;
   state.petActive = active;
+  petActions.cancel(context, 'pet');
   context.tasks.cancelOwner(PET_AUTO_OWNER);
   state.petAutoGeneration += 1;
-  state.petAutoTaskId = '';
   state.petAutoNextAt = 0;
   state.petAutoBusyUntil = at;
   state.petCommandReadyAt = at;
@@ -495,15 +495,14 @@ export function handleRangerPetCommandStartTask(
     }
   }
 
-  if (state.petAutoTaskId) context.tasks.cancel(state.petAutoTaskId);
-  state.petAutoTaskId = '';
+  petActions.cancel(context, 'pet');
   state.petAutoNextAt = 0;
   state.petAutoBusyUntil = Math.max(state.petAutoBusyUntil, Number(payload.busyUntil || task.at));
   schedulePetAuto(context, state.petAutoBusyUntil);
 }
 
 export const rangerPetTaskHandlers = Object.freeze({
-  [PET_AUTO_TASK]: handleRangerPetAutoTask,
+  ...petActions.taskHandlers,
   [PET_COMMAND_START_TASK]: handleRangerPetCommandStartTask,
   'ranger.pet-autonomous-effect': handleRangerPetAutoEffectTask
 });

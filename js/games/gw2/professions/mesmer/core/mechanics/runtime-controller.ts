@@ -28,7 +28,10 @@ import {
   mesmerProfiledTraitDamage
 } from '#gw2/professions/mesmer/core/profiles.js';
 import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
-import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
+import {
+  createCloneAttackScheduler,
+  cloneActions
+} from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createExpectedProcTracker } from '#gw2/professions/mesmer/core/mechanics/illusions/expected-procs.js';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
@@ -168,14 +171,11 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   });
 
   const scheduleCloneTask = (clone: MesmerClone, at: number) =>
-    context.tasks.schedule({
-      type: 'mesmer.clone-attack',
-      at,
-      // Legacy temporal semantics resolve a clone's due attack before gains,
-      // replacement, shatter, and other profession work at the same timestamp.
-      priority: -50,
-      ownerId: clone.ownerId,
-      payload: { cloneId: clone.id }
+    cloneActions.replace(context, {
+      key: String(clone.id),
+      ownerId: clone.ownerId || `mesmer.clone:${clone.id}`,
+      firstAt: at,
+      state: { cloneId: clone.id }
     });
   const cloneAttackScheduler = createCloneAttackScheduler({
     state,
@@ -185,6 +185,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     scheduleTask: scheduleCloneTask
   });
   const destroyClone = (clone: MesmerClone, _at: number) => {
+    cloneActions.cancel(context, String(clone.id));
     context.tasks.cancelOwner(clone.ownerId || `mesmer.clone:${clone.id}`);
   };
 

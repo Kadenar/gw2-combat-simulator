@@ -1,3 +1,4 @@
+import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
@@ -48,7 +49,6 @@ import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/pol
 
 const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';
-const MINION_ATTACK_STOP_TASK = 'necromancer.minion-attack-stop';
 
 interface MinionAttackTaskPayload {
   readonly skillId: SkillId;
@@ -60,10 +60,6 @@ interface MinionAttackTaskPayload {
   readonly attackIndex: number;
   readonly controlUntil: number;
   readonly controlKind?: string;
-}
-
-interface MinionAttackStopTaskPayload {
-  readonly ownerId: string;
 }
 
 function minionAttackOwner(key: string, attackGeneration: number): string {
@@ -78,11 +74,7 @@ function queueMinionAttackStop(
   at: number
 ): void {
   if (attackGeneration <= 0) return;
-  context.tasks.schedule({
-    type: MINION_ATTACK_STOP_TASK,
-    at,
-    payload: { ownerId: minionAttackOwner(key, attackGeneration) }
-  });
+  minionActions.stop(context, at, minionAttackOwner(key, attackGeneration));
 }
 
 // Stamp summon-specific damage attributes only when the active profile supplies a complete independent formula.
@@ -133,11 +125,11 @@ function queueSummonAttacks(
   queueMinionAttackStop(context, definition.key, attackGeneration - 1, at);
   // Each creature owns a clock because capped party boons can reach only one copy of a minion.
   for (let minionIndex = 0; minionIndex < definition.count; minionIndex += 1) {
-    context.tasks.schedule({
-      type: MINION_ATTACK_TASK,
-      at: quantizeGw2ActionDurationUp((at + Number(initialDelay)) * 1000) / 1000,
+    minionActions.start(context, at, {
+      key: `minion:${definition.key}:${minionIndex}`,
+      firstAt: quantizeGw2ActionDurationUp((at + Number(initialDelay)) * 1000) / 1000,
       ownerId: minionAttackOwner(definition.key, attackGeneration),
-      payload: {
+      state: {
         skillId: skill.id,
         minionKey: definition.key,
         generation,
@@ -153,12 +145,14 @@ function queueSummonAttacks(
 }
 
 // Advance one creature's attack chain, sampling its own Quickness between attacks while retaining fixed idle gaps.
-function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask<MinionAttackTaskPayload>): void {
-  const payload = task.payload;
-  if (!payload) return;
+function stepMinionAttack(
+  context: NecromancerCastContext,
+  at: number,
+  payload: MinionAttackTaskPayload
+): { at: number; state: MinionAttackTaskPayload } | null {
   const skill = context.catalog.skillsById.get(payload.skillId);
   const definition = skill ? minionDefinitionForSkill(context, skill.id) : undefined;
-  if (!skill || !definition || definition.key !== payload.minionKey) return;
+  if (!skill || !definition || definition.key !== payload.minionKey) return null;
 
   // Keep the same ordinary or alternating packet set for every attack in this cycle.
   const defaultAttacks = definition.attacks || [
@@ -174,12 +168,12 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
       ? definition.alternateAttacks
       : defaultAttacks;
   const attack = attacks[payload.attackIndex];
-  if (!attack) return;
+  if (!attack) return null;
   const summonOwner = `minion:${definition.key}:${payload.minionIndex}`;
   const damagePerCoefficient = attack.damagePerCoefficient ?? definition.damagePerCoefficient;
   context.emit({
     type: 'necromancer.summon-attack',
-    at: task.at,
+    at: at,
     source: 'Minion',
     sourceId: attack.skillId ?? skill.id,
     actorType: 'summon',
@@ -192,7 +186,7 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
     deferredComboFinishers: attack.comboFinishers,
     onHitCondition: attack.condition,
     // Command control includes the final impact at its exact deadline, without a grace period.
-    controlKind: attack.controlKind || (task.at <= payload.controlUntil ? payload.controlKind : undefined),
+    controlKind: attack.controlKind || (at <= payload.controlUntil ? payload.controlKind : undefined),
 
     ...(Number.isFinite(Number(damagePerCoefficient))
       ? {}
@@ -217,31 +211,26 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
   const castTimeMs = Number(attack.castTimeMs || 0);
   const quickness =
     context.config.sharePlayerBoonsWithSummons !== false &&
-    gw2BuffActiveForAudience(context, 'quickness', task.at, 'summon', summonOwner);
+    gw2BuffActiveForAudience(context, 'quickness', at, 'summon', summonOwner);
   // Fist and unmeasured attacks declare no accelerable duration; never divide their entire repeat interval.
   const savedMs = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
-  const nextAt = quantizeGw2ActionDurationUp(task.at * 1000 + Math.max(0, interval * 1000 - savedMs)) / 1000;
-  if (nextAt > task.at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
-    context.tasks.schedule({
-      type: MINION_ATTACK_TASK,
+  const nextAt = quantizeGw2ActionDurationUp(at * 1000 + Math.max(0, interval * 1000 - savedMs)) / 1000;
+  if (nextAt > at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
+    return {
       at: nextAt,
-      ownerId: task.ownerId,
-      payload: {
+      state: {
         ...payload,
         attackIndex: nextAttackIndex,
         cycleIndex: payload.cycleIndex + Number(nextAttackIndex === 0)
       }
-    });
+    };
   }
+
+  return null;
 }
 
-// Cancel the scheduled task owner recorded by a prior attack generation.
-function handleMinionAttackStop(
-  context: NecromancerCastContext,
-  task: ScheduledTask<MinionAttackStopTaskPayload>
-): void {
-  if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
-}
+/** Each concrete minion shares action serialization and replacement while retaining its attack selection and attribution. */
+export const minionActions = actorLoop({ id: MINION_ATTACK_TASK, step: stepMinionAttack });
 
 // Materialize explicitly timed command packets once per summoned minion while
 // binding them to the current summon and attack generations.
@@ -536,7 +525,6 @@ export const necromancerMinionSkillHandlers = Object.freeze({
 
 /** Maps minion scheduler task types to autonomous attack and delayed-command handlers. */
 export const necromancerMinionTaskHandlers = Object.freeze({
-  [MINION_ATTACK_TASK]: handleMinionAttack,
-  [MINION_ATTACK_STOP_TASK]: handleMinionAttackStop,
+  ...minionActions.taskHandlers,
   [MINION_COMMAND_IMPACT_TASK]: handleMinionCommandImpact
 });

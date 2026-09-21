@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -304,14 +305,9 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
   state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown ?? 7);
   // Prefer an allied Quickfire recipient when present; otherwise the simulated player receives the charge.
   if (alliedPlayerCount <= 0 && includesSelf) {
-    // Same-time refreshes retain only live charges, even when the old expiry event has not drained yet.
-    const hadAshes = state.ashesCharges > 0 && event.at < state.ashesExpiresAt;
-    state.ashesCharges = (hadAshes ? state.ashesCharges : 0) + 1;
+    // Refresh all live charges while preserving their hit cooldown.
+    state.ashes = grantCharges(1, expiresAt, state.ashes, event.at);
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
-    // Don't reset the trigger timer when stacking onto an active Ashes buff;
-    // resetting would skip a burn that should have fired at the next hit.
-    state.ashesNextTriggerAt = hadAshes ? state.ashesNextTriggerAt : 0;
-    state.ashesExpiresAt = expiresAt;
     context.queue.enqueue({
       type: 'guardian.ashes-expired',
       at: state.ashesExpiresAt,

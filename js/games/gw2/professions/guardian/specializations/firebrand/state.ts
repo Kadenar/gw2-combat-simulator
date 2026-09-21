@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -13,6 +14,7 @@ export interface GuardianFirebrandState {
   maximumTomePages: number;
   tomePageInterval: number;
   nextTomePageAt: number;
+  ashes: ChargeGrant;
   ashesCharges: number;
   ashesBurnDuration: number;
   ashesNextTriggerAt: number;
@@ -60,10 +62,27 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
       archivistOfWhispers ? 8 : 5,
       hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8
     ),
-    ashesCharges: 0,
+    ashes: grantCharges(0, 0),
+    // Public compatibility fields project the shared grant instead of maintaining a second mutable counter.
+    get ashesCharges() {
+      return this.ashes.charges;
+    },
+    set ashesCharges(value: number) {
+      this.ashes.charges = value;
+    },
     ashesBurnDuration: 2,
-    ashesNextTriggerAt: 0,
-    ashesExpiresAt: 0,
+    get ashesNextTriggerAt() {
+      return this.ashes.readyAt ?? 0;
+    },
+    set ashesNextTriggerAt(value: number) {
+      this.ashes.readyAt = value;
+    },
+    get ashesExpiresAt() {
+      return this.ashes.expiresAt;
+    },
+    set ashesExpiresAt(value: number) {
+      this.ashes.expiresAt = value;
+    },
     nextCourageAegisAt: 0,
     tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: '',

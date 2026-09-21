@@ -1,3 +1,4 @@
+import { resourceValueAt, resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
@@ -22,7 +23,6 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { clamp } from '#kernel/core/numeric.js';
 
 function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;
@@ -42,7 +42,7 @@ function syncRevenantCombatState(context: RevenantSchedulerContext, state: Reven
 }
 
 function accruedEnergy(accrual: NonNullable<RevenantCoreState['energyAccrual']>, at: number): number {
-  return roundedResourceValue(clamp(accrual.energy + (at - accrual.at) * accrual.rate, 0, accrual.maximum));
+  return roundedResourceValue(resourceValueAt(accrual, at));
 }
 
 function activeUpkeepCost(state: RevenantCoreState, at: number): number {
@@ -104,10 +104,10 @@ export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: num
   const accrual = state.energyAccrual;
   const enough = state.energy + EPSILON >= cost;
   // Immediate refunds and an already sufficient pool do not introduce an Energy wait.
-  if (enough && (!accrual || accrual.rate <= 0 || accrual.energy + EPSILON >= cost)) return context.start;
+  if (enough && (!accrual || accrual.rate <= 0 || accrual.value + EPSILON >= cost)) return context.start;
   if (rate <= 0 || cost > state.maximumEnergy + EPSILON || (!enough && state.combatBeganAt == null)) return null;
   const threshold = accrual
-    ? accrual.at + (cost - accrual.energy) / rate
+    ? accrual.updatedAt + (cost - accrual.value) / rate
     : context.start + (cost - state.energy) / rate;
   return quantizeGw2ActionDurationUp(threshold * 1000) / 1000;
 }
@@ -131,11 +131,10 @@ function advanceRevenantEnergyInterval(
     accrual.rate !== rate ||
     accrual.maximum !== maximum
   ) {
-    accrual = state.energyAccrual = { at: from, energy: state.energy, rate, maximum };
+    accrual = state.energyAccrual = { updatedAt: from, value: state.energy, rate, maximum };
   }
 
-  const starvedAt =
-    rate < 0 ? quantizeGw2ActionDurationUp((accrual.at + accrual.energy / -rate) * 1000) / 1000 : Infinity;
+  const starvedAt = quantizeGw2ActionDurationUp(resourceDepletionAt(accrual) * 1000) / 1000;
   if (starvedAt <= target) {
     state.energy = 0;
     for (const active of state.activeUpkeeps) {
@@ -152,7 +151,7 @@ function advanceRevenantEnergyInterval(
     clearRevenantLegendFlips(context);
     state.energyUpdatedAt = starvedAt;
     emitRevenantStateSnapshot(context, starvedAt, 'upkeep-starved');
-    state.energyAccrual = { at: starvedAt, energy: 0, rate: regeneration, maximum };
+    state.energyAccrual = { updatedAt: starvedAt, value: 0, rate: regeneration, maximum };
     state.energy = accruedEnergy(state.energyAccrual, target);
     state.energyUpdatedAt = target;
     emitRevenantStateSnapshot(context, target, 'energy');

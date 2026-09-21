@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { handleLightningRodCharge, scheduleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { lightningRod, scheduleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const simulate = createProfessionSimulator(engineerProfession, {
@@ -16,13 +16,22 @@ const artilleryEvents = (result) => result.resolvedEvents.filter((event) => even
 // Charge expiry is half-open, and a stale pulse cannot extend another activation's resource window.
 test('Lightning Rod charges expire after twelve seconds', () => {
   const core = createEngineerCoreState();
-  core.lightningRodActivationId = 'rod';
-  const context = { state: { profession: { core } } };
-  handleLightningRodCharge(context, { at: 1, payload: { activationId: 'rod' } });
+  const scheduled = [];
+  const context = {
+    state: { profession: { core } },
+    emit: () => {},
+    tasks: { schedule: (task) => scheduled.push(task), cancel: () => {} }
+  };
+  const captured = { skillId: ID.LIGHTNING_ROD, skillName: 'Lightning Rod' };
+  lightningRod.start(context, { key: 'rod', times: [1, 13], captured });
+  const handler = lightningRod.taskHandlers['engineer.lightning-rod'];
+  handler(context, scheduled[0]);
   assert.deepEqual(core.lightningRodChargeExpiries, [13]);
-  handleLightningRodCharge(context, { at: 13, payload: { activationId: 'stale' } });
+  const stale = scheduled[1];
+  lightningRod.start(context, { key: 'rod', times: [13], captured });
+  handler(context, stale);
   assert.deepEqual(core.lightningRodChargeExpiries, [13]);
-  handleLightningRodCharge(context, { at: 13, payload: { activationId: 'rod' } });
+  handler(context, scheduled[2]);
   assert.deepEqual(core.lightningRodChargeExpiries, [25]);
 });
 
@@ -85,7 +94,6 @@ test('Artillery damage and conditions wait for impact without delaying the next 
 test('Artillery snapshots release charges and preserves the armed sequence on cancellation', () => {
   const core = createEngineerCoreState();
   Object.assign(core, {
-    lightningRodActivationId: 'rod',
     lightningRodChargeExpiries: [10, 10.1, 20],
     electricArtilleryAvailable: true,
     availableFlips: { [ID.ELECTRIC_ARTILLERY]: true }
@@ -115,5 +123,5 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   assert.equal(impact.charges, 2);
   assert.equal(impact.at, 10.6);
   assert.deepEqual(core.lightningRodChargeExpiries, []);
-  assert.deepEqual(cancelledOwners, ['engineer.lightning-rod:rod']);
+  assert.equal(lightningRod.nextAt(context, 'rod'), Infinity);
 });

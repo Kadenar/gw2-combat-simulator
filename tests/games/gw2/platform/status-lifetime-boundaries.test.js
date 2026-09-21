@@ -38,7 +38,8 @@ import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicat
 import { handleGaleshotMissileHitTask } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { galeshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { handleNecromancerPainfulBond } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
-import { necromancerMinionTaskHandlers } from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import { minionActions } from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import {
   reactToRighteousInstincts,
   handleRighteousInstinctsTick
@@ -208,9 +209,12 @@ test('Lich Form expires exactly once and preserves its last live microsecond', (
 test('minion command control includes its deadline but excludes the following microsecond', () => {
   for (const at of [1.999999, 2, 2.000001]) {
     const context = contextFor(necromancerProfession, 'Core');
-    necromancerMinionTaskHandlers['necromancer.minion-attack'](context, {
-      at,
-      payload: {
+    context.tasks = createTaskQueue({ handlers: minionActions.taskHandlers });
+    minionActions.start(context, 0, {
+      key: 'golem',
+      ownerId: 'golem',
+      firstAt: at,
+      state: {
         skillId: N.SUMMON_FLESH_GOLEM,
         minionKey: 'flesh-golem',
         generation: 1,
@@ -222,6 +226,7 @@ test('minion command control includes its deadline but excludes the following mi
         controlKind: 'knockdown'
       }
     });
+    context.tasks.drainThrough(at, context);
     assert.equal(
       context.events.find((event) => event.type === 'necromancer.summon-attack')?.controlKind,
       at <= 2 ? 'knockdown' : undefined

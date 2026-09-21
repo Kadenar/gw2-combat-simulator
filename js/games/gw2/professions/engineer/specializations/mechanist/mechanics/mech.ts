@@ -1,3 +1,4 @@
+import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
@@ -26,7 +27,6 @@ import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerCastContext,
-  EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
   EngineerSkill
@@ -215,17 +215,6 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
   context.replaceEvent(event, updates);
 }
 
-/** Schedules the next step of the mech's independent basic-attack chain and records its due time. */
-function scheduleMechAttack(context: EngineerSchedulerContext, at: number, payload: MechAttackPayload): void {
-  mechanistState.from(context).mech.nextAttackAt = at;
-  context.tasks.schedule({
-    type: 'engineer.mech-attack',
-    at,
-    ownerId: 'engineer.mech',
-    payload
-  });
-}
-
 /** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   const strike = balanceProfileEffectFromContext(context, PROFILE.rocketPunch, 'strike');
@@ -328,34 +317,31 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
 export function initializeEngineerMech(context: EngineerSchedulerContext): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
-  scheduleMechAttack(context, MECHANIST_ATTACK_TIMING.initialDelay, {
-    phase: 0
+  state.mech.nextAttackAt = MECHANIST_ATTACK_TIMING.initialDelay;
+  mechActions.start(context, context.state.time, {
+    key: 'mech',
+    ownerId: 'engineer.mech',
+    firstAt: state.mech.nextAttackAt,
+    state: { phase: 0 }
   });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
-export function handleEngineerMechAttack(
+function stepMechAttack(
   context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<MechAttackPayload>
-): void {
+  at: number,
+  payload: MechAttackPayload
+): { at: number; state: MechAttackPayload } | null {
   const state = mechanistState.from(context);
-  if (!state.mech.enabled) return;
-
-  // Mech is mid-command; hold the attack chain until the command animation ends.
-  const busyUntil = Number(state.mech.busyUntil || 0);
-  if (task.at < busyUntil - EPSILON) {
-    scheduleMechAttack(context, busyUntil, task.payload || { phase: 0 });
-    return;
-  }
-
-  const rate = mechAttackRate(context, task.at);
-  const phase = Number(task.payload?.phase || 0);
+  if (!state.mech.enabled) return null;
+  const rate = mechAttackRate(context, at);
+  const phase = Number(payload.phase || 0);
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.
   if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
     const firstArm = phase === 0;
     emitMechStrike(context, {
-      at: task.at,
+      at: at,
       coefficient: balanceProfileValue(
         balanceProfileEffectFromContext(context, PROFILE.jadeCannons, 'strike'),
         'coefficient',
@@ -364,13 +350,10 @@ export function handleEngineerMechAttack(
       name: 'Jade Energy Shot',
       skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348
     });
-    scheduleMechAttack(
-      context,
-      task.at +
-        (firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap) / rate,
-      { phase: firstArm ? 1 : 0 }
-    );
-    return;
+    const nextAt =
+      at + (firstArm ? MECHANIST_ATTACK_TIMING.jadeCannonArmGap : MECHANIST_ATTACK_TIMING.jadeCannonCycleGap) / rate;
+    state.mech.nextAttackAt = nextAt;
+    return { at: nextAt, state: { phase: firstArm ? 1 : 0 } };
   }
 
   // The default chassis advances through its three-hit melee chain, wrapping
@@ -391,15 +374,31 @@ export function handleEngineerMechAttack(
   };
   const strike = balanceProfileEffectFromContext(context, PROFILE.meleeChain, 'strike', phase);
   emitMechStrike(context, {
-    at: task.at,
+    at: at,
     ...melee,
     coefficient: balanceProfileValue(strike, 'coefficient', phase === 2 ? 0.8 : 0.45),
     hits: balanceProfileValue(strike, 'hits', phase === 2 ? 2 : 1)
   });
-  scheduleMechAttack(context, task.at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate, {
-    phase: (phase + 1) % 3
-  });
+  const nextAt = at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate;
+  state.mech.nextAttackAt = nextAt;
+  return { at: nextAt, state: { phase: (phase + 1) % 3 } };
 }
+
+/** Commands reserve the mech lane; shared action execution waits through recovery without advancing the attack chain. */
+export const mechActions = actorLoop({
+  id: 'engineer.mech-attack',
+  readyAt(context: EngineerSchedulerContext, at: number) {
+    const mech = mechanistState.from(context).mech;
+    const busyUntil = Number(mech.busyUntil || 0);
+    if (at < busyUntil - EPSILON) {
+      mech.nextAttackAt = busyUntil;
+      return busyUntil;
+    }
+
+    return at;
+  },
+  step: stepMechAttack
+});
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
 export function activateOverclockSignet(context: EngineerCastContext, skill: EngineerSkill): void {

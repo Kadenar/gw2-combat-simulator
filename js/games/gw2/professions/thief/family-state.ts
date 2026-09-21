@@ -1,3 +1,4 @@
+import { replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import {
   professionCoreState,
   projectPublicProfessionState,
@@ -111,12 +112,12 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
   const mergedBatches: ThiefState['venomChargeBatches'] = {};
   const generation = Number(core.venomGeneration || 0);
   for (const skillId of new Set([...Object.keys(batches), ...Object.keys(incomingBatches)])) {
-    const active = [
-      ...(batches[skillId] || []),
-      ...(incomingBatches[skillId] || []).filter((batch) => batch.generation > generation)
-    ].filter((batch) => batch.charges > 0 && batch.expiresAt > event.at);
-    active.sort((a, b) => a.expiresAt - b.expiresAt);
-    mergedBatches[skillId] = active;
+    mergedBatches[skillId] = replayChargeGrants(
+      batches[skillId] || [],
+      incomingBatches[skillId] || [],
+      generation,
+      event.at
+    );
   }
 
   // Repeated snapshots of the same Mortar application must not refill consumed Mistburn charges.

@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -79,16 +80,10 @@ export function handleNecromancerWeaponSpell(
   if (!event.spell) return;
   // Player and summons/allies each get separate stack counters; allies get fewer stacks unless Wielder's Boon is active
   const recipients: Record<string, NecromancerWeaponSpellRecipient> = {
-    player: {
-      stacks: Number(event.playerStacks || 0),
-      nextAt: 0
-    }
+    player: grantCharges(Number(event.playerStacks || 0), event.at + Number(event.duration || 0))
   };
   for (const recipient of event.resolvedAudience?.companionIds || []) {
-    recipients[recipient] = {
-      stacks: Number(event.allyStacks || 0),
-      nextAt: 0
-    };
+    recipients[recipient] = grantCharges(Number(event.allyStacks || 0), event.at + Number(event.duration || 0));
   }
 
   ritualistState.from(context).weaponSpells[event.spell] = {

@@ -1,6 +1,8 @@
+import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
+import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -204,12 +206,11 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     const ashesBuff = balanceProfileEffect(ashes, 'buff');
     const might = balanceProfileEffect(ashes, 'boon');
     const ashesDuration = Number(ashesBuff?.duration ?? 10);
-    state.ashesCharges = Number(ashes?.maximumStacks ?? ashesBuff?.stacks ?? 2);
+    state.ashes = grantCharges(
+      Number(ashes?.maximumStacks ?? ashesBuff?.stacks ?? 2),
+      gw2EffectExpiresAt(at, ashesDuration)
+    );
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
-    // A newly granted charge is unarmed so its first hit can trigger immediately.
-    state.ashesNextTriggerAt = 0;
-    // Charges, expiry events, and allied triggers share the displayed buff's absolute effect-tick deadline.
-    state.ashesExpiresAt = gw2EffectExpiresAt(at, ashesDuration);
     emitGuardianEvent(context, skill, 'guardian.ashes-granted', {
       at,
       ashesCharges: state.ashesCharges,
@@ -307,25 +308,17 @@ function handleTomePageUsed(context: GuardianResolverContext, event: GuardianRes
 
 /** Arms charges at their application event; later page snapshots cannot restore consumed charges. */
 function handleAshesGranted(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  firebrandState.from(context).ashesCharges = Number(event.ashesCharges ?? firebrandState.from(context).ashesCharges);
-  firebrandState.from(context).ashesBurnDuration = Number(
-    event.ashesBurnDuration ?? firebrandState.from(context).ashesBurnDuration
+  const state = firebrandState.from(context);
+  state.ashes = grantCharges(
+    Number(event.ashesCharges ?? state.ashes.charges),
+    Number(event.ashesExpiresAt ?? state.ashes.expiresAt)
   );
-  firebrandState.from(context).ashesNextTriggerAt = Number(
-    event.ashesNextTriggerAt ?? firebrandState.from(context).ashesNextTriggerAt
-  );
-  firebrandState.from(context).ashesExpiresAt = Number(
-    event.ashesExpiresAt ?? firebrandState.from(context).ashesExpiresAt
-  );
+  state.ashes.readyAt = Number(event.ashesNextTriggerAt ?? 0);
+  state.ashesBurnDuration = Number(event.ashesBurnDuration ?? state.ashesBurnDuration);
 }
 
 function handleAshesExpired(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  // A newer Ashes application extends ashesExpiresAt beyond the queued event
-  // time; re-check the stored expiry so a stale expiry event doesn't clear
-  // charges that were refreshed by a Quickfire proc after this event was queued.
-  if (Number(firebrandState.from(context).ashesExpiresAt || 0) <= event.at) {
-    firebrandState.from(context).ashesCharges = 0;
-  }
+  expireCharges(firebrandState.from(context).ashes, event.at);
 }
 
 /**
@@ -345,15 +338,18 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const state = firebrandState.from(context);
   // Loop rather than a single add so multiple pages that matured in the same
   // advance window are all credited without needing separate advance calls.
-  while (state.nextTomePageAt <= target + EPSILON) {
-    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 1);
-    state.nextTomePageAt += state.tomePageInterval;
-  }
+  const pages = advanceDiscreteResource(
+    state.tomePages,
+    state.maximumTomePages,
+    state.nextTomePageAt,
+    state.tomePageInterval,
+    target + EPSILON
+  );
+  state.tomePages = pages.value;
+  state.nextTomePageAt = pages.nextAt;
 
   // Advancing to the deadline precedes its strikes; retain charges until those have resolved.
-  if (state.ashesCharges > 0 && state.ashesExpiresAt < target) {
-    state.ashesCharges = 0;
-  }
+  expireCharges(state.ashes, target, true);
 
   // Passive courage aegis is firebrand-only; skip early for other specs to
   // avoid emitting aegis that shouldn't exist on dragonhunter/core guardian.
@@ -404,12 +400,7 @@ export function reactToAshesHit(
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);
-  if (
-    state.ashesCharges <= 0 ||
-    event.at > state.ashesExpiresAt ||
-    !isInternalCooldownReady(event.at, state.ashesNextTriggerAt)
-  )
-    return;
+  if (!consumeCharge(state.ashes, event.at, Number(ashes?.internalCooldown ?? 1), true)) return;
 
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
@@ -426,7 +417,5 @@ export function reactToAshesHit(
     stacks: Number(burn?.stacks ?? 1),
     duration: state.ashesBurnDuration
   });
-  state.ashesCharges -= 1;
-  state.ashesNextTriggerAt = event.at + Number(ashes?.internalCooldown ?? 1);
   context.recordProc('profession', 'Ashes of the Just', event.at, event.skillName);
 }

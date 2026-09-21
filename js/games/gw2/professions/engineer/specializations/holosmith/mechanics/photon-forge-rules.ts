@@ -14,7 +14,7 @@ import {
   handleHolosmithKitEquip,
   handlePhotonForgeHeat,
   handlePhotonForgeOverheatPenalty,
-  handlePhotonForgePassiveHeat,
+  passiveHeat,
   initializePhotonForgeHeat,
   triggerThermalReleaseValve
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
@@ -56,7 +56,7 @@ export const holosmithAdvancedSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     'engineer.photon-forge-heat': handlePhotonForgeHeat,
     'engineer.photon-forge-overheat-penalty': handlePhotonForgeOverheatPenalty,
-    'engineer.photon-forge-passive-heat': handlePhotonForgePassiveHeat
+    ...passiveHeat.taskHandlers
   })
 });
 

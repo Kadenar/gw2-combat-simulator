@@ -1,3 +1,4 @@
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantChargeState, RevenantConfig, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -24,7 +25,7 @@ export interface RevenantCoreState {
   maximumEnergy: number;
   energyUpdatedAt: number;
   // Preserve the elapsed-time baseline across scheduler reads until Energy, upkeep, or its cap changes.
-  energyAccrual?: { at: number; energy: number; rate: number; maximum: number };
+  energyAccrual?: ResourceClock;
   activeLegendId: string;
   activeLoadoutId: string;
   selectedLegendIds: string[];

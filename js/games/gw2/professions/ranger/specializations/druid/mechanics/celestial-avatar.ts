@@ -1,3 +1,5 @@
+import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
+import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import {
   balanceProfileFromContext,
@@ -68,11 +70,8 @@ export function enterAvatar(context: RangerCastContext, skill: RangerSkill): voi
   state.astralForceUpdatedAt = context.start;
   // Stop the scheduler at expiry or depletion so exit effects and later force recovery run on time.
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-  context.tasks.schedule({
-    type: DRUID_AVATAR_EXIT_TASK,
-    at: Math.min(state.celestialAvatarEndsAt, context.start + (state.astralForce / maximum) * avatarDuration),
-    ownerId: DRUID_AVATAR_EXIT_TASK
-  });
+  setResourceRate(state.astralClock, context.start, -maximum / avatarDuration);
+  avatarDepletion.refresh(context);
   // Release Celestial Avatar is a flip skill; storing endsAt lets the UI show it as expiring automatically
   professionCoreState(context).availableFlips[ID.RELEASE_CELESTIAL_AVATAR] = state.celestialAvatarEndsAt;
   // Natural Balance triggers on both entry and exit
@@ -90,7 +89,8 @@ export function leaveAvatar(
   const state = druidState.from(context);
   if (!state.celestialAvatarActive) return;
   // Manual exit cancels the old deadline, including when another Avatar is entered later.
-  context.tasks.cancelOwner(DRUID_AVATAR_EXIT_TASK);
+  avatarDepletion.stop(context);
+  setResourceRate(state.astralClock, at, 0);
   // Exhausted (timer or force depleted) zeroes force; manual exit retains half
   state.astralForce = exhausted
     ? 0
@@ -108,14 +108,17 @@ export function leaveAvatar(
   if (skill) emitAvatarWeaponSwap(context, skill, at);
 }
 
-export function handleDruidAvatarExitTask(context: RangerSchedulerContext): void {
-  leaveAvatar(context, true, context.state.time);
-}
+/** Avatar ends once, at the earlier duration or depletion deadline of its current lifetime. */
+export const avatarDepletion = resourceDepletion({
+  id: DRUID_AVATAR_EXIT_TASK,
+  clock: (context: RangerSchedulerContext) => druidState.from(context).astralClock,
+  endsAt: (context: RangerSchedulerContext) => druidState.from(context).celestialAvatarEndsAt,
+  depleted: (context: RangerSchedulerContext, at: number) => leaveAvatar(context, true, at)
+});
 
 export function advanceDruidState(context: RangerSchedulerContext, target: number): void {
   const state = druidState.from(context);
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-  const avatarDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 15);
   const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
   state.maximumAstralForce = maximum;
@@ -125,10 +128,7 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   }
 
   if (state.celestialAvatarActive) {
-    const elapsed = Math.max(0, target - state.astralForceUpdatedAt);
-    // Force drains linearly over the full 15s duration regardless of how much was held going in
-    state.astralForce = Math.max(0, state.astralForce - elapsed * (state.maximumAstralForce / avatarDuration));
-    state.astralForceUpdatedAt = target;
+    advanceResourceClock(state.astralClock, target);
     // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
     if (target >= state.naturalMenderReadyAt - EPSILON) {
       const skippedApplications =

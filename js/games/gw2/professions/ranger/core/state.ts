@@ -45,7 +45,6 @@ export interface RangerCoreState {
   petAutoActivationUses: Record<string, number>;
   petAutoActivationCounts: [number, number];
   petAutoOpeningBasic: boolean;
-  petAutoTaskId: string;
   petCommandReadyAt: number;
   petCommandCooldowns: Record<string, number>;
   petCommandDelays: Record<string, number>;
@@ -107,7 +106,6 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petAutoActivationUses: {},
     petAutoActivationCounts: [1, 0],
     petAutoOpeningBasic: true,
-    petAutoTaskId: '',
     petCommandReadyAt: 0,
     petCommandCooldowns: {},
     petCommandDelays: {}

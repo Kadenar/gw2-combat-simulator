@@ -1,6 +1,6 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -165,17 +165,7 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
     for (const key of keys) {
       const recipient = active.recipients?.[key];
       const internalCooldown = Number(definition.internalCooldown || 0);
-      if (
-        !recipient ||
-        recipient.stacks <= 0 ||
-        (internalCooldown > 0 && !isInternalCooldownReady(event.at, recipient.nextAt))
-      ) {
-        continue;
-      }
-
-      recipient.stacks -= 1;
-      // Positive weapon-spell ICDs use the strict shared boundary; zero preserves unrestricted charge consumption.
-      recipient.nextAt = event.at + internalCooldown;
+      if (!consumeCharge(recipient, event.at, internalCooldown)) continue;
       if (spell === 'nightmare') {
         queueNightmareWeapon(context, event, definition);
       } else {

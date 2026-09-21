@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Owns Healing Turret's arm/detonate/overcharge cycle. Casting arms Detonate Healing Turret;
  * an unused 10s window auto-swaps the armed flip to Cleansing Burst, whose manual use re-arms
@@ -8,33 +9,15 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type {
-  EngineerCastContext,
-  EngineerScheduledTask,
-  EngineerSchedulerContext,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
-
-interface HealingTurretTaskPayload {
-  readonly activationId: string;
-}
+import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const CLEANSING_BURST_SWAP_DELAY_SECONDS = 10;
 const INITIAL_DETONATE_LOCKOUT_SECONDS = 0.5;
 // Matches the turret's measured overcharge delay: the first pulse lands 240 ms after cast completion.
 const FIRST_PULSE_DELAY_SECONDS = 0.24;
 
-function healingTurretOwnerId(activationId: string): string {
-  return `engineer.healing-turret:${activationId}`;
-}
-
-function scheduleCleansingBurstSwap(context: EngineerCastContext, activationId: string, at: number): void {
-  context.tasks.schedule({
-    type: 'engineer.healing-turret-swap-to-cleansing-burst',
-    at: at + CLEANSING_BURST_SWAP_DELAY_SECONDS,
-    ownerId: healingTurretOwnerId(activationId),
-    payload: { activationId }
-  });
+function scheduleCleansingBurstSwap(context: EngineerCastContext, at: number): void {
+  healingTurretWindow.start(context, { key: 'turret', times: [at + CLEANSING_BURST_SWAP_DELAY_SECONDS], captured: {} });
 }
 
 /** Emits Cleansing Burst's boon(s) and water field once, attributed to Cleansing Burst rather than the turret cast. */
@@ -67,14 +50,14 @@ export function scheduleHealingTurretCast(context: EngineerCastContext, _skill: 
   // Detonation is unavailable briefly after placement so the automatic burst resolves first.
   context.state.cooldowns.set(ID.DETONATE_HEALING_TURRET, at + INITIAL_DETONATE_LOCKOUT_SECONDS);
   emitCleansingBurstPulse(context, pulseAt);
-  scheduleCleansingBurstSwap(context, activationId, pulseAt);
+  scheduleCleansingBurstSwap(context, pulseAt);
 }
 
 /** Ends the cycle: cancels the pending swap and starts Healing Turret's real cooldown from the detonation time. */
 export function scheduleHealingTurretDetonate(context: EngineerCastContext, _skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  context.tasks.cancelOwner(healingTurretOwnerId(state.healingTurretActivationId));
+  healingTurretWindow.cancelKey(context, 'turret');
   state.healingTurretActivationId = '';
   state.availableFlips[ID.CLEANSING_BURST] = false;
   const healingTurret = context.catalog.skillsById.get(ID.HEALING_TURRET);
@@ -89,20 +72,19 @@ export function scheduleHealingTurretDetonate(context: EngineerCastContext, _ski
 export function scheduleCleansingBurstUse(context: EngineerCastContext, _skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  context.tasks.cancelOwner(healingTurretOwnerId(state.healingTurretActivationId));
+  healingTurretWindow.cancelKey(context, 'turret');
   state.availableFlips[ID.DETONATE_HEALING_TURRET] = true;
   emitEngineerStateSnapshot(context, at, 'cleansing-burst-used');
-  scheduleCleansingBurstSwap(context, state.healingTurretActivationId, at);
+  scheduleCleansingBurstSwap(context, at);
 }
 
 /** Swaps the armed flip from Detonate Healing Turret to Cleansing Burst once the 10s window lapses unused. */
-export function handleHealingTurretSwapToCleansingBurst(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<HealingTurretTaskPayload>
-): void {
-  const state = professionCoreState(context);
-  if (state.healingTurretActivationId !== task.payload?.activationId) return;
-  state.availableFlips[ID.DETONATE_HEALING_TURRET] = false;
-  state.availableFlips[ID.CLEANSING_BURST] = true;
-  emitEngineerStateSnapshot(context, task.at, 'healing-turret-swap-to-cleansing-burst');
-}
+export const healingTurretWindow = timedEffect({
+  id: 'engineer.healing-turret-swap-to-cleansing-burst',
+  effectsAt(context: EngineerSchedulerContext, at: number) {
+    const state = professionCoreState(context);
+    state.availableFlips[ID.DETONATE_HEALING_TURRET] = false;
+    state.availableFlips[ID.CLEANSING_BURST] = true;
+    emitEngineerStateSnapshot(context, at, 'healing-turret-swap-to-cleansing-burst');
+  }
+});

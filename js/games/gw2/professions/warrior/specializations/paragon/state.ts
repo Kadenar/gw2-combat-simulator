@@ -9,13 +9,6 @@ export interface ParagonState {
   nextRefrainAt: number;
   inspiringImplementsReadyAt: number;
   callToActionActivated: boolean;
-  commandEchoSequence: number;
-  pendingCommandEchoes: Array<{
-    id: number;
-    skillId: SkillId;
-    dueAt: number;
-    repeats: number;
-  }>;
 }
 
 /** Declares Paragon's public compatibility fields and inactive values. */
@@ -38,11 +31,7 @@ export function createParagonState(): ParagonState {
     activeRefrainId: null,
     nextRefrainAt: 0,
     inspiringImplementsReadyAt: 0,
-    callToActionActivated: false,
-    // Monotonic counter used to generate unique IDs for pending command echoes
-    // so individual echoes can be located and removed by identity, not position.
-    commandEchoSequence: 0,
-    pendingCommandEchoes: []
+    callToActionActivated: false
   };
 }
 

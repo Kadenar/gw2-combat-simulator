@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -6,12 +7,7 @@ import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.j
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import type {
-  RevenantCastContext,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { HERALD_MECHANICS as MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   HERALD_ELEVATED_COMPASSION_PROFILE_ID,
@@ -67,18 +63,13 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
 
   const cooldown = Math.max(EPSILON, Number(profile.cooldown || 0));
   heraldState.from(context).elevatedCompassionReadyAt = at + cooldown;
-  context.tasks.schedule({
-    type: HERALD_ELEVATED_COMPASSION_TASK,
-    at: at + cooldown,
-    ownerId: ELEVATED_COMPASSION_TASK_OWNER
-  });
 }
 
 /** Starts or stops Elevated Compassion's one-second pulse loop after upkeep-changing casts. */
 export function syncElevatedCompassion(context: RevenantCastContext): void {
   const at = context.effectiveEnd;
   if (!elevatedCompassionIsActive(context)) {
-    context.tasks.cancelOwner(ELEVATED_COMPASSION_TASK_OWNER);
+    elevatedCompassion.cancelKey(context, 'compassion');
     return;
   }
 
@@ -86,21 +77,32 @@ export function syncElevatedCompassion(context: RevenantCastContext): void {
   const readyAt = Math.max(at, Number(heraldState.from(context).elevatedCompassionReadyAt || 0));
   if (readyAt <= at + EPSILON) {
     grantElevatedCompassionQuickness(context, at);
+    elevatedCompassion.start(context, {
+      key: 'compassion',
+      at: heraldState.from(context).elevatedCompassionReadyAt,
+      ownerId: ELEVATED_COMPASSION_TASK_OWNER,
+      captured: {}
+    });
     return;
   }
 
-  context.tasks.schedule({
-    type: HERALD_ELEVATED_COMPASSION_TASK,
+  elevatedCompassion.start(context, {
+    key: 'compassion',
     at: readyAt,
-    ownerId: ELEVATED_COMPASSION_TASK_OWNER
+    ownerId: ELEVATED_COMPASSION_TASK_OWNER,
+    captured: {}
   });
 }
 
 /** Grants a recurring Elevated Compassion pulse only while the configured upkeep threshold remains met. */
-export function handleElevatedCompassionPulse(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
-  if (!elevatedCompassionIsActive(context)) return;
-  grantElevatedCompassionQuickness(context, task.at);
-}
+export const elevatedCompassion = timedEffect({
+  id: HERALD_ELEVATED_COMPASSION_TASK,
+  effectsAt(context: RevenantSchedulerContext, at: number) {
+    if (!elevatedCompassionIsActive(context)) return false;
+    grantElevatedCompassionQuickness(context, at);
+  },
+  nextAt: (context: RevenantSchedulerContext) => heraldState.from(context).elevatedCompassionReadyAt
+});
 
 /** Removes the active facet and consumes its temporary flip. */
 export function consumeRevenantFacet(context: RevenantCastContext, skill: RevenantSkill): void {
@@ -135,19 +137,20 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
       context.tasks.cancelOwner(ownerId);
       const nextAt = passive.facetPulseReadyAt[facet.id];
       if (facet.upkeepPulse && nextAt >= at && nextAt < expiresAt) {
-        context.tasks.schedule({
-          type: 'revenant.herald-facet-pulse',
+        facetPulses.start(context, {
+          key: String(facet.id),
           at: nextAt,
           ownerId,
-          payload: { skillId: facet.id }
+          captured: { skillId: facet.id }
         });
       }
 
-      context.tasks.schedule({
-        type: 'revenant.herald-echo-expiry',
+      facetExpiry.start(context, {
+        key: String(facet.id),
+        count: 1,
         at: expiresAt,
         ownerId,
-        payload: { skillId: facet.id }
+        captured: { skillId: facet.id }
       });
     }
   }
@@ -176,59 +179,59 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   if (consumeId != null) state.availableFlips[consumeId] = true;
   if (!skill.upkeepPulse) return;
   passive.facetPulseReadyAt[skill.id] = context.effectiveEnd + Math.max(EPSILON, Number(skill.pulseInterval ?? 3));
-  context.tasks.schedule({
-    type: 'revenant.herald-facet-pulse',
+  facetPulses.start(context, {
+    key: String(skill.id),
     at: passive.facetPulseReadyAt[skill.id],
     ownerId: `revenant.upkeep:${skill.id}`,
-    payload: { skillId: skill.id }
+    captured: { skillId: skill.id }
   });
 }
 
 /** Emits one Herald facet boon pulse and keeps its specialization-owned cadence running. */
-export function handleHeraldFacetPulse(
+function emitFacetPulse(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<HeraldFacetPulsePayload>
-): void {
-  const skillId = task.payload?.skillId;
+  at: number,
+  { skillId }: HeraldFacetPulsePayload
+): void | false {
   const state = heraldState.from(context);
   const core = professionCoreState(context);
-  if (skillId == null || !heraldFacetPassiveActive(core, state, skillId, task.at)) {
-    return;
+  if (skillId == null || !heraldFacetPassiveActive(core, state, skillId, at)) {
+    return false;
   }
 
   const skill = context.catalog.skillsById.get(skillId);
   const pulse = skill?.upkeepPulse as
     { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
-  if (!skill || !pulse) return;
+  if (!skill || !pulse) return false;
   emitSkillBuff(context, skill, {
-    at: task.at,
+    at: at,
     name: `${skill.name} - ${pulse.kind}`,
     kind: pulse.kind,
     duration: pulse.duration,
     stacks: pulse.stacks,
     audience: { recipients: 'party' as const }
   });
-  const nextAt = task.at + Math.max(EPSILON, Number(skill.pulseInterval ?? 3));
-  state.facetPulseReadyAt[skillId] = nextAt;
-  if (!heraldFacetPassiveActive(core, state, skillId, nextAt)) return;
-  context.tasks.schedule({
-    type: 'revenant.herald-facet-pulse',
-    at: nextAt,
-    ownerId: task.ownerId,
-    payload: { skillId }
-  });
 }
 
+/** Preserve the phase through Draconic Echo while the shared sequence owns pulse recurrence. */
+export const facetPulses = timedEffect({
+  id: 'revenant.herald-facet-pulse',
+  effectsAt: emitFacetPulse,
+  nextAt(context: RevenantSchedulerContext, at: number, { skillId }: HeraldFacetPulsePayload) {
+    const state = heraldState.from(context);
+    const skill = context.catalog.skillsById.get(skillId);
+    const nextAt = at + Math.max(EPSILON, Number(skill?.pulseInterval ?? 3));
+    state.facetPulseReadyAt[skillId] = nextAt;
+    return heraldFacetPassiveActive(professionCoreState(context), state, skillId, nextAt) ? nextAt : null;
+  }
+});
+
 /** Expire retained bonuses in both phases, even when no attack occurs at the boundary. */
-export function expireHeraldEcho(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<HeraldFacetPulsePayload>
-): void {
-  const skillId = task.payload?.skillId;
-  if (skillId == null) return;
-  const state = heraldState.from(context);
-  if (state.lingeringFacets[skillId]?.expiresAt !== task.at) return;
-  delete state.lingeringFacets[skillId];
-  context.tasks.cancelOwner(`revenant.echo:${skillId}`);
-  emitRevenantStateSnapshot(context, task.at, 'facet-passive-expired');
-}
+export const facetExpiry = timedEffect({
+  id: 'revenant.herald-echo-expiry',
+  effectsAt(context: RevenantSchedulerContext, at: number, { skillId }: HeraldFacetPulsePayload) {
+    delete heraldState.from(context).lingeringFacets[skillId];
+    facetPulses.cancelKey(context, String(skillId));
+    emitRevenantStateSnapshot(context, at, 'facet-passive-expired');
+  }
+});

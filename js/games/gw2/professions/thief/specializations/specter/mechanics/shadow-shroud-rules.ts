@@ -8,8 +8,8 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterCastAvailability } from '#gw2/professions/thief/specializations/specter/mechanics/availability.js';
 import {
   advanceSpecterResources,
-  handleShadowShroudDepletion,
-  SHADOW_SHROUD_DEPLETION_TASK,
+  shadowDepletion,
+  gainShadowForce,
   spendSpecterResources
 } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -34,8 +34,7 @@ export const specterSchedulerHooks = Object.freeze({
     // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
     handler: (context: ThiefSchedulerContext): void => {
       const state = specterState.from(context);
-      state.shadowForce = state.maximumShadowForce;
-      state.shadowForceUpdatedAt = context.state.time;
+      gainShadowForce(context, state.maximumShadowForce);
       emitThiefStateSnapshot(context, context.state.time, 'cooldown-reset');
     }
   },
@@ -45,7 +44,7 @@ export const specterSchedulerHooks = Object.freeze({
     handler: observeSpecterEvent
   },
   taskHandlers: Object.freeze({
-    [SHADOW_SHROUD_DEPLETION_TASK]: handleShadowShroudDepletion,
+    ...shadowDepletion.taskHandlers,
     'thief.larcenous-torment': handleLarcenousTorment,
     'thief.specter-dark-sentry': handleDarkSentry
   })

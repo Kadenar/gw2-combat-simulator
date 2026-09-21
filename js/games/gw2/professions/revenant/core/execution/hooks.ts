@@ -22,7 +22,7 @@ import {
 import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
 import {
   empowerEmbraceTheDarkness,
-  handleRevenantUpkeepPulse,
+  upkeepPulses,
   handleImpossibleOddsStrike
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/hitbox.js';
@@ -95,7 +95,7 @@ export const revenantSchedulerHooks = Object.freeze({
     'revenant.abyssal-raze-recharge': handleAbyssalRazeRechargeReduction,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
     'revenant.crushing-abyss-weapon-swap': handleCrushingAbyssWeaponSwap,
-    'revenant.upkeep-pulse': handleRevenantUpkeepPulse,
+    ...upkeepPulses.taskHandlers,
     'revenant.imperial-guard-expire': expireImperialGuard,
     'revenant.impossible-odds-strike': handleImpossibleOddsStrike,
     'revenant.drop-the-hammer-reset': resetCoalescenceOfRuin

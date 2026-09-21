@@ -60,7 +60,7 @@ export interface MesmerResourceGain {
 }
 
 export interface MesmerCloneAttackScheduler {
-  handleTask(cloneId: number, at: number): void;
+  handleTask(cloneId: number, at: number): number | null;
   initializeClone(clone: MesmerClone): MesmerClone;
 }
 

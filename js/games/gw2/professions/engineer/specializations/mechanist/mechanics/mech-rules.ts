@@ -16,7 +16,7 @@ import { mechanistCastAvailability } from '#gw2/professions/engineer/specializat
 import {
   applyEngineerMechCastTraits,
   engineerMechHasQuickness,
-  handleEngineerMechAttack,
+  mechActions,
   initializeEngineerMech,
   isEngineerMechCommand,
   observeEngineerMechEvent
@@ -56,9 +56,7 @@ export const mechanistAdvancedSchedulerHooks = Object.freeze({
     order: 10,
     handler: observeEngineerMechEvent
   },
-  taskHandlers: Object.freeze({
-    'engineer.mech-attack': handleEngineerMechAttack
-  })
+  taskHandlers: mechActions.taskHandlers
 });
 
 /** Recognizes native and replayed events that belong to the jade mech. */

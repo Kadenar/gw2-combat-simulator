@@ -10,7 +10,6 @@ export interface EngineerCoreState {
   availableFlips: Record<string, boolean>;
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;
-  lightningRodActivationId: string;
   lightningRodChargeExpiries: number[];
   healingTurretActivationId: string;
   electricArtilleryAvailable: boolean;
@@ -50,7 +49,6 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     activeKit: '',
     availableFlips: {},
     autoattackChains: {},
-    lightningRodActivationId: '',
     lightningRodChargeExpiries: [],
     healingTurretActivationId: '',
     electricArtilleryAvailable: false,

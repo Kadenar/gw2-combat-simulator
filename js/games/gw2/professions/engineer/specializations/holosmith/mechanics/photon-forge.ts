@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import {
@@ -267,22 +268,11 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   }
 }
 
-/** Schedules one low-priority heat cadence task so same-time skill heat resolves first. */
-function schedulePassiveHeat(context: EngineerSchedulerContext, at: number): void {
-  context.tasks.schedule({
-    type: PHOTON_FORGE_PASSIVE_HEAT_TASK,
-    at,
-    // Skill heat at the same timestamp resolves before the resource tick checks the cap.
-    priority: 100,
-    payload: {}
-  });
-}
-
 /** Restarts passive heat processing one cadence tick after a Forge state transition. */
 function startPassiveHeatCadence(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   state.passiveHeatAt = nextPassiveHeatTick(at);
-  schedulePassiveHeat(context, state.passiveHeatAt);
+  passiveHeat.start(context, { key: 'heat', at: state.passiveHeatAt, captured: {} });
 }
 
 /** Starts cooling cadence for simulations configured with nonzero initial heat. */
@@ -295,26 +285,22 @@ export function initializePhotonForgeHeat(context: EngineerSchedulerContext): vo
 }
 
 /** Processes one validated passive heat or cooling tick and schedules the next tick when needed. */
-export function handlePhotonForgePassiveHeat(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<object>
-): void {
+function applyPassiveHeat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
-  if (state.passiveHeatAt == null || Math.abs(state.passiveHeatAt - task.at) > EPSILON) return;
 
   const previousHeat = state.heat;
   if (state.photonForgeActive && !state.overheated) {
     // The Forge-relative tick overheats only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
     if (state.heat >= state.maximumHeat - EPSILON) {
-      forceOverheat(context, task.at);
+      forceOverheat(context, at);
       return;
     }
 
     state.heat = Math.min(state.maximumHeat, Math.round((state.heat + passiveHeatPerTick(context)) * 1e9) / 1e9);
-    triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
+    triggerInstantEnhancedCapacityMight(context, at, previousHeat);
   } else {
-    state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, task.at)) * 1e9) / 1e9);
+    state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, at)) * 1e9) / 1e9);
     if (state.heat <= EPSILON) {
       state.heat = 0;
       // Reaching zero cannot re-enable the exhausted Forge bar before its explicit exit.
@@ -323,19 +309,30 @@ export function handlePhotonForgePassiveHeat(
   }
 
   if (state.heat !== previousHeat) {
-    emitEngineerStateSnapshot(context, task.at, 'passive-heat');
-  }
-
-  const coolingGraceActive =
-    !state.photonForgeActive &&
-    state.forgeExitedAt != null &&
-    task.at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + EPSILON;
-  if ((state.photonForgeActive && !state.overheated) || state.heat > EPSILON || coolingGraceActive) {
-    startPassiveHeatCadence(context, task.at);
-  } else {
-    state.passiveHeatAt = null;
+    emitEngineerStateSnapshot(context, at, 'passive-heat');
   }
 }
+
+/** Skill heat retains priority over passive heat; replacement retires the previous Forge cadence. */
+export const passiveHeat = timedEffect({
+  id: PHOTON_FORGE_PASSIVE_HEAT_TASK,
+  priority: 100,
+  effectsAt: applyPassiveHeat,
+  nextAt(context: EngineerSchedulerContext, at: number) {
+    const state = holosmithState.from(context);
+    const coolingGraceActive =
+      !state.photonForgeActive &&
+      state.forgeExitedAt != null &&
+      at <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + EPSILON;
+    if ((state.photonForgeActive && !state.overheated) || state.heat > EPSILON || coolingGraceActive) {
+      state.passiveHeatAt = nextPassiveHeatTick(at);
+    } else {
+      state.passiveHeatAt = null;
+    }
+
+    return state.passiveHeatAt;
+  }
+});
 
 /** Applies a deferred Overheat lockout to eligible tool-belt cooldowns. */
 export function handlePhotonForgeOverheatPenalty(

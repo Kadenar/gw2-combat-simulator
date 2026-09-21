@@ -168,13 +168,6 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
   });
 }
 
-/**
- * Dispatches a scheduled clone attack to the illusion controller.
- */
-export function handleCloneAttackTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'cloneAttack'>): void {
-  mesmerRuntimeFor(context).cloneAttackScheduler.handleTask(task.payload.cloneId, task.at);
-}
-
 /** Emits a future party boon only when its dynamic companion audience can be selected. */
 export function handlePartyBuffTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'partyBuff'>): void {
   context.emit(task.payload.event);

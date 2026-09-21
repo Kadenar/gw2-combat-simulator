@@ -20,9 +20,8 @@ import {
   advanceDruidState,
   astralForceReadyAt,
   DRUID_ASTRAL_FORCE_DAMAGE_TASK,
-  DRUID_AVATAR_EXIT_TASK,
   handleDruidAstralForceDamageTask,
-  handleDruidAvatarExitTask,
+  avatarDepletion,
   observeDruidAstralForceEvent
 } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 
@@ -204,7 +203,7 @@ export const druidSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: {
-    [DRUID_AVATAR_EXIT_TASK]: handleDruidAvatarExitTask,
+    ...avatarDepletion.taskHandlers,
     [DRUID_ASTRAL_FORCE_DAMAGE_TASK]: handleDruidAstralForceDamageTask
   }
 });

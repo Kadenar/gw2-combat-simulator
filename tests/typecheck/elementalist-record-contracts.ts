@@ -1,13 +1,13 @@
 /** Keep public Elementalist state and scheduled Weaver payloads closed to unknown field names. */
 import type { projectElementalistPlanningState } from '#gw2/professions/elementalist/family-state.js';
 import type { handleWeaveSelfActivation } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import type { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import type { primordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 type Assert<T extends true> = T;
 type PlanningState = ReturnType<typeof projectElementalistPlanningState>;
 type WeavePayload = NonNullable<Parameters<typeof handleWeaveSelfActivation>[1]['payload']>;
-type StancePayload = NonNullable<Parameters<typeof handlePrimordialStanceTick>[1]['payload']>;
+type StancePayload = NonNullable<Parameters<(typeof primordialStance)['taskHandlers'][string]>[1]['payload']>;
 
 export type ElementalistRecordAssertions = [
   Assert<string extends keyof PlanningState ? false : true>,

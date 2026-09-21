@@ -1,3 +1,4 @@
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { thiefBaseMaximumHealth } from '#gw2/professions/thief/core/state.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
@@ -5,6 +6,7 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface SpecterState {
   shadowShroudExitReadyAt: number;
+  shadowClock: ResourceClock;
   shadowForce: number;
   maximumShadowForce: number;
   shadowForcePoolCapacity: number;
@@ -19,12 +21,34 @@ const SHADOW_FORCE_HEALTH_MULTIPLIER = 0.69;
 export function createSpecterState(config: ThiefConfig = {}): SpecterState {
   const maximumHealth = thiefBaseMaximumHealth(config);
   return {
-    shadowForce: boundedNumber(config.initialShadowForce || 0, 0, 0, 100),
-    maximumShadowForce: 100,
+    shadowClock: {
+      value: boundedNumber(config.initialShadowForce || 0, 0, 0, 100),
+      maximum: 100,
+      updatedAt: 0,
+      rate: 0
+    },
+    // Compatibility projections read the shared clock; resource progress has only one mutable owner.
+    get shadowForce() {
+      return this.shadowClock.value;
+    },
+    set shadowForce(value: number) {
+      this.shadowClock.value = value;
+    },
+    get maximumShadowForce() {
+      return this.shadowClock.maximum;
+    },
+    set maximumShadowForce(value: number) {
+      this.shadowClock.maximum = value;
+    },
     shadowForcePoolCapacity: maximumHealth * SHADOW_FORCE_HEALTH_MULTIPLIER,
     shadowShroudActive: false,
     shadowShroudExitReadyAt: 0,
-    shadowForceUpdatedAt: 0,
+    get shadowForceUpdatedAt() {
+      return this.shadowClock.updatedAt;
+    },
+    set shadowForceUpdatedAt(value: number) {
+      this.shadowClock.updatedAt = value;
+    },
     // Per-ally map so that a barrier given to ally 1 does not lock out ally 2.
     darkSentryReadyAtByAlly: {}
   };

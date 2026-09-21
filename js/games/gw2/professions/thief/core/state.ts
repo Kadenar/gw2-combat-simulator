@@ -1,3 +1,4 @@
+import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
@@ -35,7 +36,7 @@ export interface ThiefCoreState {
   spearLastWasFinisher: boolean;
   distractingThrowBuffUntil: number;
   spinningAxeExpirations: number[];
-  venomChargeBatches: Record<string, { generation: number; charges: number; expiresAt: number }[]>;
+  venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
   venomGeneration: number;
   thousandNeedlesPrepared: boolean;

@@ -1,3 +1,4 @@
+import { advanceResourceRecharge } from '#gw2/platform/combat/resources/clock.js';
 import {
   balanceProfileFromContext,
   balanceProfileEffect,
@@ -42,25 +43,34 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
   if (target <= state.arrowsUpdatedAt) return;
   state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
   state.arrows = Math.min(state.maximumArrows, state.arrows);
-  // Keep partial recharge in baseline seconds instead of reinterpreting past time at the latest boon rate.
-  for (const interval of selfBoonIntervals(
-    context.events,
-    'alacrity',
-    state.arrowsUpdatedAt,
-    target,
-    Boolean(context.config.boons?.alacrity)
-  )) {
-    const rate =
-      context.config.boons?.alacrity || interval.active
-        ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
-        : 1;
-    state.arrowRechargeProgress += (interval.end - interval.start) * Math.max(Number.EPSILON, rate);
-  }
-
-  const interval = balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5);
-  const generated = Math.floor((state.arrowRechargeProgress + EPSILON) / interval);
-  state.arrows = Math.min(state.maximumArrows, state.arrows + generated);
-  state.arrowRechargeProgress = Math.max(0, state.arrowRechargeProgress - generated * interval);
+  // Integrate each Alacrity segment before converting baseline recharge progress into whole arrows.
+  const intervals = Array.from(
+    selfBoonIntervals(
+      context.events,
+      'alacrity',
+      state.arrowsUpdatedAt,
+      target,
+      Boolean(context.config.boons?.alacrity)
+    ),
+    (interval) => ({
+      start: interval.start,
+      end: interval.end,
+      rate:
+        context.config.boons?.alacrity || interval.active
+          ? Math.max(Number.EPSILON, Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE))
+          : 1
+    })
+  );
+  const recharge = advanceResourceRecharge(
+    state.arrows,
+    state.maximumArrows,
+    state.arrowRechargeProgress,
+    balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5),
+    intervals,
+    EPSILON
+  );
+  state.arrows = recharge.value;
+  state.arrowRechargeProgress = recharge.progress;
   state.arrowsUpdatedAt = target;
 }
 

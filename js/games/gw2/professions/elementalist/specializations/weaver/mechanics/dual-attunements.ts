@@ -64,7 +64,7 @@ import {
   startWeaveSelfCast,
   WEAVE_SELF_ACTIVATION_TASK
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { primordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 
@@ -494,6 +494,6 @@ export const weaverSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
-    'elementalist.primordial-stance': handlePrimordialStanceTick
+    ...primordialStance.taskHandlers
   })
 });

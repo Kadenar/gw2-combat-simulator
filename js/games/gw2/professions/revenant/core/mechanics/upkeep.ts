@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { effectiveRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -111,11 +112,11 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
 
   // Core schedules only its packet producers; specialization cadences own their own queue deadlines.
   if (skill.id === ID.EMBRACE_THE_DARKNESS || VENGEFUL_HAMMERS_IDS.has(skill.id)) {
-    context.tasks.schedule({
-      type: 'revenant.upkeep-pulse',
+    upkeepPulses.start(context, {
+      key: String(skill.id),
       at: skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(at + EPSILON) + 1 : at + pulseIntervalForUpkeep(skill),
       ownerId: `revenant.upkeep:${skill.id}`,
-      payload: { skillId: skill.id }
+      captured: { skillId: skill.id }
     });
   }
 
@@ -140,17 +141,12 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
 }
 
 /** Resolves one recurring upkeep pulse and schedules the next occurrence. */
-export function handleRevenantUpkeepPulse(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<UpkeepTaskPayload>
-): void {
-  if (!task.payload) return;
-  const payload = task.payload;
+function emitUpkeepPulse(context: RevenantSchedulerContext, at: number, payload: UpkeepTaskPayload): void | false {
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === payload.skillId);
-  if (!active) return;
+  if (!active) return false;
   const skill = context.catalog.skillsById.get(payload.skillId);
   if (skill?.id === ID.EMBRACE_THE_DARKNESS) {
-    emitEmbraceTheDarknessPulse(context, skill, active, task.at);
+    emitEmbraceTheDarknessPulse(context, skill, active, at);
   } else if (skill && VENGEFUL_HAMMERS_IDS.has(skill.id)) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     if (!strike) throw new Error('Vengeful Hammers is missing its strike effect.');
@@ -163,7 +159,7 @@ export function handleRevenantUpkeepPulse(
     for (let index = 0; index < hammers; index += 1) {
       const hammer = index + 1;
       emitSkillDamage(context, skill, {
-        at: task.at + Number(strike.atMs) / 1000,
+        at: at + Number(strike.atMs) / 1000,
         coefficient: Number(strike.coefficient || 0) / hammers,
         name: `Vengeful Hammers — Hammer ${hammer}`,
         hitIndex: hammer,
@@ -173,16 +169,17 @@ export function handleRevenantUpkeepPulse(
       });
     }
   } else {
-    return;
+    return false;
   }
-
-  context.tasks.schedule({
-    type: 'revenant.upkeep-pulse',
-    at: task.at + pulseIntervalForUpkeep(skill),
-    ownerId: `revenant.upkeep:${payload.skillId}`,
-    payload
-  });
 }
+
+/** Keyed upkeep instances retain each skill's first-pulse anchor and cancel stale generations. */
+export const upkeepPulses = timedEffect({
+  id: 'revenant.upkeep-pulse',
+  effectsAt: emitUpkeepPulse,
+  nextAt: (context: RevenantSchedulerContext, at: number, payload: UpkeepTaskPayload) =>
+    at + pulseIntervalForUpkeep(context.catalog.skillsById.get(payload.skillId))
+});
 
 interface ImpossibleOddsTaskPayload {
   readonly event: SimulationEvent;

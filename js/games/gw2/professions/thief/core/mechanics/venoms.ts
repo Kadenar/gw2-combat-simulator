@@ -1,3 +1,4 @@
+import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -13,7 +14,6 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { clamp } from '#kernel/core/numeric.js';
 
 interface VenomDefinition {
   readonly skillId: SkillId;
@@ -56,9 +56,7 @@ function conditionEffects(context: unknown, venom: VenomDefinition): readonly Co
 /** Keep each grant's expiry and spend older charges before newer applications. */
 export function refreshVenomCharges(state: ThiefCoreState, at: number): void {
   for (const [skillId, batches] of Object.entries(state.venomChargeBatches)) {
-    const active = batches.filter((batch) => batch.expiresAt > at && batch.charges > 0);
-    active.sort((a, b) => a.expiresAt - b.expiresAt);
-    state.venomChargeBatches[skillId] = active;
+    state.venomChargeBatches[skillId] = activeChargeGrants(batches, at);
   }
 }
 
@@ -74,17 +72,9 @@ export function addVenomCharges(
   const venom = venomForSkill(skillId);
   if (!venom) return;
   refreshVenomCharges(state, at);
-  const batches = (state.venomChargeBatches[String(skillId)] ??= []);
-  const remaining = batches.reduce((sum, batch) => sum + batch.charges, 0);
-  const added = clamp(cap - remaining, 0, charges);
-  if (!added) return;
-  state.venomGeneration += 1;
-  batches.push({
-    generation: state.venomGeneration,
-    charges: added,
-    expiresAt: at + duration
-  });
-  refreshVenomCharges(state, at);
+  const pool = { generation: state.venomGeneration, grants: state.venomChargeBatches };
+  grantChargePool(pool, String(skillId), at, charges, duration, cap);
+  state.venomGeneration = pool.generation;
 }
 
 /** Arms the caster's finite venom charges and schedules each assumed ally's same bounded proc sequence. */
@@ -137,8 +127,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
   let procCount = 0;
   for (const venom of VENOMS) {
     const batch = state.venomChargeBatches[String(venom.skillId)]?.find((entry) => entry.charges > 0);
-    if (!batch) continue;
-    batch.charges -= 1;
+    if (!consumeCharge(batch, event.at)) continue;
     procCount += 1;
     const effects = conditionEffects(context, venom);
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {

@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Owns Engineer spear state transitions, task handlers, and cross-skill delayed behavior.
  * Skill fragments live in `skills/weapons/spear.ts`; handler registration lives in `execution/index.ts`.
@@ -11,16 +12,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type {
-  EngineerCastContext,
-  EngineerScheduledTask,
-  EngineerSchedulerContext,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
-
-interface LightningRodTaskPayload {
-  readonly activationId: string;
-}
+import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
 const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
@@ -47,14 +39,9 @@ function emitSpearEvent(context: EngineerCastContext, skill: EngineerSkill, at: 
 /** Starts Lightning Rod's pulse sequence and the timed Electric Artillery availability window. */
 export function scheduleLightningRod(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
-  // reservationId becomes the activationId so all tasks from this cast share a cancellable ownerId
-  const activationId = context.reservationId;
   const firstAt = context.effectiveEnd + LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS;
   // arming time measured from cast START, not effectiveEnd
   const readyAt = context.start + ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS;
-  const ownerId = `engineer.lightning-rod:${activationId}`;
-  // lightningRodActivationId gates charge/ready/expire task handlers — stale tasks from an old cast are ignored
-  state.lightningRodActivationId = activationId;
   state.lightningRodChargeExpiries = [];
   state.electricArtilleryAvailable = false;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
@@ -63,40 +50,18 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   state.electricArtilleryExpiresAt = readyAt + 8;
   emitEngineerStateSnapshot(context, context.effectiveEnd, 'lightning-rod-active');
 
-  for (let index = 0; index < LIGHTNING_ROD_PULSE_COUNT; index += 1) {
-    const at = firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS;
-    context.emit({
-      type: 'engineer.lightning-rod-pulse',
-      at,
-      source: 'engineer',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: skill.name,
-      hitIndex: index + 1,
-      totalHits: LIGHTNING_ROD_PULSE_COUNT
-    });
-    // each pulse task adds a charge; the task payload carries activationId to guard against stale casts
-    context.tasks.schedule({
-      type: 'engineer.lightning-rod-charge',
-      at,
-      ownerId,
-      payload: { activationId }
-    });
-  }
-
-  context.tasks.schedule({
-    type: 'engineer.electric-artillery-ready',
-    at: readyAt,
-    ownerId,
-    payload: { activationId }
-  });
-  context.tasks.schedule({
-    type: 'engineer.electric-artillery-expire',
-    at: state.electricArtilleryExpiresAt,
-    ownerId,
-    payload: { activationId }
+  // Replacing the keyed lifetime invalidates its pulses, arming, and expiry together.
+  lightningRod.start(context, {
+    key: 'rod',
+    times: [
+      ...Array.from(
+        { length: LIGHTNING_ROD_PULSE_COUNT },
+        (_, index) => firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS
+      ),
+      readyAt,
+      state.electricArtilleryExpiresAt
+    ],
+    captured: { skillId: skill.id, skillName: skill.name }
   });
 }
 
@@ -131,9 +96,8 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
     charges,
     persistsAfterInterrupt: true
   });
-  // cancel all remaining LR tasks in one call — charge/ready/expire tasks all share the same ownerId
-  context.tasks.cancelOwner(`engineer.lightning-rod:${state.lightningRodActivationId}`);
-  state.lightningRodActivationId = '';
+  // Retire the remaining pulses and flip transitions without touching the released projectile.
+  lightningRod.cancelKey(context, 'rod');
   state.lightningRodChargeExpiries = [];
   state.electricArtilleryAvailable = false;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
@@ -142,53 +106,51 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   emitEngineerStateSnapshot(context, at, 'electric-artillery-consumed');
 }
 
-/** Records one non-stale Lightning Rod charge while enforcing charge expiry and the twelve-charge cap. */
-export function handleLightningRodCharge(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<LightningRodTaskPayload>
-): void {
-  const state = professionCoreState(context);
-  // activationId mismatch means this is a stale task from a previous LR cast — discard it
-  if (state.lightningRodActivationId !== task.payload?.activationId) return;
-  // Live charges last twelve seconds each; the cap remains twelve charges, and an
-  // over-cap charge is dropped rather than evicting a live one.
-  state.lightningRodChargeExpiries = addTimedStacks(
-    state.lightningRodChargeExpiries,
-    1,
-    task.at,
-    LIGHTNING_ROD_CHARGE_DURATION_SECONDS,
-    LIGHTNING_ROD_MAXIMUM_CHARGES
-  ).expiries;
-}
-
-/** Makes Electric Artillery available when the active Lightning Rod sequence finishes arming. */
-export function handleElectricArtilleryReady(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<LightningRodTaskPayload>
-): void {
-  const state = professionCoreState(context);
-  if (state.lightningRodActivationId !== task.payload?.activationId) return;
-  state.electricArtilleryAvailable = true;
-  state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
-  state.electricArtilleryReadyAt = 0;
-  emitEngineerStateSnapshot(context, task.at, 'electric-artillery-ready');
-}
-
-/** Clears an unused Electric Artillery window after its active Lightning Rod sequence expires. */
-export function handleElectricArtilleryExpire(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<LightningRodTaskPayload>
-): void {
-  const state = professionCoreState(context);
-  if (state.lightningRodActivationId !== task.payload?.activationId) return;
-  state.lightningRodActivationId = '';
-  state.lightningRodChargeExpiries = [];
-  state.electricArtilleryAvailable = false;
-  state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
-  state.electricArtilleryReadyAt = 0;
-  state.electricArtilleryExpiresAt = 0;
-  emitEngineerStateSnapshot(context, task.at, 'electric-artillery-expired');
-}
+/** Shared lifetime execution grants charges at each pulse, then arms and expires the separate flip window. */
+export const lightningRod = timedEffect({
+  id: 'engineer.lightning-rod',
+  effectsAt(
+    context: EngineerSchedulerContext,
+    at: number,
+    captured: { readonly skillId: EngineerSkill['id']; readonly skillName: string },
+    occurrence: number
+  ) {
+    const state = professionCoreState(context);
+    if (occurrence < LIGHTNING_ROD_PULSE_COUNT) {
+      context.emit({
+        type: 'engineer.lightning-rod-pulse',
+        at,
+        source: 'engineer',
+        sourceId: captured.skillId,
+        actorType: 'player',
+        skillId: captured.skillId,
+        skillName: captured.skillName,
+        name: captured.skillName,
+        hitIndex: occurrence + 1,
+        totalHits: LIGHTNING_ROD_PULSE_COUNT
+      });
+      state.lightningRodChargeExpiries = addTimedStacks(
+        state.lightningRodChargeExpiries,
+        1,
+        at,
+        LIGHTNING_ROD_CHARGE_DURATION_SECONDS,
+        LIGHTNING_ROD_MAXIMUM_CHARGES
+      ).expiries;
+    } else if (occurrence === LIGHTNING_ROD_PULSE_COUNT) {
+      state.electricArtilleryAvailable = true;
+      state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
+      state.electricArtilleryReadyAt = 0;
+      emitEngineerStateSnapshot(context, at, 'electric-artillery-ready');
+    } else {
+      state.lightningRodChargeExpiries = [];
+      state.electricArtilleryAvailable = false;
+      state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
+      state.electricArtilleryReadyAt = 0;
+      state.electricArtilleryExpiresAt = 0;
+      emitEngineerStateSnapshot(context, at, 'electric-artillery-expired');
+    }
+  }
+});
 
 /** Emits Roiling Skies as a stun, or as a launch while Focused is active. */
 export function scheduleRoilingSkiesControl(context: EngineerCastContext, skill: EngineerSkill): void {

@@ -16,7 +16,7 @@ import {
   advanceParagon,
   applyParagonWeaponSwapTraits,
   beginParagonCast,
-  handleParagonCommandEchoTask,
+  commandEchoes,
   observeParagonEvent,
   updateParagonCast
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
@@ -47,9 +47,7 @@ export const paragonSchedulerHooks = Object.freeze({
     order: 20,
     handler: observeParagonEvent
   },
-  taskHandlers: Object.freeze({
-    'warrior.paragon-command-echo': handleParagonCommandEchoTask
-  })
+  taskHandlers: commandEchoes.taskHandlers
 });
 
 function paragonRuntimeState(context: Gw2ModifierContext): {

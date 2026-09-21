@@ -7,7 +7,7 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import { handlePrimordialStanceTick } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { primordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {
   // Exercise the public gate so hammer resource checks cannot bypass hand or replacement-state validation.
@@ -148,6 +148,7 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
         fullEnd: 10,
         effectiveEnd: 10,
         reservationId: 'stance',
+        state: {},
         schedulerPolicy: {
           effectTiming: (_context, _skill, authored) => ({
             ...authored,
@@ -164,7 +165,7 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
       scheduled.map((task) => task.at),
       [12.5, 16]
     );
-    assert.ok(scheduled.every((task) => task.ownerId === 'stance' && task.payload.sourceId === id));
+    assert.ok(scheduled.every((task) => task.ownerId === 'stance' && task.payload.captured.sourceId === id));
   }
 });
 
@@ -218,25 +219,25 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
 
 test('Primordial Stance does not restore removed profile effects through fallback values', () => {
   // Removing the active attunement's condition and strike leaves this pulse with nothing to emit.
-  handlePrimordialStanceTick(
-    {
-      catalog: applyBalanceProfilePatch(elementalistCatalog, {
-        balanceProfiles: {
-          [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
-            removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }]
-          }
+  const context = {
+    catalog: applyBalanceProfilePatch(elementalistCatalog, {
+      balanceProfiles: {
+        [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
+          removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }]
         }
-      }),
-      state: {
-        profession: {
-          core: { primaryAttunement: 'Fire' },
-          specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
-        }
-      },
-      emit: () => assert.fail('Removed profile effects must not emit')
+      }
+    }),
+    state: {
+      profession: {
+        core: { primaryAttunement: 'Fire' },
+        specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
+      }
     },
-    { at: 1, payload: { sourceId: ID.PRIMORDIAL_STANCE_FIRE } }
-  );
+    tasks: { schedule: () => 'pulse', cancel: () => {} },
+    emit: () => assert.fail('Removed profile effects must not emit')
+  };
+  const id = primordialStance.start(context, { times: [1], captured: { sourceId: ID.PRIMORDIAL_STANCE_FIRE } });
+  primordialStance.consume(context, id, 1);
 });
 
 test('Primordial Stance variants share charges and count recharge', () => {

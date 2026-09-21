@@ -100,7 +100,7 @@ test('Ritualist snapshots preserve Bond cadence and independent weapon-spell spe
   assert.equal(ritualist.painfulBondPulseAnchorAt, anchor);
   assert.equal(queued.filter((event) => event.mode === 'tick').length, 1);
   assert.equal(ritualist.weaponSpells.splinter, spell);
-  assert.equal(spell.recipients.player.stacks, 2);
-  assert.equal(spell.recipients['spirit:1'].stacks, 1);
+  assert.equal(spell.recipients.player.charges, 2);
+  assert.equal(spell.recipients['spirit:1'].charges, 1);
   assert.deepEqual(snapshot.weaponSpells, {});
 });
