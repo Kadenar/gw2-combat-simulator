@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -206,7 +206,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
               state.dragonChargesPerInterval
             );
       // Even the next possible tick would land after the deadline — stop waiting.
-      if (nextChargeAt > state.dragonTriggerChargeDeadline + EPSILON) {
+      if (canonicalTime(nextChargeAt) > state.dragonTriggerChargeDeadline) {
         return {
           ready: false,
           retryAt: null,

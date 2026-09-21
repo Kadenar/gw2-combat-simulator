@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -60,12 +60,14 @@ export function projectDragonFlow(
 export function projectDragonCharges(input: DragonChargeProjectionInput): readonly DragonChargeTick[] {
   const ticks: DragonChargeTick[] = [];
   let tickIndex = input.initialTickIndex ?? 1;
-  let at = input.firstTickAt ?? input.tickAt(tickIndex);
+  let at = canonicalTime(input.firstTickAt ?? input.tickAt(tickIndex));
   let previousAt = input.startTime;
   let flow = clamp(input.flow, 0, input.maximumFlow);
   let charges = clamp(input.initialCharges ?? 0, 0, input.maximumCharges);
 
-  while (at <= input.deadline + EPSILON && charges < input.maximumCharges) {
+  // A charge at the deadline is valid; canonical ticks cannot leak past it through tolerance.
+  const deadline = Number.isFinite(input.deadline) ? canonicalTime(input.deadline) : input.deadline;
+  while (at <= deadline && charges < input.maximumCharges) {
     flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
     const granted = flow + EPSILON >= input.flowPerInterval;
     if (granted) {
@@ -76,7 +78,7 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
     ticks.push({ at, charges, flowAfter: flow, granted });
     previousAt = at;
     tickIndex += 1;
-    at = input.tickAt(tickIndex);
+    at = canonicalTime(input.tickAt(tickIndex));
   }
 
   return ticks;

@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
@@ -111,8 +111,9 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
   const dragonTrigger = balanceProfileFromContext(context, PROFILE.dragonTrigger);
-  state.dragonTriggerChargeDeadline =
-    context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS);
+  state.dragonTriggerChargeDeadline = canonicalTime(
+    context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS)
+  );
   state.dragonCharges = 0;
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
   // so it only applies to the single Dragon Trigger entry it was active for, including entry exactly at expiry.
@@ -449,7 +450,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
 
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
-  if (target > state.dragonTriggerChargeDeadline + EPSILON) {
+  if (target > state.dragonTriggerChargeDeadline) {
     exitDragonTrigger(context, state.dragonTriggerChargeDeadline);
   }
 }

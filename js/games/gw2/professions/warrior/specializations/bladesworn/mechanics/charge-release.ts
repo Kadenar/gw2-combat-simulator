@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -110,7 +110,7 @@ export function dragonChargeReleaseProjection(context: {
     rows: chargeLevels.map((charges, index) => {
       const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
       const earliestAt = startTime + dragonChargeTickOffsetSeconds(index + 1, maximumCharges, chargesPerInterval);
-      const pastDeadline = earliestAt > deadline + EPSILON;
+      const pastDeadline = canonicalTime(earliestAt) > deadline;
       return {
         charges,
         at: tick?.at ?? earliestAt,
