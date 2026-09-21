@@ -1,4 +1,8 @@
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  composePublicStateProjections,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type {
   ProfessionStateSnapshotEmissionContext,
@@ -6,22 +10,15 @@ import type {
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
-  NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
+  NECROMANCER_CORE_PUBLIC_STATE_PROJECTION,
   syncNecromancerResources
 } from '#gw2/professions/necromancer/core/state.js';
 import {
-  HARBINGER_PUBLIC_END_STATE_DEFAULTS,
-  HARBINGER_PUBLIC_END_STATE_KEYS,
+  HARBINGER_PUBLIC_STATE_PROJECTION,
   syncHarbingerState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
-import {
-  RITUALIST_PUBLIC_END_STATE_DEFAULTS,
-  RITUALIST_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import {
-  SCOURGE_PUBLIC_END_STATE_DEFAULTS,
-  SCOURGE_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import { RITUALIST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import { SCOURGE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type {
   NecromancerPlanningStateProjectionOptions,
   NecromancerState
@@ -52,18 +49,15 @@ export function emitNecromancerStateSnapshot(
   );
 }
 
-export const NECROMANCER_PUBLIC_END_STATE_KEYS: readonly (keyof NecromancerState)[] = Object.freeze([
-  ...NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
-  ...SCOURGE_PUBLIC_END_STATE_KEYS,
-  ...HARBINGER_PUBLIC_END_STATE_KEYS,
-  ...RITUALIST_PUBLIC_END_STATE_KEYS
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const NECROMANCER_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  NECROMANCER_CORE_PUBLIC_STATE_PROJECTION,
+  SCOURGE_PUBLIC_STATE_PROJECTION,
+  HARBINGER_PUBLIC_STATE_PROJECTION,
+  RITUALIST_PUBLIC_STATE_PROJECTION
 ]);
 
-const NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<NecromancerState>> = Object.freeze({
-  ...SCOURGE_PUBLIC_END_STATE_DEFAULTS,
-  ...HARBINGER_PUBLIC_END_STATE_DEFAULTS,
-  ...RITUALIST_PUBLIC_END_STATE_DEFAULTS
-});
+export const NECROMANCER_PUBLIC_END_STATE_KEYS = NECROMANCER_PUBLIC_STATE_PROJECTION.keys;
 
 /** Project the scheduler's resource state after timestamped resolver gains have been replayed. */
 export function projectNecromancerPlanningState({
@@ -73,6 +67,6 @@ export function projectNecromancerPlanningState({
   return projectPublicProfessionState(
     state,
     NECROMANCER_PUBLIC_END_STATE_KEYS,
-    NECROMANCER_PUBLIC_INACTIVE_STATE_DEFAULTS
+    NECROMANCER_PUBLIC_STATE_PROJECTION.defaults
   );
 }

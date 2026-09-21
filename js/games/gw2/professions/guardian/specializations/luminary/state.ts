@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface GuardianLuminaryState {
   radiantForge: boolean;
@@ -45,29 +48,7 @@ export function createLuminaryState(): GuardianLuminaryState {
 }
 
 /** Keeps Luminary projection ownership beside the state that produces it. */
-export const LUMINARY_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
-  'radiantForge',
-  'radiantForgeEndsAt',
-  'radiantWeapon',
-  'radiantWeaponsUsed',
-  'empoweredArmamentsUntil',
-  'piercingStanceUntil',
-  'lightAuraUntil',
-  'radiantJusticeArmed',
-  'radiantResolveArmed',
-  'radiantCourageSwordArmed',
-  'radiantCourageShieldArmed',
-  'effulgentActiveUntil',
-  'effulgentStacks'
-]);
-
-export const LUMINARY_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
-  'lightAuraUntil',
-  'effulgentActiveUntil',
-  'effulgentStacks'
-]);
-
-export const LUMINARY_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianLuminaryState>> = Object.freeze({
+export const LUMINARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   radiantForge: false,
   radiantForgeEndsAt: 0,
   radiantWeapon: '',
@@ -81,6 +62,12 @@ export const LUMINARY_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianLumina
   radiantCourageShieldArmed: false,
   effulgentActiveUntil: 0,
   effulgentStacks: 0
-});
+} satisfies Partial<GuardianLuminaryState>);
+
+export const LUMINARY_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
+  'lightAuraUntil',
+  'effulgentActiveUntil',
+  'effulgentStacks'
+]);
 
 export const luminaryState = defineProfessionSpecializationState('Luminary', createLuminaryState);

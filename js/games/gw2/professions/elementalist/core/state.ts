@@ -239,3 +239,9 @@ export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'availableFlips',
   'summonedElemental'
 ] as const satisfies readonly (keyof ElementalistCoreState)[]);
+
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});

@@ -74,6 +74,26 @@ export function readProfessionSpecializationState<TState extends object = Dynami
   return specialization.state as Partial<TState>;
 }
 
+/** Declares inactive public fallbacks, never live state initialization or private runtime fields. */
+export function definePublicStateDefaults<TDefaults extends object>(defaults: TDefaults) {
+  return Object.freeze({
+    keys: Object.freeze(Object.keys(defaults) as Extract<keyof TDefaults, string>[]),
+    defaults: Object.freeze(defaults)
+  });
+}
+
+/** Composes slice metadata in order, retaining duplicate keys and letting later defaults win. */
+export function composePublicStateProjections<
+  const TSlices extends readonly { readonly keys: readonly string[]; readonly defaults: object }[]
+>(slices: TSlices) {
+  return Object.freeze({
+    keys: Object.freeze(slices.flatMap((slice) => slice.keys) as TSlices[number]['keys'][number][]),
+    defaults: Object.freeze(Object.assign({}, ...slices.map((slice) => slice.defaults))) as Readonly<
+      TSlices[number]['defaults']
+    >
+  });
+}
+
 /** Selects and clones the declared public fields while supplying defaults only for missing state. */
 export function projectPublicProfessionState<TState extends object, TKey extends keyof TState>(
   flatState: TState,

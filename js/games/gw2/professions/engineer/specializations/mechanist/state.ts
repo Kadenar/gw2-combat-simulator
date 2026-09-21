@@ -1,5 +1,8 @@
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
@@ -32,11 +35,7 @@ export interface MechanistState {
 }
 
 // Mechanist owns its public mech projection and the disabled inactive representation.
-export const MECHANIST_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'mech'
-] as const satisfies readonly (keyof MechanistState)[]);
-
-export const MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<MechanistState>> = Object.freeze({
+export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   mech: {
     enabled: false,
     active: false,
@@ -45,7 +44,7 @@ export const MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Mechanis
     busyUntil: 0,
     attributes: null
   }
-});
+} satisfies Partial<MechanistState>);
 
 /** Resolves the three mech command skills supplied by the active mechanist traits. */
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {

@@ -9,7 +9,10 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
  * work scheduled by surrounding commands. Shared by the scheduler and resolver
  * passes, which each build their own instance from the same factory.
  */
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -125,21 +128,7 @@ export function grantElectricEnchantments(state: EvokerState, at: number, stacks
 
 // Evoker owns familiar resources and its public element/enchantment state.
 /** Contributed to the Elementalist family end-state projection. */
-export const EVOKER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'element',
-  'charges',
-  'maximumCharges',
-  'empowered',
-  'electricEnchantmentStacks',
-  'elementalBalanceProgress',
-  'elementalBalanceUntil'
-] as const satisfies readonly (keyof EvokerState)[]);
-
-/**
- * Substituted for the public keys when the simulated build is not Evoker, so the
- * family end-state result keeps a stable shape across specializations.
- */
-export const EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EvokerState>> = Object.freeze({
+export const EVOKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   element: 'Fire',
   charges: 0,
   maximumCharges: 6,
@@ -147,4 +136,4 @@ export const EVOKER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EvokerState
   electricEnchantmentStacks: 0,
   elementalBalanceProgress: 0,
   elementalBalanceUntil: 0
-});
+} satisfies Partial<EvokerState>);

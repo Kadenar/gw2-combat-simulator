@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
@@ -16,19 +19,14 @@ export interface SoulbeastState {
 }
 
 // Soulbeast owns its public Beastmode and stance projection.
-export const SOULBEAST_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
-  'beastmodeActive',
-  'archetype',
-  'oneWolfPackUntil',
-  'oneWolfPackReadyAt'
-]);
-
-export const SOULBEAST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   beastmodeActive: false,
   archetype: '',
   oneWolfPackUntil: 0,
   oneWolfPackReadyAt: 0
-});
+} satisfies Partial<RangerState>);
+
+export const SOULBEAST_PUBLIC_END_STATE_KEYS = SOULBEAST_PUBLIC_STATE_PROJECTION.keys;
 
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
   const pet = selectedRangerPet(config);

@@ -435,9 +435,10 @@ test('ready native professions expose deliberate public end-state keys', async (
     const profession = await entry.loadProfession();
     const result = simulateGw2({ profession, rotation: [], config: {} });
 
+    // Multiple slices can publish the same field; the projected object contains each name once.
     assert.deepEqual(
       Object.keys(result.planningState.profession).sort(),
-      [...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id]].sort(),
+      [...new Set(PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id])].sort(),
       entry.id
     );
     for (const key of internalKeys[entry.id]) {

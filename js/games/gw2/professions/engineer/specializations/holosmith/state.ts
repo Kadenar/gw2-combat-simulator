@@ -1,5 +1,8 @@
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
@@ -29,17 +32,7 @@ export const HOLOSMITH_RESOLVER_STATE_KEYS = Object.freeze([
 ] as const satisfies readonly (keyof HolosmithState)[]);
 
 // Holosmith owns both its public projection keys and the inactive compatibility values.
-export const HOLOSMITH_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'heat',
-  'maximumHeat',
-  'photonForgeActive',
-  'forgeExitedAt',
-  'overheated',
-  ...HOLOSMITH_RESOLVER_STATE_KEYS,
-  'kitLockoutUntil'
-] as const satisfies readonly (keyof HolosmithState)[]);
-
-export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<HolosmithState>> = Object.freeze({
+export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   heat: 0,
   maximumHeat: 100,
   photonForgeActive: false,
@@ -49,7 +42,7 @@ export const HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<Holosmit
   solarFocusingLensReadyAt: 0,
   solarFocusingLensUntil: 0,
   kitLockoutUntil: 0
-});
+} satisfies Partial<HolosmithState>);
 
 /** Creates isolated Holosmith heat, Forge, trait-charge, and lockout state from a build configuration. */
 export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {

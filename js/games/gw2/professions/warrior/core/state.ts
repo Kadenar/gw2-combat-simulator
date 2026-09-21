@@ -35,9 +35,13 @@ export const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'availableFlips'
 ] as const satisfies readonly (keyof WarriorCoreState)[]);
 
-export const WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<WarriorCoreState>> = Object.freeze({
-  endurance: 100,
-  maximumEndurance: 100
+// Public fields and inactive fallbacks intentionally differ; preserve both sets.
+export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: Object.freeze({
+    endurance: 100,
+    maximumEndurance: 100
+  } satisfies Partial<WarriorCoreState>)
 });
 
 /** Creates only the state shared by every Warrior build; elite caps initialize in their slices. */

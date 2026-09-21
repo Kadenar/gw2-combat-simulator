@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 
@@ -45,21 +48,11 @@ export const createWeaverState = weaverState.create;
 
 // Weaver owns dual-attunement state and its public stance windows.
 /** Keys the Elementalist end-state projection publishes on the simulation result. */
-export const WEAVER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'secondaryAttunement',
-  'unravelUntil',
-  'weaveSelfUntil',
-  'weaveSelfVisited',
-  'perfectWeaveUntil',
-  'ferventStanceUntil'
-] as const satisfies readonly (keyof WeaverState)[]);
-
-/** Values reported for those keys when the build is not running Weaver. */
-export const WEAVER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<WeaverState>> = Object.freeze({
+export const WEAVER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   secondaryAttunement: null,
   unravelUntil: 0,
   weaveSelfUntil: 0,
   weaveSelfVisited: [],
   perfectWeaveUntil: 0,
   ferventStanceUntil: 0
-});
+} satisfies Partial<WeaverState>);

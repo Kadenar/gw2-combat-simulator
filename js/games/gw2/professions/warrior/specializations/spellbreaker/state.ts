@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];
@@ -8,19 +11,12 @@ export interface SpellbreakerState {
 }
 
 /** Declares Spellbreaker's public compatibility fields and inactive values. */
-export const SPELLBREAKER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'attackerInsightExpiries',
-  'fullCounterActiveUntil',
-  'magebaneTetherUntil',
-  'magebaneTetherReadyAt'
-] as const satisfies readonly (keyof SpellbreakerState)[]);
-
-export const SPELLBREAKER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<SpellbreakerState>> = Object.freeze({
+export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   attackerInsightExpiries: [],
   fullCounterActiveUntil: 0,
   magebaneTetherUntil: 0,
   magebaneTetherReadyAt: 0
-});
+} satisfies Partial<SpellbreakerState>);
 
 export function createSpellbreakerState(): SpellbreakerState {
   return {

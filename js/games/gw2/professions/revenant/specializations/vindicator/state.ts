@@ -1,19 +1,17 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface VindicatorState {
   reaversCurseUntil: number;
   forerunnerOfDeathUntil: number;
 }
 
-export const VINDICATOR_PUBLIC_END_STATE_KEYS: readonly (keyof VindicatorState)[] = Object.freeze([
-  'reaversCurseUntil',
-  'forerunnerOfDeathUntil'
-]);
-
-export const VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<VindicatorState>> = Object.freeze({
+export const VINDICATOR_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   reaversCurseUntil: 0,
   forerunnerOfDeathUntil: 0
-});
+} satisfies Partial<VindicatorState>);
 
 export function createVindicatorState(): VindicatorState {
   return {

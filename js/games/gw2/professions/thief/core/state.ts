@@ -149,3 +149,9 @@ export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[]
   'availableFlips',
   'autoattackChains'
 ]);
+
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const THIEF_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: THIEF_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});

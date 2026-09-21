@@ -1,5 +1,8 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
@@ -39,20 +42,8 @@ export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   };
 }
 
-export const DEADEYE_PUBLIC_END_STATE_KEYS: readonly (keyof DeadeyeState)[] = Object.freeze([
-  'markedTargetId',
-  'markExpiresAt',
-  'markGeneration',
-  'malice',
-  'maximumMalice',
-  'maliceCriticalProgress',
-  'deadeyeRelicUntil',
-  'stealthAttackCharges',
-  'stealthAttackExpiresAt',
-  'maleficentSevenTriggered'
-]);
-
-export const DEADEYE_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DeadeyeState>> = Object.freeze({
+// Inactive public fallbacks declare only the Deadeye fields exposed by the family projection.
+export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markedTargetId: null,
   markExpiresAt: 0,
   markGeneration: 0,
@@ -63,6 +54,6 @@ export const DEADEYE_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DeadeyeState>> = 
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,
   maleficentSevenTriggered: false
-});
+} satisfies Partial<DeadeyeState>);
 
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);

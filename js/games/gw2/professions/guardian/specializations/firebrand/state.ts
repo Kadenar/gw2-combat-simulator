@@ -1,7 +1,10 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
@@ -95,32 +98,7 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
 }
 
 /** Keeps Firebrand projection ownership beside the state that produces it. */
-export const FIREBRAND_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
-  'activeTome',
-  'tomePages',
-  'maximumTomePages',
-  'tomePageInterval',
-  'nextTomePageAt',
-  'ashesCharges',
-  'ashesExpiresAt',
-  'nextCourageAegisAt',
-  'tomeDormantReadyAt',
-  'swiftScholarTome',
-  'swiftScholarCount',
-  'liberatorsVowReadyAt',
-  'stalwartSpeedReadyAt',
-  'quickfireReadyAt',
-  'mantraRechargeReadyAt'
-]);
-
-export const FIREBRAND_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
-  'ashesCharges',
-  'ashesExpiresAt',
-  'stalwartSpeedReadyAt',
-  'quickfireReadyAt'
-]);
-
-export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFirebrandState>> = Object.freeze({
+export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeTome: '',
   tomePages: 5,
   maximumTomePages: 5,
@@ -136,7 +114,14 @@ export const FIREBRAND_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianFireb
   stalwartSpeedReadyAt: 0,
   quickfireReadyAt: 0,
   mantraRechargeReadyAt: {}
-});
+} satisfies Partial<GuardianFirebrandState>);
+
+export const FIREBRAND_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
+  'ashesCharges',
+  'ashesExpiresAt',
+  'stalwartSpeedReadyAt',
+  'quickfireReadyAt'
+]);
 
 // Derive page capacity, regeneration cadence, starting pages, and Ashes duration
 // from the selected traits while respecting explicit build overrides.

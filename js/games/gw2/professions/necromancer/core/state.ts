@@ -83,6 +83,12 @@ export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'dreadUntil'
 ] as const satisfies readonly (keyof NecromancerCoreState)[]);
 
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});
+
 export const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */

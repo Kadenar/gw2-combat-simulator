@@ -1,4 +1,5 @@
 import {
+  composePublicStateProjections,
   professionCoreState,
   projectPublicProfessionState,
   restoreFlatProfessionState,
@@ -11,21 +12,14 @@ import type {
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { ENGINEER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/core/state.js';
+import { ENGINEER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/core/state.js';
+import { AMALGAM_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import {
-  AMALGAM_PUBLIC_END_STATE_KEYS,
-  AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import {
-  HOLOSMITH_PUBLIC_END_STATE_KEYS,
-  HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS,
+  HOLOSMITH_PUBLIC_STATE_PROJECTION,
   HOLOSMITH_RESOLVER_STATE_KEYS,
   holosmithState
 } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import {
-  MECHANIST_PUBLIC_END_STATE_KEYS,
-  MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { MECHANIST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type {
   EngineerPlanningStateProjectionOptions,
   EngineerResolverContext,
@@ -48,19 +42,15 @@ export function emitEngineerStateSnapshot(
   return emitStateSnapshot(context, 'engineer', at, reason, snapshotEngineerState(context.state.profession), options);
 }
 
-// The family boundary composes the public fragments declared by their semantic owners.
-export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  ...ENGINEER_CORE_PUBLIC_END_STATE_KEYS,
-  ...HOLOSMITH_PUBLIC_END_STATE_KEYS,
-  ...MECHANIST_PUBLIC_END_STATE_KEYS,
-  ...AMALGAM_PUBLIC_END_STATE_KEYS
-] as const satisfies readonly (keyof EngineerState)[]);
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const ENGINEER_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  ENGINEER_CORE_PUBLIC_STATE_PROJECTION,
+  HOLOSMITH_PUBLIC_STATE_PROJECTION,
+  MECHANIST_PUBLIC_STATE_PROJECTION,
+  AMALGAM_PUBLIC_STATE_PROJECTION
+]);
 
-const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<EngineerState>> = Object.freeze({
-  ...HOLOSMITH_PUBLIC_INACTIVE_STATE_DEFAULTS,
-  ...MECHANIST_PUBLIC_INACTIVE_STATE_DEFAULTS,
-  ...AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS
-});
+export const ENGINEER_PUBLIC_END_STATE_KEYS = ENGINEER_PUBLIC_STATE_PROJECTION.keys;
 
 /** Projects the family aggregate while preserving the existing public shape. */
 export function projectEngineerPlanningState({
@@ -68,7 +58,7 @@ export function projectEngineerPlanningState({
 }: EngineerPlanningStateProjectionOptions): Pick<EngineerState, (typeof ENGINEER_PUBLIC_END_STATE_KEYS)[number]> {
   const state = snapshotEngineerState(schedulerState.profession);
   // Scheduler predictions remain independent from combat-time charge consumption.
-  return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS);
+  return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_STATE_PROJECTION.defaults);
 }
 
 /** Routes a scheduler snapshot back to the Core and active-specialization owners. */

@@ -1,6 +1,9 @@
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { thiefBaseMaximumHealth } from '#gw2/professions/thief/core/state.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -54,20 +57,13 @@ export function createSpecterState(config: ThiefConfig = {}): SpecterState {
   };
 }
 
-export const SPECTER_PUBLIC_END_STATE_KEYS: readonly (keyof SpecterState)[] = Object.freeze([
-  'shadowForce',
-  'maximumShadowForce',
-  'shadowForcePoolCapacity',
-  'shadowShroudExitReadyAt',
-  'shadowShroudActive'
-]);
-
-export const SPECTER_INACTIVE_STATE_DEFAULTS: Readonly<Partial<SpecterState>> = Object.freeze({
+// Inactive public fallbacks stay separate from Specter's configured live resource capacity.
+export const SPECTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   shadowForce: 0,
   maximumShadowForce: 100,
   shadowForcePoolCapacity: 0,
   shadowShroudExitReadyAt: 0,
   shadowShroudActive: false
-});
+} satisfies Partial<SpecterState>);
 
 export const specterState = defineProfessionSpecializationState('Specter', createSpecterState);

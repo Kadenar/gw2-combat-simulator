@@ -143,3 +143,9 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'petAutoBusyUntil',
   'petAutoCooldowns'
 ]);
+
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const RANGER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: RANGER_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});

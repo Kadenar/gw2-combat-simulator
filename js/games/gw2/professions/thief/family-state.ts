@@ -1,5 +1,6 @@
 import { replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import {
+  composePublicStateProjections,
   professionCoreState,
   projectPublicProfessionState,
   restoreFlatProfessionState
@@ -11,24 +12,12 @@ import type {
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { snapshotThiefState, THIEF_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/thief/core/state.js';
+import { snapshotThiefState, THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/core/state.js';
 export { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
-import {
-  ANTIQUARY_INACTIVE_STATE_DEFAULTS,
-  ANTIQUARY_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/thief/specializations/antiquary/state.js';
-import {
-  DAREDEVIL_INACTIVE_STATE_DEFAULTS,
-  DAREDEVIL_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/thief/specializations/daredevil/state.js';
-import {
-  DEADEYE_INACTIVE_STATE_DEFAULTS,
-  DEADEYE_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/thief/specializations/deadeye/state.js';
-import {
-  SPECTER_INACTIVE_STATE_DEFAULTS,
-  SPECTER_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/thief/specializations/specter/state.js';
+import { ANTIQUARY_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { DAREDEVIL_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/daredevil/state.js';
+import { DEADEYE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { SPECTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/specter/state.js';
 import { ANTIQUARY_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
 import { DAREDEVIL_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
 import { DEADEYE_THIEVES_GUILD_SUMMON } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
@@ -41,22 +30,17 @@ import type {
   ThiefSummonDefinition
 } from '#gw2/professions/thief/types.js';
 
-// The family projector composes each independently owned state slice into the stable public end-state contract.
-export const THIEF_PUBLIC_END_STATE_KEYS = Object.freeze([
-  ...THIEF_CORE_PUBLIC_END_STATE_KEYS,
-  ...DAREDEVIL_PUBLIC_END_STATE_KEYS,
-  ...DEADEYE_PUBLIC_END_STATE_KEYS,
-  ...SPECTER_PUBLIC_END_STATE_KEYS,
-  ...ANTIQUARY_PUBLIC_END_STATE_KEYS,
-  'holoUtilityCooldownReductionExpiresAt'
-] as const);
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const THIEF_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  THIEF_CORE_PUBLIC_STATE_PROJECTION,
+  DAREDEVIL_PUBLIC_STATE_PROJECTION,
+  DEADEYE_PUBLIC_STATE_PROJECTION,
+  SPECTER_PUBLIC_STATE_PROJECTION,
+  ANTIQUARY_PUBLIC_STATE_PROJECTION,
+  { keys: ['holoUtilityCooldownReductionExpiresAt'], defaults: {} }
+]);
 
-const INACTIVE_STATE_DEFAULTS: Readonly<Partial<ThiefState>> = Object.freeze({
-  ...DAREDEVIL_INACTIVE_STATE_DEFAULTS,
-  ...DEADEYE_INACTIVE_STATE_DEFAULTS,
-  ...SPECTER_INACTIVE_STATE_DEFAULTS,
-  ...ANTIQUARY_INACTIVE_STATE_DEFAULTS
-});
+export const THIEF_PUBLIC_END_STATE_KEYS = THIEF_PUBLIC_STATE_PROJECTION.keys;
 
 /** Emits a complete Thief snapshot while leaving generation reconciliation owner-local. */
 export function emitThiefStateSnapshot(
@@ -84,7 +68,7 @@ export function projectThiefPlanningState({
   return projectPublicProfessionState<typeof publicState, keyof typeof publicState>(
     publicState,
     THIEF_PUBLIC_END_STATE_KEYS,
-    INACTIVE_STATE_DEFAULTS
+    THIEF_PUBLIC_STATE_PROJECTION.defaults
   );
 }
 

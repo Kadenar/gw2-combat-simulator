@@ -1,4 +1,5 @@
 import {
+  composePublicStateProjections,
   professionCoreState,
   projectPublicProfessionState,
   restoreFlatProfessionState,
@@ -9,19 +10,10 @@ import type {
   ProfessionStateSnapshotEmissionContext,
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
-import { REVENANT_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/revenant/core/state.js';
-import {
-  CONDUIT_PUBLIC_END_STATE_KEYS,
-  CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/professions/revenant/specializations/conduit/state.js';
-import {
-  RENEGADE_PUBLIC_END_STATE_KEYS,
-  RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/professions/revenant/specializations/renegade/state.js';
-import {
-  VINDICATOR_PUBLIC_END_STATE_KEYS,
-  VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS
-} from '#gw2/professions/revenant/specializations/vindicator/state.js';
+import { REVENANT_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/core/state.js';
+import { CONDUIT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { RENEGADE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { VINDICATOR_PUBLIC_STATE_PROJECTION } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { baseRevenantEnergyCost } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
@@ -55,18 +47,15 @@ export function emitRevenantStateSnapshot(
   return emitStateSnapshot(context, 'revenant', at, reason, snapshotRevenantState(context.state.profession), options);
 }
 
-export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantState)[] = Object.freeze([
-  ...REVENANT_CORE_PUBLIC_END_STATE_KEYS,
-  ...RENEGADE_PUBLIC_END_STATE_KEYS,
-  ...VINDICATOR_PUBLIC_END_STATE_KEYS,
-  ...CONDUIT_PUBLIC_END_STATE_KEYS
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const REVENANT_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  REVENANT_CORE_PUBLIC_STATE_PROJECTION,
+  RENEGADE_PUBLIC_STATE_PROJECTION,
+  VINDICATOR_PUBLIC_STATE_PROJECTION,
+  CONDUIT_PUBLIC_STATE_PROJECTION
 ]);
 
-const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RevenantState>> = Object.freeze({
-  ...RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS,
-  ...VINDICATOR_PUBLIC_INACTIVE_STATE_DEFAULTS,
-  ...CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS
-});
+export const REVENANT_PUBLIC_END_STATE_KEYS = REVENANT_PUBLIC_STATE_PROJECTION.keys;
 
 /** Projects the public Revenant state while supplying stable defaults for inactive elite specializations. */
 export function projectRevenantPlanningState({
@@ -75,7 +64,7 @@ export function projectRevenantPlanningState({
   schedulerState: SchedulerState<RevenantRuntimeState>;
 }): Partial<RevenantState> {
   const state = snapshotRevenantState(schedulerState.profession);
-  return projectPublicProfessionState(state, REVENANT_PUBLIC_END_STATE_KEYS, REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS);
+  return projectPublicProfessionState(state, REVENANT_PUBLIC_END_STATE_KEYS, REVENANT_PUBLIC_STATE_PROJECTION.defaults);
 }
 
 /** Routes flat state snapshots back to their owning runtime slice without overwriting resolver-only proc clocks. */

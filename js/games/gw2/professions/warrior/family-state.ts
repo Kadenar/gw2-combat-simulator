@@ -1,4 +1,8 @@
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  composePublicStateProjections,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type {
   WarriorCastContext,
@@ -11,26 +15,11 @@ import {
   gainCoreWarriorAdrenaline,
   spendCoreWarriorAdrenaline
 } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import {
-  WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS,
-  WARRIOR_CORE_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/warrior/core/state.js';
-import {
-  BERSERKER_PUBLIC_END_STATE_DEFAULTS,
-  BERSERKER_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/warrior/specializations/berserker/state.js';
-import {
-  BLADESWORN_PUBLIC_END_STATE_DEFAULTS,
-  BLADESWORN_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  PARAGON_PUBLIC_END_STATE_DEFAULTS,
-  PARAGON_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/warrior/specializations/paragon/state.js';
-import {
-  SPELLBREAKER_PUBLIC_END_STATE_DEFAULTS,
-  SPELLBREAKER_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import { WARRIOR_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/core/state.js';
+import { BERSERKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import { BLADESWORN_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { PARAGON_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import { SPELLBREAKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spendBerserkerAdrenaline } from '#gw2/professions/warrior/specializations/berserker/mechanics/adrenaline.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { gainBladeswornFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
@@ -48,21 +37,16 @@ export function snapshotWarriorState(
   return snapshot;
 }
 
-export const WARRIOR_PUBLIC_END_STATE_KEYS: readonly (keyof WarriorState)[] = Object.freeze([
-  ...WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
-  ...BERSERKER_PUBLIC_END_STATE_KEYS,
-  ...SPELLBREAKER_PUBLIC_END_STATE_KEYS,
-  ...BLADESWORN_PUBLIC_END_STATE_KEYS,
-  ...PARAGON_PUBLIC_END_STATE_KEYS
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const WARRIOR_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  WARRIOR_CORE_PUBLIC_STATE_PROJECTION,
+  BERSERKER_PUBLIC_STATE_PROJECTION,
+  SPELLBREAKER_PUBLIC_STATE_PROJECTION,
+  BLADESWORN_PUBLIC_STATE_PROJECTION,
+  PARAGON_PUBLIC_STATE_PROJECTION
 ]);
 
-const INACTIVE_DEFAULTS: Readonly<Partial<WarriorState>> = Object.freeze({
-  ...WARRIOR_CORE_PUBLIC_END_STATE_DEFAULTS,
-  ...BERSERKER_PUBLIC_END_STATE_DEFAULTS,
-  ...SPELLBREAKER_PUBLIC_END_STATE_DEFAULTS,
-  ...BLADESWORN_PUBLIC_END_STATE_DEFAULTS,
-  ...PARAGON_PUBLIC_END_STATE_DEFAULTS
-});
+export const WARRIOR_PUBLIC_END_STATE_KEYS = WARRIOR_PUBLIC_STATE_PROJECTION.keys;
 
 /** Projects the stable public end state after the active slice has been flattened. */
 export function projectWarriorPlanningState({
@@ -70,7 +54,7 @@ export function projectWarriorPlanningState({
   schedulerContext
 }: WarriorPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotWarriorState(schedulerState.profession, schedulerContext.catalog.skillsById);
-  return projectPublicProfessionState(state, WARRIOR_PUBLIC_END_STATE_KEYS, INACTIVE_DEFAULTS);
+  return projectPublicProfessionState(state, WARRIOR_PUBLIC_END_STATE_KEYS, WARRIOR_PUBLIC_STATE_PROJECTION.defaults);
 }
 
 // Family resource routing: Core owns the adrenaline contract, the active specialization owns its conversion.

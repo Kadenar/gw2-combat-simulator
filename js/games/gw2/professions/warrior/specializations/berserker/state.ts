@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface BerserkerState {
   berserkActive: boolean;
@@ -9,15 +12,10 @@ export interface BerserkerState {
 }
 
 /** Declares Berserker's public compatibility fields and inactive values. */
-export const BERSERKER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'berserkActive',
-  'berserkUntil'
-] as const satisfies readonly (keyof BerserkerState)[]);
-
-export const BERSERKER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<BerserkerState>> = Object.freeze({
+export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   berserkActive: false,
   berserkUntil: 0
-});
+} satisfies Partial<BerserkerState>);
 
 // kingOfFiresCriticalProgress accumulates fractional crit probability in
 // deterministic mode so that expected crits fire at the statistically correct rate.

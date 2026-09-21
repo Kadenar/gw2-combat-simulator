@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -77,34 +80,10 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   };
 }
 
-export const ANTIQUARY_PUBLIC_END_STATE_KEYS: readonly (keyof AntiquaryState)[] = Object.freeze([
-  // Preserve Antiquary's three-row initiative layout when the palette reads projected simulation state.
-  'initiativePipRows',
-  'artifactSlots',
-  'artifactUsesRemaining',
-  // Expose spending progress so the insertion snapshot can show the next Pincher pilfer.
-  'initiativeSpentSincePilfer',
-  'scoundrelsLuck',
-  'scoundrelsLuckReadyAt',
-  'improvisationReadyAt',
-  'backfireState',
-  'activeAntiquarySummons',
-  'nextSkrittScufflePilferAt',
-  'antiquaryDamageUntil',
-  'combatHighExpiresAt',
-  'combatHighStacks',
-  'mistburnCharges',
-  'mistburnExpiresAt',
-  'kryptisDamageUntil',
-  'chakInitiativeRefundUntil',
-  'holoUtilityCooldownReductionExpirations',
-  'forgedSurferGeneration',
-  'forgedSurferBombDropUntil',
-  'forgedSurferMaximumBombHits',
-  'canachCoinIndex'
-]);
-
-export const ANTIQUARY_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AntiquaryState>> = Object.freeze({
+// Declares Antiquary public fields, including its own stealth-attack charges, without borrowing sibling metadata.
+export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+  // Inactive builds retain their two-row UI fallback; live Antiquary state supplies three rows.
+  initiativePipRows: undefined,
   artifactSlots: [],
   artifactUsesRemaining: 0,
   initiativeSpentSincePilfer: 0,
@@ -128,6 +107,6 @@ export const ANTIQUARY_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AntiquaryState>
   forgedSurferBombDropUntil: 0,
   forgedSurferMaximumBombHits: 5,
   canachCoinIndex: 0
-});
+} satisfies Partial<AntiquaryState>);
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);

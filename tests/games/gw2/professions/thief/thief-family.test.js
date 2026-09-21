@@ -8,6 +8,45 @@ import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professi
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  ANTIQUARY_PUBLIC_STATE_PROJECTION,
+  createAntiquaryState
+} from '#gw2/professions/thief/specializations/antiquary/state.js';
+import {
+  DAREDEVIL_PUBLIC_STATE_PROJECTION,
+  createDaredevilState
+} from '#gw2/professions/thief/specializations/daredevil/state.js';
+
+test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
+  // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
+  const { keys, defaults } = ANTIQUARY_PUBLIC_STATE_PROJECTION;
+  const state = createAntiquaryState();
+  Object.assign(state, { stealthAttackCharges: 2, stealthAttackExpiresAt: 10 });
+  const active = projectPublicProfessionState(state, keys, defaults);
+  assert.equal(active.initiativePipRows, 3);
+  assert.equal(active.stealthAttackCharges, 2);
+  assert.equal(active.stealthAttackExpiresAt, 10);
+
+  const inactive = projectPublicProfessionState({}, keys, defaults);
+  assert.equal(Object.hasOwn(inactive, 'initiativePipRows'), true);
+  assert.equal(inactive.initiativePipRows, undefined);
+  assert.equal(inactive.stealthAttackCharges, 0);
+  assert.equal(inactive.stealthAttackExpiresAt, 0);
+});
+
+test('Daredevil keeps grant generations in snapshots but out of public projections', () => {
+  // Reconciliation still needs generation identity even though public consumers only need readiness and expiry.
+  const state = createDaredevilState();
+  Object.assign(state, { weakeningStrikeGeneration: 7, weakeningStrikeReady: true, weakeningStrikeExpiresAt: 10 });
+  const snapshot = snapshotProfessionState({ core: {}, specialization: { kind: 'Daredevil', state } });
+  const { keys, defaults } = DAREDEVIL_PUBLIC_STATE_PROJECTION;
+  const projected = projectPublicProfessionState(snapshot, keys, defaults);
+  assert.equal(snapshot.weakeningStrikeGeneration, 7);
+  assert.equal(Object.hasOwn(projected, 'weakeningStrikeGeneration'), false);
+  assert.equal(projected.weakeningStrikeReady, true);
+  assert.equal(projected.weakeningStrikeExpiresAt, 10);
+});
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {

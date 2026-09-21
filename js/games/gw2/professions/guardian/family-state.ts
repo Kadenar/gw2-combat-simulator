@@ -1,40 +1,26 @@
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  composePublicStateProjections,
+  projectPublicProfessionState,
+  snapshotProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import {
   activeSymbolicAvengerExpirations,
-  GUARDIAN_CORE_PUBLIC_END_STATE_KEYS
+  GUARDIAN_CORE_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/guardian/core/state.js';
-import {
-  DRAGONHUNTER_PUBLIC_END_STATE_DEFAULTS,
-  DRAGONHUNTER_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-import {
-  FIREBRAND_PUBLIC_END_STATE_DEFAULTS,
-  FIREBRAND_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import {
-  LUMINARY_PUBLIC_END_STATE_DEFAULTS,
-  LUMINARY_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/guardian/specializations/luminary/state.js';
-import {
-  WILLBENDER_PUBLIC_END_STATE_DEFAULTS,
-  WILLBENDER_PUBLIC_END_STATE_KEYS
-} from '#gw2/professions/guardian/specializations/willbender/state.js';
+import { DRAGONHUNTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
+import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { LUMINARY_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import { WILLBENDER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { GuardianPlanningStateProjectionOptions, GuardianState } from '#gw2/professions/guardian/types.js';
 
-const PUBLIC_STATE_SLICES = Object.freeze([
-  GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
-  DRAGONHUNTER_PUBLIC_END_STATE_KEYS,
-  WILLBENDER_PUBLIC_END_STATE_KEYS,
-  FIREBRAND_PUBLIC_END_STATE_KEYS,
-  LUMINARY_PUBLIC_END_STATE_KEYS
+// Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
+const GUARDIAN_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
+  GUARDIAN_CORE_PUBLIC_STATE_PROJECTION,
+  DRAGONHUNTER_PUBLIC_STATE_PROJECTION,
+  WILLBENDER_PUBLIC_STATE_PROJECTION,
+  FIREBRAND_PUBLIC_STATE_PROJECTION,
+  LUMINARY_PUBLIC_STATE_PROJECTION
 ]);
-
-const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<GuardianState>> = Object.freeze({
-  ...DRAGONHUNTER_PUBLIC_END_STATE_DEFAULTS,
-  ...WILLBENDER_PUBLIC_END_STATE_DEFAULTS,
-  ...FIREBRAND_PUBLIC_END_STATE_DEFAULTS,
-  ...LUMINARY_PUBLIC_END_STATE_DEFAULTS
-});
 
 /** Derives compatibility counters from detached combat state at the snapshot's observation time. */
 export function snapshotGuardianState(state: unknown, at: number): GuardianState {
@@ -51,9 +37,7 @@ export function snapshotGuardianState(state: unknown, at: number): GuardianState
 }
 
 /** Public compatibility keys are composed from manifests owned by each Guardian vertical slice. */
-export const GUARDIAN_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianState)[] = Object.freeze(
-  PUBLIC_STATE_SLICES.flatMap((keys) => keys) as (keyof GuardianState)[]
-);
+export const GUARDIAN_PUBLIC_END_STATE_KEYS = GUARDIAN_PUBLIC_STATE_PROJECTION.keys;
 
 /** Projects scheduler predictions at the planning boundary without borrowing resolved combat effects. */
 export function projectGuardianPlanningState({
@@ -62,6 +46,6 @@ export function projectGuardianPlanningState({
   return projectPublicProfessionState(
     snapshotGuardianState(schedulerState.profession, schedulerState.time),
     GUARDIAN_PUBLIC_END_STATE_KEYS,
-    GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS
+    GUARDIAN_PUBLIC_STATE_PROJECTION.defaults
   );
 }

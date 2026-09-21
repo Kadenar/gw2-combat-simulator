@@ -106,3 +106,9 @@ export const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreSt
   'selfConditions',
   'selfConditionCount'
 ]);
+
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const REVENANT_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: REVENANT_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});

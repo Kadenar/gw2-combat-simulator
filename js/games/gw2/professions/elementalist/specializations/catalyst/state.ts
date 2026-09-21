@@ -1,5 +1,8 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -58,22 +61,13 @@ export const createCatalystState = catalystState.create;
 
 // Catalyst exposes active stack expiries alongside its resource and sphere timing so
 // insertion-aware UI can report the exact Elemental Empowerment stack count.
-export const CATALYST_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'energy',
-  'elementalEmpowermentExpiries',
-  'maximumEnergy',
-  'sphereActiveUntil',
-  'sphereExpiry'
-] as const satisfies readonly (keyof CatalystState)[]);
-
-/** Values reported for the published Catalyst keys when Catalyst is not the active specialization. */
-export const CATALYST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<CatalystState>> = Object.freeze({
+export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   energy: 0,
   elementalEmpowermentExpiries: [],
   maximumEnergy: CATALYST_MAXIMUM_ENERGY,
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
-});
+} satisfies Partial<CatalystState>);
 
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and

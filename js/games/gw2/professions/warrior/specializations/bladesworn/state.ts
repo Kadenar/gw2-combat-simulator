@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -39,19 +42,7 @@ export interface BladeswornState {
 }
 
 /** Declares Bladesworn's public compatibility fields and inactive values. */
-export const BLADESWORN_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'flow',
-  'maximumFlow',
-  'flowStabilizerWindows',
-  'traitPositiveFlowStartedAt',
-  'traitPositiveFlowUntil',
-  'gunsaberActive',
-  'dragonTriggerActive',
-  'dragonCharges',
-  'overchargedCartridgeWindows'
-] as const satisfies readonly (keyof BladeswornState)[]);
-
-export const BLADESWORN_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<BladeswornState>> = Object.freeze({
+export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   flow: 0,
   maximumFlow: 100,
   flowStabilizerWindows: [],
@@ -61,7 +52,7 @@ export const BLADESWORN_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<BladeswornSt
   dragonTriggerActive: false,
   dragonCharges: 0,
   overchargedCartridgeWindows: []
-});
+} satisfies Partial<BladeswornState>);
 
 export function createBladeswornState(config: WarriorConfig = {}): BladeswornState {
   return {

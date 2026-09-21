@@ -1,4 +1,10 @@
-import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  composePublicStateProjections,
+  definePublicStateDefaults,
+  defineProfessionSpecializationState,
+  professionCoreState,
+  projectPublicProfessionState
+} from '#gw2/platform/engine/profession/state.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
@@ -84,3 +90,19 @@ mechanistState.from(context).heat;
 defineProfessionSpecializationState('ArrayState', () => []);
 // @ts-expect-error A module state factory cannot return a primitive.
 defineProfessionSpecializationState('PrimitiveState', () => 1);
+
+// Projection metadata preserves the declared literal keys and checks fallback fields against their owner.
+const firebrandProjection = definePublicStateDefaults({ tomePages: 5 } satisfies Partial<GuardianFirebrandState>);
+const familyProjection = composePublicStateProjections([{ keys: ['activeTome'], defaults: {} }, firebrandProjection]);
+export type PublicProjectionKeyAssertions = [
+  Assert<Rejects<typeof firebrandProjection.defaults, 'activeTome'>>,
+  Assert<(typeof familyProjection.keys)[number] extends 'activeTome' | 'tomePages' ? true : false>
+];
+definePublicStateDefaults({
+  // @ts-expect-error Misspelled public fields are not owned by Firebrand.
+  tomePagez: 5
+} satisfies Partial<GuardianFirebrandState>);
+const misspelledProjection = composePublicStateProjections([definePublicStateDefaults({ tomePagez: 5 })]);
+declare const firebrandState: GuardianFirebrandState;
+// @ts-expect-error Composing descriptors must not widen invalid keys into accepted state fields.
+projectPublicProfessionState(firebrandState, misspelledProjection.keys, misspelledProjection.defaults);

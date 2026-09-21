@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -21,21 +24,7 @@ export interface GaleshotState {
 }
 
 // Galeshot owns its public Cyclone Bow and wind-resource projection.
-export const GALESHOT_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
-  'cycloneBowActive',
-  'arrows',
-  'maximumArrows',
-  'arrowsUpdatedAt',
-  'windForce',
-  'galeForceUntil',
-  'mistralUntil',
-  'wutheringWindReady',
-  'thrillOfTheCatchReadyAt',
-  'flockTogetherReadyAt',
-  'missileHits'
-]);
-
-export const GALESHOT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   cycloneBowActive: false,
   arrows: 0,
   maximumArrows: 8,
@@ -47,7 +36,9 @@ export const GALESHOT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerSta
   thrillOfTheCatchReadyAt: 0,
   flockTogetherReadyAt: 0,
   missileHits: 0
-});
+} satisfies Partial<RangerState>);
+
+export const GALESHOT_PUBLIC_END_STATE_KEYS = GALESHOT_PUBLIC_STATE_PROJECTION.keys;
 
 export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {

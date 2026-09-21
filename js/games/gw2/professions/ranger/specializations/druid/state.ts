@@ -1,5 +1,8 @@
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -14,19 +17,14 @@ export interface DruidState {
 }
 
 // Druid owns its public Celestial Avatar resource projection.
-export const DRUID_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
-  'astralForce',
-  'maximumAstralForce',
-  'celestialAvatarActive',
-  'celestialAvatarEndsAt'
-]);
-
-export const DRUID_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> = Object.freeze({
+export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   astralForce: 0,
   maximumAstralForce: 100,
   celestialAvatarActive: false,
   celestialAvatarEndsAt: 0
-});
+} satisfies Partial<RangerState>);
+
+export const DRUID_PUBLIC_END_STATE_KEYS = DRUID_PUBLIC_STATE_PROJECTION.keys;
 
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {

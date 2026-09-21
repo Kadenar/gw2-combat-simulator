@@ -1,5 +1,8 @@
 import type { RevenantChargeState, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface RenegadeState {
   bandTogetherReady: boolean;
@@ -15,14 +18,7 @@ export interface RenegadeState {
   soulcleaveReadyAt: number;
 }
 
-export const RENEGADE_PUBLIC_END_STATE_KEYS: readonly (keyof RenegadeState)[] = Object.freeze([
-  'bandTogetherReady',
-  'bandTogetherExpiresAt',
-  'kallasFervor',
-  'razorclawsRage'
-]);
-
-export const RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RenegadeState>> = Object.freeze({
+export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   bandTogetherReady: false,
   bandTogetherExpiresAt: 0,
   kallasFervor: [],
@@ -31,7 +27,7 @@ export const RENEGADE_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RenegadeS
     expiresAt: 0,
     readyAt: 0
   }
-});
+} satisfies Partial<RenegadeState>);
 
 export function createRenegadeState(): RenegadeState {
   return {

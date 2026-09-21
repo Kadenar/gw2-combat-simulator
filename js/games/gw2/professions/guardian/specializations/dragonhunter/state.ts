@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface GuardianDragonhunterState {
   tetherUntil: number;
@@ -15,16 +18,11 @@ export function createDragonhunterState(): GuardianDragonhunterState {
 }
 
 /** Keeps Dragonhunter projection ownership beside the state that produces it. */
-export const DRAGONHUNTER_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianDragonhunterState)[] = Object.freeze([
-  'tetherUntil',
-  'heavyLightReadyAt'
-]);
-
-export const DRAGONHUNTER_RESOLVER_END_STATE_KEYS = DRAGONHUNTER_PUBLIC_END_STATE_KEYS;
-
-export const DRAGONHUNTER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianDragonhunterState>> = Object.freeze({
+export const DRAGONHUNTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   tetherUntil: 0,
   heavyLightReadyAt: 0
-});
+} satisfies Partial<GuardianDragonhunterState>);
+
+export const DRAGONHUNTER_RESOLVER_END_STATE_KEYS = DRAGONHUNTER_PUBLIC_STATE_PROJECTION.keys;
 
 export const dragonhunterState = defineProfessionSpecializationState('Dragonhunter', createDragonhunterState);

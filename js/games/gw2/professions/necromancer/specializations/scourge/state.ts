@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
@@ -9,11 +12,9 @@ export interface ScourgeState {
 }
 
 /** Declares Scourge's public compatibility field and inactive value. */
-export const SCOURGE_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'shades'
-] as const satisfies readonly (keyof ScourgeState)[]);
-
-export const SCOURGE_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<ScourgeState>> = Object.freeze({ shades: [] });
+export const SCOURGE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
+  shades: []
+} satisfies Partial<ScourgeState>);
 
 /** Creates Scourge's timed shade and trait-cooldown runtime state. */
 export function createScourgeState(): ScourgeState {

@@ -35,6 +35,12 @@ export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'kineticCharges'
 ] as const satisfies readonly (keyof EngineerCoreState)[]);
 
+// Core fields have no inactive fallbacks; their values come from the live state.
+export const ENGINEER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
+  keys: ENGINEER_CORE_PUBLIC_END_STATE_KEYS,
+  defaults: {}
+});
+
 /** Normalizes canonical trait IDs for state initialization and runtime membership checks. */
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
   return normalizeSelectedTraitIds(config.selectedTraitIds);

@@ -1,5 +1,8 @@
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';
@@ -43,23 +46,15 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
   };
 }
 
-export const DAREDEVIL_PUBLIC_END_STATE_KEYS: readonly (keyof DaredevilState)[] = Object.freeze([
-  'selectedDodge',
-  'boundingDamageUntil',
-  'lotusConditionDamageUntil',
-  'palmStrikeUntil',
-  'weakeningStrikeReady',
-  'weakeningStrikeExpiresAt'
-]);
-
-export const DAREDEVIL_INACTIVE_STATE_DEFAULTS: Readonly<Partial<DaredevilState>> = Object.freeze({
+// Public fallbacks omit the private grant generation; live state and snapshots retain it for reconciliation.
+export const DAREDEVIL_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   selectedDodge: 'Dodge',
   boundingDamageUntil: 0,
   lotusConditionDamageUntil: 0,
   palmStrikeUntil: 0,
   weakeningStrikeReady: false,
-  weakeningStrikeGeneration: 0,
+
   weakeningStrikeExpiresAt: 0
-});
+} satisfies Partial<DaredevilState>);
 
 export const daredevilState = defineProfessionSpecializationState('Daredevil', createDaredevilState);

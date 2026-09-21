@@ -1,5 +1,8 @@
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -15,19 +18,12 @@ export interface HarbingerState {
 }
 
 /** Declares Harbinger's public compatibility fields and inactive values. */
-export const HARBINGER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'blight',
-  'blightExpiries',
-  'cascadingCorruptionStacks',
-  'meltdownUntil'
-] as const satisfies readonly (keyof HarbingerState)[]);
-
-export const HARBINGER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<HarbingerState>> = Object.freeze({
+export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   blight: 0,
   blightExpiries: [],
   cascadingCorruptionStacks: 0,
   meltdownUntil: 0
-});
+} satisfies Partial<HarbingerState>);
 
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {

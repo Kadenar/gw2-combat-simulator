@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 
 export interface ConduitState {
   affinity: number;
@@ -12,21 +15,13 @@ export interface ConduitState {
   mistfireReadyAt: number;
 }
 
-export const CONDUIT_PUBLIC_END_STATE_KEYS: readonly (keyof ConduitState)[] = Object.freeze([
-  'affinity',
-  'cosmicWisdomUntil',
-  'conduitForm',
-  'beguilingHazeCharges',
-  'beguilingHazeReadyAt'
-]);
-
-export const CONDUIT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<ConduitState>> = Object.freeze({
+export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   affinity: 0,
   cosmicWisdomUntil: 0,
   conduitForm: '',
   beguilingHazeCharges: 0,
   beguilingHazeReadyAt: 0
-});
+} satisfies Partial<ConduitState>);
 
 export function revenantConduitFormIsActive(
   state: Partial<ConduitState> | null | undefined,

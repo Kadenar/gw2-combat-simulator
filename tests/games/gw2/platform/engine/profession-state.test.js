@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  composePublicStateProjections,
+  definePublicStateDefaults,
   restoreFlatProfessionState,
   snapshotProfessionState,
   readProfessionCoreState,
@@ -63,14 +65,37 @@ test('compatible profession-state reads accept nested and flat state without cro
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 
-test('public profession-state projection selects, defaults, and detaches declared fields', () => {
-  const state = { active: { stacks: 2 }, explicit: undefined, private: true };
-  const projected = projectPublicProfessionState(state, ['active', 'explicit', 'inactive'], {
+test('public descriptors preserve field order, fallback precedence, and detached projected values', () => {
+  // Explicit fields need no fallback; overlapping slices retain their original key and merge order.
+  const fallback = definePublicStateDefaults({
+    active: { stacks: 0 },
     explicit: 'fallback',
-    inactive: []
+    inactive: [{ stacks: 1 }]
   });
+  const projection = composePublicStateProjections([
+    { keys: ['core'], defaults: {} },
+    fallback,
+    definePublicStateDefaults({ explicit: 'later fallback' })
+  ]);
+  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive', 'explicit']);
+  assert.equal(projection.defaults.explicit, 'later fallback');
+  const absent = projectPublicProfessionState({}, projection.keys, projection.defaults);
+  assert.equal(absent.explicit, 'later fallback');
+  assert.equal(Object.hasOwn(absent, 'core'), true);
+  assert.equal(absent.core, undefined);
 
-  assert.deepEqual(projected, { active: { stacks: 2 }, explicit: undefined, inactive: [] });
+  const state = { active: { stacks: 2 }, explicit: undefined, private: true };
+  const projected = projectPublicProfessionState(state, projection.keys, projection.defaults);
+  assert.deepEqual(Object.keys(projected), ['core', 'active', 'explicit', 'inactive']);
+  assert.deepEqual(projected, {
+    core: undefined,
+    active: { stacks: 2 },
+    explicit: undefined,
+    inactive: [{ stacks: 1 }]
+  });
   state.active.stacks = 3;
   assert.equal(projected.active.stacks, 2);
+  projected.inactive[0].stacks = 9;
+  assert.equal(fallback.defaults.inactive[0].stacks, 1);
+  assert.equal(absent.inactive[0].stacks, 1);
 });

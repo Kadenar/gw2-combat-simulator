@@ -1,5 +1,8 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -30,15 +33,10 @@ export interface RitualistState {
 }
 
 /** Declares Ritualist's public compatibility fields and inactive values. */
-export const RITUALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'activeSpirits',
-  'soulTwistingAvailable'
-] as const satisfies readonly (keyof RitualistState)[]);
-
-export const RITUALIST_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<RitualistState>> = Object.freeze({
+export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeSpirits: {},
   soulTwistingAvailable: false
-});
+} satisfies Partial<RitualistState>);
 
 /** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
 export function createRitualistState(): RitualistState {

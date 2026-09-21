@@ -1,5 +1,8 @@
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -26,18 +29,7 @@ export function resolveAmalgamSkillId(traits: unknown, skillId: SkillId): SkillI
 }
 
 // Amalgam owns its public protocol state and the inactive compatibility values.
-export const AMALGAM_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'selectedMorphSkillIds',
-  'evolvedUntil',
-  'willingHostUntil',
-  'plasmaticStateUntil',
-  'rapaciousUntil',
-  'predatorUntil',
-  'titanicUntil',
-  'berserkerUntil'
-] as const satisfies readonly (keyof AmalgamState)[]);
-
-export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamState>> = Object.freeze({
+export const AMALGAM_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   selectedMorphSkillIds: [],
   evolvedUntil: 0,
   willingHostUntil: 0,
@@ -46,7 +38,7 @@ export const AMALGAM_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<AmalgamSta
   predatorUntil: 0,
   titanicUntil: 0,
   berserkerUntil: 0
-});
+} satisfies Partial<AmalgamState>);
 
 /** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
 export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {

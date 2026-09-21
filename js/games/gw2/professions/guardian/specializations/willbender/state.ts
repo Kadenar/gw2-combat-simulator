@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  definePublicStateDefaults,
+  defineProfessionSpecializationState
+} from '#gw2/platform/engine/profession/state.js';
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 export interface GuardianWillbenderState {
@@ -34,21 +37,7 @@ export function createWillbenderState(): GuardianWillbenderState {
 }
 
 /** Keeps Willbender projection ownership beside the state that produces it. */
-export const WILLBENDER_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianWillbenderState)[] = Object.freeze([
-  'flameGeneration',
-  'flameVirtue',
-  'justiceUntil',
-  'resolveUntil',
-  'courageUntil',
-  'virtueHitCounts',
-  'lethalTempoStacks',
-  'lethalTempoUntil',
-  'triggeredVirtueEffects'
-]);
-
-export const WILLBENDER_RESOLVER_END_STATE_KEYS = WILLBENDER_PUBLIC_END_STATE_KEYS;
-
-export const WILLBENDER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianWillbenderState>> = Object.freeze({
+export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   flameGeneration: 0,
   flameVirtue: null,
   justiceUntil: 0,
@@ -58,6 +47,8 @@ export const WILLBENDER_PUBLIC_END_STATE_DEFAULTS: Readonly<Partial<GuardianWill
   lethalTempoStacks: 0,
   lethalTempoUntil: 0,
   triggeredVirtueEffects: 0
-});
+} satisfies Partial<GuardianWillbenderState>);
+
+export const WILLBENDER_RESOLVER_END_STATE_KEYS = WILLBENDER_PUBLIC_STATE_PROJECTION.keys;
 
 export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);
