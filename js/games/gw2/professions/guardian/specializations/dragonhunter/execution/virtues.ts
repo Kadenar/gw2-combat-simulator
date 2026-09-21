@@ -1,4 +1,5 @@
 /** Registers scheduler-phase skill activations for this module. */
+import { canonicalTime } from '#kernel/core/clock.js';
 import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -30,7 +31,7 @@ function activateDragonhunterVirtue(context: GuardianCastContext, skill: Guardia
 function activateSpearOfJustice(context: GuardianCastContext, skill: GuardianSkill): void {
   const at = context.effectiveEnd;
   const tetherDuration = bigGameHunterTetherDuration(context);
-  const tetherUntil = at + tetherDuration;
+  const tetherUntil = canonicalTime(at + tetherDuration);
   // Write tetherUntil to scheduler state now so modifier rules that read it
   // during the same advance tick see the correct window immediately.
   dragonhunterState.from(context).tetherUntil = tetherUntil;

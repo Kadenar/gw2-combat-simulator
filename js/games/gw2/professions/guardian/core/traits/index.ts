@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -114,7 +114,8 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 export function handleSymbolOfIgnitionField(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = guardianResolverState(context);
   state.symbolIgnitionStartsAt = event.at;
-  state.symbolIgnitionUntil = event.at + Number(event.duration ?? 4);
+  // The field includes its final timestamp, matching its last pulse.
+  state.symbolIgnitionUntil = canonicalTime(event.at + Number(event.duration ?? 4));
 }
 
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
@@ -141,8 +142,8 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   const state = guardianResolverState(context);
   if (
     Number(state.symbolIgnitionUntil || 0) <= Number(state.symbolIgnitionStartsAt || 0) ||
-    event.at < Number(state.symbolIgnitionStartsAt || 0) - EPSILON ||
-    event.at > Number(state.symbolIgnitionUntil || 0) + EPSILON
+    event.at < Number(state.symbolIgnitionStartsAt || 0) ||
+    event.at > Number(state.symbolIgnitionUntil || 0)
   ) {
     return;
   }

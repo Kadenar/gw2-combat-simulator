@@ -1,4 +1,5 @@
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -71,8 +72,9 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
 
   const state = guardianResolverState(context);
   const duration = Math.max(0, Number(event.duration || 0));
-  const wasActive = event.at < Number(state.resolutionUntil || 0) - EPSILON;
-  state.resolutionUntil = wasActive ? state.resolutionUntil + duration : event.at + duration;
+  // Duration stacking follows the same expiry tick as the self Resolution boon.
+  const wasActive = event.at < Number(state.resolutionUntil || 0);
+  state.resolutionUntil = gw2EffectExpiresAt(wasActive ? state.resolutionUntil : event.at, duration);
   if (!wasActive) {
     queueRighteousMight(context, event.at, 'Resolution applied');
     // Zero disables subsequent interval procs while retaining the initial application.
@@ -96,7 +98,7 @@ export function handleRighteousInstinctsTick(context: GuardianResolverContext, e
   const state = guardianResolverState(context);
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
-    event.at >= Number(state.resolutionUntil || 0) - EPSILON ||
+    event.at >= Number(state.resolutionUntil || 0) ||
     Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > EPSILON
   ) {
     return;

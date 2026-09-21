@@ -1,5 +1,5 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -15,7 +15,7 @@ import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/gu
 function handleTetherApplied(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   // Falls back to event.at (no tether window) when tetherUntil was not emitted,
   // rather than NaN-poisoning all subsequent tether comparisons.
-  dragonhunterState.from(context).tetherUntil = Number(event.tetherUntil || event.at);
+  dragonhunterState.from(context).tetherUntil = canonicalTime(Number(event.tetherUntil || event.at));
 }
 
 function handleTetherBroken(context: GuardianResolverContext, event: GuardianResolverEvent): void {
@@ -28,8 +28,8 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
   const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.tether), 'condition');
   // Justice pulses are pre-emitted for the full tether window at cast time, so
   // each must be re-validated at resolve time in case Hunter's Verdict broke the
-  // tether early. Epsilon tolerance avoids rejecting a pulse on the exact break timestamp.
-  if (dragonhunterState.from(context).tetherUntil < event.at - EPSILON) {
+  // tether early. Pulses exactly at the break timestamp still land.
+  if (dragonhunterState.from(context).tetherUntil < event.at) {
     return;
   }
 
