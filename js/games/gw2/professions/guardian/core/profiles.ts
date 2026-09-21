@@ -17,6 +17,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   furiousFocus: TRAIT.FURIOUS_FOCUS,
   masterOfConsecrations: TRAIT.MASTER_OF_CONSECRATIONS,
   writOfPersistence: TRAIT.WRIT_OF_PERSISTENCE,
+  protectorsRestoration: TRAIT.PROTECTORS_RESTORATION,
   symbolOfIgnition: 'guardian.core.symbol-of-ignition-field',
   symbolicExposure: TRAIT.SYMBOLIC_EXPOSURE,
   symbolicAvenger: TRAIT.SYMBOLIC_AVENGER,
@@ -35,6 +36,20 @@ export const GUARDIAN_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.protectorsRestoration, "Protector's Restoration", {
+    internalCooldown: 20,
+    effects: [
+      {
+        type: 'strike',
+        // The symbol strikes on placement and twice more at one-second intervals.
+        ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.6 })),
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: 'player'
+      },
+      { type: 'boon', boon: 'protection', duration: 1, stacks: 1 }
+    ]
+  }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.healersResolution, "Healer's Resolution", {
     internalCooldown: 20,
     effects: [{ type: 'boon', boon: 'resolution', duration: 8, stacks: 1 }]

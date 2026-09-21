@@ -9,7 +9,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { applyWritOfPersistence } from '#gw2/professions/guardian/core/traits/honor.js';
+import { applyProtectorsRestoration, applyWritOfPersistence } from '#gw2/professions/guardian/core/traits/honor.js';
 import {
   applyFuriousFocus,
   applySymbolicExposure,
@@ -52,6 +52,7 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   const at = context.effectiveEnd;
   applyHealersResolution(context, skill, at);
+  applyProtectorsRestoration(context, skill, at);
   applyWritOfPersistence(context, skill);
 
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {

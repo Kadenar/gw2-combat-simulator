@@ -25,6 +25,7 @@ export interface GuardianCoreState {
   righteousNextMightAt: number;
   furiousFocusReadyAt: number;
   healersResolutionReadyAt: number;
+  protectorsRestorationReadyAt: number;
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
   spearLuminanceUntil: number;
@@ -66,6 +67,7 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     righteousNextMightAt: 0,
     furiousFocusReadyAt: 0,
     healersResolutionReadyAt: 0,
+    protectorsRestorationReadyAt: 0,
     spearIlluminatedArmed: false,
     spearIlluminatedUntil: 0,
     spearLuminanceUntil: 0

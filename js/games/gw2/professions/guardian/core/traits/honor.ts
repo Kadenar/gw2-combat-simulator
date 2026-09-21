@@ -1,12 +1,76 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/shared.js';
+import {
+  emitGuardianProc,
+  guardianTraitIcon,
+  isGuardianSymbolSkill
+} from '#gw2/professions/guardian/core/traits/shared.js';
 import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
+
+/** Committed heals create a pulsing Light symbol, sharing one fixed ICD across healing skills. */
+export function applyProtectorsRestoration(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
+  if (skill.type !== 'Heal' || !hasTrait(context, GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION)) return;
+  const state = professionCoreState(context);
+  if (!isInternalCooldownReady(at, state.protectorsRestorationReadyAt)) return;
+
+  const profile = balanceProfileFromContext(context, PROFILE.protectorsRestoration);
+  const strike = balanceProfileEffect(profile, 'strike');
+  const protection = balanceProfileEffect(profile, 'boon');
+  const ticks = strike?.ticks;
+  if (!ticks?.length) throw new Error("Protector's Restoration requires an explicit strike timeline.");
+  state.protectorsRestorationReadyAt = at + Number(profile?.internalCooldown ?? 20);
+  const symbol = { id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION, name: 'Lesser Symbol of Protection' };
+  const activationId = context.createActivationId('effect');
+  for (const [index, tick] of ticks.entries()) {
+    const pulseAt = at + Number(tick.atMs) / 1000;
+    context.emit(
+      buildGuardianStrike({
+        at: pulseAt,
+        sourceId: symbol.id,
+        skillId: symbol.id,
+        skillName: symbol.name,
+        name: symbol.name,
+        coefficient: Number(tick.coefficient),
+        skillWeapon: 'Unequipped',
+        activationId,
+        hitIndex: index + 1,
+        totalHits: ticks.length,
+        isSymbol: true,
+        // Keep the Light field available from placement through the final pulse.
+        comboFields:
+          index === 0
+            ? [{ ownerId: 'guardian', fieldType: 'Light', duration: Number(ticks.at(-1)!.atMs) / 1000 }]
+            : undefined,
+        triggeredBy: skill.name
+      })
+    );
+    emitSkillBuff(context, symbol, {
+      at: pulseAt,
+      source: 'guardian',
+      kind: 'protection',
+      duration: Number(protection?.duration ?? 1),
+      stacks: Number(protection?.stacks ?? 1),
+      activationId,
+      audience: { recipients: 'party' },
+      triggeredBy: skill.name
+    });
+  }
+
+  emitGuardianProc(context, {
+    name: symbol.name,
+    at,
+    sourceSkill: skill.name,
+    detail: "Protector's Restoration",
+    icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION)
+  });
+}
 
 /** Extends supported symbols with Writ of Persistence's field and extra pulses. */
 export function applyWritOfPersistence(context: GuardianCastContext, skill: GuardianSkill): void {

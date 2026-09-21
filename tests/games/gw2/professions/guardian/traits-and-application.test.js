@@ -335,6 +335,104 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
   assert.equal(resolution.duration, 12);
 });
 
+test("Protector's Restoration shares a fixed twenty-second ICD across committed healing skills", () => {
+  const events = [];
+  const core = createGuardianCoreState();
+  let activation = 0;
+  const context = {
+    profession: { core, specialization: { kind: 'Core', state: {} } },
+    catalog: guardianCatalog,
+    traits: new Set([GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION]),
+    action: {},
+    effectiveEnd: 0,
+    createActivationId: () => `symbol-${++activation}`,
+    emit: (event) => events.push(event)
+  };
+  const heal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHELTER);
+  const otherHeal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE);
+  // Ineligible casts leave the shared cooldown available for the next committed heal.
+  updateGuardianTraitCastState(context, { id: 'test-utility', type: 'Utility' });
+  context.action.cancelled = true;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(events.length, 0);
+  assert.equal(core.protectorsRestorationReadyAt, 0);
+  context.action.cancelled = false;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(core.protectorsRestorationReadyAt, 20);
+  for (const at of [1, 19.999, 20, 20.001]) {
+    context.effectiveEnd = at;
+    updateGuardianTraitCastState(context, otherHeal);
+  }
+
+  assert.deepEqual(
+    events.filter((event) => event.type === 'proc').map((event) => event.at),
+    [0, 20.001]
+  );
+  const eventCount = events.length;
+  context.traits.clear();
+  context.effectiveEnd = 50;
+  updateGuardianTraitCastState(context, heal);
+  assert.equal(events.length, eventCount);
+});
+
+test("Protector's Restoration pulses Protection and symbol damage while its Light field enables combos", () => {
+  // A short heal/finisher sequence checks real scheduling, boon scaling, and field expiry.
+  const run = (waitMs) =>
+    simulateGw2({
+      profession: guardianProfession,
+      rotation: ['Shelter', { type: 'wait', durationMs: waitMs }, 'Mighty Blow', { type: 'wait', durationMs: 3000 }],
+      config: {
+        ...config,
+        primaryWeapon: 'Hammer',
+        stats: { ...config.stats, concentration: 750 },
+        boons: { alacrity: true },
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
+      }
+    });
+  const result = run(0);
+  assert.deepEqual(result.warnings, []);
+  const symbolId = GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION;
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === symbolId);
+  const start = strikes[0].at;
+  assert.deepEqual(
+    strikes.map((event) => [Math.round((event.at - start) * 1000), event.coefficient]),
+    [
+      [0, 0.6],
+      [1000, 0.6],
+      [2000, 0.6]
+    ]
+  );
+  assert.equal(new Set(strikes.map((event) => event.activationId)).size, 1);
+  assert.ok(strikes.every((event) => event.weaponStrengthProfileId === 'nonweapon.unequipped'));
+  const protection = result.events.filter((event) => event.type === 'buff' && event.skillId === symbolId);
+  assert.deepEqual(
+    protection.map((event) => [Math.round((event.at - start) * 1000), event.kind, event.duration]),
+    [
+      [0, 'protection', 1.5],
+      [1000, 'protection', 1.5],
+      [2000, 'protection', 1.5]
+    ]
+  );
+  assert.ok(protection.every((event) => event.audience.recipients === 'party'));
+  const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === symbolId);
+  assert.deepEqual([field.at, field.expiresAt, field.fieldType], [start, start + 2, 'Light']);
+  const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Mighty Blow');
+  assert.deepEqual([combo.fieldSourceId, combo.fieldType, combo.finisherType], [symbolId, 'Light', 'Blast']);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'condition' && event.skillName === 'Symbolic Exposure')
+      .map((event) => Math.round((event.at - start) * 1000)),
+    [0, 1000, 2000]
+  );
+  assert.equal(result.schedulerState.profession.core.protectorsRestorationReadyAt, start + 20);
+  const expired = run(2500);
+  assert.deepEqual(expired.warnings, []);
+  assert.equal(
+    expired.resolvedEvents.some((event) => event.type === 'combo'),
+    false
+  );
+});
+
 test('resolution traits affect strike damage, critical chance, and might', () => {
   const run = (selectedTraitIds) =>
     simulateGw2({
