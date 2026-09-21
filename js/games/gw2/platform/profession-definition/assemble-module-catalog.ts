@@ -19,7 +19,7 @@ import type {
 } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
-interface NativeModuleDataSelection {
+export interface NativeModuleDataSelection {
   readonly id: string;
   readonly generatedSkills?: readonly Skill[];
   readonly sharedExtraSkills?: readonly Skill[];

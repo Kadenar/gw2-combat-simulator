@@ -1,6 +1,9 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
@@ -90,11 +93,19 @@ function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): R
   );
 }
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
+  core: WEAPON_DATA
+});
+
 // Normalize generated and supplemental Mesmer mechanics for one module, moving
 // ammo ownership from flip parents to ammo-bearing child skills where required.
 export function createMesmerModuleData(
   id: string,
-  { skillMechanics, supplementalSkillMechanics = {}, extraSkills = [], balanceProfiles = [] }: MesmerModuleDataOptions
+  { skillMechanics, supplementalSkillMechanics = {}, extraSkills = [], ...options }: MesmerModuleDataOptions
 ) {
   const flipParentsWithAmmoChild = new Set<number>(
     Object.entries(supplementalSkillMechanics)
@@ -120,9 +131,8 @@ export function createMesmerModuleData(
     )
   );
 
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
+  return createModuleData(id, {
+    ...options,
     skillMechanics: prepareMechanics({
       ...skillMechanics,
       ...supplementalSkillMechanics
@@ -133,11 +143,6 @@ export function createMesmerModuleData(
         ...skill,
         id: Number(skill.id)
       })
-    ),
-    balanceProfiles,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {})
+    )
   });
 }

@@ -1,6 +1,9 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
@@ -207,29 +210,19 @@ function normalizeMechanics(
 
 export const ENGINEER_GENERATED_SKILL_IDS = Object.freeze([...generatedIds]);
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  sharedExtraSkills: supplemental,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
+  core: WEAPON_DATA
+});
+
 /** Builds one Engineer module's catalog slice from shared API data and module-owned mechanics. */
-export function createEngineerModuleData(
-  id: string,
-  {
-    skillMechanics,
-    balanceProfiles = [],
-    extraSkills = [],
-    autoattackChains,
-    skillNameOverrides
-  }: EngineerModuleDataOptions
-) {
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
-    sharedExtraSkills: supplemental,
-    skillMechanics: normalizeMechanics(skillMechanics),
-    balanceProfiles,
-    extraSkills,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {}),
-    ...(autoattackChains ? { autoattackChains } : {}),
-    ...(skillNameOverrides ? { skillNameOverrides } : {})
+export function createEngineerModuleData(id: string, { skillMechanics, ...options }: EngineerModuleDataOptions) {
+  return createModuleData(id, {
+    ...options,
+    skillMechanics: normalizeMechanics(skillMechanics)
   });
 }

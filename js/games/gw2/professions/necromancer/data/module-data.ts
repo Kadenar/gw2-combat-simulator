@@ -1,6 +1,9 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -100,21 +103,18 @@ function applyNecromancerSkillDefaults(
   );
 }
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
+  core: WEAPON_DATA
+});
+
 /** Builds one Necromancer module's catalog slice from shared API data and module-owned mechanics. */
-export function createNecromancerModuleData(
-  id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [], autoattackChains }: NecromancerModuleDataOptions
-) {
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
-    skillMechanics: applyNecromancerSkillDefaults(skillMechanics),
-    extraSkills,
-    balanceProfiles,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {}),
-    ...(autoattackChains ? { autoattackChains } : {})
+export function createNecromancerModuleData(id: string, { skillMechanics, ...options }: NecromancerModuleDataOptions) {
+  return createModuleData(id, {
+    ...options,
+    skillMechanics: applyNecromancerSkillDefaults(skillMechanics)
   });
 }

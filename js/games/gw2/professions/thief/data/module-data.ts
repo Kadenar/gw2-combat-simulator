@@ -1,6 +1,9 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -236,11 +239,20 @@ const WEAPON_DATA = defineProfessionWeapons({
   Sword: 'mh'
 });
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  sharedExtraSkills: supplemental,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
+  core: WEAPON_DATA
+});
+
 // Normalize generated and supplemental Thief mechanics into one specialization
 // module with shared traits, profiles, and ownership filters.
 export function createThiefModuleData(
   id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions<ThiefSkill>
+  { skillMechanics, ...options }: ProfessionModuleDataOptions<ThiefSkill>
 ) {
   const terrestrialMechanics = Object.fromEntries(
     Object.entries(skillMechanics)
@@ -265,16 +277,8 @@ export function createThiefModuleData(
       ])
   );
 
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
-    sharedExtraSkills: supplemental,
-    skillMechanics: terrestrialMechanics,
-    extraSkills,
-    balanceProfiles,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {})
+  return createModuleData(id, {
+    ...options,
+    skillMechanics: terrestrialMechanics
   });
 }

@@ -1,6 +1,9 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
@@ -61,12 +64,16 @@ interface WarriorModuleDataOptions extends ProfessionModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  core: { ...WEAPON_DATA, skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides }
+});
+
 // Normalize generated and supplemental Warrior mechanics into one module with
 // shared traits, profiles, and specialization ownership.
-export function createWarriorModuleData(
-  id: string,
-  { skillMechanics, balanceProfiles = [], extraSkills = [], autoattackChains }: WarriorModuleDataOptions
-) {
+export function createWarriorModuleData(id: string, { skillMechanics, ...options }: WarriorModuleDataOptions) {
   const normalizedSkillMechanics = Object.freeze(
     Object.fromEntries(
       Object.entries(skillMechanics).map(([skillId, mechanic]) => [
@@ -81,22 +88,10 @@ export function createWarriorModuleData(
     )
   );
 
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
+  return createModuleData(id, {
+    ...options,
     skillMechanics: normalizedSkillMechanics,
-    balanceProfiles,
-    extraSkills,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
     // Every skill a specialization module declares mechanics for is exclusive to that specialization.
-    specializationOnlySkillIds: id === 'Core' ? [] : Object.keys(skillMechanics).map(Number),
-    ...(id === 'Core'
-      ? {
-          skillNameOverrides: WARRIOR_NATIVE_CATALOG_OPTIONS.skillNameOverrides
-        }
-      : {}),
-    ...(id === 'Core' ? WEAPON_DATA : {}),
-    ...(autoattackChains ? { autoattackChains } : {})
+    specializationOnlySkillIds: id === 'Core' ? [] : Object.keys(skillMechanics).map(Number)
   });
 }

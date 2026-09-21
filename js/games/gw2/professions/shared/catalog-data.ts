@@ -1,9 +1,53 @@
 import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import {
+  createNativeModuleData,
+  type NativeModuleDataSelection
+} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 
 export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
+}
+
+interface ProfessionModuleDataFamily extends Pick<
+  NativeModuleDataSelection,
+  'generatedSkills' | 'sharedExtraSkills' | 'traits' | 'specializations'
+> {
+  readonly core?: Pick<
+    NativeModuleDataSelection,
+    'weapons' | 'weaponHands' | 'autoattackChains' | 'skillNameOverrides'
+  >;
+  readonly specializationOnlySkills?: Readonly<Record<string, readonly SkillId[]>>;
+}
+
+/** Binds family metadata once while keeping Core defaults and each module's authored ownership separate. */
+export function createProfessionModuleDataFactory<TSkill extends Skill = Skill>({
+  core,
+  specializationOnlySkills = {},
+  ...family
+}: ProfessionModuleDataFamily) {
+  return (
+    id: string,
+    options: ProfessionModuleDataOptions<TSkill> &
+      Pick<
+        NativeModuleDataSelection,
+        'skillOverrides' | 'autoattackChains' | 'skillNameOverrides' | 'specializationOnlySkillIds'
+      >
+  ) => {
+    const defaults = id === 'Core' ? core : undefined;
+
+    // Omitted module values retain Core defaults; explicit structures replace them without deep merging.
+    return createNativeModuleData({
+      ...family,
+      ...defaults,
+      ...options,
+      id,
+      autoattackChains: options.autoattackChains ?? defaults?.autoattackChains,
+      skillNameOverrides: options.skillNameOverrides ?? defaults?.skillNameOverrides,
+      specializationOnlySkillIds: options.specializationOnlySkillIds ?? specializationOnlySkills[id]
+    });
+  };
 }
 
 export type ProfessionWeaponHand = 'mh' | 'oh' | 'mh+oh' | '2h';

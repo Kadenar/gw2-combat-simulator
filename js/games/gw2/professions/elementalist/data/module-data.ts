@@ -6,8 +6,7 @@
  * descriptions) onto them, derives the autoattack chains, and hands each module back
  * only the entries it owns. Combat behavior remains in each owner-local skill fragment.
  */
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import { createProfessionModuleDataFactory, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import {
   SKILLS as ELEMENTALIST_API_SKILLS,
@@ -280,30 +279,21 @@ const WEAPON_DATA = defineProfessionWeapons({
   Warhorn: 'oh'
 });
 
+const createModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: ELEMENTALIST_API_SPECIALIZATIONS,
+  core: { ...WEAPON_DATA, autoattackChains: { additional: AUTOATTACK_CHAINS } }
+});
+
 /**
  * Builds one module's catalog contribution: the generated skills it owns, its own
  * declared mechanics and extra skills, and the shared trait/specialization data. Core
  * additionally carries the family's weapon data and autoattack chains.
  */
-export function createElementalistModuleData(
-  id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions
-) {
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
-    skillMechanics: finalizedSkillMechanics(skillMechanics),
-    extraSkills,
-    balanceProfiles,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: ELEMENTALIST_API_SPECIALIZATIONS,
-    ...(id === 'Core'
-      ? {
-          ...WEAPON_DATA,
-          autoattackChains: {
-            additional: AUTOATTACK_CHAINS
-          }
-        }
-      : {})
+export function createElementalistModuleData(id: string, { skillMechanics, ...options }: ProfessionModuleDataOptions) {
+  return createModuleData(id, {
+    ...options,
+    skillMechanics: finalizedSkillMechanics(skillMechanics)
   });
 }

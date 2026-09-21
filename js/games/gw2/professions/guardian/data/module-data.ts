@@ -1,8 +1,10 @@
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
+import {
+  createFlipParentMap,
+  createProfessionModuleDataFactory,
+  defineProfessionWeapons
+} from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-bundle-skills.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -97,19 +99,10 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 /** Composes module skills and profiles; the profession definition owns autoattack-chain overrides. */
-export function createGuardianModuleData(
-  id: string,
-  { skillMechanics, extraSkills = [], balanceProfiles = [] }: ProfessionModuleDataOptions
-) {
-  return createNativeModuleData({
-    id,
-    generatedSkills: generated,
-    skillMechanics,
-    extraSkills,
-    balanceProfiles,
-    traits: TRAITS as readonly CatalogEntity[],
-    specializations: SPECIALIZATIONS,
-    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
-    ...(id === 'Core' ? WEAPON_DATA : {})
-  });
-}
+export const createGuardianModuleData = createProfessionModuleDataFactory({
+  generatedSkills: generated,
+  traits: TRAITS as readonly CatalogEntity[],
+  specializations: SPECIALIZATIONS,
+  specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
+  core: WEAPON_DATA
+});
