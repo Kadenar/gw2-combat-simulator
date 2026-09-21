@@ -1,3 +1,4 @@
+import { skillFlipVisible, armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -7,16 +8,11 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefCastContext, ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
-type TrapPreparedField = 'thousandNeedlesPrepared' | 'pitfallPrepared';
-type TrapArmedAtField = 'thousandNeedlesArmedAt' | 'pitfallArmedAt';
-
 interface TrapDefinition {
   readonly prepareId: SkillId;
   readonly triggerId: SkillId;
   readonly name: string;
   readonly reason: string;
-  readonly preparedField: TrapPreparedField;
-  readonly armedAtField: TrapArmedAtField;
 }
 
 export const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
@@ -24,17 +20,13 @@ export const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
     prepareId: ID.PREPARE_THOUSAND_NEEDLES,
     triggerId: ID.THOUSAND_NEEDLES,
     name: 'Thousand Needles',
-    reason: 'thousand-needles',
-    preparedField: 'thousandNeedlesPrepared',
-    armedAtField: 'thousandNeedlesArmedAt'
+    reason: 'thousand-needles'
   },
   {
     prepareId: ID.PREPARE_PITFALL,
     triggerId: ID.PITFALL,
     name: 'Pitfall',
-    reason: 'pitfall',
-    preparedField: 'pitfallPrepared',
-    armedAtField: 'pitfallArmedAt'
+    reason: 'pitfall'
   }
 ]);
 
@@ -46,11 +38,10 @@ export function prepareTrap(context: ThiefCastContext, skill: ThiefSkill): void 
   if (!trap) return;
   const state = professionCoreState(context) as ThiefCoreState;
   const at = context.effectiveEnd;
-  state[trap.preparedField] = true;
-  // Arming is a recharge interval, so Alacrity shortens it; the flipped tile is visible while it arms.
-  state[trap.armedAtField] =
+  // Placement exposes the trigger immediately while its recharge-scaled arming delay still blocks casting.
+  const availableAt =
     at + context.rechargeDurationFor({ ...skill, cooldown: Number(skill.durationMultiplier ?? 3) }, at);
-  state.availableFlips[trap.triggerId] = Number.POSITIVE_INFINITY;
+  armSkillFlip(state.availableFlips, trap.triggerId, availableAt, Infinity, at);
   emitThiefStateSnapshot(context, at, `prepare-${trap.reason}`);
 }
 
@@ -59,9 +50,7 @@ export function activateTrap(context: ThiefCastContext, skill: ThiefSkill): void
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === skill.id);
   if (!trap) return;
   const state = professionCoreState(context) as ThiefCoreState;
-  state[trap.preparedField] = false;
-  state[trap.armedAtField] = 0;
-  delete state.availableFlips[trap.triggerId];
+  consumeSkillFlip(state.availableFlips, trap.triggerId);
   if (context.rechargeReadyAt != null) {
     context.state.cooldowns.set(
       trap.prepareId,
@@ -79,16 +68,17 @@ export function thiefTrapCastAvailability(context: ThiefPrecastContext, skill: T
   );
   if (!trap) return null;
   const state = professionCoreState(context) as ThiefCoreState;
-  if (skill.id === trap.prepareId && state[trap.preparedField]) {
+  const window = state.availableFlips[trap.triggerId];
+  if (skill.id === trap.prepareId && skillFlipVisible(window, context.start)) {
     return deny(skill, `thief.${trap.reason}-prepared`, `activate ${trap.name} before preparing it again.`);
   }
 
-  if (skill.id === trap.triggerId && !state[trap.preparedField]) {
+  if (skill.id === trap.triggerId && !skillFlipVisible(window, context.start)) {
     return deny(skill, `thief.${trap.reason}`, `prepare ${trap.name} first.`);
   }
 
-  if (skill.id === trap.triggerId && state[trap.armedAtField] > context.start) {
-    return deny(skill, `thief.${trap.reason}-arming`, 'the preparation is still arming.', state[trap.armedAtField]);
+  if (skill.id === trap.triggerId && window.availableAt > context.start) {
+    return deny(skill, `thief.${trap.reason}-arming`, 'the preparation is still arming.', window.availableAt);
   }
 
   return null;

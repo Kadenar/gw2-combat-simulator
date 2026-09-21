@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import {
+  completeRevenantWeaponCast,
+  expireImperialGuard
+} from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { revenantProfession, revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -7,6 +12,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+
 import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { createConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
@@ -42,6 +48,26 @@ const baseConfig = {
 };
 const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+// A child consumed during the channel must not make the parent's later expiry claim another activation.
+test('Imperial Guard expiry retains its cast identity after early consumption', () => {
+  const core = createRevenantCoreState();
+  const scheduled = [];
+  const events = [];
+  const context = {
+    state: { time: 1, profession: { core, specialization: { kind: 'Core', state: {} } } },
+    catalog: revenantCatalog,
+    reservationId: 'old-guard',
+    effectiveEnd: 1,
+    events,
+    emit: (event) => events.push(event),
+    tasks: { cancelOwner() {}, schedule: (task) => scheduled.push(task) }
+  };
+  completeRevenantWeaponCast(context, revenantCatalog.skillsById.get(SKILL.IMPERIAL_GUARD));
+  const window = armSkillFlip(core.availableFlips, SKILL.TRUE_STRIKE, 2, 5, 2, 'new-guard');
+  expireImperialGuard(context, scheduled[0]);
+  assert.equal(core.availableFlips[SKILL.TRUE_STRIKE], window);
+});
 
 // These minimal casts exercise commit ownership without pinning animation thresholds or saved rotations.
 for (const [specialization, name, legend, config = {}] of [

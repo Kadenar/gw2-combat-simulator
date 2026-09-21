@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -13,7 +14,7 @@ export interface RangerCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   stealthUntil: number;
   revealedUntil: number;
   autoattackChains: Record<string, SkillId>;

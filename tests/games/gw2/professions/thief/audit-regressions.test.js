@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
@@ -62,7 +63,7 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
   const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.SNIPERS_COVER);
   assert.equal(field.fieldType, 'Smoke');
   near(field.expiresAt - field.at, 5);
-  near(result.planningState.profession.availableFlips[ID.DEATHS_ADVANCE], field.expiresAt);
+  near(result.planningState.profession.availableFlips[ID.DEATHS_ADVANCE]?.expiresAt, field.expiresAt);
   const followup = simulate('Deadeye', ['Kneel', "Sniper's Cover", "Death's Advance"], config);
   assert.deepEqual(followup.warnings, []);
   assert.equal(followup.planningState.profession.availableFlips[ID.DEATHS_ADVANCE], undefined);
@@ -245,7 +246,7 @@ test('empty Thief endurance windows still advance initiative, expire temporary s
       initiative: 0,
       initiativeUpdatedAt: 0,
       leadAttackExpirations: [1, 4],
-      availableFlips: { [ID.SHADOW_SWAP]: 2 },
+      availableFlips: { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, 2) },
       activeThievesGuild: { expiresAt: 2 }
     });
     addVenomCharges(state, ID.SPIDER_VENOM, 0, 2, 2);
@@ -314,8 +315,8 @@ test('THF-003: cancelled activations preserve persistent state while successful 
   const cases = [
     ['Core', 'Thieves Guild', {}, (state) => Boolean(state.activeThievesGuild)],
     ['Core', 'Mantis Sting', { primaryWeapon: 'Spear', secondaryWeapon: '' }, (state) => state.spearChainStage === 1],
-    ['Daredevil', 'Fist Flurry', {}, (state) => state.palmStrikeUntil > 0],
-    ['Deadeye', 'Shadow Flare', {}, (state) => state.availableFlips[ID.SHADOW_SWAP] > 0],
+    ['Daredevil', 'Fist Flurry', {}, (state) => state.availableFlips[ID.PALM_STRIKE]?.expiresAt > 0],
+    ['Deadeye', 'Shadow Flare', {}, (state) => state.availableFlips[ID.SHADOW_SWAP]?.expiresAt > 0],
     ['Specter', 'Siphon', {}, (state) => state.shadowForce > 0],
     ['Antiquary', 'Skritt Scuffle', {}, (state) => state.artifactUsesRemaining > 0]
   ];

@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -42,9 +43,10 @@ export function engineerCoreCastAvailability(
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
   }
 
-  if (skill.id === ID.ELECTRIC_ARTILLERY && !state.electricArtilleryAvailable) {
-    // electricArtilleryReadyAt is set while Lightning Rod is still charging; gate EA until then
-    const retryAt = Number(state.electricArtilleryReadyAt || 0);
+  const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
+  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.start)) {
+    // The stored window carries readiness even while its palette tile is hidden.
+    const retryAt = Number(artillery?.availableAt || 0);
     return denyEngineerCast(
       skill,
       'engineer.electric-artillery-inactive',
@@ -53,16 +55,13 @@ export function engineerCoreCastAvailability(
     );
   }
 
-  if (
-    skill.id === ID.LIGHTNING_ROD &&
-    (state.electricArtilleryAvailable || Number(state.electricArtilleryReadyAt || 0) > context.start)
-  ) {
+  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.start) {
     // block re-cast while EA is available OR while the charge window is still open (both share the slot)
     return denyEngineerCast(
       skill,
       'engineer.lightning-rod-active',
       'Electric Artillery currently replaces this skill.',
-      Number(state.electricArtilleryExpiresAt || 0) > context.start ? state.electricArtilleryExpiresAt : null
+      artillery.expiresAt
     );
   }
 
@@ -103,7 +102,7 @@ export function engineerCoreCastAvailability(
   if (
     skill.handlerId === 'engineer.consume-flip' &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
-    !state.availableFlips?.[skill.id]
+    !skillFlipReady(state.availableFlips[skill.id], context.start)
   ) {
     return denyEngineerCast(
       skill,

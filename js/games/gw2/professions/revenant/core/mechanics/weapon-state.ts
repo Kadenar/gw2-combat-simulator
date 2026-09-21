@@ -1,3 +1,4 @@
+import { expireSkillFlip, armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -48,7 +49,14 @@ const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.
 /** Arms True Strike and emits Imperial Guard's blocking window at cast start. */
 export function beginRevenantWeaponCast(context: RevenantCastContext, skill: RevenantSkill): void {
   if (skill.id !== ID.IMPERIAL_GUARD) return;
-  professionCoreState(context).availableFlips[ID.TRUE_STRIKE] = true;
+  armSkillFlip(
+    professionCoreState(context).availableFlips,
+    ID.TRUE_STRIKE,
+    context.start,
+    context.effectiveEnd + 4,
+    context.start,
+    context.reservationId
+  );
   emitSkillBuff(context, {
     at: context.start,
     source: 'revenant',
@@ -78,13 +86,17 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
   ) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
-      state.availableFlips[flip.id] =
-        context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration ?? 5));
+      armSkillFlip(
+        state.availableFlips,
+        flip.id,
+        context.effectiveEnd,
+        context.effectiveEnd + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration ?? 5))
+      );
     }
   }
 
   if (skill.type === 'Weapon' && skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) {
-    delete state.availableFlips[skill.id];
+    consumeSkillFlip(state.availableFlips, skill.id);
   }
 
   if (skill.id === ID.IMPERIAL_GUARD) {
@@ -93,19 +105,25 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
       type: 'revenant.imperial-guard-expire',
       at: context.effectiveEnd + 4,
       ownerId: IMPERIAL_GUARD_OWNER,
-      payload: {}
+      // The child may already have been consumed during the channel; capture this cast, never a later window.
+      payload: { identity: context.reservationId }
     });
     emitRevenantStateSnapshot(context, context.effectiveEnd, 'imperial-guard');
   } else if (skill.id === ID.TRUE_STRIKE) {
-    delete state.availableFlips[ID.TRUE_STRIKE];
+    consumeSkillFlip(state.availableFlips, ID.TRUE_STRIKE);
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
     emitRevenantStateSnapshot(context, context.effectiveEnd, 'true-strike');
   }
 }
 
 /** Removes True Strike when the scheduled Imperial Guard window expires. */
-export function expireImperialGuard(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
-  delete professionCoreState(context).availableFlips[ID.TRUE_STRIKE];
+export function expireImperialGuard(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ readonly identity: number | string }>
+): void {
+  if (task.payload == null) return;
+  if (!expireSkillFlip(professionCoreState(context).availableFlips, ID.TRUE_STRIKE, task.at, task.payload.identity))
+    return;
   emitRevenantStateSnapshot(context, task.at, 'imperial-guard-expired');
 }
 

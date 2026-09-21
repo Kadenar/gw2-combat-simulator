@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
@@ -49,7 +50,7 @@ test('Forge exits finalize once at the exit time and clear weapon state even wit
       radiantWeapon: 'blade',
       glaringBurstSwordSlow: true
     });
-    core.availableFlips = { [G.EXIT_RADIANT_FORGE]: Infinity };
+    core.availableFlips = { [G.EXIT_RADIANT_FORGE]: armSkillFlip({}, 0, 0) };
     core.autoattackChains = { 1: 2 };
     const events = [];
     let finalizations = 0;

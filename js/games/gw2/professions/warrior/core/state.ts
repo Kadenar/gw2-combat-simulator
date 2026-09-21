@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -10,7 +11,7 @@ export interface WarriorCoreState {
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   autoattackChains: Record<string, SkillId>;
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   signetOfRageNextAt: number;
   targetControlledUntil: number;
   soldierFocusReadyAt: number;

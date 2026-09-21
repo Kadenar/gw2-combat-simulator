@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
@@ -100,7 +101,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   };
   state.activeUpkeeps.push(active);
   const release = skill.flipSkillId == null ? null : context.catalog.skillsById.get(skill.flipSkillId);
-  if (release) state.availableFlips[release.id] = true;
+  if (release) armSkillFlip(state.availableFlips, release.id, at);
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     if (!strike) {
@@ -130,7 +131,7 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
   const parent = skill.flipParentId == null ? null : context.catalog.skillsById.get(skill.flipParentId);
   if (!parent) return;
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== parent.id);
-  delete state.availableFlips[skill.id];
+  consumeSkillFlip(state.availableFlips, skill.id);
   context.tasks.cancelOwner(`revenant.upkeep:${parent.id}`);
   const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));
   if (cooldown > 0) {

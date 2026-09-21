@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -59,7 +60,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
     flipParent?.flipSkillId === skill.id &&
-    Number(state.availableFlips[Number(skill.id)] || 0) <= context.start
+    !skillFlipReady(state.availableFlips[Number(skill.id)], context.start)
   ) {
     return denySkillCast(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
   }
@@ -69,7 +70,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     !isRangerHammerVariant(skill.id) &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start
+    skillFlipReady(state.availableFlips[Number(skill.flipSkillId)], context.start)
   ) {
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
   }

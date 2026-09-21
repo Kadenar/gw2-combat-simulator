@@ -1,3 +1,4 @@
+import { armSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
@@ -51,10 +52,7 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
 
   for (const skill of context.catalog.skills) {
     if (skill.armedAtStart && skill.flipParentId && context.maximumAmmoFor(skill)) {
-      professionCoreState(state).availableFlips[skill.id] = {
-        availableAt: 0,
-        expiresAt: Infinity
-      };
+      armSkillFlip(professionCoreState(state).availableFlips, skill.id, 0);
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
@@ -68,14 +66,10 @@ export function initializeMesmerScheduler(context: MesmerSchedulerContext): void
 export function advanceMesmerScheduler(context: MesmerSchedulerContext, target: number): void {
   const profession = professionCoreState(context);
   target = canonicalTime(target);
-  for (const [skillId, flip] of Object.entries(profession.availableFlips)) {
-    if (flip.expiresAt <= target) {
-      // The image's expiry task needs its identity to emit natural boons after this advance; the flip is already uncastable.
-      if (Number(skillId) !== ID.ABSTRACTION || flip.expiresAt < target) delete profession.availableFlips[skillId];
-      if (Number(skillId) === ID.COUNTERSPELL) {
-        profession.counterspellAvailable = false;
-      }
-    }
+  for (const [skillId, window] of Object.entries(profession.availableFlips)) {
+    // The natural image expiry must consume its payload before ordinary pruning can discard it.
+    if (Number(skillId) === ID.ABSTRACTION && window.expiresAt === target) continue;
+    expireSkillFlip(profession.availableFlips, skillId, target);
   }
 }
 

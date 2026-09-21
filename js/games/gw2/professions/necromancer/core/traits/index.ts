@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
@@ -27,8 +28,7 @@ import {
 import {
   applyDhuumfire,
   applyFearOfDeath,
-  applyUnyieldingBlast,
-  gluttonyLifeForceMultiplier
+  applyUnyieldingBlast
 } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
 import {
   applyOverflowingThirst,
@@ -74,14 +74,18 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
   ) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
-      state.availableFlips[flip.id] =
-        context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5));
+      armSkillFlip(
+        state.availableFlips,
+        flip.id,
+        context.effectiveEnd,
+        context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5))
+      );
     }
   }
 
   // A completed child cast consumes its own armed flip unless it is a persistent shroud exit.
   if (skill.flipParentId != null && !skill.shroudExit && skill.handlerId !== 'necromancer.minion-command') {
-    delete state.availableFlips[skill.id];
+    consumeSkillFlip(state.availableFlips, skill.id);
   }
 
   applyFearOfDeath(context, skill);
@@ -118,7 +122,7 @@ export function reactToNecromancerCoreDamage(
   applyVampiric(context, event);
   applyReapersMight(context, event, firstHit, shroudSkillOne);
   applySiphonedPower(context, event);
-  applySpitefulFortitude(context, event, gluttonyLifeForceMultiplier(context));
+  applySpitefulFortitude(context, event);
   applyChillOfDeath(context, event);
   applyDhuumfire(context, event, skill?.dhuumfireDuration, shroudSkillOne);
   applyUnyieldingBlast(context, event, firstHit, shroudSkillOne);

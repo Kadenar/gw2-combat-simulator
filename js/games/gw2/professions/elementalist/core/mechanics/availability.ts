@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.
@@ -138,16 +139,16 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (Number(skill.id) === ID.HURL && state.rockBarrierExpiresAt <= context.start) {
+  if (Number(skill.id) === ID.HURL && !skillFlipReady(state.availableFlips[ID.HURL], context.start)) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (Number(skill.id) === ID.ROCK_BARRIER && state.rockBarrierExpiresAt > context.start) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && skillFlipReady(state.availableFlips[ID.HURL], context.start)) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',
       'Hurl or wait for the current barrier to expire.',
-      state.rockBarrierExpiresAt
+      state.availableFlips[ID.HURL].expiresAt
     );
   }
 

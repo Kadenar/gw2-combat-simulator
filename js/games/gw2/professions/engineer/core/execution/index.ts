@@ -4,7 +4,9 @@
  */
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { performEngineerDodge } from '#gw2/professions/engineer/core/execution/dodge.js';
-import { engineerFlipSkillHandlers } from '#gw2/professions/engineer/core/mechanics/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { engineerKitSkillHandlers } from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { armPrecombatMineField, duplicateGadgeteerMine } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
 import {
@@ -25,13 +27,21 @@ import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engine
 
 /** Arms a palette flip, then applies Healing Turret's own additional overcharge-cycle setup. */
 function armFlipAndHealingTurretCast(context: EngineerCastContext, skill: EngineerSkill): void {
-  engineerFlipSkillHandlers['engineer.arm-flip'](context, skill);
+  // Raw API links also encode chains; only authored consumable palette children may be armed.
+  const flip = skill.paletteFlipSkillId == null ? undefined : context.catalog.skillsById.get(skill.paletteFlipSkillId);
+  if (!flip || flip.handlerId !== 'engineer.consume-flip') {
+    throw new TypeError(`Engineer skill ${skill.name} requires a paletteFlipSkillId referencing a consumable flip.`);
+  }
+
+  armSkillFlip(professionCoreState(context).availableFlips, flip.id, context.effectiveEnd);
+  emitEngineerStateSnapshot(context, context.effectiveEnd, 'arm-flip');
   if (skill.id === ID.HEALING_TURRET) scheduleHealingTurretCast(context, skill);
 }
 
 /** Consumes a palette flip, then applies Detonate/Cleansing Burst's additional overcharge-cycle transitions. */
 function consumeFlipAndHealingTurretTransition(context: EngineerCastContext, skill: EngineerSkill): void {
-  engineerFlipSkillHandlers['engineer.consume-flip'](context, skill);
+  consumeSkillFlip(professionCoreState(context).availableFlips, skill.id);
+  emitEngineerStateSnapshot(context, context.effectiveEnd, 'consume-flip');
   if (skill.id === ID.DETONATE_HEALING_TURRET) scheduleHealingTurretDetonate(context, skill);
   else if (skill.id === ID.CLEANSING_BURST) scheduleCleansingBurstUse(context, skill);
 }

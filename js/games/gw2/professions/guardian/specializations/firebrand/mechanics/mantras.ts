@@ -1,3 +1,4 @@
+import { skillFlipReady, consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Firebrand mantra preparation, charge, flip, and recharge state.
@@ -33,7 +34,8 @@ function mantraFlipActive(
   definition: MantraDefinition
 ): boolean {
   const flips = professionCoreState(context).availableFlips;
-  return Boolean(flips[definition.normalId] || flips[definition.finalId]);
+  const at = context.state.time;
+  return skillFlipReady(flips[definition.normalId], at) || skillFlipReady(flips[definition.finalId], at);
 }
 
 function armMantra(context: GuardianSchedulerContext, definition: MantraDefinition, at: number): void {
@@ -42,8 +44,8 @@ function armMantra(context: GuardianSchedulerContext, definition: MantraDefiniti
   const core = professionCoreState(context);
   // Always start fresh at the normal-charge flip, never at the final-charge
   // flip, so ensureAmmo initialises the charge count from the skill data.
-  delete core.availableFlips[definition.finalId];
-  core.availableFlips[definition.normalId] = Number.POSITIVE_INFINITY;
+  consumeSkillFlip(core.availableFlips, definition.finalId);
+  armSkillFlip(core.availableFlips, definition.normalId, at);
   // Wipe any in-flight ammo/cooldown before ensureAmmo so it doesn't treat
   // this as a "refill" and add to an existing count.
   context.state.ammo.delete(normal.id);
@@ -67,11 +69,11 @@ function syncMantraFlip(context: GuardianSchedulerContext, definition: MantraDef
   // The final-charge variant is a separate skill ID; the flip registry drives
   // which button the player sees, so exactly one of the two must be set.
   if (ammo.charges > 1) {
-    delete flips[definition.finalId];
-    flips[definition.normalId] = Number.POSITIVE_INFINITY;
+    consumeSkillFlip(flips, definition.finalId);
+    if (!flips[definition.normalId]) armSkillFlip(flips, definition.normalId, at);
   } else if (ammo.charges === 1) {
-    delete flips[definition.normalId];
-    flips[definition.finalId] = Number.POSITIVE_INFINITY;
+    consumeSkillFlip(flips, definition.normalId);
+    if (!flips[definition.finalId]) armSkillFlip(flips, definition.finalId, at);
   }
 }
 
@@ -81,8 +83,8 @@ function startFullRecharge(context: GuardianSchedulerContext, definition: Mantra
   if (!root || !normal) return;
   const flips = professionCoreState(context).availableFlips;
   // Hide both charge variants until the root prepare skill finishes recharging.
-  delete flips[definition.normalId];
-  delete flips[definition.finalId];
+  consumeSkillFlip(flips, definition.normalId);
+  consumeSkillFlip(flips, definition.finalId);
   context.state.ammo.delete(normal.id);
   context.state.cooldowns.delete(normal.id);
   const readyAt = at + context.rechargeDurationFor(root, at);
@@ -148,7 +150,7 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
   // The flip being absent means this specific charge variant (normal vs. final)
   // is not the one currently available; no retry time because the scheduler
   // already controls which flip is live.
-  if (professionCoreState(context).availableFlips[expectedId]) return CAST_READY;
+  if (skillFlipReady(professionCoreState(context).availableFlips[expectedId], context.start)) return CAST_READY;
   return denyCast('guardian.mantra-charge', `${skill.name} is unavailable until ${definition.rootName} is prepared.`);
 }
 

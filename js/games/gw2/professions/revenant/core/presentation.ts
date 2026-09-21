@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -102,12 +103,18 @@ export function revenantCorePaletteSkillAvailability(
   }
 
   // Check for Unyielding Impact and Call to Anguish flip availability
-  if (skill.id === SKILL.UNYIELDING_IMPACT && !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]) {
+  if (
+    skill.id === SKILL.UNYIELDING_IMPACT &&
+    !skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], Number(context.time || 0))
+  ) {
     return { available: false, message: 'Cast Call to Anguish first' };
   }
 
   // Check for Call to Anguish and Unyielding Impact flip availability
-  if (skill.id === SKILL.CALL_TO_ANGUISH && state.availableFlips?.[SKILL.UNYIELDING_IMPACT]) {
+  if (
+    skill.id === SKILL.CALL_TO_ANGUISH &&
+    skillFlipReady(state.availableFlips?.[SKILL.UNYIELDING_IMPACT], Number(context.time || 0))
+  ) {
     return { available: false, message: 'Use Unyielding Impact first' };
   }
 

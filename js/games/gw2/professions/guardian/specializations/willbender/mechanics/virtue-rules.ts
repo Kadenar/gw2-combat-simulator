@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -547,7 +548,7 @@ export const willbenderVirtueHitReaction = scheduledReaction<
 export const willbenderSkillMechanicHandlers = Object.freeze({
   'guardian.willbender.arm-repose': ({ context, at }: { context: GuardianSchedulerContext; at: number }): void => {
     // Repose shares Core's exact flip clock rather than a tick-rounded buff lifetime.
-    context.state.profession.core.availableFlips[ID.REPOSE] = canonicalTime(at + 6);
+    armSkillFlip(context.state.profession.core.availableFlips, ID.REPOSE, at, canonicalTime(at + 6));
   }
 });
 

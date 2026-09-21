@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
@@ -20,12 +21,12 @@ export interface RevenantLegend {
 interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
   professionState?: {
     activeLoadoutId?: string;
-    availableFlips?: Record<string, number | boolean>;
+    availableFlips?: SkillFlipWindows;
   };
   state?: {
     profession?: {
       activeLoadoutId?: string;
-      availableFlips?: Record<string, number | boolean>;
+      availableFlips?: SkillFlipWindows;
     };
   };
 }

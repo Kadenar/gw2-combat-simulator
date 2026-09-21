@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -88,10 +89,7 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
   const { state } = context;
   const armedFlip = runtime.flipSkillsByParent.get(skill.id);
   if (armedFlip && context.maximumAmmoFor(armedFlip)) {
-    professionCoreState(state).availableFlips[armedFlip.id] = {
-      availableAt: canonicalTime(at),
-      expiresAt: Infinity
-    };
+    armSkillFlip(professionCoreState(state).availableFlips, armedFlip.id, at);
     state.ammo.delete(armedFlip.id);
     state.cooldowns.delete(armedFlip.id);
     context.cooldownController.ensureAmmo(armedFlip, at);
@@ -103,10 +101,14 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
       expiresAt: canonicalTime(flipStart + Number(armedFlip.flipDuration || 0))
     };
     if (flip.expiresAt > canonicalTime(at)) {
-      professionCoreState(state).availableFlips[armedFlip.id] = flip;
-      if (armedFlip.id === ID.COUNTERSPELL) {
-        professionCoreState(state).counterspellAvailable = true;
-      }
+      armSkillFlip(
+        professionCoreState(state).availableFlips,
+        armedFlip.id,
+        flip.availableAt,
+        flip.expiresAt,
+        Math.min(at, flip.availableAt),
+        context.reservationId
+      );
     }
   }
 
@@ -116,16 +118,12 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
   const flipAmmo = state.ammo.get(skill.id);
   if (flipAmmo?.maximum) {
     if (flipAmmo.charges <= 0) {
-      delete professionCoreState(state).availableFlips[skill.id];
+      consumeSkillFlip(professionCoreState(state).availableFlips, skill.id);
       state.ammo.delete(skill.id);
       state.cooldowns.delete(skill.id);
     }
   } else {
-    delete professionCoreState(state).availableFlips[skill.id];
-  }
-
-  if (skill.id === ID.COUNTERSPELL) {
-    professionCoreState(state).counterspellAvailable = false;
+    consumeSkillFlip(professionCoreState(state).availableFlips, skill.id);
   }
 
   if (skill.parentCooldownIncrease) {

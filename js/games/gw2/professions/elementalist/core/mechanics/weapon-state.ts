@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Weapon- and attunement-facing cast state for Core Elementalist.
  *
@@ -5,7 +6,7 @@
  * autoattack chain carryover across attunement swaps, and the Aerial Agility flip
  * window.
  */
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -25,8 +26,6 @@ import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/profess
 
 /** How long an advanced Aerial Agility stage stays offered before its chain resets. */
 export const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
-const AERIAL_AGILITY_EXPIRY_OWNER = 'elementalist:aerial-agility-flip';
-const AERIAL_AGILITY_EXPIRY_TASK = 'elementalist.aerial-agility-flip-expiry';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -153,30 +152,26 @@ function clearAerialAgilityCarryover(state: ElementalistCoreState): void {
   if (state.pendingAutoattackCarryover?.root === ID.AERIAL_AGILITY) state.pendingAutoattackCarryover = null;
 }
 
-/** Expires only the Aerial Agility stage that originally opened this five-second window. */
-function expireAerialAgilityFlip(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly expectedSkillId: number }>
-): void {
-  const expectedSkillId = Number(task.payload?.expectedSkillId);
-  const state = professionCoreState(context) as ElementalistCoreState;
-  if (Number(state.autoattackChains[ID.AERIAL_AGILITY]) !== expectedSkillId) return;
-  resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
-  clearAerialAgilityCarryover(state);
-}
-
-/** Scheduler task handlers this module owns, merged into the Core module handler table. */
-export const elementalistWeaponStateTaskHandlers = Object.freeze({
-  [AERIAL_AGILITY_EXPIRY_TASK]: expireAerialAgilityFlip
+/** Only the latest stage's expiry may reset the chain and its attunement carryover. */
+const aerialAgilityExpiry = timedEffect({
+  id: 'elementalist.aerial-agility-flip-expiry',
+  effectsAt(context: ElementalistSchedulerContext, _at: number, captured: { readonly expectedSkillId: number }) {
+    const state = professionCoreState(context);
+    if (Number(state.autoattackChains[ID.AERIAL_AGILITY]) !== captured.expectedSkillId) return;
+    resetAutoattackChains(context, [ID.AERIAL_AGILITY]);
+    clearAerialAgilityCarryover(state);
+  }
 });
+
+export const elementalistWeaponStateTaskHandlers = aerialAgilityExpiry.taskHandlers;
 
 /** Rearms the flip timeout after each stage and restarts the full root cooldown once its first follow-up is used. */
 function updateAerialAgilityFlip(
   transition: AutoattackChainTransitionContext,
   change: AutoattackChainTransition
 ): void {
-  const context = transition.cast;
-  context.tasks.cancelOwner(AERIAL_AGILITY_EXPIRY_OWNER);
+  const context = transition.cast as ElementalistCastContext;
+  aerialAgilityExpiry.cancelKey(context, 'aerial-agility');
 
   if (Number(transition.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
     const root = context.catalog.skillsById.get(ID.AERIAL_AGILITY);
@@ -189,11 +184,10 @@ function updateAerialAgilityFlip(
   }
 
   if (change.decision !== 'advance' || change.nextSkillId == null) return;
-  context.tasks.schedule({
-    type: AERIAL_AGILITY_EXPIRY_TASK,
-    at: context.effectiveEnd + AERIAL_AGILITY_FLIP_WINDOW_SECONDS,
-    ownerId: AERIAL_AGILITY_EXPIRY_OWNER,
-    payload: { expectedSkillId: change.nextSkillId }
+  aerialAgilityExpiry.start(context, {
+    key: 'aerial-agility',
+    times: [context.effectiveEnd + AERIAL_AGILITY_FLIP_WINDOW_SECONDS],
+    captured: { expectedSkillId: Number(change.nextSkillId) }
   });
 }
 

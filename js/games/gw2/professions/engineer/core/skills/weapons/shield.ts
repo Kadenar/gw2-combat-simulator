@@ -5,7 +5,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 /** Defines Engineer shield blocks and the palette follow-ups they arm and consume. */
 export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.MAGNETIC_SHIELD]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.MAGNETIC_INVERSION,
     castTimeMs: 2000,
@@ -13,7 +13,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: []
   },
   [ID.STATIC_SHIELD]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.THROW_SHIELD,
     castTimeMs: 1680,
@@ -27,7 +27,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.THROW_SHIELD]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Static Shield',
     castTimeMs: 520,
@@ -48,7 +48,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   [ID.MAGNETIC_INVERSION]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Magnetic Shield',
     castTimeMs: 0,

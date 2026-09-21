@@ -1,12 +1,10 @@
+import { pruneSkillFlips, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCastAvailability } from '#gw2/professions/guardian/core/mechanics/availability.js';
-import {
-  advanceGuardianWeaponState,
-  updateWeaponCastState
-} from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
+import { updateWeaponCastState } from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
 import { bindGuardianCoreUi, guardianUiSkillIdsByName } from '#gw2/professions/guardian/core/presentation.js';
 import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { willbenderSkillMechanicHandlers } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
@@ -43,7 +41,7 @@ test('Guardian weapon flips share exact deadlines across cast availability, snap
     context.state.cooldowns.set(id, 99);
     updateWeaponCastState(context, parent);
     const expiresAt = (301 + duration * 1000) / 1000;
-    assert.equal(flips[flip.id], expiresAt);
+    assert.equal(flips[flip.id]?.expiresAt, expiresAt);
     for (const at of [expiresAt - 0.000001, expiresAt, expiresAt + 0.000001]) {
       context.start = context.state.time = at;
       const active = at < expiresAt;
@@ -51,16 +49,16 @@ test('Guardian weapon flips share exact deadlines across cast availability, snap
       if (id === ID.ZEALOTS_FLAME) assert.equal(guardianCastAvailability(context, parent).ready, !active);
       const projected = projectGuardianPlanningState({ schedulerState: context.state });
       assert.equal(Object.hasOwn(projected.availableFlips, flip.id), active);
-      assert.equal(flips[flip.id], expiresAt, 'projection must not mutate scheduler state');
+      assert.equal(flips[flip.id]?.expiresAt, expiresAt, 'projection must not mutate scheduler state');
       assert.equal(
         guardianUiSkillIdsByName([parent.name], { state: context.state, atSeconds: at }).includes(flip.id),
         active
       );
     }
 
-    advanceGuardianWeaponState(context, expiresAt - 0.000001);
-    assert.equal(flips[flip.id], expiresAt);
-    advanceGuardianWeaponState(context, expiresAt);
+    pruneSkillFlips(context.state.profession.core.availableFlips, expiresAt - 0.000001);
+    assert.equal(flips[flip.id]?.expiresAt, expiresAt);
+    pruneSkillFlips(context.state.profession.core.availableFlips, expiresAt);
     assert.equal(flips[flip.id], undefined);
     assert.equal(context.state.cooldowns.get(id), 99, 'expiry must not reset the parent recharge');
   }
@@ -74,13 +72,13 @@ test('flip refresh replaces its deadline and committed consumption closes the wi
   updateWeaponCastState(context, parent);
   context.effectiveEnd = 1.301;
   updateWeaponCastState(context, parent);
-  advanceGuardianWeaponState(context, 10.301);
-  assert.equal(flips[flip.id], 11.301);
+  pruneSkillFlips(context.state.profession.core.availableFlips, 10.301);
+  assert.equal(flips[flip.id]?.expiresAt, 11.301);
   context.start = 11.300999;
   assert.equal(guardianCastAvailability(context, flip).ready, true);
   // A cast admitted before expiry still commits after cleanup; it cannot leave a reusable flip behind.
   context.effectiveEnd = 12;
-  advanceGuardianWeaponState(context, 12);
+  pruneSkillFlips(context.state.profession.core.availableFlips, 12);
   updateWeaponCastState(context, flip);
   assert.equal(flips[flip.id], undefined);
   assert.equal(guardianCastAvailability(context, flip).ready, false);
@@ -91,16 +89,16 @@ test('uncommitted parents and flips preserve prior state while a committed atomi
   const parent = context.catalog.skillsById.get(ID.BINDING_BLADE);
   const flip = context.catalog.skillsById.get(ID.PULL);
   const flips = context.state.profession.core.availableFlips;
-  flips[flip.id] = 9;
+  flips[flip.id] = armSkillFlip({}, 0, 0, 9);
   context.action = { cancelled: true };
   updateWeaponCastState(context, parent);
   updateWeaponCastState(context, flip);
-  assert.equal(flips[flip.id], 9);
+  assert.equal(flips[flip.id]?.expiresAt, 9);
   context.action = { interrupted: true };
   updateWeaponCastState(context, { ...parent, interruptMode: 'per-packet' });
-  assert.equal(flips[flip.id], 9);
+  assert.equal(flips[flip.id]?.expiresAt, 9);
   updateWeaponCastState(context, parent);
-  assert.equal(flips[flip.id], 10.301);
+  assert.equal(flips[flip.id]?.expiresAt, 10.301);
   updateWeaponCastState(context, flip);
   assert.equal(flips[flip.id], undefined);
 });
@@ -108,18 +106,18 @@ test('uncommitted parents and flips preserve prior state while a committed atomi
 test('specialization flip producers use canonical deadlines and persistent flips survive cleanup', () => {
   const willbender = flipContext('Willbender');
   willbenderSkillMechanicHandlers['guardian.willbender.arm-repose']({ context: willbender, at: 0.1 + 0.201 });
-  assert.equal(willbender.state.profession.core.availableFlips[ID.REPOSE], 6.301);
+  assert.equal(willbender.state.profession.core.availableFlips[ID.REPOSE]?.expiresAt, 6.301);
   const dragonhunter = flipContext('Dragonhunter');
   dragonhunter.state.profession.specialization.state.tetherUntil = 0.1 + 0.2;
-  dragonhunterSkillMechanicHandlers['guardian.dragonhunter.arm-hunters-verdict']({ context: dragonhunter });
-  assert.equal(dragonhunter.state.profession.core.availableFlips[ID.HUNTERS_VERDICT], 0.3);
+  dragonhunterSkillMechanicHandlers['guardian.dragonhunter.arm-hunters-verdict']({ context: dragonhunter, at: 0 });
+  assert.equal(dragonhunter.state.profession.core.availableFlips[ID.HUNTERS_VERDICT]?.expiresAt, 0.3);
   const context = flipContext('Luminary');
-  context.state.profession.core.availableFlips[ID.EXIT_RADIANT_FORGE] = Infinity;
+  context.state.profession.core.availableFlips[ID.EXIT_RADIANT_FORGE] = armSkillFlip({}, 0, 0, Infinity);
   context.state.time = 1000;
-  advanceGuardianWeaponState(context, 1000);
+  pruneSkillFlips(context.state.profession.core.availableFlips, 1000);
   assert.equal(
-    projectGuardianPlanningState({ schedulerState: context.state }).availableFlips[ID.EXIT_RADIANT_FORGE],
-    Infinity
+    projectGuardianPlanningState({ schedulerState: context.state }).availableFlips[ID.EXIT_RADIANT_FORGE]?.expiresAt,
+    null
   );
 });
 

@@ -2,7 +2,12 @@
  * Owns the Core Necromancer skill-handler registry and thin cast-phase routing.
  * Skill-family implementations remain in their named execution or mechanic owners.
  */
-import { necromancerFlipSkillHandlers } from '#gw2/professions/necromancer/core/mechanics/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { necromancerConditionSkillHandlers } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { necromancerMinionSkillHandlers } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { necromancerShroudSkillHandlers } from '#gw2/professions/necromancer/core/mechanics/shroud.js';
@@ -11,6 +16,20 @@ import { necromancerSpearSkillHandlers } from '#gw2/professions/necromancer/core
 import { necromancerTorchSkillHandlers } from '#gw2/professions/necromancer/core/execution/torch.js';
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
+
+/** Completed shroud attacks expose their authored follow-up lifetime; interrupted parents grant nothing. */
+function completeFlip(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
+  if (castWasInterrupted(context)) return false;
+  const flips = professionCoreState(context).availableFlips;
+  if (skill.flipSkillId != null) {
+    const duration = skill.id === ID.DARK_PATH ? 3 : skill.id === ID.INFUSING_TERROR ? 6 : 12;
+    armSkillFlip(flips, skill.flipSkillId, context.effectiveEnd, context.effectiveEnd + duration);
+  }
+
+  if (skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
+  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'flip', { dedupeAcrossSourceIds: true });
+  return false;
+}
 
 const handlers = Object.freeze({
   'necromancer.shroud': replaceSkill({
@@ -21,7 +40,7 @@ const handlers = Object.freeze({
   }),
   'necromancer.weapon-swap': gw2WeaponSwapSkillHandler,
   'necromancer.flip': augmentSkill({
-    beforeEffects: necromancerFlipSkillHandlers['necromancer.flip']
+    beforeEffects: completeFlip
   }),
   'necromancer.corruption': augmentSkill({
     beforeEffects: necromancerConditionSkillHandlers['necromancer.corruption']

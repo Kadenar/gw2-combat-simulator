@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -38,7 +39,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
     const upkeep = context.catalog.skillsById.get(active.skillId) as RevenantSkill | undefined;
     const consumeId = upkeep?.upkeepConsumeByLegendId?.[state.activeLegendId];
     if (consumeId != null) {
-      state.availableFlips[consumeId] = true;
+      armSkillFlip(state.availableFlips, consumeId, context.effectiveEnd);
       return true;
     }
 

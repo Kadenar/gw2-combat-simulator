@@ -903,7 +903,7 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
   assert.deepEqual(entered.warnings, []);
   assert.equal(entered.planningState.profession.astralForce, 100);
   assert.equal(entered.planningState.profession.celestialAvatarActive, true);
-  assert.equal(entered.planningState.profession.availableFlips[ID.RELEASE_CELESTIAL_AVATAR], 15);
+  assert.equal(entered.planningState.profession.availableFlips[ID.RELEASE_CELESTIAL_AVATAR]?.expiresAt, 15);
 
   const draining = simulate('Druid', ['Celestial Avatar', { type: 'wait', durationMs: 5000 }]);
 

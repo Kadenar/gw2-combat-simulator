@@ -12,7 +12,6 @@ export interface DaredevilState {
   selectedDodge: ThiefDodge;
   boundingDamageUntil: number;
   lotusConditionDamageUntil: number;
-  palmStrikeUntil: number;
   weakeningStrikeReady: boolean;
   /** Distinguish fresh dodge grants from snapshots of an already consumed proc. */
   weakeningStrikeGeneration: number;
@@ -39,7 +38,6 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
     selectedDodge: selectedDodge(config, traits),
     boundingDamageUntil: 0,
     lotusConditionDamageUntil: 0,
-    palmStrikeUntil: 0,
     weakeningStrikeReady: false,
     weakeningStrikeGeneration: 0,
     weakeningStrikeExpiresAt: 0
@@ -51,7 +49,6 @@ export const DAREDEVIL_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   selectedDodge: 'Dodge',
   boundingDamageUntil: 0,
   lotusConditionDamageUntil: 0,
-  palmStrikeUntil: 0,
   weakeningStrikeReady: false,
 
   weakeningStrikeExpiresAt: 0

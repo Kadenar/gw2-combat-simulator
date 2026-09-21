@@ -45,7 +45,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -71,7 +71,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.CLEANSING_BURST]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -96,7 +96,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
     handlerId: 'engineer.arm-flip',
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 360,
@@ -104,7 +104,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Skill
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/mechanics/skill-flips.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
     handlerId: 'engineer.consume-flip',
     flipParentName: 'Throw Mine',
     castTimeMs: 0,

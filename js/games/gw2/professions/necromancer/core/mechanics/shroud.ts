@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -57,11 +58,10 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   state.activeShroud = shroud;
   state.activeShroudEntryId = skill.id;
   state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
-  state.shroudEnteredAt = at;
   state.lastResourceAt = at;
   const exitSkill = [...context.catalog.skillsById.values()].find((candidate) => candidate.shroudExit === shroud);
   state.activeShroudExitId = exitSkill?.id ?? null;
-  if (exitSkill) state.availableFlips[exitSkill.id] = Number.POSITIVE_INFINITY;
+  if (exitSkill) armSkillFlip(state.availableFlips, exitSkill.id, at);
   state.pendingShroudEntryId = skill.id;
   state.plagueSendingArmed =
     hasTrait(context, TRAIT.PLAGUE_SENDING) &&
@@ -176,14 +176,14 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     // Form lifetime is exact; resource advancement and the exit flip share this deadline.
     state.lichEndsAt = canonicalTime(at + 20);
     state.lastResourceAt = at;
-    state.availableFlips[ID.EXIT_LICH_FORM] = state.lichEndsAt;
+    armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, at, state.lichEndsAt);
     emitNecromancerStateSnapshot(context, at, 'lich-enter', {
       dedupeAcrossSourceIds: true
     });
   } else {
     state.activeShroud = '';
     state.lichEndsAt = 0;
-    delete state.availableFlips[ID.EXIT_LICH_FORM];
+    consumeSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM);
     gainNecromancerLifeForce(context, 15, at);
     emitNecromancerStateSnapshot(context, at, 'lich-exit', {
       dedupeAcrossSourceIds: true

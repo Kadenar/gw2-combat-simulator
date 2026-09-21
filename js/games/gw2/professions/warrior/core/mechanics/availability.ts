@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -14,7 +15,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
   if (selection) return selection;
   const state = professionCoreState(context);
   // Tactical Blow is a one-use follow-up to a live Counterblow channel, not a standalone attack.
-  if (skill.id === ID.TACTICAL_BLOW && Number(state.availableFlips[ID.TACTICAL_BLOW] || 0) <= context.start) {
+  if (skill.id === ID.TACTICAL_BLOW && !skillFlipReady(state.availableFlips[ID.TACTICAL_BLOW], context.start)) {
     return {
       ready: false,
       retryAt: null,

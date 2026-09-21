@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -178,14 +179,16 @@ export function engineerCorePaletteSkillAvailability(
   // Lightning Rod and Electric Artillery share one contextual profession slot.
   if (skill.name === 'Electric Artillery') {
     return {
-      available: Boolean(state.electricArtilleryAvailable),
-      message: state.electricArtilleryAvailable ? '' : 'Lightning Rod has not finished charging'
+      available: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], Number(context.time || 0)),
+      message: skillFlipReady(state.availableFlips?.[ID.ELECTRIC_ARTILLERY], Number(context.time || 0))
+        ? ''
+        : 'Lightning Rod has not finished charging'
     };
   }
 
   if (
     skill.name === 'Lightning Rod' &&
-    (state.electricArtilleryAvailable || Number(state.electricArtilleryReadyAt || 0) > 0)
+    Number(state.availableFlips?.[ID.ELECTRIC_ARTILLERY]?.expiresAt || 0) > Number(context.time || 0)
   ) {
     return {
       available: false,

@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /** Shared projection fields consumed by rotation views; professions own the remaining state. */
@@ -5,7 +6,7 @@ export interface RotationProfessionState {
   readonly primaryAttunement?: string;
   readonly resource?: number;
   readonly resourceDefinition?: { readonly maximum?: number };
-  readonly availableFlips?: Readonly<Record<string, number | boolean | object>>;
+  readonly availableFlips?: Readonly<SkillFlipWindows>;
   readonly autoattackChains?: Readonly<Record<string, SkillId>>;
   readonly availableAmbush?: { readonly name?: string } | null;
 }

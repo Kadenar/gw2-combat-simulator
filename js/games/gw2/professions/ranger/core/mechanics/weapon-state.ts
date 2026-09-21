@@ -1,3 +1,4 @@
+import { skillFlipReady, consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -24,7 +25,7 @@ const RANGER_SPEAR_STEALTH_ATTACK_IDS = new Set(Object.values(RANGER_SPEAR_STEAL
 /** Hunter's Prowess survives Revealed; ordinary stealth enables the same spear choices until broken. */
 export function rangerSpearStealthAvailable(state: Partial<RangerCoreState>, at: number): boolean {
   return (
-    Number(state.availableFlips?.[ID.WOLFS_ONSLAUGHT] || 0) > at ||
+    skillFlipReady(state.availableFlips?.[ID.WOLFS_ONSLAUGHT], at) ||
     (Number(state.stealthUntil || 0) > at && Number(state.revealedUntil || 0) <= at)
   );
 }
@@ -33,7 +34,7 @@ export function rangerSpearStealthAvailable(state: Partial<RangerCoreState>, at:
 export function beginRangerStealthAttack(context: RangerCastContext, skill: RangerSkill): void {
   if (!RANGER_SPEAR_STEALTH_ATTACK_IDS.has(Number(skill.id))) return;
   const state = professionCoreState(context);
-  for (const flipId of RANGER_SPEAR_STEALTH_ATTACK_IDS) delete state.availableFlips[flipId];
+  for (const flipId of RANGER_SPEAR_STEALTH_ATTACK_IDS) consumeSkillFlip(state.availableFlips, flipId);
   state.stealthUntil = context.start;
   state.revealedUntil = context.start + 3;
 }
@@ -86,7 +87,7 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
   if (castWasInterrupted(context)) return;
   if (skill.id === ID.PANTHERS_PROWL) {
     for (const flipId of RANGER_SPEAR_STEALTH_ATTACK_IDS) {
-      professionCoreState(context).availableFlips[flipId] = context.effectiveEnd + 3;
+      armSkillFlip(professionCoreState(context).availableFlips, flipId, context.effectiveEnd, context.effectiveEnd + 3);
     }
   }
 
@@ -120,7 +121,7 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
       const duration =
         WEAPON_FLIP_DURATION_BY_PARENT[skill.id as keyof typeof WEAPON_FLIP_DURATION_BY_PARENT] ||
         Number(skill.flipDuration || 5);
-      state.availableFlips[flip.id] = context.effectiveEnd + duration;
+      armSkillFlip(state.availableFlips, flip.id, context.effectiveEnd, context.effectiveEnd + duration);
     }
   }
 
@@ -130,6 +131,6 @@ export function updateRangerWeaponState(context: RangerCastContext, skill: Range
     !RANGER_SPEAR_STEALTH_ATTACK_IDS.has(Number(skill.id)) &&
     skill.flipParentId != null
   ) {
-    delete state.availableFlips[skill.id];
+    consumeSkillFlip(state.availableFlips, skill.id);
   }
 }

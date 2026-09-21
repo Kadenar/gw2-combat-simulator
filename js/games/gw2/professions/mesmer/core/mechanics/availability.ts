@@ -1,3 +1,4 @@
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -21,7 +22,7 @@ export function mesmerAvailability(
   const at = canonicalTime(context.start);
   if (skill.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
-    if (!flip || flip.expiresAt <= at) {
+    if (!skillFlipVisible(flip, at)) {
       const parent = runtime.skillsById.get(skill.flipParentId);
       if (parent && context.inFlight.get(parent.id)?.size) {
         return {

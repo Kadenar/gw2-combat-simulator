@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
@@ -13,19 +14,19 @@ import type { RevenantPrecastContext, RevenantSkill } from '#gw2/professions/rev
 export function revenantCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || 'Core');
-  if (skill.id === ID.UNYIELDING_IMPACT && !state.availableFlips[ID.UNYIELDING_IMPACT]) {
+  if (skill.id === ID.UNYIELDING_IMPACT && !skillFlipReady(state.availableFlips[ID.UNYIELDING_IMPACT], context.start)) {
     return denyRevenantSkill(skill, 'revenant.unyielding-impact-inactive', 'cast Call to Anguish first.');
   }
 
-  if (skill.id === ID.CALL_TO_ANGUISH && state.availableFlips[ID.UNYIELDING_IMPACT]) {
+  if (skill.id === ID.CALL_TO_ANGUISH && skillFlipReady(state.availableFlips[ID.UNYIELDING_IMPACT], context.start)) {
     return denyRevenantSkill(skill, 'revenant.unyielding-impact-ready', 'use Unyielding Impact first.');
   }
 
-  if (skill.id === ID.TRUE_STRIKE && !state.availableFlips[ID.TRUE_STRIKE]) {
+  if (skill.id === ID.TRUE_STRIKE && !skillFlipReady(state.availableFlips[ID.TRUE_STRIKE], context.start)) {
     return denyRevenantSkill(skill, 'revenant.imperial-guard-inactive', 'channel Imperial Guard first.');
   }
 
-  if (skill.id === ID.IMPERIAL_GUARD && state.availableFlips[ID.TRUE_STRIKE]) {
+  if (skill.id === ID.IMPERIAL_GUARD && skillFlipReady(state.availableFlips[ID.TRUE_STRIKE], context.start)) {
     return denyRevenantSkill(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
   }
 
@@ -34,7 +35,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     skill.type === 'Weapon' &&
     skill.id !== ID.TRUE_STRIKE &&
     flipParent?.flipSkillId === skill.id &&
-    Number(state.availableFlips[Number(skill.id)] || 0) <= context.start
+    !skillFlipReady(state.availableFlips[Number(skill.id)], context.start)
   ) {
     return denyRevenantSkill(skill, 'revenant.weapon-flip-inactive', `use ${flipParent.name} first.`);
   }
@@ -44,7 +45,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     skill.id !== ID.IMPERIAL_GUARD &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    Number(state.availableFlips[Number(skill.flipSkillId)] || 0) > context.start
+    skillFlipReady(state.availableFlips[Number(skill.flipSkillId)], context.start)
   ) {
     return denyRevenantSkill(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
   }
@@ -85,7 +86,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return denyRevenantSkill(skill, 'revenant.inactive-legend', 'invoke the matching legend first.');
   }
 
-  if (skill.handlerId === 'revenant.upkeep-release' && !state.availableFlips[skill.id]) {
+  if (skill.handlerId === 'revenant.upkeep-release' && !skillFlipReady(state.availableFlips[skill.id], context.start)) {
     return denyRevenantSkill(skill, 'revenant.upkeep-inactive', 'activate the matching upkeep skill first.');
   }
 

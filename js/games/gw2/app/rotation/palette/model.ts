@@ -1,3 +1,4 @@
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { gw2ApiText } from '#gw2/app/shared/html.js';
 import {
   rotationHotkeyActionForSkillName,
@@ -199,8 +200,7 @@ function paletteFlipAvailable(
   availableFlips: NonNullable<RotationProfessionState['availableFlips']>,
   at: number
 ): boolean {
-  const value = availableFlips[skill.id] ?? availableFlips[skill.name];
-  return typeof value === 'number' ? value > at : Boolean(value);
+  return skillFlipVisible(availableFlips[skill.id], at);
 }
 
 function isReplacementAttack(skill: Skill): boolean {

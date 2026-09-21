@@ -1,3 +1,4 @@
+import { type SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Warrior stat copies, flip expiry values, and release rows retain their actual contracts. */
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
@@ -6,5 +7,5 @@ type Assert<T extends true> = T;
 export type WarriorRecordAssertions = [
   Assert<string extends keyof WarriorModifierAttributes ? false : true>,
   Assert<string extends keyof ReturnType<typeof dragonChargeReleaseProjection> ? false : true>,
-  Assert<WarriorCoreState['availableFlips'][string] extends number ? true : false>
+  Assert<WarriorCoreState['availableFlips'][string] extends SkillFlipWindow ? true : false>
 ];

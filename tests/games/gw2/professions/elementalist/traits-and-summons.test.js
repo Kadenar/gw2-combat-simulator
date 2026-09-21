@@ -715,7 +715,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(
-    result.planningState.profession.availableFlips['Flame Barrage'],
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
   assert.equal(result.planningState.cooldowns['Glyph of Elementals'], undefined);
@@ -791,7 +791,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   );
 
   assert.equal(
-    result.planningState.profession.availableFlips['Flame Barrage'],
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
 
@@ -946,10 +946,13 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
     true
   );
   assert.equal(
-    result.planningState.profession.availableFlips.Stomp,
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Stomp').id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
-  assert.equal(result.planningState.profession.availableFlips['Flame Barrage'], undefined);
+  assert.equal(
+    result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
+    undefined
+  );
 });
 
 test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () => {

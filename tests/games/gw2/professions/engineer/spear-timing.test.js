@@ -1,3 +1,4 @@
+import { skillFlipReady, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -38,14 +39,20 @@ test('Lightning Rod charges expire after twelve seconds', () => {
 // An unused flip disappears at its deadline, including its palette flag and stored charges.
 test('Electric Artillery availability ends eight seconds after arming', () => {
   const charging = simulate('Core', ['Lightning Rod']);
-  const deadline = charging.planningState.profession.electricArtilleryReadyAt + 8;
+  const deadline = charging.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY].expiresAt;
   const waitMs = deadline * 1000 - charging.steps[0].end;
   const before = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs - 40 }]);
   const expired = simulate('Core', ['Lightning Rod', { type: 'wait', durationMs: waitMs }, 'Electric Artillery']);
-  assert.equal(before.planningState.profession.electricArtilleryAvailable, true);
-  assert.equal(before.planningState.profession.electricArtilleryExpiresAt, deadline);
-  assert.equal(expired.planningState.profession.electricArtilleryAvailable, false);
-  assert.equal(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], false);
+  assert.equal(
+    skillFlipReady(before.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], before.rotationEndTime),
+    true
+  );
+  assert.equal(before.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY].expiresAt, deadline);
+  assert.equal(
+    skillFlipReady(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], expired.rotationEndTime),
+    false
+  );
+  assert.equal(expired.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
   assert.deepEqual(expired.planningState.profession.lightningRodChargeExpiries, []);
   assert.equal(expired.warnings.length, 1);
   assert.match(expired.warnings[0], /Lightning Rod has not finished charging/);
@@ -60,7 +67,10 @@ test('Artillery damage and conditions wait for impact without delaying the next 
     artilleryEvents(released).some((event) => ['damage', 'condition'].includes(event.type)),
     false
   );
-  assert.equal(released.planningState.profession.electricArtilleryAvailable, false);
+  assert.equal(
+    skillFlipReady(released.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], released.rotationEndTime),
+    false
+  );
   assert.deepEqual(released.planningState.profession.lightningRodChargeExpiries, []);
 
   const landed = simulate('Core', [...rotation, 'Conduit Surge', { type: 'wait', durationMs: 1000 }]);
@@ -95,8 +105,7 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   const core = createEngineerCoreState();
   Object.assign(core, {
     lightningRodChargeExpiries: [10, 10.1, 20],
-    electricArtilleryAvailable: true,
-    availableFlips: { [ID.ELECTRIC_ARTILLERY]: true }
+    availableFlips: { [ID.ELECTRIC_ARTILLERY]: armSkillFlip({}, 0, 0, Infinity) }
   });
   const emitted = [];
   const cancelledOwners = [];
@@ -115,7 +124,7 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   scheduleElectricArtillery(context, skill);
   assert.equal(emitted.length, 0);
   assert.equal(cancelledOwners.length, 0);
-  assert.equal(core.electricArtilleryAvailable, true);
+  assert.equal(skillFlipReady(core.availableFlips[ID.ELECTRIC_ARTILLERY], 10), true);
   assert.deepEqual(core.lightningRodChargeExpiries, [10, 10.1, 20]);
   context.action.cancelled = false;
   scheduleElectricArtillery(context, skill);

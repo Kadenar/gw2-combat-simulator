@@ -52,7 +52,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillFragmen
     shroud: 'reaper',
     shroudSlot: 3,
     specialization: 'Reaper',
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.LIFE_REAP]: {

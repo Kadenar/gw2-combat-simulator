@@ -18,11 +18,6 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-/** Supplies Gluttony's life-force multiplier to the interleaved Spiteful Fortitude step. */
-export function gluttonyLifeForceMultiplier(context: NecromancerResolverContext): number {
-  return hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1;
-}
-
 export function applyDhuumfire(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,

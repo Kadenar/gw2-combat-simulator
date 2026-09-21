@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -14,7 +15,7 @@ export interface GuardianCoreState {
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;

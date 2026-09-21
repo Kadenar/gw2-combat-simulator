@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
@@ -73,7 +74,12 @@ export function enterAvatar(context: RangerCastContext, skill: RangerSkill): voi
   setResourceRate(state.astralClock, context.start, -maximum / avatarDuration);
   avatarDepletion.refresh(context);
   // Release Celestial Avatar is a flip skill; storing endsAt lets the UI show it as expiring automatically
-  professionCoreState(context).availableFlips[ID.RELEASE_CELESTIAL_AVATAR] = state.celestialAvatarEndsAt;
+  armSkillFlip(
+    professionCoreState(context).availableFlips,
+    ID.RELEASE_CELESTIAL_AVATAR,
+    context.start,
+    state.celestialAvatarEndsAt
+  );
   // Natural Balance triggers on both entry and exit
   applyNaturalBalance(context, 10, context.start);
   // Swap happens at effectiveEnd (after the cast animation) so sigil procs line up correctly
@@ -100,7 +106,7 @@ export function leaveAvatar(
   state.celestialAvatarEndsAt = 0;
   state.astralForceUpdatedAt = at;
   // Remove the flip so Release Celestial Avatar no longer appears as available
-  delete professionCoreState(context).availableFlips[ID.RELEASE_CELESTIAL_AVATAR];
+  consumeSkillFlip(professionCoreState(context).availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
   applyNaturalBalance(context, 10, at);
   // Fallback to catalog lookup when the exit is triggered by the timer (no skill in context)
   const skill =

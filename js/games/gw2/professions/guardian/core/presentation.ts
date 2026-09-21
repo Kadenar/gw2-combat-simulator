@@ -1,3 +1,4 @@
+import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -61,10 +62,8 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 // stable skill-bar and palette projection.
 export function guardianUiSkillIdsByName(names: readonly string[], context: GuardianUiContext = {}): SkillId[] {
   const activeFlips =
-    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as Record<
-      string,
-      number
-    >) || {};
+    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as SkillFlipWindows) ||
+    {};
   return names.flatMap((name) => {
     const id = guardianCatalog.skillsByName.get(name)?.id;
     if (id == null) return [];
@@ -72,7 +71,9 @@ export function guardianUiSkillIdsByName(names: readonly string[], context: Guar
     const flipId = skill?.flipSkillId;
     const flip = flipId == null ? undefined : guardianCatalog.skillsById.get(flipId);
     // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
-    return flipId != null && flip?.flipParentId === id && Number(activeFlips[flipId] || 0) > guardianSnapshotAt(context)
+    return flipId != null &&
+      flip?.flipParentId === id &&
+      skillFlipReady(activeFlips[flipId], guardianSnapshotAt(context))
       ? [id, flipId]
       : [id];
   });

@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
@@ -32,7 +33,7 @@ export interface RevenantCoreState {
   selectedLegendIds: string[];
   legendSwapReadyAt: number;
   activeUpkeeps: RevenantUpkeepState[];
-  availableFlips: Record<string, number | boolean>;
+  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   endurance: number;
   maximumEndurance: number;

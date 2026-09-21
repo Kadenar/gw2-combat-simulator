@@ -1,3 +1,4 @@
+import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -25,7 +26,7 @@ function afterResourceSkill(
   skill: WarriorSkill
 ): { spent: number; berserkersPowerGranted: boolean } {
   // Attempting the manual counter consumes the armed flip, including interrupted attacks.
-  if (skill.id === ID.TACTICAL_BLOW) delete professionCoreState(context).availableFlips[ID.TACTICAL_BLOW];
+  if (skill.id === ID.TACTICAL_BLOW) consumeSkillFlip(professionCoreState(context).availableFlips, ID.TACTICAL_BLOW);
   const spent = applyWarriorSkillResource(context, skill);
   applyWarriorBurstSpendTraits(context, skill, spent);
   return { spent, berserkersPowerGranted: false };
@@ -227,7 +228,7 @@ export const warriorCoreSkillHandlers = Object.freeze({
   'warrior.counterblow': augmentSkillHandler((context: WarriorCastContext) => {
     // Keep the manual attack available only within the original block channel, even when released early.
     if (!context.action.cancelled) {
-      professionCoreState(context).availableFlips[ID.TACTICAL_BLOW] = context.fullEnd;
+      armSkillFlip(professionCoreState(context).availableFlips, ID.TACTICAL_BLOW, context.start, context.fullEnd);
     }
   }),
   'warrior.resource': augmentSkillHandler(afterResourceSkill, {

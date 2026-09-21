@@ -1,3 +1,4 @@
+import { pruneSkillFlips } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   advanceSpearIlluminationState,
   updateSpearIlluminationState
@@ -6,10 +7,7 @@ import {
   observeGuardianScheduledEvent,
   updateGuardianTraitCastState
 } from '#gw2/professions/guardian/core/traits/index.js';
-import {
-  advanceGuardianWeaponState,
-  updateWeaponCastState
-} from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
+import { updateWeaponCastState } from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
 
 /** Registers the ordered Core Guardian hooks while each behavior stays with its owning concept. */
 export const guardianCoreExecutionHooks = Object.freeze({
@@ -17,7 +15,8 @@ export const guardianCoreExecutionHooks = Object.freeze({
     {
       id: 'guardian.weapon-state',
       order: 20,
-      handler: advanceGuardianWeaponState
+      handler: (context: GuardianSchedulerContext, at: number) =>
+        pruneSkillFlips(professionCoreState(context).availableFlips, at)
     },
     {
       id: 'guardian.spear',
@@ -50,3 +49,6 @@ export const guardianCoreExecutionHooks = Object.freeze({
     }
   ])
 });
+
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { GuardianSchedulerContext } from '#gw2/professions/guardian/types.js';

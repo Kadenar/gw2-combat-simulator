@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -331,7 +332,7 @@ test('Engineer availability follows skill IDs after display labels change', () =
   const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };
   assert.equal(engineerCoreCastAvailability(coreContext, artillery).code, 'engineer.electric-artillery-inactive');
 
-  core.electricArtilleryAvailable = true;
+  armSkillFlip(core.availableFlips, ID.ELECTRIC_ARTILLERY, 0);
   const lightningRod = { ...engineerCatalog.skillsById.get(ID.LIGHTNING_ROD), name: 'Renamed rod' };
   assert.equal(engineerCoreCastAvailability(coreContext, lightningRod).code, 'engineer.lightning-rod-active');
 

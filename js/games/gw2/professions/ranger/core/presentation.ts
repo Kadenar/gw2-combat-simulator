@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -189,7 +190,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
     flipParent?.flipSkillId === skill.id &&
-    Number(availableFlips[String(skill.id)] || 0) <= Number(context.time || 0)
+    !skillFlipReady(availableFlips[String(skill.id)], Number(context.time || 0))
   ) {
     return { available: false, message: `Use ${flipParent?.name || 'its opening weapon skill'} first` };
   }
@@ -199,7 +200,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
     !isRangerHammerVariant(skill.id) &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    Number(availableFlips[String(skill.flipSkillId)] || 0) > Number(context.time || 0)
+    skillFlipReady(availableFlips[String(skill.flipSkillId)], Number(context.time || 0))
   ) {
     return { available: false, message: 'Use or wait out the active follow-up skill' };
   }

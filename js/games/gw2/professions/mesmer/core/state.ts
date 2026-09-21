@@ -1,13 +1,8 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
-
-export interface MesmerAvailableFlip {
-  readonly availableAt: number;
-  readonly expiresAt: number;
-  readonly persistent?: boolean;
-}
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {
@@ -16,8 +11,7 @@ export interface MesmerCoreState {
   trackedSkillHits: Record<string, number[]>;
   traitReadyAt: Record<string, number>;
   mimicUntil: number;
-  counterspellAvailable: boolean;
-  availableFlips: Record<string, MesmerAvailableFlip>;
+  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   sharperImagesProgress: number;
   masterFencerProgress: number;
@@ -40,7 +34,6 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
     trackedSkillHits: {},
     traitReadyAt: {},
     mimicUntil: 0,
-    counterspellAvailable: false,
     availableFlips: {},
     autoattackChains: {},
     sharperImagesProgress: 0,

@@ -1,3 +1,4 @@
+import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -85,9 +86,8 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   state.activeShroudEntryId = null;
   state.activeShroudExitId = null;
   state.activeShroudProfileId = '';
-  state.shroudEnteredAt = 0;
   if (exitId != null) {
-    delete state.availableFlips[exitId];
+    consumeSkillFlip(state.availableFlips, exitId);
   }
 
   // Specialization callbacks run before shared exit traits and the visible weapon transition.
@@ -264,7 +264,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     if (state.activeShroud === 'lich' && state.lichEndsAt <= next) {
       state.activeShroud = '';
       state.lichEndsAt = 0;
-      delete state.availableFlips[ID.EXIT_LICH_FORM];
+      consumeSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM);
       gainNecromancerLifeForce(context, 15, next);
     }
 
@@ -369,7 +369,6 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
 export function resetNecromancerResources(context: NecromancerSchedulerContext): void {
   const state = professionCoreState(context);
   state.lifeForce = state.maximumLifeForce;
-  state.resource = state.lifeForce;
   state.selfConditions = [];
   emitNecromancerStateSnapshot(context, context.state.time, 'cooldown-reset', { dedupeAcrossSourceIds: true });
 }

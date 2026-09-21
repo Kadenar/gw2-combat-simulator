@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -171,13 +172,17 @@ function completeShadowFlare(context: ThiefCastContext): void {
   if (context.action?.cancelled === true) return;
   const core = professionCoreState(context);
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
-  core.availableFlips[ID.SHADOW_SWAP] =
-    context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.shadowFlare)?.durationMultiplier ?? 4);
+  armSkillFlip(
+    core.availableFlips,
+    ID.SHADOW_SWAP,
+    context.effectiveEnd,
+    context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.shadowFlare)?.durationMultiplier ?? 4)
+  );
   emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-flare');
 }
 
 function completeShadowSwap(context: ThiefCastContext): void {
-  delete professionCoreState(context).availableFlips[ID.SHADOW_SWAP];
+  consumeSkillFlip(professionCoreState(context).availableFlips, ID.SHADOW_SWAP);
   emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-swap');
 }
 

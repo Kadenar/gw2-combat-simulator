@@ -1,3 +1,4 @@
+import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
@@ -116,7 +117,7 @@ function glyphSkillForElement(context: ElementalistSchedulerContext, element: El
 }
 
 // The player-commanded flip skill name for an element (used to tag events as
-// player-commanded vs autonomous and to key availableFlips).
+// player-commanded vs autonomous and to resolve the authored command ID).
 function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
   return elementalCommandName(element);
 }
@@ -659,7 +660,7 @@ function handleElementalExpireTask(
   elemental.currentActivationId = null;
   elemental.pendingLightningJolt = null;
   elemental.started = false;
-  delete state.availableFlips[commandName(element)];
+  consumeSkillFlip(state.availableFlips, context.catalog.skillsByName.get(commandName(element))!.id);
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
     context.state.cooldowns.set(
@@ -731,7 +732,7 @@ function summonElemental(
   interruptCurrentAction(context, at);
   const previousElement = state.summonedElemental.element;
   if (previousElement === 'Fire' || previousElement === 'Earth')
-    delete state.availableFlips[commandName(previousElement)];
+    consumeSkillFlip(state.availableFlips, context.catalog.skillsByName.get(commandName(previousElement))!.id);
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
   state.summonedElemental = {
@@ -759,7 +760,7 @@ function summonElemental(
     name: `${element} Elemental expires`
   });
   scheduleTask(context, ELEMENTAL_EXPIRE_TASK, expiresAt, { summonGeneration }, 50);
-  state.availableFlips[commandName(element)] = expiresAt;
+  armSkillFlip(state.availableFlips, context.catalog.skillsByName.get(commandName(element))!.id, at, expiresAt);
   if (startImmediately) startElemental(context, at);
 }
 

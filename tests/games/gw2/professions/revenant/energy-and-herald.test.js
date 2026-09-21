@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
@@ -1096,12 +1097,12 @@ test('Herald palette replaces active facets with their consume skills', () => {
       activeLegendId: LEGEND.DRAGON,
       activeLoadoutId: LEGEND.DRAGON,
       availableFlips: {
-        [SKILL.INFUSE_LIGHT]: true,
-        [SKILL.BURST_OF_STRENGTH]: true,
-        [SKILL.ELEMENTAL_BLAST]: true,
-        [SKILL.GAZE_OF_DARKNESS]: true,
-        [SKILL.CHAOTIC_RELEASE]: true,
-        [SKILL.TRUE_NATURE_DRAGON]: true
+        [SKILL.INFUSE_LIGHT]: armSkillFlip({}, 0, 0, Infinity),
+        [SKILL.BURST_OF_STRENGTH]: armSkillFlip({}, 0, 0, Infinity),
+        [SKILL.ELEMENTAL_BLAST]: armSkillFlip({}, 0, 0, Infinity),
+        [SKILL.GAZE_OF_DARKNESS]: armSkillFlip({}, 0, 0, Infinity),
+        [SKILL.CHAOTIC_RELEASE]: armSkillFlip({}, 0, 0, Infinity),
+        [SKILL.TRUE_NATURE_DRAGON]: armSkillFlip({}, 0, 0, Infinity)
       }
     }
   };
@@ -1146,7 +1147,8 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
   const context = {
     specialization: 'Core',
     build: { ...baseConfig, ...config },
-    professionState: armed.planningState.profession
+    professionState: armed.planningState.profession,
+    time: armed.rotationEndTime
   };
   const demon = revenantLegendLoadout.paletteGroups(context).find((group) => group.label === 'Demon');
 
@@ -1226,7 +1228,8 @@ test('Nature survives swaps into every legend and switches its consume without r
       active.planningState.profession.activeUpkeeps.map((upkeep) => upkeep.skillId),
       [SKILL.FACET_OF_NATURE]
     );
-    assert.deepEqual(active.planningState.profession.availableFlips, { [consumeId]: true });
+    assert.deepEqual(Object.keys(active.planningState.profession.availableFlips), [String(consumeId)]);
+    assert.equal(active.planningState.profession.availableFlips[consumeId].expiresAt, null);
     assert.equal(active.planningState.profession.energy, 56);
 
     const consumed = simulate('Herald', [...rotation, { skillId: consumeId }], config);

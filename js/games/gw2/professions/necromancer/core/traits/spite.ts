@@ -77,18 +77,11 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
   context.recordProc?.('trait', 'Siphoned Power', event.at, event.skillName);
 }
 
-export function applySpitefulFortitude(
-  context: NecromancerResolverContext,
-  event: NecromancerResolverEvent,
-  lifeForceMultiplier: number
-): void {
+export function applySpitefulFortitude(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.SPITEFUL_FORTITUDE) || event.actorType !== 'player' || !targetBelowHalfHealth(context)) {
     return;
   }
 
-  professionCoreState(context).spitefulFortitudeLifeForce =
-    Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
-    Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1) * lifeForceMultiplier;
   // Replay raw percentage gains at the strike timestamp; the scheduler owns normalization, Gluttony, and capping.
   context.resolved.push({
     type: 'necromancer.life-force-gain',

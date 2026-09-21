@@ -1,3 +1,4 @@
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { gw2ApiText } from '#gw2/app/shared/html.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -51,7 +52,7 @@ export function skillBarDisplaySkill(
     visited.add(Number(current.id));
     const flip = app.skillById.get(Number(current.flipSkillId));
     if (!flip || flip.flipParentId !== current.id) break;
-    if (flips[flip.id] ?? flips[flip.name]) display = flip;
+    if (skillFlipVisible(flips[flip.id], Number(app.results?.planningState?.atSeconds ?? app.results?.rotationEndTime ?? 0))) display = flip;
     current = flip;
   }
 

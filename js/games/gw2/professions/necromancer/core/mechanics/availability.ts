@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   actualNecromancerLifeForceCost,
@@ -93,7 +94,7 @@ function flipAvailability(context: NecromancerPrecastContext, skill: Necromancer
     skill.flipParentId != null &&
     !skill.shroudExit &&
     !context.catalog.autoattackChainPositions.has(Number(skill.id)) &&
-    !(Number(professionCoreState(context).availableFlips[skill.id] || 0) > context.start)
+    !skillFlipReady(professionCoreState(context).availableFlips[skill.id], context.start)
   ) {
     return deny(skill, 'necromancer.flip-not-armed', 'not currently armed.');
   }
@@ -108,7 +109,7 @@ function shroudExitGate(
   { state, activeShroud }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   if (!skill.shroudExit) return null;
-  const available = activeShroud === skill.shroudExit || Number(state.availableFlips[skill.id] || 0) > context.start;
+  const available = activeShroud === skill.shroudExit || skillFlipReady(state.availableFlips[skill.id], context.start);
   return available ? READY : deny(skill, 'necromancer.not-in-shroud', 'the matching shroud is not active.');
 }
 
@@ -156,8 +157,8 @@ function activeMinionGate(
   { state }: AvailabilityEnvironment
 ): AvailabilityVerdict {
   if (!skill.rechargeOnMinionDeath) return null;
-  const commandAvailableUntil = Number(skill.flipSkillId == null ? 0 : state.availableFlips?.[skill.flipSkillId] || 0);
-  return commandAvailableUntil > context.start
+  const command = skill.flipSkillId == null ? undefined : state.availableFlips[skill.flipSkillId];
+  return skillFlipReady(command, context.start)
     ? deny(skill, 'necromancer.minion-active', 'its summoned minion is still alive.')
     : null;
 }

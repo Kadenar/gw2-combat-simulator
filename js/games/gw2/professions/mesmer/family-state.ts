@@ -1,3 +1,4 @@
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -6,7 +7,6 @@ import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   MesmerPlanningState,
   MesmerProfessionState,
-  MesmerProjectedFlip,
   MesmerRuntimeState,
   MesmerSchedulerContext,
   MesmerStateSnapshot
@@ -62,7 +62,6 @@ export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
     numericResource: Number(state.numericResource || 0),
     instruments: Object.entries(instruments),
     continuumActive: Boolean(state.continuum),
-    counterspellAvailable: Boolean(state.counterspellAvailable),
     availableFlips: Object.entries(availableFlips),
     autoattackChains: Object.entries(autoattackChains),
     bloodsongProgress: Number(state.bloodsongProgress || 0),
@@ -92,20 +91,9 @@ export function projectMesmerPlanningState({
   const endTime = canonicalTime(state.time);
   const definition = runtime.resourceDefinition;
   const publicState = flattenProfessionState(state.profession) as unknown as MesmerProfessionState;
-  const availableFlips: Record<string, MesmerProjectedFlip> = {};
-  for (const [skillId, flip] of Object.entries(publicState.availableFlips)) {
-    // Expiry-task bookkeeping must not expose an expired flip to the editor.
-    if (flip.expiresAt <= endTime) continue;
-    const name = context.catalog.skillsById.get(Number(skillId))?.name;
-    if (!name) continue;
-    const persistent = !Number.isFinite(flip.expiresAt);
-    availableFlips[name] = {
-      availableAt: Math.round(flip.availableAt * 1000),
-      expiresAt: persistent ? null : Math.round(flip.expiresAt * 1000),
-      remaining: persistent ? null : Math.max(0, Math.round((flip.expiresAt - endTime) * 1000)),
-      persistent
-    };
-  }
+  const availableFlips = Object.fromEntries(
+    Object.entries(publicState.availableFlips).filter(([, window]) => skillFlipVisible(window, endTime))
+  );
 
   // The palette retains each exact playing window through its final live microsecond.
   const activeInstruments = Object.entries(publicState.instruments || {})
@@ -121,7 +109,6 @@ export function projectMesmerPlanningState({
     resource: definition.singular === 'clone' ? publicState.clones.length : publicState.numericResource,
     resourceDefinition: definition,
     clarityRemaining: Math.max(0, Math.round((publicState.clarityUntil - endTime) * 1000)),
-    counterspellAvailable: publicState.counterspellAvailable,
     availableAmbush:
       publicState.ambushSource && publicState.ambushUntil > endTime
         ? {

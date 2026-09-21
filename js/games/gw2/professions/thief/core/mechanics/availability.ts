@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -11,7 +12,6 @@ import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/
 import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { thiefStealthAttackChargeState } from '#gw2/professions/thief/core/mechanics/stealth.js';
 
@@ -19,11 +19,6 @@ function activeWeapons(context: ThiefPrecastContext): readonly [string, string] 
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return [primary || '', secondary || ''];
-}
-
-function weaponFlipActive(state: ThiefCoreState, skillId: number, at: number): boolean {
-  const value = state.availableFlips[skillId];
-  return Number(value || 0) > at;
 }
 
 // Centralize Thief gates for initiative, endurance, stealth replacements, weapon
@@ -42,7 +37,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   if (
     skill.type === 'Weapon' &&
     skill.flipParentId != null &&
-    !weaponFlipActive(state, Number(skill.id), context.start)
+    !skillFlipReady(state.availableFlips[skill.id], context.start)
   ) {
     const parent = context.catalog.skillsById.get(Number(skill.flipParentId));
     return deny(
@@ -64,7 +59,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     skill.type === 'Weapon' &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    weaponFlipActive(state, Number(skill.flipSkillId), context.start)
+    skillFlipReady(state.availableFlips[skill.flipSkillId], context.start)
   ) {
     return deny(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
   }

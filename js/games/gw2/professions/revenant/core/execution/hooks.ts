@@ -17,7 +17,8 @@ import {
   expireImperialGuard,
   dropTheHammerReaction
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
-import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
   empowerEmbraceTheDarkness,
   upkeepPulses,
@@ -47,7 +48,16 @@ function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
  * Commits completion-gated Core weapon mechanics.
  */
 function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): void {
-  completeRevenantFollowup(context, skill);
+  // Call to Anguish exposes a persistent follow-up until Unyielding Impact consumes it.
+  const flips = professionCoreState(context).availableFlips;
+  if (skill.id === ID.CALL_TO_ANGUISH) {
+    armSkillFlip(flips, ID.UNYIELDING_IMPACT, context.effectiveEnd);
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'unyielding-impact-ready');
+  } else if (skill.id === ID.UNYIELDING_IMPACT) {
+    consumeSkillFlip(flips, ID.UNYIELDING_IMPACT);
+    emitRevenantStateSnapshot(context, context.effectiveEnd, 'unyielding-impact-used');
+  }
+
   completeRevenantWeaponCast(context, skill);
   // Empower only after the paid skill commits, so a pulse during its windup cannot consume the bonus.
   if (!context.action.cancelled) empowerEmbraceTheDarkness(context, skill);

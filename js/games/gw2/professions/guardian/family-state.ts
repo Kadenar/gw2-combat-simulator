@@ -1,3 +1,4 @@
+import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   composePublicStateProjections,
   projectPublicProfessionState,
@@ -27,7 +28,7 @@ export function snapshotGuardianState(state: unknown, at: number): GuardianState
   const snapshot = snapshotProfessionState<GuardianState>(state);
   // Snapshots can be requested before scheduler cleanup; never expose an expired flip to the palette.
   snapshot.availableFlips = Object.fromEntries(
-    Object.entries(snapshot.availableFlips || {}).filter(([, expiresAt]) => expiresAt > at)
+    Object.entries(snapshot.availableFlips || {}).filter(([, window]) => skillFlipVisible(window, at))
   );
   snapshot.justiceArmed = Boolean(snapshot.justiceActiveArmed);
   snapshot.justiceBurns = Number(snapshot.justiceActiveBurns || 0) + Number(snapshot.justicePassiveBurns || 0);

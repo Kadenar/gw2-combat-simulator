@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -208,7 +209,11 @@ export function updateLuminaryTraitCastState(context: GuardianCastContext, skill
     // Register Exit Radiant Forge as an available flip so the scheduler and
     // UI treat it as an always-ready option while the forge is active.
     // POSITIVE_INFINITY means "no cooldown / never expires".
-    professionCoreState(context).availableFlips[GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE] = Number.POSITIVE_INFINITY;
+    armSkillFlip(
+      professionCoreState(context).availableFlips,
+      GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE,
+      context.effectiveEnd
+    );
   }
 
   processLuminaryStances(context, skill);

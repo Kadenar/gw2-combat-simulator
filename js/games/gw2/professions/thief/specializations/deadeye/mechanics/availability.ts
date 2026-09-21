@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -11,8 +12,7 @@ export function deadeyeCastAvailability(
 ): AvailabilityResult {
   if (skill.id === ID.SHADOW_SWAP) {
     // Shadow Swap is a flip skill that only appears after Shadow Flare lands; block it directly rather than relying on the flip expiry in weapon-state.ts
-    const expiresAt = Number(flips?.[String(ID.SHADOW_SWAP)] || 0);
-    if (expiresAt <= at) {
+    if (!skillFlipReady(flips?.[ID.SHADOW_SWAP], at)) {
       return {
         ready: false,
         retryAt: null,

@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
@@ -151,7 +152,7 @@ test('Deadeye scheduler and palette enforce the same flip expiry boundary', () =
   const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
   const flare = thiefCatalog.skillsById.get(ID.SHADOW_FLARE);
   for (const expiresAt of [undefined, 4, 5, 6]) {
-    const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: expiresAt } };
+    const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, expiresAt) } };
     const context = { start: 5, state: { profession: { core, specialization: { kind: 'Deadeye', state: {} } } } };
     const result = deadeyeCastRules.availability.handler(context, swap);
     assert.equal(result.ready, expiresAt > 5);
@@ -1515,7 +1516,9 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   });
 
   assertMultiplier(markedFlare, plainFlare, 'Shadow Flare', 1.5);
-  assert.ok(markedFlare.planningState.profession.availableFlips[ID.SHADOW_SWAP] > markedFlare.rotationEndTime);
+  assert.ok(
+    markedFlare.planningState.profession.availableFlips[ID.SHADOW_SWAP]?.expiresAt > markedFlare.rotationEndTime
+  );
 
   const plainStolen = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time'], fullCrit);
   const plainStealTimeEvent = plainStolen.resolvedEvents.find(

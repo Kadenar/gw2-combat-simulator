@@ -1,3 +1,5 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
@@ -24,7 +26,6 @@ export interface NecromancerTasteForBloodApplication {
 
 export interface NecromancerCoreState {
   lifeForce: number;
-  resource: number;
   maximumLifeForce: number;
   maximumHealth: number;
   lifeForcePoolCapacity: number;
@@ -32,10 +33,8 @@ export interface NecromancerCoreState {
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;
   activeShroudProfileId?: string;
-  shroudEnteredAt: number;
   lastResourceAt: number;
-  soulShards: number;
-  soulShardExpiries: number[];
+  soulShardGrant: ChargeGrant;
   carapaceExpiries: number[];
   activeMinions: Record<string, number>;
   minionGenerations: Record<string, number>;
@@ -43,7 +42,7 @@ export interface NecromancerCoreState {
   minionAttackAnchors: Record<string, number>;
   minionAttackCycleOffsets: Record<string, number>;
   /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   selfConditions: NecromancerSelfCondition[];
   plagueSendingArmed: boolean;
@@ -58,7 +57,6 @@ export interface NecromancerCoreState {
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;
   barbedPrecisionProgress: number;
-  spitefulFortitudeLifeForce: number;
   traitProcReadyAt: Record<string, number>;
   tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
 }
@@ -66,14 +64,11 @@ export interface NecromancerCoreState {
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'lifeForce',
-  'resource',
   'maximumLifeForce',
   'maximumHealth',
   'lifeForcePoolCapacity',
   'activeShroud',
-  'shroudEnteredAt',
-  'soulShards',
-  'soulShardExpiries',
+  'soulShardGrant',
   'carapaceExpiries',
   'activeMinions',
   'availableFlips',
@@ -123,12 +118,9 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
   return (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
 }
 
-/** Clamps life force and reconciles the public soul-shard count with its active expiries. */
+/** Clamps the canonical life-force value to the build's capacity. */
 export function syncNecromancerResources<TState extends NecromancerCoreState>(state: TState): TState {
   state.lifeForce = boundedNumber(state.lifeForce || 0, 0, 0, finiteNumber(state.maximumLifeForce || 100, 100));
-  state.resource = state.lifeForce;
-  state.soulShardExpiries = (state.soulShardExpiries || []).sort((left, right) => left - right).slice(-6);
-  state.soulShards = state.soulShardExpiries.length;
   return state;
 }
 
@@ -142,10 +134,9 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const lifeForcePoolCapacity = maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce = (maximumLifeForce * clamp(configuredLifeForce, 0, 100)) / 100;
-  // Seed every mutable subsystem independently, then reconcile public resource aliases once.
+  // Seed every mutable subsystem independently and bound the initial life-force value.
   const state: NecromancerCoreState = syncNecromancerResources({
     lifeForce,
-    resource: lifeForce,
     maximumLifeForce,
     maximumHealth,
     lifeForcePoolCapacity,
@@ -153,10 +144,8 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     activeShroudEntryId: null,
     activeShroudExitId: null,
     activeShroudProfileId: '',
-    shroudEnteredAt: 0,
     lastResourceAt: 0,
-    soulShards: 0,
-    soulShardExpiries: [],
+    soulShardGrant: grantCharges(0, 0),
     carapaceExpiries: [],
     activeMinions: {},
     minionGenerations: {},
@@ -177,7 +166,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
     barbedPrecisionProgress: 0.5,
-    spitefulFortitudeLifeForce: 0,
     traitProcReadyAt: {},
     tasteForBloodBuffs: {}
   });
@@ -188,7 +176,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     'fearOfDeathReadyAt',
     'vampiricPresenceReadyAt',
     'barbedPrecisionProgress',
-    'spitefulFortitudeLifeForce',
     'traitProcReadyAt',
     'tasteForBloodBuffs'
   ]);

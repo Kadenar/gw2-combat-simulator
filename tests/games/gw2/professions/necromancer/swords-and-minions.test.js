@@ -1435,7 +1435,7 @@ test('persistent minion summons cannot recharge until their minions die', () => 
     assert.equal(result.planningState.cooldowns[summon], undefined, summon);
     assert.equal(
       necromancerProfession.ui.paletteSkillAvailability(
-        { professionState: result.planningState.profession },
+        { professionState: result.planningState.profession, time: result.rotationEndTime },
         necromancerCatalog.skillsByName.get(summon)
       ).available,
       false,

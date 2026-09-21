@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -157,7 +158,7 @@ function necromancerCorePaletteAvailability(
   if (
     skill.rechargeOnMinionDeath &&
     skill.flipSkillId != null &&
-    Number(state.availableFlips?.[skill.flipSkillId] || 0) > 0
+    skillFlipReady(state.availableFlips?.[skill.flipSkillId], Number(context.time || 0))
   ) {
     return {
       available: false,
@@ -244,8 +245,8 @@ export function necromancerEventLogRow(
     details.push(`Blight ${Number(state.blight)}`);
   }
 
-  if (Number(state.soulShards || 0) > 0) {
-    details.push(`Soul shards ${Number(state.soulShards)}`);
+  if (Number(state.soulShardGrant?.charges || 0) > 0) {
+    details.push(`Soul shards ${state.soulShardGrant?.charges}`);
   }
 
   return {
@@ -267,7 +268,7 @@ export function necromancerCoreTargetHealthThresholds(context: NecromancerUiCont
   return hasHalfHealthTrait || hasThresholdWeapon ? [0.5] : [];
 }
 
-/** Projects Soul Shards when a spear is equipped or shard state is already active. */
+/** Reads the shared grant directly when a spear is equipped or shard state is already active. */
 export function necromancerSoulShardResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
   // Inspect both build loadouts and runtime-resolved primary weapons so the resource appears before simulation.
@@ -277,14 +278,14 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     gw2PrimaryWeapon(context.config, 1),
     gw2PrimaryWeapon(context.config, 2)
   ];
-  return equippedWeapons.includes('Spear') || Number(state.soulShards || 0) > 0
+  return equippedWeapons.includes('Spear') || Number(state.soulShardGrant?.charges || 0) > 0
     ? [
         {
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
           maximum: 6,
-          value: Number(state.soulShards || 0),
+          value: Number(state.soulShardGrant?.charges || 0),
           canStart: false,
           step: 1,
           displayMode: 'counter',
@@ -304,7 +305,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
   const maximum = Math.round(
     Math.max(1, Number(state.lifeForcePoolCapacity || context.lifeForcePoolCapacity || normalizedMaximum))
   );
-  const normalizedValue = Number(state.lifeForce ?? state.resource ?? context.value ?? context.initialResource ?? 100);
+  const normalizedValue = Number(state.lifeForce ?? context.value ?? context.initialResource ?? 100);
   // The UI stores life force as a normalized percentage but renders against the build-specific pool capacity.
   const views: ProfessionResourceView[] = [
     {

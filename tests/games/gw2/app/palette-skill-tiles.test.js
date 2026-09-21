@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -61,7 +62,7 @@ for (const [label, skills, states] of [
     ],
     [
       [{}, [1]],
-      [{ 2: true }, [2]]
+      [{ 2: armSkillFlip({}, 0, 0) }, [2]]
     ]
   ],
   [
@@ -72,7 +73,7 @@ for (const [label, skills, states] of [
     ],
     [
       [{}, [1]],
-      [{ 2: true }, [2]]
+      [{ 2: armSkillFlip({}, 0, 0) }, [2]]
     ]
   ],
   [
@@ -84,8 +85,8 @@ for (const [label, skills, states] of [
     ],
     [
       [{}, [1]],
-      [{ 2: true }, [2]],
-      [{ 3: true }, [3]]
+      [{ 2: armSkillFlip({}, 0, 0) }, [2]],
+      [{ 3: armSkillFlip({}, 0, 0) }, [3]]
     ]
   ]
 ]) {
@@ -118,7 +119,10 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
       { id: 1, name: 'Root', flipSkillId: 2, ...parent },
       { id: 2, name: 'Excluded', flipParentId: 1, ...child }
     ];
-    const app = catalogApp(skills, { availableFlips: { 2: true }, autoattackChains: { 1: 2 } });
+    const app = catalogApp(skills, {
+      availableFlips: { 2: armSkillFlip({}, 0, 0, Infinity) },
+      autoattackChains: { 1: 2 }
+    });
     assert.deepEqual(
       displayedSkillTiles(app, [skills[0]]).map((skill) => skill.id),
       [1],
@@ -235,8 +239,14 @@ test('stateful transforms select one live tile across professions', async () => 
     ['ranger', 'Galeshot', { cycloneBowActive: true }, ['Summon Cyclone Bow'], 'Dismiss Cyclone Bow'],
     ['ranger', 'Galeshot', { cycloneBowActive: true, windForce: 0 }, ['Keen Shot'], 'Keen Shot'],
     ['ranger', 'Galeshot', { cycloneBowActive: true, windForce: 5 }, ['Keen Shot'], 'Hawkeye'],
-    ['elementalist', 'Core', { primaryAttunement: 'Earth', rockBarrierExpiresAt: 0 }, ['Rock Barrier'], 'Rock Barrier'],
-    ['elementalist', 'Core', { primaryAttunement: 'Earth', rockBarrierExpiresAt: 30 }, ['Rock Barrier'], 'Hurl'],
+    ['elementalist', 'Core', { primaryAttunement: 'Earth', availableFlips: {} }, ['Rock Barrier'], 'Rock Barrier'],
+    [
+      'elementalist',
+      'Core',
+      { primaryAttunement: 'Earth', availableFlips: { 5780: armSkillFlip({}, 0, 0, 30) } },
+      ['Rock Barrier'],
+      'Hurl'
+    ],
     ['elementalist', 'Core', { primaryAttunement: 'Earth', activeAuras: [] }, ['Magnetic Aura'], 'Magnetic Aura'],
     [
       'elementalist',
@@ -287,7 +297,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   const profession = await loadProfession('elementalist');
   const app = projectionApp(profession, {
     specialization: 'Core',
-    professionState: { rockBarrierExpiresAt: 0 },
+    professionState: { availableFlips: {} },
     time: 1,
     cooldowns: {
       'Rock Barrier': { remaining: 8000, readyAt: 9000 }
@@ -414,5 +424,5 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
   };
 
   assert.deepEqual(project({}), ['Facet of Nature']);
-  assert.deepEqual(project({ 51667: true }), ['True Nature']);
+  assert.deepEqual(project({ 51667: armSkillFlip({}, 0, 0) }), ['True Nature']);
 });

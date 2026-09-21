@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -39,14 +40,10 @@ export interface ThiefCoreState {
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
   venomGeneration: number;
-  thousandNeedlesPrepared: boolean;
-  thousandNeedlesArmedAt: number;
-  pitfallPrepared: boolean;
-  pitfallArmedAt: number;
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   traitProcProgress: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
@@ -102,10 +99,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
     venomGeneration: 0,
-    thousandNeedlesPrepared: false,
-    thousandNeedlesArmedAt: 0,
-    pitfallPrepared: false,
-    pitfallArmedAt: 0,
     activeThievesGuild: null,
     assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
@@ -139,10 +132,6 @@ export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[]
   'distractingThrowBuffUntil',
   'spinningAxeExpirations',
   'venomChargeBatches',
-  'thousandNeedlesPrepared',
-  'thousandNeedlesArmedAt',
-  'pitfallPrepared',
-  'pitfallArmedAt',
   'activeThievesGuild',
   'assassinsSignetActiveUntil',
   'assassinsSignetPassiveDisabledUntil',

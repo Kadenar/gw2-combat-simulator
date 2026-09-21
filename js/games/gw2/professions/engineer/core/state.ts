@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
@@ -7,14 +8,11 @@ export interface EngineerCoreState {
   maximumEndurance: number;
   enduranceUpdatedAt: number;
   activeKit: string;
-  availableFlips: Record<string, boolean>;
+  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;
   lightningRodChargeExpiries: number[];
   healingTurretActivationId: string;
-  electricArtilleryAvailable: boolean;
-  electricArtilleryReadyAt: number;
-  electricArtilleryExpiresAt: number;
   kineticCharges: number;
   pendingMineFieldActivationIds: string[];
   traitProcReadyAt: Record<string, number | boolean>;
@@ -29,9 +27,6 @@ export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'autoattackChains',
   'focusedUntil',
   'lightningRodChargeExpiries',
-  'electricArtilleryAvailable',
-  'electricArtilleryReadyAt',
-  'electricArtilleryExpiresAt',
   'kineticCharges'
 ] as const satisfies readonly (keyof EngineerCoreState)[]);
 
@@ -57,9 +52,6 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     autoattackChains: {},
     lightningRodChargeExpiries: [],
     healingTurretActivationId: '',
-    electricArtilleryAvailable: false,
-    electricArtilleryReadyAt: 0,
-    electricArtilleryExpiresAt: 0,
     focusedUntil: 0,
     kineticCharges: 0,
     pendingMineFieldActivationIds: [],

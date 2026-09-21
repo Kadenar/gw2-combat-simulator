@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -537,7 +538,7 @@ test('Measured Shot arms a five-second per-packet Endless Night flip', () => {
   const armed = simulate('Specter', [{ name: 'Measured Shot', interruptMs: 400 }], config);
   const measuredShot = armed.events.find((event) => event.type === 'action' && event.skillId === ID.MEASURED_SHOT);
 
-  assert.equal(armed.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], measuredShot.endsAt + 5);
+  assert.equal(armed.planningState.profession.availableFlips[ID.ENDLESS_NIGHT]?.expiresAt, measuredShot.endsAt + 5);
 
   const channel = simulate(
     'Specter',
@@ -1003,7 +1004,7 @@ test('Thief snapshots reconcile venom generations and detach fields at their dec
       },
       traitProcProgress: {},
       traitProcReadyAt: {},
-      availableFlips: { [ID.SPIDER_VENOM]: 10 },
+      availableFlips: { [ID.SPIDER_VENOM]: armSkillFlip({}, 0, 0, 10) },
       backfireState: { outcome: 'success' }
     }
   };
@@ -1015,10 +1016,10 @@ test('Thief snapshots reconcile venom generations and detach fields at their dec
   assert.equal(Object.hasOwn(core, 'backfireState'), false);
   assert.equal(Object.hasOwn(state, 'availableFlips'), false);
   core.venomChargeBatches[ID.SPIDER_VENOM][1].charges = 1;
-  core.availableFlips[ID.SPIDER_VENOM] = 0;
+  core.availableFlips[ID.SPIDER_VENOM] = armSkillFlip({}, 0, 0, 0);
   state.backfireState.outcome = 'backfire';
   assert.equal(snapshot.state.venomChargeBatches[ID.SPIDER_VENOM][1].charges, 3);
-  assert.equal(snapshot.state.availableFlips[ID.SPIDER_VENOM], 10);
+  assert.equal(snapshot.state.availableFlips[ID.SPIDER_VENOM]?.expiresAt, 10);
   assert.equal(snapshot.state.backfireState.outcome, 'success');
 
   handleThiefState(context, { ...snapshot, at: 2 });

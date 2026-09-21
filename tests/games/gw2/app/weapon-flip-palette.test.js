@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -63,7 +64,7 @@ test('audited weapon flip families project one live palette identity', () => {
       `${parent.name} should display before its follow-up is armed`
     );
 
-    app.results.planningState.profession.availableFlips[child.id] = true;
+    app.results.planningState.profession.availableFlips[child.id] = armSkillFlip({}, 0, 0, Infinity);
     assert.deepEqual(
       displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [child.id],

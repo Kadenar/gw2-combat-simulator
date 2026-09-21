@@ -1,3 +1,4 @@
+import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /**
  * Owns Core Elementalist state maintenance performed by scheduler advance and event-observation hooks.
  * Skill-family transitions remain with their named mechanics.
@@ -56,9 +57,9 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
   if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;
   // A barrier that lapses unthrown starts the skill's recharge from its expiry and
   // rearms the chain so Rock Barrier, not Hurl, is offered again.
-  if (state.rockBarrierExpiresAt > 0 && state.rockBarrierExpiresAt <= at) {
-    const expiresAt = state.rockBarrierExpiresAt;
-    state.rockBarrierExpiresAt = 0;
+  const barrier = expireSkillFlip(state.availableFlips, ID.HURL, at);
+  if (barrier) {
+    const expiresAt = barrier.expiresAt;
     const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
       const releaseQuery: ElementalistRechargeQuery = { rockBarrierRelease: true };

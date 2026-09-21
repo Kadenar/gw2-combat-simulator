@@ -1,3 +1,4 @@
+import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -87,7 +88,7 @@ export function recordRadiantWeaponEquipped(context: GuardianCastContext, skill:
   for (const flipId of Object.keys(availableFlips)) {
     const flip = context.catalog.skillsById.get(Number(flipId));
     if (flip?.radiantWeapon && flip.flipParentId != null && flip.id !== skill.flipSkillId) {
-      delete availableFlips[flipId];
+      consumeSkillFlip(availableFlips, flipId);
     }
   }
 

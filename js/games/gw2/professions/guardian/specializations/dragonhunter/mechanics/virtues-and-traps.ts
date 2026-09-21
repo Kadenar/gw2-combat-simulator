@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -127,10 +128,19 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
 
 /** Runs Dragonhunter mechanics owned by one completed skill activation. */
 export const dragonhunterSkillMechanicHandlers = Object.freeze({
-  'guardian.dragonhunter.arm-hunters-verdict': ({ context }: { context: GuardianSchedulerContext }): void => {
+  'guardian.dragonhunter.arm-hunters-verdict': ({
+    context,
+    at
+  }: {
+    context: GuardianSchedulerContext;
+    at: number;
+  }): void => {
     // Hunter's Verdict remains available only while Spear of Justice's tether is active.
-    professionCoreState(context).availableFlips[ID.HUNTERS_VERDICT] = canonicalTime(
-      dragonhunterState.from(context).tetherUntil
+    armSkillFlip(
+      professionCoreState(context).availableFlips,
+      ID.HUNTERS_VERDICT,
+      at,
+      canonicalTime(dragonhunterState.from(context).tetherUntil)
     );
   }
 });

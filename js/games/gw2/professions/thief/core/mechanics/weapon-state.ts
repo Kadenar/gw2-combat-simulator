@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -214,13 +215,18 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
   if (committed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(Number(skill.flipSkillId));
     if (flip?.flipParentId === skill.id) {
-      state.availableFlips[flip.id] = at + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5));
+      armSkillFlip(
+        state.availableFlips,
+        flip.id,
+        at,
+        at + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
+      );
       emitThiefStateSnapshot(context, at, 'weapon-flip');
     }
   }
 
   if (committed && skill.type === 'Weapon' && skill.flipParentId != null) {
-    delete state.availableFlips[skill.id];
+    consumeSkillFlip(state.availableFlips, skill.id);
     emitThiefStateSnapshot(context, at, 'weapon-flip-used');
   }
 }

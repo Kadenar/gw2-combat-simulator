@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { elementalistRockBarrierMechanicHandlers } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
@@ -72,7 +72,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
   const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
   const hurl = context.catalog.skillsById.get(ID.HURL);
   openBarrier({ context, at: context.effectiveEnd });
-  assert.equal(core.rockBarrierExpiresAt, 30.301);
+  assert.equal(core.availableFlips[ID.HURL]?.expiresAt ?? 0, 30.301);
   for (const at of [30.300999, 30.301, 30.301001]) {
     context.start = at;
     const active = at < 30.301;
@@ -84,9 +84,9 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
   }
 
   advanceElementalistState(context, 30.300999);
-  assert.equal(core.rockBarrierExpiresAt, 30.301);
+  assert.equal(core.availableFlips[ID.HURL]?.expiresAt ?? 0, 30.301);
   advanceElementalistState(context, 30.301);
-  assert.equal(core.rockBarrierExpiresAt, 0);
+  assert.equal(core.availableFlips[ID.HURL]?.expiresAt ?? 0, 0);
   assert.equal(context.state.cooldowns.get(root.id), 38.301);
   advanceElementalistState(context, 40);
   assert.equal(context.state.cooldowns.get(root.id), 38.301);
@@ -94,7 +94,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
   openBarrier({ context, at: 41 });
   releaseBarrier({ context, at: 42 });
   advanceElementalistState(context, 71);
-  assert.equal(core.rockBarrierExpiresAt, 0);
+  assert.equal(core.availableFlips[ID.HURL]?.expiresAt ?? 0, 0);
   assert.equal(context.state.cooldowns.get(root.id), 50, 'consumption prevents a second recharge at natural expiry');
 });
 
@@ -107,7 +107,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
     const core = context.state.profession.core;
     const elemental = core.summonedElemental;
     assert.equal(elemental.activeUntil, 120.301);
-    assert.equal(core.availableFlips[command.name], elemental.activeUntil);
+    assert.equal(core.availableFlips[command.id]?.expiresAt, elemental.activeUntil);
     assert.equal(context.queued[0].at, elemental.activeUntil);
     assert.equal(context.events[0].at, elemental.activeUntil);
     for (const at of [120.300999, 120.301, 120.301001]) {
@@ -167,7 +167,13 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
   completeElementalistGlyphCast(context, context.catalog.skillsByName.get('Glyph of Elementals (Earth)'));
   assert.equal(action.interruptedAt, 0.5);
   assert.equal(action.endsAt, 0.5);
-  assert.deepEqual(context.state.profession.core.availableFlips, { Stomp: 120.5 });
+  assert.deepEqual(Object.keys(context.state.profession.core.availableFlips), [
+    String(elementalistCatalog.skillsByName.get('Stomp').id)
+  ]);
+  assert.equal(
+    context.state.profession.core.availableFlips[elementalistCatalog.skillsByName.get('Stomp').id].expiresAt,
+    120.5
+  );
   assert.ok(oldTasks.every((task) => task.cancelled));
   const before = context.events.length;
   for (const task of oldTasks) elementalistElementalTaskHandlers[task.type](context, task);
@@ -211,7 +217,7 @@ test('Hurl consumes the barrier before expiry while its released projectiles fin
       (event) => event.type === 'damage' && event.skillId === ID.HURL && event.at > barrier.endsAt + 30
     )
   );
-  assert.equal(result.planningState.profession.rockBarrierExpiresAt, 0);
+  assert.equal(result.planningState.profession.availableFlips[ID.HURL]?.expiresAt ?? 0, 0);
 });
 
 test('the scheduler resolves a final elemental command hit before same-time teardown', () => {

@@ -1,3 +1,4 @@
+import { type SkillFlipWindow, type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type {
   BalanceProfile,
@@ -20,7 +21,7 @@ import type {
   SchedulerPolicy,
   SchedulerState
 } from '#gw2/platform/execution/types.js';
-import type { MesmerAvailableFlip, MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
+import type { MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
@@ -84,8 +85,7 @@ export interface MesmerStateSnapshot {
   numericResource: number;
   instruments: [string, number][];
   continuumActive: boolean;
-  counterspellAvailable: boolean;
-  availableFlips: [string, MesmerAvailableFlip][];
+  availableFlips: [string, SkillFlipWindow][];
   autoattackChains: [string, SkillId][];
   bloodsongProgress: number;
   sharperImagesProgress: number;
@@ -101,20 +101,12 @@ export interface MesmerStateSnapshot {
 
 export type MesmerState = SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, 'clones'>;
 
-export interface MesmerProjectedFlip {
-  readonly availableAt: number;
-  readonly expiresAt: number | null;
-  readonly remaining: number | null;
-  readonly persistent: boolean;
-}
-
 export interface MesmerPlanningState {
   readonly endurance?: number;
   readonly maximumEndurance?: number;
   readonly resource: number;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clarityRemaining: number;
-  readonly counterspellAvailable: boolean;
   readonly availableAmbush: {
     readonly name: string;
     readonly source: string;
@@ -123,7 +115,7 @@ export interface MesmerPlanningState {
   } | null;
   readonly availableMirrors?: number;
   readonly activeInstruments?: readonly MesmerProjectedInstrument[];
-  readonly availableFlips: Readonly<Record<string, MesmerProjectedFlip>>;
+  readonly availableFlips: Readonly<SkillFlipWindows>;
   readonly autoattackChains: Readonly<Record<string, SkillId>>;
   readonly continuumActive: boolean;
   readonly continuumRemaining: number;

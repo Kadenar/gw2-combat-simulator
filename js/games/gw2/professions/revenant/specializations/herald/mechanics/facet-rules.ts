@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -86,7 +87,7 @@ export const heraldAttributeRules = Object.freeze({
 
 function heraldCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
   const state = professionCoreState(context);
-  if (skill.consume && !state.availableFlips[skill.id]) {
+  if (skill.consume && !skillFlipReady(state.availableFlips[skill.id], context.start)) {
     return denyRevenantSkill(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
   }
 

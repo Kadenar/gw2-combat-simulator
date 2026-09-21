@@ -23,7 +23,6 @@ const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
     'resource',
     'resourceDefinition',
     'clarityRemaining',
-    'counterspellAvailable',
     'availableAmbush',
     'availableFlips',
     'autoattackChains',
@@ -397,7 +396,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'chillingVictoryReadyAt',
       'demonicLoreReadyAt',
       'nourishingAshesReadyAt',
-      'spitefulFortitudeLifeForce',
       'traitProcReadyAt',
       'weaponSpells'
     ],

@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -346,7 +347,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
     false
   );
   assert.equal(counter.planningState.profession.resource, 0);
-  assert.equal(counter.planningState.profession.counterspellAvailable, true);
+  assert.ok(counter.planningState.profession.availableFlips[ID.COUNTERSPELL]);
   assert.equal(
     counter.resolvedEvents.some(
       (event) =>
@@ -365,7 +366,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   assert.equal(flipped.steps.filter((step) => !step.invalid).length, 2);
   assert.equal(flipped.steps[1].start, 120);
   assert.equal(flipped.planningState.profession.resource, 1);
-  assert.equal(flipped.planningState.profession.counterspellAvailable, false);
+  assert.equal(flipped.planningState.profession.availableFlips[ID.COUNTERSPELL], undefined);
   assert.ok(flipped.breakdown.some((entry) => entry.sourceSkill === 'Counterspell'));
 
   const interrupted = simulateMesmer(
@@ -414,7 +415,11 @@ test('requested weapon flips require and consume their parent sequence skill', (
       [parent, flip],
       flip
     );
-    assert.equal(result.planningState.profession.availableFlips[flip], undefined, flip);
+    assert.equal(
+      result.planningState.profession.availableFlips[mesmerCatalog.skillsByName.get(flip).id],
+      undefined,
+      flip
+    );
   }
 });
 
@@ -541,7 +546,7 @@ test('cancelled Inspiring Imagery creates neither a field nor boons', () => {
     ),
     false
   );
-  assert.equal(result.planningState.profession.availableFlips.Abstraction, undefined);
+  assert.equal(result.planningState.profession.availableFlips[ID.ABSTRACTION], undefined);
 });
 
 test('The Prestige has a 40ms quickness activation and explodes 3s later', () => {

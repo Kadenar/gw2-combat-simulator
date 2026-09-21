@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
@@ -17,7 +18,8 @@ function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSk
   const expected = (HERALD_MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[
     activeRevenantLegend(context)
   ];
-  const consumeActive = expected != null && Boolean(revenantUiState(context).availableFlips?.[expected]);
+  const consumeActive =
+    expected != null && skillFlipReady(revenantUiState(context).availableFlips?.[expected], Number(context.time || 0));
   if (skill.id === SKILL.FACET_OF_NATURE) {
     return consumeActive
       ? { available: false, message: 'True Nature currently replaces Facet of Nature' }

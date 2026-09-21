@@ -1,3 +1,4 @@
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -300,7 +301,7 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
     ) / 1000;
   state.minionAttackCycleOffsets[definition.key] = 0;
   if (definition.commandId) {
-    state.availableFlips[definition.commandId] = Number.POSITIVE_INFINITY;
+    armSkillFlip(state.availableFlips, definition.commandId, context.effectiveEnd);
   }
 
   if (skill.rechargeOnMinionDeath) {
@@ -446,10 +447,10 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
     );
     if (remaining) {
       professionCoreState(context).activeMinions[definition.minion] = remaining;
-      professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
+      armSkillFlip(professionCoreState(context).availableFlips, skill.id, context.effectiveEnd);
     } else {
       delete professionCoreState(context).activeMinions[definition.minion];
-      delete professionCoreState(context).availableFlips[skill.id];
+      consumeSkillFlip(professionCoreState(context).availableFlips, skill.id);
       queueMinionAttackStop(
         context,
         definition.minion,
@@ -466,7 +467,7 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
       }
     }
   } else if (Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0) {
-    professionCoreState(context).availableFlips[skill.id] = Number.POSITIVE_INFINITY;
+    armSkillFlip(professionCoreState(context).availableFlips, skill.id, context.effectiveEnd);
   }
 
   emitNecromancerStateSnapshot(context, context.effectiveEnd, 'minion-command', { dedupeAcrossSourceIds: true });

@@ -1,3 +1,4 @@
+import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -80,7 +81,6 @@ export interface ElementalistCoreState {
   hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
   hammerOrbLastCastAt: number;
   etchings: Record<string, { stage: 'lesser' | 'full'; otherCasts: number; expiresAt: number } | null>;
-  rockBarrierExpiresAt: number;
   spearNextDamageBonus: boolean;
   spearNextRechargeReduction: boolean;
   spearNextGuaranteedCritical: boolean;
@@ -90,7 +90,7 @@ export interface ElementalistCoreState {
   conjureExpiresAt: number;
   conjurePickups: Record<string, number>;
   signetOfFireDisabledUntil: number;
-  availableFlips: Record<string, number>;
+  availableFlips: SkillFlipWindows;
   summonedElemental: ElementalistSummonedElementalState;
   procReadyAt: Record<string, number>;
   arcaneEchoUntil: number;
@@ -151,7 +151,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     },
     hammerOrbLastCastAt: Number.NEGATIVE_INFINITY,
     etchings: {},
-    rockBarrierExpiresAt: 0,
     spearNextDamageBonus: false,
     spearNextRechargeReduction: false,
     spearNextGuaranteedCritical: false,
@@ -224,7 +223,6 @@ export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'hammerOrbs',
   'hammerOrbLastCastAt',
   'etchings',
-  'rockBarrierExpiresAt',
   'spearNextDamageBonus',
   'spearNextRechargeReduction',
   'spearNextGuaranteedCritical',

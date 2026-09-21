@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -54,7 +55,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     professionState: {
       lifeForce: 80,
       maximumLifeForce: 100,
-      soulShards: 4,
+      soulShardGrant: { charges: 4, expiresAt: 10 },
       shades: [10, 20]
     }
   });
@@ -66,7 +67,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     specialization: 'Reaper',
     professionState: {
       activeShroud: 'reaper',
-      availableFlips: { [ID.EXIT_REAPERS_SHROUD]: Infinity }
+      availableFlips: { [ID.EXIT_REAPERS_SHROUD]: armSkillFlip({}, 0, 0, Infinity) }
     }
   });
   const ritualistPalette = necromancerProfession.ui.paletteGroups({
@@ -158,7 +159,7 @@ test('Necromancer resources and palette change with specialization state', () =>
           lifeForce: 80,
           maximumLifeForce: 100,
           blight: 12,
-          soulShards: 4
+          soulShardGrant: { charges: 4, expiresAt: 10 }
         }
       })
       .map((resource) => resource.id),
@@ -262,7 +263,7 @@ test('Necromancer renders life force above its F-skills', async () => {
       profession: {
         lifeForce: 80,
         maximumLifeForce: 100,
-        soulShards: 0,
+        soulShardGrant: { charges: 0, expiresAt: 10 },
         shades: [10, 20]
       }
     }
@@ -284,7 +285,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     palette.innerHTML,
     /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
-  app.results.planningState.profession.soulShards = 4;
+  app.results.planningState.profession.soulShardGrant.charges = 4;
   globalThis.document = {
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
@@ -367,7 +368,7 @@ test('Necromancer state events have a real event-log presentation', () => {
             lifeForce: 82.5,
             activeShroud: 'reaper',
             blight: 3,
-            soulShards: 2
+            soulShardGrant: { charges: 2, expiresAt: 10 }
           }
         }
       ],

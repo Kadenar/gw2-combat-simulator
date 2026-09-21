@@ -1,3 +1,4 @@
+import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -49,13 +50,13 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
   );
   if (trap) {
-    const prepared = state[trap.preparedField] === true;
+    const prepared = skillFlipVisible(state.availableFlips?.[trap.triggerId], Number(context.time || 0));
     if (skill.id === trap.prepareId) {
       return { available: !prepared, message: prepared ? `Activate ${trap.name} before preparing it again` : '' };
     }
 
     if (!prepared) return { available: false, message: `Prepare ${trap.name} first` };
-    const retryAt = Number(state[trap.armedAtField] || 0);
+    const retryAt = Number(state.availableFlips?.[trap.triggerId]?.availableAt || 0);
     return retryAt > Number(context.time || 0)
       ? { available: false, message: 'The preparation is still arming', retryAt }
       : { available: true, message: '' };
@@ -70,7 +71,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     Number(state.stealthAttackExpiresAt || 0) > Number(context.time || 0);
   const spearChainStage = spearChainStageForSkill(skill.id);
   const flipValue = state.availableFlips?.[String(skill.id)];
-  const flipAvailable = flipValue === Number.POSITIVE_INFINITY || Number(flipValue || 0) > Number(context.time || 0);
+  const flipAvailable = skillFlipReady(flipValue, Number(context.time || 0));
   if (
     skill.slot === 'Profession_2' &&
     (THIEF_STOLEN_SKILL_IDS.includes(skill.id) || (skill.categories || []).includes('stolen skill')) &&
@@ -101,7 +102,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     skill.type === 'Weapon' &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    Number(state.availableFlips?.[String(skill.flipSkillId)] || 0) > Number(context.time || 0)
+    skillFlipReady(state.availableFlips?.[String(skill.flipSkillId)], Number(context.time || 0))
   ) {
     return {
       available: false,

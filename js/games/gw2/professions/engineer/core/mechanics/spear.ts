@@ -1,3 +1,4 @@
+import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Owns Engineer spear state transitions, task handlers, and cross-skill delayed behavior.
@@ -43,11 +44,8 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
   // arming time measured from cast START, not effectiveEnd
   const readyAt = context.start + ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS;
   state.lightningRodChargeExpiries = [];
-  state.electricArtilleryAvailable = false;
-  state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
-  state.electricArtilleryReadyAt = readyAt;
-  // Live Artillery availability lasts eight seconds after arming, independently of charge lifetimes.
-  state.electricArtilleryExpiresAt = readyAt + 8;
+  // Artillery stays hidden while charging and expires eight seconds after becoming ready.
+  const window = armSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY, readyAt, readyAt + 8);
   emitEngineerStateSnapshot(context, context.effectiveEnd, 'lightning-rod-active');
 
   // Replacing the keyed lifetime invalidates its pulses, arming, and expiry together.
@@ -59,7 +57,7 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
         (_, index) => firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS
       ),
       readyAt,
-      state.electricArtilleryExpiresAt
+      window.expiresAt!
     ],
     captured: { skillId: skill.id, skillName: skill.name }
   });
@@ -99,10 +97,7 @@ export function scheduleElectricArtillery(context: EngineerCastContext, skill: E
   // Retire the remaining pulses and flip transitions without touching the released projectile.
   lightningRod.cancelKey(context, 'rod');
   state.lightningRodChargeExpiries = [];
-  state.electricArtilleryAvailable = false;
-  state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
-  state.electricArtilleryReadyAt = 0;
-  state.electricArtilleryExpiresAt = 0;
+  consumeSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY);
   emitEngineerStateSnapshot(context, at, 'electric-artillery-consumed');
 }
 
@@ -137,16 +132,10 @@ export const lightningRod = timedEffect({
         LIGHTNING_ROD_MAXIMUM_CHARGES
       ).expiries;
     } else if (occurrence === LIGHTNING_ROD_PULSE_COUNT) {
-      state.electricArtilleryAvailable = true;
-      state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
-      state.electricArtilleryReadyAt = 0;
       emitEngineerStateSnapshot(context, at, 'electric-artillery-ready');
     } else {
       state.lightningRodChargeExpiries = [];
-      state.electricArtilleryAvailable = false;
-      state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
-      state.electricArtilleryReadyAt = 0;
-      state.electricArtilleryExpiresAt = 0;
+      consumeSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY);
       emitEngineerStateSnapshot(context, at, 'electric-artillery-expired');
     }
   }

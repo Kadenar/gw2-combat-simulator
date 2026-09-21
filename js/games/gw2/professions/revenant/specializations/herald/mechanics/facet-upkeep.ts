@@ -1,3 +1,4 @@
+import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -116,7 +117,7 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   const wasActive = state.activeUpkeeps.some((upkeep) => upkeep.skillId === facet?.id);
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== facet?.id);
   // Remove the consume flip itself from availableFlips so it can't be cast a second time.
-  delete state.availableFlips[skill.id];
+  consumeSkillFlip(state.availableFlips, skill.id);
   if (facet) {
     // Parent ownership also makes Facet of Nature's 20-second cooldown shared by every legend-specific True Nature ID.
     const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
@@ -176,7 +177,7 @@ export function afterHeraldFacetCast(context: RevenantCastContext, skill: Revena
   delete passive.lingeringFacets[skill.id];
   context.tasks.cancelOwner(`revenant.echo:${skill.id}`);
   const consumeId = heraldFacetConsumeId(skill, state.activeLegendId);
-  if (consumeId != null) state.availableFlips[consumeId] = true;
+  if (consumeId != null) armSkillFlip(state.availableFlips, consumeId, context.effectiveEnd);
   if (!skill.upkeepPulse) return;
   passive.facetPulseReadyAt[skill.id] = context.effectiveEnd + Math.max(EPSILON, Number(skill.pulseInterval ?? 3));
   facetPulses.start(context, {

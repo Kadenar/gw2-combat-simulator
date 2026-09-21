@@ -1,3 +1,4 @@
+import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -36,7 +37,7 @@ export function activateBlossomingAura(context: RevenantCastContext, skill: Reve
 /** Manual and automatic detonation share scaling and cancel the remaining fuse without touching recharge. */
 function detonate(context: RevenantSchedulerContext, at: number): void {
   const state = professionCoreState(context);
-  const expiresAt = Number(state.availableFlips[ID.DETONATE_BLOSSOMING_AURA] || 0);
+  const expiresAt = Number(state.availableFlips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt || 0);
   if (!expiresAt) return;
   const skill = context.catalog.skillsById.get(ID.BLOSSOMING_AURA)!;
   const final = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage');
@@ -61,7 +62,7 @@ function detonate(context: RevenantSchedulerContext, at: number): void {
       });
   }
 
-  delete state.availableFlips[ID.DETONATE_BLOSSOMING_AURA];
+  consumeSkillFlip(state.availableFlips, ID.DETONATE_BLOSSOMING_AURA);
   context.tasks.cancelOwner(AURA_TASK);
   emitRevenantStateSnapshot(context, at, 'blossoming-aura-detonated');
 }
@@ -86,7 +87,12 @@ export function handleBlossomingAura(
   }
 
   if (index === 0) {
-    professionCoreState(context).availableFlips[ID.DETONATE_BLOSSOMING_AURA] = task.at + Number(skill.duration);
+    armSkillFlip(
+      professionCoreState(context).availableFlips,
+      ID.DETONATE_BLOSSOMING_AURA,
+      task.at,
+      task.at + Number(skill.duration)
+    );
     emitRevenantStateSnapshot(context, task.at, 'blossoming-aura-armed');
   }
 

@@ -302,7 +302,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   );
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 0);
-  assert.equal(result.planningState.profession.availableFlips['Power Spike'], undefined);
+  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE], undefined);
   assert.equal(result.planningState.ammo['Power Spike'], undefined);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
@@ -318,8 +318,8 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
     result.steps.map((step) => step.skill),
     ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike']
   );
-  assert.ok(result.planningState.profession.availableFlips['Power Spike']);
-  assert.equal(result.planningState.profession.availableFlips['Power Spike'].persistent, true);
+  assert.ok(result.planningState.profession.availableFlips[ID.POWER_SPIKE]);
+  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE].expiresAt, null);
   assert.deepEqual(
     {
       charges: result.planningState.ammo['Power Spike'].charges,
@@ -346,7 +346,7 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
   // Only the two opener spikes are simulated; the woven one is skipped, so the
   // refilled mantra keeps both charges.
   assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
-  assert.equal(result.planningState.profession.availableFlips['Power Spike'].persistent, true);
+  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE].expiresAt, null);
   assert.equal(result.planningState.ammo['Power Spike'].charges, 2);
   assert.match(result.warnings.at(-1), /Mantra of Pain is still channeling/);
 });

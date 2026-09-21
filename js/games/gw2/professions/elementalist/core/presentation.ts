@@ -1,3 +1,4 @@
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type {
   ElementalistState,
   ElementalistUiContext,
@@ -16,7 +17,10 @@ import type {
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_SKILLS,
@@ -294,7 +298,7 @@ function paletteAvailability(context: ElementalistUiContext, skill: Skill): Pale
   // The shared tile projector chooses the one Rock Barrier variant that is
   // usable at the inspection point, including the exact barrier expiry.
   if (skill.name === 'Rock Barrier' || skill.name === 'Hurl') {
-    const hurlActive = Number(state.rockBarrierExpiresAt || 0) > now;
+    const hurlActive = skillFlipReady(state.availableFlips?.[ID.HURL], now);
     const available = skill.name === (hurlActive ? 'Hurl' : 'Rock Barrier');
     if (!available) {
       return {

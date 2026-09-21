@@ -140,7 +140,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroud: 'death',
     shroudSlot: 2,
     specialization: '',
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.GRIM_SPECTER]: {
@@ -217,7 +217,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         controlKind: 'fear'
       }
     ],
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/mechanics/skill-flips.ts`.
+    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
     handlerId: 'necromancer.flip'
   },
   [ID.DEATHLY_CLAWS]: {

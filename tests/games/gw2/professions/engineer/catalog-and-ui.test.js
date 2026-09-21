@@ -38,7 +38,7 @@ import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapp
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { engineerFlipSkillHandlers } from '#gw2/professions/engineer/core/mechanics/skill-flips.js';
+import { engineerCoreSkillHandlers } from '#gw2/professions/engineer/core/execution/index.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 
@@ -207,14 +207,16 @@ test('Engineer palette flips require explicit consumable targets and ignore raw 
     catalog: engineerCatalog,
     config: {},
     state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-    start: 2,
+    start: 3,
     effectiveEnd: 3,
     events,
     emit: (event) => events.push(event)
   };
-  const arm = engineerFlipSkillHandlers['engineer.arm-flip'];
-  const consume = engineerFlipSkillHandlers['engineer.consume-flip'];
-  for (const skill of engineerCatalog.skills.filter((candidate) => candidate.handlerId === 'engineer.arm-flip')) {
+  const arm = engineerCoreSkillHandlers['engineer.arm-flip'].afterEffects;
+  const consume = engineerCoreSkillHandlers['engineer.consume-flip'].afterEffects;
+  for (const skill of engineerCatalog.skills.filter(
+    (candidate) => candidate.handlerId === 'engineer.arm-flip' && candidate.id !== ID.HEALING_TURRET
+  )) {
     const flip = engineerCatalog.skillsById.get(skill.paletteFlipSkillId);
     assert.ok(flip, skill.name);
     assert.equal(engineerCoreCastAvailability(context, flip).ready, false);
@@ -1014,7 +1016,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     const result = simulate('Core', [parent, flip], config);
 
     assert.equal(result.warnings.length, 0, `${parent} -> ${flip}`);
-    assert.equal(result.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false);
+    assert.equal(result.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], undefined);
   }
 
   const healing = simulate('Core', ['Healing Turret']);
@@ -1205,7 +1207,11 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
     const used = simulate('Core', [parent, flip]);
 
     assert.equal(used.warnings.length, 0, flip);
-    assert.equal(used.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id], false, flip);
+    assert.equal(
+      used.planningState.profession.availableFlips[engineerCatalog.skillsByName.get(flip).id],
+      undefined,
+      flip
+    );
   }
 });
 

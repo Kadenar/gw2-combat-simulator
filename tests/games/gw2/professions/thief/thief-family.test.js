@@ -111,13 +111,7 @@ test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () =>
 });
 
 const specializationStateKeys = Object.freeze({
-  Daredevil: [
-    'selectedDodge',
-    'boundingDamageUntil',
-    'lotusConditionDamageUntil',
-    'palmStrikeUntil',
-    'weakeningStrikeReady'
-  ],
+  Daredevil: ['selectedDodge', 'boundingDamageUntil', 'lotusConditionDamageUntil', 'weakeningStrikeReady'],
   Deadeye: ['markedTargetId', 'malice', 'maximumMalice', 'maleficentSevenTriggered'],
   Specter: ['shadowForce', 'maximumShadowForce', 'shadowForcePoolCapacity', 'shadowShroudActive'],
   Antiquary: [

@@ -1,3 +1,4 @@
+import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -1497,7 +1498,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
       planningState: {
         profession: {
           autoattackChains: { 1: 2 },
-          availableFlips: { 4: true }
+          availableFlips: { 4: armSkillFlip({}, 0, 0, Infinity) }
         }
       }
     }
@@ -1527,7 +1528,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
     results: {
       planningState: {
         atSeconds: 1.5,
-        profession: { availableFlips: { 11: 2 } }
+        profession: { availableFlips: { 11: armSkillFlip({}, 0, 0, 2) } }
       }
     }
   };
@@ -1873,7 +1874,7 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
   ]) {
     const parent = engineer.skillByName.get(parentName);
     const flip = engineer.skillByName.get(flipName);
-    engineer.results.planningState.profession.availableFlips = { [flip.id]: true };
+    engineer.results.planningState.profession.availableFlips = { [flip.id]: armSkillFlip({}, 0, 0) };
     assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
@@ -1935,10 +1936,10 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   };
 
   assert.equal(skillBarDisplaySkill(app, parent), parent);
-  app.results.planningState.profession.availableFlips[normal.id] = Infinity;
+  app.results.planningState.profession.availableFlips[normal.id] = armSkillFlip({}, 0, 0, Infinity);
   assert.equal(skillBarDisplaySkill(app, parent), normal);
   delete app.results.planningState.profession.availableFlips[normal.id];
-  app.results.planningState.profession.availableFlips[final.id] = Infinity;
+  app.results.planningState.profession.availableFlips[final.id] = armSkillFlip({}, 0, 0, Infinity);
   assert.equal(skillBarDisplaySkill(app, parent), final);
   delete app.results.planningState.profession.availableFlips[final.id];
   assert.equal(skillBarDisplaySkill(app, parent), parent);

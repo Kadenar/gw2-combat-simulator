@@ -1,3 +1,4 @@
+import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Owns Necromancer spear Soul Shard generation, consumption, and conditional cast behavior.
@@ -52,7 +53,7 @@ function sinisterStab(context: NecromancerCastContext, skill: NecromancerSkill):
 // Resolves Addle's activation-time shard gate before applying its conditional control, life force, and shard gains.
 function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
-  const soulShardsAtActivation = Number(professionCoreState(context).soulShards || 0);
+  const soulShardsAtActivation = professionCoreState(context).soulShardGrant.charges;
   const bonusEffects = Boolean(context.config.target?.defiant || context.config.target?.activatingSkills);
   emitSkillControl(context, skill, {
     at: context.effectiveEnd,
@@ -150,7 +151,7 @@ const perforateReaction = scheduledReaction<
 
 // Consumes Distress's flip, refreshes Perforate, and applies the simulator's single-target shard bonus.
 function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  delete professionCoreState(context).availableFlips[skill.id];
+  consumeSkillFlip(professionCoreState(context).availableFlips, skill.id);
   context.state.cooldowns.delete(ID.PERFORATE);
   // The simulator models one target, so Distress receives its three additional shards.
   addShards(context, skill, 6, 'distress');

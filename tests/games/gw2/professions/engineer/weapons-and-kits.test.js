@@ -1,3 +1,4 @@
+import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
@@ -1236,7 +1237,7 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
     5
   );
   assert.deepEqual(unfocused.planningState.profession.lightningRodChargeExpiries, []);
-  assert.equal(unfocused.planningState.profession.electricArtilleryAvailable, false);
+  assert.equal(unfocused.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
   for (const [result, rodStacks, artilleryStacks] of [
     [focused, 2, 8],
     [unfocused, 1, 4]
@@ -1289,8 +1290,14 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, rod).available, false);
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargingContext, artillery).available, false);
   assert.equal(engineerProfession.ui.paletteSkillAvailability(chargedContext, artillery).available, true);
-  assert.equal(charging.planningState.profession.availableFlips[artillery.id], false);
-  assert.equal(charged.planningState.profession.availableFlips[artillery.id], true);
+  assert.equal(
+    skillFlipVisible(charging.planningState.profession.availableFlips[artillery.id], charging.rotationEndTime),
+    false
+  );
+  assert.equal(
+    skillFlipReady(charged.planningState.profession.availableFlips[artillery.id], charged.rotationEndTime),
+    true
+  );
 });
 
 test('Roiling Skies changes control branch with focus and always cripples', () => {

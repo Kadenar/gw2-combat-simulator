@@ -31,7 +31,7 @@ declare const state: NecromancerCoreState;
 declare const payload: SpearPayload;
 // @ts-expect-error Attribute copies reject misspelled conversion fields.
 attributes.conditonDamage;
-// @ts-expect-error Flip availability stores expiry timestamps, not arbitrary objects.
+// @ts-expect-error Flip availability requires a complete window with identity and readiness.
 state.availableFlips['exit'] = { expiresAt: 10 };
 // @ts-expect-error Scheduled shard payloads reject misspelled hit fields.
 payload.hitIndx;

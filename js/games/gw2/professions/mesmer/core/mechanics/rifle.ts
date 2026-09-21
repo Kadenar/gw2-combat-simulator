@@ -1,3 +1,4 @@
+import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -39,18 +40,15 @@ export const mesmerCoreRifleSkillMechanicHandlers = Object.freeze({
     context,
     skill,
     at,
-    castEnd,
     activationId
   }: {
     context: MesmerSchedulerContext;
     skill: MesmerSkill;
     at: number;
-    castEnd: number;
     activationId: string;
   }): void => {
     const core = professionCoreState(context);
-    if (core.availableFlips[ID.ABSTRACTION]?.availableAt !== castEnd) return;
-    delete core.availableFlips[ID.ABSTRACTION];
+    if (!expireSkillFlip(core.availableFlips, ID.ABSTRACTION, at, activationId)) return;
     for (const effect of skill.effects || []) {
       if (effect.type !== 'boon') continue;
       emitSkillBuff(context, skill, {
