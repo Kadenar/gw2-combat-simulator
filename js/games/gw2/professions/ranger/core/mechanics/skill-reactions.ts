@@ -1,3 +1,4 @@
+import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
@@ -18,15 +19,17 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 
 export function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
-  if (event.at > state.poisonousStrikesExpiresAt) {
-    state.poisonousStrikesCharges = 0;
-  }
+  // Pet and merged-player routes share one grant, including its inclusive final hit.
+  expireCharges(state.poisonousStrikes, event.at, true);
 
-  if (state.poisonousStrikesCharges <= 0 || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
+  if (
+    !isPetStrike(event) ||
+    !(Number(event.coefficient) > 0) ||
+    !consumeCharge(state.poisonousStrikes, event.at, 0, true)
+  ) {
     return;
   }
 
-  state.poisonousStrikesCharges -= 1;
   const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
   context.queue.enqueue({
     ...petDerivedConditionMetadata(context, event),
@@ -127,11 +130,11 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Ran
   }
 }
 
-/** Consume one armed Blood Thirst charge per qualifying hit, excluding its arming skill. */
+/** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */
 export function triggerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
-  if (state.bloodThirstCharges > 0 && event.sourceId !== ID.CRIPPLING_SHOT) {
-    state.bloodThirstCharges -= 1;
+  expireCharges(state.bloodThirst, event.at);
+  if (event.sourceId !== ID.CRIPPLING_SHOT && consumeCharge(state.bloodThirst, event.at)) {
     const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
     queueBleeding(
       context,

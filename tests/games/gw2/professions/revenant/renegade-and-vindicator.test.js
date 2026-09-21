@@ -822,7 +822,10 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
     revenantAttributeRules.modifyCriticalChance(
       context(TRAIT.BRUTAL_MOMENTUM, {
         runtime: {
-          profession: { endurance: 100, maximumEndurance: 100 }
+          profession: {
+            core: { endurance: 100, maximumEndurance: 100 },
+            specialization: { kind: 'Renegade', state: {} }
+          }
         }
       }),
       0.2
@@ -834,7 +837,10 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
       revenantAttributeRules.modifyCriticalChance(
         context(TRAIT.BRUTAL_MOMENTUM, {
           runtime: {
-            profession: { endurance: 50, maximumEndurance: 100 }
+            profession: {
+              core: { endurance: 50, maximumEndurance: 100 },
+              specialization: { kind: 'Renegade', state: {} }
+            }
           }
         }),
         0.2

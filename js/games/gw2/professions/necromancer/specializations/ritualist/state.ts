@@ -6,14 +6,11 @@ import {
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export type NecromancerWeaponSpellRecipient = ChargeGrant;
-
 export interface NecromancerWeaponSpellState {
   readonly skillId?: SkillId;
   readonly skillName?: string;
   readonly appliedAt?: number;
-  readonly expiresAt?: number;
-  readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
+  readonly recipients?: Record<string, ChargeGrant>;
   /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
   readonly alliesReceiveFullBenefit?: boolean;
 }

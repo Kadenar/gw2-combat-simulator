@@ -1,3 +1,4 @@
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
 import {
   procChanceFromContext,
@@ -218,8 +219,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
 export function applyElementalistResolverBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.kind !== 'shattering stone' || !event.resolvedAudience?.includesSelf) return;
   const core = professionCoreState(context);
-  core.shatteringStoneHitsRemaining = Number(event.stacks || 0);
-  core.shatteringStoneUntil = event.at + Number(event.duration || 0);
+  core.shatteringStone = grantCharges(Number(event.stacks || 0), event.at + Number(event.duration || 0));
 }
 
 /** Applies strike reactions in impact order, regardless of when their packets were scheduled. */
@@ -242,10 +242,8 @@ export function applyElementalistResolvedDamage(
   if (
     (event.actorType === 'player' || event.actorType === 'effect') &&
     Number(event.coefficient) > 0 &&
-    core.shatteringStoneHitsRemaining > 0 &&
-    event.at < core.shatteringStoneUntil
+    consumeCharge(core.shatteringStone, event.at)
   ) {
-    core.shatteringStoneHitsRemaining -= 1;
     const bleeding = balanceProfileEffectFromContext(
       context,
       PROFILE.shatteringStone,

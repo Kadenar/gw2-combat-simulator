@@ -1,4 +1,5 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
@@ -99,10 +100,8 @@ export interface GuardianEventExtra {
   readonly pageCost?: number;
   readonly pagesRemaining?: number;
   readonly nextTomePageAt?: number;
-  readonly ashesCharges?: number;
+  readonly ashes?: ChargeGrant;
   readonly ashesBurnDuration?: number;
-  readonly ashesNextTriggerAt?: number;
-  readonly ashesExpiresAt?: number;
   readonly radiantForge?: boolean;
   readonly radiantForgeEndsAt?: number;
   readonly radiantForgeEnteredAt?: number;
@@ -158,10 +157,8 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly applicationIndex?: number;
   readonly totalApplications?: number;
   readonly activeTome?: string;
-  readonly ashesCharges?: number;
+  readonly ashes?: ChargeGrant;
   readonly ashesBurnDuration?: number;
-  readonly ashesNextTriggerAt?: number;
-  readonly ashesExpiresAt?: number;
   readonly automatic?: boolean;
   readonly cooldownReduction?: number;
   readonly duration?: number;

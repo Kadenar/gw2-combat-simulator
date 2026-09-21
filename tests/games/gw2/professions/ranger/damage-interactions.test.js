@@ -29,7 +29,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   const config = { selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.TRAPPERS_EXPERTISE] };
   const state = createRangerCoreState(config);
   state.sharpeningStoneExpirations = [10, 10];
-  state.bloodThirstCharges = 2;
+  state.bloodThirst.charges = 2;
+  state.bloodThirst.expiresAt = 12;
   const queued = [];
   const context = {
     config,
@@ -70,7 +71,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     [TRAIT.OPENING_STRIKE, ID.SHARPENING_STONE, TRAIT.TRAPPERS_EXPERTISE, ID.CRIPPLING_SHOT]
   );
   assert.ok(queued.every(({ at }) => at === event.at));
-  assert.equal(state.bloodThirstCharges, 1);
+  assert.equal(state.bloodThirst.charges, 1);
   assert.deepEqual(state.sharpeningStoneExpirations, [10]);
 
   queued.length = 0;
@@ -79,13 +80,13 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     queued.map(({ sourceId }) => sourceId),
     [ID.SHARPENING_STONE, ID.CRIPPLING_SHOT]
   );
-  assert.equal(state.bloodThirstCharges, 0);
+  assert.equal(state.bloodThirst.charges, 0);
   assert.deepEqual(state.sharpeningStoneExpirations, []);
 
-  state.bloodThirstCharges = 1;
+  state.bloodThirst.charges = 1;
   queued.length = 0;
   react(context, { ...event, sourceId: ID.CRIPPLING_SHOT });
-  assert.equal(state.bloodThirstCharges, 1);
+  assert.equal(state.bloodThirst.charges, 1);
   assert.deepEqual(queued, []);
 });
 

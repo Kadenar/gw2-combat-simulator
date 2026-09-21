@@ -1338,9 +1338,8 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     event: { skillId: SKILL.RELEASE_POTENTIAL_WARRIOR, skillName: 'Renamed release', actorType: 'player' },
     runtime: {
       profession: {
-        affinity: 3,
-        cosmicWisdomUntil: 7,
-        selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY]
+        core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
+        specialization: { kind: 'Conduit', state: { affinity: 3, cosmicWisdomUntil: 7 } }
       }
     }
   };

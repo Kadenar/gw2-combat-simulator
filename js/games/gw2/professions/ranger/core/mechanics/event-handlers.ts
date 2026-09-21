@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -7,7 +8,11 @@ import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
 
 export function handleRangerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
-  professionCoreState(context).bloodThirstCharges = Math.max(0, Number(event.charges || 0));
+  // Crippling Shot replaces the remaining charges with a new finite grant.
+  professionCoreState(context).bloodThirst = grantCharges(
+    Math.max(0, Number(event.charges || 0)),
+    event.at + Number(event.duration || 0)
+  );
 }
 
 export function handleRangerWinterBiteReady(context: RangerResolverContext, _event: RangerResolverEvent): void {
@@ -29,8 +34,11 @@ export function handleRangerBeastSkillUsed(context: RangerResolverContext, _even
 
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const state = professionCoreState(context);
-  state.poisonousStrikesCharges = Math.max(0, Number(event.charges || 0));
-  state.poisonousStrikesExpiresAt = event.at + Number(event.duration || 0);
+  // Double Arc replaces the shared pet/merged-player grant instead of accumulating charges.
+  state.poisonousStrikes = grantCharges(
+    Math.max(0, Number(event.charges || 0)),
+    event.at + Number(event.duration || 0)
+  );
 }
 
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {

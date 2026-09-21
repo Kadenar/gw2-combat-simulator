@@ -29,7 +29,7 @@ export interface Gw2TimedStackConsumption {
   readonly consumed: number;
 }
 
-/** Drops applications whose window closed at or before `at`. */
+/** Drops closed windows while retaining application order for oldest/newest consumption. */
 export function purgeExpiredStacks(expiries: Gw2TimedStackExpiries, at: number): number[] {
   return expiries.filter((expiresAt) => expiresAt > at);
 }

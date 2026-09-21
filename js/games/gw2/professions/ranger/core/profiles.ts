@@ -84,6 +84,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.bloodThirst, ID.CRIPPLING_SHOT, 'Blood Thirst', {
     playerStacks: 3,
+    durationMultiplier: 12,
     effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 12 }]
   }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.signetOfTheWild, ID.SIGNET_OF_THE_WILD, 'Signet of the Wild - Passive', {

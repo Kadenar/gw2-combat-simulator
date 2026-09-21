@@ -1,3 +1,4 @@
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
@@ -16,19 +17,12 @@ export function advanceAntiquaryResources(context: ThiefSchedulerContext, target
   state.activeAntiquarySummons = state.activeAntiquarySummons.filter(
     (summon) => Number(summon.expiresAt || 0) > target
   );
-  const combatHighRemaining = Math.max(0, Number(state.combatHighExpiresAt || 0) - target);
-  const combatHigh = balanceProfileFromContext(context, PROFILE.combatHigh);
-  // A disabled interval has no active decay stacks, including at zero remaining duration.
-  const interval = Number(combatHigh?.pulseInterval ?? 2);
-  state.combatHighStacks =
-    interval > 0 ? Math.min(Number(combatHigh?.maximumStacks ?? 10), Math.ceil(combatHighRemaining / interval)) : 0;
+  state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, target);
   if (Number(state.stealthAttackExpiresAt || 0) <= target) {
     state.stealthAttackCharges = 0;
   }
 
-  if (Number(state.mistburnExpiresAt || 0) <= target) {
-    state.mistburnCharges = 0;
-  }
+  expireCharges(state.mistburn, target);
 
   // Expire each charge independently without changing FIFO grant order.
   state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(

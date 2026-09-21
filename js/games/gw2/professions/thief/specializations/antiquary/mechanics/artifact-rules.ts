@@ -1,5 +1,5 @@
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { activeStackCount, consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { antiquaryState, type AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -78,20 +78,12 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     parameters: {
-      maximumStacks: 10,
-      stackInterval: 2,
       damagePerStack: 0.03
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      Math.min(
-        parameters.maximumStacks,
-        Math.ceil(
-          Math.max(
-            0,
-            Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpiresAt || 0) -
-              context.time
-          ) / parameters.stackInterval
-        )
+      activeStackCount(
+        thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
+        context.time
       ) * parameters.damagePerStack,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
   },
@@ -100,20 +92,12 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     parameters: {
-      maximumStacks: 10,
-      stackInterval: 2,
       damagePerStack: 0.02
     } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
-      Math.min(
-        parameters.maximumStacks,
-        Math.ceil(
-          Math.max(
-            0,
-            Number(thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpiresAt || 0) -
-              context.time
-          ) / parameters.stackInterval
-        )
+      activeStackCount(
+        thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
+        context.time
       ) * parameters.damagePerStack,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.COMBAT_HIGH)
   },

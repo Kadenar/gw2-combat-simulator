@@ -592,15 +592,15 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
     time: 1,
     runtime: {
       profession: {
-        cosmicWisdomUntil: 0,
-        selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY]
+        core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
+        specialization: { kind: 'Conduit', state: { cosmicWisdomUntil: 0 } }
       }
     }
   };
 
   assert.deepEqual(revenantConduitRules.modifyAttributes(context, attributes), attributes);
 
-  context.runtime.profession.cosmicWisdomUntil = 5;
+  context.runtime.profession.specialization.state.cosmicWisdomUntil = 5;
   const cosmic = revenantConduitRules.modifyAttributes(context, attributes);
 
   assert.equal(cosmic.power, 1300);

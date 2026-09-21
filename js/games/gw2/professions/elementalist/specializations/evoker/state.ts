@@ -1,3 +1,4 @@
+import { activeChargeGrants, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /**
@@ -24,10 +25,8 @@ export interface EvokerState {
   maximumCharges: number;
   // empowered familiar stacks (0-3); reaching the maximum is what makes the flip form castable
   empowered: number;
-  // armed Galvanic Enchantment charges; each is consumed by the next qualifying player strike
-  electricEnchantmentStacks: number;
   // Independent grant windows prevent a later familiar or meditation from refreshing older charges.
-  electricEnchantmentGrants: Array<{ at: number; expiresAt: number; stacks: number }>;
+  electricEnchantmentGrants: Array<ChargeGrant & { at: number }>;
   // Elemental Balance: entries into the selected element counted toward the threshold, and the armed recharge-window expiry
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;
@@ -90,7 +89,6 @@ export const evokerState = defineProfessionSpecializationState(
       maximumCharges,
       charges: boundedNumber(config.initialEvokerCharges ?? maximumCharges, maximumCharges, 0, maximumCharges),
       empowered: boundedNumber(config.initialEvokerEmpowered ?? 0, 0, 0, 3),
-      electricEnchantmentStacks: 0,
       electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
@@ -113,27 +111,25 @@ export const createEvokerState = evokerState.create;
 
 /** Discards spent or expired grants at the scheduler clock, preserving future queued-hit eligibility. */
 export function expireElectricEnchantments(state: EvokerState, at: number): void {
-  state.electricEnchantmentGrants = state.electricEnchantmentGrants.filter(
-    (grant) => grant.stacks > 0 && grant.expiresAt > at
-  );
-  state.electricEnchantmentStacks = state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.stacks, 0);
+  state.electricEnchantmentGrants = activeChargeGrants(state.electricEnchantmentGrants, at);
 }
 
 /** Arms a separate lifetime for each grant; earliest-expiring eligible charges are spent first. */
 export function grantElectricEnchantments(state: EvokerState, at: number, stacks: number, duration: number): void {
-  state.electricEnchantmentGrants.push({ at: canonicalTime(at), expiresAt: gw2EffectExpiresAt(at, duration), stacks });
-  state.electricEnchantmentGrants.sort((left, right) => left.expiresAt - right.expiresAt);
+  state.electricEnchantmentGrants.push({
+    ...grantCharges(stacks, gw2EffectExpiresAt(at, duration)),
+    at: canonicalTime(at)
+  });
   expireElectricEnchantments(state, at);
 }
 
-// Evoker owns familiar resources and its public element/enchantment state.
+// Evoker publishes familiar resources and Elemental Balance windows.
 /** Contributed to the Elementalist family end-state projection. */
 export const EVOKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   element: 'Fire',
   charges: 0,
   maximumCharges: 6,
   empowered: 0,
-  electricEnchantmentStacks: 0,
   elementalBalanceProgress: 0,
   elementalBalanceUntil: 0
 } satisfies Partial<EvokerState>);

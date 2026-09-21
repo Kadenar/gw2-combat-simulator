@@ -1,4 +1,4 @@
-import { replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
+import { expireCharges, replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import {
   composePublicStateProjections,
   professionCoreState,
@@ -36,8 +36,7 @@ const THIEF_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
   DAREDEVIL_PUBLIC_STATE_PROJECTION,
   DEADEYE_PUBLIC_STATE_PROJECTION,
   SPECTER_PUBLIC_STATE_PROJECTION,
-  ANTIQUARY_PUBLIC_STATE_PROJECTION,
-  { keys: ['holoUtilityCooldownReductionExpiresAt'], defaults: {} }
+  ANTIQUARY_PUBLIC_STATE_PROJECTION
 ]);
 
 export const THIEF_PUBLIC_END_STATE_KEYS = THIEF_PUBLIC_STATE_PROJECTION.keys;
@@ -56,25 +55,20 @@ export function projectThiefPlanningState({
   schedulerState
 }: ThiefPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotThiefState<ThiefState>(schedulerState.profession);
-  // Planned resources never borrow charges consumed by combat resolution.
-  // Retain the public scalar as a derived value; expired or consumed charges report zero.
-  const publicState = {
-    ...state,
-    holoUtilityCooldownReductionExpiresAt: Math.max(
-      0,
-      ...purgeExpiredStacks(state.holoUtilityCooldownReductionExpirations || [], schedulerState.time)
-    )
-  };
-  return projectPublicProfessionState<typeof publicState, keyof typeof publicState>(
-    publicState,
-    THIEF_PUBLIC_END_STATE_KEYS,
-    THIEF_PUBLIC_STATE_PROJECTION.defaults
+  // Expire the detached grant for display without advancing the live scheduler state.
+  if (state.mistburn) expireCharges(state.mistburn, schedulerState.time);
+  state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations || [], schedulerState.time);
+  // Publish the surviving uses themselves, preserving their FIFO order on the detached snapshot.
+  state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(
+    state.holoUtilityCooldownReductionExpirations || [],
+    schedulerState.time
   );
+  return projectPublicProfessionState(state, THIEF_PUBLIC_END_STATE_KEYS, THIEF_PUBLIC_STATE_PROJECTION.defaults);
 }
 
 // Resolver snapshots are routed back to whichever runtime slice declares each field, preserving scheduler ownership.
 export function handleThiefState(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  const incoming = (event.state || {}) as Record<string, unknown>;
+  const incoming = (event.state || {}) as Partial<ThiefState>;
   const core = professionCoreState(context) as unknown as Record<string, unknown>;
   const specialization = context.profession.specialization.state as unknown as Record<string, unknown>;
   const preserved: Record<string, unknown> = {
@@ -108,9 +102,9 @@ export function handleThiefState(context: ThiefResolverContext, event: ThiefReso
   if (
     context.profession.specialization.kind === 'Antiquary' &&
     Number(incoming.mistburnGeneration || 0) === Number(specialization.mistburnGeneration || 0) &&
-    Number(incoming.mistburnExpiresAt || 0) > event.at
+    Number(incoming.mistburn?.expiresAt || 0) > event.at
   ) {
-    preserved.mistburnCharges = specialization.mistburnCharges || 0;
+    preserved.mistburn = specialization.mistburn;
   }
 
   preserved.venomChargeBatches = mergedBatches;

@@ -103,4 +103,16 @@ test('Ritualist snapshots preserve Bond cadence and independent weapon-spell spe
   assert.equal(spell.recipients.player.charges, 2);
   assert.equal(spell.recipients['spirit:1'].charges, 1);
   assert.deepEqual(snapshot.weaponSpells, {});
+  // Per-recipient grants enforce exact expiry without a spell-level deadline.
+  const beforeExpiryHits = queued.length;
+  ritualistResolverEventReactions.damage(context, { at: 10, actorType: 'player', coefficient: 1 });
+  ritualistResolverEventReactions.damage(context, {
+    at: 10,
+    actorType: 'summon',
+    summonOwner: 'spirit:1',
+    coefficient: 1
+  });
+  assert.equal(queued.length, beforeExpiryHits);
+  assert.equal(spell.recipients.player.charges, 2);
+  assert.equal(spell.recipients['spirit:1'].charges, 1);
 });

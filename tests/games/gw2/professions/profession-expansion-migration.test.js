@@ -365,7 +365,7 @@ test('ready native professions expose deliberate public end-state keys', async (
       'procReadyAt'
     ],
     engineer: ['heatUpdatedAt', 'passiveHeatAt', 'lightningRodActivationId', 'traitProcReadyAt'],
-    guardian: ['ashesNextTriggerAt', 'furiousFocusReadyAt', 'radiantForgeEnteredAt'],
+    guardian: ['ashesBurnDuration', 'furiousFocusReadyAt', 'radiantForgeEnteredAt'],
     mesmer: ['bloodsongProgress', 'pendingResources', 'traitReadyAt'],
     necromancer: [
       'lastResourceAt',

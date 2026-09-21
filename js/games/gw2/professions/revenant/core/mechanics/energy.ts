@@ -201,12 +201,11 @@ interface RevenantEnergyCostState {
   readonly activeUpkeeps?: RevenantCoreState['activeUpkeeps'];
 }
 
-// Flatten the core resource fields needed by specialization-aware energy-cost
-// rules without exposing mutable scheduler state.
+// Read the current UI projection explicitly; runtime costs use the owned Core slice.
 function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
-  const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
-  const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
-  return readProfessionCoreState<RevenantEnergyCostState>(candidate);
+  return context.state?.profession
+    ? readProfessionCoreState<RevenantEnergyCostState>(context.state.profession)
+    : (context.professionState ?? {});
 }
 
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */

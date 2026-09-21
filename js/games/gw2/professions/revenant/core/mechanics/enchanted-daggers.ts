@@ -1,5 +1,6 @@
 /** Owns Enchanted Daggers activation and on-hit consumption; catalog fragments live under `legends/assassin.ts`. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -22,8 +23,7 @@ export function activateEnchantedDaggers(context: RevenantCastContext, skill: Re
   const duration = Math.max(0, Number(buff.duration || 0));
   const at = context.effectiveEnd;
   professionCoreState(context).enchantedDaggers = {
-    charges,
-    expiresAt: at + duration,
+    ...grantCharges(charges, at + duration),
     readyAt: at
   };
   emitSkillBuff(context, {
@@ -47,7 +47,6 @@ export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event
   if (
     event.skillId !== ID.ENCHANTED_DAGGERS &&
     Number(daggers?.charges || 0) > 0 &&
-    event.at < Number(daggers.expiresAt || 0) &&
     isInternalCooldownReady(event.at, Number(daggers.readyAt || 0))
   ) {
     const enchantedDaggers = context.catalog.skillsById.get(ID.ENCHANTED_DAGGERS);
@@ -55,8 +54,9 @@ export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event
     const strike = effectByType(enchantedDaggers, 'strike');
     const buff = effectByType(enchantedDaggers, 'buff');
     const delay = Number(strike.atMs || 0) / 1000;
-    daggers.charges -= 1;
-    daggers.readyAt = event.at + delay;
+    if (!consumeCharge(daggers, event.at, delay)) return;
+    // Preserve strict same-timestamp gating even when a patched strike has no delay.
+    if (delay === 0) daggers.readyAt = event.at;
     emitSkillDamage(context, {
       cause: event,
       at: event.at + delay,

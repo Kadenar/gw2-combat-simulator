@@ -4,7 +4,6 @@ import type {
   CastContext,
   CastLifecycleContext,
   ScheduledTask,
-  SchedulerState,
   SchedulerContext
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -81,12 +80,6 @@ export interface RevenantTimedStack {
   expiresAt: number;
 }
 
-export interface RevenantChargeState {
-  charges: number;
-  expiresAt: number;
-  readyAt: number;
-}
-
 export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {}
 
 export interface RevenantRuntimeState {
@@ -133,13 +126,11 @@ export interface RevenantEnergyContext {
   readonly catalog?: CanonicalCatalog<RevenantSkill> | null;
   readonly config?: RevenantConfig;
   readonly specialization?: string;
-  readonly state?:
-    | SchedulerState<RevenantRuntimeState>
-    | (Partial<RevenantState> & { readonly time?: number })
-    | {
-        readonly time?: number;
-        readonly profession?: Partial<RevenantState> | RevenantRuntimeState;
-      };
+  readonly state?: {
+    readonly time?: number;
+    readonly profession?: RevenantRuntimeState;
+  };
+  /** Current UI projection; runtime callers supply the owned slices through state.profession. */
   readonly professionState?: Partial<RevenantState>;
   readonly start?: number;
   readonly time?: number;

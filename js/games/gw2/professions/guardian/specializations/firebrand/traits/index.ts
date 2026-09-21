@@ -310,15 +310,14 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
     context.queue.enqueue({
       type: 'guardian.ashes-expired',
-      at: state.ashesExpiresAt,
+      at: state.ashes.expiresAt,
       // Match tome Ashes: same-time strikes consume charges before expiry cleanup.
       priority: 10,
       source: 'guardian',
       sourceId: GUARDIAN_TRAIT_IDS.QUICKFIRE,
       actorType: 'effect',
       skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
-      skillName: 'Quickfire',
-      ashesExpiresAt: state.ashesExpiresAt
+      skillName: 'Quickfire'
     });
   } else {
     const [proc] = gw2AlliedPlayerProcTimeline(context.config, {

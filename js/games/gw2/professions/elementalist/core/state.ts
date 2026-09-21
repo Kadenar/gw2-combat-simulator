@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -74,8 +75,7 @@ export interface ElementalistCoreState {
   activeAuras: ElementalistAuraState[];
   pistolBullets: Record<ElementalistAttunement, boolean>;
   dazingDischargeUntil: number;
-  shatteringStoneHitsRemaining: number;
-  shatteringStoneUntil: number;
+  shatteringStone: ChargeGrant;
   hammerOrbs: Record<ElementalistAttunement, number | null>;
   hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
   hammerOrbLastCastAt: number;
@@ -141,8 +141,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       Earth: Boolean(configuredBullets.Earth)
     },
     dazingDischargeUntil: 0,
-    shatteringStoneHitsRemaining: 0,
-    shatteringStoneUntil: 0,
+    shatteringStone: grantCharges(0, 0),
     hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
     hammerOrbActivationIds: {
       Fire: null,
@@ -222,8 +221,6 @@ export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'activeAuras',
   'pistolBullets',
   'dazingDischargeUntil',
-  'shatteringStoneHitsRemaining',
-  'shatteringStoneUntil',
   'hammerOrbs',
   'hammerOrbLastCastAt',
   'etchings',

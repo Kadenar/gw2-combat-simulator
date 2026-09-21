@@ -1,3 +1,4 @@
+import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Electric Enchantment (Galvanic Enchantment) payload delivery.
@@ -68,13 +69,12 @@ export function consumeElectricEnchantment(
   const current = context.eventByOrder(Number(event.eventOrder)) || event;
   // Scheduling a far-future packet must not expire charges still usable by an earlier, later-scheduled strike.
   expireElectricEnchantments(state, Math.min(context.state.time, current.at));
-  if (state.electricEnchantmentStacks <= 0 || current.electricEnchantmentConsumed === true) return;
+  if (current.electricEnchantmentConsumed === true) return;
+  // The eligible grant owns spending; no separate total needs to stay synchronized.
   const grant = state.electricEnchantmentGrants.find(
-    (candidate) => candidate.stacks > 0 && current.at >= canonicalTime(candidate.at) && current.at < candidate.expiresAt
+    (candidate) => current.at >= canonicalTime(candidate.at) && consumeCharge(candidate, current.at)
   );
   if (!grant) return;
-  grant.stacks -= 1;
-  state.electricEnchantmentStacks -= 1;
   context.replaceEvent(current, { electricEnchantmentConsumed: true });
   emitElectricEnchantment(context, current);
 }
@@ -98,7 +98,7 @@ export function applyElectricEnchantmentsRetrospectively(context: ElementalistCa
     )
     .sort((left, right) => left.at - right.at);
   for (const event of candidates) {
-    if (state.electricEnchantmentStacks <= 0) break;
+    if (!state.electricEnchantmentGrants.some((grant) => grant.charges > 0)) break;
     consumeElectricEnchantment(context, state, event);
   }
 }

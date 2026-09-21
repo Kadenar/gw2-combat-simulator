@@ -43,13 +43,12 @@ export function restoreFlatProfessionState(coreState: object, specializationStat
   }
 }
 
-/** Reads Core state from either the nested family runtime or its legacy flat compatibility shape. */
+/** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
 export function readProfessionCoreState<TCoreState extends object = DynamicFields>(
   professionState: unknown
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
   const state = professionState as UnvalidatedFields;
-  if (!Object.hasOwn(state, 'core')) return state as Partial<TCoreState>;
   return state.core && typeof state.core === 'object' ? (state.core as Partial<TCoreState>) : {};
 }
 
@@ -60,7 +59,6 @@ export function readProfessionSpecializationState<TState extends object = Dynami
 ): Partial<TState> | undefined {
   if (!professionState || typeof professionState !== 'object') return undefined;
   const state = professionState as UnvalidatedFields;
-  if (!Object.hasOwn(state, 'specialization')) return state as Partial<TState>;
   const specialization = state.specialization as UnvalidatedFields | undefined;
   if (
     !specialization ||

@@ -1,3 +1,4 @@
+import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 /** Owns Core Devastation boon, weapon-swap, and Battle Scar trait behavior. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -21,7 +22,6 @@ import type {
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 interface BattleScarGrant {
   readonly at: number;
@@ -30,10 +30,6 @@ interface BattleScarGrant {
   readonly sourceName: string;
   readonly duration?: number;
   readonly cause?: SimulationEvent | null;
-}
-
-function pruneBattleScars(state: RevenantCoreState, at: number): void {
-  state.battleScars = (state.battleScars || []).filter((stack) => stack.expiresAt > at);
 }
 
 // Add expiring Battle Scars up to the shared cap and emit one causally attributed
@@ -46,15 +42,16 @@ function grantBattleScars(
   const buff = profileEffect(profile, 'buff');
   const duration = Math.max(0, Number(durationOverride ?? buff.duration ?? 0));
   const state = professionCoreState(context);
-  pruneBattleScars(state, at);
-  const count = Math.min(
-    Math.max(0, Math.trunc(Number(stacks || 0))),
-    Math.max(0, Number(profile.maximumStacks || 0) - state.battleScars.length)
+  // Expiry timestamps retain grant order, so newest-first spending needs no per-stack metadata.
+  const { expiries, added: count } = addTimedStacks(
+    state.battleScars,
+    stacks,
+    at,
+    duration,
+    Number(profile.maximumStacks || 0)
   );
+  state.battleScars = expiries;
   if (!count) return;
-  for (let index = 0; index < count; index += 1) {
-    state.battleScars.push({ at, expiresAt: at + duration });
-  }
 
   const event = {
     type: 'buff',
@@ -178,10 +175,15 @@ export function applyThrillOfCombat(context: RevenantSchedulerContext, event: Re
   let activeGrants = 0;
   for (let index = firstActiveIndex; index < elapsedGrants; index += 1) {
     const grantedAt = next + index * interval;
-    pruneBattleScars(state, grantedAt);
-    if (state.battleScars.length >= Number(battleScars.maximumStacks || 0)) continue;
-    state.battleScars.push({ at: grantedAt, expiresAt: grantedAt + duration });
-    activeGrants += 1;
+    const { expiries, added } = addTimedStacks(
+      state.battleScars,
+      1,
+      grantedAt,
+      duration,
+      Number(battleScars.maximumStacks || 0)
+    );
+    state.battleScars = expiries;
+    activeGrants += added;
   }
 
   state.nextThrillOfCombatAt = next + elapsedGrants * interval;
@@ -206,9 +208,9 @@ export function consumeBattleScar(context: RevenantSchedulerContext, event: Reve
   const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
   const strike = profileEffect(profile, 'strike');
   const state = professionCoreState(context);
-  pruneBattleScars(state, event.at);
-  if (!state.battleScars.length) return;
-  state.battleScars.pop();
+  const { expiries, consumed } = consumeNewestStacks(state.battleScars, 1, event.at);
+  state.battleScars = expiries;
+  if (!consumed) return;
   emitSkillDamage(context, {
     cause: event,
     at: event.at,

@@ -24,15 +24,16 @@ const config = {
   target: { armor: 2597 }
 };
 
-test('Firebrand public projections preserve configured pages and omit private charge state', () => {
-  // Live resources override inactive fallbacks while the shared charge object stays private.
+test('Firebrand public projections preserve configured pages and detach the canonical Ashes grant', () => {
+  // Public consumers read the canonical grant without sharing mutable runtime state.
   const state = createFirebrandState({ initialTomePages: 2, maximumTomePages: 8 });
   const { keys, defaults } = FIREBRAND_PUBLIC_STATE_PROJECTION;
   const projected = projectPublicProfessionState(state, keys, defaults);
   assert.equal(projected.tomePages, 2);
   assert.equal(projected.maximumTomePages, 8);
   assert.equal(defaults.tomePages, 5);
-  assert.equal(keys.includes('ashes'), false);
+  assert.deepEqual(projected.ashes, state.ashes);
+  assert.notEqual(projected.ashes, state.ashes);
 });
 
 test('Firebrand tomes consume shared pages and execute tome damage', () => {
@@ -56,7 +57,7 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.combatState.profession.ashesCharges, 0);
+  assert.equal(result.combatState.profession.ashes.charges, 0);
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Burning'));
   assert.ok(result.conditionBreakdown.some((row) => row.name === 'Bleeding'));
   assert.equal(
@@ -259,7 +260,7 @@ test('later tome pages do not restore consumed Ashes charges', () => {
   );
 
   assert.equal(personalBurns.length, 2);
-  assert.equal(result.combatState.profession.ashesCharges, 0);
+  assert.equal(result.combatState.profession.ashes.charges, 0);
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {

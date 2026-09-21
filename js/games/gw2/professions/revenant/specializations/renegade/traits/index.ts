@@ -5,6 +5,7 @@ import {
 } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -146,19 +147,15 @@ export function handleRenegadeCriticalTraitsTask(
 
 function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const razorclaw = renegadeState.from(context).razorclawsRage;
-  if (
-    Number(razorclaw?.charges || 0) <= 0 ||
-    event.at >= Number(razorclaw.expiresAt || 0) ||
-    !isInternalCooldownReady(event.at, Number(razorclaw.readyAt || 0))
-  ) {
-    return;
-  }
+  // Keep activation and same-timestamp gating even when the profile has zero ICD.
+  if (!isInternalCooldownReady(event.at, razorclaw.readyAt)) return;
 
   const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
   const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
   if (!profile || !effect) return;
-  razorclaw.charges -= 1;
-  razorclaw.readyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
+  const cooldown = Math.max(0, Number(profile.cooldown || 0));
+  if (!consumeCharge(razorclaw, event.at, cooldown)) return;
+  if (cooldown === 0) razorclaw.readyAt = event.at;
   emitSkillCondition(context, {
     cause: event,
     at: event.at,

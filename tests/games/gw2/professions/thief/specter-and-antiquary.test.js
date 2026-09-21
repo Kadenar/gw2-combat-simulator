@@ -1045,7 +1045,7 @@ test('Thief snapshots reconcile venom generations and detach fields at their dec
 test('Mistburn snapshots preserve spent charges until a new generation is granted', () => {
   // Scheduler snapshots repeat grants; only a new application may refill resolver-consumed charges.
   const result = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar']);
-  const snapshot = result.events.find((event) => event.type === 'thief.state' && event.state?.mistburnCharges > 0);
+  const snapshot = result.events.find((event) => event.type === 'thief.state' && event.state?.mistburn?.charges > 0);
   assert.ok(snapshot);
   const state = createAntiquaryState();
   const context = {
@@ -1053,17 +1053,17 @@ test('Mistburn snapshots preserve spent charges until a new generation is grante
   };
 
   handleThiefState(context, snapshot);
-  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges);
-  state.mistburnCharges -= 1;
+  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges);
+  state.mistburn.charges -= 1;
   handleThiefState(context, { ...snapshot, at: snapshot.at + 0.1 });
-  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges - 1);
+  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges - 1);
 
   handleThiefState(context, {
     ...snapshot,
     at: snapshot.at + 0.2,
     state: { ...snapshot.state, mistburnGeneration: snapshot.state.mistburnGeneration + 1 }
   });
-  assert.equal(state.mistburnCharges, snapshot.state.mistburnCharges);
+  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {
@@ -1447,8 +1447,8 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
 
   assert.equal(chakShield.breakdown.find((entry) => entry.name === 'Chak Shield').hits, 6);
   assert.ok(
-    mortar.planningState.profession.mistburnExpiresAt >
-      artifact('Mistburn Mortar').planningState.profession.mistburnExpiresAt
+    mortar.planningState.profession.mistburn.expiresAt >
+      artifact('Mistburn Mortar').planningState.profession.mistburn.expiresAt
   );
   assert.ok(
     turret.planningState.profession.kryptisDamageUntil >

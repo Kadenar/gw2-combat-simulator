@@ -164,7 +164,7 @@ test('Solar Focusing Lens preserves inclusive expiry without early activation or
   for (const at of [0.000999, 0.001, 1.039999, 1.04, 1.040001]) {
     const context = contextFor(engineerProfession, 'Holosmith', [HT.SOLAR_FOCUSING_LENS]);
     holosmithResolverEventHandlers['engineer.solar-focusing-lens'](context, { at: 0.001, duration: 1, stacks: 1 });
-    assert.equal(specialization(context).solarFocusingLensUntil, 1.04);
+    assert.equal(specialization(context).solarFocusingLens.expiresAt, 1.04);
     const hit = { actorType: 'player', coefficient: 1, at };
     assert.equal(Boolean(consumeSolarFocusingLens(context, hit)), at >= 0.001 && at <= 1.04);
     assert.equal(consumeSolarFocusingLens(context, hit), undefined);

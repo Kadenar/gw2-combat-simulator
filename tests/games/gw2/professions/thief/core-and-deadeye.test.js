@@ -18,7 +18,8 @@ import { daredevilModifierRules } from '#gw2/professions/thief/specializations/d
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
+import { deadeyeCastRules } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice-rules.js';
+import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
@@ -146,25 +147,24 @@ test('Endurance Thief is Daredevil-owned and commits between Core resource and f
 });
 
 // The scheduler and palette must agree on the Shadow Swap flip's lifetime.
-test('Deadeye availability reads live and expired flips from nested and flat Core state', () => {
+test('Deadeye scheduler and palette enforce the same flip expiry boundary', () => {
   const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
   const flare = thiefCatalog.skillsById.get(ID.SHADOW_FLARE);
-  for (const nested of [false, true]) {
-    for (const expiresAt of [undefined, 4, 5, 6]) {
-      const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: expiresAt } };
-      const context = { start: 5, state: { profession: nested ? { core } : core } };
-      const result = deadeyeCastAvailability(context, swap);
-      assert.equal(result.ready, expiresAt > 5);
-      if (!result.ready) {
-        assert.equal(result.code, 'thief.shadow-flare');
-        assert.equal(result.retryAt, null);
-      }
-
-      assert.equal(deadeyeCastAvailability(context, flare).ready, true);
+  for (const expiresAt of [undefined, 4, 5, 6]) {
+    const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: expiresAt } };
+    const context = { start: 5, state: { profession: { core, specialization: { kind: 'Deadeye', state: {} } } } };
+    const result = deadeyeCastRules.availability.handler(context, swap);
+    assert.equal(result.ready, expiresAt > 5);
+    if (!result.ready) {
+      assert.equal(result.code, 'thief.shadow-flare');
+      assert.equal(result.retryAt, null);
     }
+
+    assert.equal(deadeyeCastRules.availability.handler(context, flare).ready, true);
+    assert.equal(deadeyeUi.paletteSkillAvailability({ time: 5, professionState: core }, swap).available, result.ready);
   }
 
-  assert.equal(deadeyeCastAvailability({}, swap).ready, false);
+  assert.equal(deadeyeUi.paletteSkillAvailability({}, swap).available, false);
 });
 
 test('Thief catalog retains valid effect schemas and skill metadata', () => {

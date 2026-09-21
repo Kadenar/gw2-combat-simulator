@@ -29,9 +29,6 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;
-  readonly state?: {
-    readonly profession?: Partial<RevenantState>;
-  };
 }
 
 function revenantRuntimeState(context: RevenantModifierContext): object | undefined {

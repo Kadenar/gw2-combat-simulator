@@ -1,3 +1,5 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -79,8 +81,17 @@ function grantCombatHigh(context: ThiefSchedulerContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.COMBAT_HIGH)) return;
   const state = antiquaryState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.combatHigh);
-  state.combatHighStacks = Number(profile?.maximumStacks ?? 10);
-  state.combatHighExpiresAt = at + Number(profile?.durationMultiplier ?? 20);
+  const maximum = Math.max(0, Math.trunc(Number(profile?.maximumStacks ?? 10)));
+  const interval = Number(profile?.pulseInterval ?? 2);
+  const expiresAt = at + Number(profile?.durationMultiplier ?? 20);
+  // Replace the buff with staggered expiries, losing one stack per interval before the final deadline.
+  state.combatHighExpirations =
+    interval > 0
+      ? purgeExpiredStacks(
+          Array.from({ length: maximum }, (_, index) => expiresAt - index * interval),
+          at
+        )
+      : [];
 }
 
 // On an eligible Swipe, shorten only selected utility cooldowns that are still
@@ -162,8 +173,11 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
     state.stealthAttackCharges = Number(profile?.resourceGain ?? 3);
     state.stealthAttackExpiresAt = at + (meticulous ? enhancedDuration : standardDuration);
   } else if (skill.id === ID.MISTBURN_MORTAR) {
-    state.mistburnCharges = Number(profile?.playerStacks ?? 5);
-    state.mistburnExpiresAt = at + (meticulous ? enhancedDuration : standardDuration);
+    // A new Mortar replaces the grant; generation still distinguishes it from replayed snapshots.
+    state.mistburn = grantCharges(
+      Number(profile?.playerStacks ?? 5),
+      at + (meticulous ? enhancedDuration : standardDuration)
+    );
     state.mistburnGeneration += 1;
   } else if (skill.id === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
     state.kryptisDamageUntil =

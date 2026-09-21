@@ -6,31 +6,30 @@ import { revenantCorePaletteSkillAvailability } from '#gw2/professions/revenant/
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { applyVindicatorEnergyCostRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/energy-cost.js';
 
-test('Beguiling Haze follow-up charges waive only Beguiling Haze energy costs', () => {
-  const context = {
-    professionState: {
-      beguilingHazeCharges: 2,
-      energyCostOverrides: {}
-    }
-  };
+// Runtime ownership and the current palette projection must produce the same follow-up discount.
+for (const source of ['runtime', 'palette']) {
+  test(`Beguiling Haze follow-up charges waive only Beguiling Haze energy costs in ${source}`, () => {
+    const state = { beguilingHazeCharges: 2, energyCostOverrides: {} };
+    const context =
+      source === 'runtime'
+        ? { state: { profession: { core: {}, specialization: { kind: 'Conduit', state } } } }
+        : { professionState: state };
 
-  assert.equal(
-    applyConduitEnergyCostRules(context, { id: SKILL.BEGUILING_HAZE, handlerId: 'revenant.beguiling-haze' }, 20),
-    0
-  );
-  assert.equal(
-    applyConduitEnergyCostRules(context, { id: SKILL.HEX_EATER_VORTEX, handlerId: 'revenant.hex-eater-vortex' }, 15),
-    15
-  );
-  assert.equal(
-    applyConduitEnergyCostRules(
-      { professionState: { beguilingHazeCharges: 0, energyCostOverrides: {} } },
-      { id: SKILL.BEGUILING_HAZE, handlerId: 'revenant.beguiling-haze' },
+    assert.equal(
+      applyConduitEnergyCostRules(context, { id: SKILL.BEGUILING_HAZE, handlerId: 'revenant.beguiling-haze' }, 20),
+      0
+    );
+    assert.equal(
+      applyConduitEnergyCostRules(context, { id: SKILL.HEX_EATER_VORTEX, handlerId: 'revenant.hex-eater-vortex' }, 15),
+      15
+    );
+    state.beguilingHazeCharges = 0;
+    assert.equal(
+      applyConduitEnergyCostRules(context, { id: SKILL.BEGUILING_HAZE, handlerId: 'revenant.beguiling-haze' }, 20),
       20
-    ),
-    20
-  );
-});
+    );
+  });
+}
 
 test('Beguiling Haze follow-ups remain available in the palette below their base Energy cost', () => {
   const availability = revenantCorePaletteSkillAvailability(

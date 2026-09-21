@@ -1,4 +1,5 @@
-import type { RevenantChargeState, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
+import type { RevenantTimedStack } from '#gw2/professions/revenant/types.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -10,7 +11,7 @@ export interface RenegadeState {
   kallasFervor: RevenantTimedStack[];
   kallasFervorMaximumStacks: number;
   renegadeCriticalProgress: number;
-  razorclawsRage: RevenantChargeState;
+  razorclawsRage: ChargeGrant;
   endlessEnmityReadyAt: number;
   bloodFuryReadyAt: number;
   /** Scheduler-owned deadline for Brutal Momentum's Vigor reaction. */

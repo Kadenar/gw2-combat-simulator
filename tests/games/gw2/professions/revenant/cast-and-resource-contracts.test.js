@@ -12,13 +12,26 @@ import { createConduitState } from '#gw2/professions/revenant/specializations/co
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { releaseRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
-import { observeRenegadeTraits } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
+import {
+  observeRenegadeTraits,
+  handleRazorclawProcTask
+} from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
+import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
+import { completeBandTogether } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import {
   revenantEnduranceRegenerationRate,
   revenantEnduranceReadyAt,
   advanceRevenantEnergy
 } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import {
+  applyDanceOfDeath,
+  applyBattleScarred,
+  applyThrillOfCombat,
+  consumeBattleScar
+} from '#gw2/professions/revenant/core/traits/devastation.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 
 const baseConfig = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -103,13 +116,142 @@ function contextFor(specialization = 'Renegade', selectedTraitIds = []) {
   };
 }
 
+// Exercise charge ownership through real observers; Razorclaw must spend only when its impact task runs.
+for (const [name, skillId, cooldown] of [
+  ['Enchanted Daggers', SKILL.ENCHANTED_DAGGERS, 0.52],
+  ['Razorclaw without ICD', SKILL.RAZORCLAWS_RAGE, 0],
+  ['Razorclaw with patched ICD', SKILL.RAZORCLAWS_RAGE, 0.5]
+]) {
+  test(`${name} preserves replacement grants, eligibility, strict expiry, and cooldown boundaries`, () => {
+    const context = contextFor();
+    const daggers = skillId === SKILL.ENCHANTED_DAGGERS;
+    const owner = daggers ? context.state.profession.core : context.state.profession.specialization.state;
+    const key = daggers ? 'enchantedDaggers' : 'razorclawsRage';
+    const skill = revenantCatalog.skillsById.get(skillId);
+    const buff = skill.effects.find((effect) => effect.type === 'buff');
+    const proc = revenantCatalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
+    context.catalog = { ...revenantCatalog, skillsById: new Map(revenantCatalog.skillsById) };
+    context.catalog.skillsById.set(proc.id, { ...proc, cooldown });
+    context.config.allies = { count: 2, strikesPerSecond: 2 };
+    context.action = { cancelled: false };
+    const activate = (at) => {
+      context.start = at;
+      context.effectiveEnd = at;
+      if (daggers) activateEnchantedDaggers(context, skill);
+      else completeBandTogether(context, skill, { enhanced: true, profileSkillId: skillId });
+    };
+
+    const observe = daggers ? observeRevenantEvent : observeRenegadeTraits;
+    const strike = {
+      type: 'damage',
+      actorType: 'player',
+      coefficient: 1,
+      skillId: SKILL.PHASE_TRAVERSAL,
+      eventOrder: 7
+    };
+    const hit = (at, fields = {}) => {
+      const event = { ...strike, at, ...fields };
+      const tasks = [];
+      context.tasks.schedule = (task) => tasks.push(task);
+      const charges = owner[key].charges;
+      observe(context, event);
+      if (!daggers) {
+        assert.equal(owner[key].charges, charges, 'emitting a future hit must not spend charges');
+        context.eventByOrder = () => event;
+        for (const task of tasks) handleRazorclawProcTask(context, task);
+      }
+    };
+
+    activate(1);
+    assert.deepEqual(owner[key], { charges: buff.stacks, expiresAt: 1 + buff.duration, readyAt: 1 });
+    if (!daggers) assert.ok(context.events.some((event) => event.metadata?.triggeredByAlly));
+    for (const fields of [{ actorType: 'effect' }, { coefficient: 0 }, { skillId }]) hit(1.1, fields);
+    hit(0.9);
+    hit(1);
+    assert.equal(owner[key].charges, buff.stacks, 'ineligible hits and activation boundary cannot consume');
+    hit(1.1);
+    assert.equal(owner[key].charges, buff.stacks - 1);
+    assert.equal(owner[key].readyAt, 1.1 + cooldown);
+    if (daggers) {
+      const siphon = context.events.find((event) => event.type === 'damage' && event.skillId === skillId);
+      assert.equal(siphon.at, 1.1 + cooldown);
+      assert.equal(siphon.hitIndex, 1);
+      assert.equal(siphon.parentEventOrder, strike.eventOrder);
+    }
+
+    hit(1.1 + cooldown);
+    assert.equal(owner[key].charges, buff.stacks - 1, 'exact cooldown boundary remains blocked');
+    hit(1.101 + cooldown);
+    assert.equal(owner[key].charges, buff.stacks - 2);
+    activate(3);
+    assert.deepEqual(owner[key], { charges: buff.stacks, expiresAt: 3 + buff.duration, readyAt: 3 });
+    hit(owner[key].expiresAt);
+    assert.equal(owner[key].charges, buff.stacks, 'exact expiry cannot consume');
+    owner[key].charges = 1;
+    owner[key].expiresAt = 100;
+    hit(50);
+    hit(60);
+    assert.equal(owner[key].charges, 0, 'exhausted grants cannot underflow');
+  });
+}
+
+test('Razorclaw validates its proc profile before spending a charge', () => {
+  const context = contextFor();
+  const grant = { charges: 2, expiresAt: 10, readyAt: 0 };
+  context.state.profession.specialization.state.razorclawsRage = grant;
+  context.eventByOrder = () => ({ at: 1, eventOrder: 7 });
+  context.catalog = { ...revenantCatalog, skillsById: new Map(revenantCatalog.skillsById) };
+  for (const profile of [undefined, { effects: [] }]) {
+    context.catalog.skillsById.set(RENEGADE_PROFILE_IDS.razorclawsRageProc, profile);
+    handleRazorclawProcTask(context, { payload: { eventOrder: 7 } });
+    assert.deepEqual(grant, { charges: 2, expiresAt: 10, readyAt: 0 });
+    assert.deepEqual(context.events, []);
+  }
+});
+
+test('Battle Scars rejects overflow and consumes newest before longest-lived', () => {
+  const context = contextFor('Renegade', [TRAIT.BATTLE_SCARRED, TRAIT.DANCE_OF_DEATH]);
+  const core = context.state.profession.core;
+  const oldest = 30;
+  core.battleScars = [oldest, 10];
+  consumeBattleScar(context, { at: 2 });
+  assert.deepEqual(core.battleScars, [oldest]);
+  context.effectiveEnd = 3;
+  applyBattleScarred(context, { slot: 'Heal' });
+  assert.ok(core.battleScars.length > 1);
+  assert.ok(core.battleScars.slice(1).every((expiresAt) => expiresAt === 13));
+  applyDanceOfDeath(context, { at: 4, condition: 'Vulnerability', stacks: 100 });
+  const cap = context.catalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars).maximumStacks;
+  assert.equal(core.battleScars.length, cap);
+  const full = structuredClone(core.battleScars);
+  applyDanceOfDeath(context, { at: 5, condition: 'Vulnerability', stacks: 1 });
+  assert.deepEqual(core.battleScars, full, 'overflow cannot replace or refresh retained scars');
+  consumeBattleScar(context, { at: 14 });
+  assert.deepEqual(core.battleScars, [], 'exact expiry removes newer grants before consuming the oldest survivor');
+});
+
+test('Thrill of Combat catches up on its original cadence while capped grants remain rejected', () => {
+  const context = contextFor('Renegade', [TRAIT.THRILL_OF_COMBAT]);
+  const core = context.state.profession.core;
+  core.combatBeganAt = 0;
+  const profile = context.catalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+  context.catalog = { ...context.catalog, balanceProfilesById: new Map(context.catalog.balanceProfilesById) };
+  context.catalog.balanceProfilesById.set(profile.id, { ...profile, maximumStacks: 2 });
+  applyThrillOfCombat(context, { at: 3 });
+  assert.deepEqual(core.battleScars, [11, 12]);
+  assert.equal(core.nextThrillOfCombatAt, 4);
+  applyThrillOfCombat(context, { at: 12 });
+  assert.deepEqual(core.battleScars, [21, 22]);
+  assert.equal(core.nextThrillOfCombatAt, 13);
+});
+
 test('Core strike dispatch preserves upkeep, relic, trait, and dagger order with the original cause', () => {
   // One strike exercises the mixed dispatcher while queued upkeep remains separate from immediate reactions.
   const context = contextFor('Renegade', [TRAIT.VICIOUS_REPRISAL, TRAIT.EXPOSE_DEFENSES]);
   context.config.relic = 'Peitha';
   context.hasBuff = (kind) => kind === 'resolution';
   const core = context.state.profession.core;
-  core.battleScars = [{ at: 0, expiresAt: 10 }];
+  core.battleScars = [10];
   core.enchantedDaggers = { charges: 2, expiresAt: 10, readyAt: 0 };
   const order = [];
   const tasks = [];

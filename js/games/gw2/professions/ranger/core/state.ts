@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
@@ -24,7 +25,7 @@ export interface RangerCoreState {
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
   pendingFrostTrapEvents: SimulationEventInput[];
-  bloodThirstCharges: number;
+  bloodThirst: ChargeGrant;
   rejuvenationReadyAt: number;
   childOfEarthReadyAt: number;
   clarionBondReadyAt: number;
@@ -34,8 +35,7 @@ export interface RangerCoreState {
   playerOpeningStrikeReady: boolean;
   petOpeningStrikeReady: boolean;
   poisonMasterPetAttackReady: boolean;
-  poisonousStrikesCharges: number;
-  poisonousStrikesExpiresAt: number;
+  poisonousStrikes: ChargeGrant;
   sharpeningStoneExpirations: number[];
   petSwapCount: number;
   petAutoGeneration: number;
@@ -85,7 +85,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     quickDrawUntil: 0,
     trapCrippleActivations: {},
     pendingFrostTrapEvents: [],
-    bloodThirstCharges: 0,
+    bloodThirst: grantCharges(0, 0),
     rejuvenationReadyAt: 0,
     childOfEarthReadyAt: 0,
     clarionBondReadyAt: 0,
@@ -95,8 +95,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     playerOpeningStrikeReady: true,
     petOpeningStrikeReady: true,
     poisonMasterPetAttackReady: false,
-    poisonousStrikesCharges: 0,
-    poisonousStrikesExpiresAt: 0,
+    poisonousStrikes: grantCharges(0, 0),
     sharpeningStoneExpirations: [],
     petSwapCount: 0,
     petAutoGeneration: 0,
@@ -131,11 +130,8 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'quickDrawReadyAt',
   'quickDrawUntil',
   'trapCrippleActivations',
-  'bloodThirstCharges',
   'rejuvenationReadyAt',
   'childOfEarthReadyAt',
-  'poisonousStrikesCharges',
-  'poisonousStrikesExpiresAt',
   'sharpeningStoneExpirations',
   'clarionBondReadyAt',
   'petSwapCount',

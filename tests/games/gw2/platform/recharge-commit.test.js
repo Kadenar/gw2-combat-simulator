@@ -201,7 +201,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   // Grant order differs from expiry order: the first live grant must be consumed first.
   antiquary.holoUtilityCooldownReductionExpirations = [0, 10, 5];
   const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 10);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [10, 5]);
   assert.equal(Object.hasOwn(antiquary, 'holoUtilityCooldownReductionExpiresAt'), false);
   assert.equal(Object.hasOwn(snapshotThiefState(state.profession), 'holoUtilityCooldownReductionExpiresAt'), false);
   const placement = context.catalog.skillsByName.get('Prepare Thousand Needles');
@@ -217,12 +217,12 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   assert.ok(Math.abs(action.rechargeReadyAt - action.at - persistent * 0.2) < 1e-9);
   scheduler.advanceTo(action.endsAt);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [5]);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 5);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [5]);
 
   const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
   assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
   assert.deepEqual(scheduler.warnings, []);
 });
 
@@ -293,21 +293,21 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
   assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [35, 40]);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 40);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [35, 40]);
 
   scheduler.advanceTo(35);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [40]);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 40);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [40]);
 
   scheduler.advanceTo(40);
   // Natural expiry normalizes public output before any utility cast can prune it.
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
   const persistent = context.rechargeDurationFor(needles);
   assert.equal(scheduler.cast({ type: 'cast', skillId: needles.id }), true);
   const action = scheduler.events.findLast((event) => event.type === 'action');
   assert.equal(action.rechargeReadyAt - action.at, persistent);
   assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.equal(projected().holoUtilityCooldownReductionExpiresAt, 0);
+  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
   assert.equal(scheduler.warnings.length, 1);
 });

@@ -793,9 +793,7 @@ const guardianInactiveStateKeys = Object.freeze({
     'maximumTomePages',
     'tomePageInterval',
     'nextTomePageAt',
-    'ashesCharges',
-    'ashesNextTriggerAt',
-    'ashesExpiresAt',
+    'ashes',
     'nextCourageAegisAt',
     'tomeDormantReadyAt',
     'swiftScholarTome',
@@ -1226,7 +1224,7 @@ const engineerSlices = Object.freeze([
 ]);
 
 const engineerSpecializationStateKeys = Object.freeze({
-  Holosmith: ['heat', 'maximumHeat', 'photonForgeActive', 'overheated', 'solarFocusingLensStacks'],
+  Holosmith: ['heat', 'maximumHeat', 'photonForgeActive', 'overheated', 'solarFocusingLens'],
   Mechanist: ['mech'],
   Amalgam: ['selectedMorphSkillIds', 'evolvedUntil', 'plasmaticStateUntil']
 });

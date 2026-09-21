@@ -156,7 +156,8 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   if (!keys.length) return;
   for (const spell of ['nightmare', 'splinter']) {
     const active = ritualistState.from(context).weaponSpells?.[spell];
-    if (!active || Number(active.expiresAt || 0) <= event.at) continue;
+    // Each recipient grant owns its expiry and spending; the spell has no second deadline.
+    if (!active) continue;
     const definition = balanceProfileFromContext(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc

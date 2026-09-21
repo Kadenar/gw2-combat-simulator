@@ -1,3 +1,4 @@
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
   balanceProfileEffectFromContext,
@@ -22,10 +23,11 @@ import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializ
 /** Replaces Lens charges only when the Forge transition's grant reaches the resolver. */
 function handleSolarFocusingLens(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const state = holosmithState.from(context);
-  state.solarFocusingLensStacks = Number(event.stacks);
-  state.solarFocusingLensReadyAt = event.at;
   // Lens keeps its inclusive final-hit policy on the temporary-effect expiry tick.
-  state.solarFocusingLensUntil = gw2EffectExpiresAt(event.at, Number(event.duration));
+  state.solarFocusingLens = {
+    ...grantCharges(Number(event.stacks), gw2EffectExpiresAt(event.at, Number(event.duration))),
+    readyAt: event.at
+  };
 }
 
 /** Spends Lens charges in impact order, including strikes materialized by resolver handlers. */
@@ -40,13 +42,9 @@ export function consumeSolarFocusingLens(
   )
     return;
   const state = holosmithState.from(context);
-  if (
-    state.solarFocusingLensStacks <= 0 ||
-    event.at < state.solarFocusingLensReadyAt ||
-    event.at > state.solarFocusingLensUntil
-  )
+  // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
+  if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
     return;
-  state.solarFocusingLensStacks -= 1;
   const condition = balanceProfileEffectFromContext(context, PROFILE.solarFocusingLens, 'condition');
   context.queue.enqueue({
     type: 'condition',

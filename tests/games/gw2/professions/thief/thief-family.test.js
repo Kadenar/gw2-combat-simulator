@@ -124,7 +124,7 @@ const specializationStateKeys = Object.freeze({
     'artifactSlots',
     'artifactUsesRemaining',
     'activeAntiquarySummons',
-    'mistburnCharges',
+    'mistburn',
     'holoUtilityCooldownReductionExpirations'
   ]
 });
@@ -357,5 +357,5 @@ test('Thief public projection keeps inactive compatibility fields', () => {
   assert.equal(result.planningState.profession.shadowForce, 0);
   assert.deepEqual(result.planningState.profession.artifactSlots, []);
   assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
-  assert.equal(result.planningState.profession.holoUtilityCooldownReductionExpiresAt, 0);
+  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
 });

@@ -226,7 +226,8 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        charges: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'playerStacks', 3)
+        charges: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'playerStacks', 3),
+        duration: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'durationMultiplier', 12)
       });
     }
   }

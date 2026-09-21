@@ -679,7 +679,7 @@ test('Forceful Persistence counts active upkeeps additively with Ferocious Aggre
     },
     time: 1,
     event: { actorType: 'player' },
-    runtime: { profession: { activeUpkeeps: [] } }
+    runtime: { profession: { core: { activeUpkeeps: [] }, specialization: { kind: 'Herald', state: {} } } }
   };
   // Count skills rather than upkeep pips, including Nature alongside another legend's upkeep.
   for (const [skills, expected] of [
@@ -691,7 +691,7 @@ test('Forceful Persistence counts active upkeeps additively with Ferocious Aggre
     [[SKILL.FACET_OF_STRENGTH, SKILL.FACET_OF_NATURE], 1.3],
     [[SKILL.IMPOSSIBLE_ODDS, SKILL.FACET_OF_NATURE], 1.45]
   ]) {
-    context.runtime.profession.activeUpkeeps = skills.map((skillId) => ({ skillId }));
+    context.runtime.profession.core.activeUpkeeps = skills.map((skillId) => ({ skillId }));
     assert.ok(Math.abs(revenantAttributeRules.modifyStrikeDamage(context, 1) - expected) < 1e-9);
     assert.equal(revenantAttributeRules.modifyConditionDamage(context, 1), 1.1);
   }

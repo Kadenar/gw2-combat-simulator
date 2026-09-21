@@ -18,10 +18,7 @@ export interface GuardianFirebrandState {
   tomePageInterval: number;
   nextTomePageAt: number;
   ashes: ChargeGrant;
-  ashesCharges: number;
   ashesBurnDuration: number;
-  ashesNextTriggerAt: number;
-  ashesExpiresAt: number;
   nextCourageAegisAt: number;
   tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   swiftScholarTome: string;
@@ -66,26 +63,7 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
       hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? 5 : 8
     ),
     ashes: grantCharges(0, 0),
-    // Public compatibility fields project the shared grant instead of maintaining a second mutable counter.
-    get ashesCharges() {
-      return this.ashes.charges;
-    },
-    set ashesCharges(value: number) {
-      this.ashes.charges = value;
-    },
     ashesBurnDuration: 2,
-    get ashesNextTriggerAt() {
-      return this.ashes.readyAt ?? 0;
-    },
-    set ashesNextTriggerAt(value: number) {
-      this.ashes.readyAt = value;
-    },
-    get ashesExpiresAt() {
-      return this.ashes.expiresAt;
-    },
-    set ashesExpiresAt(value: number) {
-      this.ashes.expiresAt = value;
-    },
     nextCourageAegisAt: 0,
     tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: '',
@@ -104,8 +82,7 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   maximumTomePages: 5,
   tomePageInterval: 8,
   nextTomePageAt: Number.POSITIVE_INFINITY,
-  ashesCharges: 0,
-  ashesExpiresAt: 0,
+  ashes: grantCharges(0, 0),
   nextCourageAegisAt: 0,
   tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
   swiftScholarTome: '',

@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   definePublicStateDefaults,
@@ -17,18 +18,14 @@ export interface HolosmithState {
   photonForgeActive: boolean;
   forgeExitedAt: number | null;
   overheated: boolean;
-  solarFocusingLensStacks: number;
-  solarFocusingLensReadyAt: number;
-  solarFocusingLensUntil: number;
+  solarFocusingLens: ChargeGrant;
   enhancedCapacityMightReadyAt: number | null;
   kitLockoutUntil: number;
 }
 
 // These fields advance only in the resolver; scheduler snapshots cannot restore them.
 export const HOLOSMITH_RESOLVER_STATE_KEYS = Object.freeze([
-  'solarFocusingLensStacks',
-  'solarFocusingLensReadyAt',
-  'solarFocusingLensUntil'
+  'solarFocusingLens'
 ] as const satisfies readonly (keyof HolosmithState)[]);
 
 // Holosmith owns both its public projection keys and the inactive compatibility values.
@@ -38,9 +35,6 @@ export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   photonForgeActive: false,
   forgeExitedAt: null,
   overheated: false,
-  solarFocusingLensStacks: 0,
-  solarFocusingLensReadyAt: 0,
-  solarFocusingLensUntil: 0,
   kitLockoutUntil: 0
 } satisfies Partial<HolosmithState>);
 
@@ -62,9 +56,7 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
     // the passive cooling schedule starts immediately when initialHeat > 0.
     forgeExitedAt: initialHeat > 0 ? 0 : null,
     overheated: false,
-    solarFocusingLensStacks: 0,
-    solarFocusingLensReadyAt: 0,
-    solarFocusingLensUntil: 0,
+    solarFocusingLens: grantCharges(0, 0),
     enhancedCapacityMightReadyAt: null,
     kitLockoutUntil: 0
   };

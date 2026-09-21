@@ -1,10 +1,9 @@
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
-import type { NecromancerWeaponSpellRecipient } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
@@ -79,7 +78,7 @@ export function handleNecromancerWeaponSpell(
 ): void {
   if (!event.spell) return;
   // Player and summons/allies each get separate stack counters; allies get fewer stacks unless Wielder's Boon is active
-  const recipients: Record<string, NecromancerWeaponSpellRecipient> = {
+  const recipients: Record<string, ChargeGrant> = {
     player: grantCharges(Number(event.playerStacks || 0), event.at + Number(event.duration || 0))
   };
   for (const recipient of event.resolvedAudience?.companionIds || []) {
@@ -90,7 +89,6 @@ export function handleNecromancerWeaponSpell(
     skillId: event.skillId ?? undefined,
     skillName: event.skillName,
     appliedAt: event.at,
-    expiresAt: event.at + Number(event.duration || 0),
     recipients,
     alliesReceiveFullBenefit: Boolean(event.alliesReceiveFullBenefit)
   };

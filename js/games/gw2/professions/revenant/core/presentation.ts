@@ -36,7 +36,8 @@ function displayedRevenantEnergy(value: unknown): number {
 function effectiveEnergyCost(context: RevenantUiContext, skill: RevenantSkill): number {
   return effectiveRevenantEnergyCost(
     {
-      ...context,
+      config: context.config,
+      specialization: context.specialization,
       professionState: revenantUiState(context)
     },
     skill

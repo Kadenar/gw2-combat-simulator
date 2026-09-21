@@ -30,6 +30,19 @@ function ashesContext() {
   };
 }
 
+test('Ashes application requires a canonical grant and detaches resolver spending from the event', () => {
+  const context = ashesContext();
+  const apply = guardianTomeEventHandlers['guardian.ashes-granted'];
+  assert.throws(() => apply(context, { at: 1 }), /requires a charge grant/);
+  const ashes = { charges: 2, expiresAt: 10, readyAt: 3 };
+  apply(context, { at: 1, ashes, ashesBurnDuration: 2 });
+  const state = context.state.profession.specialization.state;
+  assert.deepEqual(state.ashes, ashes);
+  state.ashes.charges -= 1;
+  assert.equal(ashes.charges, 2);
+  assert.throws(() => apply(context, { at: 1, ashes: { charges: -1, expiresAt: 10 } }), /non-negative/);
+});
+
 test('Ashes grant, buff history, expiry event, and planning state share the effect-clock deadline', () => {
   const result = simulateGw2({
     profession: guardianProfession,
@@ -47,11 +60,11 @@ test('Ashes grant, buff history, expiry event, and planning state share the effe
   const [buff] = boonApplicationsAt(result.events, 'ashes-of-the-just', grant.at);
   const application = result.events.find((event) => event.type === 'buff' && event.kind === 'ashes-of-the-just');
   assert.ok(buff.expiresAt > grant.at + application.duration, 'off-grid application must reach the next effect tick');
-  assert.equal(grant.ashesExpiresAt, buff.expiresAt);
+  assert.equal(grant.ashes.expiresAt, buff.expiresAt);
   assert.equal(expiry.at, buff.expiresAt);
-  assert.equal(result.planningState.profession.ashesExpiresAt, buff.expiresAt);
-  assert.equal(result.planningState.profession.ashesCharges, 0);
-  assert.equal(result.combatState.profession.ashesCharges, 0);
+  assert.equal(result.planningState.profession.ashes.expiresAt, buff.expiresAt);
+  assert.equal(result.planningState.profession.ashes.charges, 0);
+  assert.equal(result.combatState.profession.ashes.charges, 0);
 });
 
 test('Ashes stays consumable through expiry, then resolver cleanup removes the remaining charges', () => {
@@ -59,7 +72,7 @@ test('Ashes stays consumable through expiry, then resolver cleanup removes the r
     for (const operation of ['hit', 'scheduler', 'resolver']) {
       const context = ashesContext();
       const state = context.state.profession.specialization.state;
-      Object.assign(state, { ashesCharges: 1, ashesExpiresAt: 10.6 });
+      state.ashes = { charges: 1, expiresAt: 10.6 };
       if (operation === 'hit') {
         reactToAshesHit(context, { at, actorType: 'player', coefficient: 1, skillName: 'Strike' }, { hitContext: {} });
         assert.equal(context.events.length, at <= 10.6 ? 1 : 0, `${operation} at ${at}`);
@@ -67,7 +80,7 @@ test('Ashes stays consumable through expiry, then resolver cleanup removes the r
         if (operation === 'scheduler') advanceTomeState(context, at);
         else guardianTomeEventHandlers['guardian.ashes-expired'](context, { at });
         const stillActive = operation === 'scheduler' ? at <= 10.6 : at < 10.6;
-        assert.equal(state.ashesCharges, Number(stillActive), `${operation} at ${at}`);
+        assert.equal(state.ashes.charges, Number(stillActive), `${operation} at ${at}`);
       }
     }
   }
@@ -77,19 +90,19 @@ test('Quickfire refresh preserves live charges and their trigger timer, but cann
   for (const at of [10.599999, 10.6]) {
     const context = ashesContext();
     const state = context.state.profession.specialization.state;
-    Object.assign(state, { ashesCharges: 2, ashesExpiresAt: 10.6, ashesNextTriggerAt: 11 });
+    state.ashes = { charges: 2, expiresAt: 10.6, readyAt: 11 };
     reactToFirebrandBuffTraits(context, {
       type: 'buff',
       kind: 'quickness',
       at,
       resolvedAudience: { includesSelf: true, alliedPlayerCount: 0 }
     });
-    assert.equal(state.ashesCharges, at < 10.6 ? 3 : 1);
-    assert.equal(state.ashesNextTriggerAt, at < 10.6 ? 11 : 0);
-    assert.equal(state.ashesExpiresAt, 20.6);
-    assert.equal(context.events[0].at, state.ashesExpiresAt);
+    assert.equal(state.ashes.charges, at < 10.6 ? 3 : 1);
+    assert.equal(state.ashes.readyAt, at < 10.6 ? 11 : 0);
+    assert.equal(state.ashes.expiresAt, 20.6);
+    assert.equal(context.events[0].at, state.ashes.expiresAt);
     guardianTomeEventHandlers['guardian.ashes-expired'](context, { at: 10.6 });
-    assert.equal(state.ashesCharges, at < 10.6 ? 3 : 1, 'stale expiry cannot clear the refreshed grant');
+    assert.equal(state.ashes.charges, at < 10.6 ? 3 : 1, 'stale expiry cannot clear the refreshed grant');
   }
 });
 
@@ -132,8 +145,7 @@ test('tome and Quickfire Ashes allow an expiry-time strike before cleanup regard
     {
       ...tomeEvents[0],
       at: 0,
-      ashesCharges: 1,
-      ashesExpiresAt: quickfireExpiry.at
+      ashes: { charges: 1, expiresAt: quickfireExpiry.at }
     },
     quickfireExpiry
   ];
@@ -166,7 +178,7 @@ test('tome and Quickfire Ashes allow an expiry-time strike before cleanup regard
           (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
         );
         assert.equal(burns.length, offset <= 0 ? 1 : 0, `strike offset ${offset}`);
-        assert.equal(result.combatState.profession.specialization.state.ashesCharges, 0);
+        assert.equal(result.combatState.profession.specialization.state.ashes.charges, 0);
       }
     }
   }

@@ -3,6 +3,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-p
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -241,8 +242,7 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
   const duration = Math.max(0, Number(buff.duration || 0));
   const charges = Math.max(0, Math.trunc(Number(buff.stacks || 0)));
   renegadeState.from(context).razorclawsRage = {
-    charges,
-    expiresAt: at + duration,
+    ...grantCharges(charges, at + duration),
     readyAt: at
   };
   const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {

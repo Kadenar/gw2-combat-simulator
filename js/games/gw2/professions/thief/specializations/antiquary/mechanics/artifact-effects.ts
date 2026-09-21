@@ -1,3 +1,4 @@
+import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -16,12 +17,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   )
     return;
   const state = antiquaryState.from(context);
-  if (
-    Number(state.mistburnCharges || 0) <= 0 ||
-    Number(state.mistburnExpiresAt || 0) <= event.at // charges expire together; window is independent of charge count
-  )
-    return;
-  state.mistburnCharges -= 1;
+  if (!consumeCharge(state.mistburn, event.at)) return;
   const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mistburnProc), 'condition');
   context.applyCondition({
     type: 'condition',

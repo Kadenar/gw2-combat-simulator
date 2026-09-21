@@ -60,12 +60,7 @@ export const deadeyeUi = Object.freeze({
     ];
   },
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
-    const result = deadeyeCastAvailability(
-      {
-        state: { profession: thiefUiState(context) }
-      },
-      skill
-    );
+    const result = deadeyeCastAvailability(thiefUiState(context).availableFlips, skill, Number(context.time || 0));
     return {
       available: result.ready,
       message: result.ready ? '' : result.reason

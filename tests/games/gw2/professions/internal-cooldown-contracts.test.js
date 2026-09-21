@@ -343,9 +343,9 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
 
 test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
   const state = createFirebrandState();
-  state.ashesCharges = 2;
-  state.ashesExpiresAt = 10;
-  state.ashesNextTriggerAt = READY_AT;
+  state.ashes.charges = 2;
+  state.ashes.expiresAt = 10;
+  state.ashes.readyAt = READY_AT;
   const { context, procs, conditions } = professionContext({
     id: 'guardian',
     catalog: guardianCatalog,
@@ -356,11 +356,11 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: READY_AT };
 
   reactToAshesHit(context, event, { hitContext: {} });
-  assert.equal(state.ashesCharges, 2);
+  assert.equal(state.ashes.charges, 2);
   assert.equal(conditions.length, 0);
 
   reactToAshesHit(context, { ...event, at: AFTER_READY_AT }, { hitContext: {} });
-  assert.equal(state.ashesCharges, 1);
+  assert.equal(state.ashes.charges, 1);
   assert.equal(conditions.length, 1);
   assert.equal(procs.length, 1);
 });

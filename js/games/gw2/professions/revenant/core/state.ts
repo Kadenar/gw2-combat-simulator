@@ -1,6 +1,7 @@
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
-import type { RevenantChargeState, RevenantConfig, RevenantTimedStack } from '#gw2/professions/revenant/types.js';
+import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -36,8 +37,8 @@ export interface RevenantCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
-  enchantedDaggers: RevenantChargeState;
-  battleScars: RevenantTimedStack[];
+  enchantedDaggers: ChargeGrant;
+  battleScars: number[];
   crushingAbyss: number[];
   combatBeganAt: number | null;
   nextThrillOfCombatAt: number | null;

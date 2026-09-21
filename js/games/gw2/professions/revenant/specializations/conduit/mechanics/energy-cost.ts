@@ -2,12 +2,11 @@ import { readProfessionSpecializationState } from '#gw2/platform/engine/professi
 import type { RevenantEnergyContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 
-// Extract Conduit specialization state only when that specialization is active,
-// preventing energy rules from reading another module's shape.
+// Runtime costs require Conduit's owned slice; the palette supplies its current public projection explicitly.
 function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitState> {
-  const schedulerState = context.state && 'profession' in context.state ? context.state : undefined;
-  const candidate = schedulerState?.profession ?? context.professionState ?? context.state ?? {};
-  return readProfessionSpecializationState<ConduitState>(candidate, 'Conduit') || {};
+  return context.state?.profession
+    ? readProfessionSpecializationState<ConduitState>(context.state.profession, 'Conduit') || {}
+    : (context.professionState ?? {});
 }
 
 /** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */

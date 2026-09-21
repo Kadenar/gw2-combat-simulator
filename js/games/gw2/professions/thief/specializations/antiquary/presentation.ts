@@ -12,7 +12,6 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
@@ -44,13 +43,14 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const combatHighRemaining = Number(state.combatHighExpiresAt || 0) - at;
-  const combatHighStacks = boundedInteger(state.combatHighStacks || 0, 0, 0, 10);
-  if (combatHighRemaining > 0 && combatHighStacks > 0) {
+  const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
+  if (combatHigh.length > 0) {
+    const maximum = balanceProfileValueFromContext(context, PROFILE.combatHigh, 'maximumStacks', 10);
+    const remaining = Math.max(...combatHigh) - at;
     items.push({
       id: 'antiquary-combat-high',
       label: 'Combat High',
-      value: `${combatHighStacks}/10 · ${combatHighRemaining.toFixed(1)}s`,
+      value: `${combatHigh.length}/${maximum} · ${remaining.toFixed(1)}s`,
       title: 'Combat High stacks and time until the remaining stacks decay'
     });
   }
@@ -79,9 +79,10 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
+  // Mistburn uses the same grant shape in runtime state and planning projections.
   for (const [id, label, chargesValue, expiresAt] of [
     ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.stealthAttackCharges, state.stealthAttackExpiresAt],
-    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburnCharges, state.mistburnExpiresAt]
+    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn?.charges, state.mistburn?.expiresAt]
   ] as const) {
     const remaining = Number(expiresAt || 0) - at;
     const charges = Math.max(0, Math.trunc(Number(chargesValue || 0)));

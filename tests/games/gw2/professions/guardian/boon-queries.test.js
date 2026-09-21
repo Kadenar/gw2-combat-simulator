@@ -85,5 +85,8 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
   assert.equal(core.righteousNextMightAt, 5);
   assert.equal(guardianBoonActive({ time: 6, runtime }, 'resolution'), true);
   assert.equal(guardianBoonActive({ time: 8, runtime }, 'resolution'), false);
-  assert.equal(guardianBoonActive({ time: 6, runtime: { profession: { resolutionUntil: 8 } } }, 'resolution'), true);
+  assert.equal(
+    guardianBoonActive({ time: 6, runtime: { profession: { core: { resolutionUntil: 8 } } } }, 'resolution'),
+    true
+  );
 });

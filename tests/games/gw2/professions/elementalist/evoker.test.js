@@ -91,7 +91,10 @@ test('Electric Enchantment consumes queued post-grant hits chronologically and o
   const zero = hit(3, { coefficient: 0 });
   grantElectricEnchantments(state, context.effectiveEnd, 1, 6);
   applyElectricEnchantmentsRetrospectively(context, state);
-  assert.equal(state.electricEnchantmentStacks, 0);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    0
+  );
   assert.equal(context.eventByOrder(earlier.eventOrder).electricEnchantmentConsumed, true);
   for (const event of [later, preGrant, precombat, summon, zero]) {
     assert.notEqual(context.eventByOrder(event.eventOrder).electricEnchantmentConsumed, true);
@@ -99,16 +102,28 @@ test('Electric Enchantment consumes queued post-grant hits chronologically and o
 
   grantElectricEnchantments(state, context.effectiveEnd, 2, 6);
   onEventScheduled(context, earlier);
-  assert.equal(state.electricEnchantmentStacks, 2);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    2
+  );
   applyElectricEnchantmentsRetrospectively(context, state);
   applyElectricEnchantmentsRetrospectively(context, state);
-  assert.equal(state.electricEnchantmentStacks, 1);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    1
+  );
   // A subsequently scheduled strike consumes the remaining charge exactly once.
   const forward = hit(5);
   assert.equal(context.eventByOrder(forward.eventOrder).electricEnchantmentConsumed, true);
-  assert.equal(state.electricEnchantmentStacks, 0);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    0
+  );
   onEventScheduled(context, forward);
-  assert.equal(state.electricEnchantmentStacks, 0);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    0
+  );
   const payloads = events.filter((event) => event.source === 'Electric Enchantment');
   assert.equal(payloads.length, 9);
   for (const event of payloads) {
@@ -147,16 +162,38 @@ test('Electric Enchantment keeps overlapping grants independent and preserves ch
   assert.notEqual(context.eventByOrder(future.eventOrder).electricEnchantmentConsumed, true);
   hit(8);
   assert.deepEqual(
-    state.electricEnchantmentGrants.map((grant) => grant.stacks),
+    state.electricEnchantmentGrants.map((grant) => grant.charges),
     [1, 2]
   );
   context.state.time = 9;
   hit(9);
-  assert.deepEqual(state.electricEnchantmentGrants, [{ at: 7, expiresAt: 13, stacks: 1 }]);
+  assert.deepEqual(state.electricEnchantmentGrants, [{ at: 7, expiresAt: 13, charges: 1, readyAt: 0 }]);
   context.state.time = 13;
   const expired = hit(13);
   assert.notEqual(context.eventByOrder(expired.eventOrder).electricEnchantmentConsumed, true);
-  assert.equal(state.electricEnchantmentStacks, 0);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    0
+  );
+});
+
+test('Electric Enchantment skips an earlier-expiring grant that has not activated yet', () => {
+  const { state, hit } = enchantmentHarness();
+  grantElectricEnchantments(state, 3, 1, 20);
+  grantElectricEnchantments(state, 7, 1, 1);
+  hit(6);
+  assert.deepEqual(
+    state.electricEnchantmentGrants.map(({ at, charges }) => [at, charges]),
+    [
+      [7, 1],
+      [3, 0]
+    ]
+  );
+  hit(7);
+  assert.equal(
+    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    0
+  );
 });
 
 test('Electric Enchantment spends the earliest expiry even when the shorter grant arrives later', () => {
@@ -165,7 +202,7 @@ test('Electric Enchantment spends the earliest expiry even when the shorter gran
   grantElectricEnchantments(state, 4, 1, 6);
   hit(5);
   assert.deepEqual(
-    state.electricEnchantmentGrants.map((grant) => [grant.expiresAt, grant.stacks]),
+    state.electricEnchantmentGrants.map((grant) => [grant.expiresAt, grant.charges]),
     [
       [10, 0],
       [13, 1]
@@ -173,40 +210,30 @@ test('Electric Enchantment spends the earliest expiry even when the shorter gran
   );
 });
 
-test('Familiar and meditation enchantments expire during idle time and cannot enhance a late strike', () => {
-  // Minimal native casts verify grant wiring and end-state cleanup without a saved rotation regression.
+test('Familiar and meditation enchantments cannot enhance a strike after their idle expiry', () => {
+  // Minimal native casts verify grant wiring and expiry through actual strike eligibility.
   for (const [skill, duration] of [
     ['Ignite', 6],
     ["Hare's Agility", 10]
   ]) {
     for (const wait of [duration - 1, duration + 1]) {
-      for (const strike of [false, true]) {
-        const result = runNative({
-          lines: [['Fire'], ['Air'], ['Evoker']],
-          rotation: [skill, wait * 1000, ...(strike ? ['Fire Strike'] : [])],
-          startAttunement: 'Fire',
-          weapons: ['Sword', 'Dagger'],
-          evokerElement: 'Fire',
-          selectedSkills: {
-            Heal: 'Rejuvenate',
-            Utility1: "Hare's Agility",
-            Utility2: 'Signet of Fire',
-            Utility3: 'Arcane Wave',
-            Elite: 'Elemental Procession'
-          }
-        });
-        assert.deepEqual(result.warnings, []);
-        if (strike) {
-          const attack = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fire Strike');
-          assert.equal(attack.electricEnchantmentConsumed === true, wait < duration, `${skill}: late strike`);
-        } else {
-          assert.equal(
-            result.planningState.profession.electricEnchantmentStacks > 0,
-            wait < duration,
-            `${skill}: idle expiry`
-          );
+      const result = runNative({
+        lines: [['Fire'], ['Air'], ['Evoker']],
+        rotation: [skill, wait * 1000, 'Fire Strike'],
+        startAttunement: 'Fire',
+        weapons: ['Sword', 'Dagger'],
+        evokerElement: 'Fire',
+        selectedSkills: {
+          Heal: 'Rejuvenate',
+          Utility1: "Hare's Agility",
+          Utility2: 'Signet of Fire',
+          Utility3: 'Arcane Wave',
+          Elite: 'Elemental Procession'
         }
-      }
+      });
+      assert.deepEqual(result.warnings, []);
+      const attack = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fire Strike');
+      assert.equal(attack.electricEnchantmentConsumed === true, wait < duration, `${skill}: late strike`);
     }
   }
 });
@@ -680,8 +707,6 @@ test("Hare's Agility cannot spend new charges on pre-grant strikes", () => {
   assert.ok(grant);
   assert.ok(enchantments.length > 0);
   assert.ok(enchantments.every((event) => event.at >= grant.at));
-  // The meditation's own strike may consume one charge at the grant boundary.
-  assert.equal(result.planningState.profession.electricEnchantmentStacks, 4);
 });
 
 test('Specialized Elements forces and locks the selected attunement', () => {

@@ -213,10 +213,9 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     state.ashesBurnDuration = Number(burn?.duration ?? 2);
     emitGuardianEvent(context, skill, 'guardian.ashes-granted', {
       at,
-      ashesCharges: state.ashesCharges,
-      ashesBurnDuration: state.ashesBurnDuration,
-      ashesNextTriggerAt: state.ashesNextTriggerAt,
-      ashesExpiresAt: state.ashesExpiresAt
+      // Detach the grant so later scheduler consumption cannot rewrite the application event.
+      ashes: { ...state.ashes },
+      ashesBurnDuration: state.ashesBurnDuration
     });
     emitSkillBuff(context, {
       at,
@@ -227,7 +226,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
       skillName: skill.name,
       name: 'Ashes of the Just',
       kind: 'ashes-of-the-just',
-      stacks: state.ashesCharges,
+      stacks: state.ashes.charges,
       duration: ashesDuration,
       audience: { recipients: 'party' as const }
     });
@@ -246,8 +245,8 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
     });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,
-      duration: state.ashesExpiresAt - at,
-      maximumPerAlly: state.ashesCharges,
+      duration: state.ashes.expiresAt - at,
+      maximumPerAlly: state.ashes.charges,
       internalCooldown: Number(ashes?.internalCooldown ?? 1)
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
@@ -267,15 +266,14 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
 
     context.emit({
       type: 'guardian.ashes-expired',
-      at: state.ashesExpiresAt,
+      at: state.ashes.expiresAt,
       // Consume charges on expiry-tick strikes before removing the remaining effect.
       priority: 10,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
       skillId: skill.id,
-      skillName: skill.name,
-      ashesExpiresAt: state.ashesExpiresAt
+      skillName: skill.name
     });
   }
 }
@@ -309,11 +307,9 @@ function handleTomePageUsed(context: GuardianResolverContext, event: GuardianRes
 /** Arms charges at their application event; later page snapshots cannot restore consumed charges. */
 function handleAshesGranted(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = firebrandState.from(context);
-  state.ashes = grantCharges(
-    Number(event.ashesCharges ?? state.ashes.charges),
-    Number(event.ashesExpiresAt ?? state.ashes.expiresAt)
-  );
-  state.ashes.readyAt = Number(event.ashesNextTriggerAt ?? 0);
+  if (!event.ashes) throw new TypeError('Ashes application requires a charge grant.');
+  state.ashes = grantCharges(event.ashes.charges, event.ashes.expiresAt);
+  state.ashes.readyAt = event.ashes.readyAt ?? 0;
   state.ashesBurnDuration = Number(event.ashesBurnDuration ?? state.ashesBurnDuration);
 }
 

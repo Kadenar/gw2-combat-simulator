@@ -1,3 +1,4 @@
+import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -111,17 +112,16 @@ function queueCondition(
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
 function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
   const core = professionCoreState(context);
-  if (event.at > core.poisonousStrikesExpiresAt) core.poisonousStrikesCharges = 0;
+  expireCharges(core.poisonousStrikes, event.at, true);
   if (
     !soulbeastState.from(context).beastmodeActive ||
-    core.poisonousStrikesCharges <= 0 ||
     !isPlayerStrike(event) ||
-    !(Number(event.coefficient) > 0)
+    !(Number(event.coefficient) > 0) ||
+    !consumeCharge(core.poisonousStrikes, event.at, 0, true)
   ) {
     return;
   }
 
-  core.poisonousStrikesCharges -= 1;
   const poison = profileEffect(context, CORE_PROFILE.poisonousStrikes, 'condition');
   context.queue.enqueue({
     type: 'condition',

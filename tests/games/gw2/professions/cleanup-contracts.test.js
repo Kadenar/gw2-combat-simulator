@@ -235,7 +235,13 @@ test('Fervor counting preserves start, expiry, and cap boundaries on readonly pa
 
 // Display labels cannot grant another skill's resonance or suppress a valid proc.
 test('Conduit modifiers and Peitha follow all supported button IDs after renaming', () => {
-  const context = { config: {}, time: 0, runtime: { profession: { selectedLegendIds: [LEGEND.ASSASSIN] } } };
+  const context = {
+    config: {},
+    time: 0,
+    runtime: {
+      profession: { core: { selectedLegendIds: [LEGEND.ASSASSIN] }, specialization: { kind: 'Conduit', state: {} } }
+    }
+  };
   for (const [suffix, ids] of [
     ['release-dervish-assassin-affinity', [R.RELEASE_POTENTIAL_DERVISH, R.RELEASE_POTENTIAL_ASSASSIN]],
     ['release-warrior-affinity', [R.RELEASE_POTENTIAL_WARRIOR]],

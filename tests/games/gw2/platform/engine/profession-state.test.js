@@ -49,7 +49,7 @@ test('generic scheduler state contains no profession-specific fields', () => {
   assert.equal(Object.hasOwn(state, 'numericResource'), false);
 });
 
-test('compatible profession-state reads accept nested and flat state without crossing specialization kinds', () => {
+test('profession-state reads require nested ownership and cannot cross specialization kinds', () => {
   const core = { resource: 10 };
   const specialization = { charge: 2 };
   const runtime = {
@@ -58,10 +58,10 @@ test('compatible profession-state reads accept nested and flat state without cro
   };
 
   assert.equal(readProfessionCoreState(runtime), core);
-  assert.equal(readProfessionCoreState(core), core);
+  assert.deepEqual(readProfessionCoreState(core), {});
   assert.equal(readProfessionSpecializationState(runtime, 'Example'), specialization);
   assert.equal(readProfessionSpecializationState(runtime, 'Other'), undefined);
-  assert.equal(readProfessionSpecializationState(specialization, 'Example'), specialization);
+  assert.equal(readProfessionSpecializationState(specialization, 'Example'), undefined);
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 

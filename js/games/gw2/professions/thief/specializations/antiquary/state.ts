@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -34,10 +35,8 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   activeAntiquarySummons: ThiefAntiquarySummon[];
   nextSkrittScufflePilferAt: number;
   antiquaryDamageUntil: number;
-  combatHighExpiresAt: number;
-  combatHighStacks: number;
-  mistburnCharges: number;
-  mistburnExpiresAt: number;
+  combatHighExpirations: number[];
+  mistburn: ChargeGrant;
   mistburnGeneration: number;
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
@@ -61,12 +60,10 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     activeAntiquarySummons: [],
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,
-    combatHighExpiresAt: 0,
-    combatHighStacks: 0,
+    combatHighExpirations: [],
     stealthAttackCharges: 0,
     stealthAttackExpiresAt: 0,
-    mistburnCharges: 0,
-    mistburnExpiresAt: 0,
+    mistburn: grantCharges(0, 0),
     // Snapshot reconciliation uses this identity to preserve charges already spent by the resolver.
     mistburnGeneration: 0,
     kryptisDamageUntil: 0,
@@ -94,12 +91,10 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeAntiquarySummons: [],
   nextSkrittScufflePilferAt: 0,
   antiquaryDamageUntil: 0,
-  combatHighExpiresAt: 0,
-  combatHighStacks: 0,
+  combatHighExpirations: [],
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,
-  mistburnCharges: 0,
-  mistburnExpiresAt: 0,
+  mistburn: grantCharges(0, 0),
   kryptisDamageUntil: 0,
   chakInitiativeRefundUntil: 0,
   holoUtilityCooldownReductionExpirations: [],
