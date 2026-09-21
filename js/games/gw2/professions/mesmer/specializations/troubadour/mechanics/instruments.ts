@@ -1,4 +1,5 @@
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -8,7 +9,10 @@ import {
   balanceProfileValueFromContext as profileValue
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import {
+  activeTroubadourInstrumentsAt,
+  troubadourState
+} from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -135,6 +139,7 @@ function instrumentAttack(
 
 /** Spends notes and commits the active-instrument state after its cast completes. */
 function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: MesmerInstrument, at: number): void {
+  at = canonicalTime(at);
   const runtime = mesmerRuntimeFor(context);
   const spent = runtime.actions.consumeResources(at, {
     sourceSkill: skill.name,
@@ -142,7 +147,8 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
   });
   const baseDuration = profileValue(runtime, PROFILE.instruments, 'durationMultiplier', 5);
   const durationPerNote = profileValue(runtime, PROFILE.instruments, 'durationPerTier', 5);
-  const expiresAt = at + baseDuration + spent * durationPerNote;
+  // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
+  const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context);
   state.instruments[data.instrument] = expiresAt;
   state.lastInstrument = data.instrument;
@@ -186,15 +192,15 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
 function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: number): void {
   const runtime = mesmerRuntimeFor(context);
   const state = troubadourState.from(context);
-  const damageAt = context.start + Number(skill.damageAtMs || 0) / 1000;
-  const activeInstruments = Object.entries(state.instruments).filter(([, expiresAt]) => expiresAt > damageAt);
+  const damageAt = canonicalTime(context.start + Number(skill.damageAtMs || 0) / 1000);
+  const activeInstruments = activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), damageAt);
   const strike = profileEffect(runtime, PROFILE.crescendo, 'strike');
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
     ? profileValue(runtime, TRAIT.MASTER_OF_FRAGMENTATION, 'damageIncreasePerStack', 0.3)
     : profileValue(runtime, PROFILE.crescendo, 'damageIncreasePerStack', 0.25);
   runtime.addDamage(skill, damageAt, {
-    coefficient: Number(strike?.coefficient ?? 2.25) * (1 + activeInstruments.length * effectiveness),
+    coefficient: Number(strike?.coefficient ?? 2.25) * (1 + activeInstruments.size * effectiveness),
     hits: Number(strike?.hits ?? 1),
     source: 'Player',
     weaponStrengthProfileId: 'nonweapon.profession-mechanic'

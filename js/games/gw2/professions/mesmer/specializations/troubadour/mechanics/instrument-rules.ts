@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -8,7 +7,10 @@ import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/traits
 import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
-import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import {
+  activeTroubadourInstrumentsAt,
+  troubadourState
+} from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -44,34 +46,15 @@ function instrumentChecksEnabled(context: Gw2ModifierContext): boolean {
   return !specialization || specialization === 'Troubadour';
 }
 
-/** Prevents a newly committed instrument from affecting earlier events at the same timestamp. */
-function instrumentStarted(context: Gw2ModifierContext, event: SimulationEvent): boolean {
-  if (event.at !== context.time) return event.at < context.time;
-  const instrumentOrder = Number(event.eventOrder);
-  const currentOrder = Number(context.event?.eventOrder);
-  return !Number.isFinite(instrumentOrder) || !Number.isFinite(currentOrder) || instrumentOrder <= currentOrder;
-}
-
-// Count distinct, unexpired instruments at the query time so repeated events for
-// one performance cannot inflate Fortissimo.
+// Damage modifiers and historical skill queries share the scheduler's replacement and expiry policies.
 function activeInstrumentCount(context: Gw2ModifierContext): number {
   if (!instrumentChecksEnabled(context)) return 0;
-  const active = new Set<string>();
-  for (const event of instrumentEvents(context)) {
-    if (instrumentStarted(context, event) && Number(event.expiresAt || 0) > context.time) {
-      active.add(String(event.instrument || ''));
-    }
-  }
-
-  return active.size;
+  return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).size;
 }
 
 function hasLute(context: Gw2ModifierContext): boolean {
   if (!instrumentChecksEnabled(context)) return false;
-  return instrumentEvents(context).some(
-    (event) =>
-      event.instrument === 'Lute' && instrumentStarted(context, event) && Number(event.expiresAt || 0) > context.time
-  );
+  return activeTroubadourInstrumentsAt(instrumentEvents(context), context.time, context.event).has('Lute');
 }
 
 // Scale every primary combat attribute once per active instrument when Fortissimo
@@ -143,11 +126,11 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
   );
 }
 
-/** Expires Troubadour instruments when their performance duration ends. */
+/** Expires instruments at their exact exclusive deadline, matching damage queries and the palette. */
 function advanceTroubadourScheduler(context: MesmerSchedulerContext, target: number): void {
   const instruments = troubadourState.from(context).instruments;
   for (const [instrument, expiresAt] of Object.entries(instruments)) {
-    if (expiresAt <= target + EPSILON) delete instruments[instrument];
+    if (expiresAt <= target) delete instruments[instrument];
   }
 }
 

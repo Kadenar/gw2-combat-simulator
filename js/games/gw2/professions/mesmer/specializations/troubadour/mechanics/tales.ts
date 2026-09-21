@@ -2,7 +2,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -12,6 +12,7 @@ interface TroubadourTaleInvocation {
   readonly skill: MesmerSkill;
   readonly at: number;
   readonly castStart: number;
+  readonly activationId?: string;
 }
 
 const TALE_PROFILE_IDS: Readonly<Record<number, string>> = Object.freeze({
@@ -35,7 +36,7 @@ function restoreHonorableRogueEndurance(context: MesmerSchedulerContext, at: num
 }
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
-export function resolveTroubadourTale({ context, skill, at, castStart }: TroubadourTaleInvocation): void {
+export function resolveTroubadourTale({ context, skill, at, castStart, activationId }: TroubadourTaleInvocation): void {
   const runtime = mesmerRuntimeFor(context);
   const profileId = TALE_PROFILE_IDS[skill.id];
   const profile = profileId ? runtime.balanceProfile(profileId) : null;
@@ -55,7 +56,14 @@ export function resolveTroubadourTale({ context, skill, at, castStart }: Troubad
   }
 
   const requiredInstrument = TALE_INSTRUMENTS[skill.id];
-  if (requiredInstrument && Number(troubadourState.from(context).instruments[requiredInstrument] || 0) > castStart) {
+  // Completion can follow expiry or another performance; award the note from the instrument present at cast start.
+  const action = activationId
+    ? context.eventsOfType('action').find((event) => event.activationId === activationId)
+    : undefined;
+  if (
+    requiredInstrument &&
+    activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), castStart, action).has(requiredInstrument)
+  ) {
     runtime.resources.queueResources(at, Number(profile?.resourceGain ?? 1), runtime.activePrimaryWeapon(), skill.name);
   }
 

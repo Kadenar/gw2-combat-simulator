@@ -1,4 +1,4 @@
-import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -107,8 +107,9 @@ export function projectMesmerPlanningState({
     };
   }
 
+  // The palette retains each exact playing window through its final live microsecond.
   const activeInstruments = Object.entries(publicState.instruments || {})
-    .filter(([, expiresAt]) => expiresAt > endTime + EPSILON)
+    .filter(([, expiresAt]) => expiresAt > endTime)
     .map(([name, expiresAt]) => ({
       name,
       expiresAt: Math.round(expiresAt * 1000),
