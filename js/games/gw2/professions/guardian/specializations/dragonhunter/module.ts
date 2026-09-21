@@ -1,5 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onResolvedControl, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { dragonhunterSkillHandlers } from '#gw2/professions/guardian/specializations/dragonhunter/execution/virtues.js';
 import {
@@ -36,12 +35,7 @@ export const dragonhunterModule = defineNativeModule({
       hooks: dragonhunterSchedulerHooks
     },
     resolution: {
-      reactions: [
-        // onResolvedDamage/onResolvedControl wrap the handlers so they fire on
-        // "damage.resolved" / control events in resolver order, not as raw event handlers
-        ...dragonhunterEventReactions.damage.map(onResolvedDamage),
-        ...dragonhunterEventReactions.control.map(onResolvedControl)
-      ],
+      reactions: dragonhunterEventReactions,
       hooks: { eventHandlers: dragonhunterEventHandlers }
     }
   },

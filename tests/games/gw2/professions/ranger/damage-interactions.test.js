@@ -49,7 +49,9 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     coefficient: 1,
     activationId: 'trap-1'
   };
-  const react = rangerCoreEventReactions.damage.find(({ id }) => id === 'ranger.core-damage').handler;
+  const react = rangerCoreEventReactions.find(
+    ({ stage, id }) => stage === 'damage.resolved' && id === 'ranger.core-damage'
+  ).handler;
   const initialState = structuredClone(state);
   for (const excluded of [
     { coefficient: 0 },

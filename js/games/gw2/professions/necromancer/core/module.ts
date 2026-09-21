@@ -1,10 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  onConditionApplied,
-  onResolvedBlind,
-  onResolvedControl,
-  onResolvedDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import {
   necromancerCoreAttributeRules,
@@ -60,12 +54,7 @@ export const necromancerCoreModule = defineNativeModule({
     },
     resolution: {
       hooks: { eventHandlers: necromancerCoreResolverEventHandlers },
-      reactions: [
-        ...necromancerCoreResolverEventReactions.damage.map(onResolvedDamage),
-        ...necromancerCoreResolverEventReactions.blind.map(onResolvedBlind),
-        ...necromancerCoreResolverEventReactions.control.map(onResolvedControl),
-        ...necromancerCoreResolverEventReactions.condition.map(onConditionApplied)
-      ]
+      reactions: necromancerCoreResolverEventReactions
     }
   },
   presentation: bindNecromancerCoreUi

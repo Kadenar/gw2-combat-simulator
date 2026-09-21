@@ -1,5 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onBuffApplied, onResolvedDamage, skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
+import { skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandSkillHandlers } from '#gw2/professions/guardian/specializations/firebrand/execution/index.js';
 import {
@@ -36,10 +36,7 @@ export const firebrandModule = defineNativeModule({
       hooks: firebrandSchedulerHooks
     },
     resolution: {
-      reactions: [
-        ...firebrandEventReactions.damage.map(onResolvedDamage),
-        ...firebrandEventReactions.buff.map(onBuffApplied)
-      ],
+      reactions: firebrandEventReactions,
       hooks: {
         eventHandlers: firebrandEventHandlers
       }

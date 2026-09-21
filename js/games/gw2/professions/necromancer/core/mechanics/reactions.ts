@@ -1,4 +1,10 @@
 import {
+  onResolvedDamage,
+  onResolvedBlind,
+  onResolvedControl,
+  onConditionApplied
+} from '#gw2/platform/profession-definition/mechanics.js';
+import {
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack
 } from '#gw2/professions/necromancer/core/mechanics/event-handlers.js';
@@ -27,42 +33,34 @@ export const necromancerCoreResolverEventHandlers = Object.freeze({
 });
 
 /**
- * Ordered Core reaction descriptors consumed by the native module wiring.
+ * Tag Core reactions here so modules consume their stages and registration order directly.
  * Order zero preserves the previous Core-before-specialization dispatch order.
  */
-export const necromancerCoreResolverEventReactions = Object.freeze({
-  damage: Object.freeze([
-    // Skill-owned health and resource effects run on each resolved axe packet before trait reactions.
-    {
-      id: 'necromancer.core.axe-damage',
-      order: -10,
-      handler: reactToNecromancerAxeDamage
-    },
-    {
-      id: 'necromancer.core.damage',
-      order: 0,
-      handler: reactToNecromancerCoreDamage
-    }
-  ]),
-  condition: Object.freeze([
-    {
-      id: 'necromancer.core.condition',
-      order: 0,
-      handler: reactToNecromancerCoreCondition
-    }
-  ]),
-  blind: Object.freeze([
-    {
-      id: 'necromancer.core.blind',
-      order: 0,
-      handler: reactToNecromancerBlind
-    }
-  ]),
-  control: Object.freeze([
-    {
-      id: 'necromancer.core.control',
-      order: 0,
-      handler: reactToNecromancerCoreControl
-    }
-  ])
-});
+export const necromancerCoreResolverEventReactions = Object.freeze([
+  // Skill-owned health and resource effects run on each resolved axe packet before trait reactions.
+  onResolvedDamage({
+    id: 'necromancer.core.axe-damage',
+    order: -10,
+    handler: reactToNecromancerAxeDamage
+  }),
+  onResolvedDamage({
+    id: 'necromancer.core.damage',
+    order: 0,
+    handler: reactToNecromancerCoreDamage
+  }),
+  onResolvedBlind({
+    id: 'necromancer.core.blind',
+    order: 0,
+    handler: reactToNecromancerBlind
+  }),
+  onResolvedControl({
+    id: 'necromancer.core.control',
+    order: 0,
+    handler: reactToNecromancerCoreControl
+  }),
+  onConditionApplied({
+    id: 'necromancer.core.condition',
+    order: 0,
+    handler: reactToNecromancerCoreCondition
+  })
+]);

@@ -1,5 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onBuffApplied, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import {
   WARRIOR_CORE_SKILL_MECHANICS,
@@ -49,10 +48,7 @@ export const warriorCoreModule = defineNativeModule({
       hooks: {
         eventHandlers: warriorCoreEventHandlers
       },
-      reactions: [
-        ...warriorCoreEventReactions.damage.map(onResolvedDamage),
-        ...warriorCoreEventReactions.buff.map(onBuffApplied)
-      ]
+      reactions: warriorCoreEventReactions
     }
   },
   presentation: bindWarriorCoreUi

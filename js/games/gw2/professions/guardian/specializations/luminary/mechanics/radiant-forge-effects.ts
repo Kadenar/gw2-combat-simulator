@@ -1,3 +1,4 @@
+import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { guardianRadiantForgeEventHandlers } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { reactToLuminaryJusticeHit } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
 import {
@@ -20,19 +21,18 @@ export const luminaryEventHandlers = Object.freeze({
   'guardian.luminary.light-aura-grant': handleLightAuraGrant
 });
 
-export const luminaryEventReactions = Object.freeze({
-  damage: Object.freeze([
-    {
-      // order 16 intentionally runs before justice (20) so stack count is
-      // up-to-date if a justice proc fires on the same damage packet.
-      id: 'guardian.luminary.effulgent',
-      order: 16,
-      handler: reactToEffulgentStrike
-    },
-    {
-      id: 'guardian.luminary.justice',
-      order: 20,
-      handler: reactToLuminaryJusticeHit
-    }
-  ])
-});
+// Tag reactions here so module composition preserves their stage and registration order.
+export const luminaryEventReactions = Object.freeze([
+  onResolvedDamage({
+    // order 16 intentionally runs before justice (20) so stack count is
+    // up-to-date if a justice proc fires on the same damage packet.
+    id: 'guardian.luminary.effulgent',
+    order: 16,
+    handler: reactToEffulgentStrike
+  }),
+  onResolvedDamage({
+    id: 'guardian.luminary.justice',
+    order: 20,
+    handler: reactToLuminaryJusticeHit
+  })
+]);

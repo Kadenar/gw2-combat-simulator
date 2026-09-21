@@ -1,10 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  onBuffApplied,
-  onResolvedControl,
-  onResolvedCriticalHit,
-  onResolvedDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import {
   rangerCoreSkillHandlers,
@@ -44,12 +38,7 @@ export const rangerCoreModule = defineNativeModule({
     },
     resolution: {
       hooks: { eventHandlers: rangerCoreEventHandlers },
-      reactions: [
-        ...rangerCoreEventReactions.critical.map(onResolvedCriticalHit),
-        ...rangerCoreEventReactions.damage.map(onResolvedDamage),
-        ...rangerCoreEventReactions.control.map(onResolvedControl),
-        ...rangerCoreEventReactions.buff.map(onBuffApplied)
-      ]
+      reactions: rangerCoreEventReactions
     }
   },
   presentation: bindRangerCoreUi

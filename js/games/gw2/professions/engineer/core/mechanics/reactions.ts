@@ -1,4 +1,9 @@
 import {
+  onResolvedCriticalHit,
+  onResolvedDamage,
+  onConditionApplied
+} from '#gw2/platform/profession-definition/mechanics.js';
+import {
   handleAirBlast,
   handleConduitSurge,
   handleElectricArtillery,
@@ -34,21 +39,17 @@ export const engineerCoreResolverEventHandlers = Object.freeze({
   'engineer.electric-artillery': handleElectricArtillery
 });
 
-// reactions fire after every resolved damage or applied condition, regardless of event type
-export const engineerCoreResolverEventReactions = Object.freeze({
-  critical: engineerCoreCriticalHitDefinitions,
-  damage: Object.freeze([
-    {
-      id: 'engineer.core.damage',
-      order: 0,
-      handler: reactToEngineerDamage
-    }
-  ]),
-  condition: Object.freeze([
-    {
-      id: 'engineer.core.condition',
-      order: 0,
-      handler: reactToEngineerCondition
-    }
-  ])
-});
+// Tag reactions here so module composition preserves their stage and registration order.
+export const engineerCoreResolverEventReactions = Object.freeze([
+  ...engineerCoreCriticalHitDefinitions.map(onResolvedCriticalHit),
+  onResolvedDamage({
+    id: 'engineer.core.damage',
+    order: 0,
+    handler: reactToEngineerDamage
+  }),
+  onConditionApplied({
+    id: 'engineer.core.condition',
+    order: 0,
+    handler: reactToEngineerCondition
+  })
+]);

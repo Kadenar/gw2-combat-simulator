@@ -1,5 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { luminarySkillHandlers } from '#gw2/professions/guardian/specializations/luminary/execution/index.js';
 import {
@@ -43,9 +42,7 @@ export const luminaryModule = defineNativeModule({
       hooks: luminarySchedulerHooks
     },
     resolution: {
-      // .map(onResolvedDamage) wraps each reaction so it only fires after damage
-      // has been numerically resolved rather than at raw event time.
-      reactions: luminaryEventReactions.damage.map(onResolvedDamage),
+      reactions: luminaryEventReactions,
       hooks: { eventHandlers: luminaryEventHandlers }
     }
   },

@@ -1,3 +1,9 @@
+import {
+  onResolvedCriticalHit,
+  onResolvedDamage,
+  onResolvedControl,
+  onBuffApplied
+} from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeOpeningStrike, triggerHuntersGaze } from '#gw2/professions/ranger/core/traits/marksmanship.js';
 import { triggerGoForTheThroat } from '#gw2/professions/ranger/core/traits/beastmastery.js';
 import { triggerPoisonMaster, triggerArachnophobia } from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
@@ -59,28 +65,23 @@ export const rangerCoreEventHandlers = Object.freeze({
   'ranger.pet-swapped': handleRangerPetSwapped
 });
 
-export const rangerCoreEventReactions = Object.freeze({
-  critical: Object.freeze([rangerCoreProfiledCriticalReaction]),
-  damage: Object.freeze([
-    { id: 'ranger.greatsword-damage', order: 5, handler: reactToRangerGreatswordDamage },
-    {
-      id: 'ranger.core-damage',
-      order: 10,
-      handler: reactToRangerCoreDamage
-    }
-  ]),
-  control: Object.freeze([
-    {
-      id: 'ranger.core-control',
-      order: 10,
-      handler: reactToRangerCoreControl
-    }
-  ]),
-  buff: Object.freeze([
-    {
-      id: 'ranger.core-buff',
-      order: 10,
-      handler: reactToRangerCoreBuff
-    }
-  ])
-});
+// Tag reactions here so module composition preserves their stage and registration order.
+export const rangerCoreEventReactions = Object.freeze([
+  onResolvedCriticalHit(rangerCoreProfiledCriticalReaction),
+  onResolvedDamage({ id: 'ranger.greatsword-damage', order: 5, handler: reactToRangerGreatswordDamage }),
+  onResolvedDamage({
+    id: 'ranger.core-damage',
+    order: 10,
+    handler: reactToRangerCoreDamage
+  }),
+  onResolvedControl({
+    id: 'ranger.core-control',
+    order: 10,
+    handler: reactToRangerCoreControl
+  }),
+  onBuffApplied({
+    id: 'ranger.core-buff',
+    order: 10,
+    handler: reactToRangerCoreBuff
+  })
+]);

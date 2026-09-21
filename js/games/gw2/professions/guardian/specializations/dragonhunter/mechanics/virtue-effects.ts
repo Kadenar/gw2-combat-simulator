@@ -1,3 +1,4 @@
+import { onResolvedDamage, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
@@ -171,19 +172,16 @@ export const dragonhunterEventHandlers = Object.freeze({
   'guardian.dragonhunter-justice-pulse': handleJusticePulse
 });
 
-export const dragonhunterEventReactions = Object.freeze({
-  damage: Object.freeze([
-    {
-      id: 'guardian.dragonhunter.justice',
-      order: 20,
-      handler: reactToDragonhunterJusticeHit
-    }
-  ]),
-  control: Object.freeze([
-    {
-      id: 'guardian.dragonhunter.control',
-      order: 20,
-      handler: reactToDragonhunterControl
-    }
-  ])
-});
+// Tag reactions here so module composition preserves their stage and registration order.
+export const dragonhunterEventReactions = Object.freeze([
+  onResolvedDamage({
+    id: 'guardian.dragonhunter.justice',
+    order: 20,
+    handler: reactToDragonhunterJusticeHit
+  }),
+  onResolvedControl({
+    id: 'guardian.dragonhunter.control',
+    order: 20,
+    handler: reactToDragonhunterControl
+  })
+]);

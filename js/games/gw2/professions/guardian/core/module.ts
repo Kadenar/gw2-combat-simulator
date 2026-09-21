@@ -1,5 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onBuffApplied, onConditionApplied, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import {
   guardianCoreEventHandlers,
@@ -42,11 +41,7 @@ export const guardianCoreModule = defineNativeModule({
       }
     },
     resolution: {
-      reactions: [
-        ...guardianCoreEventReactions.damage.map(onResolvedDamage),
-        ...guardianCoreEventReactions.condition.map(onConditionApplied),
-        ...guardianCoreEventReactions.buff.map(onBuffApplied)
-      ],
+      reactions: guardianCoreEventReactions,
       hooks: {
         eventHandlers: guardianCoreEventHandlers
       }

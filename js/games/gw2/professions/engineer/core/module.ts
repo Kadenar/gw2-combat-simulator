@@ -1,9 +1,4 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  onConditionApplied,
-  onResolvedCriticalHit,
-  onResolvedDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreSkillHandlers } from '#gw2/professions/engineer/core/execution/index.js';
@@ -50,12 +45,7 @@ export const engineerCoreModule = defineNativeModule({
       }
     },
     resolution: {
-      reactions: [
-        // Authoring helpers adapt profession declarations to platform reaction hooks.
-        ...engineerCoreResolverEventReactions.critical.map(onResolvedCriticalHit),
-        ...engineerCoreResolverEventReactions.damage.map(onResolvedDamage),
-        ...engineerCoreResolverEventReactions.condition.map(onConditionApplied)
-      ],
+      reactions: engineerCoreResolverEventReactions,
       hooks: {
         eventHandlers: engineerCoreResolverEventHandlers
       }

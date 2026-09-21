@@ -1,11 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  onBuffApplied,
-  onConditionApplied,
-  onResolvedCriticalHit,
-  onResolvedDamage,
-  onResolvingDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
+import { onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { thiefCoreEventHandlers, thiefCoreEventReactions } from '#gw2/professions/thief/core/mechanics/reactions.js';
 import {
@@ -43,10 +37,7 @@ export const thiefCoreModule = defineNativeModule({
     resolution: {
       reactions: [
         onResolvingDamage({ id: 'thief.life-siphon', handler: modifyThiefLifeSiphon }),
-        ...thiefCoreEventReactions.critical.map(onResolvedCriticalHit),
-        ...thiefCoreEventReactions.damage.map(onResolvedDamage),
-        ...thiefCoreEventReactions.condition.map(onConditionApplied),
-        ...thiefCoreEventReactions.buff.map(onBuffApplied)
+        ...thiefCoreEventReactions
       ],
       hooks: {
         eventHandlers: thiefCoreEventHandlers
