@@ -159,7 +159,7 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void 
   // Forge is an exact form window; automatic exit must not run before this deadline.
   state.radiantForgeEndsAt = canonicalTime(
     context.effectiveEnd +
-    Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
   );
   state.radiantForgeEnteredAt = context.effectiveEnd;
   state.radiantWeapon = '';
