@@ -5,8 +5,8 @@ import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 const LAST_TYRANT_STACKS_NEEDED = 5;
+const LAST_TYRANT_STACK_INTERNAL_COOLDOWN = 0.28;
 const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
-// TODO: Temporarily borrows Bloodstone Explosion's 3.0 until the real coefficient is known; 0 emits no strike.
 const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
@@ -26,12 +26,13 @@ export const lastTyrant = defineRelic({
       return;
     }
 
-    // The 12s cooldown starts at the explosion and blocks Tyrant's Fury gain until it expires.
+    // Stack gains and the sixth application's explosion share a 280ms gate; explosions extend it to 12s.
     if (!isInternalCooldownReady(application.at, state.readyAt)) return;
 
     const stacks = Number(state.stacks || 0);
     if (stacks < LAST_TYRANT_STACKS_NEEDED) {
       state.stacks = stacks + 1;
+      state.readyAt = application.at + LAST_TYRANT_STACK_INTERNAL_COOLDOWN;
       ctx.recordProc(
         'relic',
         'Relic of the Last Tyrant',

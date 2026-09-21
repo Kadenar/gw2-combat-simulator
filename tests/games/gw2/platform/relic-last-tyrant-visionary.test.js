@@ -75,6 +75,27 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
   assert.equal(conditions.length, 2);
 });
 
+test('Last Tyrant gates each Fury stack and the sixth application explosion with a 280ms ICD', () => {
+  const { relic, ctx, helpers, conditions, queued } = relicHarness('Last Tyrant');
+  const apply = (at) => relic.rules.condition(ctx, relic.state, burning(at, { stacks: 3 }), helpers);
+
+  // Each eligible application grants one Fury stack, regardless of its Burning stack count.
+  for (const [index, at] of [0, 0.3, 0.6, 0.9, 1.2].entries()) {
+    apply(at);
+    assert.equal(relic.state.stacks, index + 1);
+    // Repeated applications cannot gain stacks or explode through the ICD boundary.
+    for (const blockedAt of [at, at + 0.279, at + 0.28]) apply(blockedAt);
+    assert.equal(relic.state.stacks, index + 1);
+    assert.equal(conditions.length, 0);
+    assert.equal(queued.length, 0);
+  }
+
+  apply(1.481);
+  assert.equal(relic.state.stacks, 0);
+  assert.equal(conditions.length, 1);
+  assert.equal(queued.length, 1);
+});
+
 test('Last Tyrant ignores non-burning and non-player applications', () => {
   const { relic, ctx, helpers } = relicHarness('Last Tyrant');
   relic.rules.condition(ctx, relic.state, burning(0, { condition: 'Bleeding' }), helpers);
