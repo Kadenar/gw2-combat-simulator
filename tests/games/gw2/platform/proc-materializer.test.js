@@ -4,12 +4,15 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
+import {
+  createGw2TriggerMaterializer,
+  GW2_MATERIALIZE_EVENT_TASK
+} from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
 import { isSigilInternalCooldownReady } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
@@ -445,8 +448,8 @@ test('missed hostile facts preserve combat, target conditions, and armed sigils 
   assert.equal(context.events.find((event) => event.sourceId === 'sigil.doom' && event.type === 'condition').at, 4);
 });
 
-test('precombat conditions supply matching critical facts across scheduling and resolution', () => {
-  // A guaranteed condition-dependent crit exposes stale scheduler state without depending on a lucky RNG seed.
+test('precombat conditions cannot seed critical facts in either phase', () => {
+  // A condition-dependent crit exposes leaked setup conditions without depending on a lucky RNG seed.
   for (const offTarget of [false, true]) {
     let phase = 'scheduling';
     const observations = new Map();
@@ -512,11 +515,11 @@ test('precombat conditions supply matching critical facts across scheduling and 
     });
 
     assert.deepEqual(result.warnings, []);
-    assert.equal(observations.get('scheduling:0.5').combatActive, false);
+    assert.equal(observations.has('scheduling:0.5'), false);
     assert.equal(resolvedHits.has(0.5), false);
     assert.ok(result.procSteps.every((step) => step.start >= 1000));
     for (const time of [2, 3]) {
-      const stacks = !offTarget && time < 3 ? 25 : 0;
+      const stacks = 0;
       assert.equal(observations.get(`scheduling:${time}`).stacks, stacks);
       assert.equal(observations.get(`resolution:${time}`).stacks, stacks);
       const scheduledHit = result.events.find(

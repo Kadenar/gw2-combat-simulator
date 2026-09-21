@@ -4,7 +4,7 @@ import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/profession
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { PaletteSkillAvailability } from '#gw2/platform/engine/profession/types.js';
+import type { PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 

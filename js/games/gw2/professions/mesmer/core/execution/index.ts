@@ -1,9 +1,9 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import type { MesmerHandlerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { scheduleClarityEffects } from '#gw2/professions/mesmer/core/mechanics/clarity.js';

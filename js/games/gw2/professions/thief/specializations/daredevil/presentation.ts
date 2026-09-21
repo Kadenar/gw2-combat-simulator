@@ -1,5 +1,5 @@
 import { thiefStealPaletteGroups, thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Show dodge damage bonuses only while their projected post-dodge windows are active. */

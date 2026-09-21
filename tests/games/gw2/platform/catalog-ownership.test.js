@@ -5,7 +5,7 @@ import {
   assembleNativeApplicationCatalog,
   createNativeModuleData,
   getNativeCatalogAssembly
-} from '#gw2/platform/profession-definition/catalog.js';
+} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { onResolvedCriticalHit, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 

@@ -3,7 +3,7 @@ import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professio
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 interface TroubadourUiState {

@@ -1,5 +1,5 @@
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';

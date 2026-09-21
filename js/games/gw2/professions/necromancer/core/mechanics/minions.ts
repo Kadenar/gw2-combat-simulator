@@ -1,7 +1,11 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
-import { emitSkillCondition, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import {
+  emitSkillCondition,
+  emitSkillControl,
+  emitSkillDamage
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 /**
@@ -20,7 +24,7 @@ import {
   gainNecromancerLifeForce,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
@@ -40,7 +44,7 @@ import {
   quantizeGw2ActionDurationUp,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/skills/timing.js';
-import { gw2BuffActiveForAudience } from '#gw2/platform/scheduler/policy.js';
+import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/policy.js';
 
 const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
 const MINION_ATTACK_TASK = 'necromancer.minion-attack';

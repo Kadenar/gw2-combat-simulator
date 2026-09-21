@@ -2,7 +2,7 @@ import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/di
 import type { Gw2CombatQuery, Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import type { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import type { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';

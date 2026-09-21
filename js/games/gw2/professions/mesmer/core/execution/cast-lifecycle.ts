@@ -9,7 +9,7 @@ import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/ind
 import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */

@@ -3,7 +3,10 @@ import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/bala
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { ProfessionEffectPresentation, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionEffectPresentation,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */

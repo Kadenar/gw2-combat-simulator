@@ -1,6 +1,6 @@
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';

@@ -391,8 +391,8 @@ test('first damage replaces existing condition wakes while preserving precombat 
   });
   const result = resolve(
     [
-      condition(0, { duration: 3 }),
-      condition(0, { condition: 'Torment', duration: 0.04 }),
+      condition(0.2, { duration: 2.8 }),
+      condition(0.2, { condition: 'Torment', duration: 0.04 }),
       damage(0.1),
       damage(0.25, { offTarget: true }),
       damage(0.3, { flatDamage: 0 }),
@@ -413,7 +413,7 @@ test('first damage replaces existing condition wakes while preserving precombat 
   assert.deepEqual(applications(result)[1].damageTicks, []);
 });
 
-// Explicit Combat Start only gates damage; the first surviving hit sets both the packet phase and chart origin.
+// The first surviving hit sets both the packet phase and chart origin after explicit Combat Start.
 test('delayed first damage aligns payouts with whole fight seconds in both output modes', () => {
   for (const output of ['detailed', 'score']) {
     const payouts = [];
@@ -693,7 +693,7 @@ test('buffered source modifiers preserve atomic packet commits and reaction tota
   assert.equal(result.conditionDamage, 220);
 });
 
-test('precombat wakes advance settlement without damage, reactions, or catch-up packets', () => {
+test('rejected precombat conditions create no ticks or catch-up damage', () => {
   for (const combatStartTime of [2, 2.2]) {
     const observed = [];
     const result = resolve([condition(0, { duration: 4 })], {
@@ -701,9 +701,9 @@ test('precombat wakes advance settlement without damage, reactions, or catch-up 
       combatStartTime,
       reactions: { 'condition-tick.resolved': (_ctx, event) => observed.push(event.at) }
     });
-    assert.deepEqual(observed, combatStartTime === 2 ? [2, 3, 4] : [3, 4]);
-    assert.equal(result.conditionDamage, observed.length * 30);
-    assert.equal(applications(result)[0].damagingStackSeconds, observed.length);
+    assert.deepEqual(observed, []);
+    assert.equal(result.conditionDamage, 0);
+    assert.deepEqual(applications(result), []);
   }
 });
 
@@ -903,7 +903,7 @@ test('forced cancellation discards unsettled damage and stale wakes cannot trigg
   }
 });
 
-// Non-damaging statuses leave the global phase unchanged, including before explicit Combat Start.
+// Configured permanent conditions retain their clock; rejected player setup conditions never join it.
 test('non-damaging timed and permanent conditions synchronize later damage across combat start', () => {
   const timed = resolve([condition(0.1, { condition: 'Vulnerability', duration: 2 }), condition(0.7)], { end: 2.1 });
   assert.deepEqual(
@@ -915,18 +915,12 @@ test('non-damaging timed and permanent conditions synchronize later damage acros
     combatStartTime: 2.2,
     target: { conditions: { Bleeding: 1 } }
   });
-  assert.deepEqual(
-    applications(permanent)[0].damageTicks.map(({ at, fraction }) => [at, fraction]),
-    [
-      [3, 1],
-      [4, 1]
-    ]
-  );
+  assert.deepEqual(applications(permanent), []);
   assert.deepEqual(
     permanent.environmentConditionBreakdown[0].damageTicks.map(({ at }) => at),
     [3, 4]
   );
-  assert.equal(permanent.conditionDamage, 60);
+  assert.equal(permanent.conditionDamage, 0);
 });
 
 test('health milestones and Necromancer feedback consume the committed shared-packet timeline', () => {

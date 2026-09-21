@@ -4,8 +4,8 @@ import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator
 import type {
   ProfessionPaletteActionIdentity,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 

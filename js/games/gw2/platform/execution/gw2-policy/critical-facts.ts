@@ -1,4 +1,4 @@
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import {
@@ -10,8 +10,8 @@ import {
 } from '#gw2/platform/combat/critical-procs.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { MaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 
 export type ScheduledCriticalProcRequest = Omit<CriticalProcRequest, 'at' | 'stochastic' | 'roll'>;
 
@@ -26,6 +26,9 @@ export function advanceScheduledCriticalProc<TProfessionState extends object>(
   state?: CriticalProcState,
   opportunities = 1
 ): CriticalProcApplication | null {
+  // A rejected precombat hit cannot crit or advance a profession's hit-dependent state.
+  if (context.hasExplicitCombatStart && (context.combatStartTime == null || event.at < context.combatStartTime))
+    return null;
   const policy = context.schedulerPolicy as unknown as Gw2SchedulerPolicy;
   const chance = Number(policy.critical(context, event)?.chance || 0);
   const stochastic =

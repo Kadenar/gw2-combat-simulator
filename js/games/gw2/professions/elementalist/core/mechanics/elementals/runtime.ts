@@ -21,15 +21,15 @@ import { EPSILON } from '#kernel/core/clock.js';
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
-} from '#gw2/platform/scheduler/policy.js';
+} from '#gw2/platform/execution/gw2-policy/policy.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';

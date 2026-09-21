@@ -22,8 +22,8 @@ import {
 } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import {

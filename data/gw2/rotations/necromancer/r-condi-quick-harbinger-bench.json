@@ -6,13 +6,19 @@
     "benchmarkDps": 36318.166960248425,
     "eliteInsightsVersion": "3.26.0.0",
     "timingSource": "Elite Insights cast summaries from dps.report",
-    "note": "Elixir of Promise is precast to seed 10 Blight before the report's omitted opening Harbinger Shroud entry; canceled weapon-1 casts are excluded."
+    "note": "Elixir of Promise is precast off target to seed 10 Blight before the report's omitted opening Harbinger Shroud entry. Combat Start is 800 ms into Voracious Arc to include its impact; canceled weapon-1 casts are excluded."
   },
   "rotation": [
-    "Elixir of Promise",
+    {
+      "name": "Elixir of Promise",
+      "offTarget": true
+    },
     "Harbinger Shroud",
     "Voracious Arc",
-    "__combat_start",
+    {
+      "name": "__combat_start",
+      "offset": 800
+    },
     "Devouring Cut",
     "Dark Barrage",
     "Exit Harbinger Shroud",

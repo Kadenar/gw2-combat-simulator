@@ -3,11 +3,12 @@
     "log": "rifle quick de.zevtc",
     "benchmarkDurationSeconds": 108.647,
     "benchmarkDamage": 3989595,
-    "benchmarkDps": 36720.71018988099
+    "benchmarkDps": 36720.71018988099,
+    "note": "Kneel before Deadeye's Mark so Serpent's Touch poison lands at Combat Start."
   },
   "rotation": [
-    "Deadeye's Mark",
     "Kneel",
+    "Deadeye's Mark",
     { "name": "__combat_start" },
     "Steal Time",
     "Shadow Flare",

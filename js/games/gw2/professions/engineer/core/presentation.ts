@@ -17,7 +17,7 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerResolverEvent,

@@ -1565,7 +1565,7 @@ test('Bloodlust handles deterministic progress and stochastic proc rolls', () =>
   );
 });
 
-test('precombat Kick samples stochastic crits without advancing deterministic sigils', () => {
+test('precombat Kick cannot sample criticals or advance hit-dependent procs', () => {
   const result = simulate('Spellbreaker', ['Kick', '__combat_start'], {
     selectedTraitIds: [TRAIT.BLOODLUST],
     stats: { precision: 10000 },
@@ -1573,7 +1573,12 @@ test('precombat Kick samples stochastic crits without advancing deterministic si
   });
   const kick = result.events.find((event) => event.type === 'damage' && event.skillId === ID.KICK);
 
-  assert.equal(kick.didCrit, true);
+  assert.equal(kick.didCrit, undefined);
+  assert.equal(result.totalDamage, 0);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'condition'),
+    false
+  );
 
   const deterministic = simulate('Spellbreaker', ['Kick', '__combat_start', 'Precise Cut'], {
     primaryWeapon: 'Dagger',

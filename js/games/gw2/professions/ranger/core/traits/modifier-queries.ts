@@ -7,7 +7,8 @@ import {
   isStandardBoon,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
-import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 

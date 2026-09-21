@@ -9,7 +9,7 @@ import type {
   ProfessionEventLogDescriptor,
   PaletteSkillAvailability,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';

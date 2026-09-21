@@ -1,5 +1,38 @@
 import { expect, test } from '@playwright/test';
 
+// A suppressed opening application must still guide marker placement in both the tooltip and pencil editor.
+test('skill and Combat Start editors expose the scheduled target impact', async ({ page }) => {
+  await page.goto('/necromancer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(async () => {
+    const app = window.professionApp;
+    const saved = await (await fetch('/data/gw2/builds/necromancer/b-condi-reaper.json')).json();
+    app.build = app.adapter.toApplicationBuild({ ...saved, rotation: ['Blood Is Power', '__combat_start'] });
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  const impactLabel = await page.evaluate(() => {
+    const result = window.professionApp.results;
+    const step = result.steps.find((candidate) => candidate.skill === 'Blood Is Power');
+    const impact = result.events.find(
+      (event) => event.activationId === step.activationId && event.type === 'condition'
+    );
+    return `First hit: ${Math.round(impact.at * 1000) - step.start} ms`;
+  });
+  const skill = page.locator('#rotation-timeline .rot-skill[data-idx="0"]');
+  await expect(skill).toHaveAttribute('title', new RegExp(impactLabel));
+  await skill.hover();
+  await skill.locator('.rot-edit-activation').click();
+  const editor = page.locator('.rotation-activation-editor:visible');
+  await expect(editor.locator('.activation-editor-target-impact')).toHaveText(impactLabel);
+  await editor.getByRole('button', { name: 'Cancel', exact: true }).click();
+  const markerEditor = page.locator('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
+  await markerEditor.focus();
+  await markerEditor.press('Enter');
+  await expect(editor.locator('.activation-editor-target-impact')).toContainText('Blood Is Power');
+  await expect(editor.locator('.activation-editor-target-impact')).toContainText(impactLabel);
+});
+
 // Display preferences and rotation actions must stay usable as the toolbar narrows.
 test('rotation toolbar adapts display preferences and keeps load accessible', async ({ page }) => {
   // The toolbar is shared; one profession covers both sides of its wrap breakpoint.

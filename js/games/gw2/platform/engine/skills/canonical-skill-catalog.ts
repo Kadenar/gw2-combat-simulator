@@ -21,7 +21,7 @@ import type {
   SkillLockout,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];

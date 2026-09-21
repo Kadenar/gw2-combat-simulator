@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   autoattackChainSkillAvailable,

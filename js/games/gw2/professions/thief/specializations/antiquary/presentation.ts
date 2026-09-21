@@ -10,7 +10,7 @@ import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/bala
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 

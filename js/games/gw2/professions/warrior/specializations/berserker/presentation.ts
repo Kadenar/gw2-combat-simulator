@@ -11,7 +11,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);

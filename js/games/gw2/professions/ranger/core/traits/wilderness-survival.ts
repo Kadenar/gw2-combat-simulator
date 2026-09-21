@@ -1,5 +1,5 @@
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

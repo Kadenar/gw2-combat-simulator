@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';

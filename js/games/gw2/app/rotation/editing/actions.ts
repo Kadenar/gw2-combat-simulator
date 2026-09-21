@@ -1,4 +1,4 @@
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState, RotationActionOptions } from '#gw2/app/types.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';

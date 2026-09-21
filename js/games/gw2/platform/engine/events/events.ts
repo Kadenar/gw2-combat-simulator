@@ -1,3 +1,4 @@
+import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
@@ -8,8 +9,6 @@ import { canonicalTime, timeKey } from '#kernel/core/clock.js';
  */
 
 export const EVENT_SCHEMA_VERSION = 1 as const;
-
-const ACTOR_TYPES: ReadonlySet<SimulationActorType> = new Set(['player', 'summon', 'effect', 'environment', 'unknown']);
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -167,8 +166,6 @@ export function createEvent(event: unknown): Readonly<SimulationEvent> {
 }
 
 /** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
-
-export type SimulationActorType = 'player' | 'summon' | 'effect' | 'environment' | 'unknown';
 
 export type EffectRecipientScope = 'self' | 'party' | 'summons';
 

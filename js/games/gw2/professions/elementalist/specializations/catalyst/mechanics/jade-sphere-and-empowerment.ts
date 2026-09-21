@@ -16,16 +16,16 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/index.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';

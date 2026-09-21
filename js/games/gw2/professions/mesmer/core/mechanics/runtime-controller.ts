@@ -7,7 +7,7 @@ import {
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';

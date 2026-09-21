@@ -12,16 +12,9 @@ import type {
   ProfessionPaletteGroup,
   ProfessionSkillBarSelectionChange,
   ProfessionUiContract
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import { singleOwnerValue, type NamedModule } from '#gw2/platform/engine/profession/module.js';
-import {
-  everyUiSlice,
-  firstUiMatch,
-  mergeUiList,
-  someUiSlice
-} from '#gw2/platform/engine/profession/ui-combinators.js';
 
 type UiCallbackName = keyof ProfessionUiContract;
 
@@ -40,105 +33,6 @@ interface UiSelectionCandidate {
   readonly specialization?: unknown;
   readonly config?: { readonly specialization?: unknown } | null;
   readonly build?: { readonly specialization?: unknown } | null;
-}
-
-export function composeModuleUi(modules: readonly NamedModule<object>[]): UiSlice {
-  // Callbacks are composed by name, so the slice under construction is a dynamic record until it is returned.
-  const ui: Record<string, unknown> = {};
-  const slices = modules.map((entry) => entry.module.ui).filter((slice): slice is UiSlice => slice != null);
-  // Only callbacks whose policy gives the active elite precedence use this.
-  const reversed = slices.slice().reverse();
-  const owns = (name: UiCallbackName): boolean => slices.some((slice) => typeof slice[name] === 'function');
-
-  ui.assumptionControls = Object.freeze(slices.flatMap((slice) => slice.assumptionControls || []));
-  for (const name of UI_LIST_CALLBACK_NAMES) {
-    if (owns(name)) {
-      ui[name] = (...args: unknown[]) => mergeUiList(slices, name, args);
-    }
-  }
-
-  if (owns('paletteSkillAvailability')) {
-    ui.paletteSkillAvailability = (...args: unknown[]) =>
-      firstUiMatch(
-        slices,
-        'paletteSkillAvailability',
-        args,
-        (result) => (result as PaletteSkillAvailability)?.available === false,
-        { available: true, message: '' }
-      );
-  }
-
-  if (owns('eventLogRow')) {
-    ui.eventLogRow = (...args: unknown[]) =>
-      firstUiMatch(slices, 'eventLogRow', args, (result) => result !== undefined, undefined);
-  }
-
-  if (owns('isPaletteSkillInstant')) {
-    ui.isPaletteSkillInstant = (...args: unknown[]) =>
-      someUiSlice(slices, 'isPaletteSkillInstant', args, (result) => Boolean(result));
-  }
-
-  if (owns('isSlotSkillSelectable')) {
-    ui.isSlotSkillSelectable = (...args: unknown[]) =>
-      everyUiSlice(slices, 'isSlotSkillSelectable', args, (result) => Boolean(result));
-  }
-
-  for (const name of ['paletteActionSkills', 'paletteWeaponSkills'] as const) {
-    if (!owns(name)) continue;
-    ui[name] = (context: ProfessionPaletteContext, skills: readonly Skill[]) =>
-      slices.reduce(
-        (current, slice) => {
-          const project = slice[name];
-          return typeof project === 'function' ? project(context, current) : current;
-        },
-        [...skills]
-      );
-  }
-
-  if (owns('renderWeaponPalette')) {
-    ui.renderWeaponPalette = (...args: unknown[]) =>
-      firstUiMatch(reversed, 'renderWeaponPalette', args, (result) => result != null, null);
-  }
-
-  if (owns('resolvePaletteAction')) {
-    ui.resolvePaletteAction = (...args: unknown[]) =>
-      firstUiMatch(reversed, 'resolvePaletteAction', args, (result) => result !== undefined, undefined);
-  }
-
-  if (owns('updatePaletteControl')) {
-    ui.updatePaletteControl = (...args: unknown[]) =>
-      someUiSlice(reversed, 'updatePaletteControl', args, (result) => Boolean(result));
-  }
-
-  if (owns('updateSkillBarSelection')) {
-    ui.updateSkillBarSelection = (...args: unknown[]) =>
-      someUiSlice(reversed, 'updateSkillBarSelection', args, (result) => Boolean(result));
-  }
-
-  for (const name of ['timelineWeaponLineTransition', 'timelineSkillIcon'] as const) {
-    if (!owns(name)) continue;
-    ui[name] = (...args: unknown[]) =>
-      firstUiMatch(
-        reversed,
-        name,
-        args,
-        (result) => result !== undefined && result !== '',
-        name === 'timelineSkillIcon' ? '' : undefined
-      );
-  }
-
-  const slotLoadout = singleOwnerValue(modules, (module) => module.ui?.slotLoadout, 'ui.slotLoadout');
-  if (slotLoadout != null) ui.slotLoadout = slotLoadout;
-  const weaponSwapChangesSet = singleOwnerValue(
-    modules,
-    (module) => module.ui?.weaponSwapChangesSet,
-    'ui.weaponSwapChangesSet'
-  );
-  if (weaponSwapChangesSet != null) {
-    ui.weaponSwapChangesSet = weaponSwapChangesSet;
-  }
-
-  return ui as UiSlice;
 }
 
 type UiSlice = Partial<ProfessionUiContract>;
@@ -447,4 +341,69 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   }
 
   return Object.freeze(ui) as UiSlice;
+}
+
+/**
+ * Private slice-merge helpers for application UI composition. Each helper is order-
+ * agnostic and only knows how to combine an ordered list of UI slices for one
+ * callback; the selection strategy (which slices, in what order, and any
+ * post-processing) stays with each caller.
+ */
+type UiSliceLike = Readonly<Record<string, unknown>>;
+
+type UiCallback = (...args: unknown[]) => unknown;
+
+/** Concatenates every slice's list result for `name`, skipping non-owners. */
+function mergeUiList(slices: readonly UiSliceLike[], name: string, args: readonly unknown[]): unknown[] {
+  return slices.flatMap((slice) => {
+    const callback = slice[name];
+    return typeof callback === 'function' ? ((callback as UiCallback)(...args) as unknown[]) || [] : [];
+  });
+}
+
+/**
+ * Returns the first slice result that satisfies `isMatch`, or `fallback` when
+ * no owner matches. Callers pass already-reversed slices when later slices win.
+ */
+function firstUiMatch(
+  slices: readonly UiSliceLike[],
+  name: string,
+  args: readonly unknown[],
+  isMatch: (result: unknown) => boolean,
+  fallback: unknown
+): unknown {
+  for (const slice of slices) {
+    const callback = slice[name];
+    if (typeof callback !== 'function') continue;
+    const result = (callback as UiCallback)(...args);
+    if (isMatch(result)) return result;
+  }
+
+  return fallback;
+}
+
+/** True when any owning slice's result satisfies `isTrue`. */
+function someUiSlice(
+  slices: readonly UiSliceLike[],
+  name: string,
+  args: readonly unknown[],
+  isTrue: (result: unknown) => boolean
+): boolean {
+  return slices.some((slice) => {
+    const callback = slice[name];
+    return typeof callback === 'function' && isTrue((callback as UiCallback)(...args));
+  });
+}
+
+/** True unless some owning slice's result fails `isAllowed`. Non-owners pass. */
+function everyUiSlice(
+  slices: readonly UiSliceLike[],
+  name: string,
+  args: readonly unknown[],
+  isAllowed: (result: unknown) => boolean
+): boolean {
+  return slices.every((slice) => {
+    const callback = slice[name];
+    return typeof callback !== 'function' || isAllowed((callback as UiCallback)(...args));
+  });
 }

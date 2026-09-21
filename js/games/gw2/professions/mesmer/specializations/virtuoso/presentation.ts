@@ -1,6 +1,9 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
-import type { PaletteSkillAvailability, ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionEffectPresentation
+} from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 

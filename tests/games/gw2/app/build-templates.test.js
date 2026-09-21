@@ -10,7 +10,7 @@ import {
   templateSpecializations,
   undoTemplateLoad
 } from '#gw2/app/build/panels/presets.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
 import { loadPresetBundle } from '#gw2/app/io/files.js';

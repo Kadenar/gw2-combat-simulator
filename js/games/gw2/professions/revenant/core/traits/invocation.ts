@@ -3,7 +3,7 @@ import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   requireRevenantBalanceProfile,
   requireRevenantEffect

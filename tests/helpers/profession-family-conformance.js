@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
@@ -165,17 +165,31 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       ...(specialization ? [presentationFor(specialization, family.catalog)] : [])
     ];
 
-    assert.deepEqual(
-      runtime.ui.assumptionControls,
-      activePresentations.flatMap((ui) => ui.assumptionControls || []),
-      `${family.id}/${name} assumption controls`
-    );
+    assert.equal(Object.hasOwn(runtime, 'ui'), false, 'runtime does not carry presentation');
+    for (const control of activePresentations.flatMap((ui) => ui.assumptionControls || [])) {
+      assert.ok(family.ui.assumptionControls.some((candidate) => candidate.id === control.id));
+    }
+
     for (const callback of UI_LIST_CALLBACKS) {
       const expected = activePresentations.flatMap((ui) =>
         typeof ui[callback] === 'function' ? ui[callback](context) : []
       );
 
-      assert.deepEqual(runtime.ui[callback](context), expected, `${family.id}/${name} ui.${callback}`);
+      const actual = family.ui[callback](context);
+      if (callback === 'paletteGroups') {
+        // The application sorts and combines anchored groups; every surviving group still needs an active owner.
+        assert.ok(
+          actual.every((group) => expected.some((candidate) => candidate.id === group.id)),
+          `${family.id}/${name} palette owners`
+        );
+      } else {
+        const byIdentity = (left, right) => String(left?.id ?? left).localeCompare(String(right?.id ?? right));
+        assert.deepEqual(
+          [...actual].sort(byIdentity),
+          [...expected].sort(byIdentity),
+          `${family.id}/${name} ui.${callback}`
+        );
+      }
     }
 
     const projected = simulateGw2({

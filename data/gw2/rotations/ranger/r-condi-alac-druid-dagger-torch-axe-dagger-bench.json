@@ -4,13 +4,14 @@
     "benchmarkDurationSeconds": 101.757,
     "benchmarkDamage": 4007796,
     "benchmarkDps": 39385.94887820985,
-    "timingSource": "Elite Insights EVTC casts; dagger timings rounded to 40 ms action ticks"
+    "timingSource": "Elite Insights EVTC casts; dagger timings rounded to 40 ms action ticks",
+    "note": "Poisonous Cloud starts 640 ms before Combat Start, matching the log's reconstructed 644 ms lead; keep Combat Start 440 ms into Natural Convergence."
   },
   "rotation": [
     "Sharpening Stone",
     "Viper's Nest",
-    "Poisonous Cloud",
     { "name": "Celestial Avatar", "offset": 200 },
+    { "name": "Poisonous Cloud", "offset": 200 },
     "Natural Convergence",
     { "name": "__combat_start", "offset": 440 },
     { "name": "Seed of Life", "offset": 600 },

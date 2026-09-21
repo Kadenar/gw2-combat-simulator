@@ -12,7 +12,7 @@ import {
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createRangerBuildDefaults,

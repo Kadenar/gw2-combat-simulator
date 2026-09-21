@@ -9,9 +9,9 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
+import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,

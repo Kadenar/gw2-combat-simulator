@@ -4,7 +4,7 @@
  */
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'revenant.core.resources',

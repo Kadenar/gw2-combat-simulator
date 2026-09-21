@@ -16,10 +16,10 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 
 // Exercise real extension handlers and both phases with minimal duration/resource contracts.
 const self = {

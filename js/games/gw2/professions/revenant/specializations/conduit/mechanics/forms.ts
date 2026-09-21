@@ -1,8 +1,8 @@
-import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
+import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 

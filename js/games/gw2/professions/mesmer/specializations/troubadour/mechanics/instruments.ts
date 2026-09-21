@@ -2,7 +2,7 @@ import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializatio
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import {
   balanceProfileEffectFromContext as profileEffect,
   balanceProfileValueFromContext as profileValue
@@ -12,7 +12,7 @@ import { troubadourState } from '#gw2/professions/mesmer/specializations/troubad
 import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */

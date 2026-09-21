@@ -8,8 +8,8 @@ import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
-import { strikeTimeline } from '#gw2/platform/engine/effects/factories.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';

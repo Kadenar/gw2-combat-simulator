@@ -1,6 +1,6 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { resolveMesmerSkillIdFromDuplicateName } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';

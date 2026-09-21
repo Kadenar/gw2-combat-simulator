@@ -5,7 +5,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,

@@ -240,10 +240,16 @@
 }
 
 .activation-editor-full-cast,
-.activation-editor-damage-commit {
+.activation-editor-damage-commit,
+.activation-editor-target-impact {
   margin: 7px 0 0 23px;
   color: var(--text-dim, #888899);
   font-size: 10px;
+}
+
+/* Keep impact timing and combat-boundary guidance readable in the existing editor. */
+.activation-editor-target-impact {
+  white-space: pre-line;
 }
 
 .activation-editor-damage-commit {

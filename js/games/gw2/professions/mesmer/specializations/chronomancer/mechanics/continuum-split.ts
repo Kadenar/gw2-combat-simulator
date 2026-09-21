@@ -5,7 +5,7 @@ import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-c
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerAddEvent, MesmerRefreshAmmo, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';

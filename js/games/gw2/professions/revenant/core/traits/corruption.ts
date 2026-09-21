@@ -1,5 +1,5 @@
 /** Owns Core Corruption trait reactions to legend invocation and scheduled conditions. */
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';

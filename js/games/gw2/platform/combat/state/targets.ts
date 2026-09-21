@@ -5,6 +5,11 @@ import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
 
+/** Combat Start blocks target damage and conditions; control skill-use notifications can still trigger relic buffs. */
+export function isPrecombatTargetEffect(event: SimulationEvent): boolean {
+  return event.type !== 'control' && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+}
+
 /** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
 export function missesTarget(event: SimulationEvent): boolean {
   return event.offTarget === true && HOSTILE_TARGET_EVENT_TYPES.has(event.type);

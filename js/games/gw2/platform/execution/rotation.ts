@@ -3,7 +3,7 @@
  * the boundary while the scheduler and application use canonical commands.
  */
 import type { CatalogLookup } from '#gw2/platform/engine/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 
 function finiteMilliseconds(

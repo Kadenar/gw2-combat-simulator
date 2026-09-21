@@ -295,10 +295,12 @@ An unknown required custom event type is an error. A common event with no regist
 
 ### Combat start, damage, and death
 
-With an explicit Combat Start, outgoing damage, condition ticks, and combo resolution before the marker are gated.
-Condition applications may still be processed before combat so surviving stacks can cross the boundary. Combat-start
-boundary metadata is published before tasks at its timestamp are drained; the `combat_start` event itself is emitted
-after that drain. This allows boundary-time hits to trigger combat effects.
+With an explicit Combat Start, actions, combo finishers, self buffs, auras, and eligible relic effects can resolve
+before the marker. Target damage and condition applications are rejected: precombat conditions cannot carry stacks or
+delayed damage into combat. Control skill-use notifications can still activate relic buffs, while their derived target
+damage and conditions remain gated. Scheduling uses the same boundary for condition facts and hit-dependent procs.
+Combat-start boundary metadata is published before tasks at its timestamp are drained; the `combat_start` event itself
+is emitted after that drain. This allows boundary-time hits to trigger combat effects.
 
 Target death clips the effective reporting end. Events after the death timestamp are not processed. At the lethal
 timestamp, the resolver finishes sibling packets from the same activation and the simultaneous condition-tick batch, but
@@ -397,8 +399,8 @@ combat choices are a separate seeded-randomness concern and do not alter the clo
 - [Clock primitives](../../js/kernel/core/clock.ts)
 - [Stable event queue](../../js/kernel/events/queue.ts)
 - [Observation policy](../../js/kernel/execution/observation.ts)
-- [Scheduler](../../js/games/gw2/platform/engine/execution/scheduler.ts)
-- [Scheduler task queue](../../js/games/gw2/platform/engine/execution/tasks.ts)
+- [Scheduler](../../js/games/gw2/platform/execution/scheduler.ts)
+- [Scheduler task queue](../../js/games/gw2/platform/execution/tasks.ts)
 - [Effect materialization](../../js/games/gw2/platform/engine/effects/materializer.ts)
 - [Scheduled stream contract](../../js/games/gw2/platform/engine/events/scheduled-stream.ts)
 - [Resolver event loop](../../js/games/gw2/platform/resolver/event-loop.ts)

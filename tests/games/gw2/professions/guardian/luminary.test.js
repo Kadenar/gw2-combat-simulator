@@ -4,7 +4,7 @@ import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { radiantForgeAvailability } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
@@ -138,6 +138,41 @@ test('a launched hammer still finishes its blast and supplies aura for the follo
   assert.ok(combo.at > action.endsAt);
   assert.ok(
     result.resolvedEvents.some((event) => event.name === 'Sovereign of Light' && event.triggeredBy === 'Shining Spin')
+  );
+  assert.deepEqual(result.warnings, []);
+});
+
+test('Dazzling Hammer grants precombat Light Aura for the next in-combat Sovereign detonation', () => {
+  // Off-target setup must grant the hammer aura without recording its precombat damage.
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      'Enter Radiant Forge',
+      { name: 'Luminous Staff', offTarget: true },
+      { name: 'Dazzling Hammer', offTarget: true },
+      { type: 'wait', durationMs: 500 },
+      { type: 'combat-start' },
+      'Daring Advance'
+    ],
+    config: {
+      ...config,
+      specialization: 'Luminary',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+    }
+  });
+  const combo = result.resolvedEvents.find(
+    (event) => event.type === 'combo' && event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER
+  );
+  assert.ok(combo.at < result.combatStartTime);
+  const detonation = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.name === 'Sovereign of Light' && event.triggeredBy === 'Daring Advance'
+  );
+  assert.ok(detonation.damage > 0);
+  assert.ok(detonation.at >= result.combatStartTime);
+  assert.ok(
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage')
+      .every((event) => event.at >= result.combatStartTime)
   );
   assert.deepEqual(result.warnings, []);
 });

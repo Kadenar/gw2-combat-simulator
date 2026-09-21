@@ -5,7 +5,7 @@
  * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 // Payload builders keep each pulse's timing on its shared impact; finishers stay on the strike.

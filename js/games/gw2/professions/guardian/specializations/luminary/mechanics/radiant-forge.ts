@@ -1,9 +1,9 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/timelines.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import { castWasInterrupted, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
@@ -19,7 +19,7 @@ import { buildGuardianStrike, emitGuardianEvent } from '#gw2/professions/guardia
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianEventContext,

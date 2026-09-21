@@ -1,12 +1,12 @@
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';

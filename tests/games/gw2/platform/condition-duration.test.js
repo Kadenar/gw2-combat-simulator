@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { createGw2CombatObserver } from '#gw2/platform/scheduler/combat-observer.js';
-import { createMaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
+import { createGw2CombatObserver } from '#gw2/platform/execution/gw2-policy/combat-observer.js';
+import { createMaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 

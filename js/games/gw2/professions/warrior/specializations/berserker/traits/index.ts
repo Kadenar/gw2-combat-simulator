@@ -1,10 +1,10 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type {
   WarriorCastContext,

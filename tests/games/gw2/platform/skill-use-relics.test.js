@@ -6,7 +6,7 @@ import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { recordPassiveRelicTimeline, relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 

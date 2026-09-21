@@ -10,8 +10,8 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleDefinition, ProfessionHook } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { toEntries } from '#kernel/core/collections.js';
 
@@ -38,10 +38,16 @@ export function defineProfessionModule<TProfessionState extends object = object>
   definition: ProfessionModuleDefinition<TProfessionState>
 ): Readonly<ProfessionModuleDefinition<TProfessionState>> {
   assertModuleDefinition(definition);
-  return Object.freeze({
-    ...definition,
-    catalog: definition.catalog ? Object.freeze({ ...definition.catalog }) : undefined
-  });
+  // Copy descriptors so lazy presentation remains unevaluated during runtime compilation.
+  return Object.freeze(
+    Object.defineProperties(
+      {},
+      {
+        ...Object.getOwnPropertyDescriptors(definition),
+        catalog: { value: definition.catalog ? Object.freeze({ ...definition.catalog }) : undefined, enumerable: true }
+      }
+    )
+  ) as Readonly<ProfessionModuleDefinition<TProfessionState>>;
 }
 
 function mergeUniqueEntries<T>(

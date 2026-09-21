@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';

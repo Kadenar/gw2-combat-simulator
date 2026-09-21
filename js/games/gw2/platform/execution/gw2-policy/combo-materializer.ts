@@ -13,8 +13,9 @@ import {
 } from '#gw2/platform/combos/events.js';
 import { comboCombatMetadata, materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
 
-import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
-import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { ScheduledTask, SchedulerContext } from '#gw2/platform/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type {
   ComboEvent,
   ComboFieldBinding,
@@ -25,9 +26,9 @@ import type {
   ComboFinisherType
 } from '#gw2/platform/combos/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
+import type { MaterializeEventTaskPayload } from '#gw2/platform/execution/gw2-policy/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-import { gw2MaterializerTaskPriority } from '#gw2/platform/scheduler/proc-materializer.js';
+import { gw2MaterializerTaskPriority } from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
 
 export const GW2_COMBO_MATERIALIZE_EVENT_TASK = 'platform.gw2.materialize-combo-event';
 
@@ -418,9 +419,7 @@ export function createGw2ComboMaterializer(
       }
 
       if (event.type !== 'combo_finisher') return;
-      // Rejected precombat attempts cannot spend progress/ICDs or seed later scheduling facts.
-      if (context.hasExplicitCombatStart && (context.combatStartTime == null || event.at < context.combatStartTime))
-        return;
+      // Precombat combos still grant setup effects; the resolver gates their enemy-facing outcomes.
       const combos = resolveComboAttempt(state, event as ComboFinisherEvent, {
         stochastic: random.stochastic,
         roll: random.roll,

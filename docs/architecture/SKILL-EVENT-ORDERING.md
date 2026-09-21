@@ -217,9 +217,9 @@ Hook order does not move events on the timeline. Modifier order does not determi
 ## Implementation references
 
 - `js/kernel/events/queue.ts` owns resolver event comparison and the stable event heap.
-- `js/games/gw2/platform/engine/execution/tasks.ts` owns scheduler task comparison.
-- `js/games/gw2/platform/engine/execution/scheduler.ts` assigns `eventOrder`, creates `causalOrder`, and sorts the
-  handoff.
+- `js/games/gw2/platform/execution/tasks.ts` owns scheduler task comparison.
+- `js/games/gw2/platform/execution/scheduled-events.ts` assigns `eventOrder`, creates `causalOrder`, and the scheduler
+  sorts the handoff.
 - `js/games/gw2/platform/resolver/event-loop.ts` drains the resolver queue.
 - `tests/games/gw2/platform/engine/event-ordering.test.js` covers event priority, causal order, and stability.
 - `tests/games/gw2/platform/engine/scheduler-temporal.test.js` covers task priority and insertion order.

@@ -2,7 +2,7 @@
  * Owns Holosmith sword skill fragments and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/execution/sword.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 

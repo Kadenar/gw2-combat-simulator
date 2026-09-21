@@ -1,9 +1,9 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 

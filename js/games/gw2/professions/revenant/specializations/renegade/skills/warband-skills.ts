@@ -5,7 +5,7 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 const BASE_RAZORCLAW_EFFECTS = Object.freeze([
   {

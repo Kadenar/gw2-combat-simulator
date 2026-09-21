@@ -9,13 +9,13 @@ import type {
   ProfessionCastRuleDefinition,
   ProfessionSchedulerHookDefinition,
   ProfessionModuleCatalogFragment,
-  ProfessionModuleDefinition,
-  ProfessionUiContract
+  ProfessionModuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
+import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type {
   AnyNativeModule,
   NativeModule,
@@ -303,24 +303,7 @@ function compileNativeModule(
 
   resolverHooks.eventReactions = reactions;
   const modifiers = Array.isArray(mechanics.modifiers) ? { modifierRules: mechanics.modifiers } : mechanics.modifiers;
-  const presentation =
-    typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
-  const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
-  if (module.id === 'Core') {
-    const paletteAvailability = ui.paletteSkillAvailability;
-    // Family previews without a selected build infer the skill's specialization, as UI composition does.
-    ui.paletteSkillAvailability = (context, skill) => {
-      const config = context.config as { readonly specialization?: string } | undefined;
-      const build = context.build as { readonly specialization?: string } | undefined;
-      const specialization = String(
-        context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core'
-      );
-      return isBuildSkillAvailable(skill, { specialization })
-        ? (paletteAvailability?.(context, skill) ?? { available: true, message: '' })
-        : { available: false, message: `${skill.name} is unavailable for this build.` };
-    };
-  }
-
+  let compiledUi: Partial<ProfessionUiContract> | undefined;
   return {
     id: module.id,
     catalog: fragment,
@@ -334,7 +317,28 @@ function compileNativeModule(
     castRules,
     schedulerHooks,
     resolverHooks,
-    ui
+    get ui() {
+      if (compiledUi) return compiledUi;
+      const presentation =
+        typeof module.presentation === 'function' ? module.presentation(applicationCatalog) : module.presentation;
+      const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
+      if (module.id === 'Core') {
+        const paletteAvailability = ui.paletteSkillAvailability;
+        // Family previews without a selected build infer the skill's specialization, as UI composition does.
+        ui.paletteSkillAvailability = (context, skill) => {
+          const config = context.config as { readonly specialization?: string } | undefined;
+          const build = context.build as { readonly specialization?: string } | undefined;
+          const specialization = String(
+            context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core'
+          );
+          return isBuildSkillAvailable(skill, { specialization })
+            ? (paletteAvailability?.(context, skill) ?? { available: true, message: '' })
+            : { available: false, message: `${skill.name} is unavailable for this build.` };
+        };
+      }
+
+      return (compiledUi = ui);
+    }
   };
 }
 
@@ -378,9 +382,14 @@ export function defineNativeProfession<
   };
   const family = defineProfessionFamily(engineDefinition);
 
-  return Object.freeze({
-    ...family,
-    nativeDefinition: Object.freeze({ ...definition }),
-    specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
-  }) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
+  // Retain lazy application getters while exposing the immutable native compilation input.
+  return Object.freeze(
+    Object.defineProperties(
+      {
+        nativeDefinition: Object.freeze({ ...definition }),
+        specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
+      },
+      Object.getOwnPropertyDescriptors(family)
+    )
+  ) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
 }

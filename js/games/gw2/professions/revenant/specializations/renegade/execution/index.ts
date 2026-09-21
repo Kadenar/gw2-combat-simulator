@@ -2,7 +2,7 @@
 import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import type { Skill, SkillHandlerMode } from '#gw2/platform/engine/skills/types.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/execution/types.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import {
   beginBandTogether,

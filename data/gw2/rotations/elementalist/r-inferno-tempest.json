@@ -9,11 +9,11 @@
     "Overload Air",
     {
       "name": "__combat_start",
-      "offset": 3100
+      "offset": 3120
     },
     {
       "name": "Flame Barrage",
-      "offset": 3100
+      "offset": 3120
     },
     {
       "name": "Lightning Strike",

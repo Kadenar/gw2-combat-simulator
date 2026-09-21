@@ -3,9 +3,9 @@ import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 
 // Rounded imports use one cancellation boundary for damage and occupancy while retaining observed gaps and overlaps.

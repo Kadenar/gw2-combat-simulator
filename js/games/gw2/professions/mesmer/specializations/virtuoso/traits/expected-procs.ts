@@ -1,7 +1,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';

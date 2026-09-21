@@ -5,7 +5,7 @@
  * replacing handlers own emission while retaining effects as canonical profile
  * metadata; a mode resolver supports skills whose profile changes at runtime.
  */
-import type { SkillHandlerPhase, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerPhase, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillHandlerMode } from '#gw2/platform/engine/skills/types.js';
 
 type SkillHandlerOptions<TContext extends object> = Omit<

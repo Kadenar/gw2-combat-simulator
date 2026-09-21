@@ -16,11 +16,11 @@ import {
 } from '#gw2/app/io/import-dialog.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
 import { errorMessage } from '#ui/shared/errors.js';
 
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/io/types.js';

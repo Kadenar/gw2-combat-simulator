@@ -1,6 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';

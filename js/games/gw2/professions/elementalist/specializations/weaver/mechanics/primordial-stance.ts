@@ -4,11 +4,11 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
 import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';

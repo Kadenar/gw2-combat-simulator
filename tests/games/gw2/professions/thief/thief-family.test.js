@@ -5,7 +5,7 @@ import test from 'node:test';
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 
@@ -287,7 +287,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
       `${active}:skritt-scuffle`
     );
 
-    const resources = runtime.ui
+    const resources = thiefProfession.ui
       .resourceViews({
         config,
         state: { profession: state }

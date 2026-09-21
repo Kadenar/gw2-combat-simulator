@@ -1,5 +1,5 @@
 import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type {
   WarriorCastContext,
   WarriorPlanningStateProjectionOptions,

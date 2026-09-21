@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { describe, test } from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,

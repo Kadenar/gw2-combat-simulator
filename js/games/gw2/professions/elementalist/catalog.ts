@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';

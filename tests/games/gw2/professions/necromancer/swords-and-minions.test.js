@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';

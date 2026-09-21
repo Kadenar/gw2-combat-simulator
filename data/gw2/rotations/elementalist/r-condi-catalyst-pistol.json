@@ -1,24 +1,16 @@
 {
+  "metadata": {
+    "note": "Start in Water with all four pistol bullets stocked in the build; retain Frost Aura setup and begin combat after Elemental Explosion."
+  },
   "rotation": [
-    "Shattering Stone",
-    "Air Attunement",
-    "Dazing Discharge",
-    "Fire Attunement",
-    "Raging Ricochet",
-    "Water Attunement",
-    "Frigid Flurry",
-    {
-      "name": "__wait",
-      "waitMs": 5000
-    },
     "Frost Aura",
     "Earth Attunement",
     {
       "name": "__wait",
       "waitMs": 4000
     },
-    "__combat_start",
     "Elemental Explosion",
+    "__combat_start",
     {
       "name": "Flame Barrage",
       "offset": 0

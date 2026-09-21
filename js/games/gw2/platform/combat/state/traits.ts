@@ -1,3 +1,4 @@
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 function includesTrait(values: readonly (string | number)[] | undefined, traitId: SkillId, key: string): boolean {
@@ -71,4 +72,31 @@ export function hasTrait(value: unknown, traitId: SkillId): boolean {
       ? context.config.selectedTraitIds
       : undefined;
   return includesTrait(selectedTraitIds, selectedTraitId, String(selectedTraitId));
+}
+
+interface TraitCatalog {
+  readonly traits?: readonly CatalogEntity[];
+}
+
+/**
+ * Carries both stable ids and names for every selected profession trait.
+ */
+// Expands canonical trait IDs to both ID and name forms so existing internal
+// consumers can migrate independently without duplicating catalog lookups.
+export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
+  const values = new Set<string | number>(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []);
+  const byId = new Map<number, CatalogEntity>();
+  for (const trait of catalog?.traits || []) {
+    byId.set(Number(trait.id), trait);
+  }
+
+  for (const value of [...values]) {
+    const trait = byId.get(Number(value));
+    if (trait) {
+      values.add(Number(trait.id));
+      values.add(trait.name);
+    }
+  }
+
+  return values;
 }

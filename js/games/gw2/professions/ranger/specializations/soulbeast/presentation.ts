@@ -9,7 +9,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionPaletteGroup,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 

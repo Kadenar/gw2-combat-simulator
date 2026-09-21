@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { snapshotThiefState } from '#gw2/professions/thief/family-state.js';
 import { materializeThiefAxe } from '#gw2/professions/thief/core/mechanics/weapon-state.js';

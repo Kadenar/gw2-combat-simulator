@@ -4,7 +4,7 @@
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
 // the same profession-mechanic tile as the activating facet.

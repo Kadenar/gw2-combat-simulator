@@ -5,7 +5,7 @@ import {
   type EnqueueGw2OwnedComboFinisherOptions
 } from '#gw2/platform/resolver/combo-resolution.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';

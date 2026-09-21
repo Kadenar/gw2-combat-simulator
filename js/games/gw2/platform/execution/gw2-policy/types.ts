@@ -1,6 +1,6 @@
 /** Owns the scheduler/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { ScheduledTask, SchedulerContext, SchedulerPolicy } from '#gw2/platform/engine/execution/types.js';
-import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
+import type { ScheduledTask, SchedulerContext, SchedulerPolicy } from '#gw2/platform/execution/types.js';
+import type { MaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 

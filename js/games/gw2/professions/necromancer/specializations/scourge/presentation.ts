@@ -5,7 +5,7 @@ import {
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 const SCOURGE_SKILLS = Object.freeze([

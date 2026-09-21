@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
 // Adjacent microseconds remain distinct for swaps, actions, snapshots, resets, and recharge deadlines.
 test('timeline state uses canonical instants without admitting future events', () => {

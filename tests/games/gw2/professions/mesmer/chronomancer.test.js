@@ -5,7 +5,7 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 
 // A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.

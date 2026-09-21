@@ -15,7 +15,7 @@ import type {
  * because its dual-attunement model is owned by the Weaver presentation.
  */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionStartControl } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionStartControl } from '#gw2/platform/profession-presentation/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';

@@ -19,6 +19,7 @@ import {
   rotationEntryName,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
+  timelineTargetImpactDetails,
   timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
@@ -74,6 +75,31 @@ test('timeline cast details preserve millisecond wait boundaries', () => {
     formatTimelineCastDetails({ start: 3000, end: 3083 }, (time) => `${(time / 1000).toFixed(3)}s`),
     'Cast: 3.000s → 3.083s\nCast time: 0.083s'
   );
+});
+
+test('target impact details preserve precombat applications and distinguish separate activations', () => {
+  // Scheduled applications remain inspectable even when combat gating omits them from resolved damage.
+  const details = timelineTargetImpactDetails(
+    [
+      { activationId: 'first', start: 1000, end: 2000 },
+      { activationId: 'second', start: 3000, end: 3500 },
+      { activationId: 'buff-only', start: 4000, end: 4000 },
+      { activationId: 'invalid', start: 5000, end: 5500, invalid: true }
+    ],
+    [
+      { activationId: 'first', type: 'damage', at: 1.8 },
+      { activationId: 'first', type: 'condition', at: 1.3 },
+      { activationId: 'first', type: 'damage', at: 1.1, cancelled: true },
+      { activationId: 'first', type: 'control', controlKind: 'initial-state', at: 1 },
+      { activationId: 'second', type: 'damage', at: 3.6, offTarget: true },
+      { activationId: 'buff-only', type: 'buff', at: 4 },
+      { activationId: 'invalid', type: 'damage', at: 5.2 }
+    ]
+  );
+  assert.equal(details.get('first'), 'First hit: 300 ms');
+  assert.equal(details.get('second'), 'First hit: 600 ms');
+  assert.equal(details.has('buff-only'), false);
+  assert.equal(details.has('invalid'), false);
 });
 
 test('timeline dead time includes explicit waits and excludes concurrent casts and gap-fill attacks', () => {

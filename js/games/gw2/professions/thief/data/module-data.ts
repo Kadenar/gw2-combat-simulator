@@ -1,4 +1,4 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/catalog.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { createFlipParentMap, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';

@@ -161,7 +161,7 @@ Non-type imports inside `js/games/gw2/app/` follow these rules:
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                          |
 | `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                        |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                   |
 | `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                                                                                                                                                                                                    |
 | `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                     |
 | `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                      |
@@ -314,36 +314,31 @@ profession flags; those belong beside their GW2 consumer.
 
 # GW2 simulation engine
 
-```text
-js/games/gw2/platform/engine/
-```
+The engine is part of the GW2 package because its skills, effects, state, and profession contracts use GW2-shaped
+inputs. Game-neutral clocks, queues, and random streams remain in `js/kernel/`. Paths below are relative to
+`js/games/gw2/platform/`.
 
-This engine is part of the GW2 package because its scheduler, effects, skills, cooldowns, state, and profession
-contracts use GW2-shaped data. Only genuinely game-neutral primitives move to `js/kernel/`.
-
-Examples include:
-
-- scheduler infrastructure;
-- cooldown/ammo machinery;
-- state containers;
-- effect materialization primitives;
-
-Important modules include:
-
-| Module                                                                             | Responsibility                                     |
-| ---------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `execution/scheduler.ts`                                                           | Declarative scheduler and profession-hook dispatch |
-| `execution/state.ts`                                                               | Profession-neutral scheduler state                 |
-| `execution/tasks.ts`                                                               | Ordered delayed state work                         |
-| `events/scheduled-stream.ts`                                                       | Scheduler-to-resolver event boundary               |
-| `execution/cooldowns.ts`                                                           | Cooldown and ammo state machine                    |
-| `effects/factories.ts`                                                             | Canonical effect constructors                      |
-| `effects/materializer.ts`                                                          | Converts effects into scheduled events             |
-| `skills/autoattack-chains.ts`                                                      | Autoattack-chain indexing                          |
-| `profession/family.ts`                                                             | Core + specialization contract composition         |
-| `profession/module.ts`                                                             | Profession module composition                      |
-| `profession/ui-combinators.ts`                                                     | Composition helpers for profession UI slices       |
-| `events/events.ts`, `skills/types.ts`, `execution/types.ts`, `profession/types.ts` | Domain-owned engine contracts                      |
+| Module                                             | Responsibility                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------- |
+| `execution/scheduler.ts`                           | Command coordination, cast lanes, and time advancement                |
+| `execution/scheduled-events.ts`                    | Event identity, indexes, replacement, and FIFO observation            |
+| `execution/cast-lifecycle.ts`                      | Accepted cast reservations and completion/recharge commitment         |
+| `execution/effect-adapter.ts`                      | Effect scheduling and interruption filtering                          |
+| `execution/tasks.ts`                               | Ordered delayed state work                                            |
+| `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                   |
+| `execution/gw2-policy/`                            | GW2 event preparation and predicted combo/equipment reactions         |
+| `engine/events/scheduled-stream.ts`                | Scheduler-to-resolver event boundary                                  |
+| `engine/events/actors.ts`                          | Shared actor types and validation vocabulary                          |
+| `engine/effects/authoring.ts`                      | Effect constructors and authored packet readers                       |
+| `engine/effects/materializer.ts`                   | Pure effect expansion                                                 |
+| `engine/skills/canonical-skill-catalog.ts`         | Canonical skill validation and normalization                          |
+| `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                      |
+| `engine/profession/{family,module,contract}.ts`    | Internal profession selection, composition, and runtime normalization |
+| `profession-presentation/`                         | UI composition, normalization, and presentation types                 |
+| `builds/profession-contract.ts`                    | Build callback validation and defaults                                |
+| `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                            |
+| `results/build-result.ts`                          | Resolver score and detailed report construction                       |
+| `results/end-state.ts`                             | Public planning state at the scheduler observation boundary           |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -377,7 +372,7 @@ Important modules include:
 | Module                            | Responsibility                                                                          |
 | --------------------------------- | --------------------------------------------------------------------------------------- |
 | `simulation/simulate.ts`          | Canonical `simulateGw2()` entry point                                                   |
-| `engine/`                         | Runtime contracts, scheduler execution, cooldowns, effects, and profession composition  |
+| `engine/`                         | Runtime contracts, canonical events/skills, pure effects, and profession composition    |
 | `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
 | `combat/modifiers.ts`             | Declarative scalar modifier system                                                      |
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
@@ -403,9 +398,16 @@ diagnostics, condition applications/private wakes, and mutable runtime types liv
 Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
 decoration and validation live under `js/games/gw2/integrations/patches/`.
 
-`engine/execution/` owns scheduler execution and runtime state. `scheduler/` prepares GW2 events, observes combat, and
-materializes combo/equipment procs; `resolver/` resolves those events and processes reactions. `simulation/` coordinates
-the phases without direct imports between scheduler and resolver implementations.
+`execution/` owns scheduler execution and runtime state. Its `gw2-policy/` adapters prepare GW2 events, observe combat,
+and materializes combo/equipment procs; `resolver/` resolves those events and processes reactions. `simulation/`
+coordinates the phases without direct imports between execution and resolver implementations.
+
+Native profession compilation retains one public entry point in `profession-definition/profession.ts`. The compiled
+runtime has no UI or build callbacks. Applications use the family build contract and lazily initialized `ui` adapter;
+headless simulation can consume the runtime directly without initializing presentation factories.
+
+`results/query.ts` indexes committed resolver effects and shares combat stacking/expiry semantics. Report construction
+and planning-state projection live in `results/`, while feedback convergence remains in `simulation/pipeline.ts`.
 
 `engine/skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/event-skill.ts` owns shared
 event-to-skill lookup without depending on resolver implementations. The shared damage-diagnostic contract lives beside

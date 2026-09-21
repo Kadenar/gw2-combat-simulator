@@ -12,14 +12,14 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-stat
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,
   strikeEffectCoefficient,
   strikeEffectTicks
-} from '#gw2/platform/engine/effects/timelines.js';
+} from '#gw2/platform/engine/effects/authoring.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';

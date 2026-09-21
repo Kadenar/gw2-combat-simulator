@@ -13,7 +13,7 @@ import {
 } from '#gw2/platform/combat/state/allied-players.js';
 import { isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/combat/state/event-ownership.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: Gw2HitResolution;

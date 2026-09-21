@@ -3,8 +3,8 @@ import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   requireRevenantBalanceProfile as balanceProfile,

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDpsReportRotationData } from '#gw2/app/io/logs/dps-report-rotation-import.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 

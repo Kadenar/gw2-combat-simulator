@@ -252,7 +252,7 @@ test('Kinetic Accelerators grants boons for a resolver-created Orbital Command S
   assert.ok(boons.every((event) => event.resolvedAudience.includesSelf && event.audience.recipients === 'party'));
 });
 
-test('Kinetic Accelerators cannot grant boons from a rejected precombat combo', () => {
+test('Kinetic Accelerators grants setup boons from precombat combos', () => {
   const result = simulate(
     'Scrapper',
     ['Medic Gyro', 'Function Gyro', { type: 'wait', durationMs: 2000 }, '__combat_start', 'Positive Strike'],
@@ -263,8 +263,11 @@ test('Kinetic Accelerators cannot grant boons from a rejected precombat combo', 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.resolvedEvents.some((event) => event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS),
-    false
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS && event.at < result.combatStartTime
+    ),
+    true
   );
 });
 

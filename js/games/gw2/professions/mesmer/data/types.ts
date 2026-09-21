@@ -9,7 +9,8 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { EffectMetadata, SimulationActorType } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 

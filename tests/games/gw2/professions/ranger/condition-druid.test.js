@@ -456,11 +456,20 @@ test('Carrion Devourer packets use its level-80 attributes', () => {
 });
 
 test('Poisonous Cloud uses six player packets across its fixed field window', () => {
-  const result = simulate(['Poisonous Cloud', { type: 'wait', durationMs: 10000 }], {
-    selectedPet: 'Carrion Devourer',
-    selectedTraitIds: [],
-    stats: { conditionDamage: 0, expertise: 0 }
-  });
+  // Starting combat during projectile travel retains the first impact and its aligned poison field.
+  const result = simulate(
+    [
+      'Celestial Avatar',
+      'Poisonous Cloud',
+      { type: 'combat-start', concurrentOffsetMs: 1040 },
+      { type: 'wait', durationMs: 10000 }
+    ],
+    {
+      selectedPet: 'Carrion Devourer',
+      selectedTraitIds: [],
+      stats: { conditionDamage: 0, expertise: 0 }
+    }
+  );
   const packets = result.resolvedEvents.filter(({ skillId }) => skillId === ID.POISONOUS_CLOUD);
   const strikes = packets.filter(({ type }) => type === 'damage');
   const poison = packets.filter(({ type }) => type === 'condition');
@@ -479,9 +488,12 @@ test('Poisonous Cloud uses six player packets across its fixed field window', ()
     ownerId: 'ranger',
     fieldType: 'Poison',
     duration: 5,
-    startMs: 1000,
+    startMs: 1160,
     startAnchor: 'castStart'
   });
+  assert.equal(strikes[0].at, skill.comboFields[0].startMs / 1000);
+  assert.equal(poison[0].at, strikes[0].at);
+  assert.ok(strikes[0].at > result.combatStartTime);
 
   const twinDarts = rangerCatalog.skillsById.get(ID.TWIN_DARTS);
   const tailLash = rangerCatalog.skillsById.get(ID.PET_TAIL_LASH);

@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';

@@ -7,10 +7,49 @@ import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 // only comes up after the first two lapse. Mirrors how the trait stacks the
 // "signet-mastery" boon in the simulation's own buff timeline.
 const RESULT = {
-  events: [
-    { type: 'buff', kind: 'signet-mastery', at: 1, duration: 60, stacks: 1 },
-    { type: 'buff', kind: 'signet-mastery', at: 2, duration: 60, stacks: 1 },
-    { type: 'buff', kind: 'signet-mastery', at: 61.5, duration: 60, stacks: 1 }
+  resolvedEvents: [
+    {
+      type: 'buff',
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        companionIds: [],
+        alliedPlayerCount: 0,
+        recipientCount: 1
+      },
+      kind: 'signet-mastery',
+      at: 1,
+      duration: 60,
+      stacks: 1
+    },
+    {
+      type: 'buff',
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        companionIds: [],
+        alliedPlayerCount: 0,
+        recipientCount: 1
+      },
+      kind: 'signet-mastery',
+      at: 2,
+      duration: 60,
+      stacks: 1
+    },
+    {
+      type: 'buff',
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        companionIds: [],
+        alliedPlayerCount: 0,
+        recipientCount: 1
+      },
+      kind: 'signet-mastery',
+      at: 61.5,
+      duration: 60,
+      stacks: 1
+    }
   ]
 };
 
@@ -39,8 +78,15 @@ test('Signet Mastery bar counts only applications still within their window', ()
 
 test('Signet Mastery bar caps at 5 stacks', () => {
   const overstacked = {
-    events: Array.from({ length: 7 }, (_unused, index) => ({
+    resolvedEvents: Array.from({ length: 7 }, (_unused, index) => ({
       type: 'buff',
+      resolvedAudience: {
+        includesSelf: true,
+        includesSummons: false,
+        companionIds: [],
+        alliedPlayerCount: 0,
+        recipientCount: 1
+      },
       kind: 'signet-mastery',
       at: index * 0.1,
       duration: 60,

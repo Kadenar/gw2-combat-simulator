@@ -5,12 +5,12 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/timelines.js';
+import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -24,7 +24,7 @@ import {
   gainNecromancerLifeForce,
   runCreatureSummonReactions
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,

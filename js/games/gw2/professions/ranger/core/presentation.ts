@@ -11,7 +11,7 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   RangerState,

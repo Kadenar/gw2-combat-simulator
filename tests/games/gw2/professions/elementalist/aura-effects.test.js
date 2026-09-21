@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';

@@ -11,12 +11,12 @@ import {
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import type { ThiefSchedulerContext, ThiefSimulationEvent, ThiefScheduledTask } from '#gw2/professions/thief/types.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type {

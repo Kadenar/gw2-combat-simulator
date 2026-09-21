@@ -18,6 +18,7 @@ export interface ActivationEditorOptions {
   readonly suggestedConcurrentOffsetMs?: number | null;
   readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
+  readonly targetImpactDetails?: string;
   readonly allowOffTarget?: boolean;
   readonly offTarget?: boolean;
   readonly onApply: (timingMs: number | null, offTarget: boolean) => void;
@@ -206,6 +207,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     </div>
     <div class="activation-editor-full-cast"></div>
     <div class="activation-editor-damage-commit"></div>
+    <div class="activation-editor-target-impact"></div>
     ${
       options.allowOffTarget
         ? `<div class="activation-editor-label">Targeting</div>
@@ -232,6 +234,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const inputRow = editor.querySelector<HTMLElement>('.activation-editor-input-row');
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
   const damageCommit = editor.querySelector<HTMLElement>('.activation-editor-damage-commit');
+  const targetImpact = editor.querySelector<HTMLElement>('.activation-editor-target-impact');
   const offTarget = editor.querySelector<HTMLInputElement>('.activation-editor-off-target');
   const warning = editor.querySelector<HTMLElement>('.activation-editor-warning');
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
@@ -248,6 +251,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     !inputRow ||
     !fullCast ||
     !damageCommit ||
+    !targetImpact ||
     (options.allowOffTarget && !offTarget) ||
     !warning ||
     !error ||
@@ -276,9 +280,14 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
   damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);
   damageCommit.hidden = !damageCommit.textContent;
+  // This describes the current simulated cast, independently of its interrupt commitment cutoff.
+  targetImpact.textContent = options.targetImpactDetails || '';
+  targetImpact.hidden = !targetImpact.textContent;
   if (offTarget) offTarget.checked = options.offTarget === true;
 
   const updateDamageCommitWarning = (): void => {
+    // Show interruption guidance only while the user is configuring an interruption.
+    damageCommit.hidden = isConcurrentBehavior || !configuredRadio.checked || !damageCommit.textContent;
     const message =
       !isConcurrentBehavior && configuredRadio.checked
         ? activationDamageCommitWarning(input.value, options.damageCommitMs)

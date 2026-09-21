@@ -1,5 +1,5 @@
 import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
-import type { SkillHandlerPhase } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerPhase } from '#gw2/platform/execution/types.js';
 import type { RevenantCastContext } from '#gw2/professions/revenant/types.js';
 import { consumeRevenantFacet } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-upkeep.js';
 

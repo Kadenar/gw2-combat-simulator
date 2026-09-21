@@ -1,8 +1,8 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';

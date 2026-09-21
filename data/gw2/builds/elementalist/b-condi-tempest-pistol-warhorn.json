@@ -100,16 +100,16 @@
   "targetHealth": 4000000,
   "targetArmor": 2597,
   "rotation": [],
-  "startAttunement": "Fire",
+  "startAttunement": "Earth",
   "secondaryAttunement": "Air",
   "initialCatalystEnergy": 30,
   "evokerElement": "Fire",
   "initialEvokerCharges": 6,
   "initialEvokerEmpowered": 0,
   "pistolBullets": {
-    "Fire": false,
-    "Water": false,
+    "Fire": true,
+    "Water": true,
     "Air": false,
-    "Earth": false
+    "Earth": true
   }
 }

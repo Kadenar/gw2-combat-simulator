@@ -7,7 +7,7 @@ import {
   readProfessionSpecializationState,
   projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Shared profession state preserves isolated runtime fields and detached public snapshots.
@@ -36,7 +36,7 @@ test('flat snapshot restoration routes declared specialization keys and clones v
 });
 
 test('generic scheduler state contains no profession-specific fields', () => {
-  const state = createSchedulerState({ profession: testProfession });
+  const state = createScheduler({ profession: testProfession }).state;
 
   assert.deepEqual(
     Object.keys(state).sort(),

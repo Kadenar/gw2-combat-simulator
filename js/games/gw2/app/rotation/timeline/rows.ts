@@ -40,6 +40,7 @@ import {
   timelineTransitionDelayMarkers,
   timelineItem,
   timelineSkillCastOrdinals,
+  timelineTargetImpactDetails,
   timelineStepsWithChargeFills,
   timelineWeaponRowGroups,
   timelineWeaponRows,
@@ -49,7 +50,7 @@ import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/res
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand, SchedulerStep } from '#gw2/platform/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
 /** The view retains a row's DOM node while both its identity and rendered HTML remain unchanged. */
@@ -155,6 +156,7 @@ export function timelineRowsView(
   const combatReferenceMs = resultCombatReferenceMs(results);
   // Timeline timestamps keep millisecond precision so authored waits display their exact boundaries.
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs, 3);
+  const targetImpacts = timelineTargetImpactDetails(resultSteps, results?.events || []);
   const deadTimes = timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(resultSteps, resourceSpends),
     results?.resolvedEvents || [],
@@ -458,6 +460,9 @@ export function timelineRowsView(
       const skillTooltip =
         step && !invalid && item.type === 'cast'
           ? formatTimelineSkillTooltip(display, step, castOrdinals.get(index), formatTime, [
+              ...(step.activationId && targetImpacts.has(step.activationId)
+                ? [targetImpacts.get(step.activationId)!]
+                : []),
               ...(actionDetail ? [actionDetail] : []),
               ...(step.activationId && transitionDetails.has(step.activationId)
                 ? [transitionDetails.get(step.activationId)!]

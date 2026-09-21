@@ -5,8 +5,8 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
-import type { EmitSkillBuffOptions } from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import type { EmitSkillBuffOptions } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   addBlight,
   consumeBlight,

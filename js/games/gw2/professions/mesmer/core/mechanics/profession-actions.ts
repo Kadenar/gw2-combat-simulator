@@ -8,7 +8,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddEvent,

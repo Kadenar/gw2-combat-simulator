@@ -474,7 +474,7 @@ test('Relic of the Claw buffs strikes after a control skill for eight seconds', 
   );
 });
 
-test('Relic of the Claw can trigger from a non-damaging control skill and expires', () => {
+test('Relic of the Claw can trigger from a precombat control skill and expires', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
     initialResource: 0,
@@ -483,8 +483,12 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
     secondaryWeapon: 'Sword',
     modifiers: { strike: 1, condition: 1 }
   });
-  const active = simulateMesmer(['Signet of Domination', 'Mind Slash'], config);
-  const expired = simulateMesmer(['Signet of Domination', { name: '__wait', waitMs: 8001 }, 'Mind Slash'], config);
+  // The relic buff comes from using the skill, so an explicit combat marker must preserve its remaining lifetime.
+  const active = simulateMesmer(['Signet of Domination', '__combat_start', 'Mind Slash'], config);
+  const expired = simulateMesmer(
+    ['Signet of Domination', { name: '__wait', waitMs: 8001 }, '__combat_start', 'Mind Slash'],
+    config
+  );
   const strikeDamage = (result) =>
     result.breakdown
       .filter((entry) => entry.sourceSkill === 'Mind Slash')

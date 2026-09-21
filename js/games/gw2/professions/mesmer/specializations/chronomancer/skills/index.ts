@@ -2,7 +2,7 @@
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
  * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
 

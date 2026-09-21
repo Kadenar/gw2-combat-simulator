@@ -1,3 +1,13 @@
+import {
+  createCastLifecycle,
+  activationScopedOperations,
+  CORE_CAST_COMPLETE
+} from '#gw2/platform/execution/cast-lifecycle.js';
+import {
+  scheduleDeclarativeEffects,
+  interruptCommitCutoffs,
+  cancelledBeforeInterruptCommit
+} from '#gw2/platform/execution/effect-adapter.js';
 /**
  * The shared declarative scheduler. Owns canonical rotation-command execution,
  * cast/recharge timing, cooldown and ammo bookkeeping, effect materialization
@@ -6,22 +16,20 @@
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
-import { castCompleted, castWasInterrupted, retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted, retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import { createEvent } from '#gw2/platform/engine/events/events.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import {
   normalizeObservationPolicy,
   observationEndTime,
   type ObservationPolicy
 } from '#kernel/execution/observation.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import { createSchedulerState } from '#gw2/platform/engine/execution/state.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { compareQueuedEvents } from '#kernel/events/queue.js';
 import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
-import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import type {
@@ -29,7 +37,6 @@ import type {
   AvailabilityResult,
   CastCommand,
   CastContext,
-  CastLifecycleContext,
   CooldownController,
   ScheduledTask,
   RegisteredTaskHandler,
@@ -38,27 +45,16 @@ import type {
   Scheduler,
   RechargeQueryDetails,
   SchedulerConfig,
+  SchedulerState,
   SchedulerContext,
   SchedulerPolicy,
   SchedulerRunResult,
   SchedulerStep,
   SchedulerTaskAccess,
   TaskQueue
-} from '#gw2/platform/engine/execution/types.js';
-import type {
-  CanonicalCatalog,
-  SkillEffect,
-  SkillMechanicTrigger,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/execution/types.js';
+import type { CanonicalCatalog, SkillMechanicTrigger, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-
-/** Payload of the core task that commits a reserved cast when its lane completes. */
-interface CastCompletionTaskPayload {
-  readonly reservationId: string;
-}
 
 /** Payload of a declarative skill mechanic trigger scheduled at cast completion. */
 interface SkillMechanicTaskPayload {
@@ -67,20 +63,6 @@ interface SkillMechanicTaskPayload {
   readonly castStart: number;
   readonly castEnd: number;
   readonly activationId?: string;
-}
-
-interface CastReservation<TProfessionState extends object> {
-  id: string;
-  skill: Skill;
-  ammo: AmmoState | null;
-  castContext: CastContext<TProfessionState>;
-  fullEnd: number;
-  effectiveEnd: number;
-  rechargeDuration: number;
-  ammoLockoutDuration: number;
-  rechargeStart: number;
-  rechargeReadyAt: number | null;
-  action: SimulationEvent | null;
 }
 
 interface CreateSchedulerOptions<TProfessionState extends object> {
@@ -103,108 +85,6 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
 function baseDurationSeconds(skill: Skill): number {
   return Math.max(0, Number(skill.castTimeMs || 0)) / 1000;
 }
-
-/** Collects every explicit cutoff that can preserve an interrupted commit-mode skill effect. */
-function interruptCommitCutoffs(skill: Skill): number[] {
-  return [skill.interruptCommitMs, ...(skill.effects || []).map((effect) => effect.interruptCommitMs)].filter(
-    (cutoff): cutoff is number => cutoff != null && Number.isFinite(Number(cutoff))
-  );
-}
-
-function cancelledBeforeInterruptCommit(skill: Skill, start: number, fullEnd: number, effectiveEnd: number): boolean {
-  if (skill.interruptMode === 'per-packet' || castCompleted({ fullEnd, effectiveEnd })) return false;
-  const elapsedMs = (effectiveEnd - start) * 1000;
-  const cutoffs = interruptCommitCutoffs(skill);
-  return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + EPSILON * 1000 < Number(cutoff));
-}
-
-/** Returns whether an interrupted cast ended before this persistent effect launched. */
-function cancelledBeforeEffectCommit(
-  skill: Skill,
-  effect: SkillEffect,
-  start: number,
-  fullEnd: number,
-  effectiveEnd: number
-): boolean {
-  if (castCompleted({ fullEnd, effectiveEnd })) return false;
-  const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
-  if (cutoff == null) return true;
-  const elapsedMs = (effectiveEnd - start) * 1000;
-  return elapsedMs + EPSILON * 1000 < Number(cutoff);
-}
-
-/**
- * Expands declarative skill effects into canonical scheduled events. This is
- * also reusable by replacing handlers after their owning mechanic resolves dynamic effects.
- */
-export function scheduleDeclarativeEffects<TProfessionState extends object>(
-  context: SchedulerContext<TProfessionState>,
-  skill: Skill,
-  activationId: string,
-  start: number,
-  fullEnd: number,
-  effectiveEnd: number,
-  observeEffect: (event: SimulationEvent, effect: SkillEffect, effectIndex: number) => void = () => {}
-): void {
-  const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
-  const slotSkill = skill.type === 'Heal' || skill.type === 'Utility' || skill.type === 'Elite';
-  const effects = skill.effects || [];
-  for (let index = 0; index < effects.length; index += 1) {
-    const effect = effects[index];
-    const timing =
-      context.schedulerPolicy.effectTiming?.(
-        {
-          ...context,
-          skill,
-          start,
-          fullEnd,
-          effectiveEnd
-        },
-        skill,
-        effect
-      ) ?? effect;
-    const perPacket = skill.interruptMode === 'per-packet';
-    const cancelledCommitEffect =
-      interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd);
-    if (cancelledCommitEffect) continue;
-    const cancelPendingEffects = interrupted && (perPacket || effect.persistsAfterInterrupt !== true);
-    const base = {
-      activationId,
-      source: effect.source || context.profession.id,
-      sourceId: effect.sourceId ?? skill.id,
-      actorType: effect.actorType || 'player',
-      ...(effect.ownerActorType ? { ownerActorType: effect.ownerActorType } : {}),
-      // Preserve explicit child-effect art so result rows do not fall back to the parent skill icon.
-      ...(effect.icon ? { icon: effect.icon } : {}),
-      skillId: skill.id,
-      skillName: skill.name,
-      ...(effect.persistsAfterInterrupt === true ? { persistsAfterInterrupt: true } : {})
-    };
-    const baseDuration =
-      effect.type === 'boon' || effect.type === 'buff' ? Math.max(0, Number(effect.duration || 0)) : undefined;
-    const duration =
-      baseDuration == null
-        ? undefined
-        : (context.schedulerPolicy.effectDuration?.(context, skill, effect, baseDuration) ?? baseDuration);
-    const applications = materializeSkillEffectApplications({
-      skill,
-      effect: timing,
-      start,
-      fullEnd,
-      baseEvent: base,
-      skillWeaponFallback: slotSkill ? 'Unequipped' : '',
-      statusDuration: duration
-    });
-
-    // Cancellation keeps packets arriving at the boundary and drops pending impacts.
-    for (const application of applications) {
-      if (cancelPendingEffects && application.at > effectiveEnd + EPSILON) continue;
-      observeEffect(context.emit(application.event), effect, index);
-    }
-  }
-}
-
-const CORE_CAST_COMPLETE = 'platform.cast-complete';
 
 function unavailable(reason: string, code = 'platform.unavailable', retryAt: number | null = null): AvailabilityResult {
   return retryAt == null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
@@ -236,85 +116,15 @@ export function createScheduler<TProfessionState extends object = object>({
     startingTime,
     activeWeaponSet: initialWeaponSet
   });
-  const events: SimulationEvent[] = [];
   const steps: SchedulerStep[] = [];
   const warnings: string[] = [];
   // Reservations separate "a cast has started" from "its completion has
   // committed cooldown/ammo state". inFlight provides a skill-keyed lookup;
   // reservations retains the lifecycle data used by the completion task.
   const inFlight = new Map<SkillId, Set<string>>();
-  const reservations = new Map<string, CastReservation<TProfessionState>>();
   // Off-target activations still schedule self/setup mechanics; tagging every descendant lets resolution skip only
   // hostile packets, including delayed pulses that land after Combat Start.
   const offTargetActivationIds = new Set<string>();
-  // Scheduling hooks may emit more events. A FIFO observation queue flattens
-  // that recursion so every event is observed exactly once in causal order.
-  const observationQueue: SimulationEvent[] = [];
-  let observingEvents = false;
-  let eventOrder = 0;
-  // Derived events share their cause's integer order and use fractional
-  // suffixes, keeping them adjacent to the cause at equal timestamps.
-  const derivedEventCounts = new Map<number, number>();
-  // Shared indexes let scheduler policies and profession hooks query narrow
-  // event subsets without repeatedly scanning the complete scheduled stream.
-  const eventTypeIndex = new Map<string, SimulationEvent[]>();
-  const eventOrderIndex = new Map<number, SimulationEvent>();
-  const emptyEventBucket = Object.freeze([]) as readonly SimulationEvent[];
-  const indexEvent = (event: SimulationEvent): void => {
-    const type = String(event.type || '');
-    const bucket = eventTypeIndex.get(type);
-    if (bucket) bucket.push(event);
-    else eventTypeIndex.set(type, [event]);
-    const order = Number(event.eventOrder);
-    if (Number.isFinite(order)) eventOrderIndex.set(order, event);
-  };
-
-  const replaceIndexedEvent = (event: SimulationEvent, replacement: SimulationEvent): void => {
-    const previousType = String(event.type || '');
-    const nextType = String(replacement.type || '');
-    if (previousType === nextType) {
-      const bucket = eventTypeIndex.get(previousType);
-      const index = bucket?.indexOf(event) ?? -1;
-      if (bucket && index >= 0) bucket[index] = replacement;
-    } else {
-      // Type-changing replacements are rare; rebuilding the two affected
-      // buckets preserves the exact insertion order exposed by context.events.
-      eventTypeIndex.set(
-        previousType,
-        events.filter((candidate) => String(candidate.type || '') === previousType)
-      );
-      eventTypeIndex.set(
-        nextType,
-        events.filter((candidate) => String(candidate.type || '') === nextType)
-      );
-    }
-
-    const order = Number(event.eventOrder);
-    if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
-  };
-
-  // Buff events are indexed by lowercased kind so buffStacks/hasBuff scan only
-  // the relevant buffs instead of the entire event log on every query.
-  const buffIndex = new Map<string, SimulationEvent[]>();
-  const buffKindKey = (event: SimulationEvent): string | null =>
-    event.type === 'buff' && event.resolvedAudience?.includesSelf ? String(event.kind || '').toLowerCase() : null;
-  const indexBuffEvent = (event: SimulationEvent): void => {
-    const key = buffKindKey(event);
-    if (key == null) return;
-    const bucket = buffIndex.get(key);
-    if (bucket) bucket.push(event);
-    else buffIndex.set(key, [event]);
-  };
-
-  const deindexBuffEvent = (event: SimulationEvent): void => {
-    const key = buffKindKey(event);
-    if (key == null) return;
-    const bucket = buffIndex.get(key);
-    const at = bucket?.indexOf(event) ?? -1;
-    if (bucket && at >= 0) bucket.splice(at, 1);
-  };
-
-  let reservationOrder = 0;
   let activationOrder = 0;
   let previousCastStart = state.time;
   // serialReadyAt and latestBlockingEnd control the player's cast lane.
@@ -341,6 +151,25 @@ export function createScheduler<TProfessionState extends object = object>({
     return activeCatalog?.skillsById?.get(skillId) || activeCatalog?.skills?.find((skill) => skill.id === skillId);
   };
 
+  const scheduledEvents = createScheduledEvents({
+    prepareEvent(event) {
+      const activationId = typeof event.activationId === 'string' ? event.activationId : null;
+      const offTarget = event.offTarget === true || (activationId != null && offTargetActivationIds.has(activationId));
+      const targetedEvent = offTarget ? { ...event, offTarget: true } : event;
+      const professionPrepared = activeProfession.prepareEvent(context, targetedEvent);
+      const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
+      return { ...prepared, ...(offTarget ? { offTarget: true } : {}) };
+    },
+    observeEvent(event) {
+      schedulerPolicy.onEventScheduled?.(context, event);
+      activeProfession.onEventScheduled(context, event);
+    },
+    onEventReplaced(event, replacement) {
+      schedulerPolicy.onEventReplaced?.(context, event, replacement);
+    }
+  });
+  const { events } = scheduledEvents;
+
   const context: SchedulerContext<TProfessionState> = {
     profession: activeProfession,
     config,
@@ -365,87 +194,11 @@ export function createScheduler<TProfessionState extends object = object>({
       const prefix = String(kind || 'effect');
       return `${prefix}:${++activationOrder}`;
     },
-    eventsOfType(type: string) {
-      return eventTypeIndex.get(String(type || '')) || emptyEventBucket;
-    },
-    eventByOrder(order: number) {
-      return eventOrderIndex.get(Number(order));
-    },
-    emit(/** @type {SimulationEventInput} */ event) {
-      const activationId = typeof event.activationId === 'string' ? event.activationId : null;
-      const offTarget = event.offTarget === true || (activationId != null && offTargetActivationIds.has(activationId));
-      const targetedEvent = offTarget ? { ...event, offTarget: true } : event;
-      const professionPrepared = activeProfession.prepareEvent(context, targetedEvent);
-      const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
-      const normalized = createEvent({
-        ...prepared,
-        ...(offTarget ? { offTarget: true } : {}),
-        eventOrder: eventOrder++
-      });
-      events.push(normalized);
-      indexEvent(normalized);
-      indexBuffEvent(normalized);
-      observationQueue.push(normalized);
-      if (!observingEvents) {
-        let observationCount = 0;
-        observingEvents = true;
-        try {
-          while (observationQueue.length) {
-            if (++observationCount > ACTION_SAFETY_LIMIT) {
-              throw new Error('Scheduled-event observation safety limit exceeded.');
-            }
-
-            const observed = observationQueue.shift();
-            if (observed) {
-              schedulerPolicy.onEventScheduled?.(context, observed);
-              activeProfession.onEventScheduled(context, observed);
-            }
-          }
-        } finally {
-          observingEvents = false;
-        }
-      }
-
-      return normalized;
-    },
-    replaceEvent(/** @type {SimulationEvent} */ event, /** @type {Partial<SimulationEventInput>} */ updates) {
-      // Hooks may retain older references; always merge into the current version of this identity.
-      const current = context.eventByOrder(Number(event.eventOrder));
-      if (!current) throw new TypeError('Event replacement requires a scheduled event.');
-      if (Object.hasOwn(updates, 'eventOrder') && updates.eventOrder !== current.eventOrder) {
-        throw new TypeError('Event replacement cannot change eventOrder.');
-      }
-
-      event = current;
-      const replacement = createEvent({ ...event, ...updates });
-      const replaceReference = (collection: SimulationEvent[]): void => {
-        const index = collection.indexOf(event);
-        if (index >= 0) collection[index] = replacement;
-      };
-
-      deindexBuffEvent(event);
-      replaceReference(events);
-      replaceReference(observationQueue);
-      replaceIndexedEvent(event, replacement);
-      indexBuffEvent(replacement);
-      schedulerPolicy.onEventReplaced?.(context, event, replacement);
-      return replacement;
-    },
-    emitDerived(/** @type {SimulationEvent} */ cause, /** @type {SimulationEventInput} */ event) {
-      const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.eventOrder));
-      if (!Number.isFinite(rootOrder)) {
-        throw new TypeError('Derived events require a scheduled cause.');
-      }
-
-      const count = (derivedEventCounts.get(rootOrder) || 0) + 1;
-      derivedEventCounts.set(rootOrder, count);
-      return context.emit({
-        ...(cause.activationId ? { activationId: cause.activationId } : {}),
-        ...event,
-        causalOrder: rootOrder + count / 1_000_000,
-        triggeredBy: event.triggeredBy ?? cause.skillName ?? cause.name ?? ''
-      });
-    },
+    eventsOfType: scheduledEvents.eventsOfType,
+    eventByOrder: scheduledEvents.eventByOrder,
+    emit: scheduledEvents.emit,
+    emitDerived: scheduledEvents.emitDerived,
+    replaceEvent: scheduledEvents.replaceEvent,
     buffStacks(/** @type {string} */ kind, at = state.time) {
       const normalized = String(kind || '').toLowerCase();
       const permanent = config.boons?.[normalized];
@@ -453,7 +206,7 @@ export function createScheduler<TProfessionState extends object = object>({
       // Scheduled buff events are already known even if the scheduler clock has
       // not reached them, so both their start and half-open expiry are checked.
       // Only this kind's indexed buffs are scanned, not the entire event log.
-      const bucket = buffIndex.get(normalized);
+      const bucket = scheduledEvents.buffEvents(normalized);
       let stacks = base;
       for (const event of bucket || []) {
         if (isTimeInWindow(at, event.at, event.at + Number(event.duration || 0))) {
@@ -526,123 +279,7 @@ export function createScheduler<TProfessionState extends object = object>({
     maximumAmmo: maximumAmmoFor
   });
   context.cooldownController = cooldownController;
-
-  /** Defaults event lineage and optionally child-task lineage, preserving explicit overrides. */
-  function activationScopedOperations(
-    baseContext: SchedulerContext<TProfessionState>,
-    eventActivationId: string,
-    inheritedTaskActivationId: string | null
-  ): Pick<SchedulerContext<TProfessionState>, 'emit' | 'tasks'> {
-    return {
-      emit(event) {
-        return baseContext.emit({ activationId: eventActivationId, ...event });
-      },
-      tasks: inheritedTaskActivationId
-        ? {
-            ...baseContext.tasks,
-            schedule(task) {
-              return baseContext.tasks.schedule({
-                ...task,
-                payload: { activationId: inheritedTaskActivationId, ...(task.payload || {}) }
-              });
-            }
-          }
-        : baseContext.tasks
-    };
-  }
-
-  /** Keeps cast-hook emissions and tasks attached to the cast's activation lineage. */
-  function createCastLifecycleContext(
-    reservation: CastReservation<TProfessionState>
-  ): CastLifecycleContext<TProfessionState> {
-    const {
-      id: reservationId,
-      castContext,
-      action,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt
-    } = reservation;
-    if (!action) throw new Error(`Cast reservation ${reservationId} has no action.`);
-
-    return {
-      ...castContext,
-      action,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt,
-      reservationId,
-      ...activationScopedOperations(context, reservationId, reservationId)
-    };
-  }
-
-  const completeReservation: ScheduledTaskHandler<SchedulerContext<TProfessionState>, CastCompletionTaskPayload> = (
-    _taskContext,
-    task
-  ) => {
-    const reservationId = task.payload?.reservationId;
-    if (typeof reservationId !== 'string') return;
-    const reservation = reservations.get(reservationId);
-    if (!reservation) return;
-    const { skill, castContext, fullEnd, effectiveEnd, rechargeDuration, ammoLockoutDuration, rechargeStart } =
-      reservation;
-    const active = inFlight.get(skill.id);
-    active?.delete(reservation.id);
-    if (active?.size === 0) inFlight.delete(skill.id);
-    if (reservation.ammo) {
-      cooldownController.spendAmmo(skill, rechargeStart, rechargeDuration);
-      if (ammoLockoutDuration > 0) {
-        cooldownController.setAmmoLockout(skill, rechargeStart + ammoLockoutDuration, rechargeStart);
-      }
-    } else if (rechargeDuration) {
-      state.cooldowns.set(skill.id, rechargeStart + rechargeDuration);
-    }
-
-    // Cooldown/ammo commitment precedes the profession completion hook so the
-    // hook observes the state players would have immediately after the cast.
-    const completionContext = createCastLifecycleContext(reservation);
-    activeProfession.onCastComplete(completionContext, skill);
-
-    // Skill metadata owns trigger timing; the task executes profession state
-    // changes only when that timestamp is actually reached.
-    // Completion triggers describe committed effects; cancelled attempts still run lifecycle cleanup above.
-    for (const trigger of reservation.action?.cancelled === true ? [] : skill.mechanicTriggers || []) {
-      const authoredCastMs = Math.max(0, Number(skill.castTimeMs || 0));
-      const actualCastMs = Math.max(0, fullEnd - castContext.start) * 1000;
-      const authoredOffsetMs = Number(trigger.atMs || 0);
-      const offsetMs =
-        trigger.timingScale === 'cast' && authoredCastMs > 0
-          ? authoredOffsetMs * (actualCastMs / authoredCastMs)
-          : authoredOffsetMs;
-      const anchor = trigger.timingAnchor === 'castStart' ? castContext.start : fullEnd;
-      const triggerAt = anchor + offsetMs / 1000;
-      if (triggerAt < effectiveEnd - EPSILON) {
-        throw new RangeError(
-          `${skill.name} mechanic trigger ${trigger.type} resolves before the cast-completion dispatch phase.`
-        );
-      }
-
-      completionContext.tasks.schedule({
-        type: trigger.type,
-        at: triggerAt,
-        ownerId: reservation.id,
-        payload: {
-          skillId: skill.id,
-          trigger,
-          castStart: castContext.start,
-          castEnd: fullEnd
-        }
-      });
-    }
-
-    reservations.delete(reservation.id);
-  };
+  const lifecycle = createCastLifecycle(context);
 
   /** Dispatches one due trigger through the active profession's composed handler registry. */
   const handleSkillMechanicTrigger: ScheduledTaskHandler<
@@ -667,13 +304,22 @@ export function createScheduler<TProfessionState extends object = object>({
   };
 
   const taskHandlers: Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>> = {
-    [CORE_CAST_COMPLETE]: completeReservation,
-    ...(schedulerPolicy.taskHandlers || {}),
-    ...activeProfession.taskHandlers,
-    ...Object.fromEntries(
+    [CORE_CAST_COMPLETE]: lifecycle.completeReservation
+  };
+  // Every task type has one owner; an extension must never replace cast completion or another category.
+  for (const handlers of [
+    schedulerPolicy.taskHandlers || {},
+    activeProfession.taskHandlers,
+    Object.fromEntries(
       Object.keys(activeProfession.skillMechanicHandlers).map((type) => [type, handleSkillMechanicTrigger])
     )
-  };
+  ]) {
+    for (const [type, handler] of Object.entries(handlers)) {
+      if (Object.hasOwn(taskHandlers, type)) throw new TypeError(`Duplicate scheduled task handler: ${type}`);
+      taskHandlers[type] = handler;
+    }
+  }
+
   const activationAwareTaskHandlers: Record<
     string,
     ScheduledTaskHandler<SchedulerContext<TProfessionState>, object>
@@ -701,8 +347,6 @@ export function createScheduler<TProfessionState extends object = object>({
       }
     ])
   );
-  // Later spreads intentionally win, allowing a profession to specialize a
-  // policy task type while the core completion task remains the default.
   taskQueue = createTaskQueue({
     handlers: activationAwareTaskHandlers,
     safetyLimit: ACTION_SAFETY_LIMIT
@@ -757,9 +401,7 @@ export function createScheduler<TProfessionState extends object = object>({
     const readyAt = state.cooldowns.get(skill.id) || 0;
     const active = inFlight.get(skill.id);
     const activeReservations = active?.size
-      ? [...active]
-          .map((id) => reservations.get(id))
-          .filter((/** @type {CastReservation<TProfessionState> | undefined} */ reservation) => reservation != null)
+      ? [...active].map((id) => lifecycle.reservation(id)).filter((reservation) => reservation != null)
       : [];
     const reservedUntil = activeReservations.length
       ? Math.max(
@@ -981,73 +623,10 @@ export function createScheduler<TProfessionState extends object = object>({
     // reporting can require zero damage only for the ambiguous case.
     const missingInterruptCommit =
       interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
-    const rechargeContext = {
-      ...castContext,
-      fullEnd,
-      effectiveEnd
-    };
-    const persistentRechargeDuration = rechargeDurationFor(skill, effectiveEnd, rechargeContext);
-    // Reserve next-cast benefits synchronously, once, so queries, cancelled attempts,
-    // ammo lockouts, and overlapping casts cannot spend the same entitlement.
-    const rechargeDuration = cancelledBeforeCommit
-      ? persistentRechargeDuration
-      : Math.max(0, Number(activeProfession.commitRechargeDuration(rechargeContext, persistentRechargeDuration) || 0));
-    const ammoLockoutDuration =
-      castContext.ammo && Number(skill.ammo || 0) > 0
-        ? rechargeDurationFor(skill, effectiveEnd, {
-            ...castContext,
-            fullEnd,
-            effectiveEnd,
-            ammoCastLockout: true
-          })
-        : 0;
-    const rechargeAnchor = skill.rechargeAnchor === 'castStart' ? start : effectiveEnd;
-    const canonicalRechargeStart = rechargeAnchor + Number(skill.rechargeOffsetMs || 0) / 1000;
-    const rechargeStart = Math.max(
-      start,
-      Number(
-        activeProfession.modifyRechargeStart(
-          {
-            ...castContext,
-            fullEnd,
-            effectiveEnd,
-            rechargeDuration
-          },
-          canonicalRechargeStart
-        )
-      )
-    );
-    const ammoChargeReadyAt =
-      castContext.ammo && castContext.ammo.charges <= 1
-        ? (castContext.ammo.nextRechargeAt ?? rechargeStart + rechargeDuration)
-        : 0;
-    const ammoLockoutReadyAt = castContext.ammo && ammoLockoutDuration > 0 ? rechargeStart + ammoLockoutDuration : 0;
-    const rechargeReadyAt = castContext.ammo
-      ? Math.max(ammoChargeReadyAt, ammoLockoutReadyAt) || null
-      : rechargeDuration > 0
-        ? rechargeStart + rechargeDuration
-        : null;
-    // Register the reservation before lifecycle hooks emit anything. Re-entrant
-    // availability checks therefore see this cast as already in flight.
-    const reservationId = `cast:${++reservationOrder}`;
+    const reservation = lifecycle.reserve(castContext, fullEnd, effectiveEnd, cancelledBeforeCommit);
+    const reservationId = reservation.id;
+    const { rechargeReadyAt } = reservation;
     if (command.offTarget === true) offTargetActivationIds.add(reservationId);
-    const reservation: CastReservation<TProfessionState> = {
-      id: reservationId,
-      skill,
-      ammo: castContext.ammo,
-      castContext,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt,
-      action: null
-    };
-    reservations.set(reservationId, reservation);
-    if (!inFlight.has(skill.id)) inFlight.set(skill.id, new Set());
-    inFlight.get(skill.id)?.add(reservationId);
-
     const action = context.emit({
       type: 'action',
       activationId: reservationId,
@@ -1070,7 +649,7 @@ export function createScheduler<TProfessionState extends object = object>({
       ...(cancelledBeforeCommit ? { cancelled: true } : {})
     });
     reservation.action = action;
-    const lifecycleContext = createCastLifecycleContext(reservation);
+    const lifecycleContext = lifecycle.castContext(reservation);
     activeProfession.onCastStart(lifecycleContext, skill);
     const handler = activeProfession.skillHandlerFor?.(skill);
     const handlerMode = resolveSkillHandlerMode(handler, lifecycleContext, skill);
@@ -1289,4 +868,39 @@ export function createScheduler<TProfessionState extends object = object>({
   }
 
   return { state, events, warnings, context, cast, advanceTo, run };
+}
+
+interface SchedulerStateOptions<TProfessionState extends object> {
+  readonly profession?: {
+    createProfessionState(config: Readonly<SchedulerConfig>): TProfessionState;
+  };
+  readonly config?: Readonly<SchedulerConfig>;
+  readonly startingTime?: number;
+  readonly activeWeaponSet?: number;
+}
+
+/**
+ * Creates the profession-neutral mutable state owned by the scheduler.
+ * Profession-specific resources are nested under `state.profession`.
+ *
+ */
+function createSchedulerState<TProfessionState extends object = object>({
+  profession,
+  config = {},
+  startingTime = 0,
+  activeWeaponSet = 1
+}: SchedulerStateOptions<TProfessionState> = {}): SchedulerState<TProfessionState> {
+  if (!profession || typeof profession.createProfessionState !== 'function') {
+    throw new TypeError('Scheduler state requires a profession contract.');
+  }
+
+  return {
+    time: Number(startingTime || 0),
+    cooldowns: new Map(),
+    ammo: new Map(),
+    lockouts: new Map(),
+    activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),
+    skillUses: new Map(),
+    profession: profession.createProfessionState(config)
+  };
 }

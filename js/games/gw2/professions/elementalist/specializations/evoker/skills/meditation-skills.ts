@@ -2,7 +2,7 @@
  * Owns Evoker meditation heal, utility, and elite skill fragments.
  * Meditation trait reactions are registered by the Evoker module.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 

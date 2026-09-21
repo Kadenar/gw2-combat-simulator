@@ -1,5 +1,5 @@
 /** Owns Crushing Abyss stacks, recharge tasks, and weapon-swap state across spear casts. */
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';

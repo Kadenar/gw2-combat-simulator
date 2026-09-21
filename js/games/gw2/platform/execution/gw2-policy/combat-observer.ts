@@ -1,12 +1,13 @@
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
+import { canonicalTargetConditionName, isPrecombatTargetEffect } from '#gw2/platform/combat/state/targets.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
-import type { MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
+import type { MaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 
 export interface Gw2CombatObserver {
   observe(context: SchedulerContext, event: SimulationEvent): void;
@@ -48,6 +49,8 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
 
   return Object.freeze({
     observe(context: SchedulerContext, event: SimulationEvent) {
+      // Match resolver eligibility, including conditions emitted through immediate prediction paths.
+      if (beforeExplicitCombatStart(context, event) && isPrecombatTargetEffect(event)) return;
       switch (event.type) {
         case 'combat_start':
           activateCombat(event.at);
@@ -60,7 +63,6 @@ export function createGw2CombatObserver(state: MaterializerState): Readonly<Gw2C
           break;
         case 'condition':
           markCombatActive(context, event);
-          // Retain surviving precombat conditions for later queries without activating combat.
           recordCondition(event);
           break;
         case 'damage':

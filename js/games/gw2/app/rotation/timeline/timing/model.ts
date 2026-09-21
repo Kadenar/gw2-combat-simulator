@@ -1,4 +1,4 @@
-import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

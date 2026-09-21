@@ -8,7 +8,7 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {

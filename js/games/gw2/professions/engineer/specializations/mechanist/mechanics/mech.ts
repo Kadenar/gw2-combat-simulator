@@ -10,7 +10,7 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -21,7 +21,7 @@ import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engin
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {

@@ -14,7 +14,7 @@ import { analysisViewIsActive, renderSimulationViewModel } from '#app/shell/resu
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 
 const STANDARD_EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',

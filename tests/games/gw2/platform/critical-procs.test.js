@@ -10,7 +10,7 @@ import {
   criticalOpportunity,
   CRITICAL_PROC_PROGRESS_TOLERANCE
 } from '#gw2/platform/combat/critical-procs.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 
 function request(overrides = {}) {
   return {

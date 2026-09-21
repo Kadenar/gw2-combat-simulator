@@ -1,7 +1,7 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { syncWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';

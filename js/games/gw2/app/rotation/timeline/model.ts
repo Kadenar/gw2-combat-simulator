@@ -1,5 +1,5 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationCommand, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand, SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
@@ -62,6 +62,38 @@ export function formatTimelineCastDetails(
   if (!Number.isFinite(start) || !Number.isFinite(end)) return '';
   const castSeconds = Math.max(0, end - start) / 1000;
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(3)}s`;
+}
+
+/** Read scheduled impacts so precombat suppression does not hide the timing needed to place Combat Start. */
+export function timelineTargetImpactDetails(
+  steps: readonly SchedulerStep[],
+  events: readonly SimulationEvent[]
+): Map<string, string> {
+  const firstImpacts = new Map<string, SimulationEvent>();
+  for (const event of events) {
+    if (
+      !event.activationId ||
+      event.cancelled === true ||
+      !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
+      event.controlKind === 'initial-state'
+    )
+      continue;
+    const previous = firstImpacts.get(event.activationId);
+    if (!previous || event.at < previous.at) firstImpacts.set(event.activationId, event);
+  }
+
+  const details = new Map<string, string>();
+  for (const step of steps) {
+    if (!step.activationId || step.invalid) continue;
+    const impact = firstImpacts.get(step.activationId);
+    if (!impact) continue;
+    const atMs = Math.round(impact.at * 1000);
+    const offsetMs = atMs - Math.round(step.start);
+    // The editor only needs the cast-relative offset to position Combat Start.
+    details.set(step.activationId, `First hit: ${offsetMs} ms`);
+  }
+
+  return details;
 }
 
 const NON_SKILL_STEP_NAMES = new Set([

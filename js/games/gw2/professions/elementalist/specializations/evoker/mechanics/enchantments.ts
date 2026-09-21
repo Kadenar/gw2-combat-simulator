@@ -7,7 +7,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * player strikes that consume them, marking each consumed strike so it can never
  * be charged twice.
  */
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';

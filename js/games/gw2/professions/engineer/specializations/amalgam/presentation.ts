@@ -8,7 +8,10 @@ import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionSkillBarGroup, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionSkillBarGroup,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type {

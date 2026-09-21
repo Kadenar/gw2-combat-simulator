@@ -1,7 +1,7 @@
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   Gw2ApplicationBuild,
   Gw2Build,

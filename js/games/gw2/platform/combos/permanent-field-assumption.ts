@@ -1,7 +1,7 @@
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { ComboFieldType } from '#gw2/platform/combos/types.js';
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 

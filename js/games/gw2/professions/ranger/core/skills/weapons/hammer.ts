@@ -1,6 +1,6 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.

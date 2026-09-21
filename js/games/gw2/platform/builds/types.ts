@@ -1,6 +1,5 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
@@ -206,7 +205,7 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   targetHealth: number;
   targetStartingHealthPercent: number;
   targetArmor: number;
-  rotation: import('#gw2/platform/engine/execution/types.js').RotationCommand[];
+  rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
 }
 
 export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
@@ -295,7 +294,7 @@ export interface Gw2ApplicationBuild extends Gw2Build {
   targetHealth: number;
   targetStartingHealthPercent: number;
   targetArmor: number;
-  rotation: import('#gw2/platform/engine/execution/types.js').RotationCommand[];
+  rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
 }
 
 export interface Gw2BuildCodec<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
@@ -421,3 +420,18 @@ export type Gw2CalculateAttributes = (
   disabledTrait?: string | null,
   disabledSigil?: string | null
 ) => Gw2FinalizedAttributeResult;
+
+export interface BuildValidationResult {
+  readonly valid: boolean;
+  readonly errors: readonly string[];
+}
+
+/** A build as it arrives from storage or a shared link, before migration and validation. */
+export type UnvalidatedBuild = unknown;
+
+/** Carries the build shape returned by the owning codec while keeping saved input unvalidated. */
+export interface ProfessionBuildDefinition<TBuild extends object = object> {
+  readonly createBuildDefaults?: () => TBuild;
+  readonly migrateBuild?: (saved: UnvalidatedBuild) => TBuild;
+  readonly validateBuild?: (build: UnvalidatedBuild) => BuildValidationResult;
+}

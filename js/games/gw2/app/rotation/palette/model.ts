@@ -25,8 +25,8 @@ import type {
   ProfessionPaletteGroup,
   ProfessionPaletteSkillEntry,
   ProfessionPaletteStatusIcon
-} from '#gw2/platform/engine/profession/types.js';
-import type { AmmoState } from '#gw2/platform/engine/execution/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
+import type { AmmoState } from '#gw2/platform/execution/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
 /** Ammo may arrive as scheduler seconds or an already projected millisecond countdown. */

@@ -1,5 +1,5 @@
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
-import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import type { SchedulerRunResult } from '#gw2/platform/execution/types.js';
 import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 

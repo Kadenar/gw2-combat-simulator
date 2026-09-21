@@ -1,6 +1,7 @@
 /** Shackles relic rules. */
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
-import { GW2_EVENT_ACTOR_TYPES, gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const shackles = defineRelic({

@@ -1,5 +1,5 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';

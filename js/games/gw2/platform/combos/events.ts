@@ -2,7 +2,8 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type {
   ComboEvent,
   ComboFieldBinding,

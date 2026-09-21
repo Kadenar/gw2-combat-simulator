@@ -13,7 +13,7 @@ import type {
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

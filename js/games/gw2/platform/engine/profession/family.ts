@@ -1,3 +1,5 @@
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 /**
  * Profession family assembly. Selects Core plus one specialization, composes
  * the executable runtime, and caches normalized contracts by specialization.
@@ -13,7 +15,7 @@ import type {
   ProfessionModuleDefinition,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
 import {
   ATTRIBUTE_HOOK_NAMES,
   CAST_HOOK_NAMES,
@@ -32,7 +34,7 @@ import {
   singleOwnerValue
 } from '#gw2/platform/engine/profession/module.js';
 import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
-import { composeModuleUi, createProfessionFamilyUi } from '#gw2/platform/engine/profession/ui.js';
+import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
 
 /**
  * Composes ordinary attribute hooks plus optional declarative rule fragments.
@@ -107,7 +109,6 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: composeModuleCatalog(genericModules),
-    build: definition.build,
     resources: {
       createProfessionState: (config) => composeStateFragments(genericModules, config, false) as TProfessionState,
       createResolverState: (config) => composeStateFragments(genericModules, config, true),
@@ -120,7 +121,6 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
       eventHandlers,
       eventReactions: composeEventReactions(genericModules)
     },
-    ui: composeModuleUi(genericModules),
     simulation: definition.simulation
   };
 }
@@ -134,7 +134,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
 ): Readonly<
   ProfessionFamilyContract<
     TProfessionState,
-    NormalizedProfessionContract<TProfessionState, object, object, TBuild>,
+    NormalizedProfessionContract<TProfessionState, object, object>,
     ProfessionSimulationDefinition,
     TBuild
   >
@@ -164,25 +164,17 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   }
 
   const core = defineProfessionModule(definition.core);
-  const applicationUi = createProfessionFamilyUi({
-    catalog: definition.catalog,
-    core: core.ui || {},
-    specializations: Object.fromEntries([...specializationModules].map(([name, module]) => [name, module.ui || {}])),
-    family: definition.ui
-  });
   const applicationModules: NamedModule[] = [
     { name: 'Core', module: core },
     ...[...specializationModules].map(([name, module]) => ({ name, module }))
   ];
-  // Reuse the ordinary application normalizers without constructing a
-  // profession-wide executable runtime. The trigger registry is included only
-  // so the full application catalog can validate every module-owned trigger.
+  // Validate the family catalog and simulation policy without composing executable hooks across inactive elites.
+  // The trigger registry lets the full application catalog validate every module-owned trigger.
   const applicationSurface = defineProfession({
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog,
-    build: definition.build,
     schedulerHooks: {
       skillMechanicHandlers: mergeHandlerRegistries(
         applicationModules,
@@ -190,13 +182,12 @@ export function defineProfessionFamily<TProfessionState extends object = object,
         'skill mechanic handler'
       )
     },
-    ui: applicationUi,
     simulation: definition.simulation
   });
-  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>>>();
+  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState, object, object>>>();
   const resolveRuntime = (
     config: Readonly<SchedulerConfig> = {}
-  ): Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>> => {
+  ): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> => {
     const specialization = String(config.specialization || 'Core').trim() || 'Core';
     if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
@@ -218,21 +209,33 @@ export function defineProfessionFamily<TProfessionState extends object = object,
     return runtime;
   };
 
+  const build = normalizeProfessionBuild(definition.id, definition.build);
+  let presentation: ReturnType<typeof normalizeProfessionUi> | undefined;
   return Object.freeze({
     id: applicationSurface.id,
     name: applicationSurface.name,
     weaponSkillMatchesSet: applicationSurface.weaponSkillMatchesSet,
     catalog: applicationSurface.catalog,
-    ui: applicationSurface.ui,
+    get ui() {
+      return (presentation ??= normalizeProfessionUi(
+        definition.id,
+        createProfessionFamilyUi({
+          catalog: definition.catalog,
+          core: core.ui || {},
+          specializations: Object.fromEntries(
+            [...specializationModules].map(([name, module]) => [name, module.ui || {}])
+          ),
+          family: definition.ui
+        })
+      ));
+    },
     simulation: applicationSurface.simulation,
-    createBuildDefaults: applicationSurface.createBuildDefaults,
-    migrateBuild: applicationSurface.migrateBuild,
-    validateBuild: applicationSurface.validateBuild,
+    ...build,
     resolveRuntime
   }) as Readonly<
     ProfessionFamilyContract<
       TProfessionState,
-      NormalizedProfessionContract<TProfessionState, object, object, TBuild>,
+      NormalizedProfessionContract<TProfessionState, object, object>,
       ProfessionSimulationDefinition,
       TBuild
     >

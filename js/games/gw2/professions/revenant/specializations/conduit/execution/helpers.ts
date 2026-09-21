@@ -8,7 +8,7 @@ import {
   conditionEffectTicks,
   effectFirstAtMs,
   strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/timelines.js';
+} from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 

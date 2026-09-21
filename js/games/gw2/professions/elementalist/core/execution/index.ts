@@ -11,8 +11,8 @@ import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/e
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { produceGw2OwnedComboEvents } from '#gw2/platform/scheduler/combo-materializer.js';
-import { emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { produceGw2OwnedComboEvents } from '#gw2/platform/execution/gw2-policy/combo-materializer.js';
+import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,

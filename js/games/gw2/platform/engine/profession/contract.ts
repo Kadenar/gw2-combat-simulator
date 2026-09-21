@@ -3,15 +3,12 @@
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   NormalizedProfessionContract,
-  PaletteSkillAvailability,
   ProfessionDefinition,
-  ProfessionSimulationDefinition,
-  UnvalidatedBuild,
-  ProfessionUiContract
+  ProfessionSimulationDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
 
@@ -79,29 +76,6 @@ export const ATTRIBUTE_HOOK_NAMES = hookNamesWith('attribute');
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
 const READY_CAST: ComposableHook = (..._args) => CAST_READY;
-
-const UI_CALLBACK_NAMES = Object.freeze([
-  'chargeReleaseProjection',
-  'effectPresentations',
-  'eventLogRow',
-  'isPaletteSkillInstant',
-  'paletteSkillAvailability',
-  'isSlotSkillSelectable',
-  'paletteGroups',
-  'paletteActionSkills',
-  'paletteWeaponSkills',
-  'renderWeaponPalette',
-  'resolvePaletteAction',
-  'resourceViews',
-  'skillBarGroups',
-  'startControls',
-  'targetHealthThresholds',
-  'rotationStateSnapshot',
-  'timelineWeaponLineTransition',
-  'timelineSkillIcon',
-  'updatePaletteControl',
-  'updateSkillBarSelection'
-]);
 
 /**
  * Normalizes one hook or hook list into an order-stable array.
@@ -256,21 +230,6 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
   for (const name of names) assertOptionalCallback(container, name, scope);
 }
 
-function assertUiDefinition(ui: UnvalidatedFields): void {
-  assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], 'ui');
-  if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
-    throw new TypeError('ui.assumptionControls must be an array.');
-  }
-
-  if (ui.slotLoadout != null && (typeof ui.slotLoadout !== 'object' || Array.isArray(ui.slotLoadout))) {
-    throw new TypeError('ui.slotLoadout must be an object.');
-  }
-
-  if (ui.weaponSwapChangesSet != null && typeof ui.weaponSwapChangesSet !== 'boolean') {
-    throw new TypeError('ui.weaponSwapChangesSet must be a boolean.');
-  }
-}
-
 function assertHandlerMap(value: unknown, scope: string): void {
   if (value == null) return;
   if (typeof value !== 'object' || Array.isArray(value)) {
@@ -317,27 +276,6 @@ function assertSkillMechanicTriggers(
       }
     }
   }
-}
-
-function normalizePaletteAvailability(value: unknown, professionId: string): PaletteSkillAvailability {
-  if (!value || typeof value !== 'object') {
-    throw new TypeError(`${professionId} paletteSkillAvailability must return an object.`);
-  }
-
-  const result = value as UnvalidatedFields;
-  if (typeof result.available !== 'boolean') {
-    throw new TypeError(`${professionId} paletteSkillAvailability.available must be boolean.`);
-  }
-
-  if (result.retryAt != null && !Number.isFinite(Number(result.retryAt))) {
-    throw new TypeError(`${professionId} paletteSkillAvailability.retryAt must be a finite number or null.`);
-  }
-
-  return {
-    available: result.available,
-    message: String(result.message || ''),
-    ...(result.retryAt == null ? {} : { retryAt: Number(result.retryAt) })
-  };
 }
 
 function assertShallowUnchanged(value: UnvalidatedFields, snapshot: UnvalidatedFields, label: string): void {
@@ -400,22 +338,18 @@ function normalizeSimulation(
 
 export function defineProfession<TProfessionState extends object, TBuild extends object = object>(
   definition: ProfessionDefinition<TProfessionState, TBuild>
-): Readonly<NormalizedProfessionContract<TProfessionState, object, object, TBuild>> {
+): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> {
   assertDefinition(definition);
-  const build = definition.build || {};
   const resources = definition.resources || {};
   const attributeRules = definition.attributeRules || {};
   const castRules = definition.castRules || {};
   const schedulerHooks = definition.schedulerHooks || {};
   const resolverHooks = definition.resolverHooks || {};
-  const ui = definition.ui || {};
-  assertCallbackContainer(build, ['createBuildDefaults', 'migrateBuild', 'validateBuild'], 'build');
   assertCallbackContainer(
     resources,
     ['createProfessionState', 'createResolverState', 'projectPlanningState'],
     'resources'
   );
-  assertUiDefinition(ui);
   assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
   assertHandlerMap(schedulerHooks.skillMechanicHandlers, 'schedulerHooks.skillMechanicHandlers');
   assertHandlerMap(resolverHooks.eventHandlers, 'resolverHooks.eventHandlers');
@@ -429,40 +363,6 @@ export function defineProfession<TProfessionState extends object, TBuild extends
   assertSkillMechanicTriggers(definition.catalog, skillMechanicHandlers, definition.id);
   const catalogSkillHandlers =
     definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();
-  // Resource presentation is plural throughout the contract; professions
-  // without resource UI normalize directly to an empty collection.
-  const resourceViews = ui.resourceViews || (() => []);
-  const paletteSkillAvailability = ui.paletteSkillAvailability;
-
-  const normalizedUi: ProfessionUiContract = {
-    ...ui,
-    assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
-    chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
-    effectPresentations: ui.effectPresentations || (() => []),
-    paletteGroups: ui.paletteGroups || (() => []),
-    paletteActionSkills: ui.paletteActionSkills || ((_context, skills) => [...skills]),
-    paletteWeaponSkills: ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
-    renderWeaponPalette: ui.renderWeaponPalette || (() => null),
-    resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
-    resourceViews,
-    isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
-    // Keep availability, its explanation, and retry timing together; missing policies impose no restriction.
-    paletteSkillAvailability: paletteSkillAvailability
-      ? (context, skill) => normalizePaletteAvailability(paletteSkillAvailability(context, skill), definition.id)
-      : () => ({ available: true, message: '' }),
-    isSlotSkillSelectable: ui.isSlotSkillSelectable || (() => true),
-    skillBarGroups: ui.skillBarGroups || (() => []),
-    startControls: ui.startControls || (() => []),
-    slotLoadout: ui.slotLoadout || null,
-    targetHealthThresholds: ui.targetHealthThresholds || (() => []),
-    rotationStateSnapshot: ui.rotationStateSnapshot || (() => []),
-    timelineWeaponLineTransition: ui.timelineWeaponLineTransition || (() => undefined),
-    timelineSkillIcon: ui.timelineSkillIcon || (() => ''),
-    updatePaletteControl: ui.updatePaletteControl || (() => false),
-    updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
-    weaponSwapChangesSet: ui.weaponSwapChangesSet !== false
-  };
-
   const sources: UnvalidatedFields = {
     prepareEvent: schedulerHooks.prepareEvent,
     initialize: schedulerHooks.initialize,
@@ -512,14 +412,6 @@ export function defineProfession<TProfessionState extends object, TBuild extends
       specializations: []
     },
     skillHandlerFor: (skill: Skill) => catalogSkillHandlers.get(String(skill?.handlerId || '')) || null,
-    createBuildDefaults:
-      build.createBuildDefaults ||
-      (() => ({
-        schemaVersion: 3,
-        profession: definition.id
-      })),
-    migrateBuild: build.migrateBuild || ((saved: UnvalidatedBuild) => saved as object),
-    validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
     createProfessionState: resources.createProfessionState || (() => ({})),
     createResolverState: resources.createResolverState || null,
     taskHandlers: Object.freeze({
@@ -531,12 +423,9 @@ export function defineProfession<TProfessionState extends object, TBuild extends
       ...(resolverHooks.eventHandlers || {})
     }),
     eventReactions: createEventReactions(resolverHooks.eventReactions),
-    paletteGroups: normalizedUi.paletteGroups,
-    resourceViews,
-    ui: Object.freeze(normalizedUi),
     simulation: normalizeSimulation(definition.simulation)
   };
   return Object.freeze(profession) as unknown as Readonly<
-    NormalizedProfessionContract<TProfessionState, object, object, TBuild>
+    NormalizedProfessionContract<TProfessionState, object, object>
   >;
 }

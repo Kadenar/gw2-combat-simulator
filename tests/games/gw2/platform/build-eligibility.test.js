@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 
 test('shared eligibility precedes profession filters and cast state changes', () => {
@@ -105,7 +105,11 @@ test('every profession inherits build rejection in browser, palette, and resolve
         const label = `${entry.id}/${specialization}: ${skill.name}`;
         assert.equal(adapter.isSkillAvailable(skill, context), false, label);
         assert.equal(adapter.profession.ui.paletteSkillAvailability(context, skill).available, false, label);
-        assert.equal(runtime.ui.paletteSkillAvailability({ config: context }, skill).available, false, label);
+        assert.equal(
+          adapter.profession.ui.paletteSkillAvailability({ config: context }, skill).available,
+          false,
+          label
+        );
         // No runtime state is needed: build rejection must precede profession state access.
         assert.deepEqual(
           runtime.availability({ config: context }, skill),

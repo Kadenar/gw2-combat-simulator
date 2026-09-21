@@ -9,7 +9,7 @@ import {
   denySkillCast as denyEngineerCast,
   selectedSlotSkillAvailability
 } from '#gw2/professions/shared/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */

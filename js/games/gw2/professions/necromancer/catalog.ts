@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { necromancerCoreModule } from '#gw2/professions/necromancer/core/module.js';
 import { harbingerModule } from '#gw2/professions/necromancer/specializations/harbinger/module.js';
 import { reaperModule } from '#gw2/professions/necromancer/specializations/reaper/module.js';

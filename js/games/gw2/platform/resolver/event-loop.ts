@@ -1,7 +1,7 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import { HandlerRegistry } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { isPrecombatTargetEffect, missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 
 import type {
@@ -45,13 +45,8 @@ function targetHealth(ctx: Gw2ResolverRuntime): number {
   return value > 0 ? value : Infinity;
 }
 
-/**
- * Events suppressed before an explicit Combat Start: outgoing damage ticks
- * plus target vulnerability, which scales that output. Condition applications
- * still process so their unexpired stacks can carry across the combat boundary;
- * their precombat ticks remain gated.
- */
-function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
+/** Target death rejects new attacks and their combo outcomes after the lethal activation. */
+function isTargetDeathGatedEvent(event: Gw2ResolverEvent): boolean {
   return (
     event.type === 'damage' ||
     event.type === 'condition_tick' ||
@@ -127,7 +122,7 @@ export function runGw2ResolverEventLoop(
       // Finish the lethal activation and simultaneous condition-tick batch,
       // but reject a distinct attack ordered after the target already died.
       if (
-        isCombatGatedEvent(event) &&
+        isTargetDeathGatedEvent(event) &&
         event.type !== 'condition_tick' &&
         (lethalActivationKey == null || combatActivationKey(event) !== lethalActivationKey)
       ) {
@@ -141,8 +136,9 @@ export function runGw2ResolverEventLoop(
       continue;
     }
 
+    // Precombat actions, combos and relic buffs resolve, but target damage and conditions cannot apply yet.
     // Recurring condition wakes must advance their clock even when their damage is gated before combat.
-    if (combatStart != null && event.at < combatStart && isCombatGatedEvent(event) && !event.conditionGroup) {
+    if (combatStart != null && event.at < combatStart && isPrecombatTargetEffect(event) && !event.conditionGroup) {
       ctx.sigilDiagnostics?.suppress(event, 'precombat');
       continue;
     }

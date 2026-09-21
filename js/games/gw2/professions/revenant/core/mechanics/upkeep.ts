@@ -4,12 +4,12 @@ import { effectiveRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/pro
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   conditionEffectTicks,
   effectFirstAtMs,
   strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/timelines.js';
+} from '#gw2/platform/engine/effects/authoring.js';
 /**
  * Revenant Core upkeep and pulse state machines.
  *

@@ -1,5 +1,5 @@
 import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/engine/execution/scheduler.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {

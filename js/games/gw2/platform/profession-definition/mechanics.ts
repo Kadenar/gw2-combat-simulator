@@ -1,5 +1,5 @@
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import type { AvailabilityResult, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NativeResolvedDamageDetails,

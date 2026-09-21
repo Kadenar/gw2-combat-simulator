@@ -3,7 +3,7 @@
  * Persistent Unleash state and transitions live under `mechanics/`.
  */
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.

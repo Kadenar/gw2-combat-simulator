@@ -3,7 +3,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerAddCondition,

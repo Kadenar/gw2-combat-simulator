@@ -1,6 +1,6 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';

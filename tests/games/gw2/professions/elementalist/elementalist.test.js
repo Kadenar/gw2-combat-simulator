@@ -12,7 +12,7 @@ import {
   professionRegistry
 } from '#gw2/app/profession-registry.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import {
   ELEMENTALIST_BUILD_SCHEMA_VERSION,
   createElementalistBuildDefaults,

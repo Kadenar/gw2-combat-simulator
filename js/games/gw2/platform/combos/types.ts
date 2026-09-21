@@ -1,5 +1,6 @@
 /** Owns the combos/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SimulationActorType, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 export type ComboFieldType =
   'Dark' | 'Ethereal' | 'Fire' | 'Ice' | 'Light' | 'Lightning' | 'Poison' | 'Smoke' | 'Water';

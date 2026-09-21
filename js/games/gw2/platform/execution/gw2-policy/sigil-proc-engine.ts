@@ -1,5 +1,5 @@
 import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -16,7 +16,10 @@ import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-pr
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-import type { MaterializerProfessionState, MaterializerState } from '#gw2/platform/scheduler/materializer-state.js';
+import type {
+  MaterializerProfessionState,
+  MaterializerState
+} from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 
 export type SigilTrigger = 'swap' | 'control' | 'strike';
 

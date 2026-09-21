@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
 import { testProfession } from '#tests/fixtures/profession.js';

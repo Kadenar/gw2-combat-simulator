@@ -1,7 +1,7 @@
 /** Defines baseline requests and results, including optional patch comparisons. */
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#app/game/contracts.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface PatchComparison {

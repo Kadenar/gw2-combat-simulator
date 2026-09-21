@@ -1,6 +1,7 @@
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { StableEventQueue } from '#kernel/events/queue.js';
-import type { SimulationActorType, SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';

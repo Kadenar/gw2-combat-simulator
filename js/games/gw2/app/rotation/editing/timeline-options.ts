@@ -13,9 +13,9 @@ import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
-import { currentTimelineResults, timelineItem } from '#gw2/app/rotation/timeline/model.js';
+import { currentTimelineResults, timelineItem, timelineTargetImpactDetails } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 
@@ -111,7 +111,17 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const isPrecast = item.type === 'cast' && combatStartIndex > index;
   if (!skill && !isCombatStart) return false;
 
-  const step = currentTimelineResults(app)?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
+  const results = currentTimelineResults(app);
+  const step = results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
+  // Combat Start offsets are relative to the preceding cast, so show that cast's impact beside the offset editor.
+  const impactStep = isCombatStart
+    ? [...(results?.steps || [])]
+        .reverse()
+        .find((candidate) => candidate.ri >= 0 && candidate.ri < index && !candidate.invalid && candidate.activationId)
+    : step;
+  const targetImpact = impactStep?.activationId
+    ? timelineTargetImpactDetails([impactStep], results?.events || []).get(impactStep.activationId)
+    : undefined;
   const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
   const fullCastMs = timelineFullCastMs(step, skill);
   // Combat Start has no cast bar, but its optional offset uses the same normal-versus-overlap
@@ -138,6 +148,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
+    targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skill}\n${targetImpact}` : targetImpact,
     allowOffTarget: isPrecast,
     offTarget: item.offTarget === true,
     onApply(timingMs, offTarget) {

@@ -5,7 +5,7 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { observeMesmerEvent } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import {
   handleVirtuosoExpectedProcTask,

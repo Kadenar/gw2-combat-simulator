@@ -14,7 +14,7 @@ import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type {

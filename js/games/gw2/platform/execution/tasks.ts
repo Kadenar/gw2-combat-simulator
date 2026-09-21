@@ -11,7 +11,7 @@ import type {
   ScheduledTaskHandler,
   ScheduledTaskInput,
   TaskQueue
-} from '#gw2/platform/engine/execution/types.js';
+} from '#gw2/platform/execution/types.js';
 
 function cloneSerializable<T>(value: T, label: string): T {
   try {

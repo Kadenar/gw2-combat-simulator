@@ -12,7 +12,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionResourceView
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 

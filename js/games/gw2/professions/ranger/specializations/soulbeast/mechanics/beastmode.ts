@@ -2,7 +2,7 @@ import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   professionCoreState,
   readProfessionCoreState,
@@ -18,7 +18,7 @@ import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
@@ -26,7 +26,7 @@ import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
 // Config/timeline are checked first because runtime may not be populated during attribute pre-computation.

@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -11,7 +11,6 @@ import {
   createRelicTimelineRuntime,
   invokeRelicHook
 } from '#gw2/platform/equipment/relics/runtime.js';
-import { materializeBoonRelics } from '#gw2/platform/scheduler/relic-materializer.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
@@ -934,7 +933,7 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
     }
   };
   const grantMight = (at, extra = {}) =>
-    materializeBoonRelics(context, relic, {
+    relic.rules.materializeBoon(context, relic.state, {
       type: 'buff',
       at,
       skillName: `Grant Might ${at}`,

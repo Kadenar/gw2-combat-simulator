@@ -1,4 +1,4 @@
-import type { CastCommand } from '#gw2/platform/engine/execution/types.js';
+import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 

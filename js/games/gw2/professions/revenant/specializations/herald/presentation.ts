@@ -1,7 +1,7 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { PaletteSkillAvailability } from '#gw2/platform/engine/profession/types.js';
+import type { PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 

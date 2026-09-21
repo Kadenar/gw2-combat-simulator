@@ -1,4 +1,4 @@
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
@@ -6,7 +6,7 @@ import type {
   ScheduledTask,
   SchedulerContext,
   SchedulerState
-} from '#gw2/platform/engine/execution/types.js';
+} from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   Gw2ApplicationBuild,

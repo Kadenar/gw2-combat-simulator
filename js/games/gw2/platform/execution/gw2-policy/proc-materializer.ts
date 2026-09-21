@@ -1,23 +1,27 @@
+import type { Gw2RelicMaterializerContext, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import type { ScheduledTask, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask, SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
-import { materializeBoonRelics, materializeConditionRelics } from '#gw2/platform/scheduler/relic-materializer.js';
+import { isPrecombatTargetEffect, missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2TriggerMaterializer, MaterializeEventTaskPayload } from '#gw2/platform/scheduler/types.js';
+import type { Gw2TriggerMaterializer, MaterializeEventTaskPayload } from '#gw2/platform/execution/gw2-policy/types.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { createGw2CombatObserver } from '#gw2/platform/scheduler/combat-observer.js';
-import { hasStochasticCriticalFood, sampleScheduledCritical } from '#gw2/platform/scheduler/critical-facts.js';
+import { createGw2CombatObserver } from '#gw2/platform/execution/gw2-policy/combat-observer.js';
+import {
+  hasStochasticCriticalFood,
+  sampleScheduledCritical
+} from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import {
   createMaterializerState,
   type MaterializerProfessionState
-} from '#gw2/platform/scheduler/materializer-state.js';
-import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/scheduler/sigil-proc-engine.js';
+} from '#gw2/platform/execution/gw2-policy/materializer-state.js';
+import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/execution/gw2-policy/sigil-proc-engine.js';
 
 interface CreateGw2TriggerMaterializerOptions {
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
@@ -76,6 +80,13 @@ export function createGw2TriggerMaterializer(
   const processEvent = (context: SchedulerContext, event: SimulationEvent): void => {
     // Missed hostile packets cannot establish combat facts or spend hit-dependent procs.
     if (missesTarget(event) || event.cancelled === true) return;
+    // Rejected target effects cannot seed conditions, consume random rolls or trigger equipment during setup.
+    if (
+      context.hasExplicitCombatStart &&
+      (context.combatStartTime == null || event.at < context.combatStartTime) &&
+      isPrecombatTargetEffect(event)
+    )
+      return;
     if (isSchedulerSigilPrediction(event)) {
       // Predicted conditions supply scheduling facts, never recursive equipment reactions.
       if (event.type === 'condition') observer.observe(context, event);
@@ -199,4 +210,23 @@ export function createGw2TriggerMaterializer(
     }
   };
   return Object.freeze(materializer);
+}
+
+/** Materializes boon applications created by the selected relic. */
+function materializeBoonRelics(ctx: Gw2RelicMaterializerContext, relic: Gw2RelicRuntime, event: SimulationEvent): void {
+  if (!isStandardBoon(event.kind || event.boon)) return;
+  const handler = relic.rules.materializeBoon;
+  if (typeof handler !== 'function') return;
+  handler(ctx, relic.state, event);
+}
+
+/** Materializes condition-triggered effects created by the selected relic. */
+function materializeConditionRelics(
+  ctx: Gw2RelicMaterializerContext,
+  relic: Gw2RelicRuntime,
+  event: SimulationEvent
+): void {
+  const handler = relic.rules.materializeCondition;
+  if (typeof handler !== 'function') return;
+  handler(ctx, relic.state, event);
 }

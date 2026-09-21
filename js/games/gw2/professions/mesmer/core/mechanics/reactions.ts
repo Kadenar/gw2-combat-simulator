@@ -1,4 +1,4 @@
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/engine/resolution/handler-registry.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import {
   triggerIneptitudeFromBlind,
   triggerIneptitudeFromInterrupt

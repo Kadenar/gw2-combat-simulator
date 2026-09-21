@@ -16,7 +16,7 @@ import type {
   ProfessionWeaponPaletteRenderContext,
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';

@@ -9,7 +9,7 @@ import type { ElementalistConfig } from '#gw2/professions/elementalist/build/typ
 import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   PatchComparison,
@@ -36,7 +36,7 @@ import type {
   Gw2ApplyBuildAttributeRules
 } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributeData,
   BuildTemplatePreset,

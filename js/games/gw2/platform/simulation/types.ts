@@ -6,7 +6,7 @@ import type {
   ProfessionApplicationContract,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerContext, SchedulerState, SchedulerStep } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerContext, SchedulerState, SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   Gw2ResolverEventHandlers,
@@ -22,10 +22,11 @@ export interface Gw2SimulationDefinition extends ProfessionSimulationDefinition 
   readonly refineSchedulerConfig?: (config: Gw2Config, result: Gw2SimulationResult) => Gw2Config | null | undefined;
 }
 
-export interface Gw2ProfessionContract<
-  TProfessionState extends object = object,
-  TBuild extends Gw2Build = Gw2Build
-> extends NormalizedProfessionContract<TProfessionState, Gw2ResolverEventHandlers, Gw2ResolverReactions, TBuild> {
+export interface Gw2ProfessionContract<TProfessionState extends object = object> extends NormalizedProfessionContract<
+  TProfessionState,
+  Gw2ResolverEventHandlers,
+  Gw2ResolverReactions
+> {
   readonly simulation: Gw2SimulationDefinition | null;
   readonly projectPlanningState: (options: {
     readonly config: Gw2Config;
@@ -70,7 +71,7 @@ export interface Gw2DeclarativeSimulationOptions {
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */
   readonly onPhase?: (phase: 'scheduling' | 'resolution' | 'reporting' | 'refinement', durationMs: number) => void;
-  readonly profession: Gw2ProfessionSource;
+  readonly profession: ProfessionSource<any, Gw2ProfessionContract, Gw2SimulationDefinition, Gw2Build>;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
   readonly observationPolicy?: ObservationPolicy;

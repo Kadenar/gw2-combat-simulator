@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { dragonhunterModule } from '#gw2/professions/guardian/specializations/dragonhunter/module.js';
 import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';

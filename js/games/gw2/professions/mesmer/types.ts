@@ -1,4 +1,4 @@
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type {
   BalanceProfile,
   CanonicalCatalog,
@@ -19,7 +19,7 @@ import type {
   SchedulerContext,
   SchedulerPolicy,
   SchedulerState
-} from '#gw2/platform/engine/execution/types.js';
+} from '#gw2/platform/execution/types.js';
 import type { MesmerAvailableFlip, MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';

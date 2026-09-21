@@ -9,7 +9,10 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import type { PaletteSkillAvailability, RotationStateSnapshotItem } from '#gw2/platform/engine/profession/types.js';
+import type {
+  PaletteSkillAvailability,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {

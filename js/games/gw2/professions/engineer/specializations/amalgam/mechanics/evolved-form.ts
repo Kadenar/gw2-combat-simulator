@@ -3,7 +3,7 @@ import {
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';

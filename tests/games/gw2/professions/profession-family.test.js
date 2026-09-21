@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { defineProfessionFamily, resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { defineProfessionModule } from '#gw2/platform/engine/profession/module.js';
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/catalog.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
@@ -192,13 +192,11 @@ test('elite event presentation is owned by the active specialization', () => {
     const coreState = family.resolveRuntime(coreConfig).createProfessionState(coreConfig);
     const activeRuntime = family.resolveRuntime(activeConfig);
     const activeState = activeRuntime.createProfessionState(activeConfig);
-    const coreRow = family
-      .resolveRuntime(coreConfig)
-      .ui.eventLogRow?.({ config: coreConfig, state: { profession: coreState } }, event);
+    const coreRow = family.ui.eventLogRow?.({ config: coreConfig, state: { profession: coreState } }, event);
 
     assert.equal(coreRow?.description, undefined, `${family.id}/Core must not present ${event.type}`);
     assert.notEqual(
-      activeRuntime.ui.eventLogRow?.({ config: activeConfig, state: { profession: activeState } }, event),
+      family.ui.eventLogRow?.({ config: activeConfig, state: { profession: activeState } }, event),
       undefined,
       `${family.id}/${specialization} must present ${event.type}`
     );
@@ -400,11 +398,7 @@ test('family UI uses active slices, Core-first event precedence, and family veto
   const shared = { type: 'shared', at: 0 };
   const eliteOnly = { type: 'elite-only', at: 0 };
 
-  assert.equal(
-    family.resolveRuntime({ specialization: 'Elite' }).ui.eventLogRow({ config: { specialization: 'Elite' } }, shared)
-      .description,
-    'core'
-  );
+  assert.equal(family.ui.eventLogRow({ config: { specialization: 'Elite' } }, shared).description, 'core');
   assert.equal(family.ui.eventLogRow({ specialization: 'Elite' }, shared).description, 'core');
   assert.equal(family.ui.eventLogRow({ specialization: 'Core' }, eliteOnly), undefined);
   assert.equal(family.ui.eventLogRow({ build: { specialization: 'Elite' } }, eliteOnly).description, 'elite');
@@ -760,12 +754,12 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
   }
 });
 
-test('Necromancer runtime UI exposes only active specialization resources', () => {
+test('Necromancer presentation exposes only active specialization resources', () => {
   for (const active of ['Core', ...eliteSpecializationNames(necromancerCatalog)]) {
     const config = { specialization: active };
     const runtime = necromancerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui
+    const resourceIds = necromancerProfession.ui
       .resourceViews({
         config,
         state: { profession: state }
@@ -923,12 +917,12 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
   }
 });
 
-test('Guardian runtime UI and public projection preserve their contracts', () => {
+test('Guardian presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
     const runtime = guardianProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui
+    const resourceIds = guardianProfession.ui
       .resourceViews({
         config,
         state: { profession: state }
@@ -936,7 +930,7 @@ test('Guardian runtime UI and public projection preserve their contracts', () =>
       .map((resource) => resource.id);
 
     assert.equal(resourceIds.includes('pages'), active === 'Firebrand', active);
-    const paletteIds = runtime.ui
+    const paletteIds = guardianProfession.ui
       .paletteGroups({
         config,
         state: { profession: state }
@@ -1049,12 +1043,12 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
   );
 });
 
-test('Mesmer runtime UI and ammo output expose only the active specialization state', () => {
+test('Mesmer presentation and ammo output expose only the active specialization state', () => {
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resources = runtime.ui.resourceViews({
+    const resources = mesmerProfession.ui.resourceViews({
       config,
       state: { profession: state }
     });
@@ -1196,12 +1190,12 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
   }
 });
 
-test('Revenant runtime UI and public projection preserve their contracts', () => {
+test('Revenant presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
     const runtime = revenantProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui
+    const resourceIds = revenantProfession.ui
       .resourceViews({
         config,
         state: { profession: state }
@@ -1385,12 +1379,12 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
   );
 });
 
-test('Engineer runtime UI and public projection preserve their contracts', () => {
+test('Engineer presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
     const runtime = engineerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui
+    const resourceIds = engineerProfession.ui
       .resourceViews({
         config,
         state: { profession: state }
@@ -1405,12 +1399,14 @@ test('Engineer runtime UI and public projection preserve their contracts', () =>
 
     assert.equal(resourceIds.includes('heat'), active === 'Holosmith', active);
     assert.equal(
-      runtime.ui.paletteGroups(uiContext).some((group) => group.id === 'engineer-forge'),
+      engineerProfession.ui.paletteGroups(uiContext).some((group) => group.id === 'engineer-forge'),
       active === 'Holosmith',
       active
     );
     assert.equal(
-      runtime.ui.assumptionControls.some((control) => control.key === 'inDamagingField'),
+      engineerProfession.ui.assumptionControls.some(
+        (control) => control.key === 'inDamagingField' && control.specializations?.includes(active)
+      ),
       active === 'Amalgam',
       active
     );

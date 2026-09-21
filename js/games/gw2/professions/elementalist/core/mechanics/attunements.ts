@@ -7,7 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   setElementalistAttunementReadyAt,

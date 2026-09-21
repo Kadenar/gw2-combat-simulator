@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';

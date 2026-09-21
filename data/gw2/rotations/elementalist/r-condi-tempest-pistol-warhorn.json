@@ -1,26 +1,13 @@
 {
   "rotation": [
-    "Raging Ricochet",
-    "Water Attunement",
-    "Frigid Flurry",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
-    "Earth Attunement",
-    "Shattering Stone",
-    {
-      "name": "__wait",
-      "waitMs": 5000
-    },
     "Overload Earth",
     {
       "name": "__combat_start",
-      "offset": 2757
+      "offset": 2760
     },
     {
       "name": "Flame Barrage",
-      "offset": 2757
+      "offset": 2760
     },
     "Dust Storm",
     "Shattering Stone",

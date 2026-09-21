@@ -5,7 +5,7 @@
  * real 20s cooldown, which stays deferred until then so the turret cannot be re-summoned early.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {

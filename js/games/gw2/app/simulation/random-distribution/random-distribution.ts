@@ -1,4 +1,4 @@
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

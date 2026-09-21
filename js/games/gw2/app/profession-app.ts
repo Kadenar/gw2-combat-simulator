@@ -40,7 +40,7 @@ import type {
 } from '#gw2/app/types.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 
 const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   isRunning: false,

@@ -22,7 +22,7 @@ import type {
   ProfessionPaletteControl,
   ProfessionPaletteGroup,
   ProfessionPaletteSkillRenderOptions
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

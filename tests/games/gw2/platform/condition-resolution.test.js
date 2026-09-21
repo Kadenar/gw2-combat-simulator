@@ -7,7 +7,7 @@ import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
@@ -337,7 +337,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
   );
 });
 
-test('precombat conditions carry across an explicit combat start', () => {
+test('precombat target conditions are rejected rather than carried into combat', () => {
   const stream = buildScheduledEventStream({
     events: [
       {
@@ -399,13 +399,8 @@ test('precombat conditions carry across an explicit combat start', () => {
     (event) => event.type === 'condition' && event.name === 'Precombat Bleed'
   );
 
-  assert.equal(result.firstHitTime, 1);
-  assert.equal(application.at, 0);
-  assert.deepEqual(
-    application.damageTicks.map((tick) => tick.at),
-    [1, 2, 3]
-  );
-  assert.equal(result.conditionDamage, 246);
+  assert.equal(application, undefined);
+  assert.equal(result.conditionDamage, 0);
 });
 
 /** Resolves a minimal stream against permanent target conditions with player-neutral numeric facts. */

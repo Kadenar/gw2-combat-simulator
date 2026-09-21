@@ -6,7 +6,7 @@ import {
   emitSkillCondition,
   emitSkillControl,
   emitSkillDamage
-} from '#gw2/platform/scheduler/skill-events.js';
+} from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

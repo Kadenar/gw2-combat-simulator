@@ -13,7 +13,10 @@ import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
  * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
  * density can follow the resource shape without specialization selectors.
  */
-import type { ProfessionResourceView, ProfessionResourceViewContext } from '#gw2/platform/engine/profession/types.js';
+import type {
+  ProfessionResourceView,
+  ProfessionResourceViewContext
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';

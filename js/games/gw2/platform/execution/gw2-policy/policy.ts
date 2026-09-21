@@ -18,14 +18,17 @@ import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
  * a cast-scaled effect follows the same scale unless it explicitly declares
  * `intervalTimingScale: "fixed"`.
  */
-import { createGw2TriggerMaterializer, GW2_MATERIALIZE_EVENT_TASK } from '#gw2/platform/scheduler/proc-materializer.js';
+import {
+  createGw2TriggerMaterializer,
+  GW2_MATERIALIZE_EVENT_TASK
+} from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
-} from '#gw2/platform/scheduler/combo-materializer.js';
+} from '#gw2/platform/execution/gw2-policy/combo-materializer.js';
 import { ensurePermanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
+import { createGw2EventPreparer } from '#gw2/platform/execution/gw2-policy/event-preparer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/skills/transition-delays.js';
 import {
@@ -42,13 +45,13 @@ import { gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js
 import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastContext, SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { CastContext, SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { defaultWeaponSkillMatchesSet, weaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 

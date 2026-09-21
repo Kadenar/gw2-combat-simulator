@@ -1,6 +1,6 @@
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 

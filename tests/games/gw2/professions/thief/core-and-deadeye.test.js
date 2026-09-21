@@ -22,8 +22,8 @@ import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
 import { beginStealthAttack, observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';

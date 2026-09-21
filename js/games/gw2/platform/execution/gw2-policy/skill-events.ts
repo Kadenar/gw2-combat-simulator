@@ -4,18 +4,18 @@
  * leaving unusual profession metadata and ownership explicit at the call site.
  */
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 
 import type {
   ConditionEventFields,
   EffectAudience,
   EffectMetadata,
-  SimulationActorType,
   SimulationEvent,
   SimulationEventInput
 } from '#gw2/platform/engine/events/events.js';
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface SkillEventOwnership {

@@ -2,7 +2,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';

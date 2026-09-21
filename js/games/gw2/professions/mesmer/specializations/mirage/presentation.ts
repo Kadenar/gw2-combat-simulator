@@ -6,7 +6,10 @@ import {
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
-import type { PaletteSkillAvailability, ProfessionEffectPresentation } from '#gw2/platform/engine/profession/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionEffectPresentation
+} from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 

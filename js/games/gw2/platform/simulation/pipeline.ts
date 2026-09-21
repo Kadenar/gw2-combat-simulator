@@ -1,70 +1,21 @@
+import { planningState } from '#gw2/platform/results/end-state.js';
 import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import type { SchedulerRunResult } from '#gw2/platform/engine/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { isSchedulerComboPrediction } from '#gw2/platform/combos/events.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type {
-  Gw2DeclarativeSimulationOptions,
-  Gw2ProfessionContract,
-  Gw2SimulationPlanningState,
-  Gw2SimulationResult
-} from '#gw2/platform/simulation/types.js';
+import type { Gw2DeclarativeSimulationOptions, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 
 export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
-
-function planningState(
-  profession: Gw2ProfessionContract,
-  config: Gw2Config,
-  scheduled: SchedulerRunResult
-): Gw2SimulationPlanningState {
-  // Planning describes the completed schedule, even when combat ended earlier.
-  // Never mix resolver-owned effects at death into this later prediction.
-  const endTime = scheduled.state.time;
-  const skillName = (id: SkillId): string => profession.catalog?.skillsById?.get(id)?.name || String(id);
-  const cooldowns = Object.fromEntries(
-    [...scheduled.state.cooldowns].map(([id, readyAt]) => [
-      skillName(id),
-      {
-        readyAt: Math.round(readyAt * 1000),
-        remaining: Math.max(0, Math.round((readyAt - endTime) * 1000))
-      }
-    ])
-  );
-  const ammo = Object.fromEntries(
-    [...scheduled.state.ammo].map(([id, value]) => [skillName(id), structuredClone(value)])
-  );
-  // Preserve exact skill identities for UI consumers because API variants can share names.
-  const ammoBySkillId = Object.fromEntries(
-    [...scheduled.state.ammo].map(([id, value]) => [String(id), structuredClone(value)])
-  );
-  // Profession projections receive only scheduler-owned inputs.
-  const projected = profession.projectPlanningState({
-    config,
-    schedulerContext: scheduled.context,
-    schedulerState: scheduled.state
-  });
-  return {
-    atSeconds: endTime,
-    cooldowns,
-    ammo,
-    ammoBySkillId,
-    activeWeaponSet: scheduled.state.activeWeaponSet,
-    // Projection lets a profession hide resolver-only bookkeeping.
-    profession: structuredClone(projected ?? flattenProfessionState(scheduled.state.profession))
-  };
-}
 
 /**
  * Runs the two-phase declarative pipeline: schedule canonical events first,

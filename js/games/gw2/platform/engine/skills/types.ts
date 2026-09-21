@@ -1,11 +1,7 @@
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
-import type {
-  EffectMetadata,
-  SimulationActorType,
-  EffectAudience,
-  DamageEvent
-} from '#gw2/platform/engine/events/events.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 export type SkillId = string | number;
 

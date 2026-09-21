@@ -3,7 +3,7 @@ import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/scheduler/policy.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/gw2-policy/policy.js';
 import {
   createEvokerState,
   grantElectricEnchantments

@@ -1,6 +1,6 @@
 import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Condition-manipulation skill handlers.
@@ -12,11 +12,12 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * `necromancerConditionSkillHandlers` map plus the self-condition
  * apply/purge/transfer helpers reused by shroud/scheduler code.
  */
-import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/timelines.js';
+import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

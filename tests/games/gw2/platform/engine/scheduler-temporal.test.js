@@ -1,11 +1,37 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
-import { createCooldownController } from '#gw2/platform/engine/execution/cooldowns.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createTaskQueue } from '#gw2/platform/engine/execution/tasks.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+
+// Core completion and extension task categories must keep exclusive ownership during assembly.
+test('scheduler rejects task handlers that shadow core or another category', () => {
+  for (const type of ['platform.cast-complete', 'fixture.shared']) {
+    const profession = defineProfession({
+      id: 'task-collision',
+      name: 'Task Collision',
+      schedulerHooks: { taskHandlers: { [type]: () => {} } }
+    });
+    assert.throws(
+      () =>
+        createScheduler({
+          profession,
+          schedulerPolicy: type === 'fixture.shared' ? { taskHandlers: { [type]: () => {} } } : {}
+        }),
+      /Duplicate scheduled task handler/
+    );
+  }
+
+  const profession = defineProfession({
+    id: 'mechanic-collision',
+    name: 'Mechanic Collision',
+    schedulerHooks: { skillMechanicHandlers: { 'platform.cast-complete': () => {} } }
+  });
+  assert.throws(() => createScheduler({ profession }), /Duplicate scheduled task handler/);
+});
 
 // Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
 test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {

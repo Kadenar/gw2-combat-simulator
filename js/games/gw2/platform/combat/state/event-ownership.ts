@@ -1,17 +1,6 @@
-import type { SimulationActorType, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
-
-// Ownership controls which effects may trigger player-only procs. It is
-// intentionally independent from display-oriented source labels.
-export const GW2_EVENT_ACTOR_TYPES = Object.freeze({
-  PLAYER: 'player',
-  SUMMON: 'summon',
-  EFFECT: 'effect',
-  ENVIRONMENT: 'environment',
-  UNKNOWN: 'unknown'
-});
-
-// Validate ownership without allocating a new list for every damage/modifier query.
-const ACTOR_TYPES: ReadonlySet<string> = new Set(Object.values(GW2_EVENT_ACTOR_TYPES));
+import { ACTOR_TYPES, GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
+import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
 export function gw2EventActorType(event: Partial<SimulationEventInput> | null | undefined): SimulationActorType {

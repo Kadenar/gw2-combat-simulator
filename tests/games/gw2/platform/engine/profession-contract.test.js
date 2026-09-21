@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
 // Profession contracts provide neutral defaults and deterministic hooks for every implementation.
@@ -40,7 +41,8 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
   assert.deepEqual(profession.availability({}, {}), { ready: true });
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
-  assert.deepEqual(profession.paletteGroups({}), []);
+  assert.equal(Object.hasOwn(profession, 'ui'), false);
+  assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
 });
 
 // Chained hooks receive the previous result even when an intermediate hook only observes it.
@@ -68,24 +70,17 @@ test('event preparers and attribute modifiers preserve values through observing 
   }
 });
 
-test('profession contract supports zero or multiple resource views', () => {
-  const none = defineProfession({
-    id: 'resourceless',
-    name: 'Resourceless'
+// Resource presentation is normalized by its own application adapter.
+test('presentation contract supports zero or multiple resource views', () => {
+  const none = normalizeProfessionUi('resourceless');
+  const multiple = normalizeProfessionUi('multi-resource', {
+    resourceViews: () => [
+      { id: 'pages', maximum: 5, value: 2 },
+      { id: 'charges', maximum: 3, value: 1 }
+    ]
   });
-  const multiple = defineProfession({
-    id: 'multi-resource',
-    name: 'Multi Resource',
-    ui: {
-      resourceViews: () => [
-        { id: 'pages', maximum: 5, value: 2 },
-        { id: 'charges', maximum: 3, value: 1 }
-      ]
-    }
-  });
-
-  assert.deepEqual(none.ui.resourceViews({}), []);
-  assert.equal(multiple.ui.resourceViews({}).length, 2);
+  assert.deepEqual(none.resourceViews({}), []);
+  assert.equal(multiple.resourceViews({}).length, 2);
 });
 
 // State factories remain independent while the structured hooks operate on the resulting runtime state.

@@ -3,8 +3,11 @@
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+
+// CAdruid's opener lands 1,162 ms after the pet starts casting; use 1,160 ms as the fixed travel approximation.
+const POISONOUS_CLOUD_PULSE_TIMES_MS = [1160, 2160, 3160, 4160, 5160, 6160];
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
@@ -13,7 +16,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [1000, 2000, 3000, 4000, 5000, 6000].map((atMs) => ({
+        ticks: POISONOUS_CLOUD_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
           coefficient: 0.2,
           weaponStrength: 2880,
@@ -29,7 +32,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
         // EVTC attributes both the command strike and its poison applications
         // to the Ranger even though the active Devourer executes the command.
         type: 'condition',
-        ticks: [1000, 2000, 3000, 4000, 5000, 6000].map((atMs) => ({
+        ticks: POISONOUS_CLOUD_PULSE_TIMES_MS.map((atMs) => ({
           atMs,
           condition: 'Poisoned',
           stacks: 1,
@@ -47,7 +50,7 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
         fieldType: 'Poison',
         duration: 5,
         // The five-second field runs from the first fixed pulse through the sixth.
-        startMs: 1000,
+        startMs: POISONOUS_CLOUD_PULSE_TIMES_MS[0],
         startAnchor: 'castStart'
       }
     ],

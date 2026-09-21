@@ -4,7 +4,7 @@ import {
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionResourceView } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 
 export const reaperUi: NecromancerUiSlice = Object.freeze({

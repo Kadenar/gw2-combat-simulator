@@ -8,13 +8,13 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type {
-  ProfessionBuildDefinition,
   ProfessionFamilyContract,
   ProfessionAttributeRuleDefinition,
   ProfessionCastRuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { Gw2ProfessionContract, Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
@@ -296,7 +296,7 @@ export type NativeProfessionContract<
   TBuild extends Gw2Build = Gw2Build
 > = ProfessionFamilyContract<
   NativeProfessionRuntimeState<TModules>,
-  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>, TBuild>,
+  Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>,
   TSimulation,
   TBuild
 > & {

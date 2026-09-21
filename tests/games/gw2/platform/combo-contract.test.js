@@ -17,7 +17,7 @@ import {
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { createGw2EventPreparer } from '#gw2/platform/scheduler/event-preparer.js';
+import { createGw2EventPreparer } from '#gw2/platform/execution/gw2-policy/event-preparer.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 

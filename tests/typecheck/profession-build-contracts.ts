@@ -1,27 +1,23 @@
 /** Compile-time checks for closed build shapes and codec results across profession composition. */
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
 import { composeHookContainer } from '#gw2/platform/engine/profession/module.js';
 import type { Gw2Build, Gw2CanonicalBuild, Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
 import type {
   ProfessionAttributeRuleDefinition,
-  ProfessionCastRuleDefinition,
-  ProfessionBuildDefinition
+  ProfessionCastRuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
 const decorated = withActivePatchPreview(engineerProfession);
-const fixture = defineProfession({
-  id: 'build-contract',
-  name: 'Build contract',
-  build: {
-    createBuildDefaults: () => ({ counter: 1 }),
-    migrateBuild: (_saved: unknown) => ({ counter: 2 })
-  }
+const fixture = normalizeProfessionBuild('build-contract', {
+  createBuildDefaults: () => ({ counter: 1 }),
+  migrateBuild: (_saved: unknown) => ({ counter: 2 })
 });
 
 export type BuildContractAssertions = [
@@ -31,7 +27,7 @@ export type BuildContractAssertions = [
   Assert<Equal<ReturnType<typeof engineerProfession.createBuildDefaults>, EngineerCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof engineerProfession.migrateBuild>, EngineerCanonicalBuild>>,
   Assert<
-    Equal<ReturnType<ReturnType<typeof engineerProfession.resolveRuntime>['migrateBuild']>, EngineerCanonicalBuild>
+    Equal<'migrateBuild' extends keyof ReturnType<typeof engineerProfession.resolveRuntime> ? true : false, false>
   >,
   Assert<Equal<ReturnType<typeof decorated.migrateBuild>, EngineerCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof fixture.migrateBuild>, { counter: number }>>,

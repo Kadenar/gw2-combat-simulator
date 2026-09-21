@@ -13,6 +13,8 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {
+  // These fixture buffs were scheduled and committed; specialized views can inspect either report history.
+  if (result) result = { ...result, events: result.resolvedEvents };
   return profession.ui.rotationStateSnapshot({ specialization, professionState, atSeconds, result });
 }
 
@@ -43,9 +45,35 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
       },
       12,
       {
-        events: [
-          { type: 'buff', kind: 'empowering auras', at: 1, duration: 10, stacks: 1 },
-          { type: 'buff', kind: 'empowering auras', at: 9, duration: 10, stacks: 1 }
+        resolvedEvents: [
+          {
+            type: 'buff',
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              companionIds: [],
+              alliedPlayerCount: 0,
+              recipientCount: 1
+            },
+            kind: 'empowering auras',
+            at: 1,
+            duration: 10,
+            stacks: 1
+          },
+          {
+            type: 'buff',
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              companionIds: [],
+              alliedPlayerCount: 0,
+              recipientCount: 1
+            },
+            kind: 'empowering auras',
+            at: 9,
+            duration: 10,
+            stacks: 1
+          }
         ]
       }
     )
@@ -62,9 +90,16 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
 test('Amalgam snapshot includes Evolve and all active duration-bearing strains', () => {
   const values = valuesById(
     snapshot(engineerProfession, 'Amalgam', { evolvedUntil: 12, rapaciousUntil: 10, titanicUntil: 11 }, 5, {
-      events: [
+      resolvedEvents: [
         {
           type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
           sourceId: 'engineer.resiliant-strain',
           at: 1,
           duration: 8
@@ -120,7 +155,22 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
       { clarityRemaining: 3500, continuumActive: true, continuumRemaining: 4200 },
       10,
       {
-        events: [{ type: 'buff', kind: 'danger-time', at: 8, duration: 10, stacks: 1 }]
+        resolvedEvents: [
+          {
+            type: 'buff',
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              companionIds: [],
+              alliedPlayerCount: 0,
+              recipientCount: 1
+            },
+            kind: 'danger-time',
+            at: 8,
+            duration: 10,
+            stacks: 1
+          }
+        ]
       }
     )
   );
@@ -130,7 +180,22 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
 
   const expiredDangerTime = valuesById(
     snapshot(mesmerProfession, 'Chronomancer', {}, 19, {
-      events: [{ type: 'buff', kind: 'danger-time', at: 8, duration: 10, stacks: 1 }]
+      resolvedEvents: [
+        {
+          type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
+          kind: 'danger-time',
+          at: 8,
+          duration: 10,
+          stacks: 1
+        }
+      ]
     })
   );
   assert.equal(expiredDangerTime['chronomancer-danger-time'], undefined);
@@ -256,11 +321,63 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
 
 test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refrain', () => {
   const result = {
-    events: [
-      { type: 'buff', kind: 'furious-surge', at: 1, duration: 10, stacks: 3 },
-      { type: 'buff', kind: 'berserkers-power', at: 2, duration: 15, stacks: 2 },
-      { type: 'buff', kind: 'fierce-as-fire', at: 2, duration: 15, stacks: 6 },
-      { type: 'buff', kind: 'guns-and-glory', at: 3, duration: 10, stacks: 1 }
+    resolvedEvents: [
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'furious-surge',
+        at: 1,
+        duration: 10,
+        stacks: 3
+      },
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'berserkers-power',
+        at: 2,
+        duration: 15,
+        stacks: 2
+      },
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'fierce-as-fire',
+        at: 2,
+        duration: 15,
+        stacks: 6
+      },
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'guns-and-glory',
+        at: 3,
+        duration: 10,
+        stacks: 1
+      }
     ]
   };
   const bladesworn = valuesById(snapshot(warriorProfession, 'Bladesworn', {}, 4, result));

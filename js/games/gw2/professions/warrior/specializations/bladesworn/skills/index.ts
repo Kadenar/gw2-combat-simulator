@@ -1,5 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';

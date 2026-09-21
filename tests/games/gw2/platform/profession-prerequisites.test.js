@@ -9,8 +9,10 @@ import {
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions
 } from '#gw2/platform/builds/assumptions.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createGw2CombatQuery, selectedGw2TraitValues } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import {
   canonicalTargetConditionName,
@@ -18,7 +20,7 @@ import {
 } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { isGw2WeaponSkillEquipped } from '#gw2/platform/scheduler/policy.js';
+import { isGw2WeaponSkillEquipped } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -56,63 +58,45 @@ function resolvedAudience({ includesSelf = true, alliedPlayerCount = 0, companio
 test('palette availability supplies defaults and normalizes a single policy result', () => {
   const context = { time: 2 };
   const skill = { name: 'Fixture' };
-  assert.deepEqual(queryProfession.ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
-  assert.equal(Object.hasOwn(queryProfession.ui, 'isPaletteSkillAvailable'), false);
-  assert.equal(Object.hasOwn(queryProfession.ui, 'paletteSkillUnavailableMessage'), false);
+  assert.deepEqual(normalizeProfessionUi('query-fixture').paletteSkillAvailability(context, skill), {
+    available: true,
+    message: ''
+  });
+  assert.equal(Object.hasOwn(normalizeProfessionUi('query-fixture'), 'isPaletteSkillAvailable'), false);
+  assert.equal(Object.hasOwn(normalizeProfessionUi('query-fixture'), 'paletteSkillUnavailableMessage'), false);
 
   // One policy evaluation supplies the lockout state and text without losing retry timing.
   let calls = 0;
   let result = { available: false, message: 'Locked', retryAt: '3' };
-  const profession = defineProfession({
-    id: 'palette-fixture',
-    name: 'Palette Fixture',
-    ui: {
-      paletteSkillAvailability(receivedContext, receivedSkill) {
-        assert.equal(receivedContext, context);
-        assert.equal(receivedSkill, skill);
-        calls += 1;
-        return result;
-      }
+  const ui = normalizeProfessionUi('palette-fixture', {
+    paletteSkillAvailability(receivedContext, receivedSkill) {
+      assert.equal(receivedContext, context);
+      assert.equal(receivedSkill, skill);
+      calls += 1;
+      return result;
     }
   });
 
-  assert.deepEqual(profession.ui.paletteSkillAvailability(context, skill), {
+  assert.deepEqual(ui.paletteSkillAvailability(context, skill), {
     available: false,
     message: 'Locked',
     retryAt: 3
   });
   assert.equal(calls, 1);
   result = { available: true };
-  assert.deepEqual(profession.ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
+  assert.deepEqual(ui.paletteSkillAvailability(context, skill), { available: true, message: '' });
   result = { available: 'yes' };
-  assert.throws(() => profession.ui.paletteSkillAvailability(context, skill), /available must be boolean/);
+  assert.throws(() => ui.paletteSkillAvailability(context, skill), /available must be boolean/);
   result = { available: false, retryAt: Infinity };
-  assert.throws(
-    () => profession.ui.paletteSkillAvailability(context, skill),
-    /retryAt must be a finite number or null/
-  );
+  assert.throws(() => ui.paletteSkillAvailability(context, skill), /retryAt must be a finite number or null/);
 });
 
 test('profession composition validates UI callbacks and scheduler refiners', () => {
-  assert.throws(
-    () =>
-      defineProfession({
-        id: 'invalid-ui',
-        name: 'Invalid UI',
-        ui: { eventLogRow: true }
-      }),
-    /ui\.eventLogRow must be a function/
-  );
+  assert.throws(() => normalizeProfessionUi('invalid-ui', { eventLogRow: true }), /ui\.eventLogRow must be a function/);
 
-  const invalidAvailability = defineProfession({
-    id: 'invalid-availability',
-    name: 'Invalid Availability',
-    ui: {
-      paletteSkillAvailability: () => true
-    }
-  });
+  const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteSkillAvailability: () => true });
 
-  assert.throws(() => invalidAvailability.ui.paletteSkillAvailability({}, {}), /must return an object/);
+  assert.throws(() => invalidAvailability.paletteSkillAvailability({}, {}), /must return an object/);
 
   const mutating = defineProfession({
     id: 'mutating-refiner',

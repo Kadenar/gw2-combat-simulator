@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/scheduler/policy.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
@@ -87,7 +87,7 @@ test('combo boons and their relic grants settle before critical sampling in both
   }
 });
 
-test('rejected precombat combos cannot seed relic boons or critical progress after combat starts', () => {
+test('precombat combo boons carry into combat without counting precombat hits', () => {
   const profession = fixtureProfession((context) => {
     context.emit(boundaryField);
     context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] });
@@ -99,11 +99,58 @@ test('rejected precombat combos cannot seed relic boons or critical progress aft
     rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 1000 }],
     config: { ...boundaryConfig, relic: 'Mistburn', boons: { might: 6 }, sigilSets: [{ names: ['Earth'] }] }
   });
-  assert.equal(
-    result.resolvedEvents.some((event) => event.type === 'combo' || event.sourceId === 'relic.mistburn'),
-    false
+  // Both phases must see the setup Might, but the precombat strike cannot advance critical sigils.
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'combo' && event.at === 1));
+  assert.ok(result.resolvedEvents.some((event) => event.sourceId === 'relic.mistburn' && event.at === 1));
+  const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.deepEqual(
+    hits.map((event) => event.at),
+    [2.5]
   );
-  assert.deepEqual(result.criticalSigilDiagnostics, []);
+  assert.equal(hits[0].criticalChance, 1);
+  assert.equal(result.criticalSigilDiagnostics.length, 1);
+  assert.equal(result.criticalSigilDiagnostics[0].status, 'confirmed');
+});
+
+test('precombat light finishers grant their aura even when aimed off target', () => {
+  const profession = fixtureProfession((context) => {
+    context.emit({ ...boundaryField, fieldType: 'Light' });
+    context.emit({
+      ...boundaryHit,
+      offTarget: true,
+      comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap' }]
+    });
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start'],
+    config: boundaryConfig
+  });
+  const aura = result.resolvedEvents.find((event) => event.type === 'aura' && event.aura === 'Light Aura');
+  assert.ok(aura.at < result.combatStartTime);
+  assert.ok(aura.at + aura.duration > result.combatStartTime);
+  assert.equal(result.totalDamage, 0);
+});
+
+test('precombat combo conditions and siphons cannot affect the target', () => {
+  // Finishers still succeed, but their enemy-facing outcomes cannot persist across Combat Start.
+  for (const fieldType of ['Fire', 'Dark']) {
+    const profession = fixtureProfession((context) => {
+      context.emit({ ...boundaryField, fieldType });
+      context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }] });
+    });
+    const result = simulateGw2({
+      profession,
+      rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 3000 }],
+      config: boundaryConfig
+    });
+    assert.ok(result.resolvedEvents.some((event) => event.type === 'combo'));
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'condition' || event.type === 'damage'),
+      false
+    );
+    assert.equal(result.totalDamage, 0);
+  }
 });
 
 test('off-target combo packets suppress hostile outcomes while retaining beneficial Blast effects', () => {

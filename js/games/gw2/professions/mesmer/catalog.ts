@@ -1,4 +1,4 @@
-import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/catalog.js';
+import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { MESMER_NATIVE_CATALOG_OPTIONS } from '#gw2/professions/mesmer/data/module-data.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { chronomancerModule } from '#gw2/professions/mesmer/specializations/chronomancer/module.js';

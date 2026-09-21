@@ -2,7 +2,7 @@
  * Owns Necromancer torch cast behavior derived from the target's live condition state.
  * Torch skill fragments remain in `skills/weapons/torch.ts`; `index.ts` assigns cast phases.
  */
-import { emitSkillBuff } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';

@@ -3,7 +3,7 @@ import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-con
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 interface Gw2WeaponSwapContext {
   readonly state: {

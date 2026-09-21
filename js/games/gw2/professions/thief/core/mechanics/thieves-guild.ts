@@ -1,8 +1,8 @@
 import { emitThiefStateSnapshot, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type {
   ThiefCastContext,

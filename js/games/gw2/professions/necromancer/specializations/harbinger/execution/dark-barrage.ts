@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns the Doom Approaches replacement behavior for Dark Barrage.
  * The declarative Harbinger Shroud fragment remains in `skills/shroud-skills.ts`.
  */
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/scheduler/skill-events.js';
+import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';

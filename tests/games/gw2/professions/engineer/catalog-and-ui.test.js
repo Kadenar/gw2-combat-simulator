@@ -9,7 +9,7 @@ import {
   conditionEffectTicks,
   effectFirstAtMs,
   strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/timelines.js';
+} from '#gw2/platform/engine/effects/authoring.js';
 import {
   applyBalanceProfilePatch,
   applySkillPatch,
@@ -640,7 +640,7 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
     const config = { specialization };
     const runtime = engineerProfession.resolveRuntime(config);
 
-    return runtime.ui.eventLogRow(
+    return engineerProfession.ui.eventLogRow(
       {
         config,
         state: { profession: runtime.createProfessionState(config) }

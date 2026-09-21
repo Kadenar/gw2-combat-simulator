@@ -6,13 +6,8 @@
     },
     {
       "type": "cast",
-      "skillId": 2662,
-      "concurrentOffsetMs": 160
-    },
-    {
-      "type": "cast",
       "skillId": 76643,
-      "concurrentOffsetMs": 360
+      "concurrentOffsetMs": 520
     },
     {
       "type": "cast",
@@ -21,6 +16,11 @@
     },
     {
       "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 40
     },
     {
       "type": "cast",

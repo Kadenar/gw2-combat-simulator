@@ -9,7 +9,7 @@ import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
   RotationStateSnapshotItem
-} from '#gw2/platform/engine/profession/types.js';
+} from '#gw2/platform/profession-presentation/types.js';
 import type { NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 

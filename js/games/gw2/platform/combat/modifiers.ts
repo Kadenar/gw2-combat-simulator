@@ -1,5 +1,5 @@
 import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,

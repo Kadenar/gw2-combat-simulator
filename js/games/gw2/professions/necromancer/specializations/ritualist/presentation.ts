@@ -4,7 +4,10 @@ import {
   necromancerSoulShardResourceViews,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { PaletteSkillAvailability, ProfessionEventLogDescriptor } from '#gw2/platform/engine/profession/types.js';
+import type {
+  PaletteSkillAvailability,
+  ProfessionEventLogDescriptor
+} from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerSimulationEvent,

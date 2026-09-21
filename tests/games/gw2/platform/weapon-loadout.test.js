@@ -6,7 +6,7 @@ import {
   gw2ConfiguredWeaponSet,
   gw2PrimaryWeapon
 } from '#gw2/platform/equipment/weapons/loadout.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -44,7 +44,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
   for (const specialization of ['Core', 'Elite']) {
     const runtime = family.resolveRuntime({ specialization });
     assert.equal(runtime.weaponSkillMatchesSet, weaponSkillMatchesSet);
-    assert.equal(runtime.ui.weaponSkillMatchesSet, undefined);
+    assert.equal(runtime.ui, undefined);
     const result = simulateGw2({
       profession: family,
       rotation: ['Sword Strike'],

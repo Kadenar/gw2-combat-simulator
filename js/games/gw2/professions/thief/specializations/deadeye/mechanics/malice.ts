@@ -13,8 +13,8 @@ import type {
 } from '#gw2/professions/thief/types.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { applyMaleficentSeven } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
-import { advanceScheduledCriticalProc } from '#gw2/platform/scheduler/critical-facts.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
+import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';

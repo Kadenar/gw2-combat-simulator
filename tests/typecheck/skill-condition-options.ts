@@ -1,6 +1,6 @@
-import { emitSkillCondition } from '#gw2/platform/scheduler/skill-events.js';
-import type { EmitSkillConditionOptions } from '#gw2/platform/scheduler/skill-events.js';
-import type { SchedulerContext } from '#gw2/platform/engine/execution/types.js';
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import type { EmitSkillConditionOptions } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 
 // Condition authors use one options object; misspelled fields cannot bypass the declared contract.
 export function checkConditionOptions(context: SchedulerContext): void {

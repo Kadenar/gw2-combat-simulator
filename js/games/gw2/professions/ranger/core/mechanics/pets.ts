@@ -6,11 +6,11 @@ import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
   gw2SchedulerBoonDuration
-} from '#gw2/platform/scheduler/policy.js';
+} from '#gw2/platform/execution/gw2-policy/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {

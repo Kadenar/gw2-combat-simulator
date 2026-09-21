@@ -7,8 +7,8 @@ import {
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { ScheduledTask } from '#gw2/platform/engine/execution/types.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/scheduler/types.js';
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import { processFreshAirCandidates } from '#gw2/professions/elementalist/core/traits/index.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';

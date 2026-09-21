@@ -479,14 +479,10 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     result.planningState.profession.activeInstruments.map((instrument) => instrument.name),
     ['Lute', 'Flute']
   );
-  const resourceViews = mesmerProfession
-    .resolveRuntime({
-      specialization: 'Troubadour'
-    })
-    .ui.resourceViews({
-      specialization: 'Troubadour',
-      professionState: result.planningState.profession
-    });
+  const resourceViews = mesmerProfession.ui.resourceViews({
+    specialization: 'Troubadour',
+    professionState: result.planningState.profession
+  });
   const notesView = resourceViews.find((view) => view.id === 'notes');
   const playingView = resourceViews.find((view) => view.id === 'playing-instruments');
 

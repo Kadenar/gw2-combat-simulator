@@ -37,7 +37,7 @@ import type {
 } from '#gw2/professions/revenant/types.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import type { SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 /** Flattens the family runtime state for stable scheduler and resolver handoff. */

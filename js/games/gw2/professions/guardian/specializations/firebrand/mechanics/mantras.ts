@@ -8,7 +8,7 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/ava
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { AvailabilityResult } from '#gw2/platform/engine/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type {
   GuardianCastContext,
   GuardianPrecastContext,

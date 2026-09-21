@@ -3,11 +3,11 @@
     "Overload Earth",
     {
       "name": "__combat_start",
-      "offset": 2700
+      "offset": 2760
     },
     {
       "name": "Flame Barrage",
-      "offset": 2700
+      "offset": 2760
     },
     "Feel the Burn!",
     "Shattering Stone",

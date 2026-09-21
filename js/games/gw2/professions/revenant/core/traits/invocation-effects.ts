@@ -1,6 +1,6 @@
 /** Materializes shared legend-invocation profiles for Core and elite trait callers. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/scheduler/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 

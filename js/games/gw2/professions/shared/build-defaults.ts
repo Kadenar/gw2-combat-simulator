@@ -1,7 +1,7 @@
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/simulation/randomness.js';
 import { DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
 export const DEFAULT_TARGET_HEALTH = 4_000_000;

@@ -3,7 +3,7 @@ import {
   namedSkillId,
   uniqueIdsBySkillName
 } from '#gw2/professions/engineer/core/presentation.js';
-import type { ProfessionEventLogDescriptor } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-presentation/types.js';
 import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.

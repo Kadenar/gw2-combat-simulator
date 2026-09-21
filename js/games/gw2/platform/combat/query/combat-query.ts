@@ -1,3 +1,4 @@
+import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { buffApplicationStacks, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
@@ -17,7 +18,6 @@ import {
 } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
-import type { CatalogEntity } from '#gw2/platform/engine/skills/types.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,
@@ -33,10 +33,6 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { roundEffectDuration } from '#gw2/platform/skills/timing.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
-
-interface TraitCatalog {
-  readonly traits?: readonly CatalogEntity[];
-}
 
 interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly profession?: NormalizedProfessionContract<TProfessionState>;
@@ -56,29 +52,6 @@ interface HookContextOptions {
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
-}
-
-/**
- * Carries both stable ids and names for every selected profession trait.
- */
-// Expands canonical trait IDs to both ID and name forms so existing internal
-// consumers can migrate independently without duplicating catalog lookups.
-export function selectedGw2TraitValues(config: Gw2Config = {}, catalog: TraitCatalog = {}): Set<string | number> {
-  const values = new Set<string | number>(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []);
-  const byId = new Map<number, CatalogEntity>();
-  for (const trait of catalog?.traits || []) {
-    byId.set(Number(trait.id), trait);
-  }
-
-  for (const value of [...values]) {
-    const trait = byId.get(Number(value));
-    if (trait) {
-      values.add(Number(trait.id));
-      values.add(trait.name);
-    }
-  }
-
-  return values;
 }
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */

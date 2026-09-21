@@ -2,7 +2,7 @@
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
  * Persistent shroud state remains in `mechanics/reaper-shroud.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/factories.js';
+import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';

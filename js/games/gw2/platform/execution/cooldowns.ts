@@ -5,7 +5,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
-import type { AmmoState, CooldownController, SchedulerState } from '#gw2/platform/engine/execution/types.js';
+import type { AmmoState, CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 interface CooldownControllerOptions<TProfessionState extends object> {

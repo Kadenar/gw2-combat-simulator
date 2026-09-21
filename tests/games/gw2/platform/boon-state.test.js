@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import { gw2BuffActiveForAudience } from '#gw2/platform/scheduler/policy.js';
+import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/policy.js';
 
 import {
   durationStackingBoonCapSeconds,

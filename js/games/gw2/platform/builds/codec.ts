@@ -1,4 +1,4 @@
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
@@ -24,7 +24,7 @@ import type {
   Gw2CanonicalBuild,
   UnvalidatedBuildRecord
 } from '#gw2/platform/builds/types.js';
-import type { BuildValidationResult } from '#gw2/platform/engine/profession/types.js';
+import type { BuildValidationResult } from '#gw2/platform/builds/types.js';
 import { boundedInteger, boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
 const SLOT_TYPES = Object.freeze({

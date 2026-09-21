@@ -239,27 +239,9 @@ export default [
   // The runtime engine is phase-oriented. Keep implementation details from
   // crossing between execution/scheduling and resolution.
   {
-    files: ['js/games/gw2/platform/engine/execution/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/execution/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': restrictedImports(engineBoundaryPattern, {
-        regex: '(^|/)(resolution|resolver)(/|$)',
-        message: 'Execution modules must communicate with resolution through shared contracts and events.'
-      })
-    }
-  },
-  {
-    files: ['js/games/gw2/platform/engine/resolution/**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-imports': restrictedImports(engineBoundaryPattern, {
-        regex: '(^|/)(execution|scheduler)(/|$)',
-        message: 'Resolution modules must consume scheduled events without importing execution internals.'
-      })
-    }
-  },
-  {
-    files: ['js/games/gw2/platform/scheduler/**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns, {
         regex: '(^|/)(resolution|resolver)(/|$)',
         message: 'Execution modules must communicate with resolution through shared contracts and events.'
       })

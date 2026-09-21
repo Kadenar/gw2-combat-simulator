@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { gw2EffectiveCooldown } from '#gw2/platform/skills/recharge.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createScheduler } from '#gw2/platform/engine/execution/scheduler.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {

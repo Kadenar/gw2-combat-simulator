@@ -1,4 +1,7 @@
 {
+  "metadata": {
+    "note": "Begin combat 280 ms into the opening Ring of Fire cast."
+  },
   "rotation": [
     {
       "type": "cast",
@@ -21,7 +24,8 @@
       "skillId": 5691
     },
     {
-      "type": "combat-start"
+      "type": "combat-start",
+      "concurrentOffsetMs": 280
     },
     {
       "type": "cast",

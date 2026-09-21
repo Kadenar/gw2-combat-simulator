@@ -1,4 +1,4 @@
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
 import type {
   CanonicalCatalog,
@@ -9,7 +9,7 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/engine/execution/types.js';
+import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type {
   AnyNativeModule,
   NativeAutoattackChains,

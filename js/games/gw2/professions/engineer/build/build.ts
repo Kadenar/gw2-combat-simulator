@@ -4,11 +4,11 @@ import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { normalizeRotation } from '#gw2/platform/engine/execution/rotation.js';
+import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { RotationCommand } from '#gw2/platform/engine/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
