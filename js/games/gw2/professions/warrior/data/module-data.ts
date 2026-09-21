@@ -1,8 +1,8 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
@@ -28,17 +28,17 @@ const flipParentById = createFlipParentMap(allSkills);
 
 const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
-    const { recharge: legacyRecharge, ...sourceSkill } = skill;
+    // Select recharge before stripping the legacy field, which independently supplies ammo cast lockout.
+    const { recharge: legacyRecharge, ...sourceSkill } = normalizeGeneratedSkill(
+      skill,
+      flipParentById.get(skill.id) ?? null
+    );
     const maximumAmmo = Number(skill.ammo || 0);
     const ammoCastLockout = maximumAmmo > 0 ? Number(skill.ammoCastLockout ?? legacyRecharge ?? 0) : 0;
 
     return {
       ...sourceSkill,
-      // Adopt shared finite/explicit-zero recharge selection while retaining the separate legacy ammo lockout.
-      cooldown: gw2BaseRecharge(skill),
-      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
-      flipParentId: flipParentById.get(skill.id) ?? null,
-      effects: []
+      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {})
     };
   })
 );

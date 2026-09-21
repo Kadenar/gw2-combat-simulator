@@ -1,8 +1,8 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
@@ -24,12 +24,9 @@ const flipParentById = createFlipParentMap(allSkills, {
   include: (parent, child) => parent.name !== child.name
 });
 
-const generated: readonly Skill[] = allSkills.map((skill) => ({
-  ...skill,
-  cooldown: gw2BaseRecharge(skill),
-  flipParentId: flipParentById.get(skill.id) ?? null,
-  effects: []
-}));
+const generated: readonly Skill[] = allSkills.map((skill) =>
+  normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null)
+);
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Mirage: [

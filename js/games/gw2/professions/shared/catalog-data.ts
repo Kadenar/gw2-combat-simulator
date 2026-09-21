@@ -1,4 +1,5 @@
 import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createNativeModuleData,
   type NativeModuleDataSelection
@@ -79,6 +80,16 @@ export interface FlipSkillLike {
   readonly id: SkillId;
   readonly flipSkillId?: SkillId | null;
   readonly nextChainId?: SkillId | null;
+}
+
+/** Applies defaults to generated identity metadata, not authored supplemental effects; callers resolve flip policy. */
+export function normalizeGeneratedSkill<TSkill extends Skill>(skill: TSkill, flipParentId: SkillId | null) {
+  return {
+    ...skill,
+    cooldown: gw2BaseRecharge(skill),
+    flipParentId,
+    effects: []
+  };
 }
 
 export interface CreateFlipParentMapOptions<TSkill extends FlipSkillLike> {

@@ -1,8 +1,8 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
@@ -102,10 +102,7 @@ const flipParentById = createFlipParentMap(allDeclared, {
 });
 
 const generated: readonly Skill[] = generatedSource.map((skill) => ({
-  ...skill,
-  cooldown: gw2BaseRecharge(skill),
-  flipParentId: flipParentById.get(skill.id) ?? null,
-  effects: [],
+  ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
         patchAuthoringExcluded: true

@@ -1,9 +1,9 @@
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-bundle-skills.js';
@@ -49,10 +49,8 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParent = flipParentId == null ? undefined : generatedById.get(flipParentId);
 
   return {
-    ...skill,
+    ...normalizeGeneratedSkill(skill, flipParentId ?? null),
     flipSkillId: firebrandFinalFlipByNormalId.get(skill.id) ?? skill.flipSkillId,
-    cooldown: gw2BaseRecharge(skill),
-    flipParentId: flipParentId ?? null,
     flipParent: flipParent?.name || '',
     ...(skill.id === ID.MIGHTY_BLOW || skill.id === ID.GLACIAL_BLOW
       ? {
@@ -64,8 +62,7 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
       ? {
           patchAuthoringExcluded: true
         }
-      : {}),
-    effects: []
+      : {})
   };
 });
 

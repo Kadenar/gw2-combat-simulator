@@ -1,8 +1,8 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
@@ -44,11 +44,8 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
 
   return {
-    ...skill,
-    cooldown: gw2BaseRecharge(skill),
-    flipParentId: flipParentId ?? null,
-    flipParent: flipParentId == null ? '' : generatedById.get(flipParentId)?.name || '',
-    effects: []
+    ...normalizeGeneratedSkill(skill, flipParentId ?? null),
+    flipParent: flipParentId == null ? '' : generatedById.get(flipParentId)?.name || ''
   };
 });
 

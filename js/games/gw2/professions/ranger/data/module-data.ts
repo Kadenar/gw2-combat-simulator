@@ -1,8 +1,8 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
-  defineProfessionWeapons
+  defineProfessionWeapons,
+  normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
 import { RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
@@ -84,9 +84,7 @@ function normalize(skill: RangerSkill): RangerSkill {
   const unleashedAmbushSkill = UNTAMED_AMBUSH_SKILLS.includes(skill.id);
 
   return {
-    ...skill,
-    cooldown: gw2BaseRecharge(skill),
-    flipParentId: flipParentById.get(skill.id) ?? null,
+    ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
     paletteFlip: isRangerHammerVariant(skill.id) ? false : skill.paletteFlip,
     petSkill,
     independentCast: petSkill || unleashedPetSkill,
@@ -108,8 +106,7 @@ const generated = allSkills.map((skill) => ({
     ? {
         patchAuthoringExcluded: true
       }
-    : {}),
-  effects: []
+    : {})
 }));
 
 const WEAPON_DATA = defineProfessionWeapons({
