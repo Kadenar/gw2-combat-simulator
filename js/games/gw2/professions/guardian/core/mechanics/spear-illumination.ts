@@ -11,7 +11,7 @@ import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/ev
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 
@@ -206,8 +206,9 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   if (context.action.cancelled) return;
   const state = professionCoreState(context);
   if (skill.weapon !== 'Spear') return;
-  const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start + EPSILON;
-  const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start + EPSILON;
+  // Both illumination sources use exclusive deadlines; cast tolerances must not shorten them.
+  const luminanceActive = Number(state.spearLuminanceUntil || 0) > context.start;
+  const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start;
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
   const multiplier = Number(
@@ -232,7 +233,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
     const duration = Number(
       balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5
     );
-    state.spearLuminanceUntil = context.effectiveEnd + duration;
+    state.spearLuminanceUntil = gw2EffectExpiresAt(context.effectiveEnd, duration);
     emitProc(
       context,
       context.effectiveEnd,
@@ -248,9 +249,10 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
         .map((effect) => strikeStartSeconds(context, effect))
         .sort((left, right) => left - right)[0] ?? context.effectiveEnd;
     state.spearIlluminatedArmed = true;
-    state.spearIlluminatedUntil =
-      firstStrikeAt +
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5);
+    state.spearIlluminatedUntil = gw2EffectExpiresAt(
+      firstStrikeAt,
+      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5)
+    );
   }
 }
 
@@ -259,7 +261,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
  */
 export function advanceSpearIlluminationState(context: GuardianSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target + EPSILON) {
+  if (state.spearIlluminatedArmed && Number(state.spearIlluminatedUntil || 0) <= target) {
     state.spearIlluminatedArmed = false;
     state.spearIlluminatedUntil = 0;
   }

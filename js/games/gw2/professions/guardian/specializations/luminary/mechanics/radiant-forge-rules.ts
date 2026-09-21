@@ -83,11 +83,12 @@ export const luminaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) => {
       const armament = latestGuardianTimedBuff(context, 'guardian-radiant-armaments');
       // The buff is emitted for every radiant weapon, but the +7% bonus is
-      // exclusive to the hammer (Dazzling Hammer). The manual expiry check is
+      // exclusive to the hammer (Dazzling Hammer). The shared effect-clock expiry check is
       // necessary because latestGuardianTimedBuff returns the most-recently
       // applied record regardless of whether it has expired.
       return (
-        armament?.metadata?.radiantWeapon === 'hammer' && armament.at + Number(armament.duration || 0) > context.time
+        armament?.metadata?.radiantWeapon === 'hammer' &&
+        gw2EffectExpiresAt(armament.at, Number(armament.duration || 0)) > context.time
       );
     }
   },

@@ -1,4 +1,5 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -54,7 +55,7 @@ function reduceVirtueCooldowns(context: GuardianSchedulerContext, at: number, re
 
 export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill: GuardianSkill): void {
   if (!recordRadiantWeaponEquipped(context, skill)) return;
-  const at = context.effectiveEnd + 0.001;
+  const at = canonicalTime(context.effectiveEnd + 0.001);
   const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon!;
   // Only committed weapon equips trigger these boons; flip attacks and uncommitted attempts do not.
@@ -101,19 +102,19 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
     const profile = balanceProfileFromContext(context, PROFILE.empoweredArmaments);
     const duration = Number(profile?.resourceGain ?? 6);
     const maximumDuration = Number(profile?.maximumStacks ?? 20);
-    const wasActive = Number(state.empoweredArmamentsUntil || 0) > at + EPSILON;
+    const wasActive = Number(state.empoweredArmamentsUntil || 0) > at;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
-    state.empoweredArmamentsUntil = wasActive
-      ? Math.min(at + maximumDuration, state.empoweredArmamentsUntil + duration)
-      : at + duration;
+    // Extend the live remainder, then use the same tick deadline as the emitted buff.
+    const remaining = wasActive ? Math.min(maximumDuration, state.empoweredArmamentsUntil - at + duration) : duration;
+    state.empoweredArmamentsUntil = gw2EffectExpiresAt(at, remaining);
     emitSkillBuff(context, skill, {
       at,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
       kind: 'guardian-empowered-armaments',
-      duration: state.empoweredArmamentsUntil - at,
+      duration: remaining,
       stacks: 1
     });
     emitGuardianProc(context, {

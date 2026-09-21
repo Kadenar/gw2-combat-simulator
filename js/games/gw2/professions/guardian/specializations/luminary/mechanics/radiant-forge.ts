@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -156,9 +156,11 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void 
 
   const state = luminaryState.from(context);
   state.radiantForge = true;
-  state.radiantForgeEndsAt =
+  // Forge is an exact form window; automatic exit must not run before this deadline.
+  state.radiantForgeEndsAt = canonicalTime(
     context.effectiveEnd +
-    Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20);
+    Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
+  );
   state.radiantForgeEnteredAt = context.effectiveEnd;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
@@ -389,12 +391,12 @@ export const guardianRadiantForgeEventHandlers = Object.freeze({
 });
 
 /**
- * Expires Radiant Forge when scheduler time advances past its end, finalizes
+ * Expires Radiant Forge when scheduler time reaches its end, finalizes
  * its cooldown, and emits the automatic exit transition.
  */
 export function advanceRadiantForgeState(context: GuardianSchedulerContext, target: number): void {
   const state = luminaryState.from(context);
-  if (state.radiantForge && state.radiantForgeEndsAt <= target + EPSILON) {
+  if (state.radiantForge && state.radiantForgeEndsAt <= target) {
     exitRadiantForge(
       context,
       context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE),

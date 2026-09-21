@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -25,7 +25,7 @@ const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
 ]);
 
 function lightAuraActive(state: GuardianLuminaryState, at: number): boolean {
-  return Number(state.lightAuraUntil || 0) > at + EPSILON;
+  return Number(state.lightAuraUntil || 0) > at;
 }
 
 // Resolver operations keep overlapping casts in combat-time order instead of scheduler order.
@@ -96,13 +96,15 @@ export function handleLightAuraGrant(context: GuardianResolverContext, event: Gu
     detonateLightAura(context, event);
   }
 
-  state.lightAuraUntil =
-    event.at +
+  // Skill and combo auras share the temporary-effect clock and expire before same-time detonations.
+  state.lightAuraUntil = gw2EffectExpiresAt(
+    event.at,
     Number(
       event.duration ??
         balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration ??
         4
-    );
+    )
+  );
 }
 
 export function handleLightAuraDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {

@@ -1,10 +1,10 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { radiantWeaponImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { PIERCING_STANCE_IMPACT_MS } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';
@@ -23,11 +23,13 @@ export function processLuminaryStances(context: GuardianCastContext, skill: Guar
   const state = luminaryState.from(context);
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const runtimeCastMs = Math.max(0, (context.fullEnd - context.start) * 1000);
-    const at =
-      context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, PIERCING_STANCE_IMPACT_MS) / 1000;
+    const at = canonicalTime(
+      context.start + projectCastRelativeEffectTimingMs(skill, runtimeCastMs, PIERCING_STANCE_IMPACT_MS) / 1000
+    );
     if (at > context.effectiveEnd + EPSILON) return;
-    const wasActive = Number(state.piercingStanceUntil || 0) > at + EPSILON;
-    state.piercingStanceUntil = wasActive ? state.piercingStanceUntil + 8 : at + 8;
+    // Stack duration from the live remainder using the displayed buff's exclusive tick deadline.
+    const duration = Math.max(0, state.piercingStanceUntil - at) + 8;
+    state.piercingStanceUntil = gw2EffectExpiresAt(at, duration);
     emitSkillBuff(context, skill, {
       at,
       source: 'guardian',
@@ -36,7 +38,7 @@ export function processLuminaryStances(context: GuardianCastContext, skill: Guar
       kind: 'guardian-piercing-stance',
       // Open the stance before its impact and aura detonation; resolver queries no longer read pending buffs.
       priority: -20,
-      duration: state.piercingStanceUntil - at,
+      duration,
       stacks: 1
     });
   } else if (skill.id === GUARDIAN_SKILL_IDS.DARING_ADVANCE) {
@@ -55,7 +57,7 @@ export function processLuminaryStances(context: GuardianCastContext, skill: Guar
     // Fixed activation/detonation boundaries keep resolver playback deterministic.
     for (const { type, at } of [
       { type: 'guardian.effulgent-activated', at: context.start },
-      { type: 'guardian.effulgent-detonate', at: context.start + 4 }
+      { type: 'guardian.effulgent-detonate', at: canonicalTime(context.start + 4) }
     ]) {
       context.emit({
         type,
@@ -86,7 +88,8 @@ export function replayInitialLuminaryState(context: GuardianCastContext, skill: 
   if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.resolution) {
     emitSkillBuff(context, skill, { ...common, kind: 'resolution' });
   } else if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.empoweredArmaments) {
-    luminaryState.from(context).empoweredArmamentsUntil = context.start + duration;
+    // Keep the observed duration, but share the emitted temporary buff's expiry clock.
+    luminaryState.from(context).empoweredArmamentsUntil = gw2EffectExpiresAt(context.start, duration);
     emitSkillBuff(context, skill, { ...common, kind: 'guardian-empowered-armaments' });
   } else if (skill.id === LUMINARY_INITIAL_STATE_SKILL_IDS.radiantHammer) {
     emitSkillBuff(context, skill, {
@@ -115,7 +118,7 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
   if (
     !guardianOwnedStrike ||
     !(Number(event.coefficient || 0) > 0) ||
-    !(event.at < Number(state.effulgentActiveUntil || 0) - EPSILON)
+    !(event.at < Number(state.effulgentActiveUntil || 0))
   ) {
     return;
   }
@@ -124,7 +127,8 @@ export function reactToEffulgentStrike(context: GuardianResolverContext, event: 
 }
 
 export function handleEffulgentActivated(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  luminaryState.from(context).effulgentActiveUntil = event.at + 4;
+  // This is an exact detonation window, not a tick-rounded temporary buff.
+  luminaryState.from(context).effulgentActiveUntil = canonicalTime(event.at + 4);
   luminaryState.from(context).effulgentStacks = 0;
 }
 
