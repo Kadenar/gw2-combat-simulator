@@ -1,3 +1,4 @@
+import { actorLoop, timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -6,7 +7,6 @@ import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/type
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type {
   ThiefCastContext,
-  ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSimulationEvent,
   ThiefSkill,
@@ -15,7 +15,7 @@ import type {
   ThiefSummonStrike
 } from '#gw2/professions/thief/types.js';
 
-interface ThievesGuildTaskPayload {
+interface ThievesGuildAttackState {
   readonly attack: ThiefSummonStrike;
   readonly expiresAt: number;
   readonly profile: ThiefSummonAttack;
@@ -41,39 +41,41 @@ function thievesGuildSummons(context: ThiefSchedulerContext, profile: ThiefSummo
 }
 
 /** Starts the summoned thieves' rotations only after the player has entered combat. */
-function startThievesGuildAttacks(context: ThiefSchedulerContext, at: number): void {
+function activateThievesGuild(context: ThiefSchedulerContext, at: number): void {
   const state = professionCoreState(context);
   const active = state.activeThievesGuild;
-  if (!active || at >= active.expiresAt) return;
+  if (!active || active.started || at >= active.expiresAt) return;
   const skill = context.catalog.skillsById.get(ID.THIEVES_GUILD) as ThiefSkill | undefined;
   const profile = skill?.summonAttack;
   if (!profile) return;
+  active.started = true;
   const wellOfSorrowConditionsArePermanent = WELL_OF_SORROW_PRIORITY.every(
     (condition) => permanentTargetConditionStacks(context.config, condition) > 0
   );
-  for (const summon of thievesGuildSummons(context, profile)) {
+  for (const [summonIndex, summon] of thievesGuildSummons(context, profile).entries()) {
     const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
-    for (const attack of attacks) {
+    for (const [attackIndex, attack] of attacks.entries()) {
       const attackAt = at + Number(attack.initialDelay || 0);
       if (attackAt >= active.expiresAt) continue;
-      context.tasks.schedule({
-        type: 'thief.thieves-guild-attack',
-        at: attackAt,
-        ownerId: 'thief.thieves-guild',
-        payload: { attack, expiresAt: active.expiresAt, profile, summon, wellOfSorrowConditionsArePermanent }
+      // Every authored attack has its own stream; one thief's recovery never serializes the guild.
+      guildActions.start(context, at, {
+        key: `thief.thieves-guild:${summonIndex}:${attackIndex}`,
+        firstAt: attackAt,
+        ownerId: active.ownerId,
+        state: { attack, expiresAt: active.expiresAt, profile, summon, wellOfSorrowConditionsArePermanent }
       });
     }
   }
 }
 
 /** Chooses each Well pulse from the target state at impact, skipping live lookups when all choices are permanent. */
-function attackConditions(context: ThiefSchedulerContext, task: ThiefScheduledTask<ThievesGuildTaskPayload>) {
-  const { attack, wellOfSorrowConditionsArePermanent } = task.payload;
+function attackConditions(context: ThiefSchedulerContext, at: number, payload: ThievesGuildAttackState) {
+  const { attack, wellOfSorrowConditionsArePermanent } = payload;
   if (attack.skillId !== SPECTER_WELL_OF_SORROW) return attack.conditions || [];
   if (wellOfSorrowConditionsArePermanent) return [WELL_OF_SORROW_CONDITIONS[3]];
 
   const policy = context.schedulerPolicy as Gw2SchedulerPolicy;
-  const missingIndex = WELL_OF_SORROW_PRIORITY.findIndex((condition) => !policy.targetHasCondition(condition, task.at));
+  const missingIndex = WELL_OF_SORROW_PRIORITY.findIndex((condition) => !policy.targetHasCondition(condition, at));
   return [WELL_OF_SORROW_CONDITIONS[missingIndex < 0 ? 3 : missingIndex]];
 }
 
@@ -86,33 +88,36 @@ export function summonThievesGuild(context: ThiefCastContext, skill: ThiefSkill)
   if (!profile) return;
   const summons = thievesGuildSummons(context, profile);
   const expiresAt = context.start + Number(profile.duration || 0);
+  if (state.activeThievesGuild) guildActions.stop(context, at, state.activeThievesGuild.ownerId);
+  const ownerId = context.createActivationId('summon-attack');
   state.activeThievesGuild = {
+    ownerId,
     variant: summons.at(-1)?.name || 'Core Thief',
-    expiresAt
+    expiresAt,
+    started: false
   };
-  context.tasks.cancelOwner('thief.thieves-guild');
-  context.tasks.schedule({
-    type: 'thief.thieves-guild-expire',
-    at: expiresAt,
-    ownerId: 'thief.thieves-guild',
-    payload: { expiresAt }
+  guildLifetime.start(context, {
+    key: 'thief.thieves-guild',
+    times: [expiresAt],
+    captured: { ownerId }
   });
-  if (context.combatStartTime != null) startThievesGuildAttacks(context, at);
+  if (context.combatStartTime != null) activateThievesGuild(context, at);
 
   emitThiefStateSnapshot(context, at, 'thieves-guild');
 }
 
 /** Wakes a precast Thieves Guild when the scheduler publishes its combat-start boundary. */
 export function observeThievesGuildCombatEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (event.type === 'combat_start') startThievesGuildAttacks(context, context.combatStartTime ?? event.at);
+  if (event.type === 'combat_start') activateThievesGuild(context, context.combatStartTime ?? event.at);
 }
 
-export function handleThievesGuildAttack(
+function stepGuildAttack(
   context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<ThievesGuildTaskPayload>
-): void {
-  if (task.at > Number(task.payload.expiresAt || 0)) return;
-  const { attack, profile, summon } = task.payload;
+  at: number,
+  payload: ThievesGuildAttackState
+): { at: number; state: ThievesGuildAttackState } | null {
+  if (at >= payload.expiresAt) return null;
+  const { attack, profile, summon } = payload;
   const hits = Math.max(1, Number(attack.hits ?? 1));
   const summonName = `Thieves Guild \u2014 ${summon.name}`;
   const attackName = `${summonName} \u2014 ${attack.name}`;
@@ -121,7 +126,7 @@ export function handleThievesGuildAttack(
   // this attack share its sampled weapon strength and causal ownership.
   const activationId = context.createActivationId('summon-attack');
   emitSkillDamage(context, {
-    at: task.at,
+    at: at,
     source: 'thief',
     sourceId: 'thief.thieves-guild',
     actorType: 'summon',
@@ -144,9 +149,9 @@ export function handleThievesGuildAttack(
     summonUsesEquipmentModifiers: false,
     activationId
   });
-  for (const condition of attackConditions(context, task)) {
+  for (const condition of attackConditions(context, at, payload)) {
     emitSkillCondition(context, {
-      at: task.at,
+      at: at,
       sourceId: 'thief.thieves-guild',
       actorType: 'summon',
       skillId: attack.skillId ?? ID.THIEVES_GUILD,
@@ -165,16 +170,25 @@ export function handleThievesGuildAttack(
   }
 
   const interval = Number(attack.interval || 0);
-  const nextAt = task.at + interval;
-  if (interval > 0 && nextAt < Number(task.payload.expiresAt || 0)) {
-    context.tasks.schedule({ ...task, at: nextAt });
-  }
+  const nextAt = at + interval;
+  return interval > 0 && nextAt < payload.expiresAt ? { at: nextAt, state: payload } : null;
 }
 
-export function expireThievesGuild(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
-  const state = professionCoreState(context);
-  if (state.activeThievesGuild && Number(state.activeThievesGuild.expiresAt) <= task.at) {
-    state.activeThievesGuild = null;
-    emitThiefStateSnapshot(context, task.at, 'thieves-guild-expired');
+// Shared lifetimes retire every parallel stream and publish the guild's expiry together.
+const guildActions = actorLoop({ id: 'thief.thieves-guild-actions', step: stepGuildAttack });
+const guildLifetime = timedEffect({
+  id: 'thief.thieves-guild-lifetime',
+  effectsAt(context: ThiefSchedulerContext, at: number, captured: { ownerId: string }) {
+    guildActions.stop(context, at, captured.ownerId);
+    const state = professionCoreState(context);
+    if (state.activeThievesGuild && state.activeThievesGuild.expiresAt <= at) {
+      state.activeThievesGuild = null;
+      emitThiefStateSnapshot(context, at, 'thieves-guild-expired');
+    }
   }
-}
+});
+
+export const thievesGuildTaskHandlers = Object.freeze({
+  ...guildActions.taskHandlers,
+  ...guildLifetime.taskHandlers
+});

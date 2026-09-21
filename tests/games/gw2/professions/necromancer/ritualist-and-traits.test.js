@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -1370,5 +1371,31 @@ test('critical sigils follow the active weapon set', () => {
   assert.equal(
     result.procSteps.some((step) => step.skill === 'Sigil of Earth'),
     true
+  );
+});
+
+// Disabling the autonomous clock leaves the summon/active packets and observation window intact.
+test('a zero spirit interval disables recurrence without removing initial spirit effects', () => {
+  const profession = withPatchPreview(necromancerProfession, {
+    id: 'no-spirit-loop',
+    label: 'No spirit loop',
+    professions: {
+      necromancer: {
+        balanceProfiles: {
+          [RITUALIST_BALANCE_PROFILE_IDS.resources]: { fields: { pulseInterval: 0 } }
+        }
+      }
+    }
+  });
+  const result = createProfessionSimulator(profession, baseConfig)(
+    'Ritualist',
+    ["Ritualist's Shroud", 'Anguish', 'Wanderlust', 'Preservation', { type: 'wait', durationMs: 10000 }],
+    { patchId: 'no-spirit-loop', initialResource: 100 }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.resolvedEvents.some((event) => event.metadata?.spiritAttackType === 'initial'));
+  assert.equal(
+    result.events.some((event) => event.type === 'necromancer.spirit-attack'),
+    false
   );
 });

@@ -1,3 +1,4 @@
+import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
@@ -24,7 +25,6 @@ import {
   gainNecromancerLifeForce,
   runCreatureSummonReactions
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
@@ -43,18 +43,12 @@ import {
   refundRitualistSoulTwisting
 } from '#gw2/professions/necromancer/specializations/ritualist/traits/summon-reactions.js';
 
-const SPIRIT_ATTACK_TASK = 'necromancer.ritualist-spirit-attack';
-const SPIRIT_ATTACK_STOP_TASK = 'necromancer.ritualist-spirit-attack-stop';
 const RITUALIST_SHROUD_WEAPON_PROFILE = 'transform.ritualist-shroud';
 
-interface SpiritAttackTaskPayload {
+interface SpiritAttackState {
   readonly skillId: SkillId;
   readonly spiritKey: string;
   readonly generation: number;
-}
-
-interface SpiritAttackStopTaskPayload {
-  readonly ownerId: string;
 }
 
 interface SpiritDefinition {
@@ -74,6 +68,9 @@ interface SpiritStrikeTick {
   readonly coefficient: number;
 }
 
+// Each spirit retains its shared-grid selection while the actor loop owns replacement and recurrence.
+const spiritActions = actorLoop({ id: 'necromancer.ritualist-spirit-actions', step: stepSpiritAttack });
+
 export const ritualistSchedulerHooks = Object.freeze({
   initialize: {
     id: 'ritualist.initialize-runtime',
@@ -85,10 +82,7 @@ export const ritualistSchedulerHooks = Object.freeze({
     order: 10,
     handler: refundRitualistSoulTwisting
   },
-  taskHandlers: Object.freeze({
-    [SPIRIT_ATTACK_TASK]: handleSpiritAutoattack,
-    [SPIRIT_ATTACK_STOP_TASK]: handleSpiritAutoattackStop
-  })
+  taskHandlers: spiritActions.taskHandlers
 });
 
 // Decode each spirit's ordered balance-profile effects into its initial,
@@ -196,7 +190,7 @@ function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState,
 }
 
 // Replace a spirit generation's autonomous loop without disturbing the cadence shared by other spirits.
-function queueSpiritAutoattacks(
+function startSpiritActions(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   spirit: SpiritDefinition,
@@ -209,36 +203,31 @@ function queueSpiritAutoattacks(
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   if (generation > 1) {
     // Cancel the previous generation's attack loop before starting the new one; generation 0 never had a loop
-    context.tasks.schedule({
-      type: SPIRIT_ATTACK_STOP_TASK,
-      at,
-      payload: { ownerId: `spirit:${spirit.key}:${generation - 1}` }
-    });
+    spiritActions.stop(context, at, `spirit:${spirit.key}:${generation - 1}`);
   }
 
-  context.tasks.schedule({
-    type: SPIRIT_ATTACK_TASK,
-    at: nextSpiritPulse(context, state, at),
+  spiritActions.start(context, at, {
+    key: `spirit:${spirit.key}`,
+    firstAt: nextSpiritPulse(context, state, at),
     ownerId: `spirit:${spirit.key}:${generation}`,
-    payload: { skillId: skill.id, spiritKey: spirit.key, generation }
+    state: { skillId: skill.id, spiritKey: spirit.key, generation }
   });
 }
 
 // Materialize one generation-safe spirit attack and continue its shared-cadence task loop.
-function handleSpiritAutoattack(
+function stepSpiritAttack(
   context: NecromancerSchedulerContext,
-  task: ScheduledTask<SpiritAttackTaskPayload>
-): void {
-  const payload = task.payload;
-  if (!payload) return;
+  at: number,
+  payload: SpiritAttackState
+): { at: number; state: SpiritAttackState } | null {
   const skill = context.catalog.skillsById.get(payload.skillId);
   const spirit = skill ? spiritDefinition(context, skill.id) : undefined;
   // spirit.key vs payload.spiritKey cross-check guards against a skill ID mapping to the wrong spirit definition
-  if (!skill || !spirit || spirit.key !== payload.spiritKey) return;
+  if (!skill || !spirit || spirit.key !== payload.spiritKey) return null;
 
   context.emit({
     type: 'necromancer.spirit-attack',
-    at: task.at,
+    at: at,
     source: 'Spirit',
     sourceId: skill.id,
     actorType: 'summon',
@@ -264,23 +253,12 @@ function handleSpiritAutoattack(
     }
   });
 
-  const nextAt = task.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4);
-  if (nextAt > task.at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
-    context.tasks.schedule({
-      type: SPIRIT_ATTACK_TASK,
-      at: nextAt,
-      ownerId: task.ownerId,
-      payload
-    });
+  const nextAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4);
+  if (nextAt > at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
+    return { at: nextAt, state: payload };
   }
-}
 
-// Cancel the superseded generation's task owner so its queued autoattacks cannot continue.
-function handleSpiritAutoattackStop(
-  context: NecromancerSchedulerContext,
-  task: ScheduledTask<SpiritAttackStopTaskPayload>
-): void {
-  if (task.payload) context.tasks.cancelOwner(task.payload.ownerId);
+  return null;
 }
 
 // Publish Painful Bond's visible status and matching resolver application at the same timestamp.
@@ -477,7 +455,7 @@ function summonSpirit(
     emitSkillBuff(context, skill, { at, kind: 'vigor', duration: 4, stacks: 1, ...boonOptions });
   }
 
-  queueSpiritAutoattacks(context, skill, spirit, at);
+  startSpiritActions(context, skill, spirit, at);
 }
 
 // Trigger the active spirits' coordinated attacks without reviving or interrupting unavailable spirits.

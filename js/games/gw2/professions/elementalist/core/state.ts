@@ -33,7 +33,6 @@ export interface ElementalistSummonedElementalState {
   actionGeneration: number;
   activeUntil: number;
   busyUntil: number;
-  nextActionAt: number;
   secondaryAttackReadyAt: number;
   currentActivationId: string | null;
   pendingLightningJolt: { coefficient: number; skillId: number } | null;
@@ -167,7 +166,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       actionGeneration: 0,
       activeUntil: 0,
       busyUntil: 0,
-      nextActionAt: 0,
       secondaryAttackReadyAt: 0,
       currentActivationId: null,
       pendingLightningJolt: null,

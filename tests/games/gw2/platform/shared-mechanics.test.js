@@ -190,3 +190,30 @@ test('anchored accrual queries and discrete recharge preserve progress through c
   const spent = advanceResourceRecharge(7, 8, full.progress, 5, [{ start: 4, end: 8, rate: 1 }]);
   assert.deepEqual(spent, { value: 8, progress: 0 });
 });
+
+// Fractional recovery deadlines must settle on the queue clock, including replacement inside a callback.
+test('actor recovery rounds once and a callback replacement cannot revive its old loop', () => {
+  const actor = actorLoop({
+    id: 'rounded-actor',
+    readyAt: () => 0.1 + 0.2,
+    step(context, at, state) {
+      context.events.push([at, state.generation]);
+      if (state.generation === 1) {
+        actor.replace(context, { key: 'actor', ownerId: 'new', firstAt: 1, state: { generation: 2 } });
+        return { at: at + 0.1, state };
+      }
+
+      return null;
+    }
+  });
+  const { context, through, queue } = harness(actor);
+  actor.start(context, 0, { key: 'actor', ownerId: 'old', firstAt: 0.2, state: { generation: 1 } });
+  through(0.299999);
+  assert.deepEqual(context.events, []);
+  through(1);
+  assert.deepEqual(context.events, [
+    [0.3, 1],
+    [1, 2]
+  ]);
+  assert.equal(queue.nextAt(), Infinity);
+});

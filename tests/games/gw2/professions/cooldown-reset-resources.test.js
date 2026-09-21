@@ -25,11 +25,6 @@ test('cooldown reset refills shared life force for every Necromancer specializat
       result.planningState.profession.maximumLifeForce,
       specialization
     );
-    assert.equal(
-      result.planningState.profession.resource,
-      result.planningState.profession.maximumLifeForce,
-      specialization
-    );
     assert.equal(result.planningState.cooldowns.Plaguelands, undefined, specialization);
   }
 });

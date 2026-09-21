@@ -1,6 +1,12 @@
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
+import {
+  summonThievesGuild,
+  observeThievesGuildCombatEvent,
+  thievesGuildTaskHandlers
+} from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -555,4 +561,78 @@ test('THF-012: manual shroud exit waits for entry lockout while forced depletion
   assert.deepEqual(depleted.warnings, []);
   assert.equal(depleted.events.find((event) => event.reason === 'shadow-shroud-depleted').at, 0.25);
   assert.equal(depleted.planningState.profession.shadowShroudActive, false);
+});
+
+// Two small authored streams isolate cadence and deferred replacement from the production summon profiles.
+test('guild combat activation starts parallel streams once and replacement retires every old stream', () => {
+  const tasks = createTaskQueue({ handlers: thievesGuildTaskHandlers });
+  const events = [];
+  const original = thiefCatalog.skillsById.get(ID.THIEVES_GUILD);
+  const skill = {
+    ...original,
+    summonAttack: {
+      ...original.summonAttack,
+      duration: 6,
+      summons: [
+        {
+          name: 'Test thief',
+          weapon: 'Dagger',
+          attacks: [
+            { name: 'Fast', coefficientPerHit: 1, initialDelay: 0, interval: 1 },
+            { name: 'Slow', coefficientPerHit: 1, initialDelay: 0.5, interval: 2 }
+          ]
+        }
+      ]
+    }
+  };
+  const context = {
+    ...scheduler().context,
+    tasks,
+    events,
+    emit: (event) => {
+      events.push(event);
+      return event;
+    },
+    catalog: { ...thiefCatalog, skillsById: new Map([[skill.id, skill]]) },
+    start: 0,
+    effectiveEnd: 0,
+    combatStartTime: null
+  };
+  summonThievesGuild(context, skill);
+  tasks.drainThrough(1, context);
+  assert.equal(
+    events.some((event) => event.type === 'damage'),
+    false
+  );
+  context.combatStartTime = 1;
+  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 1 });
+  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 1 });
+  tasks.drainThrough(2, context);
+  const packets = () => events.filter((event) => event.type === 'damage');
+  assert.deepEqual(
+    packets().map((event) => [event.at, event.damageBreakdownName]),
+    [
+      [1, 'Test thief — Fast'],
+      [1.5, 'Test thief — Slow'],
+      [2, 'Test thief — Fast']
+    ]
+  );
+  const oldOwner = context.state.profession.core.activeThievesGuild.ownerId;
+  context.start = context.effectiveEnd = 2.25;
+  summonThievesGuild(context, skill);
+  assert.notEqual(context.state.profession.core.activeThievesGuild.ownerId, oldOwner);
+  tasks.drainThrough(3.5, context);
+  assert.deepEqual(
+    packets()
+      .filter((event) => event.at > 2)
+      .map((event) => event.at),
+    [2.25, 2.75, 3.25]
+  );
+  assert.equal(new Set(packets().map((event) => event.activationId)).size, packets().length);
+  tasks.drainThrough(6, context);
+  assert.ok(context.state.profession.core.activeThievesGuild, 'old expiry cannot remove the replacement');
+  tasks.drainThrough(9, context);
+  assert.equal(context.state.profession.core.activeThievesGuild, null);
+  assert.equal(tasks.nextAt(), Infinity);
+  assert.ok(packets().every((event) => event.at < 8.25));
 });

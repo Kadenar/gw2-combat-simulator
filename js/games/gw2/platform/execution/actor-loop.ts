@@ -1,3 +1,4 @@
+import { canonicalTime } from '#kernel/core/clock.js';
 import { timedEffect } from '#gw2/platform/execution/timed-effects.js';
 import type { SchedulerTaskAccess } from '#gw2/platform/execution/types.js';
 
@@ -26,7 +27,8 @@ export function actorLoop<
     id: definition.id,
     priority: definition.priority,
     effectsAt(context: TContext, at: number, captured: { state: TState; nextAt: number | null }) {
-      const readyAt = definition.readyAt?.(context, at, captured.state) ?? at;
+      // Compare recovery on the queue clock so rounding cannot create a zero-time wait.
+      const readyAt = canonicalTime(definition.readyAt?.(context, at, captured.state) ?? at);
       if (readyAt > at) {
         captured.nextAt = readyAt;
         return;

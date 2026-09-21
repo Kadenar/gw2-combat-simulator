@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -29,6 +30,7 @@ function lifetimeContext(element = 'Fire') {
   const profession = elementalistProfession.resolveRuntime(config);
   const events = [];
   const queued = [];
+  const queue = createTaskQueue({ handlers: elementalistElementalTaskHandlers });
   let sequence = 0;
   return {
     config,
@@ -49,12 +51,11 @@ function lifetimeContext(element = 'Fire') {
     replaceEvent: (event, update) => Object.assign(event, update),
     rechargeDurationFor: () => 8,
     tasks: {
+      ...queue,
       schedule: (task) => {
-        queued.push(task);
-        return `task-${++sequence}`;
-      },
-      cancelOwner: (owner) => {
-        for (const task of queued) if (task.ownerId === owner) task.cancelled = true;
+        const id = queue.schedule(task);
+        queued.push({ ...task, id });
+        return id;
       }
     }
   };
@@ -63,8 +64,6 @@ function lifetimeContext(element = 'Fire') {
 const openBarrier = elementalistRockBarrierMechanicHandlers['elementalist.core.open-rock-barrier'];
 const releaseBarrier = elementalistRockBarrierMechanicHandlers['elementalist.core.release-rock-barrier'];
 const impact = elementalistElementalTaskHandlers['elementalist.elemental-impact'];
-const ai = elementalistElementalTaskHandlers['elementalist.elemental-ai'];
-const expire = elementalistElementalTaskHandlers['elementalist.elemental-expire'];
 
 test('Rock Barrier availability, palette, and natural recharge share an exact deadline', () => {
   const context = lifetimeContext();
@@ -127,7 +126,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
   }
 });
 
-test('queued elemental impacts include exact expiry, but AI cannot start another attack there', () => {
+test('queued elemental impacts include exact expiry, but autonomous attacks cannot start there', () => {
   for (const element of ['Fire', 'Earth']) {
     const context = lifetimeContext(element);
     const glyph = context.catalog.skillsByName.get(context.config.selectedSkills.Elite);
@@ -142,12 +141,10 @@ test('queued elemental impacts include exact expiry, but AI cannot start another
     }
 
     const before = context.events.length;
-    ai(context, { at: deadline, payload });
+    // Place target acquisition on expiry and let real priority ordering deliver teardown.
+    observeElementalistElementalEvent(context, { type: 'combat_start', at: deadline - 0.16 });
+    context.tasks.drainThrough(deadline, context);
     assert.equal(context.events.length, before, 'expiry cannot create a zero-length attack');
-    expire(
-      context,
-      context.queued.find((task) => task.type === 'elementalist.elemental-expire')
-    );
     assert.equal(elemental.element, null);
     assert.equal(elemental.pendingLightningJolt, null);
     assert.deepEqual(context.state.profession.core.availableFlips, {});
@@ -174,9 +171,9 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
     context.state.profession.core.availableFlips[elementalistCatalog.skillsByName.get('Stomp').id].expiresAt,
     120.5
   );
-  assert.ok(oldTasks.every((task) => task.cancelled));
   const before = context.events.length;
-  for (const task of oldTasks) elementalistElementalTaskHandlers[task.type](context, task);
+  context.tasks.drainThrough(120.301, context);
+  assert.ok(oldTasks.every((task) => !context.tasks.has(task.id)));
   assert.equal(context.events.length, before);
   assert.equal(context.state.profession.core.summonedElemental.element, 'Earth');
   assert.equal(context.state.cooldowns.size, 0);
@@ -248,5 +245,35 @@ test('the scheduler resolves a final elemental command hit before same-time tear
     assert.equal(Boolean(explosion), lifetime >= 1.52);
     assert.equal(result.planningState.profession.summonedElemental.element, null);
     assert.deepEqual(result.planningState.profession.availableFlips, {});
+  }
+});
+
+// Commands invalidate the interrupted action's impacts and replace only its pending autonomous decision.
+test('elemental command preemption resumes exactly at command recovery without stale impacts', () => {
+  for (const element of ['Fire', 'Earth']) {
+    const context = lifetimeContext(element);
+    context.combatStartTime = 0;
+    completeElementalistGlyphCast(context, context.catalog.skillsByName.get(context.config.selectedSkills.Elite));
+    context.tasks.drainThrough(0.5, context);
+    const interrupted = context.events.find((event) => event.type === 'action');
+    assert.ok(interrupted);
+    context.effectiveEnd = 0.6;
+    completeElementalistElementalCommand(
+      context,
+      context.catalog.skillsByName.get(element === 'Fire' ? 'Flame Barrage' : 'Stomp')
+    );
+    const recovery = context.state.profession.core.summonedElemental.busyUntil;
+    context.tasks.drainThrough(recovery - 0.000001, context);
+    assert.equal(interrupted.interruptedAt, 0.6);
+    assert.ok(
+      !context.events.some((event) => event.type === 'damage' && event.activationId === interrupted.activationId)
+    );
+    assert.ok(
+      !context.events.some((event) => event.type === 'action' && event.autonomousElementalSkill && event.at > 0.6)
+    );
+    context.tasks.drainThrough(recovery, context);
+    const resumed = context.events.findLast((event) => event.type === 'action');
+    assert.equal(resumed.at, recovery);
+    assert.equal(resumed.autonomousElementalSkill, true);
   }
 });
