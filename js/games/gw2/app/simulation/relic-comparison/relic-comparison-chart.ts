@@ -149,25 +149,23 @@ export function relicComparisonChartSvg(
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
-  // Keep numerical attribution available even when the rotation cannot produce a chart.
-  const damageSummary =
-    model.opponentDamage && model.targetDamage
-      ? `<table class="relic-cmp-damage">
-    <caption>Damage contribution in each simulation</caption>
-    <thead><tr><th scope="col">Build</th><th scope="col">Build DPS</th><th scope="col">Direct relic damage</th><th scope="col">Relic DPS contribution</th></tr></thead>
+  // Combine the chart legend and final values in one table, even without enough samples to plot.
+  const damageSummary = `<div class="relic-cmp-table-wrap" role="region" aria-label="Relic comparison results" tabindex="0">
+  <table class="relic-cmp-damage">
+    <caption>Results at ${formatSeconds(model.durationMs)}</caption>
+    <thead><tr><th scope="col">Relic</th><th scope="col">Build DPS</th><th scope="col">Direct relic damage</th><th scope="col">Relic DPS contribution</th></tr></thead>
     <tbody>${(
       [
-        [`${opponentLabel} (standard)`, model.opponentDamage],
-        [targetLabel, model.targetDamage]
+        [`${opponentLabel} (standard)`, opponentColor, 'dashed', model.opponentDamage, model.opponentFinalDps],
+        [targetLabel, targetColor, 'solid', model.targetDamage, model.targetFinalDps]
       ] as const
     )
       .map(
-        ([label, damage]) =>
-          `<tr><th scope="row">${escapeHtml(label)}</th><td>${formatDps(damage.buildDps)}</td><td>${formatDps(damage.directDamage)}</td><td>${formatDps(damage.contributedDps)}</td></tr>`
+        ([label, color, lineStyle, damage, finalDps]) =>
+          `<tr><th scope="row"><span class="relic-cmp-key"><span class="relic-cmp-swatch" aria-hidden="true" style="border-top-color:${color};border-top-style:${lineStyle}"></span>${escapeHtml(label)}</span></th><td>${formatDps(damage?.buildDps ?? finalDps)}</td><td>${damage ? formatDps(damage.directDamage) : '—'}</td><td>${damage ? formatDps(damage.contributedDps) : '—'}</td></tr>`
       )
       .join('')}</tbody>
-  </table><p>Direct damage includes relic strikes and conditions. DPS contribution is the full build DPS minus the same build with no relic, including buffs and interactions.</p>`
-      : '';
+  </table></div><p class="relic-cmp-note">Direct damage includes relic strikes and conditions. DPS contribution is the full build DPS minus the same build with no relic, including buffs and interactions.</p>`;
 
   if (model.points.length < 2) {
     return `${damageSummary}<p class="relic-cmp-empty">Not enough damage in this rotation to compare relics.</p>`;
@@ -202,10 +200,6 @@ export function relicComparisonChartSvg(
     </div>
     <figcaption class="relic-cmp-caption">
       ${damageSummary}
-      <div class="relic-cmp-legend">
-        <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${opponentColor}"></span>${escapeHtml(opponentLabel)} <b>${formatDps(model.opponentFinalDps)}</b></span>
-        <span class="relic-cmp-key"><span class="relic-cmp-swatch" style="background:${targetColor}"></span>${escapeHtml(targetLabel)} <b>${formatDps(model.targetFinalDps)}</b></span>
-      </div>
       <p class="relic-cmp-verdict">${verdict}</p>
     </figcaption>
   </figure>`;

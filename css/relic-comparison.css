@@ -53,17 +53,52 @@
   font-weight: 400;
 }
 
-/* Keep each simulation's damage and DPS attribution readable alongside the chart. */
+/* Keep the results below the graph aligned, with local scrolling on narrow screens. */
+.relic-cmp-table-wrap {
+  overflow-x: auto;
+}
+
+.relic-cmp-table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .relic-cmp-damage {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.relic-cmp-damage caption {
+  padding: 12px;
+  color: var(--text-bright);
+  font-weight: 700;
+}
+
+.relic-cmp-damage thead {
+  color: var(--text-dim);
+  background: var(--bg-panel);
 }
 
 .relic-cmp-damage th,
 .relic-cmp-damage td {
-  padding: 6px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
   text-align: right;
+}
+
+.relic-cmp-damage tbody {
+  color: var(--text-bright);
+}
+
+.relic-cmp-damage td {
+  white-space: nowrap;
+}
+
+.relic-cmp-damage td:first-of-type {
+  font-weight: 700;
 }
 
 .relic-cmp-damage th:first-child,
@@ -130,16 +165,18 @@
   }
 }
 
+/* Share one card between the plot and its results so the table reads as part of the chart. */
 .relic-cmp-figure {
   margin: 0;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
 .relic-cmp-svg {
   display: block;
   width: 100%;
   height: auto;
-  background: var(--bg-panel-alt);
-  border-radius: 6px;
 }
 
 .relic-cmp-axis-label {
@@ -155,33 +192,26 @@
 }
 
 .relic-cmp-caption {
-  margin-top: 8px;
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--border);
 }
 
-.relic-cmp-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: 4px;
+.relic-cmp-note {
+  margin: 8px 0 12px;
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.6;
 }
 
 .relic-cmp-key {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-dim);
-  font-size: 10px;
-}
-
-.relic-cmp-key b {
-  color: var(--text-bright);
-  font-variant-numeric: tabular-nums;
+  gap: 8px;
 }
 
 .relic-cmp-swatch {
-  width: 16px;
-  height: 4px;
-  border-radius: 2px;
+  flex: 0 0 20px;
+  border-top: 3px solid;
 }
 
 .relic-cmp-verdict b {
