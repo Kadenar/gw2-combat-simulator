@@ -1,4 +1,5 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { EPSILON, timeKey } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 /** Nourys relic rules. */
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -20,10 +21,13 @@ function nourysCombatStart(context: Gw2RelicRuntimeContext, state: Gw2RelicState
 }
 
 function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, at: number): boolean {
-  const firstActivation = nourysCombatStart(context, state) + NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED;
-  if (at < firstActivation - EPSILON) return false;
-  const phase = (at - firstActivation) % NOURYS_CYCLE_DURATION;
-  return phase >= -EPSILON && phase < NOURYS_BUFF_DURATION - EPSILON;
+  // Integer clock keys avoid floating-point modulo drift at each recurring activation.
+  const firstActivation = timeKey(nourysCombatStart(context, state) + NOURYS_STACK_INTERVAL * NOURYS_STACKS_NEEDED);
+  const elapsed = timeKey(at) - firstActivation;
+  if (elapsed < 0) return false;
+  const cycle = Math.floor(elapsed / timeKey(NOURYS_CYCLE_DURATION));
+  const activation = (firstActivation + cycle * timeKey(NOURYS_CYCLE_DURATION)) / 1_000_000;
+  return timeKey(at) < timeKey(gw2EffectExpiresAt(activation, NOURYS_BUFF_DURATION));
 }
 
 export const nourys = defineRelic({
@@ -36,7 +40,16 @@ export const nourys = defineRelic({
       ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
       if (stacks >= NOURYS_STACKS_NEEDED) {
         stacks = 0;
-        ctx.recordProc('relic', 'Relic of Nourys', at, 'Nourys', 'activated', '', null, at + NOURYS_BUFF_DURATION);
+        ctx.recordProc(
+          'relic',
+          'Relic of Nourys',
+          at,
+          'Nourys',
+          'activated',
+          '',
+          null,
+          gw2EffectExpiresAt(at, NOURYS_BUFF_DURATION)
+        );
         at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
       } else {
         at += NOURYS_STACK_INTERVAL;

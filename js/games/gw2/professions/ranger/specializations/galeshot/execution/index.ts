@@ -1,5 +1,6 @@
 import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 /** Registers scheduler-phase skill activations for this module. */
+import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -106,8 +107,10 @@ export const galeshotSkillHandlers = Object.freeze({
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
       restoreArrow(context, Number(skill.arrowsRestored || 0));
-      state.mistralUntil =
-        context.start + balanceProfileValueFromContext(context, PROFILE.mistral, 'durationMultiplier', 6);
+      // Missile eligibility uses an exact inclusive deadline shared with the state event.
+      state.mistralUntil = canonicalTime(
+        context.start + balanceProfileValueFromContext(context, PROFILE.mistral, 'durationMultiplier', 6)
+      );
       emitGaleshotState(context, skill);
     }
   }

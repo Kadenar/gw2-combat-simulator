@@ -99,7 +99,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
   for (let index = state.activations.length - 1; index >= 0; index -= 1) {
     const activation = state.activations[index];
     // A triggering application cannot benefit from its own same-time stack.
-    if (activation.at >= at - EPSILON) continue;
+    if (activation.at >= at) continue;
     return isTimeInWindow(at, activation.at, activation.expiresAt) ? activation : null;
   }
 

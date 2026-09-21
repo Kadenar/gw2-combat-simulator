@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState } from '#gw2/platform/execution/types.js';
@@ -18,8 +18,8 @@ export function scheduleMesmerTrackedHits(
   let recentHits = [...(professionCoreState(state).trackedSkillHits[skill.id] || [])];
   const required = Math.max(1, Math.trunc(Number(tracking.hitsRequired || 1)));
   for (const currentHitAt of [...playerHitTimes].sort((a, b) => a - b)) {
-    const minimum = currentHitAt - duration;
-    recentHits = recentHits.filter((hitAt) => hitAt > minimum + EPSILON);
+    // A prior hit expires at its exact age limit; retain its final live microsecond.
+    recentHits = recentHits.filter((hitAt) => canonicalTime(hitAt + duration) > canonicalTime(currentHitAt));
     recentHits.push(currentHitAt);
     while (recentHits.length >= required) {
       const triggerHits = recentHits.splice(0, required);

@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
@@ -493,7 +493,7 @@ export function completeSkrittScuffle(context: ThiefCastContext, skill: ThiefSki
   const summon = {
     skillId: skill.id,
     name: 'Skritt Assistant',
-    expiresAt: at + Number(profile?.durationMultiplier ?? 15)
+    expiresAt: canonicalTime(at + Number(profile?.durationMultiplier ?? 15))
   };
   state.activeAntiquarySummons.push(summon);
   state.nextSkrittScufflePilferAt = at + interval;
@@ -516,16 +516,16 @@ export function handleSkrittScuffle(
 ): void {
   const interval = Number(balanceProfileFromContext(context, PROFILE.scuffle)?.pulseInterval ?? 3);
   if (!(interval > 0)) return;
-  // epsilon tolerance: a task scheduled exactly at expiresAt is still valid; floating-point overshoot is not a missed tick
-  if (task.at > Number(task.payload.expiresAt || 0) + EPSILON) return;
-  const nextPilferAt = task.at + interval;
+  // The assistant's final pilfer lands exactly at its lifetime boundary.
+  if (task.at > Number(task.payload.expiresAt || 0)) return;
+  const nextPilferAt = canonicalTime(task.at + interval);
   antiquaryState.from(context).nextSkrittScufflePilferAt =
     nextPilferAt <= Number(task.payload.expiresAt || 0) ? nextPilferAt : 0;
   pilferArtifacts(context, task.at, 'skritt-scuffle-artifact', 'scuffle');
-  if (task.at + interval <= Number(task.payload.expiresAt || 0)) {
+  if (nextPilferAt <= Number(task.payload.expiresAt || 0)) {
     context.tasks.schedule({
       ...task,
-      at: task.at + interval
+      at: nextPilferAt
     });
   }
 }

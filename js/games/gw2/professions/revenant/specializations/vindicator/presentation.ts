@@ -80,9 +80,10 @@ function resolveVindicatorPaletteAction(
 
 /** Shows the armed Reaver's Curse window until the next dodge consumes it. */
 function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
-  const remaining =
-    Number(revenantUiState(context).reaversCurseUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
-  return remaining > 0
+  const expiresAt = Number(revenantUiState(context).reaversCurseUntil || 0);
+  const remaining = expiresAt - Math.max(0, Number(context.atSeconds || 0));
+  // A landing exactly at expiry can still consume the armed charge.
+  return expiresAt > 0 && remaining >= 0
     ? [
         {
           id: 'vindicator-reavers-curse',

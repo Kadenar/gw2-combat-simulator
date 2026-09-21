@@ -1,4 +1,5 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -52,7 +53,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
     const reaversCurse = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     const effect = reaversCurse?.effects?.find((candidate) => candidate.type === 'buff');
     // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp.
-    state.reaversCurseUntil = at + Math.max(0, Number(effect?.duration));
+    state.reaversCurseUntil = gw2EffectExpiresAt(at, Math.max(0, Number(effect?.duration)));
   }
 
   if (
@@ -98,10 +99,10 @@ export function completeVindicatorDodge(
   if (!profile || !effect) return;
   // Full jumps offset this origin by airborne time; landing-only inputs begin at the landing animation.
   const offset = effect.type === 'strike' ? effectFirstAtMs(effect) : effect.atMs;
-  const at = strikeProfileOrigin + Math.max(0, Number(offset || 0)) / 1000;
-  // epsilon tolerance absorbs floating-point drift when reaversCurseUntil and at are nominally equal.
+  const at = canonicalTime(strikeProfileOrigin + Math.max(0, Number(offset || 0)) / 1000);
+  // An armed charge includes landing exactly at expiry; zero is the unarmed sentinel.
   const reaversCurse =
-    hasTrait(context.config, TRAIT.REAVERS_CURSE) && Number(state.reaversCurseUntil || 0) + EPSILON >= at;
+    hasTrait(context.config, TRAIT.REAVERS_CURSE) && state.reaversCurseUntil > 0 && state.reaversCurseUntil >= at;
   // Consume the buff immediately so a rapid second dodge cannot double-dip.
   if (reaversCurse) state.reaversCurseUntil = 0;
   // Strike scaling and Forerunner ordering stay local; support landings continue to their boon package.

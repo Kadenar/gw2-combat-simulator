@@ -23,8 +23,10 @@ const GALESHOT_PALETTE_STACK = 'ranger-galeshot';
 
 /** Shows Mistral only while its Galeshot damage window remains active. */
 function galeshotStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const remaining = Number(rangerUiState(context).mistralUntil || 0) - Math.max(0, Number(context.atSeconds || 0));
-  return remaining > 0
+  const expiresAt = Number(rangerUiState(context).mistralUntil || 0);
+  const remaining = expiresAt - Math.max(0, Number(context.atSeconds || 0));
+  // The final missile may trigger at equality; zero remains the unarmed sentinel.
+  return expiresAt > 0 && remaining >= 0
     ? [
         {
           id: 'galeshot-mistral',

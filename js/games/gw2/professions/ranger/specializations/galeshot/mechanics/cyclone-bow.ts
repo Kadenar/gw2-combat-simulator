@@ -128,7 +128,8 @@ export function handleGaleshotMissileHitTask(context: RangerSchedulerContext, ta
     readonly skillName?: string;
     readonly activationId?: string;
   } | null;
-  if (task.at <= state.mistralUntil + EPSILON) {
+  // An armed Mistral includes missiles landing at expiry; zero never arms it.
+  if (state.mistralUntil > 0 && task.at <= state.mistralUntil) {
     const profile = balanceProfileFromContext(context, PROFILE.mistral);
     const strike = balanceProfileEffect(profile, 'strike');
     const chilled = balanceProfileEffect(profile, 'condition');

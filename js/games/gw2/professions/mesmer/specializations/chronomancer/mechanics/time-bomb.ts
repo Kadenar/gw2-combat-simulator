@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -14,11 +14,12 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
   const runtime = mesmerRuntimeFor(context);
   const state = chronomancerState.from(context);
   const at = context.fullEnd;
-  if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil - EPSILON) return;
+  if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
 
   const timeBomb = runtime.traitDamage['Time Bomb'];
   const duration = Number(timeBomb.duration || 0);
-  state.timeBombUntil = at + duration;
+  // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
+  state.timeBombUntil = canonicalTime(at + duration);
   const previousEmission = runtime.activeEmission;
   runtime.activeEmission = {
     skill,
@@ -32,6 +33,7 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
       kind: 'time-bomb',
       stacks: 1,
       duration,
+      expiresAt: state.timeBombUntil,
       sourceSkill: skill.name
     });
     runtime.addDamage(

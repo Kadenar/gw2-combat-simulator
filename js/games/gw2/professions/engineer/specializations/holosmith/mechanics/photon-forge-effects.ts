@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -24,7 +24,8 @@ function handleSolarFocusingLens(context: EngineerResolverContext, event: Holosm
   const state = holosmithState.from(context);
   state.solarFocusingLensStacks = Number(event.stacks);
   state.solarFocusingLensReadyAt = event.at;
-  state.solarFocusingLensUntil = event.at + Number(event.duration);
+  // Lens keeps its inclusive final-hit policy on the temporary-effect expiry tick.
+  state.solarFocusingLensUntil = gw2EffectExpiresAt(event.at, Number(event.duration));
 }
 
 /** Spends Lens charges in impact order, including strikes materialized by resolver handlers. */
@@ -41,8 +42,8 @@ export function consumeSolarFocusingLens(
   const state = holosmithState.from(context);
   if (
     state.solarFocusingLensStacks <= 0 ||
-    event.at < state.solarFocusingLensReadyAt - EPSILON ||
-    event.at > state.solarFocusingLensUntil + EPSILON
+    event.at < state.solarFocusingLensReadyAt ||
+    event.at > state.solarFocusingLensUntil
   )
     return;
   state.solarFocusingLensStacks -= 1;
