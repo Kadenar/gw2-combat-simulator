@@ -1,6 +1,6 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';

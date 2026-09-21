@@ -62,6 +62,10 @@ test('enum build fields restore missing or invalid values and reject them before
 
   assert.equal(migrateElementalistBuild({}).startAttunement, 'Fire');
   assert.equal(migrateElementalistBuild({ startAttunement: 'Void' }).startAttunement, 'Fire');
+  // Persisted enum values must match exactly, without case folding or coercion.
+  assert.equal(migrateElementalistBuild({ startAttunement: 'Water' }).startAttunement, 'Water');
+  assert.equal(migrateElementalistBuild({ startAttunement: 'water' }).startAttunement, 'Fire');
+  assert.equal(migrateElementalistBuild({ startAttunement: 2 }).startAttunement, 'Fire');
   assert.equal(migrateElementalistBuild({ secondaryAttunement: 'Earth' }).secondaryAttunement, 'Earth');
   assert.equal(validateElementalistBuild(missingEvokerElement).valid, false);
   assert.match(

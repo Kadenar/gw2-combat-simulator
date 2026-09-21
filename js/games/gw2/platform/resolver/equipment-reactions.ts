@@ -8,7 +8,7 @@ import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-ev
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';

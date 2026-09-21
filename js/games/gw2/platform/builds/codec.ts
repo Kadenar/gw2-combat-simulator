@@ -7,7 +7,6 @@ import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/p
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { enumValue } from '#gw2/platform/builds/normalization.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -268,6 +267,11 @@ function validateExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild>(
       throw new TypeError(`Extra build field ${field} requires finite, ordered bounds.`);
     }
   }
+}
+
+/** Retains an exact allowed string value and otherwise returns the profession's fallback. */
+function enumValue<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === 'string' && allowed.includes(value as T) ? (value as T) : fallback;
 }
 
 /**

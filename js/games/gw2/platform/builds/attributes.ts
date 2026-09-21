@@ -1,7 +1,6 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
-import { BASE_STATS, JBC_BONUS } from '#gw2/platform/builds/base-attributes.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
@@ -35,6 +34,17 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
+
+/** Level-80 character baseline that gear and food attributes build on top of. */
+const BASE_STATS = {
+  Power: 1000,
+  Precision: 1000,
+  Toughness: 1000,
+  Vitality: 1000
+};
+
+// Tier 10 Jade Bot Vitality belongs in the conversion pool used by profession traits.
+const JBC_BONUS = { Vitality: 235 };
 
 interface CalculateCommonAttributesOptions {
   readonly weaponSet?: number;

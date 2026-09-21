@@ -11,7 +11,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';

@@ -7,7 +7,7 @@ import {
   balanceProfileEffectFromContext as profileEffect,
   balanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   isPetStrike,

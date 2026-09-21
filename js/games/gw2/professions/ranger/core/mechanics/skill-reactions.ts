@@ -1,6 +1,6 @@
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';

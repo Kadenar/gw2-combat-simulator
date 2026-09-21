@@ -6,7 +6,7 @@ import {
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 
 import type {
   ComboFieldEvent,

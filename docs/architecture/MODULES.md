@@ -376,7 +376,7 @@ Important modules include:
 | `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
 | `combat/modifiers.ts`             | Declarative scalar modifier system                                                      |
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
-| `builds/normalization.ts`         | Coercion of unvalidated persisted build input into typed values                         |
+| `builds/codec.ts`                 | Build migration, normalization, and validation                                          |
 | `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
 | `combat/critical-procs.ts`        | Critical-proc progress, including the one-hit expected critical tracker                 |
 | `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
