@@ -1,6 +1,8 @@
 /** Shares Lethal Tempo's stack and expiry rules while scheduler and resolver retain independent state. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
@@ -21,14 +23,15 @@ export function gainLethalTempo(
   at: number,
   { maximumStacks, duration }: ReturnType<typeof lethalTempoParameters>
 ): number {
-  // Stacks must reset when the previous window has fully expired before adding the new one;
-  // otherwise a new activation mid-window would compound on a stale count.
-  if (at >= state.lethalTempoUntil) state.lethalTempoStacks = 0;
+  // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
+  at = canonicalTime(at);
+  if (state.lethalTempoUntil <= 0 || at > state.lethalTempoUntil) state.lethalTempoStacks = 0;
   state.lethalTempoStacks = Math.min(maximumStacks, state.lethalTempoStacks + 1);
-  state.lethalTempoUntil = at + duration;
+  state.lethalTempoUntil = gw2EffectExpiresAt(at, duration);
   return state.lethalTempoStacks;
 }
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
-  return at < state.lethalTempoUntil ? state.lethalTempoStacks : 0;
+  // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
+  return state.lethalTempoUntil > 0 && canonicalTime(at) <= state.lethalTempoUntil ? state.lethalTempoStacks : 0;
 }

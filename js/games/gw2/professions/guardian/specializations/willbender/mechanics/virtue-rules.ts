@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -99,7 +100,7 @@ export function applyWillbenderVirtueActivationTraits(
     virtue === 'justice' && tyrantsMomentum
       ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration ?? 10)
       : Number(window?.duration ?? (virtue === 'justice' ? 8 : 6));
-  state[`${virtue}Until`] = at + duration;
+  state[`${virtue}Until`] = gw2EffectExpiresAt(at, duration);
   emitSkillBuff(context, {
     at,
     source: 'guardian',
@@ -111,7 +112,8 @@ export function applyWillbenderVirtueActivationTraits(
     duration,
     audience: { recipients: 'self' }
   });
-  gainLethalTempo(state, at, lethalTempoParameters(context));
+  const tempo = lethalTempoParameters(context);
+  gainLethalTempo(state, at, tempo);
   emitSkillBuff(context, {
     at,
     source: 'guardian',
@@ -122,7 +124,8 @@ export function applyWillbenderVirtueActivationTraits(
     name: 'Lethal Tempo',
     kind: 'lethal-tempo',
     stacks: state.lethalTempoStacks,
-    duration: state.lethalTempoUntil - at
+    // Emit the authored duration so buff-history rounding cannot add a second effect tick.
+    duration: tempo.duration
   });
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
     const vigor = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.restorativeVirtues), 'boon');
@@ -274,7 +277,8 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
 // a completed Willbender virtue trigger.
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
-  gainLethalTempo(state, at, lethalTempoParameters(context));
+  const tempo = lethalTempoParameters(context);
+  gainLethalTempo(state, at, tempo);
   emitSkillBuff(context, {
     at,
     source: 'guardian',
@@ -285,7 +289,8 @@ function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSk
     name: 'Lethal Tempo',
     kind: 'lethal-tempo',
     stacks: state.lethalTempoStacks,
-    duration: state.lethalTempoUntil - at,
+    // Buff history and state each snap the same authored duration once.
+    duration: tempo.duration,
     triggeredBy: sourceSkill
   });
 }
@@ -491,7 +496,9 @@ function handleWillbenderVirtueHit(
   };
 
   for (const virtue of ['justice', 'resolve', 'courage'] as const) {
-    if (state[`${virtue}Until`] <= at + EPSILON) continue;
+    // Match strike-before-expiry semantics; zero is an unarmed window, not an expiry-tick grant.
+    const until = state[`${virtue}Until`];
+    if (until <= 0 || at > until) continue;
     state.virtueHitCounts[virtue] += 1;
     // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
     // only for justice; resolve and courage always require 5 hits.

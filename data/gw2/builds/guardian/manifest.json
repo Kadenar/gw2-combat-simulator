@@ -7,7 +7,7 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 42017,
+        "benchmarkDps": 42019,
         "sourceBenchmarkDps": 42702,
         "upToDate": true
       },
@@ -34,7 +34,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
-        "benchmarkDps": 33512,
+        "benchmarkDps": 33554,
         "sourceBenchmarkDps": 33543,
         "dpsReportUrl": "https://dps.report/fcpL-20260723-040840_golem",
         "upToDate": true
@@ -44,7 +44,7 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
-        "benchmarkDps": 32935,
+        "benchmarkDps": 32944,
         "sourceBenchmarkDps": 32976,
         "dpsReportUrl": "https://dps.report/tH4i-20260726-111551_golem",
         "upToDate": true

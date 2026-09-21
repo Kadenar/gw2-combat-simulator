@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
@@ -28,13 +28,9 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   const state = willbenderState.from(context);
   if (state.flameVirtue !== virtue) state.flameGeneration += 1; // different virtue = new flame run, so pulse tasks keyed on the old generation are ignored
   state.flameVirtue = virtue;
-  // Resolver state is seeded from scratch, so hit counts from the scheduler phase
-  // may be stale if the virtue window already lapsed by the time this event arrives.
-  if (state[`${virtue}Until`] <= event.at + (EPSILON ?? EPSILON)) {
-    state.virtueHitCounts[virtue] = 0;
-  }
-
-  const until = event.at + Number(event.duration || 0);
+  // Reopening a window preserves partial hit progress, including across inactive gaps.
+  // State and the displayed buff expire on the same absolute effect tick.
+  const until = gw2EffectExpiresAt(event.at, Number(event.duration || 0));
   if (virtue === 'justice') state.justiceUntil = until;
   if (virtue === 'resolve') state.resolveUntil = until;
   if (virtue === 'courage') state.courageUntil = until;

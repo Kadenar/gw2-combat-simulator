@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { augmentSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -10,7 +10,6 @@ import {
 import type { GuardianCastContext, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { applyWillbenderVirtueActivationTraits } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
-import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 
 const FLAME_ID_BY_VIRTUE: Readonly<Record<GuardianVirtue, number>> = Object.freeze({
   justice: ID.WILLBENDER_FLAMES_ID_62618,
@@ -28,23 +27,18 @@ function activateWillbenderVirtue(context: GuardianCastContext, skill: GuardianS
   // Justice impact fires 40 ms before cast end; Courage impact fires after the
   // lunge animation (~520 ms). Resolve has no early hit, so it uses effectiveEnd.
   // Min-clamping ensures these don't overshoot when the cast is interrupted.
-  const at =
+  const at = canonicalTime(
     virtue === 'justice'
       ? Math.min(context.effectiveEnd, context.start + 0.04)
       : virtue === 'courage'
         ? Math.min(context.effectiveEnd, context.start + 0.52)
-        : context.effectiveEnd;
+        : context.effectiveEnd
+  );
   // Resolve lays its trail during the dash; waiting for recovery delays pulses and loses hits before replacement.
   // use the trail's start; target-specific crossing offsets require spatial movement tracking.
   const flameAt =
     virtue === 'resolve' ? context.start : virtue === 'justice' ? Math.max(at, context.effectiveEnd - 0.04) : at;
-  const state = willbenderState.from(context);
-  // virtueUntil may still hold the previous window; reset hit counts only when that
-  // window has actually expired so a rapid re-activation doesn't wipe an in-progress tally.
-  if (state[`${virtue}Until`] <= at + EPSILON) {
-    state.virtueHitCounts[virtue] = 0;
-  }
-
+  // Partial hit progress survives inactive gaps; only completing a hit cycle resets the counter.
   const duration = applyWillbenderVirtueActivationTraits(context, virtue, at);
 
   emitGuardianEvent(context, skill, 'guardian.willbender-virtue-activated', {
