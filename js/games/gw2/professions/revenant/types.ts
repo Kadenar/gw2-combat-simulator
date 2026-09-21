@@ -122,19 +122,13 @@ export type RevenantRechargeContext = RevenantSchedulerContext & {
   readonly hasBuff?: (kind: string, at?: number) => boolean;
 };
 
-export interface RevenantEnergyContext {
-  readonly catalog?: CanonicalCatalog<RevenantSkill> | null;
-  readonly config?: RevenantConfig;
-  readonly specialization?: string;
-  readonly state?: {
-    readonly time?: number;
-    readonly profession?: RevenantRuntimeState;
-  };
-  /** Current UI projection; runtime callers supply the owned slices through state.profession. */
-  readonly professionState?: Partial<RevenantState>;
-  readonly start?: number;
-  readonly time?: number;
-  readonly hasBuff?: (kind: string, at?: number) => boolean;
+/** Explicit cost inputs shared by simulation and palette calculations. */
+export interface RevenantEnergyCostInput {
+  readonly specialization: string;
+  readonly state: Readonly<
+    Partial<Pick<RevenantState, 'activeUpkeeps' | 'beguilingHazeCharges' | 'energyCostOverrides'>>
+  >;
+  readonly traits: ReadonlySet<SkillId>;
 }
 
 export type RevenantScheduledTask<TPayload extends object = object> = ScheduledTask<TPayload>;

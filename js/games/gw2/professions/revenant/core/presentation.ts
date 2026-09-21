@@ -1,4 +1,5 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
@@ -31,17 +32,6 @@ export function activeRevenantLegend(context: RevenantUiContext = {}): string {
 function displayedRevenantEnergy(value: unknown): number {
   const energy = Number(value || 0);
   return Number.isFinite(energy) ? Math.max(0, Math.floor(energy)) : 0;
-}
-
-function effectiveEnergyCost(context: RevenantUiContext, skill: RevenantSkill): number {
-  return effectiveRevenantEnergyCost(
-    {
-      config: context.config,
-      specialization: context.specialization,
-      professionState: revenantUiState(context)
-    },
-    skill
-  );
 }
 
 function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
@@ -133,7 +123,15 @@ export function revenantCorePaletteSkillAvailability(
 
   // Check player energy and compare it against the effective energy cost of the skill, also check if the skill is on cooldown
   const energy = Number(state.energy);
-  const cost = effectiveEnergyCost(context, skill);
+  // Supply the palette projection and resolved selection explicitly to the shared cost calculation.
+  const cost = effectiveRevenantEnergyCost(
+    {
+      specialization: context.specialization ?? 'Core',
+      state,
+      traits: context.traits ?? normalizeSelectedTraitIds(context.config?.selectedTraitIds)
+    },
+    skill
+  );
   const onCooldown = Number(context.cooldowns?.[skill.name]?.remaining || 0) > 0;
   const available = !Number.isFinite(energy) || energy >= cost || onCooldown;
   return {

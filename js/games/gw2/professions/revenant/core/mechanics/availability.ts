@@ -3,7 +3,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnduranceReadyAt, revenantEnergyReadyAt } from '#gw2/professions/revenant/core/mechanics/energy.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { runtimeRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -93,7 +93,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return denyRevenantSkill(skill, 'revenant.upkeep-active', 'use the matching release skill.');
   }
 
-  const cost = effectiveRevenantEnergyCost(context, skill);
+  const cost = runtimeRevenantEnergyCost(context, skill);
   const energyReadyAt = revenantEnergyReadyAt(context, cost);
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
   if (state.energy + EPSILON < cost || (energyReadyAt != null && energyReadyAt > context.start + EPSILON)) {

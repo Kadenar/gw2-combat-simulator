@@ -1,6 +1,6 @@
 import { resourceValueAt, resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
@@ -17,7 +17,7 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
  */
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import type {
-  RevenantEnergyContext,
+  RevenantEnergyCostInput,
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill
@@ -28,7 +28,7 @@ function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;
 }
 
-function resourceProfile(context: RevenantEnergyContext) {
+function resourceProfile(context: RevenantSchedulerContext) {
   const profile = context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
   if (!profile) throw new Error('Missing Revenant resource balance profile.');
   return profile;
@@ -52,8 +52,8 @@ function activeUpkeepCost(state: RevenantCoreState, at: number): number {
 }
 
 export function revenantEnduranceRegenerationRate(
-  context: RevenantEnergyContext,
-  at = Number(context.start ?? context.time ?? context.state?.time ?? 0),
+  context: RevenantSchedulerContext & { readonly start?: number },
+  at = context.start ?? context.state.time,
   vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at))
 ): number {
   const profile = resourceProfile(context);
@@ -196,21 +196,8 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   }
 }
 
-/** Minimal Core state used to make active upkeep toggles free. */
-interface RevenantEnergyCostState {
-  readonly activeUpkeeps?: RevenantCoreState['activeUpkeeps'];
-}
-
-// Read the current UI projection explicitly; runtime costs use the owned Core slice.
-function energyCostCoreState(context: RevenantEnergyContext): RevenantEnergyCostState {
-  return context.state?.profession
-    ? readProfessionCoreState<RevenantEnergyCostState>(context.state.profession)
-    : (context.professionState ?? {});
-}
-
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */
-export function baseRevenantEnergyCost(context: RevenantEnergyContext, skill: RevenantSkill): number {
-  const state = energyCostCoreState(context);
+export function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill: RevenantSkill): number {
   const active = (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (active) return 0;
   return Math.max(0, Number(skill.energyCost || 0));

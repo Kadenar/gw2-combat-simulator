@@ -1,7 +1,7 @@
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { effectiveRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
+import { runtimeRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -262,7 +262,7 @@ export function empowerEmbraceTheDarkness(context: RevenantCastContext, skill: R
     skill.id !== ID.RESIST_THE_DARKNESS &&
     // Activation has already enabled upkeep, so its cost query now describes a free toggle-off.
     // Other skills must cost Energy.
-    (skill.id === ID.EMBRACE_THE_DARKNESS || effectiveRevenantEnergyCost(context, skill) > 0)
+    (skill.id === ID.EMBRACE_THE_DARKNESS || runtimeRevenantEnergyCost(context, skill) > 0)
   ) {
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS

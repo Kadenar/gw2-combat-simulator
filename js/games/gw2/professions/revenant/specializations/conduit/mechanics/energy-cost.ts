@@ -1,13 +1,5 @@
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { RevenantEnergyContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-
-// Runtime costs require Conduit's owned slice; the palette supplies its current public projection explicitly.
-function conduitEnergyState(context: RevenantEnergyContext): Partial<ConduitState> {
-  return context.state?.profession
-    ? readProfessionSpecializationState<ConduitState>(context.state.profession, 'Conduit') || {}
-    : (context.professionState ?? {});
-}
 
 /** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */
 function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSkill): boolean {
@@ -16,12 +8,11 @@ function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSk
 
 /** Applies Conduit form overrides and Beguiling Haze follow-up charges to the shared base cost. */
 export function applyConduitEnergyCostRules(
-  context: RevenantEnergyContext,
+  { state }: RevenantEnergyCostInput,
   skill: RevenantSkill,
   baseCost: number
 ): number {
   if (baseCost <= 0) return 0;
-  const state = conduitEnergyState(context);
   if (isBeguilingHazeFollowUp(state, skill)) return 0;
 
   const override = state.energyCostOverrides?.[String(skill.id)];

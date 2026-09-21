@@ -29,7 +29,7 @@ import {
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { runtimeRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
@@ -279,7 +279,7 @@ function advanceConduitForm(context: RevenantSchedulerContext, target: number): 
 }
 
 function gainConduitAffinityFromCost(context: RevenantCastContext, skill: RevenantSkill): void {
-  const cost = effectiveRevenantEnergyCost(context, skill);
+  const cost = runtimeRevenantEnergyCost(context, skill);
   if (!(cost > 0)) return;
   if (skill.legendId && !skill.affinityOnHit) {
     // Legend skills whose affinity is deferred to hit time are excluded here to avoid double-granting.
