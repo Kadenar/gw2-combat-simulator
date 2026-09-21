@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
@@ -19,7 +20,7 @@ export function handleNecromancerPainfulBond(
     const duration = Number(event.duration ?? buff?.duration ?? 10);
     // Painful Bond duration-stacks: overlapping applications add their full
     // duration to the remaining effect instead of refreshing its expiry.
-    state.painfulBondUntil = Math.max(event.at, Number(state.painfulBondUntil || 0)) + duration;
+    state.painfulBondUntil = gw2EffectExpiresAt(Math.max(event.at, Number(state.painfulBondUntil || 0)), duration);
     if (!Number.isFinite(state.painfulBondPulseAnchorAt)) {
       // Only the first application schedules the tick chain; stacked applications preserve its one-second cadence.
       const firstPulseAt = event.at + Number(definition?.initialDelay ?? 0.004);
@@ -37,7 +38,7 @@ export function handleNecromancerPainfulBond(
   if (event.mode !== 'tick') return;
 
   // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
-  if (event.at < Number(state.painfulBondUntil || 0) - EPSILON) {
+  if (event.at < Number(state.painfulBondUntil || 0)) {
     context.queue.enqueue({
       type: 'damage',
       at: event.at,

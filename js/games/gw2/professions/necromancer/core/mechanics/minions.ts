@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import {
@@ -191,7 +191,8 @@ function handleMinionAttack(context: NecromancerCastContext, task: ScheduledTask
     coefficient: attack.coefficient,
     deferredComboFinishers: attack.comboFinishers,
     onHitCondition: attack.condition,
-    controlKind: attack.controlKind || (task.at <= payload.controlUntil + EPSILON ? payload.controlKind : undefined),
+    // Command control includes the final impact at its exact deadline, without a grace period.
+    controlKind: attack.controlKind || (task.at <= payload.controlUntil ? payload.controlKind : undefined),
 
     ...(Number.isFinite(Number(damagePerCoefficient))
       ? {}
@@ -419,7 +420,7 @@ function restartMinionAttacks(
   state.minionAttackCycleOffsets[minion.key] = nextCycleIndex;
   queueSummonAttacks(context, summonSkill, minion, context.effectiveEnd, {
     initialDelay: minion.commandRecoveryDelay,
-    controlUntil: context.effectiveEnd + Number(definition.controlWindow || 0),
+    controlUntil: canonicalTime(context.effectiveEnd + Number(definition.controlWindow || 0)),
     controlKind: definition.control,
 
     initialCycleIndex: nextCycleIndex

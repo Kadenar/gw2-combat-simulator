@@ -1,4 +1,4 @@
-import { isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -173,7 +173,8 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
   const at = context.effectiveEnd;
   if (skill.id === ID.LICH_FORM) {
     state.activeShroud = 'lich';
-    state.lichEndsAt = at + 20;
+    // Form lifetime is exact; resource advancement and the exit flip share this deadline.
+    state.lichEndsAt = canonicalTime(at + 20);
     state.lastResourceAt = at;
     state.availableFlips[ID.EXIT_LICH_FORM] = state.lichEndsAt;
     emitNecromancerStateSnapshot(context, at, 'lich-enter', {

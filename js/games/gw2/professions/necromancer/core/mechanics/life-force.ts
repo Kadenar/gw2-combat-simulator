@@ -261,7 +261,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     }
 
     // Clear the transform before its exit refund so subsequent iterations cannot refund it again.
-    if (state.activeShroud === 'lich' && state.lichEndsAt <= next + EPSILON) {
+    if (state.activeShroud === 'lich' && state.lichEndsAt <= next) {
       state.activeShroud = '';
       state.lichEndsAt = 0;
       delete state.availableFlips[ID.EXIT_LICH_FORM];
