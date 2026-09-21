@@ -132,7 +132,6 @@ export interface MesmerPlanningState {
 }
 
 export interface MesmerSchedulerTaskPayloads {
-  readonly cloneAttack: { readonly cloneId: number };
   readonly partyBuff: { readonly event: SimulationEventInput };
   readonly resourceGain: MesmerPendingResource;
   readonly expectedProc: MesmerExpectedProcCandidate;
@@ -146,7 +145,6 @@ export interface MesmerSchedulerTaskPayloads {
     readonly rotationIndex: number;
   };
   readonly continuumExpire: { readonly expiresAt: number };
-  readonly infiniteForge: object;
   readonly signetIllusionsPassive: object;
 }
 

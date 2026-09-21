@@ -154,19 +154,3 @@ export function createFlipParentMap<TSkill extends FlipSkillLike>(
 
   return parents;
 }
-
-/**
- * Converts specialization mechanic maps into specialization-only skill lists.
- */
-export function createSpecializationSkillIds<TMechanic>(
-  mechanicsBySpecialization: Readonly<Record<string, Readonly<Record<string, TMechanic>>>>
-): Readonly<Record<string, readonly SkillId[]>> {
-  return Object.freeze(
-    Object.fromEntries(
-      Object.entries(mechanicsBySpecialization).map(([owner, mechanics]) => [
-        owner,
-        Object.freeze(Object.keys(mechanics).map(Number))
-      ])
-    )
-  );
-}

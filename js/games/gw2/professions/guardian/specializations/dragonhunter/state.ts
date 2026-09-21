@@ -23,6 +23,4 @@ export const DRAGONHUNTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   heavyLightReadyAt: 0
 } satisfies Partial<GuardianDragonhunterState>);
 
-export const DRAGONHUNTER_RESOLVER_END_STATE_KEYS = DRAGONHUNTER_PUBLIC_STATE_PROJECTION.keys;
-
 export const dragonhunterState = defineProfessionSpecializationState('Dragonhunter', createDragonhunterState);

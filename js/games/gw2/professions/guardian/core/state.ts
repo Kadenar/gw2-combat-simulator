@@ -110,15 +110,3 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
-
-/** Identifies Core fields whose chronological resolver values supersede scheduler snapshots. */
-export const GUARDIAN_CORE_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
-  'justiceActiveArmed',
-  'justiceHitCount',
-  'justiceActiveBurns',
-  'justicePassiveBurns',
-  'virtueReadyAt',
-  'symbolicAvengerExpirations',
-  'zealotsResolutionReadyAt',
-  'resolutionUntil'
-]);

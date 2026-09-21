@@ -49,6 +49,4 @@ export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   triggeredVirtueEffects: 0
 } satisfies Partial<GuardianWillbenderState>);
 
-export const WILLBENDER_RESOLVER_END_STATE_KEYS = WILLBENDER_PUBLIC_STATE_PROJECTION.keys;
-
 export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);

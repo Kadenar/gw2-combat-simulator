@@ -116,13 +116,6 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   mantraRechargeReadyAt: {}
 } satisfies Partial<GuardianFirebrandState>);
 
-export const FIREBRAND_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianFirebrandState)[] = Object.freeze([
-  'ashesCharges',
-  'ashesExpiresAt',
-  'stalwartSpeedReadyAt',
-  'quickfireReadyAt'
-]);
-
 // Derive page capacity, regeneration cadence, starting pages, and Ashes duration
 // from the selected traits while respecting explicit build overrides.
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {

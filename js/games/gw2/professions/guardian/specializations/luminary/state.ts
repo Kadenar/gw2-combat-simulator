@@ -64,10 +64,4 @@ export const LUMINARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   effulgentStacks: 0
 } satisfies Partial<GuardianLuminaryState>);
 
-export const LUMINARY_RESOLVER_END_STATE_KEYS: readonly (keyof GuardianLuminaryState)[] = Object.freeze([
-  'lightAuraUntil',
-  'effulgentActiveUntil',
-  'effulgentStacks'
-]);
-
 export const luminaryState = defineProfessionSpecializationState('Luminary', createLuminaryState);

@@ -34,13 +34,6 @@ export const UNTAMED_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 export const UNTAMED_PUBLIC_END_STATE_KEYS = UNTAMED_PUBLIC_STATE_PROJECTION.keys;
 
-export const UNTAMED_RESOLVER_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
-  'ferociousSymbiosisPlayerStacks',
-  'ferociousSymbiosisPlayerUntil',
-  'ferociousSymbiosisPetStacks',
-  'ferociousSymbiosisPetUntil'
-]);
-
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {
     // Default is Pet unleashed; "Ranger" must be explicitly requested.

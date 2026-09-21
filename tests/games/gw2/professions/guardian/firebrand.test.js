@@ -9,8 +9,7 @@ import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/special
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
   createFirebrandState,
-  FIREBRAND_PUBLIC_STATE_PROJECTION,
-  FIREBRAND_RESOLVER_END_STATE_KEYS
+  FIREBRAND_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { projectPublicProfessionState } from '#gw2/platform/engine/profession/state.js';
 
@@ -25,8 +24,8 @@ const config = {
   target: { armor: 2597 }
 };
 
-test('Firebrand public fallbacks keep live page initialization and resolver ownership separate', () => {
-  // Configured resources must override inactive fallbacks without broadening the resolver's field selection.
+test('Firebrand public projections preserve configured pages and omit private charge state', () => {
+  // Live resources override inactive fallbacks while the shared charge object stays private.
   const state = createFirebrandState({ initialTomePages: 2, maximumTomePages: 8 });
   const { keys, defaults } = FIREBRAND_PUBLIC_STATE_PROJECTION;
   const projected = projectPublicProfessionState(state, keys, defaults);
@@ -34,12 +33,6 @@ test('Firebrand public fallbacks keep live page initialization and resolver owne
   assert.equal(projected.maximumTomePages, 8);
   assert.equal(defaults.tomePages, 5);
   assert.equal(keys.includes('ashes'), false);
-  assert.deepEqual(FIREBRAND_RESOLVER_END_STATE_KEYS, [
-    'ashesCharges',
-    'ashesExpiresAt',
-    'stalwartSpeedReadyAt',
-    'quickfireReadyAt'
-  ]);
 });
 
 test('Firebrand tomes consume shared pages and execute tome damage', () => {
