@@ -59,7 +59,6 @@ export interface ElementalistCoreState {
     attunement: ElementalistAttunement;
   } | null;
   freshAirProgress: number;
-  freshAirLastResetAt: number;
   freshAirCandidates: Array<{
     at: number;
     criticalChance: number;
@@ -125,7 +124,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     autoattackCarryover: null,
     pendingAutoattackCarryover: null,
     freshAirProgress: 0,
-    freshAirLastResetAt: Number.NEGATIVE_INFINITY,
     freshAirCandidates: [],
     burningPrecisionProgress: 0,
     bountifulPowerProgress: 0,

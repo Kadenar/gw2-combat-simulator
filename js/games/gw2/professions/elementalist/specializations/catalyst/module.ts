@@ -21,7 +21,7 @@ import {
   catalystSchedulerHooks,
   catalystSkillMechanicHandlers
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
-import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { CATALYST_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
@@ -38,7 +38,7 @@ export const catalystModule = defineNativeModule({
     skillMechanics: CATALYST_SKILL_MECHANICS,
     balanceProfiles: CATALYST_BALANCE_PROFILES
   }),
-  state: { scheduler: createCatalystState, resolver: createCatalystState },
+  state: { scheduler: catalystState.create, resolver: catalystState.create },
   mechanics: {
     modifiers: catalystAttributeRules,
     execution: {

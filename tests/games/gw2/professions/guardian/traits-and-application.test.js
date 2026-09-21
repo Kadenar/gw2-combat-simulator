@@ -39,7 +39,7 @@ const config = {
 };
 
 test('Guardian planning projection uses only scheduler state and leaves combat counters detached', () => {
-  // Activation and hits change canonical state; snapshots expose detached compatibility values.
+  // Activation and hits change canonical state; snapshots expose detached canonical values.
   const state = createGuardianCoreState();
   const profession = { core: state, specialization: { kind: 'Core', state: {} } };
   const context = {
@@ -50,8 +50,8 @@ test('Guardian planning projection uses only scheduler state and leaves combat c
   };
   handleVirtueActivation(context, { virtue: 'justice', skillId: GUARDIAN_SKILL_IDS.JUSTICE, at: 0 });
   const armed = snapshotGuardianState(profession, 0);
-  assert.equal(armed.justiceArmed, true);
-  assert.equal(armed.justiceBurns, 0);
+  assert.equal(armed.justiceActiveArmed, true);
+  assert.equal(armed.justiceActiveBurns, 0);
   for (let at = 1; at <= 6; at += 1) {
     reactToJusticeHitWithOptions(context, { actorType: 'player', coefficient: 1, at }, { hitContext: {} });
   }
@@ -59,20 +59,21 @@ test('Guardian planning projection uses only scheduler state and leaves combat c
   assert.equal(state.justiceActiveBurns, 1);
   assert.equal(state.justicePassiveBurns, 1);
   assert.equal(state.justiceActiveArmed, false);
-  assert.equal(armed.justiceArmed, true);
+  assert.equal(armed.justiceActiveArmed, true);
   for (const key of ['justiceArmed', 'justiceBurns', 'symbolicAvengerStacks']) {
     assert.equal(Object.hasOwn(state, key), false);
+    assert.equal(Object.hasOwn(armed, key), false);
   }
 
   const scheduler = { ...createGuardianCoreState(), justiceActiveArmed: true, justiceActiveBurns: 9 };
   const projected = projectGuardianPlanningState({
     schedulerState: { profession: scheduler, time: 6 },
-    // Ignore stale compatibility fields even when supplied by an older snapshot.
-    resolverState: { ...state, justiceArmed: true, justiceBurns: 99, symbolicAvengerStacks: 99 }
+    // Resolver counters cannot overwrite scheduler predictions.
+    resolverState: { ...state, justiceActiveArmed: false, justiceActiveBurns: 99 }
   });
-  assert.equal(projected.justiceArmed, true);
-  assert.equal(projected.justiceBurns, 9);
-  assert.equal(projected.symbolicAvengerStacks, 0);
+  assert.equal(projected.justiceActiveArmed, true);
+  assert.equal(projected.justiceActiveBurns, 9);
+  assert.equal(projected.symbolicAvengerExpirations.length, 0);
   projected.virtueReadyAt.justice = 99;
   assert.equal(state.virtueReadyAt.justice, 0);
   assert.equal(scheduler.justiceActiveBurns, 9);
@@ -106,14 +107,13 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
   ]) {
     assert.equal(bonusAt(at), stacks * 0.01);
     const snapshot = snapshotGuardianState(profession, at);
-    assert.equal(snapshot.symbolicAvengerStacks, stacks);
     assert.equal(snapshot.symbolicAvengerExpirations.length, stacks);
     assert.equal(state.symbolicAvengerExpirations.length, 5);
     const projected = projectGuardianPlanningState({
       schedulerState: { profession, time: at },
       resolverState: profession
     });
-    assert.equal(projected.symbolicAvengerStacks, stacks);
+    assert.equal(projected.symbolicAvengerExpirations.length, stacks);
     const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });
     assert.equal(items.length, stacks ? 1 : 0);
     if (stacks) assert.ok(items[0].value.startsWith(`${stacks}/5`));
@@ -161,7 +161,8 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     true
   );
   assert.equal(
-    snapshotGuardianState(symbols.combatState.profession, symbols.combatState.atSeconds).symbolicAvengerStacks,
+    snapshotGuardianState(symbols.combatState.profession, symbols.combatState.atSeconds).symbolicAvengerExpirations
+      .length,
     5
   );
   assert.ok(blades.at(-1).damage > blades[0].damage);

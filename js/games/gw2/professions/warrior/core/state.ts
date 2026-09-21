@@ -5,7 +5,6 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface WarriorCoreState {
   adrenaline: number;
-  resource: number;
   maximumAdrenaline: number;
   endurance: number;
   maximumEndurance: number;
@@ -28,7 +27,6 @@ export interface WarriorCoreState {
 /** Declares the Core fields exposed by every Warrior end-state projection. */
 export const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'adrenaline',
-  'resource',
   'maximumAdrenaline',
   'endurance',
   'maximumEndurance',
@@ -51,7 +49,6 @@ export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreS
   const adrenaline = boundedNumber(config.initialResource ?? 0, 0, 0, maximumAdrenaline);
   return {
     adrenaline,
-    resource: adrenaline,
     maximumAdrenaline,
     endurance: 100,
     maximumEndurance: 100,

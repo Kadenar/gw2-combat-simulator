@@ -4,10 +4,7 @@ import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/gw2-policy/policy.js';
-import {
-  createEvokerState,
-  grantElectricEnchantments
-} from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
@@ -16,7 +13,7 @@ import { afterCast } from '#gw2/professions/elementalist/specializations/evoker/
 
 test('Ignite retains its final burning tier until the inactivity window expires', () => {
   // Exercise the familiar state transition independently of weapon recharge and rotation timing.
-  const state = createEvokerState();
+  const state = evokerState.create();
   const event = { type: 'condition', condition: 'Burning', activationId: 'ignite' };
   const context = {
     catalog: elementalistCatalog,
@@ -42,7 +39,7 @@ test('Ignite retains its final burning tier until the inactivity window expires'
 
 // Exercise real event observers, including immutable replacement and reentrant proc emission.
 function enchantmentHarness() {
-  const state = createEvokerState({ evokerElement: 'Air' });
+  const state = evokerState.create({ evokerElement: 'Air' });
   const events = [];
   const context = {
     catalog: elementalistCatalog,
@@ -240,7 +237,7 @@ test('Familiar and meditation enchantments cannot enhance a strike after their i
 
 test('Elemental Balance reports the same patched duration used for its active window', () => {
   // Two qualifying entries arm the trait; its marker must explain the effective balance profile.
-  const state = createEvokerState({ evokerElement: 'Fire' });
+  const state = evokerState.create({ evokerElement: 'Fire' });
   const events = [];
   const context = {
     catalog: applyBalanceProfilePatch(elementalistCatalog, {

@@ -106,9 +106,6 @@ export const evokerState = defineProfessionSpecializationState(
   }
 );
 
-/** Factory used for both the scheduler and resolver state instances. */
-export const createEvokerState = evokerState.create;
-
 /** Discards spent or expired grants at the scheduler clock, preserving future queued-hit eligibility. */
 export function expireElectricEnchantments(state: EvokerState, at: number): void {
   state.electricEnchantmentGrants = activeChargeGrants(state.electricEnchantmentGrants, at);

@@ -201,7 +201,7 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   const snapshot = result.events.find((event) => event.reason === 'shadow-shroud-depleted');
   assert.equal(snapshot.at, 0.5);
   assert.equal(snapshot.state.shadowShroudActive, false);
-  assert.equal(snapshot.state.shadowForce, 0);
+  assert.equal(snapshot.state.shadowClock.value, 0);
 });
 
 // Observe the live clock so backdating an exit after the wait cannot satisfy the timing contract.
@@ -693,7 +693,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     observationTail(1000)
   );
 
-  assert.equal(larcenous.combatState.profession.shadowForce, 5.5);
+  assert.equal(larcenous.combatState.profession.shadowClock.value, 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Larcenous Torment')
       .length,

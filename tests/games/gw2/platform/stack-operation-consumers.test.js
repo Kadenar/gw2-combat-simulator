@@ -1,8 +1,9 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { snapshotThiefState } from '#gw2/professions/thief/family-state.js';
+
 import { thiefAxeReaction } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -22,7 +23,7 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
   const core = scheduler.state.profession.core;
   const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35]);
   core.spinningAxeExpirations = prior;
-  const snapshot = snapshotThiefState(scheduler.state.profession);
+  const snapshot = snapshotProfessionState(scheduler.state.profession);
   const event = { cancelled: false };
   const context = { ...scheduler.context, eventByOrder: () => event };
   thiefAxeReaction.taskHandlers['thief.spinning-axe'](context, { at: 1, payload: { eventOrder: 1 } });
@@ -42,7 +43,7 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
   const antiquary = scheduler.state.profession.specialization.state;
   const prior = Object.freeze([0, 30, 5]);
   antiquary.holoUtilityCooldownReductionExpirations = prior;
-  const snapshot = snapshotThiefState(scheduler.state.profession);
+  const snapshot = snapshotProfessionState(scheduler.state.profession);
   const skill = scheduler.context.catalog.skillsByName.get('Prepare Pitfall');
   const recharge = scheduler.context.rechargeDurationFor(skill);
   assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);

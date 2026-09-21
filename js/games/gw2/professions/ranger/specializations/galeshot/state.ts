@@ -38,8 +38,6 @@ export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   missileHits: 0
 } satisfies Partial<RangerState>);
 
-export const GALESHOT_PUBLIC_END_STATE_KEYS = GALESHOT_PUBLIC_STATE_PROJECTION.keys;
-
 export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
     cycloneBowActive: false,

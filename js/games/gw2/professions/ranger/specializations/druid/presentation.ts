@@ -22,8 +22,8 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
       };
     }
 
-    // UI check mirrors druidCastAvailability: full force required to enter
-    if (Number(state.astralForce || 0) < 100) {
+    // Read the clock for runtime snapshots and the public scalar for planning projections.
+    if (Number(state.astralClock?.value ?? state.astralForce ?? 0) < 100) {
       return { available: false, message: 'Requires full Astral Force' };
     }
   }
@@ -79,7 +79,7 @@ export const druidUi: RangerUiSlice = Object.freeze({
         singular: 'astral force',
         plural: 'astral force',
         maximum: 100,
-        value: Number(state.astralForce ?? context.initialAstralForce ?? 100),
+        value: Number(state.astralClock?.value ?? state.astralForce ?? context.initialAstralForce ?? 100),
         startMaximum: 100,
         canStart: true,
         // buildKey links this value to the config field that persists initial force across sessions

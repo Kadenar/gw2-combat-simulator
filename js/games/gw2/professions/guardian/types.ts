@@ -14,7 +14,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type { GuardianCorePublicState, GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -45,7 +45,7 @@ export interface GuardianConfig extends Gw2Config {
 
 export interface GuardianState
   extends
-    GuardianCorePublicState,
+    GuardianCoreState,
     GuardianDragonhunterState,
     GuardianFirebrandState,
     GuardianWillbenderState,

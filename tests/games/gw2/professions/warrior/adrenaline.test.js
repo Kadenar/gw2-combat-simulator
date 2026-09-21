@@ -8,16 +8,16 @@ function contextWithAdrenaline(adrenaline) {
   return {
     state: {
       profession: {
-        core: { adrenaline, maximumAdrenaline: 30, resource: adrenaline }
+        core: { adrenaline, maximumAdrenaline: 30 }
       }
     }
   };
 }
 
-test('Warrior adrenaline spending clamps to the available amount and synchronizes resource', () => {
+test('Warrior adrenaline spending clamps to the available amount without creating a resource alias', () => {
   const context = contextWithAdrenaline(6);
 
   assert.equal(spendWarriorAdrenalineAmount(context, 10), 6);
   assert.equal(context.state.profession.core.adrenaline, 0);
-  assert.equal(context.state.profession.core.resource, 0);
+  assert.equal(Object.hasOwn(context.state.profession.core, 'resource'), false);
 });

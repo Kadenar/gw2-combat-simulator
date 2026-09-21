@@ -100,7 +100,7 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
     const context = paragonContext();
     context.config.selectedTraitIds = selected ? [TRAIT.INVIGORATING_TEMPO] : [];
     const core = context.state.profession.core;
-    Object.assign(core, { adrenaline, resource: adrenaline, maximumAdrenaline: 10 });
+    Object.assign(core, { adrenaline, maximumAdrenaline: 10 });
     const state = context.state.profession.specialization.state;
     Object.assign(state, { motivation, activeRefrainId: skillId, nextRefrainAt: 3 });
 
@@ -108,7 +108,6 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
 
     assert.equal(state.motivation, motivation - spent);
     assert.equal(core.adrenaline, expected);
-    assert.equal(core.resource, expected);
   }
 });
 

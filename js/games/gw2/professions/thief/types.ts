@@ -73,7 +73,11 @@ export interface ThiefStealthAttackChargeState {
 export type ThiefArtifactKind = 'offensive' | 'defensive';
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
-export interface ThiefState extends ThiefCoreState, DaredevilState, DeadeyeState, SpecterState, AntiquaryState {}
+export interface ThiefState extends ThiefCoreState, DaredevilState, DeadeyeState, SpecterState, AntiquaryState {
+  /** Planning projections derive these public values from Specter's runtime clock. */
+  shadowForce: number;
+  maximumShadowForce: number;
+}
 
 export interface ThiefRuntimeState {
   core: ThiefCoreState;

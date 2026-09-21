@@ -43,9 +43,6 @@ export const weaverState = defineProfessionSpecializationState(
   })
 );
 
-/** State factory the module registers for both the scheduler and the resolver. */
-export const createWeaverState = weaverState.create;
-
 // Weaver owns dual-attunement state and its public stance windows.
 /** Keys the Elementalist end-state projection publishes on the simulation result. */
 export const WEAVER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({

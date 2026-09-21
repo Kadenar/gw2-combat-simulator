@@ -7,7 +7,7 @@ import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/const
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { applyConjureState } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
-import { createWeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import {
   weaverSchedulerHooks,
   weaverSkillMechanicHandlers
@@ -63,7 +63,7 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       state: {
         profession: {
           core: createElementalistCoreState(),
-          specialization: { kind: 'Weaver', state: createWeaverState() }
+          specialization: { kind: 'Weaver', state: weaverState.create() }
         }
       },
       catalog: elementalistCatalog,

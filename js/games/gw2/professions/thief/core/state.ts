@@ -1,6 +1,5 @@
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
@@ -53,11 +52,6 @@ export interface ThiefCoreState {
 }
 
 export const THIEF_BASE_HEALTH = 1645;
-
-/** Detaches the composed runtime state before it crosses the scheduler event boundary. */
-export function snapshotThiefState<TState extends object = Record<string, unknown>>(state: unknown): TState {
-  return snapshotProfessionState<TState>(state);
-}
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
   // State initialization normalizes the canonical trait-ID selection once.

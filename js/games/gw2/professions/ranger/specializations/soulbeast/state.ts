@@ -26,8 +26,6 @@ export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   oneWolfPackReadyAt: 0
 } satisfies Partial<RangerState>);
 
-export const SOULBEAST_PUBLIC_END_STATE_KEYS = SOULBEAST_PUBLIC_STATE_PROJECTION.keys;
-
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
   const pet = selectedRangerPet(config);
   return {

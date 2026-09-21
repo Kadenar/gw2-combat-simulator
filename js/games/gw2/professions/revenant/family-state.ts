@@ -34,11 +34,6 @@ import type { RenegadeState } from '#gw2/professions/revenant/specializations/re
 import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
-/** Flattens the family runtime state for stable scheduler and resolver handoff. */
-export function snapshotRevenantState(state: unknown): RevenantState {
-  return snapshotProfessionState<RevenantState>(state);
-}
-
 /** Emits a complete Revenant snapshot with the family identity owned here. */
 export function emitRevenantStateSnapshot(
   context: ProfessionStateSnapshotEmissionContext,
@@ -46,7 +41,14 @@ export function emitRevenantStateSnapshot(
   reason: string,
   options?: StateSnapshotEmissionOptions
 ): SimulationEvent | null {
-  return emitStateSnapshot(context, 'revenant', at, reason, snapshotRevenantState(context.state.profession), options);
+  return emitStateSnapshot(
+    context,
+    'revenant',
+    at,
+    reason,
+    snapshotProfessionState<RevenantState>(context.state.profession),
+    options
+  );
 }
 
 // Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
@@ -65,7 +67,7 @@ export function projectRevenantPlanningState({
 }: {
   schedulerState: SchedulerState<RevenantRuntimeState>;
 }): Partial<RevenantState> {
-  const state = snapshotRevenantState(schedulerState.profession);
+  const state = snapshotProfessionState<RevenantState>(schedulerState.profession);
   return projectPublicProfessionState(state, REVENANT_PUBLIC_END_STATE_KEYS, REVENANT_PUBLIC_STATE_PROJECTION.defaults);
 }
 

@@ -38,7 +38,7 @@ export const specterUi = Object.freeze({
         singular: 'shadow force',
         plural: 'shadow force',
         maximum: 100,
-        value: Number(state.shadowForce ?? context.initialShadowForce ?? 0),
+        value: Number(state.shadowClock?.value ?? state.shadowForce ?? context.initialShadowForce ?? 0),
         startMaximum: 100,
         canStart: true,
         buildKey: 'initialShadowForce',
@@ -54,7 +54,8 @@ export const specterUi = Object.freeze({
   paletteSkillAvailability: (context: ThiefUiContext, skill: ThiefSkill) => {
     const state = thiefUiState(context);
     if (skill.id === ID.ENTER_SHADOW_SHROUD) {
-      const available = !state.shadowShroudActive && Number(state.shadowForce || 0) > 0;
+      // Runtime snapshots carry the clock; planning projections carry its public scalar.
+      const available = !state.shadowShroudActive && Number(state.shadowClock?.value ?? state.shadowForce ?? 0) > 0;
       return {
         available,
         message: available

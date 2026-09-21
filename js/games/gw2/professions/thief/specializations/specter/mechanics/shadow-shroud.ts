@@ -25,7 +25,7 @@ export const shadowDepletion = resourceDepletion({
   depleted(context: ThiefSchedulerContext, at: number) {
     const state = specterState.from(context);
     if (!state.shadowShroudActive) return;
-    state.shadowForce = 0;
+    state.shadowClock.value = 0;
     state.shadowClock.rate = 0;
     emitTransitionLockout(context, 'shroudExitMs', at);
     state.shadowShroudActive = false;
@@ -38,7 +38,7 @@ export const shadowDepletion = resourceDepletion({
 export function gainShadowForce(context: ThiefSchedulerContext, amount: number): void {
   const state = specterState.from(context);
   advanceResourceClock(state.shadowClock, context.state.time);
-  state.shadowForce = Math.min(state.maximumShadowForce, state.shadowForce + amount);
+  state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value + amount);
   if (state.shadowShroudActive) shadowDepletion.refresh(context);
 }
 
@@ -65,11 +65,11 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   state.shadowShroudActive = true;
   // Manual exit waits half a second; depletion continues to force an immediate exit.
   state.shadowShroudExitReadyAt = at + 0.5;
-  state.shadowForceUpdatedAt = at;
+  state.shadowClock.updatedAt = at;
   setResourceRate(
     state.shadowClock,
     at,
-    -state.maximumShadowForce * Number(balanceProfileFromContext(context, PROFILE.resources)?.lifeForceDrain ?? 0.02)
+    -state.shadowClock.maximum * Number(balanceProfileFromContext(context, PROFILE.resources)?.lifeForceDrain ?? 0.02)
   );
   shadowDepletion.refresh(context);
   // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.
@@ -126,10 +126,10 @@ export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSki
 export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
   const state = specterState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  state.maximumShadowForce = Number(resources?.maximumStacks ?? 100);
+  state.shadowClock.maximum = Number(resources?.maximumStacks ?? 100);
   state.shadowForcePoolCapacity =
     Number(professionCoreState(context).maximumHealth || 0) * Number(resources?.attributeConversion ?? 0.69);
-  state.shadowForce = Math.min(state.maximumShadowForce, state.shadowForce);
+  state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value);
   advanceResourceClock(state.shadowClock, target);
   emitThiefStateSnapshot(context, target, 'resources');
 }

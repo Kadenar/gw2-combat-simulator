@@ -23,21 +23,18 @@ const GUARDIAN_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
   LUMINARY_PUBLIC_STATE_PROJECTION
 ]);
 
-/** Derives compatibility counters from detached combat state at the snapshot's observation time. */
+/** Detaches canonical combat state and expires public windows at the observation time. */
 export function snapshotGuardianState(state: unknown, at: number): GuardianState {
   const snapshot = snapshotProfessionState<GuardianState>(state);
   // Snapshots can be requested before scheduler cleanup; never expose an expired flip to the palette.
   snapshot.availableFlips = Object.fromEntries(
     Object.entries(snapshot.availableFlips || {}).filter(([, window]) => skillFlipVisible(window, at))
   );
-  snapshot.justiceArmed = Boolean(snapshot.justiceActiveArmed);
-  snapshot.justiceBurns = Number(snapshot.justiceActiveBurns || 0) + Number(snapshot.justicePassiveBurns || 0);
   snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);
-  snapshot.symbolicAvengerStacks = snapshot.symbolicAvengerExpirations.length;
   return snapshot;
 }
 
-/** Public compatibility keys are composed from manifests owned by each Guardian vertical slice. */
+/** Public projection keys are composed from manifests owned by each Guardian vertical slice. */
 export const GUARDIAN_PUBLIC_END_STATE_KEYS = GUARDIAN_PUBLIC_STATE_PROJECTION.keys;
 
 /** Projects scheduler predictions at the planning boundary without borrowing resolved combat effects. */

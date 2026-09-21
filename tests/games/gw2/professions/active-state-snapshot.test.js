@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { snapshotProfessionState, restoreFlatProfessionState } from '#gw2/platform/engine/profession/state.js';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -10,7 +11,55 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { projectRangerPlanningState } from '#gw2/professions/ranger/family-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
+test('force clocks own runtime resources while planning projections retain public values and defaults', () => {
+  // Snapshot replay and both palette input paths must work without resource accessors on live state.
+  for (const [profession, specialization, clockKey, valueKey, maximumKey, project] of [
+    [rangerProfession, 'Druid', 'astralClock', 'astralForce', 'maximumAstralForce', projectRangerPlanningState],
+    [thiefProfession, 'Specter', 'shadowClock', 'shadowForce', 'maximumShadowForce', projectThiefPlanningState]
+  ]) {
+    const config = { specialization };
+    const runtime = profession.resolveRuntime(config);
+    const state = runtime.createProfessionState(config);
+    const clock = state.specialization.state[clockKey];
+    Object.assign(clock, { value: 37, maximum: 90, updatedAt: 2 });
+    const detached = snapshotProfessionState(state);
+    const restored = runtime.createProfessionState(config);
+    restoreFlatProfessionState(restored.core, restored.specialization.state, detached);
+    assert.deepEqual(restored.specialization.state[clockKey], clock);
+    assert.notEqual(restored.specialization.state[clockKey], clock);
+    for (const field of [valueKey, maximumKey, `${valueKey}UpdatedAt`]) {
+      for (const input of [state.specialization.state, detached, restored.specialization.state]) {
+        assert.equal(Object.hasOwn(input, field), false, `${specialization}:${field}`);
+      }
+    }
+
+    const projected = project({ schedulerState: { profession: state, time: 2 } });
+    assert.equal(projected[valueKey], 37);
+    assert.equal(projected[maximumKey], 90);
+    assert.equal(Object.hasOwn(projected, clockKey), false);
+    for (const professionState of [state, detached, projected]) {
+      const resources = profession.ui.resourceViews({ specialization, professionState });
+      assert.equal(
+        resources.find(({ id }) => id === (specialization === 'Druid' ? 'astral-force' : 'shadow-force')).value,
+        37
+      );
+    }
+
+    clock.value = 12;
+    assert.equal(detached[clockKey].value, 37);
+    assert.equal(projected[valueKey], 37);
+
+    const core = profession
+      .resolveRuntime({ specialization: 'Core' })
+      .createProfessionState({ specialization: 'Core' });
+    const inactive = project({ schedulerState: { profession: core, time: 0 } });
+    assert.equal(inactive[valueKey], 0);
+    assert.equal(inactive[maximumKey], 100);
+  }
+});
 
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   // These fixture buffs were scheduled and committed; specialized views can inspect either report history.

@@ -26,19 +26,22 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/pr
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidCastAvailability } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { createDruidState, DRUID_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/specializations/druid/state.js';
+import {
+  createDruidState,
+  DRUID_PUBLIC_STATE_PROJECTION
+} from '#gw2/professions/ranger/specializations/druid/state.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import {
   createSoulbeastState,
-  SOULBEAST_PUBLIC_END_STATE_KEYS
+  SOULBEAST_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import {
   createUntamedState,
-  UNTAMED_PUBLIC_END_STATE_KEYS
+  UNTAMED_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { GALESHOT_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { soulbeastCastRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
 import { untamedCastRules } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
@@ -90,10 +93,10 @@ test('Ranger public state is composed from Core and specialization-owned manifes
   assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralForce'), false);
   assert.deepEqual(RANGER_PUBLIC_END_STATE_KEYS, [
     ...RANGER_CORE_PUBLIC_END_STATE_KEYS,
-    ...DRUID_PUBLIC_END_STATE_KEYS,
-    ...SOULBEAST_PUBLIC_END_STATE_KEYS,
-    ...UNTAMED_PUBLIC_END_STATE_KEYS,
-    ...GALESHOT_PUBLIC_END_STATE_KEYS
+    ...DRUID_PUBLIC_STATE_PROJECTION.keys,
+    ...SOULBEAST_PUBLIC_STATE_PROJECTION.keys,
+    ...UNTAMED_PUBLIC_STATE_PROJECTION.keys,
+    ...GALESHOT_PUBLIC_STATE_PROJECTION.keys
   ]);
 });
 

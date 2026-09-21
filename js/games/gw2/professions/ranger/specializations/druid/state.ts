@@ -8,11 +8,8 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface DruidState {
   astralClock: ResourceClock;
-  astralForce: number;
-  maximumAstralForce: number;
   celestialAvatarActive: boolean;
   celestialAvatarEndsAt: number;
-  astralForceUpdatedAt: number;
   naturalMenderReadyAt: number;
 }
 
@@ -24,8 +21,7 @@ export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   celestialAvatarEndsAt: 0
 } satisfies Partial<RangerState>);
 
-export const DRUID_PUBLIC_END_STATE_KEYS = DRUID_PUBLIC_STATE_PROJECTION.keys;
-
+/** The resource clock exclusively owns force, capacity, and advancement time. */
 export function createDruidState(config: RangerConfig = {}): DruidState {
   return {
     astralClock: {
@@ -34,28 +30,8 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
       updatedAt: 0,
       rate: 0
     },
-    // Compatibility projections read the shared clock; resource progress has only one mutable owner.
-    get astralForce() {
-      return this.astralClock.value;
-    },
-    set astralForce(value: number) {
-      this.astralClock.value = value;
-    },
-    get maximumAstralForce() {
-      return this.astralClock.maximum;
-    },
-    set maximumAstralForce(value: number) {
-      this.astralClock.maximum = value;
-    },
     celestialAvatarActive: false,
     celestialAvatarEndsAt: 0,
-    // Tracks when astral force was last written so advance() can compute elapsed time correctly
-    get astralForceUpdatedAt() {
-      return this.astralClock.updatedAt;
-    },
-    set astralForceUpdatedAt(value: number) {
-      this.astralClock.updatedAt = value;
-    },
     // Natural Mender ticks every 3s; start at 3 so the first tick happens at t=3 not t=0
     naturalMenderReadyAt: 3
   };

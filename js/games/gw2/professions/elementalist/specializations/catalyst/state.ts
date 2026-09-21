@@ -56,9 +56,6 @@ export const catalystState = defineProfessionSpecializationState(
   })
 );
 
-/** State factory shared by the scheduler and resolver halves of the module. */
-export const createCatalystState = catalystState.create;
-
 // Catalyst exposes active stack expiries alongside its resource and sphere timing so
 // insertion-aware UI can report the exact Elemental Empowerment stack count.
 export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({

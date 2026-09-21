@@ -243,8 +243,8 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   }
 
   const state = specterState.from(context);
-  state.shadowForce = Math.min(
-    state.maximumShadowForce,
-    state.shadowForce + stacks * Number(profile?.resourceGain ?? 0.5)
+  state.shadowClock.value = Math.min(
+    state.shadowClock.maximum,
+    state.shadowClock.value + stacks * Number(profile?.resourceGain ?? 0.5)
   );
 }

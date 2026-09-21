@@ -6,7 +6,7 @@ import {
   weaverSchedulerHooks,
   weaverSkillMechanicHandlers
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
-import { createWeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 import { WEAVER_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
@@ -25,7 +25,7 @@ export const weaverModule = defineNativeModule({
     skillMechanics: WEAVER_SKILL_MECHANICS,
     balanceProfiles: WEAVER_BALANCE_PROFILES
   }),
-  state: { scheduler: createWeaverState, resolver: createWeaverState },
+  state: { scheduler: weaverState.create, resolver: weaverState.create },
   mechanics: {
     modifiers: weaverAttributeRules,
     execution: {

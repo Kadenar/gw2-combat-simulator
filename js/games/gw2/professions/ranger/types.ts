@@ -72,6 +72,8 @@ export interface RangerPetDefinition {
 }
 
 export interface RangerState extends RangerCoreState {
+  /** Runtime snapshots carry the clock; planning projections expose its numeric values. */
+  astralClock?: DruidState['astralClock'];
   astralForce?: number;
   maximumAstralForce?: number;
   celestialAvatarActive?: boolean;

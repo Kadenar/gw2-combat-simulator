@@ -357,7 +357,6 @@ test('ready native professions expose deliberate public end-state keys', async (
   const internalKeys = {
     elementalist: [
       'freshAirProgress',
-      'freshAirLastResetAt',
       'burningPrecisionProgress',
       'enduranceUpdatedAt',
       'comboProgress',

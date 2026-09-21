@@ -77,7 +77,6 @@ export function applyFreshAirAttunementEntry(
   previous: string
 ): void {
   if (previous === 'Air' || !hasTrait(context, 'Fresh Air')) return;
-  professionCoreState(context).freshAirLastResetAt = at;
   const freshAir = balanceProfileEffectFromContext(context, PROFILE.freshAir, 'buff');
   emitSkillBuff(context, skill, {
     at,

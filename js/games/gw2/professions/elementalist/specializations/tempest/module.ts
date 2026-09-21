@@ -13,7 +13,7 @@ import {
   tempestCastRules,
   tempestSchedulerHooks
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overloads.js';
-import { createTempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
+import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
@@ -27,7 +27,7 @@ export const tempestModule = defineNativeModule({
     skillMechanics: TEMPEST_SKILL_MECHANICS,
     balanceProfiles: TEMPEST_BALANCE_PROFILES
   }),
-  state: { scheduler: createTempestState, resolver: createTempestState },
+  state: { scheduler: tempestState.create, resolver: tempestState.create },
   mechanics: {
     modifiers: tempestAttributeRules,
     execution: {

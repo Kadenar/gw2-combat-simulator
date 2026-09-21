@@ -56,7 +56,6 @@ export function gainWarriorEndurance(context: WarriorSchedulerContext, amount: n
 export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {
   const state = professionCoreState(context);
   state.adrenaline = boundedNumber(state.adrenaline || 0, 0, 0, state.maximumAdrenaline);
-  state.resource = state.adrenaline;
 }
 
 /** Applies the base Warrior adrenaline gain contract without specialization conversion. */

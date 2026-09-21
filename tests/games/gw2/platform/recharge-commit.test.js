@@ -1,3 +1,4 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
@@ -6,7 +7,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { projectThiefPlanningState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
+import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 
 // Small authored skills isolate reservation ownership from profession damage and cast timing data.
 function commitmentScheduler(ammo = false) {
@@ -203,7 +204,10 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
   assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [10, 5]);
   assert.equal(Object.hasOwn(antiquary, 'holoUtilityCooldownReductionExpiresAt'), false);
-  assert.equal(Object.hasOwn(snapshotThiefState(state.profession), 'holoUtilityCooldownReductionExpiresAt'), false);
+  assert.equal(
+    Object.hasOwn(snapshotProfessionState(state.profession), 'holoUtilityCooldownReductionExpiresAt'),
+    false
+  );
   const placement = context.catalog.skillsByName.get('Prepare Thousand Needles');
   const persistent = context.rechargeDurationFor(placement, 1);
   const before = structuredClone(antiquary);

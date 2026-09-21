@@ -1,3 +1,4 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
@@ -8,7 +9,7 @@ import {
   revenantCastRules
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { projectRevenantPlanningState, snapshotRevenantState } from '#gw2/professions/revenant/family-state.js';
+import { projectRevenantPlanningState } from '#gw2/professions/revenant/family-state.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
@@ -38,7 +39,7 @@ export const revenantCoreModule = defineNativeModule({
       castRules: revenantCastRules,
       hooks: {
         ...revenantSchedulerHooks,
-        snapshot: (context: RevenantSchedulerContext) => snapshotRevenantState(context.state.profession)
+        snapshot: (context: RevenantSchedulerContext) => snapshotProfessionState(context.state.profession)
       }
     },
     resolution: {

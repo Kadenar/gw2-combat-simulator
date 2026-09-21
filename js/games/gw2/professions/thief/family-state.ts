@@ -1,3 +1,4 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { expireCharges, replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import {
   composePublicStateProjections,
@@ -12,8 +13,7 @@ import type {
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { snapshotThiefState, THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/core/state.js';
-export { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
+import { THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/core/state.js';
 import { ANTIQUARY_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { DAREDEVIL_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DEADEYE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/deadeye/state.js';
@@ -48,13 +48,19 @@ export function emitThiefStateSnapshot(
   reason: string,
   options?: StateSnapshotEmissionOptions
 ): SimulationEvent | null {
-  return emitStateSnapshot(context, 'thief', at, reason, snapshotThiefState(context.state.profession), options);
+  return emitStateSnapshot(context, 'thief', at, reason, snapshotProfessionState(context.state.profession), options);
 }
 
 export function projectThiefPlanningState({
   schedulerState
 }: ThiefPlanningStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotThiefState<ThiefState>(schedulerState.profession);
+  const state = snapshotProfessionState<ThiefState>(schedulerState.profession);
+  // Derive display values on the detached projection, never as aliases on live state.
+  if (state.shadowClock) {
+    state.shadowForce = state.shadowClock.value;
+    state.maximumShadowForce = state.shadowClock.maximum;
+  }
+
   // Expire the detached grant for display without advancing the live scheduler state.
   if (state.mistburn) expireCharges(state.mistburn, schedulerState.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations || [], schedulerState.time);

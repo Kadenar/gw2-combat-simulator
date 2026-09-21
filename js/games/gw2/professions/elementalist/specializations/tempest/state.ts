@@ -9,6 +9,3 @@ export interface TempestState {
 export const tempestState = defineProfessionSpecializationState('Tempest', (): TempestState => ({
   latentStaminaReadyAt: 0
 }));
-
-/** Factory the module registers for both the scheduler and resolver state trees. */
-export const createTempestState = tempestState.create;

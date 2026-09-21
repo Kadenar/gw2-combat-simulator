@@ -121,7 +121,7 @@ export function warriorAdrenalineResourceViews(context: WarriorUiContext): Profe
       singular: 'adrenaline',
       plural: 'adrenaline',
       maximum: Number(state.maximumAdrenaline || 30),
-      value: Number(state.adrenaline ?? state.resource ?? context.initialResource ?? 0),
+      value: Number(state.adrenaline ?? context.initialResource ?? 0),
       startMaximum: Number(state.maximumAdrenaline || 30),
       canStart: true,
       buildKey: 'initialResource',

@@ -11,7 +11,7 @@ import { createElementalistCoreState } from '#gw2/professions/elementalist/core/
 import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
-import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
@@ -389,7 +389,7 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
 test('Elementalist behavior follows skill IDs after display labels change', () => {
   const fireAttunement = { ...elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT), name: 'Renamed attunement' };
   const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
-  const state = createEvokerState({ evokerElement: 'Fire', initialEvokerCharges: 6 });
+  const state = evokerState.create({ evokerElement: 'Fire', initialEvokerCharges: 6 });
   const context = {
     state: {
       profession: {

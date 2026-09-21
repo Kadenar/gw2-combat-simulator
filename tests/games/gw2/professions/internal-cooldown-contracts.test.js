@@ -5,7 +5,7 @@ import test from 'node:test';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { applyViciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { reactToEngineerCondition } from '#gw2/professions/engineer/core/traits/index.js';
@@ -208,7 +208,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
 }
 
 test('Elementalist control traits stay blocked at the exact ICD boundary', () => {
-  const state = createCatalystState();
+  const state = catalystState.create();
   state.viciousEmpowermentReadyAt = READY_AT;
   const { context, procs } = professionContext({
     id: 'elementalist',

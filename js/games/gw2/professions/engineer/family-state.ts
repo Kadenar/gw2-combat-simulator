@@ -27,11 +27,6 @@ import type {
   EngineerState
 } from '#gw2/professions/engineer/types.js';
 
-/** Aggregates Core and active-specialization state at the Engineer family boundary. */
-export function snapshotEngineerState(state: unknown): EngineerState {
-  return snapshotProfessionState<EngineerState>(state);
-}
-
 /** Emits a complete Engineer snapshot with the family identity owned here. */
 export function emitEngineerStateSnapshot(
   context: ProfessionStateSnapshotEmissionContext,
@@ -39,7 +34,14 @@ export function emitEngineerStateSnapshot(
   reason: string,
   options?: StateSnapshotEmissionOptions
 ): SimulationEvent | null {
-  return emitStateSnapshot(context, 'engineer', at, reason, snapshotEngineerState(context.state.profession), options);
+  return emitStateSnapshot(
+    context,
+    'engineer',
+    at,
+    reason,
+    snapshotProfessionState<EngineerState>(context.state.profession),
+    options
+  );
 }
 
 // Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
@@ -56,7 +58,7 @@ export const ENGINEER_PUBLIC_END_STATE_KEYS = ENGINEER_PUBLIC_STATE_PROJECTION.k
 export function projectEngineerPlanningState({
   schedulerState
 }: EngineerPlanningStateProjectionOptions): Pick<EngineerState, (typeof ENGINEER_PUBLIC_END_STATE_KEYS)[number]> {
-  const state = snapshotEngineerState(schedulerState.profession);
+  const state = snapshotProfessionState<EngineerState>(schedulerState.profession);
   // Scheduler predictions remain independent from combat-time charge consumption.
   return projectPublicProfessionState(state, ENGINEER_PUBLIC_END_STATE_KEYS, ENGINEER_PUBLIC_STATE_PROJECTION.defaults);
 }

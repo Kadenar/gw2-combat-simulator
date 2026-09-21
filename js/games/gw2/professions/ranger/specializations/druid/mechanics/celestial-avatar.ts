@@ -68,7 +68,7 @@ export function enterAvatar(context: RangerCastContext, skill: RangerSkill): voi
   state.celestialAvatarActive = true;
   state.celestialAvatarEndsAt = context.start + avatarDuration;
   // Reset so advance() doesn't count force drained before CA activated
-  state.astralForceUpdatedAt = context.start;
+  state.astralClock.updatedAt = context.start;
   // Stop the scheduler at expiry or depletion so exit effects and later force recovery run on time.
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
   setResourceRate(state.astralClock, context.start, -maximum / avatarDuration);
@@ -98,13 +98,13 @@ export function leaveAvatar(
   avatarDepletion.stop(context);
   setResourceRate(state.astralClock, at, 0);
   // Exhausted (timer or force depleted) zeroes force; manual exit retains half
-  state.astralForce = exhausted
+  state.astralClock.value = exhausted
     ? 0
-    : state.astralForce *
+    : state.astralClock.value *
       balanceProfileValueFromContext(context, PROFILE.resources, 'astralForceRetentionMultiplier', 0.5);
   state.celestialAvatarActive = false;
   state.celestialAvatarEndsAt = 0;
-  state.astralForceUpdatedAt = at;
+  state.astralClock.updatedAt = at;
   // Remove the flip so Release Celestial Avatar no longer appears as available
   consumeSkillFlip(professionCoreState(context).availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
   applyNaturalBalance(context, 10, at);
@@ -127,9 +127,9 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
   const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
-  state.maximumAstralForce = maximum;
-  state.astralForce = Math.min(maximum, state.astralForce);
-  if (state.astralForceUpdatedAt === 0 && state.naturalMenderReadyAt === 3) {
+  state.astralClock.maximum = maximum;
+  state.astralClock.value = Math.min(maximum, state.astralClock.value);
+  if (state.astralClock.updatedAt === 0 && state.naturalMenderReadyAt === 3) {
     state.naturalMenderReadyAt = naturalMenderInterval;
   }
 
@@ -145,10 +145,10 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
     return;
   }
 
-  state.astralForceUpdatedAt = target;
+  state.astralClock.updatedAt = target;
   if (
     !hasTrait(context, TRAIT.NATURAL_MENDER) ||
-    state.astralForce >= state.maximumAstralForce ||
+    state.astralClock.value >= state.astralClock.maximum ||
     target < state.naturalMenderReadyAt - EPSILON
   ) {
     return;
@@ -156,22 +156,25 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
 
   // Catch up any ticks that were skipped if advance() jumped a large interval
   const applications = Math.floor((target - state.naturalMenderReadyAt + EPSILON) / naturalMenderInterval) + 1;
-  state.astralForce = Math.min(state.maximumAstralForce, state.astralForce + applications * naturalMenderForce);
+  state.astralClock.value = Math.min(
+    state.astralClock.maximum,
+    state.astralClock.value + applications * naturalMenderForce
+  );
   state.naturalMenderReadyAt += applications * naturalMenderInterval;
 }
 
 export function astralForceReadyAt(context: RangerCastContext): number | null {
   const state = druidState.from(context);
   const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-  state.maximumAstralForce = maximum;
-  state.astralForce = Math.min(maximum, state.astralForce);
+  state.astralClock.maximum = maximum;
+  state.astralClock.value = Math.min(maximum, state.astralClock.value);
   const naturalMenderForce = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'resourceGain', 8);
   const naturalMenderInterval = balanceProfileValueFromContext(context, PROFILE.naturalMender, 'pulseInterval', 3);
   const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
-  if (state.astralForce >= maximum - EPSILON) return context.start;
+  if (state.astralClock.value >= maximum - EPSILON) return context.start;
   // Without Natural Mender, force only accumulates from damage events; no predictable ready time
   if (!naturalMender) return null;
-  const applications = Math.ceil((maximum - state.astralForce) / naturalMenderForce);
+  const applications = Math.ceil((maximum - state.astralClock.value) / naturalMenderForce);
   // naturalMenderReadyAt may already be in the past if advance() hasn't run yet; clamp to now
   return Math.max(context.start, state.naturalMenderReadyAt) + (applications - 1) * naturalMenderInterval;
 }
@@ -211,10 +214,10 @@ export const druidAstralForceReaction = scheduledReaction<
     // Eclipse doubles the astral force gained per hit
     const directDamageForce = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 0.75);
     const eclipseMultiplier = balanceProfileValueFromContext(context, PROFILE.resources, 'coefficientMultiplier', 2);
-    state.maximumAstralForce = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-    state.astralForce = Math.min(
-      state.maximumAstralForce,
-      state.astralForce + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
+    state.astralClock.maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
+    state.astralClock.value = Math.min(
+      state.astralClock.maximum,
+      state.astralClock.value + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
     );
   }
 });

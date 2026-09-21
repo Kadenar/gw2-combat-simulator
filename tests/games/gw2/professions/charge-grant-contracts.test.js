@@ -1,3 +1,4 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -15,7 +16,7 @@ import {
   holosmithResolverEventHandlers,
   consumeSolarFocusingLens
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import { handleEngineerState, snapshotEngineerState } from '#gw2/professions/engineer/family-state.js';
+import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 import {
   handleRangerPoisonousStrikes,
   handleRangerBloodThirst
@@ -27,11 +28,7 @@ import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/
 import { consumeArtifact } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { advanceAntiquaryResources } from '#gw2/professions/thief/specializations/antiquary/mechanics/resources.js';
-import {
-  handleThiefState,
-  projectThiefPlanningState,
-  snapshotThiefState
-} from '#gw2/professions/thief/family-state.js';
+import { handleThiefState, projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {
@@ -166,7 +163,7 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
 test('Solar Focusing Lens keeps not-before eligibility and resolver spending across snapshots', () => {
   const context = contextFor(engineerProfession, 'Holosmith', [ENGINEER.SOLAR_FOCUSING_LENS]);
   const state = context.profession.specialization.state;
-  const snapshot = snapshotEngineerState(context.profession);
+  const snapshot = snapshotProfessionState(context.profession);
   const grant = holosmithResolverEventHandlers['engineer.solar-focusing-lens'];
   grant(context, { at: 1.001, stacks: 2, duration: 1 });
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
@@ -192,7 +189,7 @@ test('Mistburn replaces generations, preserves resolved spending, and excludes i
   consumeArtifact(context, mortar);
   const initial = state.mistburn.charges;
   assert.ok(initial > 1);
-  const snapshot = snapshotThiefState(context.profession);
+  const snapshot = snapshotProfessionState(context.profession);
   const hit = { at: 2, actorType: 'player', coefficient: 0 };
   for (const event of [
     { ...hit, skillId: mortar.id },
@@ -227,7 +224,7 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   const projected = projectThiefPlanningState({ schedulerState: context.state });
   assert.equal(projected.mistburn.charges, 3);
   assert.equal(projected.mistburn.expiresAt, 5);
-  for (const internal of [state, snapshotThiefState(context.profession), projected]) {
+  for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
     assert.equal(Object.hasOwn(internal, 'mistburnCharges'), false);
     assert.equal(Object.hasOwn(internal, 'mistburnExpiresAt'), false);
   }

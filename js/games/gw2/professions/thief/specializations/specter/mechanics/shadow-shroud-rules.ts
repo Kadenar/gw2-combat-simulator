@@ -33,7 +33,7 @@ export const specterSchedulerHooks = Object.freeze({
     // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
     handler: (context: ThiefSchedulerContext): void => {
       const state = specterState.from(context);
-      gainShadowForce(context, state.maximumShadowForce);
+      gainShadowForce(context, state.shadowClock.maximum);
       emitThiefStateSnapshot(context, context.state.time, 'cooldown-reset');
     }
   },

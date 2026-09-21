@@ -1,3 +1,4 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -6,7 +7,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
-import { handleThiefState, snapshotThiefState } from '#gw2/professions/thief/family-state.js';
+import { handleThiefState } from '#gw2/professions/thief/family-state.js';
 import { completeThiefDodge } from '#gw2/professions/thief/core/execution/dodge.js';
 
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -89,7 +90,7 @@ test('Hidden Thief checkpoints stay detached and preserve resolver-owned proc de
   // Scheduler claims must not overwrite the resolver map when a later checkpoint arrives.
   const scheduler = traitContext([TRAIT.HIDDEN_THIEF]);
   emitStealTraitEffects(scheduler.context);
-  const snapshot = snapshotThiefState(scheduler.context.state.profession);
+  const snapshot = snapshotProfessionState(scheduler.context.state.profession);
   const resolver = traitContext([TRAIT.SHADOW_SIPHONING]);
   Object.assign(resolver.context.profession, resolver.context.state.profession);
   resolver.core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] = 10;

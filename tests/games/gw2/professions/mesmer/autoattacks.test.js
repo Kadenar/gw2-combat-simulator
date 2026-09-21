@@ -341,7 +341,7 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
 
 test('clone attack selection returns the next cadence and ignores destroyed clones', () => {
   // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
-  const state = { clones: [] };
+  const state = { profession: { core: { clones: [] } } };
   const damage = [];
   const conditions = [];
   const tasks = [];
@@ -361,7 +361,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
     scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })
   });
 
-  state.clones.push(
+  state.profession.core.clones.push(
     scheduler.initializeClone({
       id: 1,
       createdAt: 1,
@@ -376,7 +376,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
   assert.equal(damage.length, 1);
   assert.equal(conditions.length, 1);
   assert.equal(nextAt, 5);
-  state.clones.length = 0;
+  state.profession.core.clones.length = 0;
   assert.equal(scheduler.handleTask(first.cloneId, nextAt), null);
   assert.equal(damage.length, 1);
   assert.equal(conditions.length, 1);

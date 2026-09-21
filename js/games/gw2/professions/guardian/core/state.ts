@@ -32,13 +32,6 @@ export interface GuardianCoreState {
   spearLuminanceUntil: number;
 }
 
-/** Compatibility mirrors are derived at output boundaries, never maintained in combat state. */
-export interface GuardianCorePublicState extends GuardianCoreState {
-  justiceArmed: boolean;
-  justiceBurns: number;
-  symbolicAvengerStacks: number;
-}
-
 // Create a complete Guardian core state with bounded resources and initialized
 // virtue, trait, symbol, and flip bookkeeping.
 export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
@@ -81,13 +74,11 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
 }
 
 /** Declares the Core-owned portion of Guardian's stable public end-state contract. */
-export const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCorePublicState)[] = Object.freeze([
+export const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
   'endurance',
   'maximumEndurance',
-  'justiceArmed',
   'justiceActiveArmed',
   'justiceHitCount',
-  'justiceBurns',
   'justiceActiveBurns',
   'justicePassiveBurns',
   'virtueReadyAt',
@@ -97,7 +88,6 @@ export const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCorePu
   'symbolIgnitionUntil',
   'symbolIgnitionReadyAt',
   'symbolProjectileIgnitionReadyAt',
-  'symbolicAvengerStacks',
   'symbolicAvengerExpirations',
   'zealotsResolutionReadyAt',
   'resolutionUntil',

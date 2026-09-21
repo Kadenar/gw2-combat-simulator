@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { EVOKER_BALANCE_PROFILES } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
@@ -20,7 +20,7 @@ export const evokerModule = defineNativeModule({
     skillMechanics: EVOKER_SKILL_MECHANICS,
     balanceProfiles: EVOKER_BALANCE_PROFILES
   }),
-  state: { scheduler: createEvokerState, resolver: createEvokerState },
+  state: { scheduler: evokerState.create, resolver: evokerState.create },
   mechanics: {
     modifiers: evokerAttributeRules,
     execution: {

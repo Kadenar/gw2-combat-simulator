@@ -12,7 +12,7 @@ export function specterCastAvailability(context: ThiefPrecastContext, skill: Thi
       return deny(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');
     }
 
-    if (state.shadowForce <= 0) {
+    if (state.shadowClock.value <= 0) {
       return deny(skill, 'thief.shadow-force', 'requires shadow force.');
     }
   }

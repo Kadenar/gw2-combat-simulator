@@ -2,7 +2,7 @@ import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { MesmerAddCondition, MesmerAddDamage, MesmerState } from '#gw2/professions/mesmer/types.js';
+import type { MesmerAddCondition, MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerClone,
   MesmerCloneAttack,
@@ -11,7 +11,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 interface CloneAttackSchedulerOptions {
-  readonly state: MesmerState;
+  readonly state: MesmerSchedulerContext['state'];
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   readonly addDamage: MesmerAddDamage;
   readonly addCondition: MesmerAddCondition;
@@ -26,7 +26,8 @@ export function createCloneAttackScheduler({
   addCondition,
   scheduleTask
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
-  const profession = 'profession' in state ? professionCoreState(state) : state;
+  // Clone ownership comes from the scheduler Core slice in every caller.
+  const profession = professionCoreState(state);
   const attackFor = (clone: MesmerClone) => cloneAttacks[clone.weapon] || cloneAttacks.Sword;
 
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {

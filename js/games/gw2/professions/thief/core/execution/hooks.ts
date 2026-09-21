@@ -1,4 +1,5 @@
-import { snapshotThiefState } from '#gw2/professions/thief/core/state.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+
 import type { ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
@@ -65,5 +66,5 @@ export const thiefCoreSchedulerHooks = Object.freeze({
     ...thiefCriticalBoonReaction.taskHandlers,
     ...thiefAxeReaction.taskHandlers
   },
-  snapshot: (context: ThiefSchedulerContext) => snapshotThiefState(context.state.profession)
+  snapshot: (context: ThiefSchedulerContext) => snapshotProfessionState(context.state.profession)
 });

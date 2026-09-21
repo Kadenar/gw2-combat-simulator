@@ -217,7 +217,7 @@ export function druidCastAvailability(context: RangerCastContext, skill: RangerS
       return deny(skill, 'ranger.avatar-active', 'Celestial Avatar is already active.');
     }
 
-    if (state.astralForce < state.maximumAstralForce) {
+    if (state.astralClock.value < state.astralClock.maximum) {
       const retryAt = astralForceReadyAt(context);
       // Provide a retryAt when Natural Mender can predict the ready time so the scheduler waits instead of skipping
       if (retryAt != null) {

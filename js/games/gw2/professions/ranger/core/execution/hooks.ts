@@ -1,8 +1,9 @@
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import { completeRangerHealingSkill } from '#gw2/professions/ranger/core/execution/index.js';
-import { snapshotRangerState } from '#gw2/professions/ranger/family-state.js';
+
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { applyRangerWeaponSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import {
@@ -58,7 +59,7 @@ export const rangerCoreExecutionHooks = Object.freeze({
     }
   },
   taskHandlers: { ...rangerPetTaskHandlers, ...rangerStealthReaction.taskHandlers },
-  snapshot: (context: RangerSchedulerContext) => snapshotRangerState(context.state.profession),
+  snapshot: (context: RangerSchedulerContext) => snapshotProfessionState(context.state.profession),
   afterCast: {
     id: 'ranger.weapon-state',
     order: 10,

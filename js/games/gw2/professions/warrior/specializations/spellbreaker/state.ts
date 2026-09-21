@@ -5,7 +5,6 @@ import {
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];
-  fullCounterActiveUntil: number;
   magebaneTetherUntil: number;
   magebaneTetherReadyAt: number;
 }
@@ -13,7 +12,6 @@ export interface SpellbreakerState {
 /** Declares Spellbreaker's public compatibility fields and inactive values. */
 export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   attackerInsightExpiries: [],
-  fullCounterActiveUntil: 0,
   magebaneTetherUntil: 0,
   magebaneTetherReadyAt: 0
 } satisfies Partial<SpellbreakerState>);
@@ -23,7 +21,6 @@ export function createSpellbreakerState(): SpellbreakerState {
     // Array of individual expiry timestamps rather than a stack count so each
     // stack can expire independently at the time it was gained.
     attackerInsightExpiries: [],
-    fullCounterActiveUntil: 0,
     magebaneTetherUntil: 0,
     magebaneTetherReadyAt: 0
   };

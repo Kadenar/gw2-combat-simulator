@@ -10,11 +10,6 @@ import { SOULBEAST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/speci
 import { UNTAMED_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerPlanningStateProjectionOptions, RangerState } from '#gw2/professions/ranger/types.js';
 
-/** Aggregates Core and active-specialization state at the Ranger family boundary. */
-export function snapshotRangerState(state: unknown): RangerState {
-  return snapshotProfessionState<RangerState>(state);
-}
-
 // Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
 const RANGER_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
   RANGER_CORE_PUBLIC_STATE_PROJECTION,
@@ -30,7 +25,13 @@ export const RANGER_PUBLIC_END_STATE_KEYS = RANGER_PUBLIC_STATE_PROJECTION.keys;
 export function projectRangerPlanningState({
   schedulerState
 }: RangerPlanningStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotRangerState(schedulerState.profession);
+  const state = snapshotProfessionState<RangerState>(schedulerState.profession);
+  // Derive display values on the detached projection, never as aliases on live state.
+  if (state.astralClock) {
+    state.astralForce = state.astralClock.value;
+    state.maximumAstralForce = state.astralClock.maximum;
+  }
+
   // Landed-hit consumption belongs only to the separately observed combat state.
   return projectPublicProfessionState(state, RANGER_PUBLIC_END_STATE_KEYS, RANGER_PUBLIC_STATE_PROJECTION.defaults);
 }

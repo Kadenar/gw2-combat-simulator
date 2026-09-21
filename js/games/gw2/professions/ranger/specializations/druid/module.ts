@@ -22,7 +22,7 @@ export const druidModule = defineNativeModule({
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
     balanceProfiles: DRUID_BALANCE_PROFILES
   }),
-  // Same state factory for both phases: resolver reads celestialAvatarActive and astralForce during damage resolution
+  // Both phases own independent instances of the same Avatar state and resource clock.
   state: { scheduler: druidState.create, resolver: druidState.create },
   mechanics: {
     modifiers: druidAttributeRules,

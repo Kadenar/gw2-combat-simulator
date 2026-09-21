@@ -10,7 +10,7 @@ import {
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { catalystAttributeRules } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
-import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
 import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
 
@@ -149,7 +149,7 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
 // These unit checks exercise Catalyst state and catalog behavior directly so
 // their expectations do not depend on a saved full rotation.
 test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
-  const state = createCatalystState();
+  const state = catalystState.create();
   const context = {
     profession: {
       specialization: { kind: 'Catalyst', state }
@@ -256,7 +256,7 @@ test('Catalyst zero-damage finishers preserve combo metadata', () => {
 
 test('Shattering Ice is proc-only and accepts player-owned effect and field attacks after its interval boundary', () => {
   const skill = elementalistCatalog.skillsByName.get('Shattering Ice');
-  const state = createCatalystState();
+  const state = catalystState.create();
   const context = {
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},

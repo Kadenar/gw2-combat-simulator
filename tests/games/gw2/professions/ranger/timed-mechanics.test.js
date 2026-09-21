@@ -66,7 +66,7 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
     scheduler.events.filter(({ type }) => type === 'sigil_swap').map(({ at }) => at),
     [0, 3]
   );
-  assert.equal(druidState.from(scheduler.context).astralForce, 16);
+  assert.equal(druidState.from(scheduler.context).astralClock.value, 16);
   assert.equal(druidState.from(scheduler.context).celestialAvatarActive, false);
 });
 

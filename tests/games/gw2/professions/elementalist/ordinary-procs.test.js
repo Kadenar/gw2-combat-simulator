@@ -9,11 +9,11 @@ import {
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { applyElementalistResolvedCondition } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
-import { createCatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCatalystComboTraits } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { catalystSchedulerHooks } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { createEvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import {
   completeEvokerAttunement,
   triggerSpecializedElementEntry
@@ -104,7 +104,7 @@ for (const [trait, key, profile, invoke] of [
 test('Catalyst combo claims stay per element, per trait and per phase, including Water', () => {
   for (const duration of [2, 0]) {
     for (const invoke of [applyCatalystComboTraits, catalystSchedulerHooks.onEventScheduled.handler]) {
-      const state = createCatalystState();
+      const state = catalystState.create();
       const { context, core, events } = contextFor('Catalyst', state);
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
       for (const id of [CATALYST.elementalEpitome, CATALYST.elementalSynergy]) {
@@ -132,13 +132,13 @@ test('Catalyst combo claims stay per element, per trait and per phase, including
         assert.ok(events.every((event) => event.schedulerPrediction === 'combo-result'));
       }
 
-      assert.deepEqual(createCatalystState().elementalSynergyReadyAt, {});
+      assert.deepEqual(catalystState.create().elementalSynergyReadyAt, {});
     }
   }
 });
 
 test('Evoker real and synthetic entry share profile timers without changing trait eligibility', () => {
-  const state = createEvokerState();
+  const state = evokerState.create();
   state.element = 'Earth';
   const { context, core } = contextFor('Evoker', state);
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
@@ -155,7 +155,7 @@ test('Evoker real and synthetic entry share profile timers without changing trai
   triggerSpecializedElementEntry(context, skill, 'Earth');
   assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], context.effectiveEnd + 5);
   assert.equal(state.attunementTraitProcReadyAt[CORE.earthenBlast], context.effectiveEnd + 5);
-  const other = contextFor('Evoker', createEvokerState());
+  const other = contextFor('Evoker', evokerState.create());
   triggerSpecializedElementEntry(other.context, skill, 'Earth');
   assert.deepEqual(other.context.profession.specialization.state.attunementTraitProcReadyAt, {});
 });

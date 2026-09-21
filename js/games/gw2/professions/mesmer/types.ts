@@ -18,8 +18,7 @@ import type {
   CastCommand,
   ScheduledTask,
   SchedulerContext,
-  SchedulerPolicy,
-  SchedulerState
+  SchedulerPolicy
 } from '#gw2/platform/execution/types.js';
 import type { MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -98,8 +97,6 @@ export interface MesmerStateSnapshot {
   riddleOfSandReady: boolean;
   timeBombUntil: number;
 }
-
-export type MesmerState = SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, 'clones'>;
 
 export interface MesmerPlanningState {
   readonly endurance?: number;
