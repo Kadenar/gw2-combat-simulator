@@ -159,7 +159,8 @@
               <div class="attributes-body">
                 <label class="attribute-preview-weapon-set" for="attribute-weapon-set" {{weapon-set-hidden}}>
                   <span>Weapon set</span>
-                  <select id="attribute-weapon-set" class="gear-select">
+                  <!-- Keep this two-option toggle native instead of enabling the searchable gear picker. -->
+                  <select id="attribute-weapon-set">
                     <option value="1">1</option>
                     {{weapon-set-two}}
                   </select>
