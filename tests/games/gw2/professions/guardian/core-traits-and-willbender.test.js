@@ -218,7 +218,8 @@ test('Willbender utilities use the supplied physical skill profiles', () => {
       .length,
     5
   );
-  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], 6.68);
+  // The later utility casts outlast Repose, so planning state must no longer expose its flip.
+  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.REPOSE], undefined);
 });
 
 test('Flash Combo schedules separate strikes and preserves only landed packets when interrupted', () => {

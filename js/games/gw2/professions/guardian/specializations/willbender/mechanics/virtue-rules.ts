@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -542,7 +542,8 @@ function observeWillbenderEvent(context: GuardianSchedulerContext, event: Simula
 /** Runs Willbender mechanics owned by one completed skill activation. */
 export const willbenderSkillMechanicHandlers = Object.freeze({
   'guardian.willbender.arm-repose': ({ context, at }: { context: GuardianSchedulerContext; at: number }): void => {
-    context.state.profession.core.availableFlips[ID.REPOSE] = at + 6;
+    // Repose shares Core's exact flip clock rather than a tick-rounded buff lifetime.
+    context.state.profession.core.availableFlips[ID.REPOSE] = canonicalTime(at + 6);
   }
 });
 

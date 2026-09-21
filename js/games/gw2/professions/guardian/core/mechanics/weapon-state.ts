@@ -1,9 +1,10 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /** @fileoverview Tracks Guardian temporary weapon-flip availability. */
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
  * Arms or consumes Guardian flip skills after a committed cast. Shared GW2
@@ -43,11 +44,20 @@ export function updateWeaponCastState(context: GuardianCastContext, skill: Guard
             : skill.id === GUARDIAN_SKILL_IDS.BINDING_BLADE
               ? 10 // Pull expires with the tether, independently of Binding Blade's recharge.
               : Math.max(1, Number(skill.cooldown ?? skill.recharge ?? 5));
-      professionCoreState(context).availableFlips[flip.id] = context.effectiveEnd + duration;
+      // Flip windows use exact deadlines, independently of buff ticks and parent recharge.
+      professionCoreState(context).availableFlips[flip.id] = canonicalTime(context.effectiveEnd + duration);
     }
   }
 
   if (skill.flipParentId != null) {
     delete professionCoreState(context).availableFlips[skill.id];
+  }
+}
+
+/** Removes expired flip windows at their exclusive endpoint while retaining persistent specialization flips. */
+export function advanceGuardianWeaponState(context: GuardianSchedulerContext, target: number): void {
+  const flips = professionCoreState(context).availableFlips;
+  for (const [id, expiresAt] of Object.entries(flips)) {
+    if (expiresAt <= target) delete flips[id];
   }
 }

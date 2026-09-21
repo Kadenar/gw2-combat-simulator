@@ -545,7 +545,8 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     true
   );
   assert.equal(result.combatState.profession.tetherUntil, 12.56);
-  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], 12.56);
+  // The observation ends after the tether, so its expired flip must not remain in planning state.
+  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], undefined);
   assert.equal(
     buffs.some((event) => event.kind === 'aegis' && event.skillName === 'Shield of Courage' && event.duration === 20),
     true

@@ -39,6 +39,10 @@ const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<GuardianState>> 
 /** Derives compatibility counters from detached combat state at the snapshot's observation time. */
 export function snapshotGuardianState(state: unknown, at: number): GuardianState {
   const snapshot = snapshotProfessionState<GuardianState>(state);
+  // Snapshots can be requested before scheduler cleanup; never expose an expired flip to the palette.
+  snapshot.availableFlips = Object.fromEntries(
+    Object.entries(snapshot.availableFlips || {}).filter(([, expiresAt]) => expiresAt > at)
+  );
   snapshot.justiceArmed = Boolean(snapshot.justiceActiveArmed);
   snapshot.justiceBurns = Number(snapshot.justiceActiveBurns || 0) + Number(snapshot.justicePassiveBurns || 0);
   snapshot.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(snapshot, at);

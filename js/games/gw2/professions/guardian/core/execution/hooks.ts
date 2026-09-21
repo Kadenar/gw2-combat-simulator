@@ -6,11 +6,19 @@ import {
   observeGuardianScheduledEvent,
   updateGuardianTraitCastState
 } from '#gw2/professions/guardian/core/traits/index.js';
-import { updateWeaponCastState } from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
+import {
+  advanceGuardianWeaponState,
+  updateWeaponCastState
+} from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
 
 /** Registers the ordered Core Guardian hooks while each behavior stays with its owning concept. */
 export const guardianCoreExecutionHooks = Object.freeze({
   advance: Object.freeze([
+    {
+      id: 'guardian.weapon-state',
+      order: 20,
+      handler: advanceGuardianWeaponState
+    },
     {
       id: 'guardian.spear',
       order: 30,

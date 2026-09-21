@@ -71,7 +71,10 @@ export function guardianUiSkillIdsByName(names: readonly string[], context: Guar
     const skill = guardianCatalog.skillsById.get(id);
     const flipId = skill?.flipSkillId;
     const flip = flipId == null ? undefined : guardianCatalog.skillsById.get(flipId);
-    return flipId != null && flip?.flipParentId === id && Number(activeFlips[flipId] || 0) > 0 ? [id, flipId] : [id];
+    // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
+    return flipId != null && flip?.flipParentId === id && Number(activeFlips[flipId] || 0) > guardianSnapshotAt(context)
+      ? [id, flipId]
+      : [id];
   });
 }
 
