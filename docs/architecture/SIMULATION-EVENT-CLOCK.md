@@ -327,6 +327,11 @@ A status is active at its application timestamp and inactive at its expiry times
 rounded to whole milliseconds using half-even rounding after duration modifiers. Their actual expiry is then rounded up
 to the next absolute 40 ms action-tick boundary.
 
+Exact form, field, and delayed-attack timers instead store `canonicalTime(start + duration)`. A mechanic may explicitly
+include its final timestamp: for example, a queued final tether pulse or Dragon Trigger charge. Such exceptions use an
+exact inclusive comparison and the mechanic's event ordering, never an epsilon extension.
+
+
 Conditions use a shared clock relative to first positive player damage (`origin`), matching DPS and Kill Time:
 
 - the next payout for a condition applied at `t` is at `origin + floor(t - origin) + 1`;
