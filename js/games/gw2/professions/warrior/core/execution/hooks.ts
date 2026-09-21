@@ -3,12 +3,12 @@ import {
   applyWarriorWeaponSwapTraits,
   beginWarriorSkill,
   completeWarriorSkill,
-  handleWarriorArmsCriticalTask,
+  warriorArmsReaction,
+  warriorAdrenalineReaction,
   initializeWarriorTraits,
   observeWarriorEvent
 } from '#gw2/professions/warrior/core/traits/index.js';
 import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
-import { handleWarriorAdrenalineTask } from '#gw2/professions/warrior/family-state.js';
 import { advanceWarriorResources } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 
 /** Registers Core Warrior resources, weapons, traits, and tasks in scheduler order. */
@@ -36,7 +36,7 @@ export const warriorCoreSchedulerHooks = Object.freeze({
     handler: completeWarriorSkill
   },
   taskHandlers: Object.freeze({
-    'warrior.adrenaline-hit': handleWarriorAdrenalineTask,
-    'warrior.arms-critical': handleWarriorArmsCriticalTask
+    ...warriorAdrenalineReaction.taskHandlers,
+    ...warriorArmsReaction.taskHandlers
   })
 });

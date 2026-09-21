@@ -23,8 +23,7 @@ import {
   applyRagingStorm,
   applyResolverZephyrsBoon,
   applySchedulerZephyrsBoon,
-  observeFreshAir,
-  processFreshAirCandidates,
+  freshAirReaction,
   projectedFreshAirReadyAt,
   triggerElectricDischarge
 } from '#gw2/professions/elementalist/core/traits/air.js';
@@ -70,7 +69,6 @@ export {
   extendPersistingFlamesPackets,
   grantElementalistRockSolid,
   grantPersistingFlames,
-  processFreshAirCandidates,
   projectedFreshAirReadyAt,
   triggerBountifulPower,
   triggerEarthenBlast,
@@ -151,7 +149,7 @@ export function applyGenericPostCast(context: ElementalistLifecycleContext, skil
 
 /** Observes Fresh Air before routing a player control event through Lightning Rod and Elemental Lockdown. */
 export function observeElementalistTraitEvent(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  observeFreshAir(context, event);
+  freshAirReaction.onEventScheduled.handler(context, event);
   if (event.type !== 'control' || event.actorType !== 'player') return;
   applyLightningRod(context, event);
   applyElementalLockdown(context, event);

@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { snapshotThiefState } from '#gw2/professions/thief/family-state.js';
-import { materializeThiefAxe } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
+import { thiefAxeReaction } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
@@ -25,12 +25,12 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
   const snapshot = snapshotThiefState(scheduler.state.profession);
   const event = { cancelled: false };
   const context = { ...scheduler.context, eventByOrder: () => event };
-  materializeThiefAxe(context, { at: 1, payload: { eventOrder: 1 } });
+  thiefAxeReaction.taskHandlers['thief.spinning-axe'](context, { at: 1, payload: { eventOrder: 1 } });
   assert.deepEqual(core.spinningAxeExpirations, [31, 32, 33, 34, 35, 11]);
   assert.deepEqual(snapshot.spinningAxeExpirations, prior);
   const pool = core.spinningAxeExpirations;
   event.cancelled = true;
-  materializeThiefAxe(context, { at: 2, payload: { eventOrder: 1 } });
+  thiefAxeReaction.taskHandlers['thief.spinning-axe'](context, { at: 2, payload: { eventOrder: 1 } });
   assert.equal(core.spinningAxeExpirations, pool, 'cancelled source packets cannot grant axes');
 });
 

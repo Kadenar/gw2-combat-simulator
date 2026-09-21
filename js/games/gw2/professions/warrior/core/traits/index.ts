@@ -1,3 +1,4 @@
+import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Public Core Warrior trait dispatcher.
@@ -9,7 +10,6 @@ import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
@@ -220,21 +220,47 @@ export function initializeWarriorTraits(context: WarriorSchedulerContext): void 
 }
 
 // Materialize Keen Strike, Bloodlust, Furious, then Sundering Burst at priority -40.
-export function handleWarriorArmsCriticalTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
-  const payload = task.payload as {
-    readonly eventOrder?: number;
-    readonly firstBurstHit?: boolean;
-  } | null;
-  const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
-  if (!event) return;
-  const criticals = warriorArmsCriticalCount(context, event);
-  applyKeenStrikeCriticalMight(context, event, criticals);
-  applyBloodlust(context, event);
-  applyFurious(context, event, criticals);
-  applySunderingBurst(context, event, Boolean(payload?.firstBurstHit), criticals);
-  applyAxeMastery(context, event);
-  applyForcefulGreatsword(context, event);
-}
+export const warriorArmsReaction = eventReaction<
+  WarriorSchedulerContext,
+  WarriorSimulationEvent,
+  {
+    readonly eventOrder: number;
+    readonly firstBurstHit: boolean;
+  }
+>({
+  id: 'warrior.arms-critical',
+  missingEvent: 'skip',
+  select(context, event) {
+    const state = professionCoreState(context);
+    const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+    const armsActivationKey = String(event.activationId || `${event.skillId}:${event.at}`);
+    const armsBurstKey = `arms:${armsActivationKey}`;
+    const firstBurstHit = Boolean(skill?.burst) && !state.burstHitActivations[armsBurstKey];
+    if (firstBurstHit) state.burstHitActivations[armsBurstKey] = true;
+    const tracksArmsCritical =
+      event.skillId === ID.KEEN_STRIKE ||
+      hasTrait(context, TRAIT.BLOODLUST) ||
+      hasTrait(context, TRAIT.FURIOUS) ||
+      hasTrait(context, TRAIT.AXE_MASTERY) ||
+      hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) ||
+      (firstBurstHit && hasTrait(context, TRAIT.SUNDERING_BURST));
+    if (!tracksArmsCritical) return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      priority: -40,
+      payload: { eventOrder: Number(event.eventOrder), firstBurstHit }
+    };
+  },
+  execute(context, event, _at, payload) {
+    const criticals = warriorArmsCriticalCount(context, event);
+    applyKeenStrikeCriticalMight(context, event, criticals);
+    applyBloodlust(context, event);
+    applyFurious(context, event, criticals);
+    applySunderingBurst(context, event, Boolean(payload.firstBurstHit), criticals);
+    applyAxeMastery(context, event);
+    applyForcefulGreatsword(context, event);
+  }
+});
 
 // Route canonical events through the preserved cross-line and base-mechanic sequence.
 export function observeWarriorEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
@@ -273,44 +299,10 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
       }
     }
 
-    const armsActivationKey = String(event.activationId || `${event.skillId}:${event.at}`);
-    const armsBurstKey = `arms:${armsActivationKey}`;
-    const firstBurstHit = Boolean(skill?.burst) && !state.burstHitActivations[armsBurstKey];
-    if (firstBurstHit) state.burstHitActivations[armsBurstKey] = true;
-    const tracksArmsCritical =
-      event.skillId === ID.KEEN_STRIKE ||
-      hasTrait(context, TRAIT.BLOODLUST) ||
-      hasTrait(context, TRAIT.FURIOUS) ||
-      hasTrait(context, TRAIT.AXE_MASTERY) ||
-      hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) ||
-      (firstBurstHit && hasTrait(context, TRAIT.SUNDERING_BURST));
-    if (tracksArmsCritical) {
-      context.tasks.schedule({
-        type: 'warrior.arms-critical',
-        at: Math.max(context.state.time, event.at),
-        priority: -40,
-        payload: {
-          eventOrder: Number(event.eventOrder),
-          firstBurstHit
-        }
-      });
-    }
+    warriorArmsReaction.onEventScheduled.handler(context, event);
   }
 
-  if (
-    !warriorGainsAdrenalineOnHit(context) ||
-    event.type !== 'damage' ||
-    (event.actorType !== 'player' && event.source !== 'Sigil') ||
-    !(Number(event.coefficient) > 0)
-  ) {
-    return;
-  }
-
-  context.tasks.schedule({
-    type: 'warrior.adrenaline-hit',
-    at: event.at,
-    payload: { amount: Math.max(1, Number(event.hits || 1)) }
-  });
+  warriorAdrenalineReaction.onEventScheduled.handler(context, event);
 }
 
 // Advance the base Signet of Rage pulse before Tactics' Empower Allies pulse.
@@ -335,3 +327,30 @@ export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill:
   applyVersatileRage(context);
   applyFuriousBurst(context, skill);
 }
+
+/** Each eligible strike captures its hit count and applies the active family's resource policy at impact. */
+export const warriorAdrenalineReaction = scheduledReaction<
+  WarriorSchedulerContext,
+  WarriorSimulationEvent,
+  { readonly amount: number }
+>({
+  id: 'warrior.adrenaline-hit',
+  select(context, event) {
+    if (
+      !warriorGainsAdrenalineOnHit(context) ||
+      event.type !== 'damage' ||
+      (event.actorType !== 'player' && event.source !== 'Sigil') ||
+      !(Number(event.coefficient) > 0)
+    ) {
+      return null;
+    }
+
+    return {
+      at: event.at,
+      payload: { amount: Math.max(1, Number(event.hits || 1)) }
+    };
+  },
+  execute(context, _at, payload) {
+    gainWarriorAdrenaline(context, payload.amount);
+  }
+});

@@ -26,7 +26,7 @@ import { createProfessionSimulator } from '#tests/helpers/profession-simulation.
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import { beginStealthAttack, observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { beginStealthAttack, stealthBreakingReaction } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 
 const baseConfig = Object.freeze({
@@ -681,7 +681,7 @@ test('non-stealth strike skills remove stealth and restore the normal autoattack
 
 test('stealth-break work uses the strike timestamp and explicit same-time priority', () => {
   const scheduled = [];
-  observeStealthBreakingStrike(
+  stealthBreakingReaction.onEventScheduled.handler(
     { catalog: thiefCatalog, tasks: { schedule: (task) => scheduled.push(task) } },
     { type: 'damage', at: 1.25, actorType: 'player', skillId: ID.HEARTSEEKER, activationId: 'cast:1' }
   );

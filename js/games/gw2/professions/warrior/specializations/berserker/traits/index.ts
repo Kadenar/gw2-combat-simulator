@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -260,52 +261,57 @@ export function observeBerserkerEvent(context: WarriorSchedulerContext, event: W
     return;
   }
 
-  if (event.type !== 'damage' || event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
-    return;
-  }
-
-  if (!hasTrait(context, TRAIT.KING_OF_FIRES)) return;
-  context.tasks.schedule({
-    type: 'warrior.king-of-fires-hit',
-    at: Math.max(context.state.time, event.at),
-    priority: -30,
-    payload: { eventOrder: Number(event.eventOrder) },
-    required: true
-  });
+  kingOfFiresReaction.onEventScheduled.handler(context, event);
 }
 
 // Resolve the delayed King of Fires hit only for the still-current aura
 // generation, then schedule or emit its linked effects.
-export function handleKingOfFiresHitTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
-  const payload = task.payload as { readonly eventOrder?: number } | null;
-  const event = context.eventByOrder(Number(payload?.eventOrder)) as WarriorSimulationEvent | undefined;
-  if (!event) return;
+export const kingOfFiresReaction = eventReaction<WarriorSchedulerContext, WarriorSimulationEvent>({
+  id: 'warrior.king-of-fires-hit',
+  missingEvent: 'skip',
+  initialize(context) {
+    if (hasTrait(context, TRAIT.KING_OF_FIRES)) context.schedulerPolicy.requireCriticalFacts?.();
+  },
+  select(context, event) {
+    if (event.type !== 'damage' || event.actorType !== 'player' || !(Number(event.coefficient) > 0)) {
+      return null;
+    }
 
-  const state = berserkerState.from(context);
-  if (!isInternalCooldownReady(event.at, state.kingOfFiresReadyAt) || criticalCount(context, event) === 0) {
-    return;
-  }
-
-  const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
-  state.kingOfFiresReadyAt = event.at + Number(profile?.internalCooldown ?? 15);
-  emitFireAura(context, event, 'Trait');
-  const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
-  const action = context.events.find(
-    (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
-  );
-  if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - EPSILON) {
-    context.tasks.schedule({
-      type: 'warrior.king-of-fires-detonation',
-      at: event.at,
-      priority: -20,
-      payload: {
-        activationId: event.activationId,
-        skillId: skill.id
-      },
+    if (!hasTrait(context, TRAIT.KING_OF_FIRES)) return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      priority: -30,
+      payload: { eventOrder: Number(event.eventOrder) },
       required: true
-    });
+    };
+  },
+  execute(context, event) {
+    const state = berserkerState.from(context);
+    if (!isInternalCooldownReady(event.at, state.kingOfFiresReadyAt) || criticalCount(context, event) === 0) {
+      return;
+    }
+
+    const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
+    state.kingOfFiresReadyAt = event.at + Number(profile?.internalCooldown ?? 15);
+    emitFireAura(context, event, 'Trait');
+    const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
+    const action = context.events.find(
+      (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
+    );
+    if (skill && isBerserkerSkill(skill) && Number(action?.endsAt) < event.at - EPSILON) {
+      context.tasks.schedule({
+        type: 'warrior.king-of-fires-detonation',
+        at: event.at,
+        priority: -20,
+        payload: {
+          activationId: event.activationId,
+          skillId: skill.id
+        },
+        required: true
+      });
+    }
   }
-}
+});
 
 // Detonate King of Fires from its captured task payload and clear only the aura
 // generation that produced the detonation.

@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -23,7 +24,7 @@ import {
   mirageControllerFor
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillMechanicTrigger } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -157,21 +158,29 @@ function mirageEnduranceRate(context: MesmerSchedulerContext, at: number): numbe
   return context.config.boons?.vigor || context.hasBuff('vigor', at) ? 7.5 : 5;
 }
 
-/** Preserve earned endurance when Vigor starts or expires, including stacked duration. */
-function scheduleMirageVigorExpiry(context: MesmerSchedulerContext, task: ScheduledTask): void {
-  context.tasks.cancelOwner('mesmer.mirage.vigor-expiry');
-  const remaining = remainingDurationStackSeconds(boonApplicationsAt(context.events, 'vigor', task.at), task.at, {
-    includes: (application) => buffMatchesAudience(application, 'all'),
-    maximum: durationStackingBoonCapSeconds('vigor')
-  });
-  if (remaining > EPSILON) {
-    context.tasks.schedule({
-      type: 'mesmer.mirage.vigor-boundary',
-      at: task.at + remaining,
-      ownerId: 'mesmer.mirage.vigor-expiry'
+/** Vigor boundaries settle regeneration through the scheduler's advance hook and replace the next expiry. */
+const mirageVigorBoundary = scheduledReaction<
+  MesmerSchedulerContext,
+  { readonly at: number; readonly expiry?: boolean },
+  Record<string, never>
+>({
+  id: 'mesmer.mirage.vigor-boundary',
+  select: (_context, boundary) => ({
+    at: boundary.at,
+    ownerId: boundary.expiry ? 'mesmer.mirage.vigor-expiry' : null,
+    payload: {}
+  }),
+  execute(context, at) {
+    context.tasks.cancelOwner('mesmer.mirage.vigor-expiry');
+    const remaining = remainingDurationStackSeconds(boonApplicationsAt(context.events, 'vigor', at), at, {
+      includes: (application) => buffMatchesAudience(application, 'all'),
+      maximum: durationStackingBoonCapSeconds('vigor')
     });
+    if (remaining > EPSILON) {
+      mirageVigorBoundary.onEventScheduled.handler(context, { at: at + remaining, expiry: true });
+    }
   }
-}
+});
 
 export const mirageCastRules = Object.freeze({
   availability: {
@@ -205,7 +214,7 @@ function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEv
       (event.type === 'boon_extension' && (!event.kind || event.kind === 'vigor') && event.excludedKind !== 'vigor')) &&
     !context.config.boons?.vigor
   ) {
-    context.tasks.schedule({ type: 'mesmer.mirage.vigor-boundary', at: event.at });
+    mirageVigorBoundary.onEventScheduled.handler(context, { at: event.at });
   }
 
   if (event.type !== 'proc' || event.sourceId !== 'sigil.energy') return;
@@ -259,7 +268,7 @@ export const mirageAttributeRules = Object.freeze({
 export const mirageSchedulerHooks = Object.freeze({
   initialize: initializeMirageRuntime,
   taskHandlers: Object.freeze({
-    'mesmer.mirage.vigor-boundary': scheduleMirageVigorExpiry
+    ...mirageVigorBoundary.taskHandlers
   }),
   advance: {
     id: 'mesmer.mirage.mirrors',

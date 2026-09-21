@@ -11,7 +11,7 @@ import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/tra
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import {
   initializeDeadeyeMalice,
-  observeDeadeyeScheduledEvent,
+  deadeyeMaliceReaction,
   updateDeadeyeCastState
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { deadeyeTaskHandlers } from '#gw2/professions/thief/specializations/deadeye/mechanics/task-handlers.js';
@@ -38,7 +38,7 @@ export const deadeyeSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'thief.deadeye-malice-hit',
     order: 20,
-    handler: observeDeadeyeScheduledEvent
+    handler: deadeyeMaliceReaction.onEventScheduled.handler
   },
   taskHandlers: deadeyeTaskHandlers
 });

@@ -1,3 +1,4 @@
+import { conduitAffinityReaction } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -113,18 +114,7 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
 }
 
 export function observeConduitTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (event.type === 'damage' && event.metadata?.affinityOnHit === true) {
-    const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-    const cost = Number(skill?.energyCost || 0);
-    // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.
-    // Skills costing ≥ 25 energy grant 2 affinity; cheaper skills grant 1.
-    context.tasks.schedule({
-      id: `revenant.affinity-hit:${event.eventOrder}`,
-      type: 'revenant.affinity-hit',
-      at: event.at,
-      payload: { amount: cost >= 25 ? 2 : 1 }
-    });
-  }
+  conduitAffinityReaction.onEventScheduled.handler(context, event);
 
   if (
     context.config.relic === 'Peitha' &&

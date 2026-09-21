@@ -26,13 +26,11 @@ import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mes
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
-import type { MesmerVirtuosoExpectedProcCandidate } from '#gw2/professions/mesmer/specializations/virtuoso/types.js';
 import type {
   MesmerAttackStatus,
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
-  MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker,
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
@@ -134,11 +132,6 @@ export interface MesmerPlanningState {
 export interface MesmerSchedulerTaskPayloads {
   readonly partyBuff: { readonly event: SimulationEventInput };
   readonly resourceGain: MesmerPendingResource;
-  readonly expectedProc: MesmerExpectedProcCandidate;
-  readonly trackedHit: { readonly skillId: SkillId };
-  readonly virtuosoExpectedProc: MesmerVirtuosoExpectedProcCandidate;
-  readonly deadlyBladesCritical: { readonly eventOrder: number };
-  readonly chaoticInterruption: { readonly skillId: SkillId; readonly skillName: string };
   readonly bladeSpend: {
     readonly reservationId: string;
     readonly sourceSkill: string;

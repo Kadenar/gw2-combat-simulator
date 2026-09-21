@@ -21,9 +21,9 @@ import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/
 import {
   advanceGaleshotArrows,
   completeGaleshotSkill,
-  handleGaleshotDisableTask,
-  handleGaleshotMissileHitTask,
-  handleGaleshotPetHitTask,
+  galeshotDisableReaction,
+  galeshotMissileReaction,
+  galeshotPetReaction,
   observeGaleshotEvent
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 
@@ -121,9 +121,9 @@ export const galeshotSchedulerHooks = Object.freeze({
     handler: observeGaleshotEvent
   },
   taskHandlers: Object.freeze({
-    'ranger.galeshot-missile-hit': handleGaleshotMissileHitTask,
-    'ranger.galeshot-pet-hit': handleGaleshotPetHitTask,
-    'ranger.galeshot-disable': handleGaleshotDisableTask
+    ...galeshotMissileReaction.taskHandlers,
+    ...galeshotPetReaction.taskHandlers,
+    ...galeshotDisableReaction.taskHandlers
   })
 });
 

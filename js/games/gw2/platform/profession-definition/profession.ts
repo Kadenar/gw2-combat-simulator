@@ -324,7 +324,7 @@ function compileNativeModule(
       const ui = { ...(presentation as Partial<ProfessionUiContract> | undefined) };
       if (module.id === 'Core') {
         const paletteAvailability = ui.paletteSkillAvailability;
-        // Family previews without a selected build infer the skill's specialization, as UI composition does.
+        // Resolve preview selection once so the availability gate and profession callback use the same specialization.
         ui.paletteSkillAvailability = (context, skill) => {
           const config = context.config as { readonly specialization?: string } | undefined;
           const build = context.build as { readonly specialization?: string } | undefined;
@@ -332,7 +332,7 @@ function compileNativeModule(
             context.specialization || config?.specialization || build?.specialization || skill.specialization || 'Core'
           );
           return isBuildSkillAvailable(skill, { specialization })
-            ? (paletteAvailability?.(context, skill) ?? { available: true, message: '' })
+            ? (paletteAvailability?.({ ...context, specialization }, skill) ?? { available: true, message: '' })
             : { available: false, message: `${skill.name} is unavailable for this build.` };
         };
       }

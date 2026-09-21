@@ -5,10 +5,7 @@ import {
 } from '#gw2/professions/elementalist/core/execution/index.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
-import { processFreshAirCandidates } from '#gw2/professions/elementalist/core/traits/index.js';
+import { freshAirReaction } from '#gw2/professions/elementalist/core/traits/air.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
@@ -25,17 +22,11 @@ import {
 
 /** Registers ordered Core Elementalist hooks while implementations stay with their owning concepts. */
 export const elementalistCoreSchedulerHooks = Object.freeze({
-  initialize(context: ElementalistSchedulerContext) {
-    // Fresh Air needs canonical critical results even without critical-triggered equipment.
-    if (hasTrait(context, 'Fresh Air')) {
-      (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
-    }
-  },
+  initialize: freshAirReaction.initialize,
   taskHandlers: Object.freeze({
     ...elementalistElementalTaskHandlers,
     ...elementalistWeaponStateTaskHandlers,
-    'elementalist.fresh-air-critical': (context: ElementalistSchedulerContext, task: ScheduledTask) =>
-      processFreshAirCandidates(context, task.at)
+    ...freshAirReaction.taskHandlers
   }),
   prepareEvent: Object.freeze([
     {

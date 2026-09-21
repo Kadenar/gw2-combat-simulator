@@ -76,15 +76,8 @@ export interface MesmerResourceController {
   queueResources: MesmerQueueResources;
 }
 
-export type MesmerExpectedProcCandidate = {
-  readonly type: 'hit';
-  readonly cloneId?: number;
-  readonly at: number;
-  readonly event: SimulationEvent;
-};
-
 export interface MesmerExpectedProcTracker {
-  process(candidate: MesmerExpectedProcCandidate): void;
+  process(event: SimulationEvent): void;
 }
 
 export interface MesmerAttackStatus extends MesmerConditionApplication {

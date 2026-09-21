@@ -15,14 +15,11 @@ import type {
   MesmerSchedulerTask
 } from '#gw2/professions/mesmer/types.js';
 
-import {
-  handleDeadlyBladesCriticalTask,
-  observeDeadlyBladesEvent
-} from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+import { deadlyBladesReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
 import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
-  handleVirtuosoExpectedProcTask,
-  observeVirtuosoExpectedProcEvent
+  bloodsongReaction,
+  jaggedMindReaction
 } from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 
@@ -156,22 +153,16 @@ export const infiniteForge = timedEffect({
 
 export const virtuosoSchedulerHooks = Object.freeze({
   onEventScheduled: Object.freeze([
-    {
-      id: 'mesmer.virtuoso.deadly-blades',
-      order: 20,
-      handler: observeDeadlyBladesEvent
-    },
-    {
-      id: 'mesmer.virtuoso.expected-procs',
-      order: 30,
-      handler: observeVirtuosoExpectedProcEvent
-    }
+    deadlyBladesReaction.onEventScheduled,
+    bloodsongReaction.onEventScheduled,
+    jaggedMindReaction.onEventScheduled
   ]),
   taskHandlers: Object.freeze({
     'mesmer.blade-spend': handleBladeSpendTask,
     ...infiniteForge.taskHandlers,
-    'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask,
-    'mesmer.virtuoso-expected-proc': handleVirtuosoExpectedProcTask
+    ...deadlyBladesReaction.taskHandlers,
+    ...bloodsongReaction.taskHandlers,
+    ...jaggedMindReaction.taskHandlers
   })
 });
 

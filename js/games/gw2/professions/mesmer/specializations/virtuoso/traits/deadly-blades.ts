@@ -1,16 +1,16 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   balanceProfileFromContext,
   balanceProfileEffect,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerCastContext, MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
@@ -31,56 +31,51 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
   runtime.addTraitProc('Deadly Blades', at, resolution.skill.name);
 }
 
-/** Queues Virtuoso-owned critical resolution for blade strikes that can trigger Deadly Blades vulnerability. */
-export function observeDeadlyBladesEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
-  const runtime = mesmerRuntimeFor(context);
-  if (event.type !== 'damage' || !isGw2PlayerActorEvent(event) || !runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
+/** Resolve blade-critical effects from the canonical hit after shared critical materialization. */
+export const deadlyBladesReaction = eventReaction<MesmerSchedulerContext>({
+  id: 'mesmer.deadly-blades-critical',
+  order: 20,
+  missingEvent: 'error',
+  select(context, event) {
+    const runtime = mesmerRuntimeFor(context);
+    if (event.type !== 'damage' || !isGw2PlayerActorEvent(event) || !runtime.traits.has(TRAIT.DEADLY_BLADES))
+      return null;
+    const skill = runtime.skillsById.get(Number(event.skillId));
+    if ((!event.metadata?.blade && !skill?.blade) || event.noCrit || event.canCrit === false) return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      priority: -40,
+      ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata.cloneId}`,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, canonicalEvent) {
+    // Skill-derived eligibility survives replacement, but explicit canonical flags win.
+    const event = { ...canonicalEvent };
+    if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
+    const deadlyBlades = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'condition');
+    // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
+    // Mind, but remains a separate trait-owned condition application.
+    const application = advanceScheduledCriticalProc(context, event, {
+      id: 'mesmer.virtuoso.deadly-blades',
+      materialization: 'weighted'
+    });
+    if (!application) return;
 
-  const skill = runtime.skillsById.get(Number(event.skillId));
-  if (!event.metadata?.blade && !skill?.blade) return;
-  if (event.noCrit || event.canCrit === false) return;
+    emitSkillCondition(context, {
+      cause: event,
 
-  context.tasks.schedule({
-    type: 'mesmer.deadly-blades-critical',
-    at: Math.max(context.state.time, event.at),
-    priority: -40,
-    ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata?.cloneId}`,
-    payload: { eventOrder: Number(event.eventOrder) }
-  });
-}
-
-/** Applies Deadly Blades as a target condition after the engine materializes the blade strike's critical result. */
-export function handleDeadlyBladesCriticalTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'deadlyBladesCritical'>
-): void {
-  // Queue only identity; read replacements at execution and retain the skill-derived blade fallback.
-  const canonicalEvent = context.eventByOrder(task.payload.eventOrder);
-  if (!canonicalEvent) throw new TypeError('Deadly Blades critical proc requires a scheduled event.');
-  const event = { ...canonicalEvent };
-  if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
-  const deadlyBlades = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.DEADLY_BLADES), 'condition');
-  // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
-  // Mind, but remains a separate trait-owned condition application.
-  const application = advanceScheduledCriticalProc(context, event, {
-    id: 'mesmer.virtuoso.deadly-blades',
-    materialization: 'weighted'
-  });
-  if (!application) return;
-
-  emitSkillCondition(context, {
-    cause: event,
-
-    at: event.at,
-    name: 'Deadly Blades — Vulnerability',
-    skillName: event.skillName,
-    condition: 'Vulnerability',
-    stacks: application.quantity * Number(deadlyBlades?.stacks ?? 1),
-    duration: Number(deadlyBlades?.duration ?? 5),
-    source: 'Trait',
-    sourceId: TRAIT.DEADLY_BLADES,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    sourceSkill: event.skillName
-  });
-}
+      at: event.at,
+      name: 'Deadly Blades — Vulnerability',
+      skillName: event.skillName,
+      condition: 'Vulnerability',
+      stacks: application.quantity * Number(deadlyBlades?.stacks ?? 1),
+      duration: Number(deadlyBlades?.duration ?? 5),
+      source: 'Trait',
+      sourceId: TRAIT.DEADLY_BLADES,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      sourceSkill: event.skillName
+    });
+  }
+});

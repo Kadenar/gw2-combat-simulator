@@ -4,20 +4,18 @@ import type {
   RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
-import { handleCrushingAbyssWeaponSwap } from '#gw2/professions/revenant/core/execution/spear.js';
+import { crushingAbyssSwapReaction } from '#gw2/professions/revenant/core/execution/spear.js';
 import {
   advanceRevenantSpearState,
-  handleAbyssalRazeRechargeReduction,
-  handleCrushingAbyssGain,
-  observeRevenantSpearEvent
+  abyssalRazeRechargeReaction,
+  handleCrushingAbyssGain
 } from '#gw2/professions/revenant/core/mechanics/crushing-abyss.js';
 import { afterRevenantCast, observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
   expireImperialGuard,
-  observeRevenantWeaponEvent,
-  resetCoalescenceOfRuin
+  dropTheHammerReaction
 } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { completeRevenantFollowup } from '#gw2/professions/revenant/core/mechanics/skill-flips.js';
 import {
@@ -61,8 +59,8 @@ function advance(context: RevenantSchedulerContext, time: number): void {
 }
 
 function onEventScheduled(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  observeRevenantWeaponEvent(context, event);
-  observeRevenantSpearEvent(context, event);
+  dropTheHammerReaction.onEventScheduled.handler(context, event);
+  crushingAbyssSwapReaction.onEventScheduled.handler(context, event);
   observeRevenantEvent(context, event);
 }
 
@@ -92,12 +90,12 @@ export const revenantSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     [ASSASSINS_PRESENCE_TASK]: handleAssassinsPresencePulse,
     'revenant.blossoming-aura': handleBlossomingAura,
-    'revenant.abyssal-raze-recharge': handleAbyssalRazeRechargeReduction,
+    ...abyssalRazeRechargeReaction.taskHandlers,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
-    'revenant.crushing-abyss-weapon-swap': handleCrushingAbyssWeaponSwap,
+    ...crushingAbyssSwapReaction.taskHandlers,
     ...upkeepPulses.taskHandlers,
     'revenant.imperial-guard-expire': expireImperialGuard,
     'revenant.impossible-odds-strike': handleImpossibleOddsStrike,
-    'revenant.drop-the-hammer-reset': resetCoalescenceOfRuin
+    ...dropTheHammerReaction.taskHandlers
   })
 });

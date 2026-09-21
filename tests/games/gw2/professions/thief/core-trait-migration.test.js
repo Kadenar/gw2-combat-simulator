@@ -26,10 +26,7 @@ import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
-import {
-  observeThiefCriticalBoons,
-  materializeThiefCriticalBoons
-} from '#gw2/professions/thief/core/traits/critical-strikes.js';
+import { thiefCriticalBoonReaction } from '#gw2/professions/thief/core/traits/critical-strikes.js';
 
 test('Thief boon predictions and resolution share pre-hit Fury, same-time ordering, and expiry', () => {
   // Two same-time hits distinguish the hit granting Fury from the next hit permitted to extend it.
@@ -51,8 +48,8 @@ test('Thief boon predictions and resolution share pre-hit Fury, same-time orderi
           for (const at of [1, 1, initialFury ? 8 : 7])
             context.emit({ ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 });
         },
-        onEventScheduled: observeThiefCriticalBoons,
-        taskHandlers: { 'thief.critical-boons': materializeThiefCriticalBoons }
+        onEventScheduled: thiefCriticalBoonReaction.onEventScheduled.handler,
+        taskHandlers: { ...thiefCriticalBoonReaction.taskHandlers }
       },
       resolverHooks: {
         eventReactions: {

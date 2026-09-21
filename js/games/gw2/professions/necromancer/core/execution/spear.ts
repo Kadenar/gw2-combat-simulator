@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 /**
  * Owns Necromancer spear Soul Shard generation, consumption, and conditional cast behavior.
  * Spear skill fragments remain in `skills/weapons/spear.ts`; `index.ts` assigns cast phases.
@@ -10,7 +11,6 @@ import {
   emitSkillDamage
 } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -115,41 +115,38 @@ function soulShardDamage(
 }
 
 // Defers each committed Perforate packet so concurrent shard gains are visible when that individual strike starts.
-function afterPerforateEffect(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  event: NecromancerSimulationEvent
-): void {
-  if (event?.type !== 'damage') return;
-  context.tasks.schedule({
-    id: `${context.reservationId}:perforate-soul-shard:${Number(event.hitIndex || 1)}`,
-    type: PERFORATE_SOUL_SHARD_TASK,
-    at: event.at,
-    ownerId: context.reservationId,
-    payload: {
-      skillId: skill.id,
-      hitIndex: Number(event.hitIndex || 1),
-      totalHits: Math.min(6, Number(event.totalHits || 1))
-    }
-  });
-}
-
-// Consumes one currently active shard and emits its bonus damage at the matching Perforate strike.
-function handlePerforateSoulShard(
-  context: NecromancerSchedulerContext,
-  task: ScheduledTask<{
-    readonly skillId: NecromancerSkill['id'];
-    readonly hitIndex: number;
-    readonly totalHits: number;
-  }>
-): void {
-  const skill = context.catalog.skillsById.get(Number(task.payload?.skillId)) as NecromancerSkill | undefined;
-  if (!skill || consumeSoulShards(professionCoreState(context), 1, task.at) === 0) return;
-  soulShardDamage(context, skill, task.at, Number(task.payload?.hitIndex || 1), Number(task.payload?.totalHits || 1));
-  emitNecromancerStateSnapshot(context, task.at, 'perforate', {
-    dedupeAcrossSourceIds: true
-  });
-}
+const perforateReaction = scheduledReaction<
+  NecromancerSchedulerContext,
+  {
+    readonly skill: NecromancerSkill;
+    readonly event: NecromancerSimulationEvent;
+    readonly reservationId: string;
+  },
+  { readonly skillId: NecromancerSkill['id']; readonly hitIndex: number; readonly totalHits: number }
+>({
+  id: PERFORATE_SOUL_SHARD_TASK,
+  select(_context, { skill, event, reservationId }) {
+    if (event?.type !== 'damage') return null;
+    return {
+      id: `${reservationId}:perforate-soul-shard:${Number(event.hitIndex || 1)}`,
+      at: event.at,
+      ownerId: reservationId,
+      payload: {
+        skillId: skill.id,
+        hitIndex: Number(event.hitIndex || 1),
+        totalHits: Math.min(6, Number(event.totalHits || 1))
+      }
+    };
+  },
+  execute(context, at, payload) {
+    const skill = context.catalog.skillsById.get(Number(payload.skillId)) as NecromancerSkill | undefined;
+    if (!skill || consumeSoulShards(professionCoreState(context), 1, at) === 0) return;
+    soulShardDamage(context, skill, at, Number(payload.hitIndex || 1), Number(payload.totalHits || 1));
+    emitNecromancerStateSnapshot(context, at, 'perforate', {
+      dedupeAcrossSourceIds: true
+    });
+  }
+});
 
 // Consumes Distress's flip, refreshes Perforate, and applies the simulator's single-target shard bonus.
 function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -166,11 +163,15 @@ export const necromancerSpearSkillHandlers = Object.freeze({
   'necromancer.sinister-stab': sinisterStab,
   'necromancer.addle': addle,
   'necromancer.extirpate': extirpate,
-  'necromancer.perforate': afterPerforateEffect,
+  'necromancer.perforate': (
+    context: NecromancerCastContext,
+    skill: NecromancerSkill,
+    event: NecromancerSimulationEvent
+  ) => perforateReaction.onEventScheduled.handler(context, { skill, event, reservationId: context.reservationId }),
   'necromancer.distress': distress
 });
 
 /** Exposes Perforate's per-strike shard consumption to Core task composition. */
 export const necromancerSpearTaskHandlers = Object.freeze({
-  [PERFORATE_SOUL_SHARD_TASK]: handlePerforateSoulShard
+  ...perforateReaction.taskHandlers
 });

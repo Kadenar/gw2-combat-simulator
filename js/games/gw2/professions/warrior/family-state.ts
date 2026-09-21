@@ -3,7 +3,6 @@ import {
   projectPublicProfessionState,
   snapshotProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type {
   WarriorCastContext,
   WarriorPlanningStateProjectionOptions,
@@ -101,12 +100,6 @@ export function applyWarriorSkillResource(context: WarriorCastContext, skill: Wa
 /** Ordinary strikes grant adrenaline except on Bladesworn, which generates passive Flow. */
 export function warriorGainsAdrenalineOnHit(context: WarriorSchedulerContext): boolean {
   return specializationKind(context) !== 'Bladesworn';
-}
-
-/** Applies deferred strike-resource gains through the active family policy. */
-export function handleWarriorAdrenalineTask(context: WarriorSchedulerContext, task: ScheduledTask): void {
-  const payload = task.payload as { readonly amount?: number } | null;
-  gainWarriorAdrenaline(context, Number(payload?.amount ?? 1));
 }
 
 /** Routes generic ammo-spend facts to the active slice that reacts to them. */

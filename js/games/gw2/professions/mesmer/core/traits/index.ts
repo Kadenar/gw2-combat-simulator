@@ -1,6 +1,5 @@
 /** Public dispatcher for imperative Core Mesmer trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { MesmerSchedulerContext, MesmerSchedulerTask } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import {
   triggerChaoticInterruption,
@@ -51,18 +50,6 @@ export function triggerMesmerPostShatterTraits(
 ): void {
   triggerMaimTheDisillusioned(context, resolution);
   triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at);
-}
-
-/** Evaluates Chaotic Interruption with explicit player ownership when a delayed control packet lands. */
-export function handleChaoticInterruptionTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'chaoticInterruption'>
-): void {
-  triggerChaoticInterruption(
-    context,
-    { type: 'control', at: task.at, source: 'Skill', sourceId: task.payload.skillId, actorType: 'player' },
-    task.payload.skillName
-  );
 }
 
 export { triggerChaoticInterruption };

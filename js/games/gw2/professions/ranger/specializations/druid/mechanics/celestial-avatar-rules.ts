@@ -19,10 +19,8 @@ import { druidState } from '#gw2/professions/ranger/specializations/druid/state.
 import {
   advanceDruidState,
   astralForceReadyAt,
-  DRUID_ASTRAL_FORCE_DAMAGE_TASK,
-  handleDruidAstralForceDamageTask,
   avatarDepletion,
-  observeDruidAstralForceEvent
+  druidAstralForceReaction
 } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
@@ -199,12 +197,12 @@ export const druidSchedulerHooks = Object.freeze({
     id: 'ranger.druid-astral-force-events',
     order: 20,
     handler(context: RangerSchedulerContext, event: SimulationEvent): void {
-      observeDruidAstralForceEvent(context, event);
+      druidAstralForceReaction.onEventScheduled.handler(context, event);
     }
   },
   taskHandlers: {
     ...avatarDepletion.taskHandlers,
-    [DRUID_ASTRAL_FORCE_DAMAGE_TASK]: handleDruidAstralForceDamageTask
+    ...druidAstralForceReaction.taskHandlers
   }
 });
 

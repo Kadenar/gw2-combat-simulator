@@ -8,10 +8,7 @@ import type {
   MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import type {
-  MesmerExpectedProcCandidate,
-  MesmerExpectedProcTracker
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerExpectedProcTracker } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 interface ExpectedProcTrackerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -49,9 +46,9 @@ export function createExpectedProcTracker({
   };
 
   return Object.freeze({
-    process(candidate: MesmerExpectedProcCandidate): void {
-      const chance = Number(criticalChance(candidate.event) || 0);
-      triggerMesmerCriticalTraits(traitContext, candidate.event, chance);
+    process(event: SimulationEvent): void {
+      const chance = Number(criticalChance(event) || 0);
+      triggerMesmerCriticalTraits(traitContext, event, chance);
     }
   });
 }

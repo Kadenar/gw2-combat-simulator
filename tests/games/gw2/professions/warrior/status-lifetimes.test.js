@@ -13,7 +13,7 @@ import {
 import { applyGunsaberEntryTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 import {
   handleKingOfFiresDetonationTask,
-  handleKingOfFiresHitTask,
+  kingOfFiresReaction,
   observeBerserkerEvent
 } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 
@@ -127,7 +127,10 @@ test('trait and combo fire auras share rounded deadlines and detonate only befor
       const state = context.state.profession.specialization.state;
       if (source === 'trait') {
         context.events.push({ type: 'damage', at: 0.001, eventOrder: 1, didCrit: true });
-        handleKingOfFiresHitTask(context, { at: 0.001, payload: { eventOrder: 1 } });
+        kingOfFiresReaction.taskHandlers['warrior.king-of-fires-hit'](context, {
+          at: 0.001,
+          payload: { eventOrder: 1 }
+        });
         assert.equal(boonApplicationsAt(context.events, 'fire-aura', 0.001)[0].expiresAt, state.fireAuraUntil);
       } else observeBerserkerEvent(context, { type: 'aura', aura: 'Fire Aura', at: 0.001, duration: 5 });
       assert.equal(state.fireAuraUntil, 5.04);

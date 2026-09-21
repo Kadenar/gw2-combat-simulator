@@ -1,7 +1,7 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { resolveDeadeyeMaliceHit } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeMaliceReaction } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 
 export function expireDeadeyesMark(
   context: ThiefSchedulerContext,
@@ -23,5 +23,5 @@ export function expireDeadeyesMark(
 
 export const deadeyeTaskHandlers = Object.freeze({
   'thief.deadeye-mark-expire': expireDeadeyesMark,
-  'thief.deadeye-malice-hit': resolveDeadeyeMaliceHit
+  ...deadeyeMaliceReaction.taskHandlers
 });

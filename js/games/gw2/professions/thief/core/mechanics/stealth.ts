@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -9,7 +10,6 @@ import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resou
 import type {
   ThiefCastContext,
   ThiefPrecastContext,
-  ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSimulationEvent,
   ThiefSkill,
@@ -25,7 +25,7 @@ export function thiefStealthAttackChargeState(context: ThiefSchedulerContext): P
 export const THIEF_BREAK_STEALTH_TASK = 'thief.break-stealth-on-strike';
 
 interface BreakStealthTaskPayload {
-  readonly skillId: number;
+  readonly skillId: ThiefSkill['id'];
   readonly strikeAt: number;
 }
 
@@ -72,34 +72,36 @@ function breakThiefStealth(
 }
 
 /** Defers stealth loss to an ordered task at each player strike's authored damage timestamp. */
-export function observeStealthBreakingStrike(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (event.type !== 'damage' || event.cancelled === true || event.actorType !== 'player') return;
-  const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
-  // Damage-and-stealth skills resolve their own strike before granting stealth, so they cannot cancel that grant.
-  const grantsStealth = skill?.effects?.some((effect) => effect.type === 'buff' && effect.kind === 'stealth');
-  if (!skill || skill.stealthAttack || grantsStealth) return;
+export const stealthBreakingReaction = scheduledReaction<
+  ThiefSchedulerContext,
+  ThiefSimulationEvent,
+  BreakStealthTaskPayload
+>({
+  id: THIEF_BREAK_STEALTH_TASK,
+  order: 20,
+  select(context, event) {
+    if (event.type !== 'damage' || event.cancelled === true || event.actorType !== 'player') return null;
+    const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
+    // Damage-and-stealth skills resolve their own strike before granting stealth, so they cannot cancel that grant.
+    const grantsStealth = skill?.effects?.some((effect) => effect.type === 'buff' && effect.kind === 'stealth');
+    if (!skill || skill.stealthAttack || grantsStealth) return null;
 
-  // Same-time damage-derived work settles before the stealth transition without manufacturing elapsed time.
-  context.tasks.schedule({
-    type: THIEF_BREAK_STEALTH_TASK,
-    at: event.at,
-    priority: 20,
-    ownerId: event.activationId,
-    payload: { skillId: skill.id, strikeAt: event.at }
-  });
-}
-
-/** Applies a deferred strike's stealth transition at the strike's real timestamp. */
-export function handleStealthBreakingStrike(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<BreakStealthTaskPayload>
-): void {
-  const skill = context.catalog.skillsById.get(task.payload.skillId);
-  if (skill && !skill.stealthAttack) {
-    // The snapshot sorts after a same-time action even though scheduler state is ready for its availability check.
-    breakThiefStealth(context, skill, task.payload.strikeAt, 'strike-broke-stealth', 5);
+    // Same-time damage-derived work settles before the stealth transition without manufacturing elapsed time.
+    return {
+      at: event.at,
+      priority: 20,
+      ownerId: event.activationId,
+      payload: { skillId: skill.id, strikeAt: event.at }
+    };
+  },
+  execute(context, _taskAt, payload) {
+    const skill = context.catalog.skillsById.get(payload.skillId);
+    if (skill && !skill.stealthAttack) {
+      // The snapshot sorts after a same-time action even though scheduler state is ready for its availability check.
+      breakThiefStealth(context, skill, payload.strikeAt, 'strike-broke-stealth', 5);
+    }
   }
-}
+});
 
 // Consume either active stealth or a specialization-granted attack charge, then
 // apply leave-stealth traits and Revealed from one cast-start transition.

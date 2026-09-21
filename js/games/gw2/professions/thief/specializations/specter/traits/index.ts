@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -104,33 +105,36 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
 }
 
 /** Defers shadow-force gains until each torment application actually lands. */
-export function observeSpecterEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (
-    event.type !== 'condition' ||
-    event.condition !== 'Torment' ||
-    event.actorType !== 'player' ||
-    !hasTrait(context.config, TRAIT.LARCENOUS_TORMENT)
-  )
-    return;
-  // eventOrder makes the id unique per Torment application so concurrent bursts don't collide.
-  context.tasks.schedule({
-    id: `thief.larcenous-torment:${event.eventOrder}`,
-    type: 'thief.larcenous-torment',
-    at: Math.max(context.state.time, event.at),
-    payload: { stacks: Number(event.stacks || 0) }
-  });
-}
-
-export function handleLarcenousTorment(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<LarcenousTormentTaskPayload>
-): void {
-  const stacks = Math.max(0, Number(task.payload.stacks || 0));
-  if (!(stacks > 0)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
-  gainShadowForce(context, stacks * Number(profile?.resourceGain ?? 0.5));
-  emitThiefStateSnapshot(context, task.at, 'larcenous-torment');
-}
+export const larcenousTormentReaction = scheduledReaction<
+  ThiefSchedulerContext,
+  ThiefSimulationEvent,
+  LarcenousTormentTaskPayload
+>({
+  id: 'thief.larcenous-torment',
+  order: 20,
+  select(context, event) {
+    if (
+      event.type !== 'condition' ||
+      event.condition !== 'Torment' ||
+      event.actorType !== 'player' ||
+      !hasTrait(context.config, TRAIT.LARCENOUS_TORMENT)
+    )
+      return null;
+    // eventOrder makes the id unique per Torment application so concurrent bursts don't collide.
+    return {
+      id: `thief.larcenous-torment:${event.eventOrder}`,
+      at: Math.max(context.state.time, event.at),
+      payload: { stacks: Number(event.stacks || 0) }
+    };
+  },
+  execute(context, taskAt, payload) {
+    const stacks = Math.max(0, Number(payload.stacks || 0));
+    if (!(stacks > 0)) return;
+    const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
+    gainShadowForce(context, stacks * Number(profile?.resourceGain ?? 0.5));
+    emitThiefStateSnapshot(context, taskAt, 'larcenous-torment');
+  }
+});
 
 export function handleDarkSentry(
   context: ThiefSchedulerContext,

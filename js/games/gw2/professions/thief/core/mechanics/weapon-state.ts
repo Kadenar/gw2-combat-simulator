@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -133,41 +134,46 @@ export function grantThiefStealth(
 }
 
 /** Count each thrown axe at its strike timestamp so interrupted volleys retain only emitted axes. */
-export function observeThiefAxe(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (
-    event.type !== 'damage' ||
-    event.actorType !== 'player' ||
-    event.cancelled === true ||
-    ![ID.SPINNING_AXE, ID.SPINNING_AXE_ID_71967, ID.VENOMOUS_VOLLEY, ID.CUNNING_SALVO, ID.MALICIOUS_CUNNING_SALVO].some(
-      (id) => id === event.skillId
+/** Selects observed candidates and applies the local reaction using canonical impact facts. */
+export const thiefAxeReaction = eventReaction<ThiefSchedulerContext, ThiefSimulationEvent>({
+  id: 'thief.spinning-axe',
+  order: 40,
+  missingEvent: 'skip',
+  select(_context, event) {
+    if (
+      event.type !== 'damage' ||
+      event.actorType !== 'player' ||
+      event.cancelled === true ||
+      ![
+        ID.SPINNING_AXE,
+        ID.SPINNING_AXE_ID_71967,
+        ID.VENOMOUS_VOLLEY,
+        ID.CUNNING_SALVO,
+        ID.MALICIOUS_CUNNING_SALVO
+      ].some((id) => id === event.skillId)
     )
-  )
-    return;
-  context.tasks.schedule({
-    type: 'thief.spinning-axe',
-    at: event.at,
-    ownerId: event.activationId,
-    payload: { eventOrder: event.eventOrder }
-  });
-}
+      return null;
+    return {
+      at: event.at,
+      ownerId: event.activationId,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, event, at) {
+    if (event.cancelled === true) return;
+    const state = professionCoreState(context);
+    state.spinningAxeExpirations = grantTimedStacks(state.spinningAxeExpirations, {
+      at: at,
+      expiresAt: at + 10,
+      count: 1,
+      maximumStacks: 6,
+      retain: 'newest-grant'
+    });
+    emitThiefStateSnapshot(context, at, 'spinning-axe');
+  }
+});
 
 /** Keep the six newest axes for ten seconds, sharing one pool across both weapon sets. */
-export function materializeThiefAxe(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<{ readonly eventOrder: ThiefSimulationEvent['eventOrder'] }>
-): void {
-  const event = context.eventByOrder(Number(task.payload.eventOrder));
-  if (!event || event.cancelled === true) return;
-  const state = professionCoreState(context);
-  state.spinningAxeExpirations = grantTimedStacks(state.spinningAxeExpirations, {
-    at: task.at,
-    expiresAt: task.at + 10,
-    count: 1,
-    maximumStacks: 6,
-    retain: 'newest-grant'
-  });
-  emitThiefStateSnapshot(context, task.at, 'spinning-axe');
-}
 
 export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = professionCoreState(context);

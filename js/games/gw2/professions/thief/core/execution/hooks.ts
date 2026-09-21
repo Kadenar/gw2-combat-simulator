@@ -3,19 +3,14 @@ import type { ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { observeThievesGuildCombatEvent } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { applyThiefWeaponSwapEffects } from '#gw2/professions/thief/core/execution/actions.js';
 import { thiefCoreTaskHandlers } from '#gw2/professions/thief/core/mechanics/task-handlers.js';
-import { observeStealthBreakingStrike } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { stealthBreakingReaction } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import {
   updateThiefWeaponState,
-  observeThiefAxe,
-  materializeThiefAxe,
+  thiefAxeReaction,
   expireThiefScepterChain,
   THIEF_SCEPTER_CHAIN_EXPIRY_TASK
 } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
-import {
-  updateThiefTraitCastState,
-  observeThiefCriticalBoons,
-  materializeThiefCriticalBoons
-} from '#gw2/professions/thief/core/traits/index.js';
+import { updateThiefTraitCastState, thiefCriticalBoonReaction } from '#gw2/professions/thief/core/traits/index.js';
 import {
   advanceThiefCoreResources,
   completeThiefCoreResources,
@@ -31,12 +26,12 @@ export const thiefCoreSchedulerHooks = Object.freeze({
   advance: advanceThiefCoreResources,
   onCastStart: spendThiefCoreResources,
   onEventScheduled: Object.freeze([
-    { id: 'thief.spinning-axe', order: 40, handler: observeThiefAxe },
-    { id: 'thief.critical-boons', order: 30, handler: observeThiefCriticalBoons },
+    { id: 'thief.spinning-axe', order: 40, handler: thiefAxeReaction.onEventScheduled.handler },
+    { id: 'thief.critical-boons', order: 30, handler: thiefCriticalBoonReaction.onEventScheduled.handler },
     {
       id: 'thief.stealth-breaking-strikes',
       order: 10,
-      handler: observeStealthBreakingStrike
+      handler: stealthBreakingReaction.onEventScheduled.handler
     },
     {
       id: 'thief.thieves-guild-combat',
@@ -67,8 +62,8 @@ export const thiefCoreSchedulerHooks = Object.freeze({
     [THIEF_SCEPTER_CHAIN_EXPIRY_TASK]: expireThiefScepterChain,
     'thief.infiltrators-signet': pulseInfiltratorsSignet,
     ...thiefCoreTaskHandlers,
-    'thief.critical-boons': materializeThiefCriticalBoons,
-    'thief.spinning-axe': materializeThiefAxe
+    ...thiefCriticalBoonReaction.taskHandlers,
+    ...thiefAxeReaction.taskHandlers
   },
   snapshot: (context: ThiefSchedulerContext) => snapshotThiefState(context.state.profession)
 });

@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -22,7 +23,6 @@ import type {
   RevenantCastContext,
   RevenantPrecastContext,
   RevenantRechargeContext,
-  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -132,18 +132,20 @@ export function initializeRenegadeTraits(context: RevenantSchedulerContext): voi
   }
 }
 
-export function handleRenegadeCriticalTraitsTask(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ readonly eventOrder: number }>
-): void {
-  const eventOrder = Number(task.payload?.eventOrder);
-  const event = context.eventByOrder(eventOrder) as RevenantSimulationEvent | undefined;
-  if (!event) {
-    throw new Error(`Missing Renegade critical event ${String(eventOrder)}.`);
-  }
-
-  applyCriticalTraits(context, event);
-}
+export const renegadeCriticalReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+  id: RENEGADE_CRITICAL_TRAITS_TASK,
+  missingEvent: 'error',
+  select(context, event) {
+    if (!(hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY)))
+      return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      priority: -40,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute: applyCriticalTraits
+});
 
 function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   const razorclaw = renegadeState.from(context).razorclawsRage;
@@ -169,14 +171,19 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSi
 }
 
 /** Resolves a hit-triggered Razorclaw charge when the scheduler reaches the hit timestamp. */
-export function handleRazorclawProcTask(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ readonly eventOrder: number }>
-): void {
-  const event = context.eventByOrder(Number(task.payload?.eventOrder)) as RevenantSimulationEvent | undefined;
-  if (!event) throw new Error(`Missing Razorclaw trigger event ${String(task.payload?.eventOrder)}.`);
-  applyRazorclawProc(context, event);
-}
+export const razorclawReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+  id: RENEGADE_RAZORCLAW_PROC_TASK,
+  missingEvent: 'error',
+  select(context, event) {
+    if (!(event.skillId !== ID.RAZORCLAWS_RAGE)) return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      id: `${RENEGADE_RAZORCLAW_PROC_TASK}:${event.eventOrder}`,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute: applyRazorclawProc
+});
 
 export function modifyRenegadeCastDuration(context: RevenantPrecastContext, duration: number): number {
   // Empowered Band Together is instant-cast (0 duration) so no animation lane is reserved; normal summons keep their full cast time
@@ -287,26 +294,6 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     return;
   }
 
-  const tracksCriticalTraits =
-    hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
-  if (tracksCriticalTraits) {
-    // Resolve at impact in both modes so future projectiles cannot replace Fervor stacks before they land.
-    context.tasks.schedule({
-      type: RENEGADE_CRITICAL_TRAITS_TASK,
-      at: Math.max(context.state.time, event.at),
-      // Shared stochastic critical materialization runs first at priority -60.
-      priority: -40,
-      payload: { eventOrder: Number(event.eventOrder) }
-    });
-  }
-
-  if (event.skillId !== ID.RAZORCLAWS_RAGE) {
-    // Damage is emitted when a cast is scheduled, so defer charge checks until the hit actually occurs.
-    context.tasks.schedule({
-      id: `${RENEGADE_RAZORCLAW_PROC_TASK}:${event.eventOrder}`,
-      type: RENEGADE_RAZORCLAW_PROC_TASK,
-      at: Math.max(context.state.time, event.at),
-      payload: { eventOrder: Number(event.eventOrder) }
-    });
-  }
+  renegadeCriticalReaction.onEventScheduled.handler(context, event);
+  razorclawReaction.onEventScheduled.handler(context, event);
 }

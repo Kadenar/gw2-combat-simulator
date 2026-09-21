@@ -8,24 +8,19 @@ import { berserkerState } from '#gw2/professions/warrior/specializations/berserk
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { WarriorCastContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { advanceBerserker } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import {
   finishBerserkerCast,
   handleKingOfFiresDetonationTask,
-  handleKingOfFiresHitTask,
+  kingOfFiresReaction,
   observeBerserkerEvent
 } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 
 export const berserkerSchedulerHooks = Object.freeze({
-  initialize: (context: WarriorSchedulerContext) => {
-    // King of Fires needs resolved critical facts before the Berserker event observer runs.
-    if (hasTrait(context, TRAIT.KING_OF_FIRES)) {
-      context.schedulerPolicy.requireCriticalFacts?.();
-    }
-  },
+  initialize: kingOfFiresReaction.initialize,
   advance: {
     id: 'warrior.berserker-advance',
     order: 20,
@@ -42,7 +37,7 @@ export const berserkerSchedulerHooks = Object.freeze({
     handler: observeBerserkerEvent
   },
   taskHandlers: Object.freeze({
-    'warrior.king-of-fires-hit': handleKingOfFiresHitTask,
+    ...kingOfFiresReaction.taskHandlers,
     'warrior.king-of-fires-detonation': handleKingOfFiresDetonationTask
   })
 });

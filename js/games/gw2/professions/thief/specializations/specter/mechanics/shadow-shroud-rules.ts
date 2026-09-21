@@ -15,8 +15,7 @@ import {
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import {
   handleDarkSentry,
-  handleLarcenousTorment,
-  observeSpecterEvent
+  larcenousTormentReaction
 } from '#gw2/professions/thief/specializations/specter/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -41,11 +40,11 @@ export const specterSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'thief.specter-events',
     order: 30,
-    handler: observeSpecterEvent
+    handler: larcenousTormentReaction.onEventScheduled.handler
   },
   taskHandlers: Object.freeze({
     ...shadowDepletion.taskHandlers,
-    'thief.larcenous-torment': handleLarcenousTorment,
+    ...larcenousTormentReaction.taskHandlers,
     'thief.specter-dark-sentry': handleDarkSentry
   })
 });

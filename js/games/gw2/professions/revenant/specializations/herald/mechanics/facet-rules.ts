@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -20,11 +21,7 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import type {
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantSchedulerContext, RevenantSimulationEvent } from '#gw2/professions/revenant/types.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import {
   HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
@@ -110,62 +107,62 @@ export const heraldCastRules = Object.freeze({
 
 const HERALD_SHARED_EMPOWERMENT_TASK = 'revenant.herald-shared-empowerment';
 
-function scheduleSharedEmpowerment(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  const hasRecipient = Number(event.resolvedAudience?.recipientCount) > 0;
-  if (
-    event.type !== 'buff' ||
-    event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
-    !isStandardBoon(event.kind) ||
-    !hasRecipient ||
-    !hasTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
-    !Number.isFinite(event.eventOrder)
-  ) {
-    return;
+/** Selects observed candidates and applies the local reaction using canonical impact facts. */
+export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+  id: 'revenant.herald-shared-empowerment',
+  order: 20,
+  missingEvent: 'skip',
+  select(context, event) {
+    const hasRecipient = Number(event.resolvedAudience?.recipientCount) > 0;
+    if (
+      event.type !== 'buff' ||
+      event.sourceId === TRAIT.SHARED_EMPOWERMENT ||
+      !isStandardBoon(event.kind) ||
+      !hasRecipient ||
+      !hasTrait(context.config, TRAIT.SHARED_EMPOWERMENT) ||
+      !Number.isFinite(event.eventOrder)
+    ) {
+      return null;
+    }
+
+    // Resolve at the boon timestamp so future-authored packets cannot consume the ICD before earlier applications.
+    return {
+      id: `${HERALD_SHARED_EMPOWERMENT_TASK}:${event.eventOrder}`,
+      at: event.at,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, cause, at) {
+    if (!isInternalCooldownReady(at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
+    const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
+    const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
+    if (!profile || !effect) throw new Error('Missing Shared Empowerment balance profile.');
+
+    const skill = { id: TRAIT.SHARED_EMPOWERMENT, name: 'Shared Empowerment' } as RevenantSkill;
+    const baseDuration = Math.max(0, Number(effect.duration || 0));
+    const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'might'), baseDuration);
+    // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
+    heraldState.from(context).sharedEmpowermentReadyAt = at + Math.max(0, Number(profile.cooldown || 0));
+    emitSkillBuff(context, {
+      cause: cause,
+
+      at: at,
+      source: 'revenant',
+      sourceId: TRAIT.SHARED_EMPOWERMENT,
+      actorType: 'effect',
+      skillId: TRAIT.SHARED_EMPOWERMENT,
+      skillName: 'Shared Empowerment',
+      name: 'Shared Empowerment — might',
+      kind: String(effect.boon || 'might'),
+      duration,
+      stacks: Math.max(1, Number(effect.stacks ?? 1)),
+      audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
+    });
   }
-
-  // Resolve at the boon timestamp so future-authored packets cannot consume the ICD before earlier applications.
-  context.tasks.schedule({
-    id: `${HERALD_SHARED_EMPOWERMENT_TASK}:${event.eventOrder}`,
-    type: HERALD_SHARED_EMPOWERMENT_TASK,
-    at: event.at,
-    payload: { eventOrder: event.eventOrder }
-  });
-}
-
-function handleSharedEmpowerment(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ readonly eventOrder: number }>
-): void {
-  const cause = context.eventByOrder(Number(task.payload?.eventOrder));
-  if (!cause || !isInternalCooldownReady(task.at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
-  const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
-  if (!profile || !effect) throw new Error('Missing Shared Empowerment balance profile.');
-
-  const skill = { id: TRAIT.SHARED_EMPOWERMENT, name: 'Shared Empowerment' } as RevenantSkill;
-  const baseDuration = Math.max(0, Number(effect.duration || 0));
-  const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'might'), baseDuration);
-  // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
-  heraldState.from(context).sharedEmpowermentReadyAt = task.at + Math.max(0, Number(profile.cooldown || 0));
-  emitSkillBuff(context, {
-    cause: cause,
-
-    at: task.at,
-    source: 'revenant',
-    sourceId: TRAIT.SHARED_EMPOWERMENT,
-    actorType: 'effect',
-    skillId: TRAIT.SHARED_EMPOWERMENT,
-    skillName: 'Shared Empowerment',
-    name: 'Shared Empowerment — might',
-    kind: String(effect.boon || 'might'),
-    duration,
-    stacks: Math.max(1, Number(effect.stacks ?? 1)),
-    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
-  });
-}
+});
 
 function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  scheduleSharedEmpowerment(context, event);
+  sharedEmpowermentReaction.onEventScheduled.handler(context, event);
 
   if (event.type === 'proc' && event.skillId === ID.TRUE_NATURE_DRAGON && event.procType === 'boon-extension') {
     // Core Value improves the flat extension, which never scales with boon duration.
@@ -221,6 +218,6 @@ export const heraldSchedulerHooks = Object.freeze({
     ...facetPulses.taskHandlers,
     ...facetExpiry.taskHandlers,
     ...elevatedCompassion.taskHandlers,
-    [HERALD_SHARED_EMPOWERMENT_TASK]: handleSharedEmpowerment
+    ...sharedEmpowermentReaction.taskHandlers
   })
 });

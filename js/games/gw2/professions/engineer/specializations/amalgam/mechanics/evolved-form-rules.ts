@@ -25,20 +25,17 @@ import type {
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
-import {
-  handleMercurialTendencies,
-  observeAmalgamScheduledEvent
-} from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
+import { mercurialTendenciesReaction } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 
 /** Registers scheduled-event observation and deferred Mercurial Tendencies execution. */
 export const amalgamSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'engineer.amalgam-events',
     order: 20,
-    handler: observeAmalgamScheduledEvent
+    handler: mercurialTendenciesReaction.onEventScheduled.handler
   },
   taskHandlers: Object.freeze({
-    'engineer.mercurial-tendencies': handleMercurialTendencies
+    ...mercurialTendenciesReaction.taskHandlers
   })
 });
 

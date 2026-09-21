@@ -4,16 +4,16 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import {
   advanceMesmerScheduler,
-  handleExpectedProcTask,
+  mesmerExpectedProcReaction,
+  chaoticInterruptionReaction,
   handlePartyBuffTask,
   handleResourceGainTask,
-  handleTrackedHitTask,
+  trackedHitReaction,
   initializeMesmerScheduler,
   observeMesmerEvent
 } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { handleSignetIllusionsPassiveTask } from '#gw2/professions/mesmer/core/mechanics/signets.js';
-import { handleChaoticInterruptionTask } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 /** Assembles the Core Mesmer scheduler hooks while each behavior remains with its owning concept. */
@@ -43,9 +43,9 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     ...cloneActions.taskHandlers,
     'mesmer.party-buff': handlePartyBuffTask,
     'mesmer.resource-gain': handleResourceGainTask,
-    'mesmer.expected-proc': handleExpectedProcTask,
-    'mesmer.tracked-hit': handleTrackedHitTask,
-    'mesmer.chaotic-interruption': handleChaoticInterruptionTask,
+    ...mesmerExpectedProcReaction.taskHandlers,
+    ...trackedHitReaction.taskHandlers,
+    ...chaoticInterruptionReaction.taskHandlers,
     'mesmer.signet-illusions-passive': handleSignetIllusionsPassiveTask
   })
 });

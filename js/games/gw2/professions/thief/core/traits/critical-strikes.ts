@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -14,7 +15,7 @@ import {
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import type { ThiefSchedulerContext, ThiefSimulationEvent, ThiefScheduledTask } from '#gw2/professions/thief/types.js';
+import type { ThiefSchedulerContext, ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -124,57 +125,57 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
 }
 
 /** Predict Fury-producing critical traits chronologically; resolution recomputes them from surviving hits. */
-export function observeThiefCriticalBoons(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (!CRITICAL_BOONS.some(({ traitId }) => criticalBoonEligible(context, event, traitId, true))) return;
-  context.tasks.schedule({
-    type: 'thief.critical-boons',
-    at: event.at,
-    priority: -60,
-    payload: { eventOrder: event.eventOrder }
-  });
-}
-
-export function materializeThiefCriticalBoons(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<{ readonly eventOrder: ThiefSimulationEvent['eventOrder'] }>
-): void {
-  const event = context.eventByOrder(Number(task.payload.eventOrder));
-  if (!event || missesTarget(event)) return;
-  const state = professionCoreState(context);
-  // Snapshot before Unrelenting Strikes emits Fury: the current hit cannot use its own newly granted boon.
-  const hadFury =
-    (context.schedulerPolicy as Gw2SchedulerPolicy).critical(context as unknown as SchedulerContext, event)
-      .furyActive === true;
-  for (const { traitId } of CRITICAL_BOONS) {
-    if (!criticalBoonEligible(context, event, traitId, hadFury)) continue;
-    const { id, name, boon, duration, stacks, internalCooldown } = criticalBoonDefinition(context, traitId);
-    const tracker = {
-      progress: Number(state.traitProcProgress[traitId] || 0),
-      readyAt: Number(state.traitProcReadyAt[traitId] || 0)
-    };
-    const proc = advanceScheduledCriticalProc(context, event, { id, internalCooldown }, tracker);
-    state.traitProcProgress[traitId] = tracker.progress;
-    state.traitProcReadyAt[traitId] = tracker.readyAt;
-    if (!proc) continue;
-    context.emitDerived(event, {
-      type: traitId === TRAIT.NO_QUARTER ? 'boon_extension' : 'buff',
+/** Selects observed candidates and applies the local reaction using canonical impact facts. */
+export const thiefCriticalBoonReaction = eventReaction<ThiefSchedulerContext, ThiefSimulationEvent>({
+  id: 'thief.critical-boons',
+  order: 30,
+  missingEvent: 'skip',
+  select(context, event) {
+    if (!CRITICAL_BOONS.some(({ traitId }) => criticalBoonEligible(context, event, traitId, true))) return null;
+    return {
       at: event.at,
-      source: 'Trait',
-      sourceId: traitId,
-      actorType: 'effect',
-      skillId: traitId,
-      skillName: name,
-      kind: boon.toLowerCase(),
-      schedulerBoonPrediction: true,
-      duration:
-        traitId === TRAIT.NO_QUARTER
-          ? duration
-          : gw2SchedulerBoonDuration(context, { id: traitId, name }, boon, duration),
-      stacks,
-      audience: { recipients: traitId === TRAIT.NO_QUARTER ? 'self' : 'party' }
-    });
+      priority: -60,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, event) {
+    if (missesTarget(event)) return;
+    const state = professionCoreState(context);
+    // Snapshot before Unrelenting Strikes emits Fury: the current hit cannot use its own newly granted boon.
+    const hadFury =
+      (context.schedulerPolicy as Gw2SchedulerPolicy).critical(context as unknown as SchedulerContext, event)
+        .furyActive === true;
+    for (const { traitId } of CRITICAL_BOONS) {
+      if (!criticalBoonEligible(context, event, traitId, hadFury)) continue;
+      const { id, name, boon, duration, stacks, internalCooldown } = criticalBoonDefinition(context, traitId);
+      const tracker = {
+        progress: Number(state.traitProcProgress[traitId] || 0),
+        readyAt: Number(state.traitProcReadyAt[traitId] || 0)
+      };
+      const proc = advanceScheduledCriticalProc(context, event, { id, internalCooldown }, tracker);
+      state.traitProcProgress[traitId] = tracker.progress;
+      state.traitProcReadyAt[traitId] = tracker.readyAt;
+      if (!proc) continue;
+      context.emitDerived(event, {
+        type: traitId === TRAIT.NO_QUARTER ? 'boon_extension' : 'buff',
+        at: event.at,
+        source: 'Trait',
+        sourceId: traitId,
+        actorType: 'effect',
+        skillId: traitId,
+        skillName: name,
+        kind: boon.toLowerCase(),
+        schedulerBoonPrediction: true,
+        duration:
+          traitId === TRAIT.NO_QUARTER
+            ? duration
+            : gw2SchedulerBoonDuration(context, { id: traitId, name }, boon, duration),
+        stacks,
+        audience: { recipients: traitId === TRAIT.NO_QUARTER ? 'self' : 'party' }
+      });
+    }
   }
-}
+});
 
 function traitCriticalProgress(context: ThiefResolverContext, traitId: SkillId): number {
   return Number(professionCoreState(context).traitProcProgress[String(traitId)] || 0);

@@ -24,7 +24,7 @@ import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializ
 import {
   emitNuminousGift,
   gainConduitAffinity,
-  handleConduitAffinityHit,
+  conduitAffinityReaction,
   syncConduitEnergyCostOverrides
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
@@ -391,6 +391,6 @@ export const conduitSchedulerHooks = Object.freeze({
     'revenant.release-mesmer-conditions': handleMesmerReleaseConditions,
     'revenant.conduit-upkeep-affinity': handleConduitUpkeep,
     'revenant.conduit-upkeep-daggers': handleConduitUpkeep,
-    'revenant.affinity-hit': handleConduitAffinityHit
+    ...conduitAffinityReaction.taskHandlers
   })
 });

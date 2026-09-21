@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -20,7 +21,6 @@ import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerCastContext,
-  EngineerScheduledTask,
   EngineerSchedulerContext,
   EngineerSimulationEvent,
   EngineerSkill
@@ -35,7 +35,7 @@ interface AmalgamBuff {
 }
 
 interface MercurialTendenciesPayload {
-  readonly sourceSkill?: string;
+  readonly sourceSkill: string;
 }
 
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
@@ -332,63 +332,68 @@ export function evolveAmalgam(context: EngineerCastContext): void {
 }
 
 /** Queues Mercurial Tendencies checks for player control events while excluding summon-sourced control. */
-export function observeAmalgamScheduledEvent(context: EngineerSchedulerContext, event: EngineerSimulationEvent): void {
-  if (
-    context.config.specialization !== 'Amalgam' ||
-    !hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
-    event.type !== 'control' ||
-    event.actorType === 'summon'
-  )
-    return;
-  context.tasks.schedule({
-    type: 'engineer.mercurial-tendencies',
-    at: event.at,
-    ownerId: 'engineer.mercurial-tendencies',
-    payload: {
-      sourceSkill: event.skillName || event.name || ''
+export const mercurialTendenciesReaction = scheduledReaction<
+  EngineerSchedulerContext,
+  EngineerSimulationEvent,
+  MercurialTendenciesPayload
+>({
+  id: 'engineer.mercurial-tendencies',
+  order: 20,
+  select(context, event) {
+    if (
+      context.config.specialization !== 'Amalgam' ||
+      !hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
+      event.type !== 'control' ||
+      event.actorType === 'summon'
+    )
+      return null;
+    return {
+      at: event.at,
+      ownerId: 'engineer.mercurial-tendencies',
+      payload: {
+        sourceSkill: event.skillName || event.name || ''
+      }
+    };
+    return null;
+  },
+  execute(context, taskAt, payload) {
+    const at = taskAt;
+    const coreState = professionCoreState(context);
+    const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
+    if (!isInternalCooldownReady(at, readyAt)) return;
+
+    // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
+    let reducedBy = 0;
+    const rechargeReduction = balanceProfileValueFromContext(
+      context,
+      PROFILE.mercurialTendencies,
+      'rechargeReduction',
+      2.5
+    );
+    const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
+    for (const skillId of trackedIds) {
+      const skill = context.catalog.skillsById.get(skillId);
+      if (!skill || !EVOLVE_SKILL_IDS.has(skill.id)) continue;
+      reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
     }
-  });
-}
+
+    if (!(reducedBy > 0)) return;
+
+    // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
+    coreState.traitProcReadyAt.mercurialTendencies =
+      at + balanceProfileValueFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.24);
+    context.emit({
+      type: 'proc',
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.MERCURIAL_TENDENCIES,
+      actorType: 'effect',
+      name: 'Mercurial Tendencies',
+      procType: 'trait',
+      sourceSkill: payload.sourceSkill,
+      cooldownReduction: reducedBy
+    });
+  }
+});
 
 /** Reduces every tracked Evolve recharge by the profiled amount after enforcing the trait's internal cooldown. */
-export function handleMercurialTendencies(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<MercurialTendenciesPayload>
-): void {
-  const at = task.at;
-  const coreState = professionCoreState(context);
-  const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
-  if (!isInternalCooldownReady(at, readyAt)) return;
-
-  // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
-  let reducedBy = 0;
-  const rechargeReduction = balanceProfileValueFromContext(
-    context,
-    PROFILE.mercurialTendencies,
-    'rechargeReduction',
-    2.5
-  );
-  const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-  for (const skillId of trackedIds) {
-    const skill = context.catalog.skillsById.get(skillId);
-    if (!skill || !EVOLVE_SKILL_IDS.has(skill.id)) continue;
-    reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
-  }
-
-  if (!(reducedBy > 0)) return;
-
-  // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
-  coreState.traitProcReadyAt.mercurialTendencies =
-    at + balanceProfileValueFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown', 0.24);
-  context.emit({
-    type: 'proc',
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.MERCURIAL_TENDENCIES,
-    actorType: 'effect',
-    name: 'Mercurial Tendencies',
-    procType: 'trait',
-    sourceSkill: task.payload?.sourceSkill || '',
-    cooldownReduction: reducedBy
-  });
-}

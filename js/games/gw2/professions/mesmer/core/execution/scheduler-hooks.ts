@@ -1,3 +1,4 @@
+import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /** Initializes Core Mesmer runtime and owns shared scheduler lifecycle and task dispatch so events resolve in order. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -19,7 +20,7 @@ import {
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
-import type { MesmerExpectedProcCandidate } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /**
@@ -95,11 +96,7 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
     // Cooldowns can change between scheduling and impact, so delayed control
     // packets must evaluate the recharge against state at their actual hit time.
     if (event.at > context.state.time + EPSILON) {
-      context.tasks.schedule({
-        type: 'mesmer.chaotic-interruption',
-        at: event.at,
-        payload: { skillId, skillName }
-      });
+      chaoticInterruptionReaction.onEventScheduled.handler(context, event);
     } else {
       triggerChaoticInterruption(context, event, skillName);
     }
@@ -111,7 +108,6 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
     restartSignetIllusionsPassive(context, event.at);
   }
 
-  let candidate: MesmerExpectedProcCandidate | null = null;
   if (event.type === 'damage') {
     const skill = runtime.skillsById.get(Number(event.skillId));
     if (skill && skill.handlerId !== 'mesmer.phantasm' && isGw2PlayerActorEvent(event)) {
@@ -131,16 +127,28 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
       }
 
       if (skill.trackedHitDamage) {
-        context.tasks.schedule({
-          type: 'mesmer.tracked-hit',
-          at: event.at,
-          priority: -45,
-          ownerId: event.activationId,
-          payload: { skillId: skill.id }
-        });
+        trackedHitReaction.onEventScheduled.handler(context, event);
       }
     }
+  }
 
+  mesmerExpectedProcReaction.onEventScheduled.handler(context, event);
+}
+
+/** Capture only annotations; critical outcomes must come from the canonical event at execution. */
+export const mesmerExpectedProcReaction = eventReaction<
+  MesmerSchedulerContext,
+  SimulationEvent,
+  {
+    readonly eventOrder: number;
+    readonly metadata: SimulationEvent['metadata'];
+  }
+>({
+  id: 'mesmer.expected-proc',
+  missingEvent: 'error',
+  select(context, event) {
+    const runtime = context.mesmerRuntime;
+    if (!runtime || event.type !== 'damage') return null;
     const tracksCriticalTrait =
       (runtime.traits.has(TRAIT.MASTER_FENCER) &&
         isGw2PlayerActorEvent(event) &&
@@ -148,25 +156,61 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
         event.noCrit !== true &&
         event.canCrit !== false) ||
       (runtime.traits.has(TRAIT.SHARPER_IMAGES) && ['clone', 'phantasm'].includes(String(event.summonKind || '')));
-
-    if (!tracksCriticalTrait) return;
-    candidate = {
-      type: 'hit',
-      at: event.at,
-      event,
-      cloneId: event.metadata?.cloneId
+    if (!tracksCriticalTrait) return null;
+    return {
+      at: Math.max(context.state.time, event.at),
+      priority: -40,
+      ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata.cloneId}`,
+      payload: { eventOrder: Number(event.eventOrder), metadata: event.metadata }
     };
+  },
+  execute(context, event, _at, captured) {
+    mesmerRuntimeFor(context).expected.process({ ...event, metadata: { ...captured.metadata, ...event.metadata } });
   }
+});
 
-  if (!candidate) return;
-  context.tasks.schedule({
-    type: 'mesmer.expected-proc',
-    at: Math.max(context.state.time, event.at),
-    priority: -40,
-    ownerId: event.metadata?.cloneId == null ? null : `mesmer.clone:${event.metadata?.cloneId}`,
-    payload: candidate
-  });
-}
+/** Future control packets evaluate cooldown state at impact; immediate control remains synchronous. */
+export const chaoticInterruptionReaction = scheduledReaction<
+  MesmerSchedulerContext,
+  SimulationEvent,
+  {
+    readonly skillId: number;
+    readonly skillName: string;
+  }
+>({
+  id: 'mesmer.chaotic-interruption',
+  select: (_context, event) => ({
+    at: event.at,
+    payload: { skillId: Number(event.skillId), skillName: String(event.skillName || event.name || 'Control effect') }
+  }),
+  execute(context, at, payload) {
+    triggerChaoticInterruption(
+      context,
+      { type: 'control', at, source: 'Skill', sourceId: payload.skillId, actorType: 'player' },
+      payload.skillName
+    );
+  }
+});
+
+/** Hit-window bookkeeping uses the observed skill and impact time, independent of later packet replacement. */
+export const trackedHitReaction = scheduledReaction<
+  MesmerSchedulerContext,
+  SimulationEvent,
+  { readonly skillId: SkillId }
+>({
+  id: 'mesmer.tracked-hit',
+  select: (_context, event) => ({
+    at: event.at,
+    priority: -45,
+    ownerId: event.activationId,
+    payload: { skillId: Number(event.skillId) }
+  }),
+  execute(context, at, payload) {
+    const runtime = mesmerRuntimeFor(context);
+    const skill = runtime.skillsById.get(payload.skillId);
+    if (skill) scheduleMesmerTrackedHits(context.state, runtime.addDamage, skill, [at]);
+  }
+});
 
 /** Emits a future party boon only when its dynamic companion audience can be selected. */
 export function handlePartyBuffTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'partyBuff'>): void {
@@ -197,33 +241,4 @@ export function handleResourceGainTask(
   }
 
   runtime.resources.gainResources(task.at, count, weapon, reason, cause);
-}
-
-/**
- * Resolves delayed critical trait procs. Deterministic mode uses critical-hit
- * probability; stochastic mode consumes the canonical sampled hit fact.
- */
-export function handleExpectedProcTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'expectedProc'>
-): void {
-  const runtime = mesmerRuntimeFor(context);
-  const payloadEvent = task.payload.event;
-  const canonicalEvent = context.eventByOrder(Number(payloadEvent.eventOrder));
-  // The trigger materializer runs first and replaces the canonical event with
-  // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
-  // original candidate (such as a skill-derived `blade` flag).
-  const event = {
-    ...payloadEvent,
-    ...canonicalEvent,
-    metadata: { ...payloadEvent.metadata, ...canonicalEvent?.metadata }
-  };
-  runtime.expected.process({ ...task.payload, event });
-}
-
-/** Records a landed default-scheduled hit only when the shared clock reaches its packet time. */
-export function handleTrackedHitTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'trackedHit'>): void {
-  const runtime = mesmerRuntimeFor(context);
-  const skill = runtime.skillsById.get(task.payload.skillId);
-  if (skill) scheduleMesmerTrackedHits(context.state, runtime.addDamage, skill, [task.at]);
 }

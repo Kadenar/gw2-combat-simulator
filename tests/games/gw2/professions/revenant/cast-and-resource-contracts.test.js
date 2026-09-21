@@ -14,7 +14,7 @@ import { releaseRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/
 import { observeRevenantEvent } from '#gw2/professions/revenant/core/mechanics/scheduler-hooks.js';
 import {
   observeRenegadeTraits,
-  handleRazorclawProcTask
+  razorclawReaction
 } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { completeBandTogether } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
@@ -158,7 +158,7 @@ for (const [name, skillId, cooldown] of [
       if (!daggers) {
         assert.equal(owner[key].charges, charges, 'emitting a future hit must not spend charges');
         context.eventByOrder = () => event;
-        for (const task of tasks) handleRazorclawProcTask(context, task);
+        for (const task of tasks) razorclawReaction.taskHandlers['revenant.razorclaw-proc'](context, task);
       }
     };
 
@@ -203,7 +203,7 @@ test('Razorclaw validates its proc profile before spending a charge', () => {
   context.catalog = { ...revenantCatalog, skillsById: new Map(revenantCatalog.skillsById) };
   for (const profile of [undefined, { effects: [] }]) {
     context.catalog.skillsById.set(RENEGADE_PROFILE_IDS.razorclawsRageProc, profile);
-    handleRazorclawProcTask(context, { payload: { eventOrder: 7 } });
+    razorclawReaction.taskHandlers['revenant.razorclaw-proc'](context, { payload: { eventOrder: 7 } });
     assert.deepEqual(grant, { charges: 2, expiresAt: 10, readyAt: 0 });
     assert.deepEqual(context.events, []);
   }

@@ -25,15 +25,13 @@ import {
   RENEGADE_SPIRIT_BOON_PROFILE_ID
 } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import {
-  handleRenegadeCriticalTraitsTask,
-  handleRazorclawProcTask,
+  renegadeCriticalReaction,
+  razorclawReaction,
   initializeRenegadeTraits,
   applyAshenDemeanor,
   modifyRenegadeCastDuration,
   modifyRenegadeRechargeDuration,
-  observeRenegadeTraits,
-  RENEGADE_CRITICAL_TRAITS_TASK,
-  RENEGADE_RAZORCLAW_PROC_TASK
+  observeRenegadeTraits
 } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
@@ -246,7 +244,7 @@ export const renegadeSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     'revenant.soulcleave-allied-proc': handleSoulcleaveAlliedProc,
-    [RENEGADE_CRITICAL_TRAITS_TASK]: handleRenegadeCriticalTraitsTask,
-    [RENEGADE_RAZORCLAW_PROC_TASK]: handleRazorclawProcTask
+    ...renegadeCriticalReaction.taskHandlers,
+    ...razorclawReaction.taskHandlers
   })
 });

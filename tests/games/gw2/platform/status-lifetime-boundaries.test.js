@@ -35,7 +35,7 @@ import {
   completeVindicatorDodge
 } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { handleGaleshotMissileHitTask } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { galeshotMissileReaction } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { galeshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { handleNecromancerPainfulBond } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { minionActions } from '#gw2/professions/necromancer/core/mechanics/minions.js';
@@ -285,7 +285,7 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
   ]) {
     const context = contextFor(rangerProfession, 'Galeshot');
     specialization(context).mistralUntil = deadline;
-    handleGaleshotMissileHitTask(context, { at, payload: {} });
+    galeshotMissileReaction.taskHandlers['ranger.galeshot-missile-hit'](context, { at, payload: {} });
     assert.equal(
       context.events.some((event) => event.skillName === 'Mistral'),
       active

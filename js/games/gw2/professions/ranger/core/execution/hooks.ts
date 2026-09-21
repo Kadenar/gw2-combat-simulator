@@ -17,8 +17,7 @@ import { prepareRangerTrapEvent, triggerRangerPrecastTrap } from '#gw2/professio
 import {
   completeRangerWeaponSkill,
   beginRangerStealthAttack,
-  observeRangerStealthEvent,
-  rangerWeaponTaskHandlers,
+  rangerStealthReaction,
   updateRangerWeaponState
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
@@ -55,10 +54,10 @@ export const rangerCoreExecutionHooks = Object.freeze({
     handler(context: RangerSchedulerContext, event: SimulationEvent): void {
       triggerRangerPrecastTrap(context, event);
       observeRangerPetEvent(context, event);
-      observeRangerStealthEvent(context, event);
+      rangerStealthReaction.onEventScheduled.handler(context, event);
     }
   },
-  taskHandlers: { ...rangerPetTaskHandlers, ...rangerWeaponTaskHandlers },
+  taskHandlers: { ...rangerPetTaskHandlers, ...rangerStealthReaction.taskHandlers },
   snapshot: (context: RangerSchedulerContext) => snapshotRangerState(context.state.profession),
   afterCast: {
     id: 'ranger.weapon-state',

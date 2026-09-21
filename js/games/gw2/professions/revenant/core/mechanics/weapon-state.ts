@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -16,23 +17,28 @@ import type {
 } from '#gw2/professions/revenant/types.js';
 
 /** Resets Coalescence of Ruin when Drop the Hammer's delayed strike lands. */
-export function observeRevenantWeaponEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (event.type !== 'damage' || event.skillId !== ID.DROP_THE_HAMMER || Number(event.coefficient || 0) <= 0) {
-    return;
+export const dropTheHammerReaction = scheduledReaction<
+  RevenantSchedulerContext,
+  RevenantSimulationEvent,
+  Record<string, never>
+>({
+  id: 'revenant.drop-the-hammer-reset',
+  order: 0,
+  select(_context, event) {
+    if (event.type !== 'damage' || event.skillId !== ID.DROP_THE_HAMMER || Number(event.coefficient || 0) <= 0) {
+      return null;
+    }
+
+    return {
+      id: `revenant.drop-the-hammer-reset:${event.eventOrder}`,
+      at: event.at,
+      payload: {}
+    };
+  },
+  execute(context) {
+    context.state.cooldowns.delete(ID.COALESCENCE_OF_RUIN);
   }
-
-  context.tasks.schedule({
-    id: `revenant.drop-the-hammer-reset:${event.eventOrder}`,
-    type: 'revenant.drop-the-hammer-reset',
-    at: event.at,
-    payload: {}
-  });
-}
-
-/** Applies Drop the Hammer's on-hit Coalescence recharge. */
-export function resetCoalescenceOfRuin(context: RevenantSchedulerContext, _task: RevenantScheduledTask): void {
-  context.state.cooldowns.delete(ID.COALESCENCE_OF_RUIN);
-}
+});
 
 const IMPERIAL_GUARD_OWNER = 'revenant.imperial-guard';
 const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({

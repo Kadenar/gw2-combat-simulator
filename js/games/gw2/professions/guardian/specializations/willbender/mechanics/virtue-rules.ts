@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -386,158 +387,161 @@ function handleWillbenderFlamePulse(
   }
 }
 
-function handleWillbenderVirtueHit(
-  context: GuardianSchedulerContext,
-  task: ScheduledTask<{
-    readonly activationId?: SimulationEvent['activationId'];
-    readonly sourceSkillId?: SimulationEvent['skillId'];
-    readonly sourceSkillName?: SimulationEvent['skillName'];
-  }>
-): void {
-  const payload = task.payload;
-  if (!payload) return;
-  const at = Number(task.at);
-  const state = willbenderState.from(context);
-  const sourceSkill = String(payload.sourceSkillName || '');
-  const boonSourceSkill =
-    context.catalog.skillsByName.get(sourceSkill) ||
-    ({ id: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO, name: sourceSkill || 'Willbender Virtue' } as GuardianSkill);
-
-  // Materialize one completed virtue hit cycle, resetting its counter before
-  // emitting Lethal Tempo, cooldown reductions, and virtue-specific boons.
-  const triggerVirtue = (virtue: GuardianVirtue, burningDuration?: number, justiceActive?: boolean): void => {
-    state.triggeredVirtueEffects += 1;
-    emitLethalTempo(context, at, sourceSkill);
-
-    // Grant one party Might packet for the completed virtue trigger, never for the activation that opened its window.
-    if (hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
-      const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon');
-      emitSkillBuff(context, {
-        at,
-        source: 'guardian',
-        sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-        actorType: 'player',
-        skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-        skillName: 'Holy Reckoning',
-        name: 'Holy Reckoning — Might',
-        kind: 'might',
-        stacks: Number(might?.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'might', Number(might?.duration ?? 15)),
-        audience: { recipients: 'party' as const },
-        triggeredBy: sourceSkill
-      });
+/** Capture observation-time data and apply local state changes only when the queue reaches the impact. */
+export const willbenderVirtueHitReaction = scheduledReaction<
+  GuardianSchedulerContext,
+  SimulationEvent,
+  {
+    readonly activationId: SimulationEvent['activationId'];
+    readonly sourceSkillId: SimulationEvent['skillId'];
+    readonly sourceSkillName: SimulationEvent['skillName'];
+  }
+>({
+  id: 'guardian.willbender-virtue-hit',
+  order: 40,
+  select(_context, event) {
+    // Only landed player-owned strikes count as virtue hits. Sigil of Air is the sole
+    // non-player-actor source explicitly permitted because its proc is considered
+    // "player damage" in-game even though its actor classification differs.
+    if (
+      event.type !== 'damage' ||
+      event.offTarget === true ||
+      !(Number(event.coefficient || 0) > 0) ||
+      (!isGw2PlayerActorEvent(event) && event.sourceId !== 'sigil.air')
+    ) {
+      return null;
     }
 
-    let cooldownReduction = 0;
-    if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
-      cooldownReduction = reduceActiveWeaponCooldowns(context, at);
-      if (cooldownReduction > 0) {
-        emitGuardianProc(context, {
-          name: 'Restorative Virtues',
-          at,
-          sourceSkill,
-          detail: `${Number(cooldownReduction.toFixed(3))}s weapon recharge`,
-          icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)
-        });
+    return {
+      // eventOrder (monotone emission index) is preferred over at because multiple events
+      // can share the same timestamp; using at alone would collapse them into one task id.
+      id: `guardian.willbender-virtue-hit:${String(event.eventOrder ?? event.at)}`,
+      at: Number(event.at),
+      payload: {
+        activationId: event.activationId,
+        sourceSkillId: event.skillId,
+        sourceSkillName: event.skillName
       }
-    }
+    };
+    return null;
+  },
+  execute(context, taskAt, payload) {
+    const at = Number(taskAt);
+    const state = willbenderState.from(context);
+    const sourceSkill = String(payload.sourceSkillName || '');
+    const boonSourceSkill =
+      context.catalog.skillsByName.get(sourceSkill) ||
+      ({ id: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO, name: sourceSkill || 'Willbender Virtue' } as GuardianSkill);
 
-    context.emit({
-      type: 'guardian.willbender-virtue-triggered',
-      at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
-      actorType: 'player',
-      virtue,
-      sourceSkill,
-      cooldownReduction,
-      ...(burningDuration == null ? {} : { burningDuration }),
-      ...(justiceActive == null ? {} : { justiceActive })
-    });
-    if (virtue === 'courage') {
-      const courage = balanceProfileFromContext(context, PROFILE.courageTrigger);
-      for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
-        const kind = String(boon.boon || '');
+    // Materialize one completed virtue hit cycle, resetting its counter before
+    // emitting Lethal Tempo, cooldown reductions, and virtue-specific boons.
+    const triggerVirtue = (virtue: GuardianVirtue, burningDuration?: number, justiceActive?: boolean): void => {
+      state.triggeredVirtueEffects += 1;
+      emitLethalTempo(context, at, sourceSkill);
+
+      // Grant one party Might packet for the completed virtue trigger, never for the activation that opened its window.
+      if (hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
+        const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon');
         emitSkillBuff(context, {
           at,
           source: 'guardian',
-          sourceId: ID.CRASHING_COURAGE,
+          sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
           actorType: 'player',
-          skillId: ID.CRASHING_COURAGE,
-          skillName: 'Crashing Courage',
-          name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
-          kind,
-          stacks: Number(boon.stacks ?? 1),
-          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration ?? 4)),
+          skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+          skillName: 'Holy Reckoning',
+          name: 'Holy Reckoning — Might',
+          kind: 'might',
+          stacks: Number(might?.stacks ?? 1),
+          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'might', Number(might?.duration ?? 15)),
+          audience: { recipients: 'party' as const },
           triggeredBy: sourceSkill
         });
       }
-    }
 
-    if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
-      const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon', 1);
-      emitSkillBuff(context, {
+      let cooldownReduction = 0;
+      if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
+        cooldownReduction = reduceActiveWeaponCooldowns(context, at);
+        if (cooldownReduction > 0) {
+          emitGuardianProc(context, {
+            name: 'Restorative Virtues',
+            at,
+            sourceSkill,
+            detail: `${Number(cooldownReduction.toFixed(3))}s weapon recharge`,
+            icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)
+          });
+        }
+      }
+
+      context.emit({
+        type: 'guardian.willbender-virtue-triggered',
         at,
         source: 'guardian',
-        sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+        sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
         actorType: 'player',
-        skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-        skillName: 'Phoenix Protocol',
-        name: 'Phoenix Protocol — Alacrity',
-        kind: 'alacrity',
-        stacks: Number(alacrity?.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration ?? 1)),
-        audience: {
-          recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
-        },
-        triggeredBy: sourceSkill
+        virtue,
+        sourceSkill,
+        cooldownReduction,
+        ...(burningDuration == null ? {} : { burningDuration }),
+        ...(justiceActive == null ? {} : { justiceActive })
       });
+      if (virtue === 'courage') {
+        const courage = balanceProfileFromContext(context, PROFILE.courageTrigger);
+        for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
+          const kind = String(boon.boon || '');
+          emitSkillBuff(context, {
+            at,
+            source: 'guardian',
+            sourceId: ID.CRASHING_COURAGE,
+            actorType: 'player',
+            skillId: ID.CRASHING_COURAGE,
+            skillName: 'Crashing Courage',
+            name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
+            kind,
+            stacks: Number(boon.stacks ?? 1),
+            duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration ?? 4)),
+            triggeredBy: sourceSkill
+          });
+        }
+      }
+
+      if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
+        const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon', 1);
+        emitSkillBuff(context, {
+          at,
+          source: 'guardian',
+          sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+          actorType: 'player',
+          skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+          skillName: 'Phoenix Protocol',
+          name: 'Phoenix Protocol — Alacrity',
+          kind: 'alacrity',
+          stacks: Number(alacrity?.stacks ?? 1),
+          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration ?? 1)),
+          audience: {
+            recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
+          },
+          triggeredBy: sourceSkill
+        });
+      }
+    };
+
+    for (const virtue of ['justice', 'resolve', 'courage'] as const) {
+      // Match strike-before-expiry semantics; zero is an unarmed window, not an expiry-tick grant.
+      const until = state[`${virtue}Until`];
+      if (until <= 0 || at > until) continue;
+      state.virtueHitCounts[virtue] += 1;
+      // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
+      // only for justice; resolve and courage always require 5 hits.
+      const triggerHits =
+        virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+          ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold ?? 3)
+          : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold ?? 5);
+      if (state.virtueHitCounts[virtue] < triggerHits) continue;
+      state.virtueHitCounts[virtue] = 0;
+      triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);
     }
-  };
-
-  for (const virtue of ['justice', 'resolve', 'courage'] as const) {
-    // Match strike-before-expiry semantics; zero is an unarmed window, not an expiry-tick grant.
-    const until = state[`${virtue}Until`];
-    if (until <= 0 || at > until) continue;
-    state.virtueHitCounts[virtue] += 1;
-    // Permeating Wrath halves the justice trigger threshold (3 hits vs 5) but
-    // only for justice; resolve and courage always require 5 hits.
-    const triggerHits =
-      virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-        ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold ?? 3)
-        : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold ?? 5);
-    if (state.virtueHitCounts[virtue] < triggerHits) continue;
-    state.virtueHitCounts[virtue] = 0;
-    triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);
   }
-}
-
-function observeWillbenderEvent(context: GuardianSchedulerContext, event: SimulationEvent): void {
-  // Only landed player-owned strikes count as virtue hits. Sigil of Air is the sole
-  // non-player-actor source explicitly permitted because its proc is considered
-  // "player damage" in-game even though its actor classification differs.
-  if (
-    event.type !== 'damage' ||
-    event.offTarget === true ||
-    !(Number(event.coefficient || 0) > 0) ||
-    (!isGw2PlayerActorEvent(event) && event.sourceId !== 'sigil.air')
-  ) {
-    return;
-  }
-
-  context.tasks.schedule({
-    // eventOrder (monotone emission index) is preferred over at because multiple events
-    // can share the same timestamp; using at alone would collapse them into one task id.
-    id: `guardian.willbender-virtue-hit:${String(event.eventOrder ?? event.at)}`,
-    type: 'guardian.willbender-virtue-hit',
-    at: Number(event.at),
-    payload: {
-      activationId: event.activationId,
-      sourceSkillId: event.skillId,
-      sourceSkillName: event.skillName
-    }
-  });
-}
+});
 
 /** Runs Willbender mechanics owned by one completed skill activation. */
 export const willbenderSkillMechanicHandlers = Object.freeze({
@@ -559,12 +563,12 @@ export const willbenderSchedulerHooks = Object.freeze({
     {
       id: 'guardian.willbender-virtue-hits',
       order: 40,
-      handler: observeWillbenderEvent
+      handler: willbenderVirtueHitReaction.onEventScheduled.handler
     }
   ]),
   taskHandlers: Object.freeze({
     'guardian.willbender-flame-activate': handleWillbenderFlameActivation,
     'guardian.willbender-flame-pulse': handleWillbenderFlamePulse,
-    'guardian.willbender-virtue-hit': handleWillbenderVirtueHit
+    ...willbenderVirtueHitReaction.taskHandlers
   })
 });

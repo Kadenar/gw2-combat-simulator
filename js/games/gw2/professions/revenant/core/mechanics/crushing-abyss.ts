@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns Crushing Abyss stacks, recharge tasks, and weapon-swap state across spear casts. */
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -17,7 +18,6 @@ import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js'
 
 const RECHARGE_TASK = 'revenant.abyssal-raze-recharge';
 export const CRUSHING_GAIN_TASK = 'revenant.crushing-abyss-gain';
-const CRUSHING_SWAP_TASK = 'revenant.crushing-abyss-weapon-swap';
 
 function activeCrushingAbyss(state: RevenantCoreState, at: number): number[] {
   state.crushingAbyss = purgeExpiredStacks(state.crushingAbyss || [], at);
@@ -37,59 +37,54 @@ function sameWeaponSet(config: RevenantConfig, first: number, second: number): b
   return JSON.stringify(weaponSet(config, first)) === JSON.stringify(weaponSet(config, second));
 }
 
-/** Schedules a recharge reduction from the first qualifying spear strike packet. */
-export function scheduleAbyssalRazeRechargeReduction(
-  context: RevenantSchedulerContext,
-  skill: RevenantSkill,
-  event: RevenantSimulationEvent
-): void {
-  const seconds = Number(skill.rechargeReduction || 0);
-  if (!seconds || event.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
-  context.tasks.schedule({
-    id: `${RECHARGE_TASK}:${event.eventOrder ?? event.at}`,
-    type: RECHARGE_TASK,
-    at: event.at,
-    payload: {
-      seconds,
-      sourceSkillId: skill.id,
-      sourceSkillName: skill.name
-    }
-  });
-}
-
-/** Applies a hit-confirmed reduction to the active Abyssal Raze count recharge. */
-export function handleAbyssalRazeRechargeReduction(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{
-    seconds: number;
-    sourceSkillId: SkillId;
-    sourceSkillName: string;
-  }>
-): void {
-  if (!task.payload) return;
-  const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
-  const sourceSkill = context.catalog.skillsById.get(task.payload.sourceSkillId);
-  if (!skill || !(Number(skill.ammoRecharge) > 0)) return;
-  // Spear reductions are authored in base seconds; the shared controller converts them to tracked recharge time.
-  const reducedBy = context.cooldownController.reduceSkillRecharge(skill, task.payload.seconds, task.at);
-  if (reducedBy <= 0) return;
-  const cooldownReduction = Number(reducedBy.toFixed(3));
-  context.emit({
-    type: 'proc',
-    procType: 'skill',
-    at: task.at,
-    source: 'revenant',
-    sourceId: task.payload.sourceSkillId,
-    actorType: 'player',
-    skillId: task.payload.sourceSkillId,
-    skillName: task.payload.sourceSkillName,
-    sourceSkill: sourceSkill?.name || task.payload.sourceSkillName,
-    icon: sourceSkill?.icon || '',
-    name: `${task.payload.sourceSkillName} — Abyssal Raze recharge`,
-    detail: `${cooldownReduction}s`,
-    cooldownReduction
-  });
-}
+/** Capture authored recharge seconds at the committed hit, then reduce the live recharge at impact. */
+export const abyssalRazeRechargeReaction = scheduledReaction<
+  RevenantSchedulerContext,
+  {
+    readonly skill: RevenantSkill;
+    readonly event: RevenantSimulationEvent;
+  },
+  { readonly seconds: number; readonly sourceSkillId: SkillId; readonly sourceSkillName: string }
+>({
+  id: RECHARGE_TASK,
+  select(_context, { skill, event }) {
+    const seconds = Number(skill.rechargeReduction || 0);
+    if (!seconds || event.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return null;
+    return {
+      id: `${RECHARGE_TASK}:${event.eventOrder ?? event.at}`,
+      at: event.at,
+      payload: {
+        seconds,
+        sourceSkillId: skill.id,
+        sourceSkillName: skill.name
+      }
+    };
+  },
+  execute(context, at, payload) {
+    const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
+    const sourceSkill = context.catalog.skillsById.get(payload.sourceSkillId);
+    if (!skill || !(Number(skill.ammoRecharge) > 0)) return;
+    // Spear reductions are authored in base seconds; the shared controller converts them to tracked recharge time.
+    const reducedBy = context.cooldownController.reduceSkillRecharge(skill, payload.seconds, at);
+    if (reducedBy <= 0) return;
+    const cooldownReduction = Number(reducedBy.toFixed(3));
+    context.emit({
+      type: 'proc',
+      procType: 'skill',
+      at: at,
+      source: 'revenant',
+      sourceId: payload.sourceSkillId,
+      actorType: 'player',
+      skillId: payload.sourceSkillId,
+      skillName: payload.sourceSkillName,
+      sourceSkill: sourceSkill?.name || payload.sourceSkillName,
+      icon: sourceSkill?.icon || '',
+      name: `${payload.sourceSkillName} — Abyssal Raze recharge`,
+      detail: `${cooldownReduction}s`,
+      cooldownReduction
+    });
+  }
+});
 
 /** Grants one Crushing Abyss stack at the delayed impact, up to the skill maximum. */
 export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
@@ -137,29 +132,18 @@ export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task:
   emitRevenantStateSnapshot(context, task.at, 'crushing-abyss-gain');
 }
 
-/** Queues a max-stack weapon-swap check at the swap's completion time. */
-export function observeRevenantSpearEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
-  if (event.type !== 'weapon_set' || event.skillId !== ID.SWAP_WEAPONS) return;
-  context.tasks.schedule({
-    id: `${CRUSHING_SWAP_TASK}:${event.eventOrder ?? event.at}`,
-    type: CRUSHING_SWAP_TASK,
-    at: event.at,
-    payload: { weaponSet: event.weaponSet }
-  });
-}
-
 /** Consumes max stacks only when swapping to a genuinely different weapon set. */
 export function consumeCrushingAbyssWeaponSwap(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ weaponSet?: number }>
+  at: number,
+  weaponSet: number | undefined
 ): { skill: RevenantSkill; stacks: number } | null {
-  if (!task.payload) return null;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE) as RevenantSkill | undefined;
   if (!skill) return null;
   const maximum = Math.max(0, Number(skill.maximumStacks || 0));
-  const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
+  const stacks = activeCrushingAbyss(professionCoreState(context), at);
   if (stacks.length < maximum) return null;
-  const destination = Number(task.payload.weaponSet) === 2 ? 2 : 1;
+  const destination = Number(weaponSet) === 2 ? 2 : 1;
   if (sameWeaponSet(context.config, destination === 2 ? 1 : 2, destination)) return null;
   professionCoreState(context).crushingAbyss = [];
   return { skill, stacks: maximum };

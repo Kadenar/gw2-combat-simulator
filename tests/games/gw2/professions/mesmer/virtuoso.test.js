@@ -7,21 +7,15 @@ import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotat
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { observeMesmerEvent } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
-import {
-  handleVirtuosoExpectedProcTask,
-  observeVirtuosoExpectedProcEvent
-} from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
-import {
-  handleDeadlyBladesCriticalTask,
-  observeDeadlyBladesEvent
-} from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
+import { jaggedMindReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
+import { deadlyBladesReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
 
 test('clone metadata keeps delayed critical tasks cancellable by their owner', () => {
   // Destroying one clone cancels its reactions while leaving another clone's work queued.
   for (const [observe, type, actorType] of [
     [observeMesmerEvent, 'mesmer.expected-proc', 'summon'],
-    [observeVirtuosoExpectedProcEvent, 'mesmer.virtuoso-expected-proc', 'summon'],
-    [observeDeadlyBladesEvent, 'mesmer.deadly-blades-critical', 'player']
+    [jaggedMindReaction.onEventScheduled.handler, 'mesmer.virtuoso-expected-proc', 'summon'],
+    [deadlyBladesReaction.onEventScheduled.handler, 'mesmer.deadly-blades-critical', 'player']
   ]) {
     const processed = [];
     const tasks = createTaskQueue({ handlers: { [type]: (_context, task) => processed.push(task) } });
@@ -75,8 +69,8 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
     const emitted = [];
     const tasks = createTaskQueue({
       handlers: {
-        'mesmer.virtuoso-expected-proc': handleVirtuosoExpectedProcTask,
-        'mesmer.deadly-blades-critical': handleDeadlyBladesCriticalTask
+        ...jaggedMindReaction.taskHandlers,
+        ...deadlyBladesReaction.taskHandlers
       }
     });
     const context = {
@@ -107,8 +101,8 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
         return event;
       }
     };
-    observeVirtuosoExpectedProcEvent(context, original);
-    observeDeadlyBladesEvent(context, original);
+    jaggedMindReaction.onEventScheduled.handler(context, original);
+    deadlyBladesReaction.onEventScheduled.handler(context, original);
     current = Object.freeze({
       ...original,
       ...(blade === undefined ? {} : { metadata: { blade } }),
@@ -142,8 +136,14 @@ test('Virtuoso critical tasks reject missing canonical events', () => {
   // An identity-only task cannot silently fall back to stale event data when its scheduler contract is broken.
   const context = { mesmerRuntime: {}, eventByOrder: () => undefined };
   const task = { at: 1, payload: { type: 'blade', eventOrder: 7 } };
-  assert.throws(() => handleVirtuosoExpectedProcTask(context, task), /requires a scheduled event/);
-  assert.throws(() => handleDeadlyBladesCriticalTask(context, task), /requires a scheduled event/);
+  assert.throws(
+    () => jaggedMindReaction.taskHandlers['mesmer.virtuoso-expected-proc'](context, task),
+    /requires a scheduled event/
+  );
+  assert.throws(
+    () => deadlyBladesReaction.taskHandlers['mesmer.deadly-blades-critical'](context, task),
+    /requires a scheduled event/
+  );
 });
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.

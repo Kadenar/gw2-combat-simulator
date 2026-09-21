@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -56,10 +57,7 @@ import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/buil
 const SPHERE_COST = 10;
 const SPHERE_SPECIALIST_DURATION_MULTIPLIER = 1.5;
 const SPECTACULAR_SPHERE_QUICKNESS_DURATION = 2;
-const CATALYST_ENERGY_HIT_TASK = 'elementalist.catalyst-energy-hit';
-const CATALYST_EMPOWERMENT_TASK = 'elementalist.catalyst-empowerment';
 const CATALYST_BASE_EMPOWERMENT_TASK = 'elementalist.catalyst-base-empowerment';
-const CATALYST_VICIOUS_EMPOWERMENT_TASK = 'elementalist.catalyst-vicious-empowerment';
 const CATALYST_BASE_EMPOWERMENT_STACKS = 3;
 const CATALYST_BASE_EMPOWERMENT_DURATION = 15;
 
@@ -413,29 +411,46 @@ function scheduleBaseElementalEmpowerment(context: ElementalistSchedulerContext,
   }
 }
 
-function scheduleExternalElementalEmpowerment(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
-  // Untracked empowerment buffs are folded into the timed stack list; buffs already
-  // flagged as tracked were counted when this module emitted them.
-  if (
-    event.type === 'buff' &&
-    String(event.kind || '').toLowerCase() === 'elemental empowerment' &&
-    event.resolvedAudience?.includesSelf &&
-    event.elementalEmpowermentTracked !== true
-  ) {
-    context.tasks.schedule({
-      type: CATALYST_EMPOWERMENT_TASK,
-      at: Math.max(context.state.time, event.at),
-      payload: {
-        applicationAt: event.at,
-        duration: Number(event.duration || 0),
-        stacks: Number(event.stacks || 1)
-      }
-    });
-    return true;
-  }
+// Folds an observed empowerment buff into the timed stack list at its original
+// application time rather than the time the task runs.
+export const externalEmpowermentReaction = scheduledReaction<
+  ElementalistSchedulerContext,
+  SimulationEvent,
+  { readonly applicationAt: number; readonly duration: number; readonly stacks: number }
+>({
+  id: 'elementalist.catalyst-empowerment',
+  order: 0,
+  select(context, event) {
+    // Untracked empowerment buffs are folded into the timed stack list; buffs already
+    // flagged as tracked were counted when this module emitted them.
+    if (
+      event.type === 'buff' &&
+      String(event.kind || '').toLowerCase() === 'elemental empowerment' &&
+      event.resolvedAudience?.includesSelf &&
+      event.elementalEmpowermentTracked !== true
+    ) {
+      return {
+        at: Math.max(context.state.time, event.at),
+        payload: {
+          applicationAt: event.at,
+          duration: Number(event.duration || 0),
+          stacks: Number(event.stacks || 1)
+        }
+      };
+    }
 
-  return false;
-}
+    return null;
+  },
+  execute(context, _at, payload) {
+    grantCatalystElementalEmpowerment(
+      catalystState.from(context),
+      payload.applicationAt,
+      payload.duration,
+      payload.stacks,
+      maximumEmpowerment(context)
+    );
+  }
+});
 
 function applyElementalEpitomeAura(context: ElementalistSchedulerContext, event: SimulationEvent): boolean {
   // Elemental Epitome's other half: an aura gain also grants an empowerment stack.
@@ -572,97 +587,112 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
   return false;
 }
 
-function scheduleViciousEmpowerment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  // Player control effects and immobilize feed Vicious Empowerment through a task so
-  // the internal cooldown is evaluated in scheduler order.
-  const immobilize =
-    event.type === 'condition' && ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
-  if (
-    hasTrait(context, 'Vicious Empowerment') &&
-    event.actorType === 'player' &&
-    (event.type === 'control' || immobilize)
-  ) {
-    context.tasks.schedule({
-      type: CATALYST_VICIOUS_EMPOWERMENT_TASK,
-      at: Math.max(context.state.time, event.at),
-      payload: { applicationAt: event.at }
+// Grants the Vicious Empowerment stacks for a control or immobilize proc, ignoring
+// pre-combat events and honouring the shared internal cooldown.
+export const viciousEmpowermentReaction = scheduledReaction<
+  ElementalistSchedulerContext,
+  SimulationEvent,
+  { readonly applicationAt: number }
+>({
+  id: 'elementalist.catalyst-vicious-empowerment',
+  order: 0,
+  select(context, event) {
+    // Player control effects and immobilize feed Vicious Empowerment through a task so
+    // the internal cooldown is evaluated in scheduler order.
+    const immobilize =
+      event.type === 'condition' && ['Immobilize', 'Immobilized'].includes(String(event.condition || ''));
+    if (
+      hasTrait(context, 'Vicious Empowerment') &&
+      event.actorType === 'player' &&
+      (event.type === 'control' || immobilize)
+    ) {
+      return {
+        at: Math.max(context.state.time, event.at),
+        payload: { applicationAt: event.at }
+      };
+    }
+
+    return null;
+  },
+  execute(context, _at, payload) {
+    const at = payload.applicationAt;
+    if (context.combatStartTime != null && at < context.combatStartTime) return;
+    const state = catalystState.from(context);
+    if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
+    state.viciousEmpowermentReadyAt =
+      at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
+    const empowerment = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'buff', 0, 'Empowerment');
+    grantCatalystElementalEmpowerment(
+      state,
+      at,
+      Number(empowerment?.duration ?? 15),
+      Number(empowerment?.stacks ?? 2),
+      maximumEmpowerment(context)
+    );
+  }
+});
+
+// Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless
+// Sphere Specialist is taken.
+export const catalystEnergyReaction = scheduledReaction<
+  ElementalistSchedulerContext,
+  SimulationEvent,
+  { readonly sourceId: SimulationEvent['sourceId']; readonly skillName: string }
+>({
+  id: 'elementalist.catalyst-energy-hit',
+  order: 0,
+  select(_context, event) {
+    // Anything left that is a damaging non-summon hit earns energy; the task is attributed
+    // to the owning activation.
+    if (event.type !== 'damage' || event.actorType === 'summon' || !(Number(event.coefficient) > 0)) {
+      return null;
+    }
+
+    return {
+      at: event.at,
+      ownerId: String(event.activationId || event.sourceId || event.skillName),
+      payload: {
+        sourceId: event.skillId ?? event.sourceId,
+        skillName: String(event.skillName || 'Catalyst Energy')
+      }
+    };
+  },
+  execute(context, taskAt, payload) {
+    const state = catalystState.from(context);
+    if (taskAt < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
+      return;
+    }
+
+    const before = state.energy;
+    const energyGain = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 1);
+    state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
+    if (state.energy === before) return;
+    context.emit({
+      type: 'resource',
+      at: taskAt,
+      source: 'Catalyst Energy',
+      sourceId: String(payload.sourceId || 'catalyst-energy'),
+      actorType: 'player',
+      skillName: String(payload.skillName || 'Catalyst Energy'),
+      kind: 'catalyst-energy',
+      value: state.energy,
+      maximum: maximumEnergy(context),
+      change: energyGain
     });
   }
-}
-
-function scheduleCatalystEnergyHit(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  // Anything left that is a damaging non-summon hit earns energy; the task is attributed
-  // to the owning activation.
-  if (event.type !== 'damage' || event.actorType === 'summon' || !(Number(event.coefficient) > 0)) {
-    return;
-  }
-
-  context.tasks.schedule({
-    type: CATALYST_ENERGY_HIT_TASK,
-    at: event.at,
-    ownerId: String(event.activationId || event.sourceId || event.skillName),
-    payload: {
-      sourceId: event.skillId ?? event.sourceId,
-      skillName: String(event.skillName || 'Catalyst Energy')
-    }
-  });
-}
+});
 
 // Consume the canonical event stream to update Catalyst energy and trait state,
 // filtering packet ownership so multi-hit and generated effects do not double-proc.
 function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   applyEmpoweringAuras(context, event);
   scheduleBaseElementalEmpowerment(context, event);
-  if (scheduleExternalElementalEmpowerment(context, event)) return;
+  if (externalEmpowermentReaction.onEventScheduled.handler(context, event)) return;
   if (applyElementalEpitomeAura(context, event)) return;
   if (applyEnergizedElements(context, event)) return;
   if (applyCatalystComboTraits(context, event)) return;
-  scheduleViciousEmpowerment(context, event);
-  scheduleCatalystEnergyHit(context, event);
-}
-
-// Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless
-// Sphere Specialist is taken.
-function handleCatalystEnergyHit(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly sourceId: SimulationEvent['sourceId']; readonly skillName: string }>
-): void {
-  const state = catalystState.from(context);
-  if (task.at < state.sphereActiveUntil && !hasTrait(context, 'Sphere Specialist')) {
-    return;
-  }
-
-  const before = state.energy;
-  const energyGain = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 1);
-  state.energy = Math.min(maximumEnergy(context), state.energy + energyGain);
-  if (state.energy === before) return;
-  context.emit({
-    type: 'resource',
-    at: task.at,
-    source: 'Catalyst Energy',
-    sourceId: String(task.payload?.sourceId || 'catalyst-energy'),
-    actorType: 'player',
-    skillName: String(task.payload?.skillName || 'Catalyst Energy'),
-    kind: 'catalyst-energy',
-    value: state.energy,
-    maximum: maximumEnergy(context),
-    change: energyGain
-  });
-}
-
-// Folds an observed empowerment buff into the timed stack list at its original
-// application time rather than the time the task runs.
-function handleCatalystEmpowerment(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly applicationAt: number; readonly duration: number; readonly stacks: number }>
-): void {
-  grantCatalystElementalEmpowerment(
-    catalystState.from(context),
-    Number(task.payload?.applicationAt ?? task.at),
-    Number(task.payload?.duration || 0),
-    Number(task.payload?.stacks || 1),
-    maximumEmpowerment(context)
-  );
+  viciousEmpowermentReaction.onEventScheduled.handler(context, event);
+  catalystEnergyReaction.onEventScheduled.handler(context, event);
 }
 
 // Apply a scheduled base Elemental Empowerment stack with its original
@@ -704,28 +734,6 @@ function handleBaseEmpowerment(
       applicationAt: at + duration
     }
   });
-}
-
-// Grants the Vicious Empowerment stacks for a control or immobilize proc, ignoring
-// pre-combat events and honouring the shared internal cooldown.
-function handleViciousEmpowerment(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly applicationAt: number }>
-): void {
-  const at = Number(task.payload?.applicationAt ?? task.at);
-  if (context.combatStartTime != null && at < context.combatStartTime) return;
-  const state = catalystState.from(context);
-  if (!isInternalCooldownReady(at, state.viciousEmpowermentReadyAt)) return;
-  state.viciousEmpowermentReadyAt =
-    at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
-  const empowerment = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'buff', 0, 'Empowerment');
-  grantCatalystElementalEmpowerment(
-    state,
-    at,
-    Number(empowerment?.duration ?? 15),
-    Number(empowerment?.stacks ?? 2),
-    maximumEmpowerment(context)
-  );
 }
 
 /**
@@ -778,9 +786,9 @@ export const catalystSchedulerHooks = Object.freeze({
     handler: onEventScheduled
   },
   taskHandlers: Object.freeze({
-    [CATALYST_ENERGY_HIT_TASK]: handleCatalystEnergyHit,
-    [CATALYST_EMPOWERMENT_TASK]: handleCatalystEmpowerment,
+    ...catalystEnergyReaction.taskHandlers,
+    ...externalEmpowermentReaction.taskHandlers,
     [CATALYST_BASE_EMPOWERMENT_TASK]: handleBaseEmpowerment,
-    [CATALYST_VICIOUS_EMPOWERMENT_TASK]: handleViciousEmpowerment
+    ...viciousEmpowermentReaction.taskHandlers
   })
 });

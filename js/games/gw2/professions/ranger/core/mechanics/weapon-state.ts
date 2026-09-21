@@ -2,8 +2,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
@@ -39,28 +38,25 @@ export function beginRangerStealthAttack(context: RangerCastContext, skill: Rang
   state.revealedUntil = context.start + 3;
 }
 
-/** Apply stealth and strike-driven Revealed at their event times, including delayed traps and smoke combos. */
-export function observeRangerStealthEvent(context: RangerSchedulerContext, event: SimulationEvent): void {
-  const stealth = event.type === 'buff' && event.kind === 'stealth' && event.resolvedAudience?.includesSelf;
-  const strike = event.type === 'damage' && (event.actorType === 'player' || event.ownerActorType === 'player');
-  if ((!stealth && !strike) || event.cancelled === true || event.offTarget === true) return;
-  context.tasks.schedule({
-    type: 'ranger.stealth-event',
-    at: event.at,
-    // A hit that grants stealth (Hunter's Shot or a smoke leap) resolves before its own stealth application.
-    priority: stealth ? 10 : 0,
-    ownerId: event.activationId,
-    payload: { eventOrder: event.eventOrder }
-  });
-}
-
-export const rangerWeaponTaskHandlers = Object.freeze({
-  'ranger.stealth-event': (
-    context: RangerSchedulerContext,
-    task: ScheduledTask<{ readonly eventOrder: SimulationEvent['eventOrder'] }>
-  ): void => {
-    const event = context.eventByOrder(Number(task.payload?.eventOrder));
-    if (!event || event.cancelled === true || event.offTarget === true) return;
+/** Apply stealth and Revealed at impact, reading replacements before changing weapon state. */
+export const rangerStealthReaction = eventReaction<RangerSchedulerContext>({
+  id: 'ranger.stealth-event',
+  order: 10,
+  missingEvent: 'skip',
+  select(_context, event) {
+    const stealth = event.type === 'buff' && event.kind === 'stealth' && event.resolvedAudience?.includesSelf;
+    const strike = event.type === 'damage' && (event.actorType === 'player' || event.ownerActorType === 'player');
+    if ((!stealth && !strike) || event.cancelled === true || event.offTarget === true) return null;
+    return {
+      at: event.at,
+      // The granting strike resolves before its own stealth application.
+      priority: stealth ? 10 : 0,
+      ownerId: event.activationId,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, event) {
+    if (event.cancelled === true || event.offTarget === true) return;
     const state = professionCoreState(context);
     if (event.type === 'buff') {
       if (state.revealedUntil <= event.at) {

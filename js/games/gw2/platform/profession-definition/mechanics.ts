@@ -18,6 +18,7 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 export { timedEffect } from '#gw2/platform/execution/timed-effects.js';
 export { resourceDepletion } from '#gw2/platform/execution/resource-clock.js';
 export { actorLoop } from '#gw2/platform/execution/actor-loop.js';
+export { eventReaction, scheduledReaction } from '#gw2/platform/execution/scheduler-reactions.js';
 
 type OrderedEscapeHandler = Readonly<{
   id: string;

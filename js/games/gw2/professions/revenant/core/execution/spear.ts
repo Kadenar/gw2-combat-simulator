@@ -1,3 +1,5 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 /** Materializes Abyssal Raze packets while Crushing Abyss lifetime state stays in mechanics. */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -11,11 +13,11 @@ import {
   consumeCrushingAbyssWeaponSwap,
   CRUSHING_GAIN_TASK,
   crushingAbyssStacksAt,
-  scheduleAbyssalRazeRechargeReduction
+  abyssalRazeRechargeReaction
 } from '#gw2/professions/revenant/core/mechanics/crushing-abyss.js';
 import type {
   RevenantCastContext,
-  RevenantScheduledTask,
+  RevenantSimulationEvent,
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
@@ -95,17 +97,33 @@ export function castAbyssalRaze(context: RevenantCastContext, skill: RevenantSki
 }
 
 /** Emits the max-stack Raze owned by a qualifying weapon swap, then publishes cleared state. */
-export function handleCrushingAbyssWeaponSwap(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ weaponSet?: number }>
-): void {
-  const consumed = consumeCrushingAbyssWeaponSwap(context, task);
-  if (!consumed) return;
-  emitAbyssalRazePackets(context, consumed.skill, task.at, consumed.stacks, 'Swap Weapons');
-  completeCrushingAbyssWeaponSwap(context, task.at);
-}
+export const crushingAbyssSwapReaction = scheduledReaction<
+  RevenantSchedulerContext,
+  RevenantSimulationEvent,
+  { readonly weaponSet: number | undefined }
+>({
+  id: 'revenant.crushing-abyss-weapon-swap',
+  select(_context, event) {
+    if (event.type !== 'weapon_set' || event.skillId !== ID.SWAP_WEAPONS) return null;
+    return {
+      id: `revenant.crushing-abyss-weapon-swap:${event.eventOrder ?? event.at}`,
+      at: event.at,
+      payload: { weaponSet: event.weaponSet }
+    };
+  },
+  execute(context, at, payload) {
+    const consumed = consumeCrushingAbyssWeaponSwap(context, at, payload.weaponSet);
+    if (!consumed) return;
+    emitAbyssalRazePackets(context, consumed.skill, at, consumed.stacks, 'Swap Weapons');
+    completeCrushingAbyssWeaponSwap(context, at);
+  }
+});
 
 export const revenantSpearSkillHandlers = Object.freeze({
-  'revenant.spear-recharge': scheduleAbyssalRazeRechargeReduction,
+  'revenant.spear-recharge': (
+    context: RevenantSchedulerContext,
+    skill: RevenantSkill,
+    event: RevenantSimulationEvent
+  ) => abyssalRazeRechargeReaction.onEventScheduled.handler(context, { skill, event }),
   'revenant.abyssal-raze': castAbyssalRaze
 });

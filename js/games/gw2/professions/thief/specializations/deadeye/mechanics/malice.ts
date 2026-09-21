@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -6,7 +7,6 @@ import { storeStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/s
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   ThiefCastContext,
-  ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSimulationEvent,
   ThiefSkill
@@ -66,29 +66,52 @@ export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
   (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
 }
 
-export function observeDeadeyeScheduledEvent(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
-  if (
-    event.type !== 'damage' ||
-    // A missed strike cannot spend malice or grant its on-hit resource benefit.
-    event.offTarget === true ||
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0) ||
-    typeof event.activationId !== 'string'
-  ) {
-    return;
-  }
+/** Selects observed candidates and applies the local reaction using canonical impact facts. */
+export const deadeyeMaliceReaction = eventReaction<ThiefSchedulerContext, ThiefSimulationEvent>({
+  id: 'thief.deadeye-malice-hit',
+  order: 20,
+  missingEvent: 'skip',
+  select(context, event) {
+    if (
+      event.type !== 'damage' ||
+      // A missed strike cannot spend malice or grant its on-hit resource benefit.
+      event.offTarget === true ||
+      event.actorType !== 'player' ||
+      !(Number(event.coefficient) > 0) ||
+      typeof event.activationId !== 'string'
+    ) {
+      return null;
+    }
 
-  const skill = skillForEvent(context, event);
-  if (!skill || (!skill.malicious && !isInitiativeAttack(skill))) return;
-  // Negative priority ensures the task runs after all damage events for this activation have been appended
-  context.tasks.schedule({
-    type: 'thief.deadeye-malice-hit',
-    at: event.at,
-    priority: -50,
-    ownerId: event.activationId,
-    payload: { eventOrder: event.eventOrder }
-  });
-}
+    const skill = skillForEvent(context, event);
+    if (!skill || (!skill.malicious && !isInitiativeAttack(skill))) return null;
+    // Negative priority ensures the task runs after all damage events for this activation have been appended
+    return {
+      at: event.at,
+      priority: -50,
+      ownerId: event.activationId,
+      payload: { eventOrder: Number(event.eventOrder) }
+    };
+  },
+  execute(context, event, at) {
+    const activationId = event?.activationId;
+    if (typeof activationId !== 'string' || !markedAt(context, at)) {
+      return;
+    }
+
+    const skill = skillForEvent(context, event);
+    if (!skill) return;
+    const state = deadeyeState.from(context);
+    // Guard against multi-hit skills scheduling multiple tasks for the same activation; only the first should update malice
+    if (state.maliceResolvedActivations[activationId]) return;
+    state.maliceResolvedActivations[activationId] = true;
+    if (skill.malicious) {
+      consumeMaliciousAttackMalice(context, event);
+    } else if (isInitiativeAttack(skill)) {
+      gainInitiativeAttackMalice(context, event);
+    }
+  }
+});
 
 function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
@@ -125,29 +148,6 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
     );
     applyMaleficentSeven(context, event.at);
     emitThiefStateSnapshot(context, event.at, 'malicious-intent');
-  }
-}
-
-export function resolveDeadeyeMaliceHit(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<{ readonly eventOrder?: number }>
-): void {
-  const event = context.eventByOrder(Number(task.payload.eventOrder)) as ThiefSimulationEvent | undefined;
-  const activationId = event?.activationId;
-  if (!event || typeof activationId !== 'string' || !markedAt(context, task.at)) {
-    return;
-  }
-
-  const skill = skillForEvent(context, event);
-  if (!skill) return;
-  const state = deadeyeState.from(context);
-  // Guard against multi-hit skills scheduling multiple tasks for the same activation; only the first should update malice
-  if (state.maliceResolvedActivations[activationId]) return;
-  state.maliceResolvedActivations[activationId] = true;
-  if (skill.malicious) {
-    consumeMaliciousAttackMalice(context, event);
-  } else if (isInitiativeAttack(skill)) {
-    gainInitiativeAttackMalice(context, event);
   }
 }
 

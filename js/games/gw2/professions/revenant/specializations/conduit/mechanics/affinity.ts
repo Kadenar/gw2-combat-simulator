@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -9,7 +10,7 @@ import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/inde
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type {
-  RevenantScheduledTask,
+  RevenantSimulationEvent,
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
@@ -78,13 +79,31 @@ export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext
 }
 
 /** Resolves a delayed affinity gain scheduled for a qualifying hit. */
-export function handleConduitAffinityHit(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<ConduitAffinityTaskPayload>
-): void {
-  if (!task.payload) return;
-  gainConduitAffinity(context, task.payload.amount, 'enigmatic-connection-hit');
-}
+export const conduitAffinityReaction = scheduledReaction<
+  RevenantSchedulerContext,
+  RevenantSimulationEvent,
+  ConduitAffinityTaskPayload
+>({
+  id: 'revenant.affinity-hit',
+  select(context, event) {
+    if (event.type === 'damage' && event.metadata?.affinityOnHit === true) {
+      const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
+      const cost = Number(skill?.energyCost || 0);
+      // Affinity gain is deferred to a task so it resolves at the hit timestamp, not at cast start.
+      // Skills costing ≥ 25 energy grant 2 affinity; cheaper skills grant 1.
+      return {
+        id: `revenant.affinity-hit:${event.eventOrder}`,
+        at: event.at,
+        payload: { amount: cost >= 25 ? 2 : 1 }
+      };
+    }
+
+    return null;
+  },
+  execute(context, _at, payload) {
+    gainConduitAffinity(context, payload.amount, 'enigmatic-connection-hit');
+  }
+});
 
 /** Emits Numinous Gift's base and equipped-legend boon profile. */
 export function emitNuminousGift(

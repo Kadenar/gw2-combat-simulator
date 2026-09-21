@@ -1,3 +1,4 @@
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -18,7 +19,6 @@ import { druidState } from '#gw2/professions/ranger/specializations/druid/state.
 
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
-export const DRUID_ASTRAL_FORCE_DAMAGE_TASK = 'ranger.druid-astral-force-damage';
 export const DRUID_AVATAR_EXIT_TASK = 'ranger.druid-avatar-exit';
 
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, duration: number, at: number): void {
@@ -170,37 +170,45 @@ export function astralForceReadyAt(context: RangerCastContext): number | null {
   return Math.max(context.start, state.naturalMenderReadyAt) + (applications - 1) * naturalMenderInterval;
 }
 
-export function observeDruidAstralForceEvent(context: RangerSchedulerContext, event: SimulationEvent): void {
-  // Only player-sourced hits generate astral force; pet strikes and independent summon hits are excluded
-  if (
-    event.type !== 'damage' ||
-    event.actorType === 'summon' ||
-    event.ownerActorType === 'summon' ||
-    event.source === 'ranger-pet' ||
-    event.independentSummonStrike === true
-  ) {
-    return;
+/** Capture observation-time data and apply local state changes only when the queue reaches the impact. */
+export const druidAstralForceReaction = scheduledReaction<
+  RangerSchedulerContext,
+  SimulationEvent,
+  Record<string, never>
+>({
+  id: 'ranger.druid-astral-force-damage',
+  order: 0,
+  select(_context, event) {
+    // Only player-sourced hits generate astral force; pet strikes and independent summon hits are excluded
+    if (
+      event.type !== 'damage' ||
+      event.actorType === 'summon' ||
+      event.ownerActorType === 'summon' ||
+      event.source === 'ranger-pet' ||
+      event.independentSummonStrike === true
+    ) {
+      return null;
+    }
+
+    // Deferred task so all damage events at the same timestamp are coalesced into one force update
+    return {
+      at: event.at,
+      priority: 20,
+      ownerId: 'ranger.druid-astral-force',
+      payload: {}
+    };
+  },
+  execute(context) {
+    const state = druidState.from(context);
+    // Force doesn't accumulate while CA is active (it's draining instead)
+    if (state.celestialAvatarActive) return;
+    // Eclipse doubles the astral force gained per hit
+    const directDamageForce = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 0.75);
+    const eclipseMultiplier = balanceProfileValueFromContext(context, PROFILE.resources, 'coefficientMultiplier', 2);
+    state.maximumAstralForce = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
+    state.astralForce = Math.min(
+      state.maximumAstralForce,
+      state.astralForce + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
+    );
   }
-
-  // Deferred task so all damage events at the same timestamp are coalesced into one force update
-  context.tasks.schedule({
-    type: DRUID_ASTRAL_FORCE_DAMAGE_TASK,
-    at: event.at,
-    priority: 20,
-    ownerId: 'ranger.druid-astral-force'
-  });
-}
-
-export function handleDruidAstralForceDamageTask(context: RangerSchedulerContext): void {
-  const state = druidState.from(context);
-  // Force doesn't accumulate while CA is active (it's draining instead)
-  if (state.celestialAvatarActive) return;
-  // Eclipse doubles the astral force gained per hit
-  const directDamageForce = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceGain', 0.75);
-  const eclipseMultiplier = balanceProfileValueFromContext(context, PROFILE.resources, 'coefficientMultiplier', 2);
-  state.maximumAstralForce = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
-  state.astralForce = Math.min(
-    state.maximumAstralForce,
-    state.astralForce + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
-  );
-}
+});
