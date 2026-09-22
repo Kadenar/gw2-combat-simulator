@@ -51,35 +51,37 @@ export interface RangerPetDefinition {
   readonly beastmodeSkillIds: readonly SkillId[];
 }
 
-export interface RangerState extends RangerCoreState {
-  /** Runtime snapshots and planning projections carry the same resource clock shape. */
-  astralClock?: DruidState['astralClock'];
-  celestialAvatarActive?: boolean;
-  celestialAvatarEndsAt?: number;
-  beastmodeActive?: boolean;
-  archetype?: string;
-  oneWolfPackUntil?: number;
-  oneWolfPackReadyAt?: number;
-  rangerUnleashed?: boolean;
-  ambushReadyUntil?: number;
-  ferociousSymbiosisPlayerStacks?: number;
-  ferociousSymbiosisPlayerUntil?: number;
-  ferociousSymbiosisPetStacks?: number;
-  ferociousSymbiosisPetUntil?: number;
-  cycloneBowActive?: boolean;
-  arrows?: number;
-  maximumArrows?: number;
-  arrowsUpdatedAt?: number;
-  windForce?: number;
-  galeForceUntil?: number;
-  mistralUntil?: number;
-  wutheringWindReady?: boolean;
-  wutheringWindReadyAt?: number;
-  wutheringWindActivationIds?: Record<string, boolean>;
-  thrillOfTheCatchReadyAt?: number;
-  flockTogetherReadyAt?: number;
-  missileHits?: number;
-}
+/** Derive optional projection fields from their owners without exposing additional specialization internals. */
+export type RangerState = RangerCoreState &
+  Partial<
+    Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
+      Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil' | 'oneWolfPackReadyAt'> &
+      Pick<
+        UntamedState,
+        | 'rangerUnleashed'
+        | 'ambushReadyUntil'
+        | 'ferociousSymbiosisPlayerStacks'
+        | 'ferociousSymbiosisPlayerUntil'
+        | 'ferociousSymbiosisPetStacks'
+        | 'ferociousSymbiosisPetUntil'
+      > &
+      Pick<
+        GaleshotState,
+        | 'cycloneBowActive'
+        | 'arrows'
+        | 'maximumArrows'
+        | 'arrowsUpdatedAt'
+        | 'windForce'
+        | 'galeForceUntil'
+        | 'mistralUntil'
+        | 'wutheringWindReady'
+        | 'wutheringWindReadyAt'
+        | 'wutheringWindActivationIds'
+        | 'thrillOfTheCatchReadyAt'
+        | 'flockTogetherReadyAt'
+        | 'missileHits'
+      >
+  >;
 
 export interface RangerRuntimeState {
   core: RangerCoreState;
