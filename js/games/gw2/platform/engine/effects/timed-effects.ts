@@ -1,9 +1,19 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { ScheduledTask, SchedulerTaskAccess } from '#gw2/platform/execution/types.js';
+/** Queue port shared by scheduler tasks and resolver occurrences; phase-specific dispatch stays with the caller. */
+export interface TimedEffectTaskAccess {
+  schedule(task: {
+    type: string;
+    at: number;
+    priority?: number;
+    ownerId: string | number | null;
+    payload: object;
+  }): string;
+  cancel(id: string): void;
+}
 
 interface TimedEffectContext {
   readonly state: object;
-  readonly tasks: SchedulerTaskAccess;
+  readonly tasks: TimedEffectTaskAccess;
 }
 
 /** Queued work identifies an occurrence; callbacks and mutable progress stay in the registered definition. */
@@ -115,7 +125,10 @@ export function timedEffect<TContext extends TimedEffectContext, TCaptured exten
     }
   }
 
-  const handleTask = (context: TContext, task: ScheduledTask<TimedEffectOccurrence<TCaptured>>): void => {
+  const handleTask = (
+    context: TContext,
+    task: { readonly at: number; readonly payload?: TimedEffectOccurrence<TCaptured> | null }
+  ): void => {
     const payload = task.payload;
     if (!payload) return;
     const instance = runtime(context).instances.get(payload.instanceId);

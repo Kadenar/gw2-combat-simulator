@@ -17,7 +17,6 @@ import { reactToFirebrandBuffTraits } from '#gw2/professions/guardian/specializa
 // Isolate charge lifetimes from unrelated page regeneration, target damage, and trait procs.
 function ashesContext() {
   const state = createFirebrandState();
-  state.nextCourageAegisAt = Infinity;
   const events = [];
   return {
     state: { profession: { core: {}, specialization: { kind: 'Firebrand', state } } },

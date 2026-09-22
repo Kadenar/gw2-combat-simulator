@@ -1,9 +1,9 @@
+import { righteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
 import { onResolvedDamage, onConditionApplied, onBuffApplied } from '#gw2/platform/profession-definition/mechanics.js';
 import { reactToCoreGuardianJusticeHit } from '#gw2/professions/guardian/core/mechanics/justice-reaction.js';
 import { handleVirtueActivation, handleVirtueRefresh } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   handleSymbolOfIgnitionField,
-  handleRighteousInstinctsTick,
   reactToGuardianBuffTraits,
   reactToSymbolOfIgnition,
   reactToGuardianDamageTraits
@@ -12,7 +12,7 @@ import {
 export const guardianCoreEventHandlers = Object.freeze({
   'guardian.virtue-activated': handleVirtueActivation,
   'guardian.virtues-refreshed': handleVirtueRefresh,
-  'guardian.righteous-instincts-tick': handleRighteousInstinctsTick,
+  ...righteousInstincts.eventHandlers,
   'guardian.symbol-of-ignition-field': handleSymbolOfIgnitionField
 });
 

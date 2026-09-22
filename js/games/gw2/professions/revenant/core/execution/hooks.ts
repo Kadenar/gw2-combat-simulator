@@ -27,14 +27,10 @@ import {
 import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/hitbox.js';
 import { emitRevenantStateSnapshot, spendRevenantEnergy } from '#gw2/professions/revenant/family-state.js';
 import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
-import { handleBlossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
+import { blossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
-import {
-  ASSASSINS_PRESENCE_TASK,
-  scheduleAssassinsPresence,
-  handleAssassinsPresencePulse
-} from '#gw2/professions/revenant/core/traits/devastation.js';
+import { scheduleAssassinsPresence, assassinsPresence } from '#gw2/professions/revenant/core/traits/devastation.js';
 
 /**
  * Pays the skill's Energy cost and captures weapon state at cast start.
@@ -98,8 +94,8 @@ export const revenantSchedulerHooks = Object.freeze({
   },
   onEventScheduled,
   taskHandlers: Object.freeze({
-    [ASSASSINS_PRESENCE_TASK]: handleAssassinsPresencePulse,
-    'revenant.blossoming-aura': handleBlossomingAura,
+    ...assassinsPresence.taskHandlers,
+    ...blossomingAura.taskHandlers,
     ...abyssalRazeRechargeReaction.taskHandlers,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,
     ...crushingAbyssSwapReaction.taskHandlers,

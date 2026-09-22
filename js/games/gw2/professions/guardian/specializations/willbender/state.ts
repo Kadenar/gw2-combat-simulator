@@ -5,7 +5,6 @@ import {
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 export interface GuardianWillbenderState {
-  flameGeneration: number;
   flameVirtue: GuardianVirtue | null;
   pendingWeaponCooldownReduction: Record<string, number>;
   justiceUntil: number;
@@ -19,7 +18,6 @@ export interface GuardianWillbenderState {
 
 export function createWillbenderState(): GuardianWillbenderState {
   return {
-    flameGeneration: 0, // increments each time a different virtue activates, invalidating queued pulses from the prior virtue
     flameVirtue: null,
     pendingWeaponCooldownReduction: {}, // keyed by reservationId; accumulates in-flight reductions and cleared on cast-complete
     justiceUntil: 0,
@@ -38,7 +36,6 @@ export function createWillbenderState(): GuardianWillbenderState {
 
 /** Keeps Willbender projection ownership beside the state that produces it. */
 export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  flameGeneration: 0,
   flameVirtue: null,
   justiceUntil: 0,
   resolveUntil: 0,

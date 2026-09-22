@@ -7,10 +7,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
 import { antiquaryCastAvailability } from '#gw2/professions/thief/specializations/antiquary/mechanics/availability.js';
-import {
-  handleForgedSurfer,
-  handleSkrittScuffle
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import { forgedSurfer, skrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import {
   advanceAntiquaryResources,
   spendAntiquaryResources
@@ -21,8 +18,8 @@ import type { ThiefPrecastContext } from '#gw2/professions/thief/types.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 
 export const antiquaryTaskHandlers = Object.freeze({
-  'thief.forged-surfer': handleForgedSurfer,
-  'thief.skritt-scuffle': handleSkrittScuffle
+  ...forgedSurfer.taskHandlers,
+  ...skrittScuffle.taskHandlers
 });
 
 export const antiquarySchedulerHooks = Object.freeze({

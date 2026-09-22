@@ -5,6 +5,8 @@ import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import {
   advanceTomeState,
+  initializeTomeCourage,
+  tomeCourage,
   completeTomePage,
   tomePageAvailability,
   tomeStateAvailability
@@ -68,7 +70,9 @@ export const firebrandCastRules = Object.freeze({
 });
 
 export const firebrandSchedulerHooks = Object.freeze({
+  taskHandlers: tomeCourage.taskHandlers,
   initialize: Object.freeze([
+    { id: 'guardian.firebrand.passive-courage', order: 20, handler: initializeTomeCourage },
     {
       id: 'guardian.firebrand.balance-state',
       order: 5,

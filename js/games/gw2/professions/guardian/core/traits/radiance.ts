@@ -1,4 +1,5 @@
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -80,38 +81,22 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
     // Zero disables subsequent interval procs while retaining the initial application.
     const interval = Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
     if (!(interval > 0)) return;
-    state.righteousNextMightAt = event.at + interval;
-    context.queue.enqueue({
-      type: 'guardian.righteous-instincts-tick',
-      at: state.righteousNextMightAt,
-      priority: -10,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
-      actorType: 'effect'
-    });
+    righteousInstincts.start(context, { key: 'resolution', at: event.at + interval, captured: {} });
   }
 }
 
 // Emit a scheduled Righteous Instincts Might tick only while its originating
 // Resolution window remains current and active.
-export function handleRighteousInstinctsTick(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const state = guardianResolverState(context);
-  if (
-    !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
-    event.at >= Number(state.resolutionUntil || 0) ||
-    Math.abs(event.at - Number(state.righteousNextMightAt || 0)) > EPSILON
-  ) {
-    return;
+export const righteousInstincts = resolverTimedEffect<GuardianResolverContext, object>({
+  id: 'guardian.righteous-instincts-tick',
+  priority: -10,
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1),
+  effectsAt(context, at) {
+    if (
+      !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
+      at >= Number(guardianResolverState(context).resolutionUntil || 0)
+    )
+      return false;
+    queueRighteousMight(context, at, 'Resolution interval');
   }
-
-  queueRighteousMight(context, event.at, 'Resolution interval');
-  state.righteousNextMightAt =
-    event.at + Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
-  // Queue one candidate tick ahead so future Resolution applications can extend the active window before it fires.
-  if (state.righteousNextMightAt > event.at && state.righteousNextMightAt <= context.horizon + EPSILON) {
-    context.queue.enqueue({
-      ...event,
-      at: state.righteousNextMightAt
-    });
-  }
-}
+});

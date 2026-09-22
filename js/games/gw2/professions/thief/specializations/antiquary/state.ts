@@ -41,7 +41,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
   holoUtilityCooldownReductionExpirations: number[];
-  forgedSurferGeneration: number;
   forgedSurferBombDropUntil: number;
   forgedSurferMaximumBombHits: number;
   canachCoinIndex: number;
@@ -69,9 +68,8 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     kryptisDamageUntil: 0,
     chakInitiativeRefundUntil: 0,
     holoUtilityCooldownReductionExpirations: [],
-    forgedSurferGeneration: 0,
     forgedSurferBombDropUntil: 0,
-    // clamped 1-5 at init so handleForgedSurfer never needs to bounds-check the assumption at runtime
+    // clamped 1-5 at init so the bomb sequence never needs to bounds-check the assumption at runtime
     forgedSurferMaximumBombHits: boundedNumber(config.deterministicChoices?.forgedSurferBombsHit || 5, 5, 1, 5),
     canachCoinIndex: 0
   };
@@ -98,7 +96,6 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   kryptisDamageUntil: 0,
   chakInitiativeRefundUntil: 0,
   holoUtilityCooldownReductionExpirations: [],
-  forgedSurferGeneration: 0,
   forgedSurferBombDropUntil: 0,
   forgedSurferMaximumBombHits: 5,
   canachCoinIndex: 0

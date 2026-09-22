@@ -1,3 +1,4 @@
+import { signetOfRage } from '#gw2/professions/warrior/core/traits/index.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -41,10 +42,11 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
     const missing = cost - Number(state.adrenaline || 0);
     const passivePulses = Math.ceil(missing / 2);
     const signetCooldown = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);
+    const nextPulseAt = signetOfRage.nextAt(context);
     let passiveReadyAt: number | null = null;
-    if (selected.has('Signet of Rage') && state.signetOfRageNextAt > context.start) {
-      const skippedPulses = Math.max(0, Math.ceil((signetCooldown - state.signetOfRageNextAt - EPSILON) / 3));
-      passiveReadyAt = state.signetOfRageNextAt + (skippedPulses + passivePulses - 1) * 3;
+    if (selected.has('Signet of Rage') && Number.isFinite(nextPulseAt) && nextPulseAt > context.start) {
+      const skippedPulses = Math.max(0, Math.ceil((signetCooldown - nextPulseAt - EPSILON) / 3));
+      passiveReadyAt = nextPulseAt + (skippedPulses + passivePulses - 1) * 3;
     }
 
     return {

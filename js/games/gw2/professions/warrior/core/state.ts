@@ -11,10 +11,8 @@ export interface WarriorCoreState {
   enduranceUpdatedAt: number;
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
-  signetOfRageNextAt: number;
   targetControlledUntil: number;
   soldierFocusReadyAt: number;
-  empowerAlliesNextAt: number;
   burstHitActivations: Record<string, boolean>;
   burstPrecisionDurations: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
@@ -55,10 +53,8 @@ export function createWarriorCoreState(config: WarriorConfig = {}): WarriorCoreS
     enduranceUpdatedAt: 0,
     autoattackChains: {},
     availableFlips: {},
-    signetOfRageNextAt: 0,
     targetControlledUntil: 0,
     soldierFocusReadyAt: 0,
-    empowerAlliesNextAt: 0,
     burstHitActivations: {},
     burstPrecisionDurations: {},
     traitProcReadyAt: {},

@@ -1,3 +1,4 @@
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -5,7 +6,10 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import {
+  alliedAttackOpportunities,
+  startAlliedAttackOpportunities
+} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -26,7 +30,9 @@ test('allied attack clocks preserve independent intervals across partitioned and
         return event;
       }
     };
-    for (const at of targets) advanceNecromancerState(context, at);
+    context.tasks = createTaskQueue({ handlers: alliedAttackOpportunities.taskHandlers });
+    if (combatStartTime != null) startAlliedAttackOpportunities(context, combatStartTime);
+    for (const at of targets) context.tasks.drainThrough(at, context);
     return events.filter((event) => event.type.endsWith('-allied-hit'));
   };
 

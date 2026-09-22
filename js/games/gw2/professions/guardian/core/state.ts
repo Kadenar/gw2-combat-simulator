@@ -23,7 +23,6 @@ export interface GuardianCoreState {
   symbolProjectileIgnitionReadyAt: number;
   zealotsResolutionReadyAt: number;
   resolutionUntil: number;
-  righteousNextMightAt: number;
   furiousFocusReadyAt: number;
   healersResolutionReadyAt: number;
   protectorsRestorationReadyAt: number;
@@ -58,7 +57,6 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     symbolProjectileIgnitionReadyAt: 0,
     zealotsResolutionReadyAt: 0,
     resolutionUntil: 0,
-    righteousNextMightAt: 0,
     furiousFocusReadyAt: 0,
     healersResolutionReadyAt: 0,
     protectorsRestorationReadyAt: 0,

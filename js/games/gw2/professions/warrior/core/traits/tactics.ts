@@ -1,8 +1,9 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns imperative Tactics trait effects while the public dispatcher preserves cross-line ordering. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
@@ -121,17 +122,23 @@ export function applyMartialCadence(context: WarriorSchedulerContext, event: War
   });
 }
 
-// Pulse Empower Allies after base Signet of Rage advancement has completed.
-export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: number): void {
-  if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return;
-  const state = professionCoreState(context);
-  const empowerAllies = balanceProfileFromContext(context, PROFILE.empowerAllies);
-  const might = balanceProfileEffect(empowerAllies, 'boon');
-  const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
-  const interval = Number(empowerAllies?.pulseInterval ?? 10);
-  // Zero disables recurring pulses instead of repeatedly emitting at the same timestamp.
-  while (interval > 0 && state.empowerAlliesNextAt <= target + EPSILON) {
-    const at = state.empowerAlliesNextAt;
+// Keep party Might on its authored cadence, after same-time Signet of Rage gains.
+export function initializeEmpowerAllies(context: WarriorSchedulerContext): void {
+  if (
+    hasTrait(context, TRAIT.EMPOWER_ALLIES) &&
+    Number(balanceProfileFromContext(context, PROFILE.empowerAllies)?.pulseInterval ?? 10) > 0
+  )
+    empowerAllies.start(context, { at: 0, captured: {} });
+}
+
+export const empowerAllies = timedEffect<WarriorSchedulerContext, object>({
+  id: 'warrior.empower-allies',
+  priority: -210,
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.empowerAllies)?.pulseInterval ?? 10),
+  effectsAt(context, at) {
+    if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return false;
+    const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.empowerAllies), 'boon');
+    const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
     emitSkillBuff(context, {
       at,
       source: 'Trait',
@@ -144,9 +151,8 @@ export function advanceEmpowerAllies(context: WarriorSchedulerContext, target: n
       duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration ?? 10)),
       audience: { recipients: 'party' as const }
     });
-    state.empowerAlliesNextAt += interval;
   }
-}
+});
 
 // Resolve Tactics-owned attributes without hiding their formulas in the cross-line composer.
 export function modifyWarriorTacticsAttributes(

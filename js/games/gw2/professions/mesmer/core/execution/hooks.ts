@@ -13,7 +13,7 @@ import {
   observeMesmerEvent
 } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { handleSignetIllusionsPassiveTask } from '#gw2/professions/mesmer/core/mechanics/signets.js';
+import { signetIllusionsPassive } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 /** Assembles the Core Mesmer scheduler hooks while each behavior remains with its owning concept. */
@@ -46,6 +46,6 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     ...mesmerExpectedProcReaction.taskHandlers,
     ...trackedHitReaction.taskHandlers,
     ...chaoticInterruptionReaction.taskHandlers,
-    'mesmer.signet-illusions-passive': handleSignetIllusionsPassiveTask
+    ...signetIllusionsPassive.taskHandlers
   })
 });

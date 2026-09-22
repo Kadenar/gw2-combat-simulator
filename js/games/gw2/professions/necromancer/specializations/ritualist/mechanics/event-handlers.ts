@@ -1,5 +1,5 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -14,7 +14,6 @@ export function handleNecromancerPainfulBond(
 ): void {
   const definition = balanceProfileFromContext(context, PROFILE.painfulBond);
   const buff = balanceProfileEffect(definition, 'buff');
-  const strike = balanceProfileEffect(definition, 'strike');
   const state = ritualistState.from(context);
   if (event.mode === 'apply') {
     const duration = Number(event.duration ?? buff?.duration ?? 10);
@@ -25,51 +24,45 @@ export function handleNecromancerPainfulBond(
       // Only the first application schedules the tick chain; stacked applications preserve its one-second cadence.
       const firstPulseAt = event.at + Number(definition?.initialDelay ?? 0.004);
       state.painfulBondPulseAnchorAt = firstPulseAt;
-      context.queue.enqueue({
-        ...event,
-        at: firstPulseAt,
-        mode: 'tick'
-      });
+      painfulBondPulses.start(context, { key: 'painful-bond', at: firstPulseAt, captured: event });
     }
 
     return;
   }
-
-  if (event.mode !== 'tick') return;
-
-  // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
-  if (event.at < Number(state.painfulBondUntil || 0)) {
-    context.queue.enqueue({
-      type: 'damage',
-      at: event.at,
-      name: 'Painful Bond',
-      skillName: 'Painful Bond',
-      coefficient: 0,
-      flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-      flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: 'Spirit',
-      sourceId: 'ritualist.painful-bond',
-      actorType: 'effect',
-      icon: String(definition?.icon || ''),
-      skillWeapon: 'Unequipped',
-      noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
-      triggeredBy: event.triggeredBy || 'Anguish'
-    });
-  }
-
-  const nextAt = event.at + Number(definition?.pulseInterval ?? 1);
-  // Zero interval stops the recurring chain after the initial pulse.
-  if (nextAt > event.at && nextAt <= context.horizon + EPSILON) {
-    context.queue.enqueue({
-      ...event,
-      at: nextAt,
-      mode: 'tick'
-    });
-  }
 }
+
+// Keep the anchor alive through inactive gaps; only the damage window has exclusive expiry.
+export const painfulBondPulses = resolverTimedEffect<NecromancerResolverContext, NecromancerResolverEvent>({
+  id: 'necromancer.painful-bond-pulse',
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.painfulBond)?.pulseInterval ?? 1),
+  effectsAt(context, at, event) {
+    const definition = balanceProfileFromContext(context, PROFILE.painfulBond);
+    const strike = balanceProfileEffect(definition, 'strike');
+    const state = ritualistState.from(context);
+    // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
+    if (at < Number(state.painfulBondUntil || 0)) {
+      context.queue.enqueue({
+        type: 'damage',
+        at: at,
+        name: 'Painful Bond',
+        skillName: 'Painful Bond',
+        coefficient: 0,
+        flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+        flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: 'Spirit',
+        sourceId: 'ritualist.painful-bond',
+        actorType: 'effect',
+        icon: String(definition?.icon || ''),
+        skillWeapon: 'Unequipped',
+        noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
+        triggeredBy: event.triggeredBy || 'Anguish'
+      });
+    }
+  }
+});
 
 /** Stores one weapon-spell application with independent charge state for each eligible recipient. */
 export function handleNecromancerWeaponSpell(

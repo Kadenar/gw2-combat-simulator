@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { StrikeEffect } from '#gw2/platform/engine/skills/types.js';
@@ -5,12 +6,7 @@ import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import type {
-  RevenantCastContext,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const AURA_TASK = 'revenant.blossoming-aura';
 
@@ -23,15 +19,14 @@ export function activateBlossomingAura(context: RevenantCastContext, skill: Reve
   const firstAt =
     context.start +
     projectCastRelativeEffectTimingMs(skill, (context.fullEnd - context.start) * 1000, ticks[0].atMs) / 1000;
-  context.tasks.cancelOwner(AURA_TASK);
-  for (let index = 0; index <= ticks.length; index += 1) {
-    context.tasks.schedule({
-      type: AURA_TASK,
-      ownerId: AURA_TASK,
-      at: firstAt + (index === ticks.length ? Number(skill.duration) : index * Number(skill.pulseInterval)),
-      payload: { index }
-    });
-  }
+  blossomingAura.start(context, {
+    key: AURA_TASK,
+    times: Array.from(
+      { length: ticks.length + 1 },
+      (_, index) => firstAt + (index === ticks.length ? Number(skill.duration) : index * Number(skill.pulseInterval))
+    ),
+    captured: {}
+  });
 }
 
 /** Manual and automatic detonation share scaling and cancel the remaining fuse without touching recharge. */
@@ -63,7 +58,7 @@ function detonate(context: RevenantSchedulerContext, at: number): void {
   }
 
   consumeSkillFlip(state.availableFlips, ID.DETONATE_BLOSSOMING_AURA);
-  context.tasks.cancelOwner(AURA_TASK);
+  blossomingAura.cancelKey(context, AURA_TASK);
   emitRevenantStateSnapshot(context, at, 'blossoming-aura-detonated');
 }
 
@@ -72,35 +67,34 @@ export function detonateBlossomingAura(context: RevenantCastContext): void {
 }
 
 /** Apply each pulse at its task time so detonation can suppress all later packets. */
-export function handleBlossomingAura(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ readonly index: number }>
-): void {
-  const skill = context.catalog.skillsById.get(ID.BLOSSOMING_AURA)!;
-  const pulse = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
-  const ticks = (pulse as StrikeEffect | undefined)?.ticks;
-  if (!ticks?.length) throw new Error('Blossoming Aura is missing its pulse ticks.');
-  const index = Number(task.payload?.index);
-  if (index === ticks.length) {
-    detonate(context, task.at);
-    return;
-  }
+export const blossomingAura = timedEffect<RevenantSchedulerContext, object>({
+  id: AURA_TASK,
+  effectsAt(context, at, _captured, index) {
+    const skill = context.catalog.skillsById.get(ID.BLOSSOMING_AURA)!;
+    const pulse = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
+    const ticks = (pulse as StrikeEffect | undefined)?.ticks;
+    if (!ticks?.length) throw new Error('Blossoming Aura is missing its pulse ticks.');
+    if (index === ticks.length) {
+      detonate(context, at);
+      return;
+    }
 
-  if (index === 0) {
-    armSkillFlip(
-      professionCoreState(context).availableFlips,
-      ID.DETONATE_BLOSSOMING_AURA,
-      task.at,
-      task.at + Number(skill.duration)
-    );
-    emitRevenantStateSnapshot(context, task.at, 'blossoming-aura-armed');
-  }
+    if (index === 0) {
+      armSkillFlip(
+        professionCoreState(context).availableFlips,
+        ID.DETONATE_BLOSSOMING_AURA,
+        at,
+        at + Number(skill.duration)
+      );
+      emitRevenantStateSnapshot(context, at, 'blossoming-aura-armed');
+    }
 
-  emitSkillDamage(context, skill, {
-    at: task.at,
-    name: pulse!.name,
-    coefficient: Number(ticks[index].coefficient),
-    hitIndex: index + 1,
-    totalHits: ticks.length
-  });
-}
+    emitSkillDamage(context, skill, {
+      at: at,
+      name: pulse!.name,
+      coefficient: Number(ticks[index].coefficient),
+      hitIndex: index + 1,
+      totalHits: ticks.length
+    });
+  }
+});

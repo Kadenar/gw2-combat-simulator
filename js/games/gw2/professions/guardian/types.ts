@@ -163,7 +163,6 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly cooldownReduction?: number;
   readonly duration?: number;
   readonly burningDuration?: number;
-  readonly flameGeneration?: number;
   readonly isSymbol?: boolean;
   readonly justiceActive?: boolean;
   readonly nextTomePageAt?: number;

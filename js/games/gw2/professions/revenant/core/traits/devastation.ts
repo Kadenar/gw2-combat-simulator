@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 /** Owns Core Devastation boon, weapon-swap, and Battle Scar trait behavior. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -17,7 +18,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RevenantCastContext,
-  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -231,33 +231,30 @@ export function consumeBattleScar(context: RevenantSchedulerContext, event: Reve
   });
 }
 
-export const ASSASSINS_PRESENCE_TASK = 'revenant.assassins-presence';
-
 /** Anchor the combat cadence once; attacks neither trigger nor delay its pulses. */
 export function scheduleAssassinsPresence(context: RevenantSchedulerContext, at = 0): void {
   if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE)) return;
-  context.tasks.cancelOwner(ASSASSINS_PRESENCE_TASK);
-  context.tasks.schedule({ type: ASSASSINS_PRESENCE_TASK, at, ownerId: ASSASSINS_PRESENCE_TASK });
+  assassinsPresence.start(context, { key: 'assassins-presence', at, captured: {} });
 }
 
 /** Emit combat-only party Fury, then schedule the next interval independently of player actions. */
-export function handleAssassinsPresencePulse(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
-  if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE) || !revenantCombatActive(context, task.at)) return;
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
-  const boon = profileEffect(profile, 'boon');
-  emitSkillBuff(context, { id: TRAIT.ASSASSINS_PRESENCE, name: profile.name } as RevenantSkill, {
-    at: task.at,
-    kind: String(boon.boon || 'fury'),
-    duration: Number(boon.duration),
-    stacks: Number(boon.stacks),
-    audience: { recipients: 'party', maximumRecipients: 5 }
-  });
-  context.tasks.schedule({
-    type: ASSASSINS_PRESENCE_TASK,
-    at: task.at + Math.max(EPSILON, Number(profile.cooldown)),
-    ownerId: ASSASSINS_PRESENCE_TASK
-  });
-}
+export const assassinsPresence = timedEffect<RevenantSchedulerContext, object>({
+  id: 'revenant.assassins-presence',
+  interval: (context) =>
+    Math.max(EPSILON, Number(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence).cooldown)),
+  effectsAt(context, at) {
+    if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE) || !revenantCombatActive(context, at)) return false;
+    const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
+    const boon = profileEffect(profile, 'boon');
+    emitSkillBuff(context, { id: TRAIT.ASSASSINS_PRESENCE, name: profile.name } as RevenantSkill, {
+      at: at,
+      kind: String(boon.boon || 'fury'),
+      duration: Number(boon.duration),
+      stacks: Number(boon.stacks),
+      audience: { recipients: 'party', maximumRecipients: 5 }
+    });
+  }
+});
 
 /** Applies Expose Defenses Vulnerability once after combat becomes active. */
 export function applyExposeDefenses(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {

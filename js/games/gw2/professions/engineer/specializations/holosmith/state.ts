@@ -19,7 +19,6 @@ export interface HolosmithState {
   forgeExitedAt: number | null;
   overheated: boolean;
   solarFocusingLens: ChargeGrant;
-  enhancedCapacityMightReadyAt: number | null;
   kitLockoutUntil: number;
 }
 
@@ -57,7 +56,6 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
     forgeExitedAt: initialHeat > 0 ? 0 : null,
     overheated: false,
     solarFocusingLens: grantCharges(0, 0),
-    enhancedCapacityMightReadyAt: null,
     kitLockoutUntil: 0
   };
 }

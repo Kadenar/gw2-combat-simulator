@@ -18,6 +18,7 @@ import type {
 
 const RITUALIST_PACKET_EVENTS = new Set<string>([
   'necromancer.painful-bond',
+  'necromancer.painful-bond-pulse',
   'necromancer.spirit-attack',
   'necromancer.weapon-spell',
   'necromancer.weapon-spell-ally-trigger'

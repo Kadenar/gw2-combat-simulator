@@ -24,11 +24,7 @@ import {
   applyVirtueOfResolution,
   replaceVirtueOfResolutionDuration
 } from '#gw2/professions/guardian/core/traits/virtues.js';
-import {
-  applyHealersResolution,
-  handleRighteousInstinctsTick,
-  reactToRighteousInstincts
-} from '#gw2/professions/guardian/core/traits/radiance.js';
+import { applyHealersResolution, reactToRighteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
 import {
   emitGuardianProc,
   guardianResolverState,
@@ -43,7 +39,7 @@ import type {
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 
-export { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill, handleRighteousInstinctsTick };
+export { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill };
 
 /** Preserves Core Guardian's mixed trait and base-skill execution order behind one public dispatcher. */
 export function updateGuardianTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {

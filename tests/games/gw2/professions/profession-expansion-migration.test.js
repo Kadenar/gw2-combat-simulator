@@ -420,7 +420,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'fierceAsFireExpiries',
       'flowUpdatedAt',
       'gunsAndGloryUntil',
-      'nextRefrainAt',
       'signetMasteryExpiries',
       'soldierFocusReadyAt',
       'targetControlledUntil',

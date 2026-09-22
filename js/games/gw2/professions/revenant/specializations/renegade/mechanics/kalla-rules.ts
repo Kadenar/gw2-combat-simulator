@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -36,7 +37,6 @@ import {
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   RevenantCastContext,
-  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -138,60 +138,62 @@ function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): 
   const allies = gw2AlliedPlayerAssumptions(context.config);
   if (!allies.count || !allies.strikesPerSecond) return;
   // Start at least one second after activation; preserve the old pre-completion advance ordering.
-  context.tasks.schedule({
-    type: 'revenant.soulcleave-allied-proc',
+  soulcleaveAlliedProcs.start(context, {
+    key: String(skill.id),
     at: context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond),
-    priority: -200,
+    captured: {},
     ownerId: `revenant.upkeep:${skill.id}`
   });
 }
 
 /** Deliver each allied proc at its own deadline, with upkeep ownership handling release and starvation. */
-function handleSoulcleaveAlliedProc(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
-  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT);
-  if (!active) return;
+const soulcleaveAlliedProcs = timedEffect<RevenantSchedulerContext, object>({
+  id: 'revenant.soulcleave-allied-proc',
+  priority: -200,
+  interval: (context) =>
+    Math.max(
+      Number(context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc)?.cooldown || 0),
+      1 / gw2AlliedPlayerAssumptions(context.config).strikesPerSecond
+    ),
+  effectsAt(context, at) {
+    const active = professionCoreState(context).activeUpkeeps.find(
+      (upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT
+    );
+    if (!active) return false;
 
-  const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
-  const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
-  const allies = gw2AlliedPlayerAssumptions(context.config);
-  if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
-  const at = task.at;
-  for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
-    for (const effect of proc.effects || []) {
-      const applications = materializeSkillEffectApplications({
-        skill: proc,
-        effect,
-        start: at,
-        fullEnd: at,
-        baseEvent: {
-          source: 'revenant',
-          sourceId: skill.id,
-          actorType: effect.actorType || 'effect',
-          skillId: skill.id,
-          skillName: skill.name
-        },
-        skillWeaponFallback: 'Unequipped'
-      });
-      for (const application of applications) {
-        context.emit({
-          ...application.event,
-          name: String(application.event.name || proc.name).replace(
-            "Soulcleave's Summit — ",
-            `Soulcleave's Summit — Ally ${allyIndex} `
-          )
+    const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
+    const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
+    const allies = gw2AlliedPlayerAssumptions(context.config);
+    if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return false;
+    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
+      for (const effect of proc.effects || []) {
+        const applications = materializeSkillEffectApplications({
+          skill: proc,
+          effect,
+          start: at,
+          fullEnd: at,
+          baseEvent: {
+            source: 'revenant',
+            sourceId: skill.id,
+            actorType: effect.actorType || 'effect',
+            skillId: skill.id,
+            skillName: skill.name
+          },
+          skillWeaponFallback: 'Unequipped'
         });
+        for (const application of applications) {
+          context.emit({
+            ...application.event,
+            name: String(application.event.name || proc.name).replace(
+              "Soulcleave's Summit — ",
+              `Soulcleave's Summit — Ally ${allyIndex} `
+            )
+          });
+        }
       }
     }
   }
-
-  // The next deadline respects both the proc cooldown and the ally's natural strike interval.
-  context.tasks.schedule({
-    type: task.type,
-    at: task.at + Math.max(Math.max(0, Number(proc.cooldown || 0)), 1 / allies.strikesPerSecond),
-    priority: task.priority,
-    ownerId: task.ownerId
-  });
-}
+});
 
 function observeRenegadeEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
   if (
@@ -243,7 +245,7 @@ export const renegadeSchedulerHooks = Object.freeze({
     }
   },
   taskHandlers: Object.freeze({
-    'revenant.soulcleave-allied-proc': handleSoulcleaveAlliedProc,
+    ...soulcleaveAlliedProcs.taskHandlers,
     ...renegadeCriticalReaction.taskHandlers,
     ...razorclawReaction.taskHandlers
   })

@@ -5,6 +5,7 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   handleNecromancerPainfulBond,
+  painfulBondPulses,
   handleNecromancerWeaponSpell
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { materializeNecromancerSummonAttack } from '#gw2/professions/necromancer/core/mechanics/event-handlers.js';
@@ -209,6 +210,7 @@ export const ritualistEventHandlers = Object.freeze({
     materializeNecromancerSummonAttack(context, event);
   },
   'necromancer.painful-bond': handleNecromancerPainfulBond,
+  ...painfulBondPulses.eventHandlers,
   'necromancer.weapon-spell': handleNecromancerWeaponSpell,
   'necromancer.weapon-spell-ally-trigger': handleNecromancerWeaponSpellAllyTrigger
 });

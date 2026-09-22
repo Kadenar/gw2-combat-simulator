@@ -32,7 +32,7 @@ import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/profession
 import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 import {
   activateChant,
-  advanceParagon,
+  refrains,
   observeParagonEvent
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
@@ -307,13 +307,13 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
     'Renamed ' + W.CHANT_OF_FREEDOM
   );
   state.motivation = 1;
-  advanceParagon(renamed, state.nextRefrainAt);
+  refrains.consumeAll(renamed, refrains.nextAt(renamed));
   assert.equal(state.activeRefrainId, null);
   assert.equal(snapshotWarriorState(renamed.state.profession, skillsById).activeRefrain, '');
   state.activeRefrainId = 999999;
-  state.nextRefrainAt = 6;
+  refrains.start(renamed, { key: 'refrain', at: 6, captured: {} });
   state.motivation = 1;
-  advanceParagon(renamed, 10);
+  refrains.consumeAll(renamed, 10);
   assert.equal(state.activeRefrainId, null);
-  assert.equal(state.nextRefrainAt, 0);
+  assert.equal(refrains.nextAt(renamed), Infinity);
 });

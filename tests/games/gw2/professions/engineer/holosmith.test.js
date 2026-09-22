@@ -1,3 +1,4 @@
+import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -15,7 +16,8 @@ import { holosmithCastAvailability } from '#gw2/professions/engineer/specializat
 import {
   advancePhotonForgeState,
   engineerPhotonForgeSkillHandlers,
-  handlePhotonForgeHeat
+  skillHeat,
+  enhancedCapacityMight
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
@@ -177,21 +179,24 @@ test('ECSU carries pulse readiness, resets at the threshold, and restarts on a d
       return event;
     }
   };
-  advancePhotonForgeState(context, 0.25);
-  assert.equal(state.enhancedCapacityMightReadyAt, 1);
-  advancePhotonForgeState(context, 1);
-  advancePhotonForgeState(context, 1);
+  context.tasks = createTaskQueue({ handlers: { ...enhancedCapacityMight.taskHandlers, ...skillHeat.taskHandlers } });
+  enhancedCapacityMight.start(context, { key: 'might', at: 0, captured: {} });
+  context.tasks.drainThrough(0.25, context);
+  assert.equal(enhancedCapacityMight.nextAt(context), 1);
+  context.tasks.drainThrough(1, context);
+  context.tasks.drainThrough(1, context);
   state.heat = 100;
-  advancePhotonForgeState(context, 1.1);
-  assert.equal(state.enhancedCapacityMightReadyAt, null);
+  context.tasks.drainThrough(2, context);
+  assert.equal(enhancedCapacityMight.nextAt(context), Infinity);
 
   state.photonForgeActive = true;
-  handlePhotonForgeHeat(context, { at: 1.1, payload: { amount: 1 } });
-  assert.equal(state.enhancedCapacityMightReadyAt, 2.1);
-  advancePhotonForgeState(context, 2.1);
+  skillHeat.start(context, { times: [2.1], captured: { amount: 1 } });
+  context.tasks.drainThrough(2.1, context);
+  assert.equal(enhancedCapacityMight.nextAt(context), 3.1);
+  context.tasks.drainThrough(3.1, context);
   assert.deepEqual(
     events.filter((event) => event.type === 'buff').map((event) => event.at),
-    [0, 1, 1.1, 2.1]
+    [0, 1, 2.1, 3.1]
   );
 
   // Removing segment bookkeeping must retain normalization and its public state snapshot.
@@ -316,7 +321,7 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
   );
   assert.equal(scheduled.length, 5);
   assert.deepEqual(
-    scheduled.map((task) => task.payload.amount),
+    scheduled.map((task) => task.payload.captured.amount),
     [2, 2, 2, 2, 2]
   );
 });

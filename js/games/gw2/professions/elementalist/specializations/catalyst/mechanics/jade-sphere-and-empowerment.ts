@@ -1,4 +1,4 @@
-import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { scheduledReaction, timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -20,7 +20,7 @@ import {
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -403,10 +403,9 @@ function scheduleBaseElementalEmpowerment(context: ElementalistSchedulerContext,
   const startsCombat = event.type === 'combat_start' || implicitCombatEvent;
   if (startsCombat && hasTrait(context, 'Elemental Empowerment') && !state.elementalEmpowermentRefreshStarted) {
     state.elementalEmpowermentRefreshStarted = true;
-    context.tasks.schedule({
-      type: CATALYST_BASE_EMPOWERMENT_TASK,
+    baseEmpowerment.start(context, {
       at: Math.max(context.state.time, event.at),
-      payload: { applicationAt: event.at }
+      captured: { applicationAt: event.at }
     });
   }
 }
@@ -697,44 +696,45 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
 
 // Apply a scheduled base Elemental Empowerment stack with its original
 // application timestamp and profile duration.
-function handleBaseEmpowerment(
-  context: ElementalistSchedulerContext,
-  task: ScheduledTask<{ readonly applicationAt: number }>
-): void {
-  const at = Number(task.payload?.applicationAt ?? task.at);
-  const duration = balanceProfileValueFromContext(
-    context,
-    PROFILE.elementalEmpowerment,
-    'durationMultiplier',
-    CATALYST_BASE_EMPOWERMENT_DURATION
-  );
-  const stacks = balanceProfileValueFromContext(
-    context,
-    PROFILE.elementalEmpowerment,
-    'playerStacks',
-    CATALYST_BASE_EMPOWERMENT_STACKS
-  );
-  grantCatalystElementalEmpowerment(catalystState.from(context), at, duration, stacks, maximumEmpowerment(context));
-  emitSkillBuff(context, {
-    at,
-    source: 'Elemental Empowerment',
-    sourceId: 'Elemental Empowerment',
-    actorType: 'player',
-    skillName: 'Elemental Empowerment',
-    kind: 'elemental empowerment',
-    stacks,
-    duration,
-    elementalEmpowermentTracked: true
-  });
-  // Re-arm at expiry so the baseline stacks behave as permanent for the whole fight.
-  context.tasks.schedule({
-    type: CATALYST_BASE_EMPOWERMENT_TASK,
-    at: at + duration,
-    payload: {
-      applicationAt: at + duration
-    }
-  });
-}
+const baseEmpowerment = timedEffect<ElementalistSchedulerContext, { applicationAt: number }>({
+  id: CATALYST_BASE_EMPOWERMENT_TASK,
+  nextAt: (context, _at, captured) =>
+    captured.applicationAt +
+    balanceProfileValueFromContext(
+      context,
+      PROFILE.elementalEmpowerment,
+      'durationMultiplier',
+      CATALYST_BASE_EMPOWERMENT_DURATION
+    ),
+  effectsAt(context, taskAt, captured, occurrence) {
+    const at = occurrence === 0 ? captured.applicationAt : taskAt;
+    captured.applicationAt = at;
+    const duration = balanceProfileValueFromContext(
+      context,
+      PROFILE.elementalEmpowerment,
+      'durationMultiplier',
+      CATALYST_BASE_EMPOWERMENT_DURATION
+    );
+    const stacks = balanceProfileValueFromContext(
+      context,
+      PROFILE.elementalEmpowerment,
+      'playerStacks',
+      CATALYST_BASE_EMPOWERMENT_STACKS
+    );
+    grantCatalystElementalEmpowerment(catalystState.from(context), at, duration, stacks, maximumEmpowerment(context));
+    emitSkillBuff(context, {
+      at,
+      source: 'Elemental Empowerment',
+      sourceId: 'Elemental Empowerment',
+      actorType: 'player',
+      skillName: 'Elemental Empowerment',
+      kind: 'elemental empowerment',
+      stacks,
+      duration,
+      elementalEmpowermentTracked: true
+    });
+  }
+});
 
 /**
  * Cast-time Catalyst rules: the Jade Sphere availability gate and the Elemental
@@ -788,7 +788,7 @@ export const catalystSchedulerHooks = Object.freeze({
   taskHandlers: Object.freeze({
     ...catalystEnergyReaction.taskHandlers,
     ...externalEmpowermentReaction.taskHandlers,
-    [CATALYST_BASE_EMPOWERMENT_TASK]: handleBaseEmpowerment,
+    ...baseEmpowerment.taskHandlers,
     ...viciousEmpowermentReaction.taskHandlers
   })
 });

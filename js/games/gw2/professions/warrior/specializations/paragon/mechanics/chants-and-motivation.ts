@@ -13,7 +13,7 @@ import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js'
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
-  advanceParagon,
+  refrains,
   applyParagonWeaponSwapTraits,
   beginParagonCast,
   commandEchoes,
@@ -32,11 +32,6 @@ export const paragonSchedulerHooks = Object.freeze({
     syncWarriorAdrenaline(context);
   },
   onCastStart: beginParagonCast,
-  advance: {
-    id: 'warrior.paragon-refrain',
-    order: 20,
-    handler: advanceParagon
-  },
   afterCast: {
     id: 'warrior.paragon-motivation',
     order: 20,
@@ -47,7 +42,7 @@ export const paragonSchedulerHooks = Object.freeze({
     order: 20,
     handler: observeParagonEvent
   },
-  taskHandlers: commandEchoes.taskHandlers
+  taskHandlers: { ...commandEchoes.taskHandlers, ...refrains.taskHandlers }
 });
 
 function paragonRuntimeState(context: Gw2ModifierContext): {

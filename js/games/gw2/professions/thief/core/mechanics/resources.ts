@@ -1,4 +1,5 @@
 import { pruneSkillFlips } from '#gw2/platform/engine/skills/skill-flips.js';
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -18,7 +19,6 @@ import type {
   ThiefCastContext,
   ThiefResourceContext,
   ThiefSchedulerContext,
-  ThiefScheduledTask,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -26,23 +26,24 @@ import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 /** Restart the equipped signet's ten-second pulse after it becomes ready, including cooldown resets. */
 export function restartInfiltratorsSignetPassive(context: ThiefSchedulerContext): void {
   if (!selectedSkillNameSet(context.config.selectedSkills).has("Infiltrator's Signet")) return;
-  context.tasks.cancelOwner('thief.infiltrators-signet');
-  context.tasks.schedule({
-    type: 'thief.infiltrators-signet',
-    ownerId: 'thief.infiltrators-signet',
+  infiltratorsSignetPassive.start(context, {
+    key: 'thief.infiltrators-signet',
     at: Math.max(context.state.time, Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0)) + 10,
-    payload: {}
+    captured: {}
   });
 }
 
 /** Grant discrete initiative pulses so queued skills can become affordable at the pulse timestamp. */
-export function pulseInfiltratorsSignet(context: ThiefSchedulerContext, task: ThiefScheduledTask): void {
-  if (Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= task.at + EPSILON) {
-    gainThiefInitiative(context, 1, task.at, 'infiltrators-signet');
+export const infiltratorsSignetPassive = timedEffect<ThiefSchedulerContext, object>({
+  id: 'thief.infiltrators-signet',
+  nextAt: (context, at) => Math.max(at, Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0)) + 10,
+  effectsAt(context, at) {
+    if (!selectedSkillNameSet(context.config.selectedSkills).has("Infiltrator's Signet")) return false;
+    if (Number(context.state.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= at + EPSILON) {
+      gainThiefInitiative(context, 1, at, 'infiltrators-signet');
+    }
   }
-
-  restartInfiltratorsSignetPassive(context);
-}
+});
 
 export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context?: unknown): number {
   const resources = balanceProfileFromContext(context, PROFILE.resources);

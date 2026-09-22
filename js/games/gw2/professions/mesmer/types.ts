@@ -127,7 +127,6 @@ export interface MesmerSchedulerTaskPayloads {
     readonly rotationIndex: number;
   };
   readonly continuumExpire: { readonly expiresAt: number };
-  readonly signetIllusionsPassive: object;
 }
 
 export type MesmerSchedulerTask<TPayload extends keyof MesmerSchedulerTaskPayloads> = Omit<

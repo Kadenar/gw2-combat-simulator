@@ -12,7 +12,8 @@ import {
 import {
   advancePhotonForgeState,
   handleHolosmithKitEquip,
-  handlePhotonForgeHeat,
+  skillHeat,
+  enhancedCapacityMight,
   handlePhotonForgeOverheatPenalty,
   passiveHeat,
   initializePhotonForgeHeat,
@@ -54,7 +55,8 @@ export const holosmithAdvancedSchedulerHooks = Object.freeze({
     handler: advancePhotonForgeState
   },
   taskHandlers: Object.freeze({
-    'engineer.photon-forge-heat': handlePhotonForgeHeat,
+    ...skillHeat.taskHandlers,
+    ...enhancedCapacityMight.taskHandlers,
     'engineer.photon-forge-overheat-penalty': handlePhotonForgeOverheatPenalty,
     ...passiveHeat.taskHandlers
   })

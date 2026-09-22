@@ -9,7 +9,6 @@ export interface ParagonState {
   motivation: number;
   maximumMotivation: number;
   activeRefrainId: SkillId | null;
-  nextRefrainAt: number;
   inspiringImplementsReadyAt: number;
   callToActionActivated: boolean;
 }
@@ -26,7 +25,6 @@ export function createParagonState(): ParagonState {
     motivation: 0,
     maximumMotivation: 10,
     activeRefrainId: null,
-    nextRefrainAt: 0,
     inspiringImplementsReadyAt: 0,
     callToActionActivated: false
   };

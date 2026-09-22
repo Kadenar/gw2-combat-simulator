@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -128,40 +129,24 @@ function activeSignetOfVampirism(context: NecromancerSchedulerContext): boolean 
   return selectedSkillNameSet(context.config.selectedSkills).has('Signet of Vampirism');
 }
 
-// Preserve each trait's attack cursor across advances; per-ally events only trigger resolver-owned siphons.
-function emitAlliedAttackOpportunities(
-  context: NecromancerSchedulerContext,
-  start: number,
-  end: number,
-  {
-    type,
-    sourceId,
-    cursor,
-    minimumInterval = 0
-  }: {
-    type: string;
-    sourceId: SkillId;
-    cursor: string;
-    minimumInterval?: number;
-  }
-): void {
-  if (!hasTrait(context, sourceId)) return;
-  const allies = gw2AlliedPlayerAssumptions(context.config);
-  if (!allies.count || !allies.strikesPerSecond) return;
-  const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : 0;
-  if (combatStart == null || end < combatStart - EPSILON) return;
+interface AlliedOpportunity {
+  type: string;
+  sourceId: SkillId;
+  interval: number;
+}
 
-  // Respect both the trait cooldown and the configured aggregate ally strike rate.
-  const state = professionCoreState(context);
-  const interval = Math.max(minimumInterval, 1 / allies.strikesPerSecond);
-  const windowStart = Math.max(start, combatStart);
-  let nextAt = Number(state.traitProcReadyAt[cursor] || 0);
-  if (!(nextAt > windowStart + EPSILON)) nextAt = windowStart + interval;
-  while (nextAt <= end + EPSILON) {
+// Each trait has an independent cadence; the resolver still owns per-ally siphon eligibility and damage.
+export const alliedAttackOpportunities = timedEffect<NecromancerSchedulerContext, AlliedOpportunity>({
+  id: 'necromancer.allied-attack-opportunity',
+  priority: -200,
+  nextAt: (_context, at, captured) => at + captured.interval,
+  effectsAt(context, at, { type, sourceId }) {
+    const allies = gw2AlliedPlayerAssumptions(context.config);
+    if (!hasTrait(context, sourceId) || !allies.count || !allies.strikesPerSecond) return false;
     for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
       context.emit({
         type,
-        at: nextAt,
+        at,
         source: 'Trait',
         sourceId,
         actorType: 'effect',
@@ -169,11 +154,24 @@ function emitAlliedAttackOpportunities(
         allyIndex
       });
     }
-
-    nextAt += interval;
   }
+});
 
-  state.traitProcReadyAt[cursor] = nextAt;
+export function startAlliedAttackOpportunities(context: NecromancerSchedulerContext, at: number): void {
+  const allies = gw2AlliedPlayerAssumptions(context.config);
+  if (!allies.count || !allies.strikesPerSecond) return;
+  for (const [type, sourceId, minimumInterval] of [
+    [
+      'necromancer.vampiric-presence-allied-hit',
+      TRAIT.VAMPIRIC_PRESENCE,
+      Number(balanceProfileFromContext(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5)
+    ],
+    ['necromancer.taste-for-blood-allied-hit', TRAIT.OVERFLOWING_THIRST, 0]
+  ] as const) {
+    if (!hasTrait(context, sourceId)) continue;
+    const interval = Math.max(minimumInterval, 1 / allies.strikesPerSecond);
+    alliedAttackOpportunities.start(context, { key: type, at: at + interval, captured: { type, sourceId, interval } });
+  }
 }
 
 /** Advances every Core and registered specialization resource clock to one authoritative timestamp. */
@@ -182,18 +180,6 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   const start = Number(state.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   purgeTimedState(state, end);
-  emitAlliedAttackOpportunities(context, start, end, {
-    type: 'necromancer.vampiric-presence-allied-hit',
-    sourceId: TRAIT.VAMPIRIC_PRESENCE,
-    cursor: 'vampiricPresenceAlliedNextAt',
-    minimumInterval: Number(balanceProfileFromContext(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5)
-  });
-  emitAlliedAttackOpportunities(context, start, end, {
-    type: 'necromancer.taste-for-blood-allied-hit',
-    sourceId: TRAIT.OVERFLOWING_THIRST,
-    cursor: 'tasteForBloodAlliedNextAt'
-  });
-
   const undeath = activeSignetOfUndeath(context)
     ? balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive)
     : undefined;

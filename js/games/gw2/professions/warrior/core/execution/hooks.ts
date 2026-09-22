@@ -1,5 +1,6 @@
+import { empowerAllies } from '#gw2/professions/warrior/core/traits/tactics.js';
 import {
-  advanceWarriorTraits,
+  signetOfRage,
   applyWarriorWeaponSwapTraits,
   beginWarriorSkill,
   completeWarriorSkill,
@@ -22,7 +23,6 @@ export const warriorCoreSchedulerHooks = Object.freeze({
     order: 10,
     handler: (context: WarriorSchedulerContext, target: number) => {
       advanceWarriorResources(context, target);
-      advanceWarriorTraits(context, target);
     }
   },
   onEventScheduled: {
@@ -36,6 +36,8 @@ export const warriorCoreSchedulerHooks = Object.freeze({
     handler: completeWarriorSkill
   },
   taskHandlers: Object.freeze({
+    ...signetOfRage.taskHandlers,
+    ...empowerAllies.taskHandlers,
     ...warriorAdrenalineReaction.taskHandlers,
     ...warriorArmsReaction.taskHandlers
   })

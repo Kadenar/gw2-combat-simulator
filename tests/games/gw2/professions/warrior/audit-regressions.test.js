@@ -9,7 +9,7 @@ import { createBladeswornState } from '#gw2/professions/warrior/specializations/
 import {
   activateChant,
   activateCommand,
-  advanceParagon,
+  refrains,
   updateParagonCast,
   commandEchoes
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
@@ -102,9 +102,10 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
     const core = context.state.profession.core;
     Object.assign(core, { adrenaline, maximumAdrenaline: 10 });
     const state = context.state.profession.specialization.state;
-    Object.assign(state, { motivation, activeRefrainId: skillId, nextRefrainAt: 3 });
+    Object.assign(state, { motivation, activeRefrainId: skillId });
 
-    advanceParagon(context, 3);
+    refrains.start(context, { key: 'refrain', at: 3, captured: {} });
+    refrains.consumeAll(context, 3);
 
     assert.equal(state.motivation, motivation - spent);
     assert.equal(core.adrenaline, expected);

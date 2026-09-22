@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
@@ -18,7 +19,6 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ThiefCastContext,
   ThiefDoubleEdgeOutcome,
-  ThiefScheduledTask,
   ThiefSchedulerContext,
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
@@ -26,16 +26,6 @@ import type { AntiquaryState, ThiefArtifactSlot } from '#gw2/professions/thief/s
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-
-interface ForgedSurferTaskPayload {
-  readonly generation: number;
-  readonly bomb: number;
-  readonly skillId: SkillId;
-}
-
-interface SkrittScuffleTaskPayload {
-  readonly expiresAt: number;
-}
 
 function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
@@ -194,7 +184,6 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
   } else if (skill.id === ID.FORGED_SURFER_DASH_ID_76633) {
     // The bomb-drop buff has its own duration, independent of how many bombs hit the target.
     state.forgedSurferBombDropUntil = at + (meticulous ? enhancedDuration : standardDuration);
-    state.forgedSurferGeneration += 1; // bumped here (before task scheduling) so the task payload and state always agree on which run is current
   }
 }
 
@@ -276,90 +265,58 @@ export function consumeArtifact(context: ThiefCastContext, skill: ThiefSkill): v
 
 export function completeForgedSurfer(context: ThiefCastContext, skill: ThiefSkill): void {
   consumeArtifact(context, skill);
-  const state = antiquaryState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.forgedSurfer);
-  context.tasks.schedule({
-    type: 'thief.forged-surfer',
+  const selected = balanceProfileFromContext(
+    context,
+    hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN) ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer
+  );
+  forgedSurfer.start(context, {
+    key: 'forged-surfer',
     at: context.effectiveEnd + Number(profile?.initialDelay ?? 1),
-    ownerId: `thief.forged-surfer:${state.forgedSurferGeneration}`,
-    payload: {
-      generation: state.forgedSurferGeneration,
-      bomb: 0,
-      skillId: skill.id
-    }
+    count:
+      1 +
+      Math.ceil(
+        Math.min(Number(selected?.maximumStacks ?? 5), antiquaryState.from(context).forgedSurferMaximumBombHits)
+      ),
+    captured: { skillId: skill.id }
   });
 }
 
-// Emit one generation-bound Forged Surfer bomb or terminal packet so a newer run
-// can invalidate stale scheduled effects.
-function emitForgedSurferPacket(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<ForgedSurferTaskPayload>,
-  coefficient: number,
-  burnDuration: number,
-  burnStacks = 1
-): void {
-  const bomb = Number(task.payload.bomb || 0);
-  const name = bomb === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
-  emitSkillDamage(context, {
-    at: task.at,
-    source: 'thief',
-    sourceId: task.payload.skillId,
-    actorType: 'player',
-    skillId: task.payload.skillId,
-    skillName: 'Forged Surfer Dash',
-    name,
-    coefficient,
-    hits: 1
-  });
-  emitSkillCondition(context, {
-    at: task.at,
-    skillId: task.payload.skillId,
-    skillName: 'Forged Surfer Dash',
-    name: `${name} — Burning`,
-    condition: 'Burning',
-    stacks: burnStacks,
-    duration: burnDuration
-  });
-}
-
-export function handleForgedSurfer(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<ForgedSurferTaskPayload>
-): void {
-  // stale task from a previous activation; discard it so a fresh Forged Surfer cast can run independently
-  if (Number(task.payload.generation || 0) !== Number(antiquaryState.from(context).forgedSurferGeneration || 0)) return;
-  const bomb = Number(task.payload.bomb || 0);
-  const meticulous = hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN);
-  const profile = balanceProfileFromContext(
-    context,
-    meticulous ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer
-  );
-  const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
-  const burns = (profile?.effects || []).filter((effect) => effect.type === 'condition');
-  const packetIndex = bomb === 0 ? 0 : 1;
-  emitForgedSurferPacket(
-    context,
-    task,
-    Number(strikes[packetIndex]?.coefficient ?? (bomb === 0 ? 2.4 : 1.2)),
-    Number(burns[packetIndex]?.duration ?? (bomb === 0 ? 6 : 3.5)),
-    Number(burns[packetIndex]?.stacks ?? 1)
-  );
-  // user-configurable assumption: allows simulating fewer bombs when the target dies before the full chain lands
-  if (
-    bomb >=
-    Math.min(Number(profile?.maximumStacks ?? 5), Number(antiquaryState.from(context).forgedSurferMaximumBombHits || 5))
-  )
-    return;
-  context.tasks.schedule({
-    ...task,
-    at: task.at + Number(balanceProfileFromContext(context, PROFILE.forgedSurfer)?.pulseInterval ?? 3),
-    payload: {
-      ...task.payload,
-      bomb: bomb + 1
-    }
-  });
-}
+// A replacement cancels the whole sequence; occurrence zero is the dash and later occurrences are bombs.
+export const forgedSurfer = timedEffect<ThiefSchedulerContext, { skillId: SkillId }>({
+  id: 'thief.forged-surfer',
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.forgedSurfer)?.pulseInterval ?? 3),
+  effectsAt(context, at, { skillId }, bomb) {
+    const profile = balanceProfileFromContext(
+      context,
+      hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN) ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer
+    );
+    const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
+    const burns = (profile?.effects || []).filter((effect) => effect.type === 'condition');
+    const packetIndex = bomb === 0 ? 0 : 1;
+    const name = bomb === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash ? Bomb';
+    emitSkillDamage(context, {
+      at,
+      source: 'thief',
+      sourceId: skillId,
+      actorType: 'player',
+      skillId,
+      skillName: 'Forged Surfer Dash',
+      name,
+      coefficient: Number(strikes[packetIndex]?.coefficient ?? (bomb === 0 ? 2.4 : 1.2)),
+      hits: 1
+    });
+    emitSkillCondition(context, {
+      at,
+      skillId,
+      skillName: 'Forged Surfer Dash',
+      name: `${name} ? Burning`,
+      condition: 'Burning',
+      stacks: Number(burns[packetIndex]?.stacks ?? 1),
+      duration: Number(burns[packetIndex]?.duration ?? (bomb === 0 ? 6 : 3.5))
+    });
+  }
+});
 
 // Double Edge is only risky when the skill is on cooldown; casting off-cooldown always succeeds
 function riskyDoubleEdge(context: ThiefCastContext, skill: ThiefSkill): boolean {
@@ -443,7 +400,7 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       at,
       skillId: ID.STONE_SUMMIT_CANNON,
       skillName: 'Stone Summit Cannon',
-      name: 'Stone Summit Cannon — Burning',
+      name: 'Stone Summit Cannon � Burning',
       condition: String(burning?.condition || 'Burning'),
       stacks: Number(burning?.stacks ?? 1),
       duration: Number(burning?.duration ?? 3)
@@ -512,34 +469,28 @@ export function completeSkrittScuffle(context: ThiefCastContext, skill: ThiefSki
   state.activeAntiquarySummons.push(summon);
   state.nextSkrittScufflePilferAt = at + interval;
   pilferArtifacts(context, at, 'skritt-scuffle-artifact', 'scuffle');
-  // ownerId encodes both skill id and cast time so a re-summoned scuffle doesn't cancel the previous one's tasks
-  // Zero interval retains the initial artifact but disables recurring pilfers.
+  // Each assistant retains an independent lifetime, including the final pilfer at expiry.
   if (interval > 0)
-    context.tasks.schedule({
-      type: 'thief.skritt-scuffle',
+    skrittScuffle.start(context, {
       at: at + interval,
-      ownerId: `thief.skritt-scuffle:${skill.id}:${at}`,
-      payload: { expiresAt: summon.expiresAt }
+      captured: { expiresAt: summon.expiresAt }
     });
   emitThiefStateSnapshot(context, at, 'skritt-scuffle');
 }
 
-export function handleSkrittScuffle(
-  context: ThiefSchedulerContext,
-  task: ThiefScheduledTask<SkrittScuffleTaskPayload>
-): void {
-  const interval = Number(balanceProfileFromContext(context, PROFILE.scuffle)?.pulseInterval ?? 3);
-  if (!(interval > 0)) return;
-  // The assistant's final pilfer lands exactly at its lifetime boundary.
-  if (task.at > Number(task.payload.expiresAt || 0)) return;
-  const nextPilferAt = canonicalTime(task.at + interval);
-  antiquaryState.from(context).nextSkrittScufflePilferAt =
-    nextPilferAt <= Number(task.payload.expiresAt || 0) ? nextPilferAt : 0;
-  pilferArtifacts(context, task.at, 'skritt-scuffle-artifact', 'scuffle');
-  if (nextPilferAt <= Number(task.payload.expiresAt || 0)) {
-    context.tasks.schedule({
-      ...task,
-      at: nextPilferAt
-    });
+export const skrittScuffle = timedEffect<ThiefSchedulerContext, { expiresAt: number }>({
+  id: 'thief.skritt-scuffle',
+  nextAt(context, at, { expiresAt }) {
+    const interval = Number(balanceProfileFromContext(context, PROFILE.scuffle)?.pulseInterval ?? 3);
+    const next = canonicalTime(at + interval);
+    return interval > 0 && next <= expiresAt ? next : null;
+  },
+  effectsAt(context, at, { expiresAt }) {
+    const interval = Number(balanceProfileFromContext(context, PROFILE.scuffle)?.pulseInterval ?? 3);
+    if (!(interval > 0) || at > expiresAt) return false;
+    const next = canonicalTime(at + interval);
+    // This public value is a retry/display projection; the timed instance owns scheduling.
+    antiquaryState.from(context).nextSkrittScufflePilferAt = next <= expiresAt ? next : 0;
+    pilferArtifacts(context, at, 'skritt-scuffle-artifact', 'scuffle');
   }
-}
+});

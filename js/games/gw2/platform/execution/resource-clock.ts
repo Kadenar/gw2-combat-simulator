@@ -1,4 +1,4 @@
-import { timedEffect } from '#gw2/platform/execution/timed-effects.js';
+import { timedEffect } from '#gw2/platform/engine/effects/timed-effects.js';
 import { resourceDepletionAt, type ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { SchedulerTaskAccess } from '#gw2/platform/execution/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

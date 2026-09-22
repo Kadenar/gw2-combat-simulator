@@ -26,7 +26,6 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   const virtue = event.virtue;
   if (!virtue) return;
   const state = willbenderState.from(context);
-  if (state.flameVirtue !== virtue) state.flameGeneration += 1; // different virtue = new flame run, so pulse tasks keyed on the old generation are ignored
   state.flameVirtue = virtue;
   // Reopening a window preserves partial hit progress, including across inactive gaps.
   // State and the displayed buff expire on the same absolute effect tick.

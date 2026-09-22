@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -61,17 +62,21 @@ export const dragonhunterAttributeRules = Object.freeze({
   modifierRules: dragonhunterModifierRules
 });
 
-export function advanceDragonhunterState(context: GuardianSchedulerContext, target: number): void {
-  const state = dragonhunterState.from(context);
-  // Indomitable Courage reduces passive Aegis interval: 40s → 30s.
-  const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
+function courageInterval(context: GuardianSchedulerContext): number {
+  return hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
     ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)?.pulseInterval ?? 30)
     : Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40);
-  const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.passiveCourage), 'boon');
-  const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
-  // Recurring passives require a positive authored interval.
-  while (interval > 0 && courage && state.nextShieldOfCourageAegisAt <= target + EPSILON) {
-    const at = state.nextShieldOfCourageAegisAt;
+}
+
+// Retain the passive cadence during dormancy; zero interval disables it entirely.
+const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
+  id: 'guardian.dragonhunter.passive-courage',
+  priority: -200,
+  interval: courageInterval,
+  effectsAt(context, at) {
+    const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.passiveCourage), 'boon');
+    const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
+    if (!courage) return false;
     // Passive Aegis is suppressed while the virtue's cooldown hasn't expired;
     // activating Shield of Courage resets virtueReadyAt.courage, so pulses during
     // the active period are silently skipped (counter still advances to stay in phase).
@@ -89,10 +94,8 @@ export function advanceDragonhunterState(context: GuardianSchedulerContext, targ
         duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 20))
       });
     }
-
-    state.nextShieldOfCourageAegisAt += interval;
   }
-}
+});
 
 export function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
@@ -146,11 +149,14 @@ export const dragonhunterSkillMechanicHandlers = Object.freeze({
 });
 
 export const dragonhunterSchedulerHooks = Object.freeze({
-  advance: Object.freeze([
+  taskHandlers: shieldOfCourage.taskHandlers,
+  initialize: Object.freeze([
     {
       id: 'guardian.dragonhunter.passive-courage',
       order: 40,
-      handler: advanceDragonhunterState
+      handler: (context: GuardianSchedulerContext) => {
+        if (courageInterval(context) > 0) shieldOfCourage.start(context, { at: 0, captured: {} });
+      }
     }
   ]),
   afterCast: Object.freeze([

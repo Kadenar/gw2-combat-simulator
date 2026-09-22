@@ -1,4 +1,4 @@
-import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { eventReaction, scheduledReaction, timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Public Core Warrior trait dispatcher.
@@ -50,7 +50,7 @@ import {
   warriorStrengthModifierRules
 } from '#gw2/professions/warrior/core/traits/strength.js';
 import {
-  advanceEmpowerAllies,
+  initializeEmpowerAllies,
   applyLegSpecialist,
   applyMarchingOrders,
   applyMartialCadence,
@@ -204,6 +204,7 @@ function applyKeenStrikeCriticalMight(
 
 // Request critical facts before any line-specific runtime logic can schedule work.
 export function initializeWarriorTraits(context: WarriorSchedulerContext): void {
+  initializeEmpowerAllies(context);
   const weapons = [...gw2ConfiguredWeaponSet(context.config, 1), ...gw2ConfiguredWeaponSet(context.config, 2)].map(
     String
   );
@@ -265,7 +266,8 @@ export const warriorArmsReaction = eventReaction<
 // Route canonical events through the preserved cross-line and base-mechanic sequence.
 export function observeWarriorEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   const state = professionCoreState(context);
-  if (event.type === 'combat_start') state.signetOfRageNextAt = event.at + 3;
+  if (event.type === 'combat_start' && selectedSkillNameSet(context.config.selectedSkills).has('Signet of Rage'))
+    signetOfRage.start(context, { key: 'signet-of-rage', at: event.at + 3, captured: {} });
 
   applyOpportunist(context, event);
 
@@ -305,21 +307,16 @@ export function observeWarriorEvent(context: WarriorSchedulerContext, event: War
   warriorAdrenalineReaction.onEventScheduled.handler(context, event);
 }
 
-// Advance the base Signet of Rage pulse before Tactics' Empower Allies pulse.
-export function advanceWarriorTraits(context: WarriorSchedulerContext, target: number): void {
-  const state = professionCoreState(context);
-  const selected = selectedSkillNameSet(context.config.selectedSkills);
-  if (selected.has('Signet of Rage')) {
-    while (state.signetOfRageNextAt > 0 && state.signetOfRageNextAt <= target + EPSILON) {
-      const at = state.signetOfRageNextAt;
-      const cooldownReadyAt = Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0);
-      if (cooldownReadyAt <= at + EPSILON) gainWarriorAdrenaline(context, 2);
-      state.signetOfRageNextAt += 3;
-    }
+// Combat start anchors discrete resource gains; recharge suppresses pulses without resetting their phase.
+export const signetOfRage = timedEffect<WarriorSchedulerContext, object>({
+  id: 'warrior.signet-of-rage',
+  priority: -220,
+  interval: () => 3,
+  effectsAt(context, at) {
+    if (!selectedSkillNameSet(context.config.selectedSkills).has('Signet of Rage')) return false;
+    if (Number(context.state.cooldowns.get(ID.SIGNET_OF_RAGE) || 0) <= at + EPSILON) gainWarriorAdrenaline(context, 2);
   }
-
-  advanceEmpowerAllies(context, target);
-}
+});
 
 /** Applies Martial Cadence, Versatile Rage, then Furious Burst on weapon swap. */
 export function applyWarriorWeaponSwapTraits(context: WarriorCastContext, skill: WarriorSkill): void {

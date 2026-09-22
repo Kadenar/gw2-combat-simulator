@@ -7,7 +7,7 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
-import { reactToRighteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
+import { reactToRighteousInstincts, righteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandModifierRules } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 
@@ -71,7 +71,7 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
   recordBuffApplication(runtime.boons, others);
   reactToRighteousInstincts(runtime, others);
   assert.equal(core.resolutionUntil, 0);
-  assert.equal(core.righteousNextMightAt, 0);
+  assert.equal(righteousInstincts.nextAt(runtime), Infinity);
   assert.equal(guardianBoonActive({ time: 4, runtime }, 'resolution'), false);
 
   const self = buff('resolution');
@@ -82,7 +82,7 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
 
   reactToRighteousInstincts(runtime, others);
   assert.equal(core.resolutionUntil, 8);
-  assert.equal(core.righteousNextMightAt, 5);
+  assert.equal(righteousInstincts.nextAt(runtime), 5);
   assert.equal(guardianBoonActive({ time: 6, runtime }, 'resolution'), true);
   assert.equal(guardianBoonActive({ time: 8, runtime }, 'resolution'), false);
   assert.equal(

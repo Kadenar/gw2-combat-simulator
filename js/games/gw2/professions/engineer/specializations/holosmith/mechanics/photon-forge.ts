@@ -117,9 +117,23 @@ function triggerInstantEnhancedCapacityMight(
   )
     return;
   emitEnhancedCapacityMight(context, at);
-  state.enhancedCapacityMightReadyAt =
-    at + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
+  enhancedCapacityMight.start(context, {
+    key: 'might',
+    at: at + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1),
+    captured: {}
+  });
 }
+
+// Might settles before same-time heat tasks, including the final pulse at a cooling boundary.
+export const enhancedCapacityMight = timedEffect<EngineerSchedulerContext, object>({
+  id: 'engineer.enhanced-capacity-might',
+  priority: -200,
+  interval: (context) => balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1),
+  effectsAt(context, at) {
+    if (holosmithState.from(context).heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return false;
+    emitEnhancedCapacityMight(context, at);
+  }
+});
 
 /** Replaces Solar Focusing Lens charges and opens their profiled activation window. */
 export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
@@ -237,7 +251,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
 
-/** Advances ECSU pulses over constant heat between discrete heat/cooling tasks. */
+/** Clamps heat between discrete heat/cooling tasks and publishes changes. */
 export function advancePhotonForgeState(context: EngineerSchedulerContext, target: number): void {
   const state = holosmithState.from(context);
   const from = Number(state.heatUpdatedAt || 0);
@@ -245,21 +259,12 @@ export function advancePhotonForgeState(context: EngineerSchedulerContext, targe
   const previousHeat = state.heat;
   const heat = Number(state.heat || 0);
   state.heat = clamp(heat, 0, state.maximumHeat);
+  // Arm preheated runs on their first advance, after opening packets have been authored.
+  // Later advances only reconcile eligibility; the timed instance retains the pulse deadline.
   if (hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)) {
-    let readyAt = state.enhancedCapacityMightReadyAt;
-    if (heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) {
-      readyAt = null;
-    } else {
-      if (readyAt == null || Number(readyAt) < from - EPSILON) readyAt = from;
-      // Include the boundary before same-time heat tasks run, retaining the next pulse across advances.
-      while (Number(readyAt) <= target + EPSILON) {
-        emitEnhancedCapacityMight(context, Number(readyAt));
-        readyAt =
-          Number(readyAt) + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1);
-      }
-    }
-
-    state.enhancedCapacityMightReadyAt = readyAt;
+    if (heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) enhancedCapacityMight.cancelKey(context, 'might');
+    else if (!Number.isFinite(enhancedCapacityMight.nextAt(context)))
+      enhancedCapacityMight.start(context, { key: 'might', at: from, captured: {} });
   }
 
   state.heatUpdatedAt = target;
@@ -391,14 +396,13 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
 function scheduleHeatPulse(
   context: EngineerCastContext,
   skill: EngineerSkill,
-  at: number,
+  times: readonly number[],
   amount: number,
   persistsOutsideForge = false
 ): void {
-  context.tasks.schedule({
-    type: 'engineer.photon-forge-heat',
-    at,
-    payload: {
+  skillHeat.start(context, {
+    times,
+    captured: {
       skillId: skill.id,
       skillName: skill.name,
       amount,
@@ -422,9 +426,13 @@ function applyCoronaBurstHeat(context: EngineerCastContext, skill: HolosmithSkil
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   if (elapsedMs + EPSILON * 1000 < CORONA_QUICKNESS_PULSE_OFFSETS_MS[0]) return;
   const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
-  for (const offsetMs of CORONA_QUICKNESS_PULSE_OFFSETS_MS) {
-    scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse, true);
-  }
+  scheduleHeatPulse(
+    context,
+    skill,
+    CORONA_QUICKNESS_PULSE_OFFSETS_MS.map((offsetMs) => context.start + offsetMs / 1000),
+    heatPerPulse,
+    true
+  );
 }
 
 // Match Photon Blitz heat to projectile launches rather than impacts.
@@ -435,10 +443,14 @@ function applyPhotonBlitzHeat(context: EngineerCastContext, skill: HolosmithSkil
   if (!canApplyHeat(context, skill)) return;
   const elapsedMs = Math.max(0, (context.effectiveEnd - context.start) * 1000);
   const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
-  for (const offsetMs of PHOTON_BLITZ_PULSE_OFFSETS_MS) {
-    if (offsetMs > elapsedMs + EPSILON * 1000) break;
-    scheduleHeatPulse(context, skill, context.start + offsetMs / 1000, heatPerPulse);
-  }
+  scheduleHeatPulse(
+    context,
+    skill,
+    PHOTON_BLITZ_PULSE_OFFSETS_MS.filter((offsetMs) => offsetMs <= elapsedMs + EPSILON * 1000).map(
+      (offsetMs) => context.start + offsetMs / 1000
+    ),
+    heatPerPulse
+  );
 }
 
 /** Schedules an ordinary Forge attack's heat at completion or its interrupt commit point. */
@@ -452,21 +464,21 @@ function applyHeat(context: EngineerCastContext, skill: HolosmithSkill): void {
 
   // A Forge attack that crossed its interrupt commit point already fired; its
   // authored heat survives cancelling the remaining animation/aftercast too.
-  scheduleHeatPulse(context, skill, context.effectiveEnd, Number(skill.heatGain));
+  scheduleHeatPulse(context, skill, [context.effectiveEnd], Number(skill.heatGain));
 }
 
 /** Applies a scheduled skill heat pulse, including immediate ECSU threshold payoff and a state snapshot. */
-export function handlePhotonForgeHeat(
-  context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<PhotonForgeHeatPayload>
-): void {
-  const state = holosmithState.from(context);
-  if (state.overheated || (!state.photonForgeActive && task.payload?.persistsOutsideForge !== true)) return;
-  const previousHeat = state.heat;
-  state.heat = grantCapped(state.heat, Number(task.payload?.amount || 0), state.maximumHeat);
-  triggerInstantEnhancedCapacityMight(context, task.at, previousHeat);
-  emitEngineerStateSnapshot(context, task.at, 'heat');
-}
+export const skillHeat = timedEffect<EngineerSchedulerContext, PhotonForgeHeatPayload>({
+  id: 'engineer.photon-forge-heat',
+  effectsAt(context, at, payload) {
+    const state = holosmithState.from(context);
+    if (state.overheated || (!state.photonForgeActive && payload.persistsOutsideForge !== true)) return;
+    const previousHeat = state.heat;
+    state.heat = grantCapped(state.heat, Number(payload.amount || 0), state.maximumHeat);
+    triggerInstantEnhancedCapacityMight(context, at, previousHeat);
+    emitEngineerStateSnapshot(context, at, 'heat');
+  }
+});
 
 /** Invokes canonical Vent Exhaust effects and removes its authored heat amount. */
 function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: EngineerSkill, at: number): void {

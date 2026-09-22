@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -305,9 +306,8 @@ function handleWillbenderFlameActivation(
   const virtue = payload?.virtue;
   if (!payload || !virtue) return;
   const state = willbenderState.from(context);
-  if (state.flameVirtue !== virtue) state.flameGeneration += 1;
+  if (state.flameVirtue !== virtue) willbenderFlames.cancelOwner(context, 'willbender-flames');
   state.flameVirtue = virtue;
-  const flameGeneration = state.flameGeneration;
   const flameId = Number(payload.flameId);
   const flames = balanceProfileFromContext(context, PROFILE.flames);
   const strike = balanceProfileEffect(flames, 'strike');
@@ -317,76 +317,66 @@ function handleWillbenderFlameActivation(
   // roll is shared by its pulses without colliding with the virtue impact's profession-mechanic roll.
   // Preserve targeting explicitly across that new activation, including pulses after Combat Start.
   const activationId = context.createActivationId('effect');
-  for (const [index, tick] of ticks.entries()) {
-    const pulse = index + 1;
-    context.tasks.schedule({
-      id: `guardian.willbender-flame:${flameGeneration}:${task.at}:${pulse}`,
-      type: 'guardian.willbender-flame-pulse',
-      at: Number(task.at) + Number(tick.atMs) / 1000,
-      payload: { activationId, flameGeneration, flameId, pulse, offTarget: payload.offTarget === true }
-    });
-  }
+  willbenderFlames.start(context, {
+    times: ticks.map((tick) => task.at + Number(tick.atMs) / 1000),
+    ownerId: 'willbender-flames',
+    captured: { activationId, flameId, offTarget: payload.offTarget === true }
+  });
 }
 
-function handleWillbenderFlamePulse(
-  context: GuardianSchedulerContext,
-  task: ScheduledTask<{
-    readonly activationId: string;
-    readonly flameGeneration: number;
-    readonly flameId: number;
-    readonly pulse: number;
-    readonly offTarget: boolean;
-  }>
-): void {
-  const payload = task.payload;
-  const state = willbenderState.from(context);
-  // Stale pulses from a previous virtue activation (different flameGeneration) are
-  // silently discarded; only the most recent virtue's pulses should fire.
-  if (!payload || Number(payload.flameGeneration) !== state.flameGeneration) {
-    return;
+// Same-virtue fields overlap; switching virtue cancels their shared lifetime group.
+export const willbenderFlames = timedEffect<
+  GuardianSchedulerContext,
+  {
+    activationId: string;
+    flameId: number;
+    offTarget: boolean;
   }
-
-  const at = Number(task.at);
-  const flameId = Number(payload.flameId);
-  const pulse = Number(payload.pulse);
-  const flames = balanceProfileFromContext(context, PROFILE.flames);
-  const strike = balanceProfileEffect(flames, 'strike');
-  const ticks = strike?.type === 'strike' ? strike.ticks : null;
-  const tick = ticks?.[pulse - 1];
-  if (!ticks?.length || !tick) throw new Error('Willbender Flames pulse is missing its strike tick.');
-  context.emit(
-    buildGuardianStrike({
-      at,
-      sourceId: flameId,
-      skillId: flameId,
-      skillName: 'Willbender Flames',
-      name: 'Willbender Flames',
-      coefficient: Number(tick.coefficient),
-      skillWeapon: 'Unequipped',
-      hitIndex: pulse,
-      totalHits: ticks.length,
-      willbenderFlames: true,
-      ...(payload.offTarget === true ? { offTarget: true } : {})
-    })
-  );
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
-    const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.searingPact), 'condition');
-    emitSkillCondition(context, {
-      at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
-      actorType: 'player',
-      skillId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
-      skillName: 'Searing Pact',
-      name: 'Searing Pact — Burning',
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 1),
-      triggeredBy: 'Willbender Flames',
-      ...(payload.offTarget === true ? { offTarget: true } : {})
-    });
+>({
+  id: 'guardian.willbender-flame-pulse',
+  effectsAt(context, at, payload, occurrence) {
+    const { flameId, activationId } = payload;
+    const pulse = occurrence + 1;
+    const flames = balanceProfileFromContext(context, PROFILE.flames);
+    const strike = balanceProfileEffect(flames, 'strike');
+    const ticks = strike?.type === 'strike' ? strike.ticks : null;
+    const tick = ticks?.[pulse - 1];
+    if (!ticks?.length || !tick) throw new Error('Willbender Flames pulse is missing its strike tick.');
+    context.emit(
+      buildGuardianStrike({
+        at,
+        activationId,
+        sourceId: flameId,
+        skillId: flameId,
+        skillName: 'Willbender Flames',
+        name: 'Willbender Flames',
+        coefficient: Number(tick.coefficient),
+        skillWeapon: 'Unequipped',
+        hitIndex: pulse,
+        totalHits: ticks.length,
+        willbenderFlames: true,
+        ...(payload.offTarget === true ? { offTarget: true } : {})
+      })
+    );
+    if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
+      const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.searingPact), 'condition');
+      emitSkillCondition(context, {
+        at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
+        actorType: 'player',
+        skillId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
+        skillName: 'Searing Pact',
+        name: 'Searing Pact — Burning',
+        condition: String(burning?.condition || 'Burning'),
+        stacks: Number(burning?.stacks ?? 1),
+        duration: Number(burning?.duration ?? 1),
+        triggeredBy: 'Willbender Flames',
+        ...(payload.offTarget === true ? { offTarget: true } : {})
+      });
+    }
   }
-}
+});
 
 /** Capture observation-time data and apply local state changes only when the queue reaches the impact. */
 export const willbenderVirtueHitReaction = scheduledReaction<
@@ -569,7 +559,7 @@ export const willbenderSchedulerHooks = Object.freeze({
   ]),
   taskHandlers: Object.freeze({
     'guardian.willbender-flame-activate': handleWillbenderFlameActivation,
-    'guardian.willbender-flame-pulse': handleWillbenderFlamePulse,
+    ...willbenderFlames.taskHandlers,
     ...willbenderVirtueHitReaction.taskHandlers
   })
 });

@@ -1,5 +1,5 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import { timedEffect } from '#gw2/platform/execution/timed-effects.js';
+import { timedEffect } from '#gw2/platform/engine/effects/timed-effects.js';
 import type { SchedulerTaskAccess } from '#gw2/platform/execution/types.js';
 
 interface ActorStart<TState extends object> {

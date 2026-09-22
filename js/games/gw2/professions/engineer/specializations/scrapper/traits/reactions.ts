@@ -1,9 +1,10 @@
+import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
@@ -17,25 +18,10 @@ import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializatio
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
-// Deduplicates pulse events: if one is already scheduled at or before `at`, skip.
-// massMomentumPulseAt tracks the timestamp of the outstanding pulse so stale ones are ignored.
-function scheduleMassMomentumPulse(context: EngineerResolverContext, at: number): void {
-  const state = procState(context);
-  const scheduledAt = Number(state.massMomentumPulseAt || 0);
-  if (scheduledAt > 0 && scheduledAt <= at + EPSILON) return;
-  state.massMomentumPulseAt = at;
-  context.queue.enqueue({
-    type: 'engineer.mass-momentum-pulse',
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.MASS_MOMENTUM,
-    actorType: 'effect'
-  });
-}
-
 // Grants 1 might if stability is active and the 1s ICD has elapsed, then reschedules the pulse.
-function triggerMassMomentum(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0) return;
+function triggerMassMomentum(context: EngineerResolverContext, event: EngineerResolverEvent): void | false {
+  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
+    return false;
   const state = procState(context);
   if (Number(state.massMomentum || 0) <= event.at) {
     state.massMomentum = event.at + balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1);
@@ -54,24 +40,20 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
     recordTrait(context, 'Mass Momentum', event);
   }
 
-  scheduleMassMomentumPulse(
-    context,
-    Math.max(
-      event.at + balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1),
-      Number(state.massMomentum || 0)
-    )
-  );
+  const interval = balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1);
+  const next = Math.max(event.at + interval, Number(state.massMomentum || 0));
+  if (interval > 0 && massMomentum.nextAt(context) > next)
+    massMomentum.start(context, { key: 'stability', at: next, captured: event });
 }
 
-// Clears the stale pulse sentinel, then re-checks stability to keep the loop alive.
-function handleMassMomentumPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const state = procState(context);
-  if (Math.abs(Number(state.massMomentumPulseAt || 0) - event.at) <= EPSILON) {
-    state.massMomentumPulseAt = 0;
+// A single pending resolver occurrence deduplicates hit/boon triggers and rechecks live Stability.
+const massMomentum = resolverTimedEffect<EngineerResolverContext, EngineerResolverEvent>({
+  id: 'engineer.mass-momentum-pulse',
+  interval: (context) => balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1),
+  effectsAt(context, at, event) {
+    return triggerMassMomentum(context, { ...event, at });
   }
-
-  triggerMassMomentum(context, event);
-}
+});
 
 // Only real damage hits (coefficient > 0) trigger the pulse; 0-coeff events are skipped.
 function reactToScrapperDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
@@ -125,7 +107,7 @@ function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerR
 }
 
 export const scrapperResolverEventHandlers = Object.freeze({
-  'engineer.mass-momentum-pulse': handleMassMomentumPulse
+  ...massMomentum.eventHandlers
 });
 
 export const scrapperResolverEventReactions = Object.freeze({

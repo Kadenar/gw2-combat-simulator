@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { handleMesmerReleaseConditions } from '#gw2/professions/revenant/specializations/conduit/execution/release-potential.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -46,7 +47,6 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type {
   RevenantCastContext,
   RevenantPrecastContext,
-  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill
@@ -220,49 +220,47 @@ function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): v
   const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
   if (!active) return;
   // Upkeep ticks follow Energy settlement but precede cast completion (-100), as they did in advance.
-  context.tasks.schedule({
-    type: 'revenant.conduit-upkeep-affinity',
+  conduitUpkeepAffinity.start(context, {
+    key: String(skill.id),
     at: context.effectiveEnd + 3,
-    priority: -200,
     ownerId: `revenant.upkeep:${skill.id}`,
-    payload: { skillId: skill.id }
+    captured: { skillId: skill.id }
   });
   if (skill.id === ID.IMPOSSIBLE_ODDS) {
-    context.tasks.schedule({
-      type: 'revenant.conduit-upkeep-daggers',
+    conduitUpkeepDaggers.start(context, {
+      key: String(skill.id),
       at: context.effectiveEnd + 1,
-      priority: -190,
       ownerId: `revenant.upkeep:${skill.id}`,
-      payload: { skillId: skill.id }
+      captured: { skillId: skill.id }
     });
   }
 }
 
-/** Own each deadline in the queue so idle waits cannot skip or backdate upkeep ticks. */
-function handleConduitUpkeep(
-  context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ skillId: RevenantSkill['id'] }>
-): void {
-  const skillId = task.payload?.skillId;
-  if (skillId == null || !professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId))
-    return;
-  const skill = context.catalog.skillsById.get(skillId);
-  if (!skill) return;
-  const affinityTick = task.type === 'revenant.conduit-upkeep-affinity';
-  if (affinityTick) {
+// Separate cadences share upkeep ownership so release and Energy starvation stop both.
+const conduitUpkeepAffinity = timedEffect<RevenantSchedulerContext, { skillId: RevenantSkill['id'] }>({
+  id: 'revenant.conduit-upkeep-affinity',
+  priority: -200,
+  interval: () => 3,
+  effectsAt(context, _at, { skillId }) {
+    if (
+      !professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId) ||
+      !context.catalog.skillsById.has(skillId)
+    )
+      return false;
     gainConduitAffinity(context, 1, 'enigmatic-upkeep');
-  } else {
-    emitLesserEnchantedDaggers(context, skill, task.at);
   }
-
-  context.tasks.schedule({
-    type: task.type,
-    at: task.at + (affinityTick ? 3 : 1),
-    priority: task.priority,
-    ownerId: task.ownerId,
-    payload: { skillId }
-  });
-}
+});
+const conduitUpkeepDaggers = timedEffect<RevenantSchedulerContext, { skillId: RevenantSkill['id'] }>({
+  id: 'revenant.conduit-upkeep-daggers',
+  priority: -190,
+  interval: () => 1,
+  effectsAt(context, at, { skillId }) {
+    if (!professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId)) return false;
+    const skill = context.catalog.skillsById.get(skillId);
+    if (!skill) return false;
+    emitLesserEnchantedDaggers(context, skill, at);
+  }
+});
 
 function completeConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
   completeBeguilingHaze(context, skill);
@@ -389,8 +387,8 @@ export const conduitSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     'revenant.release-mesmer-conditions': handleMesmerReleaseConditions,
-    'revenant.conduit-upkeep-affinity': handleConduitUpkeep,
-    'revenant.conduit-upkeep-daggers': handleConduitUpkeep,
+    ...conduitUpkeepAffinity.taskHandlers,
+    ...conduitUpkeepDaggers.taskHandlers,
     ...conduitAffinityReaction.taskHandlers
   })
 });

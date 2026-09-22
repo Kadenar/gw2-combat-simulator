@@ -16,7 +16,7 @@ import {
   advanceThiefCoreResources,
   completeThiefCoreResources,
   restartInfiltratorsSignetPassive,
-  pulseInfiltratorsSignet,
+  infiltratorsSignetPassive,
   spendThiefCoreResources
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 
@@ -61,7 +61,7 @@ export const thiefCoreSchedulerHooks = Object.freeze({
   ]),
   taskHandlers: {
     [THIEF_SCEPTER_CHAIN_EXPIRY_TASK]: expireThiefScepterChain,
-    'thief.infiltrators-signet': pulseInfiltratorsSignet,
+    ...infiltratorsSignetPassive.taskHandlers,
     ...thiefCoreTaskHandlers,
     ...thiefCriticalBoonReaction.taskHandlers,
     ...thiefAxeReaction.taskHandlers

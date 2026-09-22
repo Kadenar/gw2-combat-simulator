@@ -786,7 +786,7 @@ test('Necromancer public projection keeps inactive compatibility fields', () => 
 });
 
 const guardianInactiveStateKeys = Object.freeze({
-  Dragonhunter: ['tetherUntil', 'nextShieldOfCourageAegisAt', 'heavyLightReadyAt'],
+  Dragonhunter: ['tetherUntil', 'heavyLightReadyAt'],
   Firebrand: [
     'activeTome',
     'tomePages',
@@ -794,7 +794,6 @@ const guardianInactiveStateKeys = Object.freeze({
     'tomePageInterval',
     'nextTomePageAt',
     'ashes',
-    'nextCourageAegisAt',
     'tomeDormantReadyAt',
     'swiftScholarTome',
     'swiftScholarCount',
@@ -804,7 +803,6 @@ const guardianInactiveStateKeys = Object.freeze({
     'mantraRechargeReadyAt'
   ],
   Willbender: [
-    'flameGeneration',
     'flameVirtue',
     'pendingWeaponCooldownReduction',
     'justiceUntil',

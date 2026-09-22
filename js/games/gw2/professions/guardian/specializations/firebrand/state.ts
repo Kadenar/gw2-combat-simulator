@@ -19,7 +19,6 @@ export interface GuardianFirebrandState {
   nextTomePageAt: number;
   ashes: ChargeGrant;
   ashesBurnDuration: number;
-  nextCourageAegisAt: number;
   tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   swiftScholarTome: string;
   swiftScholarCount: number;
@@ -64,7 +63,6 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
     ),
     ashes: grantCharges(0, 0),
     ashesBurnDuration: 2,
-    nextCourageAegisAt: 0,
     tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: '',
     swiftScholarCount: 0,
@@ -83,7 +81,6 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   tomePageInterval: 8,
   nextTomePageAt: Number.POSITIVE_INFINITY,
   ashes: grantCharges(0, 0),
-  nextCourageAegisAt: 0,
   tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
   swiftScholarTome: '',
   swiftScholarCount: 0,

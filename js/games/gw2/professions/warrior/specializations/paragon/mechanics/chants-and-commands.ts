@@ -5,7 +5,7 @@
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { applyWarriorSkillResource, gainWarriorAdrenaline } from '#gw2/professions/warrior/family-state.js';
@@ -37,8 +37,7 @@ function emitParagonState(context: WarriorSchedulerContext, at: number, reason: 
       activeRefrainId: state.activeRefrainId,
       // Retain the event's public label while resolver gameplay follows only the ID.
       activeRefrain:
-        state.activeRefrainId == null ? '' : context.catalog.skillsById.get(state.activeRefrainId)?.name || '',
-      nextRefrainAt: state.nextRefrainAt
+        state.activeRefrainId == null ? '' : context.catalog.skillsById.get(state.activeRefrainId)?.name || ''
     }
   });
 }
@@ -61,10 +60,9 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
   if (context.action.cancelled) return;
   const at = context.effectiveEnd;
   const state = paragonState.from(context);
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const chants = balanceProfileFromContext(context, PROFILE.chants);
   state.activeRefrainId = skill.id;
-  state.nextRefrainAt = at + Number(resources?.pulseInterval ?? 3);
+  startRefrain(context, at);
   gainMotivation(
     context,
     Number(chants?.resourceGain ?? 4) +
@@ -225,7 +223,6 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   const skill = state.activeRefrainId == null ? undefined : context.catalog.skillsById.get(state.activeRefrainId);
   if (!skill) {
     state.activeRefrainId = null;
-    state.nextRefrainAt = 0;
     emitParagonState(context, at, 'refrain-missing');
     return;
   }
@@ -278,21 +275,30 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
     gainWarriorAdrenaline(context, (motivation - state.motivation) * Number(profile?.resourceGain ?? 1));
   }
 
-  if (state.motivation > 0) {
-    state.nextRefrainAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
-  } else {
-    state.activeRefrainId = null;
-    state.nextRefrainAt = 0;
-  }
+  if (state.motivation <= 0) state.activeRefrainId = null;
 
   emitParagonState(context, at, 'refrain-pulse');
 }
 
-export function advanceParagon(context: WarriorSchedulerContext, target: number): void {
-  const state = paragonState.from(context);
-  while (state.activeRefrainId && state.motivation > 0 && state.nextRefrainAt <= target + EPSILON) {
-    pulseRefrain(context, state.nextRefrainAt);
+// One keyed refrain reads the pre-spend Motivation tier and stops when the active chant runs dry.
+export const refrains = timedEffect<WarriorSchedulerContext, object>({
+  id: 'warrior.paragon-refrain',
+  priority: -200,
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3),
+  effectsAt(context, at) {
+    const state = paragonState.from(context);
+    if (!state.activeRefrainId || state.motivation <= 0) return false;
+    pulseRefrain(context, at);
+    if (!state.activeRefrainId || state.motivation <= 0) return false;
   }
+});
+
+function startRefrain(context: WarriorSchedulerContext, at: number): void {
+  refrains.start(context, {
+    key: 'refrain',
+    at: at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3),
+    captured: {}
+  });
 }
 
 export function observeParagonEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
@@ -305,7 +311,7 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
   gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.callToAction)?.resourceGain ?? 4));
   if (!state.activeRefrainId) {
     state.activeRefrainId = ID.CHANT_OF_ACTION;
-    state.nextRefrainAt = event.at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3);
+    startRefrain(context, event.at);
   }
 
   emitParagonState(context, event.at, 'call-to-action');

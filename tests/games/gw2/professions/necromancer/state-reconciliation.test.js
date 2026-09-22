@@ -98,7 +98,7 @@ test('Ritualist snapshots preserve Bond cadence and independent weapon-spell spe
   handleNecromancerStateEvent(context, { at: 1.5, state: snapshot });
   assert.equal(ritualist.painfulBondUntil, 5);
   assert.equal(ritualist.painfulBondPulseAnchorAt, anchor);
-  assert.equal(queued.filter((event) => event.mode === 'tick').length, 1);
+  assert.equal(queued.filter((event) => event.type === 'necromancer.painful-bond-pulse').length, 1);
   assert.equal(ritualist.weaponSpells.splinter, spell);
   assert.equal(spell.recipients.player.charges, 2);
   assert.equal(spell.recipients['spirit:1'].charges, 1);

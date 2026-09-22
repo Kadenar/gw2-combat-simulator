@@ -37,19 +37,19 @@ import {
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { galeshotMissileReaction } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { galeshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import { handleNecromancerPainfulBond } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
+import {
+  handleNecromancerPainfulBond,
+  painfulBondPulses
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { minionActions } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
-import {
-  reactToRighteousInstincts,
-  handleRighteousInstinctsTick
-} from '#gw2/professions/guardian/core/traits/radiance.js';
+import { reactToRighteousInstincts, righteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
 import { handleSymbolOfIgnitionField, reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
 import { dragonhunterEventHandlers } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
 import { projectDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { handleSkrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import { skrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 
@@ -179,7 +179,8 @@ test('Painful Bond duration stacking and damage use exact exclusive tick expiry'
   assert.equal(specialization(context).painfulBondUntil, 2.04);
   for (const at of [2.039999, 2.04, 2.040001]) {
     context.events.length = 0;
-    handleNecromancerPainfulBond(context, { mode: 'tick', at });
+    painfulBondPulses.start(context, { key: 'boundary', at, captured: {} });
+    painfulBondPulses.eventHandlers['necromancer.painful-bond-pulse'](context, context.events.pop());
     assert.equal(
       context.events.some((event) => event.type === 'damage'),
       at < 2.04
@@ -255,8 +256,8 @@ test('Righteous Instincts extends Resolution at the last live microsecond and st
   assert.equal(context.events.length, 0, 'extension must not restart the cadence');
   for (const at of [2.039999, 2.04, 2.040001]) {
     context.events.length = 0;
-    state.righteousNextMightAt = at;
-    handleRighteousInstinctsTick(context, { at });
+    righteousInstincts.start(context, { key: 'resolution', at, captured: {} });
+    righteousInstincts.eventHandlers['guardian.righteous-instincts-tick'](context, context.events.pop());
     assert.equal(
       context.events.some((event) => event.kind === 'might'),
       at < 2.04
@@ -371,7 +372,10 @@ test('Skritt Scuffle allows the final pilfer without a grace period', () => {
   for (const at of [15, 15.000001]) {
     const context = contextFor(thiefProfession, 'Antiquary');
     specialization(context).artifactUsesRemaining = 0;
-    handleSkrittScuffle(context, { at, payload: { expiresAt: 15 } });
+    context.tasks.cancel = () => {};
+
+    skrittScuffle.start(context, { at, captured: { expiresAt: 15 } });
+    skrittScuffle.taskHandlers['thief.skritt-scuffle'](context, context.events.pop());
     assert.equal(specialization(context).artifactUsesRemaining > 0, at === 15);
   }
 });

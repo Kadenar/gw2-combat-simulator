@@ -1,3 +1,4 @@
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -346,17 +347,24 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
 
   // Advancing to the deadline precedes its strikes; retain charges until those have resolved.
   expireCharges(state.ashes, target, true);
+}
 
-  // Passive courage aegis is firebrand-only; skip early for other specs to
-  // avoid emitting aegis that shouldn't exist on dragonhunter/core guardian.
+// Page regeneration remains a resource clock; passive Aegis owns a separate fixed cadence.
+export function initializeTomeCourage(context: GuardianSchedulerContext): void {
   if (selectedGuardianSpecialization({ config: context.config }) !== 'Firebrand') return;
-  const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
-  const passiveCourage = balanceProfileFromContext(context, PROFILE.passiveCourage);
-  const aegis = balanceProfileEffect(passiveCourage, 'boon');
-  const interval = Number(passiveCourage?.pulseInterval ?? 40);
-  // Zero disables periodic Aegis without trapping resource advancement in a same-time loop.
-  while (interval > 0 && courage && state.nextCourageAegisAt <= target + EPSILON) {
-    const at = state.nextCourageAegisAt;
+  if (Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40) > 0)
+    tomeCourage.start(context, { at: 0, captured: {} });
+}
+
+export const tomeCourage = timedEffect<GuardianSchedulerContext, object>({
+  id: 'guardian.firebrand.passive-courage',
+  priority: -200,
+  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40),
+  effectsAt(context, at) {
+    const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
+    const passiveCourage = balanceProfileFromContext(context, PROFILE.passiveCourage);
+    const aegis = balanceProfileEffect(passiveCourage, 'boon');
+    if (!courage) return false;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
     // the tome was recently activated), unless Stoic Demeanor overrides that
     // suppression window.
@@ -377,10 +385,8 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
         duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 40))
       });
     }
-
-    state.nextCourageAegisAt += interval;
   }
-}
+});
 
 /**
  * Consumes an available Ashes of the Just charge on an eligible player strike

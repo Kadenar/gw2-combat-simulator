@@ -1,4 +1,5 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -7,8 +8,7 @@ import type {
   MesmerAddEvent,
   MesmerInstrument,
   MesmerRuntimeState,
-  MesmerSchedulerContext,
-  MesmerSchedulerTask
+  MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -74,22 +74,6 @@ function equippedSignetOfIllusions(context: MesmerSchedulerContext): MesmerSkill
 }
 
 /**
- * Replaces any pending Signet of Illusions passive task with one at the
- * requested timestamp.
- */
-function scheduleSignetIllusionsPassive(context: MesmerSchedulerContext, at: number): void {
-  if (!equippedSignetOfIllusions(context)) return;
-  context.tasks.cancelOwner(SIGNET_ILLUSIONS_OWNER);
-  context.tasks.schedule({
-    type: 'mesmer.signet-illusions-passive',
-    at: Math.max(context.state.time, Number(at)),
-    priority: -20,
-    ownerId: SIGNET_ILLUSIONS_OWNER,
-    payload: {}
-  });
-}
-
-/**
  * Restarts Signet of Illusions' passive interval after both the supplied time
  * and the signet's current cooldown.
  */
@@ -97,43 +81,45 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
   const skill = equippedSignetOfIllusions(context);
   if (!skill) return;
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  scheduleSignetIllusionsPassive(
-    context,
-    Math.max(Number(activeAt), readyAt) +
-      balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
-  );
+  signetIllusionsPassive.start(context, {
+    key: SIGNET_ILLUSIONS_OWNER,
+    at: Math.max(
+      context.state.time,
+      Math.max(activeAt, readyAt) +
+        balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
+    ),
+    captured: {}
+  });
 }
 
 /**
  * Grants Signet of Illusions' passive resource when available or defers the
  * pulse until its cooldown and combat-start requirements are satisfied.
  */
-export function handleSignetIllusionsPassiveTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'signetIllusionsPassive'>
-): void {
-  const runtime = mesmerRuntimeFor(context);
-  const skill = equippedSignetOfIllusions(context);
-  if (!skill) return;
-  if (context.hasExplicitCombatStart && context.combatStartTime == null) return;
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt > task.at + EPSILON) {
-    restartSignetIllusionsPassive(context, readyAt);
-    return;
-  }
+export const signetIllusionsPassive = timedEffect<MesmerSchedulerContext, object>({
+  id: SIGNET_ILLUSIONS_OWNER,
+  priority: -20,
+  interval: (context) => balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10),
+  effectsAt(context, at) {
+    const runtime = mesmerRuntimeFor(context);
+    const skill = equippedSignetOfIllusions(context);
+    if (!skill) return false;
+    if (context.hasExplicitCombatStart && context.combatStartTime == null) return false;
+    const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+    if (readyAt > at + EPSILON) {
+      restartSignetIllusionsPassive(context, readyAt);
+      return;
+    }
 
-  runtime.resources.gainResources(
-    task.at,
-    balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
-    runtime.activePrimaryWeapon(),
-    skill.name,
-    { sourceSkillId: skill.id }
-  );
-  scheduleSignetIllusionsPassive(
-    context,
-    task.at + balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
-  );
-}
+    runtime.resources.gainResources(
+      at,
+      balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
+      runtime.activePrimaryWeapon(),
+      skill.name,
+      { sourceSkillId: skill.id }
+    );
+  }
+});
 
 /** Runs skill-authored Core mechanics at their resolved scheduler timestamps. */
 export const mesmerCoreSignetSkillMechanicHandlers = Object.freeze({
