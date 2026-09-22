@@ -15,12 +15,7 @@ import type {
   MesmerPhantasmPolicy,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type {
-  MesmerConditionEffect,
-  MesmerDamageGroup,
-  MesmerSkill,
-  MesmerStrikeEffect
-} from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerPhantasmExecution {
   readonly skill: MesmerSkill;
@@ -49,7 +44,7 @@ export interface MesmerPhantasmExecution {
 }
 
 export interface MesmerPhantasmStrikeResult {
-  readonly damageGroup: MesmerDamageGroup;
+  readonly damageGroup: Partial<MesmerStrikeEffect>;
   readonly initialHitTimes: readonly number[];
   readonly repeatHitTimes: readonly number[];
 }
@@ -282,14 +277,14 @@ export function createPhantasmEffectController({
     group: MesmerStrikeEffect,
     castStart: number
   ): MesmerPhantasmStrikeResult => {
-    const sourcedGroup: MesmerDamageGroup = {
+    const sourcedGroup: Partial<MesmerStrikeEffect> = {
       ...group,
       source: 'Phantasm',
       actorType: 'summon',
       summonKind: 'phantasm'
     };
     const baseTicks = sourcedGroup.ticks?.length ? sourcedGroup.ticks : null;
-    const damageGroup: MesmerDamageGroup = {
+    const damageGroup: Partial<MesmerStrikeEffect> = {
       ...sourcedGroup,
       ...(baseTicks
         ? {

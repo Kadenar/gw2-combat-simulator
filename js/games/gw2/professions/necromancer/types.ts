@@ -95,14 +95,11 @@ export type NecromancerPrecastContext = CastContext<NecromancerRuntimeState> & {
   readonly config: NecromancerConfig;
 };
 
-export type NecromancerRechargeModifierContext = Omit<SchedulerContext<NecromancerRuntimeState>, 'config'> & {
+/** Shares skill-rule inputs across recharge and ammo hooks, including minion-death recharge handling. */
+export type NecromancerSkillModifierContext = Omit<SchedulerContext<NecromancerRuntimeState>, 'config'> & {
   readonly config: NecromancerConfig;
   readonly skill?: NecromancerSkill;
   readonly minionDeathRecharge?: boolean;
-};
-
-export type NecromancerAmmoModifierContext = NecromancerRechargeModifierContext & {
-  readonly skill?: NecromancerSkill;
 };
 
 export type NecromancerSimulationEvent = SimulationEvent & {
@@ -118,17 +115,12 @@ export type NecromancerSimulationEvent = SimulationEvent & {
 
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly application?: NecromancerResolverEvent;
-  readonly coefficient?: number;
   readonly state?: Partial<NecromancerState>;
-  readonly summonKind?: string;
   readonly summonCount?: number;
   readonly summonOwner?: string;
   readonly summonOwnerBase?: string;
-  readonly summonBasePower?: number;
-  readonly summonDamagePerCoefficient?: number;
   readonly summonCriticalChance?: number;
   readonly summonCriticalDamage?: number;
-  readonly independentSummonStrike?: boolean;
   readonly requiresMinion?: string;
   readonly requiresMinionIndex?: number;
   readonly requiresMinionGeneration?: number;

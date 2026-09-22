@@ -152,8 +152,6 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly ashes?: ChargeGrant;
   readonly ashesBurnDuration?: number;
   readonly automatic?: boolean;
-  readonly cooldownReduction?: number;
-  readonly duration?: number;
   readonly burningDuration?: number;
   readonly isSymbol?: boolean;
   readonly justiceActive?: boolean;
@@ -165,7 +163,6 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly radiantForgeEndsAt?: number;
   readonly radiantForgeEnteredAt?: number;
   readonly radiantWeapon?: string;
-  readonly sourceSkill?: string;
   readonly tetherUntil?: number;
   readonly virtue?: GuardianVirtue;
 };

@@ -16,11 +16,7 @@ export interface RandomDistributionJobRequest extends RandomDistributionRequest,
 
 export interface RandomDistributionOptions {
   readonly includeSamples?: boolean;
-  readonly onProgress?: (progress: {
-    readonly completed: number;
-    readonly total: number;
-    readonly percent: number;
-  }) => void;
+  readonly onProgress?: (progress: RandomDistributionProgress) => void;
 }
 
 export interface RandomDistributionProgress {

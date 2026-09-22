@@ -1,5 +1,8 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
-import type { RandomDistributionSummary } from '#gw2/app/simulation/random-distribution/types.js';
+import type {
+  RandomDistributionProgress,
+  RandomDistributionSummary
+} from '#gw2/app/simulation/random-distribution/types.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { bindDialog, showDialog } from '#app/page/dialog.js';
@@ -92,12 +95,6 @@ export interface ResultContribution {
   readonly icon?: string;
 }
 
-export interface ResultRandomDistributionProgress {
-  readonly completed?: number;
-  readonly total?: number;
-  readonly percent?: number;
-}
-
 export interface RotationResultsModel {
   readonly metrics?: readonly ResultMetric[];
   readonly summaryPlaceholder?: boolean;
@@ -114,7 +111,8 @@ export interface RotationResultsModel {
   readonly randomDistributionRequested?: boolean;
   readonly randomDistributionStale?: boolean;
   readonly randomDistributionTrials?: number;
-  readonly randomDistributionProgress?: ResultRandomDistributionProgress | null;
+  /** Accepts partial progress while the view fills in counts and percentages during a run. */
+  readonly randomDistributionProgress?: Partial<RandomDistributionProgress> | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
   /** Recorded activations with timestamps relative to the same DPS window as the charts. */

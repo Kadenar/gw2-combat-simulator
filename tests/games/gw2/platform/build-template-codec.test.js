@@ -32,7 +32,6 @@ test('GW2 build templates resolve Elementalist palette IDs to stable catalog ski
     Utility3: 'Signet of Fire',
     Elite: 'Glyph of Elementals'
   });
-  assert.deepEqual(resolved.weaponCandidates, ['Scepter', 'Warhorn', 'Dagger']);
   assert.deepEqual(resolved.weaponOptions, [
     ['Scepter', 'Warhorn'],
     ['Scepter', 'Dagger'],
@@ -68,7 +67,6 @@ test('the generic decoder also resolves the supplied Engineer template', () => {
     Utility3: 'Flamethrower',
     Elite: 'Flux State'
   });
-  assert.deepEqual(resolved.weaponCandidates, ['Spear', 'Pistol']);
   assert.deepEqual(resolved.weaponOptions, [
     ['Spear', ''],
     ['Pistol', 'Pistol']

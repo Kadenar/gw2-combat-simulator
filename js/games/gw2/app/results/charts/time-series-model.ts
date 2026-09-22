@@ -33,7 +33,6 @@ export interface ChartEffectSummary {
   readonly maximumStacks?: number;
   readonly maximumStackUptime?: number;
   readonly generation?: BoonGeneration;
-  readonly durationStacking: boolean;
 }
 
 export interface ChartSeries {
@@ -368,8 +367,7 @@ export function buildTimeSeries(
       ...(maximumStacks == null || durationStacking
         ? {}
         : { maximumStacks, maximumStackUptime: maximumMs / durationMs }),
-      ...(generation.has(name) ? { generation: generation.get(name)!.self } : {}),
-      durationStacking
+      ...(generation.has(name) ? { generation: generation.get(name)!.self } : {})
     };
   }
 

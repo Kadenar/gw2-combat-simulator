@@ -22,7 +22,7 @@ import { necromancerCastRules } from '#gw2/professions/necromancer/core/mechanic
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
-  NecromancerRechargeModifierContext,
+  NecromancerSkillModifierContext,
   NecromancerSkill,
   NecromancerState
 } from '#gw2/professions/necromancer/types.js';
@@ -291,7 +291,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
 ]);
 
 /** Applies Core skill-family recharge traits while preserving minion-death recharge exceptions. */
-function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
+function modifyNecromancerCoreRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
   let result = duration;
   const skill = context.skill;
   if (skill?.rechargeOnMinionDeath && !context.minionDeathRecharge) return 0;

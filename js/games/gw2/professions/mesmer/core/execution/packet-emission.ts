@@ -16,12 +16,7 @@ import type {
   MesmerPhantasmExecution
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 
-import type {
-  MesmerConditionEffect,
-  MesmerDamageGroup,
-  MesmerSkill,
-  MesmerStrikeEffect
-} from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerSkillDamageResult {
   readonly firstFencerTriggerAt: number;
@@ -67,7 +62,7 @@ export function createSkillDamageController({
       group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
     // Mesmer's replacing handler materializes its own packets, so project the
     // same Quickness-authored timing that the shared scheduler would use.
-    const timedGroup: MesmerDamageGroup =
+    const timedGroup: Partial<MesmerStrikeEffect> =
       castScale === 1
         ? group
         : {
@@ -82,12 +77,12 @@ export function createSkillDamageController({
                 }
               : {})
           };
-    const damageGroup: MesmerDamageGroup = {
+    const damageGroup: Partial<MesmerStrikeEffect> = {
       ...timedGroup,
       source: 'Player'
     };
     const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
-    const emittedAt = (origin: number, effect: MesmerDamageGroup): readonly number[] =>
+    const emittedAt = (origin: number, effect: Partial<MesmerStrikeEffect>): readonly number[] =>
       addDamage(skill, origin, effect).map((event) => event.at);
     if (fixedTicks?.length) {
       const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;

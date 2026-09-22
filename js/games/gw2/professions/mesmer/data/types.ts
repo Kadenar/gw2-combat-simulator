@@ -39,10 +39,6 @@ export interface MesmerConditionEffect extends ConditionEffect {
   readonly phantasmEntityIndex?: number;
 }
 
-export type MesmerDamageGroup = Partial<MesmerStrikeEffect> & {
-  readonly type?: 'strike';
-};
-
 export interface MesmerConditionApplication {
   readonly metadata?: EffectMetadata;
   readonly name: string;
@@ -104,7 +100,7 @@ export interface MesmerEventExtra {
 export type MesmerSkillEffect =
   MesmerStrikeEffect | MesmerConditionEffect | Exclude<SkillEffect, StrikeEffect | ConditionEffect>;
 
-export type MesmerTrackedHitDamage = MesmerDamageGroup & {
+export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly duration: number;
   readonly hitsRequired: number;
   readonly name: string;

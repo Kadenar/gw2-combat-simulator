@@ -13,7 +13,6 @@ import { clamp } from '#kernel/core/numeric.js';
 
 export interface RotationComparisonMetrics {
   readonly timeMs: number | null;
-  readonly maximumTimeMs: number;
   readonly referenceDps: number;
   readonly currentDps: number;
   readonly dpsDifference: number;
@@ -57,6 +56,7 @@ export function rotationComparisonMetricsFromSeries(
   currentSeries: ChartSeries,
   previewTimeMs: number | null
 ): RotationComparisonMetrics {
+  // Compare preview samples only within the time span shared by both rotations.
   const maximumTimeMs = Math.min(referenceSeries.durationMs, currentSeries.durationMs);
   const timeMs = previewTimeMs == null ? null : clamp(Number(previewTimeMs) || 0, 0, maximumTimeMs);
   const referenceDps = timeMs == null ? Number(referenceResult.dps || 0) : chartValueAt(referenceSeries.dps, timeMs);
@@ -72,7 +72,6 @@ export function rotationComparisonMetricsFromSeries(
 
   return {
     timeMs,
-    maximumTimeMs,
     referenceDps,
     currentDps,
     dpsDifference: currentDps - referenceDps,

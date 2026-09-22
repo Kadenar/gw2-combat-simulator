@@ -20,11 +20,8 @@ import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/g
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
-type GuardianRechargeModifierContext = GuardianSchedulerContext & {
-  readonly skill?: GuardianSkill;
-};
-
-type GuardianAmmoModifierContext = GuardianSchedulerContext & {
+/** Supplies the same skill and scheduler state to recharge and ammo trait rules. */
+type GuardianSkillModifierContext = GuardianSchedulerContext & {
   readonly skill?: GuardianSkill;
 };
 
@@ -307,7 +304,7 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
-function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext, duration: number): number {
+function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, duration: number): number {
   const skill = context.skill;
   let result = duration;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
@@ -333,7 +330,7 @@ function modifyGuardianRechargeDuration(context: GuardianRechargeModifierContext
   return result;
 }
 
-function modifyGuardianMaximumAmmo(context: GuardianAmmoModifierContext, maximum: number): number {
+function modifyGuardianMaximumAmmo(context: GuardianSkillModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
     result = Math.max(result, Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.maximumStacks ?? 2));

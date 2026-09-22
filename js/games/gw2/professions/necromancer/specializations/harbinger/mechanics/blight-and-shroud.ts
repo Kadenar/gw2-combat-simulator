@@ -23,7 +23,7 @@ import {
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
-  NecromancerRechargeModifierContext,
+  NecromancerSkillModifierContext,
   NecromancerSimulationEvent,
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -179,7 +179,7 @@ function activeBlight(context: Gw2ModifierContext): number {
 }
 
 /** Applies Dark Gunslinger's pistol recharge reduction. */
-function modifyHarbingerRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
+function modifyHarbingerRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
   return context.skill?.weapon === 'Pistol' && hasTrait(context, TRAIT.DARK_GUNSLINGER)
     ? duration * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.rechargeMultiplier ?? 0.8)
     : duration;

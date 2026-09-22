@@ -57,7 +57,7 @@ import type { MesmerMirageController } from '#gw2/professions/mesmer/specializat
 
 import type {
   MesmerConditionApplication,
-  MesmerDamageGroup,
+  MesmerStrikeEffect,
   MesmerEventExtra,
   MesmerSkill
 } from '#gw2/professions/mesmer/data/types.js';
@@ -310,7 +310,7 @@ export type MesmerAddCondition = (
 export type MesmerAddDamage = (
   skill: Skill,
   at: number,
-  group: MesmerDamageGroup,
+  group: Partial<MesmerStrikeEffect>,
   extra?: MesmerEventExtra
 ) => readonly SimulationEvent[];
 

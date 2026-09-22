@@ -16,12 +16,9 @@ import {
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
-  NecromancerAmmoModifierContext,
-  NecromancerRechargeModifierContext
-} from '#gw2/professions/necromancer/types.js';
-import type {
   NecromancerPrecastContext,
   NecromancerSchedulerContext,
+  NecromancerSkillModifierContext,
   NecromancerSimulationEvent,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
@@ -60,7 +57,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 }
 
 // Apply Sand Savant's recharge penalty only to Manifest Sand Shade.
-function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierContext, duration: number): number {
+function modifyScourgeRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
   // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
     ? duration * Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.rechargePenalty ?? 1.25)
@@ -68,7 +65,7 @@ function modifyScourgeRechargeDuration(context: NecromancerRechargeModifierConte
 }
 
 // Collapse Manifest Sand Shade to Sand Savant's single-charge limit.
-function modifyScourgeMaximumAmmo(context: NecromancerAmmoModifierContext, maximum: number): number {
+function modifyScourgeMaximumAmmo(context: NecromancerSkillModifierContext, maximum: number): number {
   // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
     ? Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.maximumStacks ?? 1)

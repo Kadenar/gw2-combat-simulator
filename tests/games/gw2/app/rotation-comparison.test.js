@@ -241,7 +241,6 @@ test('final and timed metrics compare the correct endpoints at one elapsed time'
   assert.equal(timed.currentDamage, 500);
   assert.equal(timed.referenceDps, 150);
   assert.equal(timed.currentDps, 250);
-  assert.equal(timed.maximumTimeMs, 3000);
 });
 
 test('timed metrics clamp to the shorter window and avoid invalid zero-baseline percentages', () => {

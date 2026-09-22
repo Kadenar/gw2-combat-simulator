@@ -52,7 +52,6 @@ export interface ResolvedGw2BuildTemplate {
   readonly professionName: string;
   readonly specializations: readonly Gw2BuildSpecialization[];
   readonly selectedSkills: Readonly<Record<string, string>>;
-  readonly weaponCandidates: readonly string[];
   readonly weaponOptions: readonly Gw2BuildTemplateWeaponSet[];
   readonly weapons: Gw2BuildTemplateWeaponSet | null;
   readonly skillOverrides: readonly number[];
@@ -300,6 +299,7 @@ export function resolveGw2BuildTemplate(
     warnings.push(`Unknown weapon type ID ${weaponId}.`);
     return [];
   });
+  // Resolve decoded candidates into equipable choices for the import preview.
   const weaponOptions = inferredWeaponOptions(catalog, weaponCandidates, warnings);
   const weapons = weaponOptions[0] ?? null;
   if (decoded.skillOverrides.length) {
@@ -313,7 +313,6 @@ export function resolveGw2BuildTemplate(
     professionName: expectedProfession.name,
     specializations: Object.freeze(specializations),
     selectedSkills: Object.freeze(selectedSkills),
-    weaponCandidates: Object.freeze(weaponCandidates),
     weaponOptions,
     weapons,
     skillOverrides: decoded.skillOverrides,

@@ -122,10 +122,7 @@ export type ElementalistSimulationEvent = SimulationEvent & {
 export type ElementalistResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;
   readonly aura?: string;
-  readonly coefficient?: number;
-  readonly condition?: string;
   readonly fieldType?: string;
-  readonly sourceSkill?: string;
 };
 
 /** Resolver-phase runtime narrowed to Elementalist config and profession state. */
