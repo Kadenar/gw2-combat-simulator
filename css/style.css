@@ -3,6 +3,7 @@
 @import url('./charge-release-editor.css');
 @import url('./rotation-insertion-cursor.css');
 @import url('./rotation-timeline-size.css');
+@import url('./tooltips.css');
 @import url('./shared-ui.css');
 @import url('./build-editor.css');
 @import url('./workspace-loader.css');
