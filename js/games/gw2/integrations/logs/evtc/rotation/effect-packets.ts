@@ -14,15 +14,8 @@ import type {
 export const EFFECT_PACKET_TOLERANCE_MS = 80;
 
 export interface StrikePacketValidation {
-  readonly expectedCount: number;
-  readonly observedCount: number;
   readonly allObserved: boolean;
-  readonly anyObserved: boolean;
   readonly allObservedTimingExplicit: boolean;
-  readonly firstMissingOffsetMs: number | null;
-  readonly lastObservedOffsetMs: number | null;
-  readonly lastObservedExpectedOffsetMs: number | null;
-  readonly lastObservedCancelableExpectedOffsetMs: number | null;
   readonly observedCommittedDelayedPacket: boolean;
   readonly observedPostInterruptWithoutCommit: boolean;
 }
@@ -105,11 +98,8 @@ export function createStrikePacketMatcher(
         })
       : [];
     const used = new Set<number>();
-    const observedOffsets: number[] = [];
-    const observedExpectedOffsets: number[] = [];
-    const observedCancelableExpectedOffsets: number[] = [];
-    const observedExplicitTimings: boolean[] = [];
-    const missingOffsets: number[] = [];
+    // Used events count matched packets; explicit timing is checked only for those matches.
+    let matchedTimingsExplicit = true;
     let observedCommittedDelayedPacket = false;
     let observedPostInterruptWithoutCommit = false;
     for (const packet of packets) {
@@ -129,16 +119,11 @@ export function createStrikePacketMatcher(
             Math.abs(left.event.time - expectedTime) - Math.abs(right.event.time - expectedTime) ||
             left.eventIndex - right.eventIndex
         )[0];
-      if (!match) {
-        missingOffsets.push(packet.offsetMs);
-        continue;
-      }
+      if (!match) continue;
 
       used.add(match.eventIndex);
       const observedOffset = match.event.time - action.start;
-      observedOffsets.push(observedOffset);
-      observedExpectedOffsets.push(packet.offsetMs);
-      observedExplicitTimings.push(packet.timingExplicit);
+      matchedTimingsExplicit &&= packet.timingExplicit;
       const observedAfterInterrupt =
         (action.status === 'interrupted' || action.status === 'reduced') &&
         observedOffset >= Math.max(0, action.end - action.start) &&
@@ -150,24 +135,11 @@ export function createStrikePacketMatcher(
           observedPostInterruptWithoutCommit = true;
         }
       }
-
-      if (!packet.persistsAfterInterrupt) {
-        observedCancelableExpectedOffsets.push(packet.offsetMs);
-      }
     }
 
     const validation = {
-      expectedCount: packets.length,
-      observedCount: observedOffsets.length,
-      allObserved: packets.length > 0 && observedOffsets.length === packets.length,
-      anyObserved: observedOffsets.length > 0,
-      allObservedTimingExplicit: observedExplicitTimings.length > 0 && observedExplicitTimings.every(Boolean),
-      firstMissingOffsetMs: missingOffsets.length ? Math.min(...missingOffsets) : null,
-      lastObservedOffsetMs: observedOffsets.length ? Math.max(...observedOffsets) : null,
-      lastObservedExpectedOffsetMs: observedExpectedOffsets.length ? Math.max(...observedExpectedOffsets) : null,
-      lastObservedCancelableExpectedOffsetMs: observedCancelableExpectedOffsets.length
-        ? Math.max(...observedCancelableExpectedOffsets)
-        : null,
+      allObserved: packets.length > 0 && used.size === packets.length,
+      allObservedTimingExplicit: used.size > 0 && matchedTimingsExplicit,
       observedCommittedDelayedPacket,
       observedPostInterruptWithoutCommit
     };

@@ -5,7 +5,10 @@ import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integra
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
-import { missingInterruptCommitWarnings } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import {
+  createStrikePacketMatcher,
+  missingInterruptCommitWarnings
+} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
@@ -28,6 +31,37 @@ function context(profession, specialization, events, agents = log().agents) {
     timelineOriginMs: 0
   };
 }
+
+test('packet evidence distinguishes empty, partial, and explicitly timed matches', () => {
+  const explicit = { type: 'strike', atMs: 100 };
+  const implicit = { type: 'strike' };
+  // One damage event can prove only one packet, and unmatched packets do not affect matched timing evidence.
+  for (const [effects, eventCount, allObserved, allExplicit] of [
+    [[], 1, false, false],
+    [[explicit], 0, false, false],
+    [[explicit, implicit], 1, false, true],
+    [[explicit, explicit], 2, true, true],
+    [[implicit], 1, true, false],
+    [[explicit, implicit], 2, true, false]
+  ]) {
+    const c = context(
+      'mesmer',
+      'mirage',
+      Array.from({ length: eventCount }, () => event({ time: 200, skillId: 1000, value: 100 }))
+    );
+    c.catalog = { skills: [{ id: 1000, name: 'Mind Stab', castTimeMs: 100, effects }] };
+    const result = createStrikePacketMatcher(c)({
+      start: 100,
+      end: 200,
+      rawSkillId: 1000,
+      rawName: 'Mind Stab',
+      eventIndex: 0,
+      status: 'completed'
+    });
+    assert.equal(result.allObserved, allObserved);
+    assert.equal(result.allObservedTimingExplicit, allExplicit);
+  }
+});
 
 test('post-interrupt damage warns only when the replay actually retains a cancellation', () => {
   // A reduced raw marker can replay to completion; its damage is not discarded in that case.
