@@ -176,6 +176,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
   if (!rotation.length) {
     if (!readOnly) app.rotationSkillHighlightKey = null;
+    delete element.dataset.skillHighlightKey;
     element.classList.add('is-empty');
     element.innerHTML = `<div class="rot-empty">
             <strong>Build your rotation</strong>
@@ -254,9 +255,13 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
   const applySkillHighlight = (): void => {
     const skills = [...element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]')];
-    const key = app.rotationSkillHighlightKey;
+    const key = readOnly ? element.dataset.skillHighlightKey : app.rotationSkillHighlightKey;
     const active = !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
-    if (!active) app.rotationSkillHighlightKey = null;
+    if (!active) {
+      if (readOnly) delete element.dataset.skillHighlightKey;
+      else app.rotationSkillHighlightKey = null;
+    }
+
     skills.forEach((skill) => {
       const match = active && skill.dataset.skillHighlightKey === key;
       skill.classList.toggle('skill-highlight', match);
@@ -264,18 +269,23 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     });
   };
 
-  if (!readOnly) {
-    element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
-      if (skill.dataset.highlightBound === 'true') return;
-      skill.dataset.highlightBound = 'true';
-      skill.addEventListener('click', () => {
-        const key = skill.dataset.skillHighlightKey;
+  // Read-only timelines allow inspection, with a local selection that cannot change the editable timeline's highlight.
+  element.querySelectorAll<HTMLElement>('.rot-skill[data-skill-highlight-key]').forEach((skill) => {
+    if (skill.dataset.highlightBound === 'true') return;
+    skill.dataset.highlightBound = 'true';
+    skill.addEventListener('click', () => {
+      const key = skill.dataset.skillHighlightKey;
+      if (readOnly) {
+        if (element.dataset.skillHighlightKey === key) delete element.dataset.skillHighlightKey;
+        else element.dataset.skillHighlightKey = key || '';
+      } else {
         app.rotationSkillHighlightKey = app.rotationSkillHighlightKey === key ? null : key;
-        applySkillHighlight();
-      });
+      }
+
+      applySkillHighlight();
     });
-    applySkillHighlight();
-  }
+  });
+  applySkillHighlight();
 
   const procFilter = procElement?.querySelector<HTMLDetailsElement>('.proc-filter') || null;
   const activeProcVisibility = app.procVisibility || new Set();
