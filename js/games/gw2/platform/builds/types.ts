@@ -253,7 +253,6 @@ export type Gw2BuildExtraFieldDescriptors<TBuild extends Gw2CanonicalBuild = Gw2
 export interface Gw2SlotLoadoutContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   readonly build: TBuild;
   readonly specialization: string;
-  readonly catalog: CanonicalCatalog;
 }
 
 export interface Gw2SlotLoadout<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {

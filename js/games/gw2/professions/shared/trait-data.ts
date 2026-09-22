@@ -1,5 +1,3 @@
-export const DEFAULT_TRAITS = '1-1-1';
-
 export interface ProfessionTraitSelection {
   readonly name?: string;
   readonly traits?: string;
@@ -8,7 +6,6 @@ export interface ProfessionTraitSelection {
 
 export interface ProfessionTraitSpecialization<TTrait> {
   readonly name: string;
-  readonly elite?: boolean;
   readonly minorTraits: readonly TTrait[];
   readonly majorTraits: readonly (readonly TTrait[])[];
 }
@@ -21,9 +18,6 @@ export interface TraitMapContext {
 }
 
 export interface ProfessionTraitData<TTrait> {
-  readonly specializations: readonly string[];
-  readonly eliteSpecs: ReadonlySet<string>;
-  readonly coreSpecs: readonly string[];
   readonly traits: readonly TTrait[];
 
   getActiveTraits(selections?: readonly ProfessionTraitSelection[] | null): TTrait[];
@@ -80,7 +74,6 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
 
   const mappedSpecializations = catalogSpecializations.map((specialization) => ({
     name: specialization.name,
-    elite: specialization.elite === true,
 
     minorTraits: specialization.minorTraits.map((trait, tier) =>
       mapTrait(trait, {
@@ -102,16 +95,6 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
       )
     )
   }));
-
-  const specializations = Object.freeze(mappedSpecializations.map((specialization) => specialization.name));
-
-  const eliteSpecs = new Set(
-    mappedSpecializations.filter((specialization) => specialization.elite).map((specialization) => specialization.name)
-  );
-
-  const coreSpecs = Object.freeze(
-    mappedSpecializations.filter((specialization) => !specialization.elite).map((specialization) => specialization.name)
-  );
 
   const traits = Object.freeze(
     mappedSpecializations.flatMap((specialization) => [
@@ -151,9 +134,6 @@ export function createProfessionTraitData<TSourceTrait, TTrait = TSourceTrait>(
   }
 
   return Object.freeze({
-    specializations,
-    eliteSpecs,
-    coreSpecs,
     traits,
     getActiveTraits
   });

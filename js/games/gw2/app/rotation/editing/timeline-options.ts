@@ -111,7 +111,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   const isCombatStart = item.type === 'combat-start';
-  // Away-from-target and delayed-impact casts model precasts, so expose them only before the authored combat marker.
+  // Away-from-target and delayed-impact casts model precasts, so they apply only before the authored combat marker.
   const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
   const isPrecast = item.type === 'cast' && combatStartIndex > index;
   if (!skill && !isCombatStart) return false;
@@ -132,6 +132,9 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     !isCombatStart && step?.activationId
       ? (timelineImpactOffsets([step], results?.events || []).get(step.activationId) ?? null)
       : null;
+  // Targeting only moves or suppresses hostile packets, so it is offered only for precasts that schedule some;
+  // reading the simulated activation also covers damage emitted by skill handlers rather than declared effects.
+  const allowTargeting = isPrecast && Boolean(impactOffsetsMs?.length);
   // Hits before the authored marker are discarded, so precasts also show where they land relative to it.
   const combatStartAfterCastMs =
     isPrecast && step && results?.hasExplicitCombatStart && Number.isFinite(Number(results.combatStartTime))
@@ -166,7 +169,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skill}\n${targetImpact}` : targetImpact,
     impactOffsetsMs,
     combatStartAfterCastMs,
-    allowTargeting: isPrecast,
+    allowTargeting,
     offTarget: item.offTarget === true,
     impactDelayMs: item.impactDelayMs ?? null,
     onApply(timingMs, targeting) {
@@ -177,7 +180,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
         ...(behavior === 'concurrent'
           ? { concurrentOffsetMs: timingMs ?? undefined }
           : { interruptAfterMs: timingMs ?? undefined }),
-        ...(isPrecast
+        ...(allowTargeting
           ? {
               offTarget: targeting.offTarget ? true : undefined,
               impactDelayMs: targeting.impactDelayMs ?? undefined

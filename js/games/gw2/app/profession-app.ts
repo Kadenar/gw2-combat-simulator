@@ -27,7 +27,6 @@ import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#app/shell/rotation-workspace.js';
-import type { ShellSession } from '#app/shell/types.js';
 
 import type { BuildTemplatePreset, BuildTemplateSelection, ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type {
@@ -49,7 +48,7 @@ const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   run() {}
 });
 
-export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2CanonicalBuild, ProfessionAppResult> {
+export class ProfessionApp implements ProfessionAppState {
   readonly workspace: BuildWorkspace;
   readonly gameId: string;
   readonly contentId: string;
@@ -149,26 +148,6 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Canoni
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
-  }
-
-  get input(): Gw2CanonicalBuild {
-    return this.build;
-  }
-
-  get output(): ProfessionAppResult | null {
-    return this.results;
-  }
-
-  get inputRevision(): number {
-    return this.buildRevision;
-  }
-
-  get outputRevision(): number {
-    return this.resultRevision;
-  }
-
-  get status(): ProfessionAppState['simulationStatus'] {
-    return this.simulationStatus;
   }
 
   async init(): Promise<void> {

@@ -1,14 +1,4 @@
-import type { GameContentAddress } from '#app/game/contracts.js';
 import type { SimulationViewModel } from '#ui/results/simulation-view.js';
-
-/** Game-neutral state the shell needs to coordinate input and output revisions. */
-export interface ShellSession<TInput = unknown, TOutput = unknown> extends GameContentAddress {
-  readonly input: TInput;
-  readonly output: TOutput | null;
-  readonly inputRevision: number;
-  readonly outputRevision: number;
-  readonly status: 'idle' | 'queued' | 'running' | 'error';
-}
 
 /** One game-supplied editor section; the shell only orders and invokes contributions. */
 export interface BuildEditorContribution<TSession> {

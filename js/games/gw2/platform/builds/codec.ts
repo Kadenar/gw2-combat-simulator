@@ -199,8 +199,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
         migrated,
         slotLoadout.normalizeBuild(migrated, {
           build: migrated,
-          specialization,
-          catalog
+          specialization
         })
       );
     }
@@ -820,8 +819,7 @@ function validateCommonBuild(
       ...slotLoadout
         .validateBuild(candidate, {
           build: candidate,
-          specialization,
-          catalog
+          specialization
         })
         .map(String)
     );

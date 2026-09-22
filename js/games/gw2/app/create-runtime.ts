@@ -85,8 +85,7 @@ export function createProfessionRuntime({
         .selectedSkillIds({
           build: app.build,
           specialization: eliteSpecialization(app.build),
-          professionState: app.results?.planningState?.profession,
-          catalog
+          professionState: app.results?.planningState?.profession
         })
         .map((id) => catalog.skillsById.get(Number(id)))
         .filter((skill): skill is Skill => skill != null);

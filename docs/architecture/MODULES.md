@@ -134,7 +134,7 @@ The `js/games/gw2/app/` root holds only the composition root. Everything else li
 
 | Module                   | Responsibility                                 |
 | ------------------------ | ---------------------------------------------- |
-| `profession-app.ts`      | Session class; implements `ShellSession`       |
+| `profession-app.ts`      | Session class; implements `ProfessionAppState` |
 | `profession-registry.ts` | Lazy registry of every profession              |
 | `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
 | `create-adapter.ts`      | Composes native profession browser adapters    |

@@ -48,14 +48,12 @@ export interface ProfessionSlotLoadout {
       readonly build: Gw2CanonicalBuild;
       readonly specialization: string;
       readonly professionState?: unknown;
-      readonly catalog: CanonicalCatalog;
     }
   ): Partial<Gw2CanonicalBuild>;
   selectedSkillIds(context: {
     readonly build: Gw2CanonicalBuild;
     readonly specialization: string;
     readonly professionState?: unknown;
-    readonly catalog: CanonicalCatalog;
   }): readonly SkillId[];
   skillChildren?(context: ProfessionSlotLoadoutContext, skillId: SkillId): readonly SkillId[];
   paletteGroups(context: ProfessionSlotLoadoutContext): ProfessionPaletteGroup[];

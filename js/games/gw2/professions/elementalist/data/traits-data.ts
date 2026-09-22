@@ -3,12 +3,4 @@ import type { Gw2ApiTrait } from '#gw2/platform/profession-definition/api-metada
 
 import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js';
 
-export { DEFAULT_TRAITS } from '#gw2/professions/shared/trait-data.js';
-
-export const {
-  specializations: SPECIALIZATIONS,
-  eliteSpecs: ELITE_SPECS,
-  coreSpecs: CORE_SPECS,
-  traits: TRAITS,
-  getActiveTraits
-} = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);
+export const { traits: TRAITS, getActiveTraits } = createProfessionTraitData<Gw2ApiTrait>(CATALOG_SPECIALIZATIONS);

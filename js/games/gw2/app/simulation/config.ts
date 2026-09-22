@@ -129,8 +129,7 @@ export function createGw2SimulationConfig({
           .selectedSkillIds({
             build: app.build,
             specialization,
-            professionState: app.results?.planningState?.profession,
-            catalog: app.activeCatalog || app.profession.catalog
+            professionState: app.results?.planningState?.profession
           })
           .map((id) => app.skillById.get(Number(id))?.name)
           .filter((name): name is string => name != null)
