@@ -80,7 +80,9 @@ export function timelineTargetImpactDetails(
 
 /**
  * Distinct cast-relative impact times in ascending milliseconds, keyed by activation. Packets sharing a timestamp
- * (a strike and its condition) form one hit, so editors can count how many hits land before Combat Start.
+ * (a strike and its condition) form one hit, so editors can count how many hits land before Combat Start. Only the
+ * cast's own packets count: procs it triggers (sigils, traits, relics) carry its lineage but are derived from a hit,
+ * so they follow that hit instead of being hits of the skill.
  */
 export function timelineImpactOffsets(
   steps: readonly SchedulerStep[],
@@ -90,6 +92,7 @@ export function timelineImpactOffsets(
   for (const event of events) {
     if (
       !event.activationId ||
+      event.causalOrder != null ||
       event.cancelled === true ||
       !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
       event.controlKind === 'initial-state'

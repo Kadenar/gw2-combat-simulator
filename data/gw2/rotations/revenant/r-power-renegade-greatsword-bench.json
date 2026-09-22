@@ -10,8 +10,7 @@
     },
     {
       "type": "cast",
-      "skillId": 45686,
-      "offTarget": true
+      "skillId": 45686
     },
     {
       "type": "cast",

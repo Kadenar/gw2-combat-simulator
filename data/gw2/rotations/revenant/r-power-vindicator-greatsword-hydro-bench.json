@@ -2,8 +2,7 @@
   "rotation": [
     {
       "type": "cast",
-      "skillId": 26937,
-      "offTarget": true
+      "skillId": 26937
     },
     {
       "type": "cast",
@@ -11,13 +10,11 @@
     },
     {
       "type": "cast",
-      "skillId": -5,
-      "offTarget": true
+      "skillId": -5
     },
     {
       "type": "cast",
-      "skillId": -5,
-      "offTarget": true
+      "skillId": -5
     },
     {
       "type": "wait",

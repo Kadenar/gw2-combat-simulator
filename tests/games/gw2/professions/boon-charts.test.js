@@ -28,7 +28,8 @@ for (const entry of professionRegistry) {
     const [skill, config, traits, boons] = cases[profession.id];
     const result = simulateGw2({
       profession,
-      rotation: [skill, { type: 'wait', durationMs: 1000 }],
+      // Scenarios begin in combat so combat-only traits, such as Zephyr's Boon on a self aura, are eligible.
+      rotation: [{ type: 'combat-start' }, skill, { type: 'wait', durationMs: 1000 }],
       config: {
         specialization: 'Core',
         ...config,

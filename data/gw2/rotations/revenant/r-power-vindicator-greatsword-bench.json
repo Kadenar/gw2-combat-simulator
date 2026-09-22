@@ -10,13 +10,11 @@
     },
     {
       "type": "cast",
-      "skillId": -5,
-      "offTarget": true
+      "skillId": -5
     },
     {
       "type": "cast",
-      "skillId": -5,
-      "offTarget": true
+      "skillId": -5
     },
     {
       "type": "wait",
