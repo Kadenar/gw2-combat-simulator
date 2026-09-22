@@ -101,14 +101,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'windForceGain'
 ]);
 
-// Timing and summon reference inputs belong to runtime mechanics, not balance-preview controls.
+// Timing inputs belong to runtime mechanics, not balance-preview controls.
 const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
-  'armGap',
-  'cycleGap',
-  'recoverySeconds',
-  'referencePower',
-  'referenceTargetArmor',
-
   'alternateEvery',
   'ammoCastLockout',
   'atMs',

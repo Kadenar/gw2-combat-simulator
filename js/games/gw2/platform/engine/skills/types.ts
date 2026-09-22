@@ -273,13 +273,6 @@ export interface BalanceProfile extends CatalogEntity {
   readonly powerCap?: number;
   readonly precisionCap?: number;
   readonly basePrecision?: number;
-  /** Summon attack spacing and command recovery, in seconds. */
-  readonly armGap?: number;
-  readonly cycleGap?: number;
-  readonly recoverySeconds?: number;
-  /** Reference attributes used to calibrate summon strike damage. */
-  readonly referencePower?: number;
-  readonly referenceTargetArmor?: number;
   readonly effects?: readonly SkillEffect[];
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;

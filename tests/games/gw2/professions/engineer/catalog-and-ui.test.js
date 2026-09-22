@@ -173,22 +173,8 @@ test('Mechanist profile overrides migrate without losing edits or bypassing vali
   assert.throws(() => validatePatchPreview(conflict), /edits both minimumStacks and secondaryAttributeCap/);
 });
 
-// Runtime cadence and calibration values cannot leak into the editor or be overridden through saved previews.
-test('Mechanist attack timing and reference inputs stay outside balance authoring', () => {
-  const id = 'engineer.mechanist.attack-timing';
-  assert.equal(engineerCatalog.balanceProfilesById.has(id), false);
-  const metadata = authoringEngineerProfession.patchAuthoring.modules.find((module) => module.id === 'Mechanist');
-  assert.equal(
-    [...metadata.balanceProfiles, ...metadata.skillVariants].some((entry) => entry.id === id),
-    false
-  );
-  for (const field of ['armGap', 'cycleGap', 'recoverySeconds', 'referencePower', 'referenceTargetArmor']) {
-    assert.throws(() =>
-      authoringEngineerProfession.validatePatch({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } })
-    );
-    assert.equal(JSON.stringify(metadata).includes(`"${field}":`), false);
-  }
-
+// Overclock Signet execution timing stays outside the profile's supported balance overrides.
+test('Overclock Signet runtime inputs stay outside balance authoring', () => {
   for (const field of ['firstHitDelay', 'pulseInterval', 'animationDuration']) {
     assert.throws(() =>
       authoringEngineerProfession.validatePatch({
